@@ -180,35 +180,32 @@ export default {
                 text: text,
             }
         },
-        generateCompetitors(teamList, reverse = false){
-            console.log(reverse);
-            const defaultOpponentIndex = this.activeRound === 0 ? teamList.length/2 : 1;
-            let opponentIndex = reverse ? teamList.length - 2 : defaultOpponentIndex;
-            const teamIndex = reverse ? teamList.length - 1 : 0;
-//            console.log(teamList, teamIndex, opponentIndex);
-            while(teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)){
-                reverse ? opponentIndex-- : opponentIndex++;
+        generateCompetitors(teamList, reverse = false){ //функция для распределения пар
+            const teamIndex = reverse ? teamList.length - 1 : 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
+            const defaultOpponentIndex = this.activeRound === 0 ? teamList.length/2 : 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
+            let opponentIndex = reverse ? teamList.length - 2 : defaultOpponentIndex; // даем соперника. В зависимости от флага - второй в списке или предпоследний
+            while(teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)){ // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
+                reverse ? opponentIndex-- : opponentIndex++; // если играли, то подбираем соперника следующего по списку в зависимости от флага
                 
-                if(!teamList[opponentIndex]){
+                if(!teamList[opponentIndex]){ // если не удалось подобрать соперника, так и говорим
                     opponentIndex = -1; 
                     return {teamIndex, opponentIndex};
                 }
             }
             console.log(opponentIndex);
-            return {teamIndex, opponentIndex};
+            return {teamIndex, opponentIndex}; // отдали пару
         },
         drawRound(){
             this.roundIsActive = true;
-            let round = [];
-            let teamsToDraw = [...this.rankingTeams];
-            let expandListIteration = 0;
-            let stopExpandIndex = teamsToDraw.length/2 - 1;
-            let teamsDrawed = [];
-            let competitors;
-            let game;
-            const isTechnical = teamsToDraw.length % 2 !== 0;
-            let technicalTeam = isTechnical ? teamsToDraw[teamsToDraw.length - 1] : null;
-            console.log(technicalTeam.opponents.includes('Technical'));
+            let round = []; // массив куда будем сохранять пары соперников
+            let teamsToDraw = [...this.rankingTeams]; //список команд, которые надо пожеребить
+            let expandListIteration = 0; // количество итераций, когда приходится увеличивать кол-во команд (понятно будет дальше)
+            let stopExpandIndex = teamsToDraw.length/2 - 1; // максимально возможное число, когда можно увеличивать список команд
+            let teamsDrawed = []; //массив с уже пожеребенными командами
+            let competitors; // пара которая получается в результате вызова generateCompetitors()
+            let game; // объект с соперниками
+            const isTechnical = teamsToDraw.length % 2 !== 0; // это только в случае нечетного кол-ва команд, сейчас не важно
+            let technicalTeam = isTechnical ? teamsToDraw[teamsToDraw.length - 1] : null;  // это только в случае нечетного кол-ва команд, сейчас не важно
             if(isTechnical){ //if has to be technical team
                 if(technicalTeam.opponents.includes('Technical')){
                     for(let i = 2; i < teamsToDraw.length; i++){
@@ -242,45 +239,37 @@ export default {
                 round.push(game);
                 teamsToDraw.splice(teamsToDraw.length   - 1, 1);
             }
-            console.log(JSON.stringify(this.teams));
-            while(teamsToDraw.length > 0){
-                competitors = this.generateCompetitors(teamsToDraw, expandListIteration > 0);
-                while(competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex){
-                    console.log(expandListIteration);
+            while(teamsToDraw.length > 0){ // вся магия здесь
+                competitors = this.generateCompetitors(teamsToDraw, expandListIteration > 0); // определили пару команд
+                while(competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex){ // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
                     expandListIteration++;
-                    round.splice(round.length - 1, 1);
-                    console.log(JSON.stringify(teamsDrawed));
-                    console.log(JSON.stringify(teamsToDraw));
-                    if(!teamsDrawed.length) {
-                        alert(111);
+                    round.splice(round.length - 1, 1); // => убираю предыдущую пожеребенную пару
+                    if(!teamsDrawed.length) { 
                         this.showMessage('Error', 'Sorry, shit happens');
                         return
                     }
-                    teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]);
+                    teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]); // => добавляю в список, который надо пожеребить две предыдущие команды
                     teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 2]);
-                    teamsDrawed.splice(teamsDrawed.length - 2, 2);
-                    console.log(JSON.stringify(teamsToDraw));
-                    competitors = this.generateCompetitors(teamsToDraw, true);
+                    teamsDrawed.splice(teamsDrawed.length - 2, 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
+                    competitors = this.generateCompetitors(teamsToDraw, true); // => ищу соперников начиная не с верха списка, а снизу 
                 }
                 
-                game = {
+                game = { // записали пару
                     team_1: teamsToDraw[competitors.teamIndex].title,
                     team_1_score: null,
                     team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
                     team_2_score: null
                 }
-                teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]);
-                let teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title];
-                console.log(teamsToDraw);
-                teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+                teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]); // добавили пару в массив с пожеребенными командами
+                let teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title]; 
+                teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title)); // удалили пожеребенные команды из массива, который ужно было пожеребить
                 
-                console.log(game, teamsToDraw);
                 if(game){
-                    round.push(game)
+                    round.push(game) // записали в раунд
                 } else {
                     console.log("Game is empty");
                 }
-            }
+            } // когда в массиве пожеребенных не осталось команд, заканчиваем цикл
             this.games.push(round);
         },
         sortTeams(teamsToSort){

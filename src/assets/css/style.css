@@ -38,7 +38,11 @@ body {
 }
 
 .game-row span {
-	flex: 0 0 33.333%;
+	flex: 0 0 calc(50% - 105px);
+}
+
+.game-row span.score-block {
+    flex-basis: 210px;
 }
 
 .game-row div {
@@ -90,4 +94,42 @@ body {
 .input.-small {
 	max-width: 70px;
 	margin: 0 10px;
+}
+
+#table-list {
+	counter-reset: teamlist;
+}
+
+#table-list tr {
+	counter-increment: teamlist;
+}
+
+#table-list tr td:first-child:before {
+	content: counter(teamlist)". ";
+}
+
+#table-ranking {
+	counter-reset: ranking;
+}
+
+.team-count:before {
+	counter-increment: ranking;
+    content: counter(ranking);
+}
+@media all and (max-width: 500px){
+    .game-row {
+        flex-direction: column;
+        border-bottom: solid 1px #ccc;
+        margin-bottom: 0;
+        padding: 15px 0;
+    }
+    
+    .game-row:last-child {
+        margin-bottom: 25px;
+    }
+    
+    .game-row span.score-block {
+        flex-basis: auto;
+        margin: 10px 0;
+    }
 }

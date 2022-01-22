@@ -17,7 +17,14 @@
 					<h2 v-if="teams.length">Current list</h2>
 					<table id="table-list" class="table" v-if="teams.length">
                         <tr v-for="team in teams" :key="team.title">
-                            <td>{{team.title}}</td>
+                            <td>{{team.title}}
+                               <div class="is-size-7" v-if="team.players.length > 1">(
+                                    <span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}} 
+                                       {{player.surname}}<span v-if="index < team.players.length - 1">, </span>
+                                    </span>
+                                    )
+                                </div>
+                            </td>
                             <td class="td-100" v-if="useRating">{{team.rating}}</td>
                             <td class="td-50" v-if="!games.length">
                                 <span class="delete" @click="removeTeam(team.title)"></span>
@@ -43,7 +50,7 @@
                     @update-games="updateGames" @update-teams="updateTeams"
                     @show-message="showMessage"/>
                 <Results v-if="activeTab === 'Results'" :results="games"/>
-				<Ranking v-if="activeTab === 'Ranking'" :showIfUseRating="useRating" :isPlayOff="isPlayOff" :rankingTeams="rankingTeams"/>
+				<Ranking v-if="activeTab === 'Ranking'" :showIfUseRating="useRating" :isPlayOff="isPlayOff" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
 			</div>
 			<div class="column is-one-third">
 				<img src="./assets/img/bg.jpg" alt="Petanque in Alps" class="image">
@@ -84,11 +91,21 @@ export default {
         
     },
     methods: {
+        shuffleArray(array) {
+          let currentIndex = array.length,  randomIndex;
+          while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [
+              array[randomIndex], array[currentIndex]];
+          }
+          return array;
+        },
         changeDrawStyle(value){
             this.useRating = value;
         },
         addRoundToGames(round){
-            this.games.push(round);
+            this.games.push(this.shuffleArray(round));
         },
         showMessage(title, text, type = 'success'){
             this.message = {
@@ -121,17 +138,21 @@ export default {
             });
             return whereCount;
         },
-        addTeam(title, rating){
+        addTeam(title, rating, players = false){
             if(title !== ''){
                 let teamExists = false;
                 this.teams.forEach(team => {
-                 teamExists = team.title === title
+                    if(team.title === title){
+                        teamExists = true;
+                    }
+                    
                 });
-                
+                console.log(teamExists);
                 if(!teamExists){
                    const team = {
                     title: title,
                     rating: rating,
+                    players: players,
                     wins: 0,
                     buhgolts: 0,
                     smallBuhgolts: 0,

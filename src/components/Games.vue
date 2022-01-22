@@ -10,15 +10,17 @@
            <h2 class="text-center">Round {{activeRound - 1}}</h2>
            <div class="games-list">
                 <div class="game-row" v-for="(game, index) in games[activeRound - 2]" :key="index">
-                    <span class="text-right">
+                    <span class="text-right team-block">
                         <label for="">{{game.team_1}}</label>
                     </span>
-                    <span class="text-center lh-40 score-block">
+                    <span class="text-center score-block">
                         <input v-model="game.team_1_score" class="input -small" type="number" :disabled = "game.team_2 === 'Technical'"> 
-                        vs 
+                        <span class="lane-block is-size-7">
+                            Lane <span class="is-size-5 has-text-weight-bold">{{index + 1}}</span>
+                        </span>
                         <input v-model="game.team_2_score" class="input -small" type="number" :disabled = "game.team_2 === 'Technical'">
                     </span>
-                    <span>
+                    <span class="team-block">
                         <label for="">{{game.team_2}}</label>
                     </span>
                 </div>
@@ -39,7 +41,7 @@
 export default {
     name: 'Games',
     props: ['roundIsActive', 'activeRound', 'gamesList', 'teamsList', 'teamsCount', 'useRating'],
-    emits: ['start-round', 'end-round', 'draw-round', 'update-teams', 'update-games', 'show-message'],
+    emits: ['start-round', 'end-round', 'draw-round', 'show-message', 'update-games', 'update-teams'],
     data(){
         return {
             games: this.gamesList,
@@ -47,12 +49,10 @@ export default {
         }
     },
     methods: {
-        getRandomWithOneExclusion(lengthOfArray, indexToExclude = null){
+        getRandomWithOneExclusion(lengthOfArray, indexToExclude = null){ // для определения рандомного соперника, если жеребим не по рейтингу
           let rand = null;
-            console.log(indexToExclude);
             while(rand === null || rand === indexToExclude){
                rand = Math.round(Math.random() * (lengthOfArray - 1));
-               console.log(rand)
             }
           return rand;
         },
@@ -61,7 +61,6 @@ export default {
             if(this.activeRound === 0 && !this.useRating){
                 teamIndex = this.getRandomWithOneExclusion(teamList.length);
                 opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
-                console.log(teamIndex, opponentIndex);
                 return {teamIndex, opponentIndex};
             } else {
                 teamIndex = reverse ? teamList.length - 1 : 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
@@ -75,7 +74,6 @@ export default {
                         return {teamIndex, opponentIndex};
                     }
                 }
-                console.log(opponentIndex);
                 return {teamIndex, opponentIndex}; // отдали пару
             }
             
@@ -115,22 +113,24 @@ export default {
                 while(competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex){ // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
                     expandListIteration++;
                     round.splice(round.length - 1, 1); // => убираю предыдущую пожеребенную пару
-                    if(!teamsDrawed.length) { 
-                        this.$emit('show-message', {title: 'Error', text : 'Sorry, shit happens', type: 'error'});
-                        return
-                    }
                     teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]); // => добавляю в список, который надо пожеребить две предыдущие команды
                     teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 2]);
                     teamsDrawed.splice(teamsDrawed.length - 2, 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
                     competitors = this.generateCompetitors(teamsToDraw, true); // => ищу соперников начиная не с верха списка, а снизу 
+                    console.log(competitors)
                 }
-                
+                console.log(teamsToDraw, competitors,expandListIteration, stopExpandIndex);
+                if(expandListIteration === stopExpandIndex && competitors.opponentIndex === -1){ // если пробежали сверху вниз и снизу вверх и не нашли пару
+                     this.$emit('show-message', 'Can\'t draw this round', 'Sorry, shit happens', 'error');
+                        return
+                }
                 game = { // записали пару
                     team_1: teamsToDraw[competitors.teamIndex].title,
                     team_1_score: null,
                     team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
                     team_2_score: null
                 }
+                console.log(game);
                 teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]); // добавили пару в массив с пожеребенными командами
                 let teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title]; 
                 teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title)); // удалили пожеребенные команды из массива, который ужно было пожеребить

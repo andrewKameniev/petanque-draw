@@ -1,5 +1,6 @@
 <template>
     <div class="content tabs-content">
+       <h2>Ranking after {{activeRound - 1}} round{{activeRound > 1 ? 's' : '' }}</h2>
         <table id="table-ranking" class="table">
             <thead>	
                 <tr>
@@ -7,7 +8,7 @@
                     <th>Team</th>
                     <th>Wins</th>
                     <th>Buh</th>
-                    <th>Sm Buh</th>
+                    <th>SBuh</th>
                     <th>Points</th>
                     <th v-if="showIfUseRating">Rating</th>
                 </tr>
@@ -16,10 +17,10 @@
                 <tr v-for="team in rankingTeams" :key="team.title">
                     <td><span class="team-count"></span></td>
                     <td>{{team.title}}</td>
-                    <td>{{team.wins}}</td>
-                    <td>{{team.buhgolts}}</td>
-                    <td>{{team.smallBuhgolts}}</td>
-                    <td>{{team.pointsPlus}}:{{team.pointsMinus}}</td>
+                    <td align="center">{{team.wins}}</td>
+                    <td align="center">{{team.buhgolts}}</td>
+                    <td align="center">{{team.smallBuhgolts}}</td>
+                    <td align="center">{{team.pointsPlus}}:{{team.pointsMinus}}</td>
                     <td v-if="showIfUseRating">{{team.rating}}</td>
                 </tr>
             </tbody>
@@ -46,11 +47,8 @@
 <script>
 export default {
     name: 'Ranking',
-    props: ['showIfUseRating', 'isPlayOff', 'rankingTeams'],
+    props: ['showIfUseRating', 'isPlayOff', 'rankingTeams', 'activeRound'],
     emits: ['is-playoff'],
-    mounted(){
-        console.log(this.showIfUseRating, this.isPlayOff, this.rankingTeams)
-    },
     methods: {
        runPlayOff(){
            

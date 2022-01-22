@@ -42,8 +42,8 @@ export default {
         changeDraw(value){
             this.$emit('change-draw-style', value)
         },
-        addTeam(title, rating){
-            this.$emit('add-team', title.trim(), rating);
+        addTeam(title, rating, players = false){
+            this.$emit('add-team', title.trim(), rating, players);
             this.teamTitle = null;
             this.teamRating = null;
         },
@@ -54,8 +54,7 @@ export default {
                 let importedList = await response.json();
 
                 importedList.teams.forEach(team => {
-                    console.log(team);
-                    this.addTeam(team.name, +team.power);
+                    this.addTeam(team.name, +team.power, team.players);
                 } )
 
             } else {

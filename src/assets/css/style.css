@@ -37,21 +37,19 @@ body {
 	flex-wrap: wrap;
 }
 
-.game-row span {
+.game-row span.team-block {
 	flex: 0 0 calc(50% - 105px);
 }
 
 .game-row span.score-block {
-    flex-basis: 210px;
+    flex: 0 0 210px;
+    display: flex;
+    align-items: center;
 }
 
 .game-row div {
 	flex: 0 0 100%;
 	margin-top: 10px;	
-}
-
-.lh-40 {
-	line-height: 40px;
 }
 
 .td-50 {
@@ -115,6 +113,13 @@ body {
 .team-count:before {
 	counter-increment: ranking;
     content: counter(ranking);
+}
+@media all and (min-width: 501px){
+    .lane-block {
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+    }
 }
 @media all and (max-width: 500px){
     .game-row {

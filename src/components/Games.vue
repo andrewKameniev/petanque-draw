@@ -26,8 +26,9 @@
                 </div>
             </div>
             <div class="text-center">
-                <button class="button is-success" @click="saveResults">Save results</button>
+                <button class="button is-success" @click="saveResults" :disabled=saveDisabled>Save results</button>
             </div>
+            <div class="has-text-danger mt-3" v-if="saveDisabled">There was an unexpectable error, sorry for that, you can write developer about it (contact in footer), but this will not help you in this situation:))</div>
         </div>
         <div v-else-if="games.length >= teamsCount">Rounds quantity can't be more than teams</div>
         <div v-else class="mb-5 mt-5">
@@ -45,7 +46,8 @@ export default {
     data(){
         return {
             games: this.gamesList,
-            teams: this.teamsList
+            teams: this.teamsList,
+            saveDisabled: false
         }
     },
     methods: {
@@ -121,6 +123,7 @@ export default {
                 }
                 console.log(teamsToDraw, competitors,expandListIteration, stopExpandIndex);
                 if(expandListIteration === stopExpandIndex && competitors.opponentIndex === -1){ // если пробежали сверху вниз и снизу вверх и не нашли пару
+                    this.saveDisabled = true
                      this.$emit('show-message', 'Can\'t draw this round', 'Sorry, shit happens', 'error');
                         return
                 }

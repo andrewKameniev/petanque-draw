@@ -1,6 +1,6 @@
 <template>
   <div class="container ">
-		<h1 class="title is-1 text-center">Petanque - swiss system <sup>Version Alpha</sup></h1>
+		<h1 class="title is-1 text-center">Petanque - swiss system <sup>Version Beta</sup></h1>
 		<div class="columns">
 			<div class="column">
 				<div class="tabs">
@@ -18,11 +18,9 @@
 					<table id="table-list" class="table" v-if="teams.length">
                         <tr v-for="team in teams" :key="team.title">
                             <td>{{team.title}}
-                               <div class="is-size-7" v-if="team.players.length > 1">(
-                                    <span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}} 
-                                       {{player.surname}}<span v-if="index < team.players.length - 1">, </span>
-                                    </span>
-                                    )
+                               <div class="is-size-7" v-if="team.players.length > 1">
+                                   (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}
+                                       {{player.surname}}<span v-if="index < team.players.length - 1">, </span></span>)
                                 </div>
                             </td>
                             <td class="td-100" v-if="useRating">{{team.rating}}</td>
@@ -35,29 +33,53 @@
                         Please, add team
 					</div>
 					<div class="field is-grouped">	
-                        <div class="control">
+                        <div class="control" v-if="teams.length">
                             <button class="button is-danger" @click="removeTournament">Remove tournament</button>
                         </div>
-                        <div class="control">
-                            <button class="button is-success" @click="saveTournament">Save tournament</button>
+                        <div class="control" v-if="games.length">
+                            <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
                         </div>
                     </div>
 				</div>
                 <Games v-if="activeTab === 'Games'" :gamesList="games" :teamsList="rankingTeams" 
                     :activeRound="activeRound" :roundIsActive="roundIsActive" :teamsCount="teams.length - 1" :useRating="useRating"
+                    :playOff="isPlayOff"
                     @start-round="roundIsActive = true" @end-round="roundIsActive = false"
-                    @draw-round="addRoundToGames"
-                    @update-games="updateGames" @update-teams="updateTeams"
-                    @show-message="showMessage"/>
+                    @draw-round="addRoundToGames" @show-message="showMessage" @finishTournament="activeTab = 'Ranking'"/>
                 <Results v-if="activeTab === 'Results'" :results="games"/>
-				<Ranking v-if="activeTab === 'Ranking'" :showIfUseRating="useRating" :isPlayOff="isPlayOff" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                <div class="content tabs-content" v-if="activeTab === 'Ranking'">
+                    <Ranking  :gamesList="games"
+                              :showIfUseRating="useRating" :isPlayOff="isPlayOff" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                    <div class="mt-5" v-if="!isPlayOff">
+                        <h2 class="h2">Go to play-off?</h2>
+                        <div class="is-flex is-align-items-center">Choose number of teams
+                            <div class="select ml-3">
+                                <select v-model="teamToPlayOff">
+                                    <option>4</option>
+                                    <option v-if="rankingTeams.length >= 8">8</option>
+                                    <option v-if="rankingTeams.length >= 16">16</option>
+                                    <option v-if="rankingTeams.length >= 32">32</option>
+                                    <option v-if="rankingTeams.length >= 64">64</option>
+                                </select>
+                            </div>
+                            <button @click="startPlayOff" class="button is-success ml-3">Go!</button>
+                        </div>
+                    </div>
+                </div>
+
 			</div>
 			<div class="column is-one-third">
 				<img src="./assets/img/bg.jpg" alt="Petanque in Alps" class="image">
 			</div>
-
 		</div>
+        <div class="menu-button button is-info" @click="menuOpen = !menuOpen">Menu</div>
+      <SaveTournament v-if="showSaveTournament" :tournamentsNames="savedTournamentsList" :tournaments="savedTournaments"
+                      @save-tournament="saveTournament" @close-modal="showSaveTournament = false"/>
     <Message v-if="message.show" :type="message.type" :title="message.title" :text="message.text" @closemessage="message.show = false"/>
+      <Menu :active="menuOpen" :tournaments="savedTournamentsList"
+            @closeMenu="menuOpen = false" @openSavedTournament="openSavedTournament"/>
+      <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
+                            @close-modal="showSavedTournament = false" @remove-tournament="removeSavedTournament"/>
 	</div>
 </template>
 
@@ -67,6 +89,9 @@ import Message from './components/Message.vue';
 import Games from './components/Games.vue';
 import Results from './components/Results.vue';
 import Ranking from './components/Ranking.vue';
+import SaveTournament from './components/SaveTournament';
+import Menu from './components/Menu';
+import SavedTournamentModal from './components/SavedTournamentModal';
 
 export default {
     name: 'App',
@@ -78,19 +103,75 @@ export default {
             games: localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
             roundIsActive: false,
             useRating: localStorage.getItem('useRating') || true,
-            isPlayOff: false,
+            isPlayOff: localStorage.getItem('playOff') ? JSON.parse(localStorage.getItem('playOff')) : false,
+            teamToPlayOff: null,
             message: {
                 show: false,
                 type: 'success',
                 title: 'Message',
                 text: '',
-            }
+            },
+            showSaveTournament: false,
+            menuOpen: false,
+            showSavedTournament: false,
+            savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
+            savedTournamentsActive: null,
         }
     },
-    mounted(){
-        
-    },
     methods: {
+        saveTournament(tournament){
+            console.log(this.savedTournaments);
+            this.savedTournaments.push(tournament);
+            this.showSaveTournament = false;
+            localStorage.setItem('tournamentsList', JSON.stringify(this.savedTournaments))
+        },
+        removeSavedTournament(name){
+            this.showSavedTournament = false;
+            this.savedTournaments = this.savedTournaments.filter(item => item.name !== name)
+
+        },
+        openSavedTournament(index){
+            this.savedTournamentsActive = index
+            this.showSavedTournament = true
+        },
+        startPlayOff(){
+            const playOffList = this.rankingTeams.slice(0, this.teamToPlayOff);
+            let playOffScheme = [];
+            let stageValue = playOffList.length/2;
+            for(let i = 0; i < playOffList.length/2; i++){
+                let game = {};
+                if(i % 2 === 0){
+                    game = {
+                        id: i + 1,
+                        stage: stageValue,
+                        team_1: playOffList[i].title,
+                        team_1_place: i + 1,
+                        team_1_score: null,
+                        team_2: playOffList[playOffList.length - 1 - i].title,
+                        team_2_place: playOffList.length - i,
+                        team_2_score: null,
+                    };
+                } else {
+                    game = {
+                        id: i + 1,
+                        stage: stageValue,
+                        team_1: playOffList[playOffList.length/2 - i].title,
+                        team_1_place: playOffList.length/2 + 1 - i,
+                        team_1_score: null,
+                        team_2: playOffList[playOffList.length/2 - 1 + i].title,
+                        team_2_place: playOffList.length/2 + i,
+                        team_2_score: null,
+                    };
+                }
+
+                playOffScheme.push(game)
+            }
+
+            this.isPlayOff = playOffScheme;
+            console.log(this.isPlayOff);
+            localStorage.setItem('playOff', JSON.stringify(this.isPlayOff))
+            this.activeTab = 'Games'
+        },
         shuffleArray(array) {
           let currentIndex = array.length,  randomIndex;
           while (currentIndex != 0) {
@@ -106,6 +187,7 @@ export default {
         },
         addRoundToGames(round){
             this.games.push(this.shuffleArray(round));
+            console.log(this.games);
         },
         showMessage(title, text, type = 'success'){
             this.message = {
@@ -147,7 +229,6 @@ export default {
                     }
                     
                 });
-                console.log(teamExists);
                 if(!teamExists){
                    const team = {
                     title: title,
@@ -176,19 +257,27 @@ export default {
         removeTournament(){
             this.teams = [];
             this.games = [];
-            this.isPlayOff = false,
-            this.useRating = true
+            this.isPlayOff = null;
+            this.useRating = true;
+            localStorage.removeItem('playOffStage');
+            localStorage.removeItem('playOffBracket');
         },
-        runPlayOff(){
-            
-        }
     },
     computed: {
         rankingTeams(){
             return this.sortTeams(this.teams);
         },
         activeRound(){
-            return this.games.length ? this.games.length + 1 : 0;
+            return this.games.length ? this.roundIsActive ? this.games.length : this.games.length + 1 : 1;
+        },
+        savedTournamentsList(){
+            if(this.savedTournaments.length > 0){
+                let tournamentsTitles = []
+                this.savedTournaments.forEach(item => {
+                    tournamentsTitles.push(item.name)
+                })
+                return tournamentsTitles
+            } else return false
         }
     },
     watch: {
@@ -210,10 +299,16 @@ export default {
             localStorage.setItem('useRating', this.useRating)
         },
         isPlayOff() {
-            localStorage.setItem('isPlayOff', this.isPlayOff)
+            localStorage.setItem('playOff', JSON.stringify(this.isPlayOff))
+        },
+        savedTournaments() {
+            localStorage.setItem('tournamentsList', JSON.stringify(this.savedTournaments))
         }
     },
     components: {
+        SavedTournamentModal,
+        Menu,
+        SaveTournament,
         AddTeam,
         Message,
         Games,
@@ -227,3 +322,12 @@ export default {
 
 <style src="./assets/css/bulma.min.css"></style>
 <style src="./assets/css/style.css"></style>
+<style>
+    .menu-button {
+        position: fixed;
+        left: 0;
+        top: 0;
+        padding: 10px;
+        border-radius: 0 0 5px 0;
+    }
+</style>

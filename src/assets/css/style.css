@@ -135,6 +135,7 @@ body {
 .play-off-game {
   position: relative;
   height: 91px;
+    margin-bottom: 24px !important;
 }
 
 .play-off-game:before {

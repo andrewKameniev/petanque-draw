@@ -18,7 +18,7 @@
 					<table id="table-list" class="table" v-if="teams.length">
                         <tr v-for="team in teams" :key="team.title">
                             <td>{{team.title}}
-                               <div class="is-size-7" v-if="team.players.length > 1">
+                               <div class="is-size-7" v-if="team.players && team.players.length > 1">
                                    (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}
                                        {{player.surname}}<span v-if="index < team.players.length - 1">, </span></span>)
                                 </div>

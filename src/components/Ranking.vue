@@ -1,7 +1,10 @@
 <template>
     <div>
         <div v-if="isPlayOff && tournamentIsFinished" class="mb-5">
-            <h2>Tournament Result</h2>
+            <div class="is-flex is-justify-content-space-between is-align-content-center">
+                <h2>Tournament Result</h2>
+                <button class="button is-info" @click="copyResults">Copy results</button>
+            </div>
             <div class="table-container">
                 <table id="table-finish-ranking" class="table">
                     <thead>
@@ -71,6 +74,22 @@ export default {
         }
     },
     methods: {
+        copyResults() {
+            const el = document.createElement('div')
+            let content = ''
+            this.tournamentRanking.forEach(item => {
+                content = content + '<span>' + item.place + '</span><p>' + item.title + '</p>'
+            })
+            el.innerHTML = content.trim()
+            document.body.appendChild(el)
+            const range = new Range()
+            range.selectNode(el)
+            const select = window.getSelection()
+            select.removeAllRanges()
+            select.addRange(range)
+            document.execCommand('copy')
+            el.remove()
+        },
         getTeamPlayers(title){
             return this.rankingTeams.find(item => item.title === title).players
         }
@@ -81,7 +100,8 @@ export default {
         },
         tournamentRanking(){
             let tournamentRanking = [];
-            let playOffList = JSON.parse(JSON.stringify(this.playOffBracket)).reverse();
+            const playOffList = JSON.parse(JSON.stringify(this.playOffBracket.stages)).reverse();
+            const thirdPlaceGame = JSON.parse(JSON.stringify(this.playOffBracket.thirdPlace));
             let teamsInRanking = [];
             for (let i = 0; i < playOffList.length; i++){
                 if(playOffList[i].stageLabel === 1){
@@ -97,6 +117,21 @@ export default {
                     }
                     tournamentRanking.push(secondPlace)
                     teamsInRanking.push(secondPlace.title)
+                } else if(playOffList[i].stageLabel === 2){
+                    const thirdPlace = {
+                        place: '3',
+                        title: thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2
+                    }
+                    tournamentRanking.push(thirdPlace)
+                    console.log(tournamentRanking);
+                    teamsInRanking.push(thirdPlace.title)
+                    const fourthPlace = {
+                        place: '4',
+                        title:thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1
+                    }
+                    tournamentRanking.push(fourthPlace)
+                    console.log(tournamentRanking);
+                    teamsInRanking.push(fourthPlace.title)
                 } else {
                     playOffList[i].teams.forEach(round => {
                         const teamTitle = teamsInRanking.includes(round.team_1) ? round.team_2 : round.team_1
@@ -109,9 +144,9 @@ export default {
                     })
 
                     if (this.gamesList.length > 0){
-                        this.rankingTeams.slice(this.playOffBracket[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
+                        this.rankingTeams.slice(this.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
                             const teamPlace = {
-                                place: this.playOffBracket[0].teamsCount + index + 1,
+                                place: this.playOffBracket.stages[0].teamsCount + index + 1,
                                 title: team.title
                             }
                             tournamentRanking.push(teamPlace)

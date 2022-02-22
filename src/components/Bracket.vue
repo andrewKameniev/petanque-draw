@@ -3,7 +3,7 @@
         <div class="modal-background" @click.self="$emit('close-modal')"></div>
         <div class="modal-content">
             <div class="columns play-off-wrapper">
-                <div v-for="(stage, index) in bracket" :key="index" class="column play-off-stage-wrapper">
+                <div v-for="(stage, index) in bracket.stages" :key="index" class="column play-off-stage-wrapper">
                     <div class="has-text-centered has-text-weight-bold mb-3">{{stage.stageLabel === 1 ? 'Final' : '1/' + stage.stageLabel + ' final'}}</div>
                     <div class="play-off-stage" ref="stage" >
                         <div v-for="(game, ind) in stage.teams" :key="ind" class="play-off-game box">
@@ -18,9 +18,19 @@
                                 <span class="play-off-team-title" :class="{'has-text-grey-lighter': !game.team_2}">{{game.team_2 || 'Lucky guy'}}</span><span class="play-off-team-score">{{game.team_2_score}}</span>
                             </div>
                         </div>
+                        <div class="play-off-game box third-place" :class="{'third-place-bottom': bracket.stages.length === 2}" v-if="stage.stageLabel === 1">
+                            <div class="has-text-centered has-text-weight-bold mb-3 third-place-title">Third Place</div>
+                            <div class="play-off-team">
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace.team_1}">{{bracket.thirdPlace.team_1 || 'Someone'}}</span><span class="play-off-team-score">{{bracket.thirdPlace.team_1_score}}</span>
+                            </div>
+                            <div class="play-off-team">
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace.team_2}">{{bracket.thirdPlace.team_2 || 'Lucky guy'}}</span><span class="play-off-team-score">{{bracket.thirdPlace.team_2_score}}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div v-if="bracket.stages.length === 2" style="height: 80px;"></div>
         </div>
         <button class="modal-close is-large" aria-label="close" @click="$emit('close-modal')"></button>
     </div>

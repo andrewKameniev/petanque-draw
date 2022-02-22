@@ -126,6 +126,7 @@ body {
   flex-direction: column;
   justify-content: space-around;
   height: calc(100% - 24px);
+    position: relative;
 }
 
 .play-off-stage-wrapper:last-child .play-off-game:before {
@@ -136,6 +137,23 @@ body {
   position: relative;
   height: 91px;
     margin-bottom: 24px !important;
+}
+
+.play-off-game.third-place {
+    position: absolute;
+    bottom: 0;
+}
+
+.play-off-game.third-place-bottom {
+    bottom: -100px;
+}
+
+.third-place-title {
+    position: absolute;
+    left: 50%;
+    top: -30px;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.7);
 }
 
 .play-off-game:before {

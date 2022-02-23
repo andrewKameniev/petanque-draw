@@ -64,9 +64,6 @@ export default {
             scoreError: false
         }
     },
-    mounted() {
-        console.log(this.activeRound, this.games);
-    },
     methods: {
         getRandomWithOneExclusion(lengthOfArray, indexToExclude = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;

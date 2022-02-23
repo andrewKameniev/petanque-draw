@@ -91,7 +91,6 @@ export default {
                 this.playOffStageCurrent = 0
                 this.$emit('finishTournament');
             } else {
-                console.log(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams);
                 this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.forEach((game, index) => {
                     if(index % 2 === 0){
                         this.playOffBracket.stages[this.currentPlayOffBracketIndex + 1].teams[index / 2].team_1 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2

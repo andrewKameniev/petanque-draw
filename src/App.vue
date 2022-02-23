@@ -36,7 +36,7 @@
                         <div class="control" v-if="teams.length">
                             <button class="button is-danger" @click="removeTournament">Remove tournament</button>
                         </div>
-                        <div class="control" v-if="canSaveTournament">
+                        <div class="control" v-if="canSaveTournament || tournamentIsFinished">
                             <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
                     :activeRound="activeRound" :roundIsActive="roundIsActive" :teamsCount="teams.length - 1" :useRating="useRating"
                     :playOff="isPlayOff"
                     @start-round="roundIsActive = true" @end-round="roundIsActive = false"
-                    @draw-round="addRoundToGames" @show-message="showMessage" @finishTournament="activeTab = 'Ranking'"/>
+                    @draw-round="addRoundToGames" @show-message="showMessage" @finishTournament="tournamentIsFinished = true; activeTab = 'Ranking'"/>
                 <Results v-if="activeTab === 'Results'" :results="games"/>
                 <div class="content tabs-content" v-if="activeTab === 'Ranking'">
                     <Ranking  :gamesList="games"
@@ -116,7 +116,12 @@ export default {
             showSavedTournament: false,
             savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
             savedTournamentsActive: null,
+            playoff: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')).stages : null,
+            tournamentIsFinished: false
         }
+    },
+    mounted() {
+
     },
     methods: {
         saveTournament(tournament){
@@ -264,6 +269,9 @@ export default {
         },
     },
     computed: {
+        canSaveTournament(){
+            return this.games && this.games.length > 0 || this.playoff && this.playoff[this.playoff.length - 1].teams[0].team_1_score !== null
+        },
         rankingTeams(){
             return this.sortTeams(this.teams);
         },
@@ -278,11 +286,6 @@ export default {
                 })
                 return tournamentsTitles
             } else return false
-        },
-        canSaveTournament(){
-            const playoff = localStorage.getItem('playOffBracket') && JSON.parse(localStorage.getItem('playOffBracket')).stages
-            console.log(playoff[playoff.length - 1], playoff[playoff.length - 1].teams[0].team_1_score);
-            return this.games && this.games.length > 0 || playoff[playoff.length - 1].teams[0].team_1_score
         }
     },
     watch: {

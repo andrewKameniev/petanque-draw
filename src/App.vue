@@ -36,7 +36,7 @@
                         <div class="control" v-if="teams.length">
                             <button class="button is-danger" @click="removeTournament">Remove tournament</button>
                         </div>
-                        <div class="control" v-if="games.length">
+                        <div class="control" v-if="canSaveTournament">
                             <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
                         </div>
                     </div>
@@ -278,6 +278,11 @@ export default {
                 })
                 return tournamentsTitles
             } else return false
+        },
+        canSaveTournament(){
+            const playoff = localStorage.getItem('playOffBracket') && JSON.parse(localStorage.getItem('playOffBracket')).stages
+            console.log(playoff[playoff.length - 1], playoff[playoff.length - 1].teams[0].team_1_score);
+            return this.games && this.games.length > 0 || playoff[playoff.length - 1].teams[0].team_1_score
         }
     },
     watch: {

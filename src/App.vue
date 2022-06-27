@@ -1,6 +1,6 @@
 <template>
   <div class="container ">
-		<h1 class="title is-1 text-center">Petanque - swiss system <sup>Version Beta</sup></h1>
+		<h1 class="title is-1 text-center">Petanque - swiss system <sup>Version Beta 1</sup></h1>
 		<div class="columns">
 			<div class="column">
 				<div class="tabs">

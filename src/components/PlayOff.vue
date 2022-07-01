@@ -27,7 +27,7 @@
                         <label :for="'opponent_' + ind">{{ game.team_2 }}</label>
                     </span>
                 </div>
-                <div v-if="playOffStageCurrent === 1">
+                <div v-if="playOffStageCurrent === 1 && playOffTeams.length > 1">
                     <h3 class="text-center">Game for 3d place</h3>
                     <div class="game-row">
                         <span class="text-right team-block">

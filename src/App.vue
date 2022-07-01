@@ -50,12 +50,13 @@
                 <div class="content tabs-content" v-if="activeTab === 'Ranking'">
                     <Ranking  :gamesList="games"
                               :showIfUseRating="useRating" :isPlayOff="isPlayOff" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-                    <div class="mt-5" v-if="!isPlayOff">
+                    <div class="mt-5" v-if="!isPlayOff && teams.length > 1">
                         <h2 class="h2">Go to play-off?</h2>
                         <div class="is-flex is-align-items-center">Choose number of teams
                             <div class="select ml-3">
                                 <select v-model="teamToPlayOff">
-                                    <option>4</option>
+                                    <option v-if="rankingTeams.length >= 2">2</option>
+                                    <option v-if="rankingTeams.length >= 4">4</option>
                                     <option v-if="rankingTeams.length >= 8">8</option>
                                     <option v-if="rankingTeams.length >= 16">16</option>
                                     <option v-if="rankingTeams.length >= 32">32</option>
@@ -79,7 +80,7 @@
       <Menu :active="menuOpen" :tournaments="savedTournamentsList"
             @closeMenu="menuOpen = false" @openSavedTournament="openSavedTournament"/>
       <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
-                            @close-modal="showSavedTournament = false" @remove-tournament="removeSavedTournament"/>
+                            @close-modal="closeTournamentModal" @remove-tournament="removeSavedTournament"/>
 	</div>
 </template>
 
@@ -120,24 +121,20 @@ export default {
             tournamentIsFinished: false
         }
     },
-    mounted() {
-
-    },
     methods: {
         saveTournament(tournament){
-            console.log(this.savedTournaments);
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;
             localStorage.setItem('tournamentsList', JSON.stringify(this.savedTournaments))
         },
         removeSavedTournament(name){
-            this.showSavedTournament = false;
+            this.closeTournamentModal();
             this.savedTournaments = this.savedTournaments.filter(item => item.name !== name)
 
         },
         openSavedTournament(index){
-            this.savedTournamentsActive = index
-            this.showSavedTournament = true
+            this.savedTournamentsActive = index;
+            this.openTournamentModal();
         },
         startPlayOff(){
             const playOffList = this.rankingTeams.slice(0, this.teamToPlayOff);
@@ -173,7 +170,6 @@ export default {
             }
 
             this.isPlayOff = playOffScheme;
-            console.log(this.isPlayOff);
             localStorage.setItem('playOff', JSON.stringify(this.isPlayOff))
             this.activeTab = 'Games'
         },
@@ -267,6 +263,14 @@ export default {
             localStorage.removeItem('playOffStage');
             localStorage.removeItem('playOffBracket');
         },
+        openTournamentModal(){
+            this.showSavedTournament = true;
+            document.querySelector('html').classList.add('is-clipped');
+        },
+        closeTournamentModal(){
+            this.showSavedTournament = false;
+            document.querySelector('html').classList.remove('is-clipped');
+        }
     },
     computed: {
         canSaveTournament(){

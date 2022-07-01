@@ -2,9 +2,9 @@
     <div class="content tabs-content">
         <PlayOff :playOffTeams="playOff" v-if="playOff" @finishTournament = "$emit('finishTournament')"/>
         <div v-else>
-            <div class="field is-grouped">
+            <div class="field is-grouped" v-if="!playOff && !roundIsActive && games.length < teamsCount">
                 <div class="control">
-                    <button class="button is-info" @click="drawRound" v-if="!playOff && !roundIsActive && games.length < teamsCount">
+                    <button class="button is-info" @click="drawRound">
                         {{ activeRound === 1 ? 'First' : `Draw ${activeRound}` }} Round
                     </button>
                 </div>
@@ -39,6 +39,7 @@
                     write developer about it (contact in footer), but this will not help you in this situation:))
                 </div>
             </div>
+            <div v-else-if="games.length === 0">No games, yet</div>
             <div v-else-if="games.length >= teamsCount">Rounds quantity can't be more than teams</div>
             <div v-else class="mb-5 mt-5">
                 Please, click on button to draw <b>{{ activeRound === 1 ? 'first' : activeRound }}</b> round

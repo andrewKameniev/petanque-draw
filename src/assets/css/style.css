@@ -85,10 +85,6 @@ body {
   content: counter(ranking);
 }
 
-.input.-rating {
-	max-width: 100px;
-}
-
 .input.-small {
 	max-width: 70px;
 	margin: 0 10px;

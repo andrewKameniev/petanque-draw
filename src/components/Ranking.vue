@@ -20,9 +20,9 @@
                             <td>{{ team.title}}</td>
                             <td>
                                 <div class="is-size-7">
-                                    (<span class="has-text-dark" v-for="(player, index) in getTeamPlayers(team.title)" :key="index">
+                                    <span class="has-text-dark" v-for="(player, index) in getTeamPlayers(team.title)" :key="index">
                                     {{player.name}} {{player.surname}}<span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
-                                      </span>)
+                                      </span>
                                 </div>
                             </td>
                         </tr>

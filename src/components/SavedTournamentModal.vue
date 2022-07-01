@@ -50,7 +50,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-for="(stage, index) in tournament.playOff" :key="index" class="mb-5">
+                        <div v-for="(stage, index) in tournament.playOff.stages" :key="index" class="mb-5">
                             <h3 class="has-text-centered">{{stage.stageLabel === 1 ? 'Final' : '1/' + stage.stageLabel + ' final'}}</h3>
                             <div class="table-container">
                                 <table class="table is-striped">
@@ -104,7 +104,7 @@ export default {
         transition: all 0.3s linear;
     }
     .card-content.active {
-        max-height: 2000px;
+        max-height: none;
         padding-top: 24px;
         padding-bottom: 24px;
     }

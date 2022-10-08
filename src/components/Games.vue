@@ -10,20 +10,21 @@
                 </div>
             </div>
             <div v-if="games.length && roundIsActive">
+              <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">Show <span v-if="!compactView">&nbsp;Compact&nbsp;</span> <span v-if="compactView">&nbsp;Full&nbsp;</span> View</button>
                 <h2 class="text-center">Round {{ activeRound }}</h2>
                 <div class="games-list">
-                    <div class="game-row" v-for="(game, index) in games[activeRound - 1]" :key="index">
+                    <div class="game-row" :class="{compact: compactView}" v-for="(game, index) in games[activeRound - 1]" :key="index">
                     <span class="text-right team-block">
                         <label :for="'team_' + index">{{ game.team_1 }}</label>
                     </span>
                         <span class="text-center score-block">
                         <input :id="'team_' + index" v-model="game.team_1_score" class="input -small" type="number" min="0" max="13"
-                               :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults">
+                               :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults" v-if="!compactView">
                         <span class="lane-block is-size-7">
                             Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                         </span>
                         <input :id="'opponent_' + index" v-model="game.team_2_score" class="input -small" type="number" min="0" max="13"
-                               :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults">
+                               :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults" v-if="!compactView">
                     </span>
                         <span class="team-block">
                         <label :for="'opponent_' + index">{{ game.team_2 }}</label>
@@ -62,7 +63,8 @@ export default {
             games: this.gamesList,
             teams: this.teamsList,
             saveDisabled: false,
-            scoreError: false
+            scoreError: false,
+            compactView: false
         }
     },
     methods: {
@@ -105,13 +107,14 @@ export default {
             let competitors; // пара которая получается в результате вызова generateCompetitors()
             let game; // объект с соперниками
             const isTechnical = teamsToDraw.length % 2 !== 0; // это только в случае нечетного кол-ва команд, сейчас не важно
-            let technicalTeam = isTechnical ? teamsToDraw[teamsToDraw.length - 1] : null;  // это только в случае нечетного кол-ва команд, сейчас не важно
+
             if (isTechnical) { //if has to be technical team
+              const technicalTeamIndex = this.useRating || this.activeRound !== 1 ? teamsToDraw.length - 1 : this.getRandomWithOneExclusion(teamsToDraw.length);
+              let technicalTeam = this.useRating ? teamsToDraw[technicalTeamIndex] : teamsToDraw[technicalTeamIndex];  // это только в случае нечетного кол-ва команд, сейчас не важно
                 if (technicalTeam.opponents.includes('Technical')) {
                     for (let i = 2; i < teamsToDraw.length; i++) {
                         technicalTeam = teamsToDraw[teamsToDraw.length - i];
                         if (!technicalTeam.opponents.includes('Technical')) {
-                            console.log(technicalTeam);
                             break;
                         }
                     }
@@ -123,7 +126,7 @@ export default {
                     team_2_score: 7
                 };
                 round.push(game);
-                teamsToDraw.splice(teamsToDraw.length - 1, 1);
+                teamsToDraw.splice(technicalTeamIndex, 1);
             }
             while (teamsToDraw.length > 0) { // вся магия здесь
                 competitors = this.generateCompetitors(teamsToDraw, expandListIteration > 0); // определили пару команд
@@ -148,7 +151,6 @@ export default {
                     team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
                     team_2_score: null
                 }
-                console.log(game);
                 teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]); // добавили пару в массив с пожеребенными командами
                 let teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title];
                 teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title)); // удалили пожеребенные команды из массива, который ужно было пожеребить
@@ -165,8 +167,7 @@ export default {
         saveResults() {
             this.scoreError = false;
 
-            const resultsError = (game) => (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
-            console.log(this.games, this.activeRound);
+            const resultsError = (game) => game.team_1_score === game.team_2_score || (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
             if(this.games[this.activeRound - 1].some(game => resultsError(game))){
                 this.scoreError = true;
                 return false

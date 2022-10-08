@@ -44,7 +44,7 @@
                 <Games v-if="activeTab === 'Games'" :gamesList="games" :teamsList="rankingTeams" 
                     :activeRound="activeRound" :roundIsActive="roundIsActive" :teamsCount="teams.length - 1" :useRating="useRating"
                     :playOff="isPlayOff"
-                    @start-round="roundIsActive = true" @end-round="roundIsActive = false"
+                    @start-round="startRound" @end-round="endRound"
                     @draw-round="addRoundToGames" @show-message="showMessage" @finishTournament="tournamentIsFinished = true; activeTab = 'Ranking'"/>
                 <Results v-if="activeTab === 'Results'" :results="games"/>
                 <div class="content tabs-content" v-if="activeTab === 'Ranking'">
@@ -102,7 +102,7 @@ export default {
             activeTab: "Teams",
             teams: localStorage.getItem('teams') ? JSON.parse(localStorage.getItem('teams')) : [],
             games: localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
-            roundIsActive: false,
+            roundIsActive: localStorage.getItem('roundIsActive') ? JSON.parse(localStorage.getItem('roundIsActive')) : false,
             useRating: localStorage.getItem('useRating') || true,
             isPlayOff: localStorage.getItem('playOff') ? JSON.parse(localStorage.getItem('playOff')) : false,
             teamToPlayOff: null,
@@ -122,6 +122,14 @@ export default {
         }
     },
     methods: {
+        startRound(){
+          this.roundIsActive = true;
+          localStorage.setItem('roundIsActive', 'true');
+        },
+        endRound(){
+          this.roundIsActive = false;
+          localStorage.setItem('roundIsActive', 'false');
+        },
         saveTournament(tournament){
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;
@@ -188,6 +196,8 @@ export default {
         },
         addRoundToGames(round){
             this.games.push(this.shuffleArray(round));
+            localStorage.setItem('games', JSON.stringify(this.games));
+            this.startRound();
             console.log(this.games);
         },
         showMessage(title, text, type = 'success'){
@@ -260,6 +270,7 @@ export default {
             this.games = [];
             this.isPlayOff = null;
             this.useRating = true;
+            this.roundIsActive = false;
             localStorage.removeItem('playOffStage');
             localStorage.removeItem('playOffBracket');
         },

@@ -30,11 +30,12 @@ body {
 }
 
 .game-row {
-	margin-bottom: 25px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-wrap: wrap;
+    padding: 3px 0;
+    border-radius: 4px;
 }
 
 .game-row span.team-block {
@@ -235,16 +236,18 @@ body {
     max-width: calc(100% - 100px);
     width: auto;
   }
-}
-
-@media all and (min-width: 501px){
     .lane-block {
         display: flex;
         flex-direction: column;
         line-height: 1;
     }
+
+    .game-row:nth-child(odd){
+        background-color: #f2efef70;
+    }
 }
-@media all and (max-width: 500px){
+
+@media all and (max-width: 768px){
     .game-row {
         flex-direction: column;
         border-bottom: solid 1px #ccc;
@@ -260,7 +263,30 @@ body {
         flex-basis: auto;
         margin: 10px 0;
     }
-  .container {
-    padding: 10px;
-  }
+
+    .game-row.compact span.score-block {
+        margin: 0;
+    }
+
+    .game-row.compact {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 5px 0;
+    }
+
+    .game-row.compact .team-block {
+        text-align: right;
+    }
+
+    .game-row.compact .text-right {
+        text-align: left;
+    }
+
+    .game-row.compact span.team-block {
+        flex: 0 0 calc(50% - 40px);
+    }
+
+    .container {
+        padding: 10px;
+    }
 }

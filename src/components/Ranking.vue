@@ -123,14 +123,12 @@ export default {
                         title: thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2
                     }
                     tournamentRanking.push(thirdPlace)
-                    console.log(tournamentRanking);
                     teamsInRanking.push(thirdPlace.title)
                     const fourthPlace = {
                         place: '4',
                         title:thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1
                     }
                     tournamentRanking.push(fourthPlace)
-                    console.log(tournamentRanking);
                     teamsInRanking.push(fourthPlace.title)
                 } else {
                     playOffList[i].teams.forEach(round => {
@@ -142,18 +140,17 @@ export default {
                         tournamentRanking.push(teamPlace)
                         teamsInRanking.push(teamPlace.title)
                     })
-
-                    if (this.gamesList.length > 0){
-                        this.rankingTeams.slice(this.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
-                            const teamPlace = {
-                                place: this.playOffBracket.stages[0].teamsCount + index + 1,
-                                title: team.title
-                            }
-                            tournamentRanking.push(teamPlace)
-                        })
-                    }
                 }
             }
+          if (this.gamesList.length > 0){
+            this.rankingTeams.slice(this.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
+              const teamPlace = {
+                place: this.playOffBracket.stages[0].teamsCount + index + 1,
+                title: team.title
+              }
+              tournamentRanking.push(teamPlace)
+            })
+          }
             return tournamentRanking
         }
     },

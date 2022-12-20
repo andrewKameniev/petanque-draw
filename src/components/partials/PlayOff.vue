@@ -6,7 +6,7 @@
         </div>
         <div class="column play-off-stage-wrapper" v-if="playOffBracket">
             <div v-if="playOffStageCurrent === 0" class="has-text-centered is-size-4">
-                Tournament has finished. <a href="#" @click.prevent="$emit('finishTournament')">See result</a>
+                Tournament has finished. <a href="#" @click.prevent="$emit('openResults')">See result</a>
             </div>
             <Fragment v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? 'Final' : '1/' + playOffStageCurrent + ' final'}}</h2>
@@ -27,8 +27,8 @@
                         <label :for="'opponent_' + ind">{{ game.team_2 }}</label>
                     </span>
                 </div>
-                <div v-if="playOffStageCurrent === 1 && playOffTeams.length > 1">
-                    <h3 class="text-center">Game for 3d place</h3>
+                <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
+                    <h3 class="text-center mt-5">Game for 3d place</h3>
                     <div class="game-row">
                         <span class="text-right team-block">
                             <label :for="'team_1_3p'">{{ playOffBracket.thirdPlace.team_1 }}</label>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">Something wrong in games results</div>
-                <div class="text-center">
+                <div class="text-center mt-5">
                     <button class="button is-success" @click="saveResults">Save results</button>
                 </div>
             </Fragment>
@@ -59,58 +59,77 @@
 
 <script>
 import Bracket from './Bracket';
+import {mapMutations, mapState} from "vuex";
 export default {
     name: 'PlayOff',
-    props: ['playOffTeams'],
-    emits: ['finishTournament'],
+    emits: ['openResults'],
     components: {Bracket},
     data(){
         return {
-            playOffStageCurrent: localStorage.getItem('playOffStage') ? +localStorage.getItem('playOffStage') : this.playOffTeams[0].stage,
-            playOffBracket: localStorage.getItem('playOffBracket') ?  JSON.parse(localStorage.getItem('playOffBracket')) : null,
             scoreError: false,
             showBracket: false,
         }
     },
     mounted() {
-        console.log(this.playOffTeams);
-        if(!localStorage.getItem('playOffBracket')){
+        if(!this.tournament.playOffBracket){
             this.getPlayOffBracket();
         }
     },
+    computed: {
+        ...mapState(['tournaments', 'currentTournamentIndex']),
+        tournament() {
+            return this.tournaments[this.currentTournamentIndex]
+        },
+        playOffStageCurrent() {
+            return 'playOffStage' in this.tournament ? this.tournament.playOffStage : this.tournament.playOff[0].stage
+        },
+        playOffBracket() {
+            return this.tournament.playOffBracket ? this.tournament.playOffBracket : null
+        },
+        stagesCount(){
+            return Math.log(this.tournament.playOff.length * 2) / Math.log(2);
+        },
+        currentPlayOffBracketIndex(){
+            if(this.tournament.playOffBracket){
+                return this.tournament.playOffBracket.stages.findIndex(item => item.stageLabel === this.playOffStageCurrent)
+            } else {
+                return '0'
+            }
+        }
+    },
     methods: {
+        ...mapMutations(['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {
             this.scoreError = false;
-            console.log(this.currentPlayOffBracketIndex);
             const resultsError = (game) => (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => resultsError(game))){
                 this.scoreError = true;
                 return false
             }
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teamsCount === 2){ //final
-                this.playOffStageCurrent = 0
-                this.$emit('finishTournament');
+                this.setPlayOffStage(0)
+                this.finishTournament();
             } else {
-                this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.forEach((game, index) => {
+                let bracket = JSON.parse(JSON.stringify(this.playOffBracket))
+                bracket.stages[this.currentPlayOffBracketIndex].teams.forEach((game, index) => {
                     if(index % 2 === 0){
-                        this.playOffBracket.stages[this.currentPlayOffBracketIndex + 1].teams[index / 2].team_1 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
-                        if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
-                            this.playOffBracket.thirdPlace.team_1 =  game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
+                        bracket.stages[this.currentPlayOffBracketIndex + 1].teams[index / 2].team_1 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
+                        if(bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
+                            bracket.thirdPlace.team_1 =  game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
                         }
                     } else {
-                        this.playOffBracket.stages[this.currentPlayOffBracketIndex + 1].teams[(index - 1) / 2].team_2 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
-                        if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
-                            this.playOffBracket.thirdPlace.team_2 = game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
+                        bracket.stages[this.currentPlayOffBracketIndex + 1].teams[(index - 1) / 2].team_2 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
+                        if(bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
+                            bracket.thirdPlace.team_2 = game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
                         }
                     }
 
                 })
-
-                this.playOffStageCurrent = this.playOffStageCurrent / 2;
+                this.setPlayOffBracket(bracket)
+                this.setPlayOffStage(this.playOffStageCurrent / 2)
             }
-            localStorage.setItem('playOffBracket', JSON.stringify(this.playOffBracket))
         },
-        getPlayOffBracket(){
+        getPlayOffBracket() {
             let brackets = {
                 stages: [],
                 thirdPlace: {}
@@ -120,7 +139,7 @@ export default {
                 const stageLabel = teamsCount/2;
                 let teams = []
                 if(i === this.stagesCount){
-                    teams = this.playOffTeams;
+                    teams = this.tournament.playOff;
                 } else {
                     for (let j = 1; j <= stageLabel; j++){
                         const game = {
@@ -142,26 +161,8 @@ export default {
                 }
                 brackets.stages.push(stage)
             }
-            console.log(brackets);
-            this.playOffBracket = brackets
+            this.setPlayOffBracket(brackets)
         },
     },
-    computed: {
-        stagesCount(){
-            return Math.log(this.playOffTeams.length * 2) / Math.log(2);
-        },
-        currentPlayOffBracketIndex(){
-            if(this.playOffBracket){
-                return this.playOffBracket.stages.findIndex(item => item.stageLabel === this.playOffStageCurrent)
-            } else {
-                return '0'
-            }
-        }
-    },
-    watch: {
-        playOffStageCurrent() {
-            localStorage.setItem('playOffStage', this.playOffStageCurrent)
-        }
-    }
 }
 </script>

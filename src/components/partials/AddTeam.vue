@@ -30,13 +30,15 @@
     </div>
     <div>
          <label class="checkbox">
-              <input type="checkbox" :checked="showRating" @change="changeDraw($event.target.checked)">
+              <input type="checkbox" :checked="tournament.showRating" @change="changeDrawType($event.target.checked)">
               Use team rating for drawing (else first round will be drawed randomly)
         </label>
     </div>
 </template>
 
 <script>
+import {mapMutations, mapState} from "vuex";
+
 export default {
     name: 'AddTeam',
     props: ['showRating'],
@@ -48,14 +50,44 @@ export default {
         }
     },
     emits: ['add-team', 'change-draw-style'],
-    methods: {
-        changeDraw(value){
-            this.$emit('change-draw-style', value)
+    computed: {
+        ...mapState(['tournaments', 'currentTournamentIndex']),
+        tournament() {
+            return this.tournaments[this.currentTournamentIndex]
         },
+    },
+    methods: {
+        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage']),
         addTeam(title, rating, players = false){
-            this.$emit('add-team', title.trim(), rating, players);
-            this.teamTitle = null;
-            this.teamRating = null;
+            if(title !== null && title !== ''){
+                let teamExists = false;
+                this.tournament.teams.forEach(team => {
+                    if(team.title === title){
+                        teamExists = true;
+                    }
+                });
+                if(!teamExists){
+                    const team = {
+                        title: title.trim(),
+                        rating: rating,
+                        players: players,
+                        wins: 0,
+                        buhgolts: 0,
+                        smallBuhgolts: 0,
+                        pointsPlus: 0,
+                        pointsMinus: 0,
+                        opponents: [],
+                    }
+                    this.addTeamToStore(team)
+                    this.teamTitle = null;
+                    this.teamRating = null;
+                } else {
+                    this.showMessage({title: 'Error', text: 'Such team already registered! Change team title, please', type: 'error'});
+                }
+            } else {
+                this.showMessage({title: 'Error', text: 'Enter fields to add team', type: 'error'});
+            }
+
         },
         async importList(){
             let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`);

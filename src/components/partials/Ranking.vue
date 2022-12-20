@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="isPlayOff && tournamentIsFinished" class="mb-5">
+        <div v-if="tournament.playOff && tournament.tournamentIsFinished" class="mb-5">
             <div class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>Tournament Result</h2>
                 <button class="button is-info" @click="copyResults">Copy results</button>
@@ -19,7 +19,7 @@
                             <td>{{ team.place }}</td>
                             <td>{{ team.title}}</td>
                             <td>
-                                <div class="is-size-7">
+                                <div class="is-size-7" v-if="getTeamPlayers(team.title).length">
                                     <span class="has-text-dark" v-for="(player, index) in getTeamPlayers(team.title)" :key="index">
                                     {{player.name}} {{player.surname}}<span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
                                       </span>
@@ -30,7 +30,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="gamesList.length > 0">
+        <div v-if="tournament.games.length > 0">
             <h2>Ranking after <span v-if="activeRound">{{activeRound - 1}} round{{activeRound > 1 && activeRound !== 0 ? 's' : '' }}</span> swiss</h2>
             <div class="table-container">
                 <table id="table-ranking" class="table">
@@ -42,7 +42,7 @@
                         <th>Buh</th>
                         <th>SBuh</th>
                         <th>Points</th>
-                        <th v-if="showIfUseRating">Rating</th>
+                        <th v-if="tournament.useRating">Rating</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -53,7 +53,7 @@
                         <td align="center">{{team.buhgolts}}</td>
                         <td align="center">{{team.smallBuhgolts}}</td>
                         <td align="center">{{team.pointsPlus}}:{{team.pointsMinus}}</td>
-                        <td v-if="showIfUseRating">{{team.rating}}</td>
+                        <td v-if="tournament.useRating">{{team.rating}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -64,9 +64,11 @@
 
 
 <script>
+import {mapState} from "vuex";
+
 export default {
     name: 'Ranking',
-    props: ['showIfUseRating', 'isPlayOff', 'rankingTeams', 'activeRound', 'gamesList'],
+    props: ['rankingTeams', 'activeRound'],
     emits: ['is-playoff'],
     data(){
         return {
@@ -91,17 +93,21 @@ export default {
             el.remove()
         },
         getTeamPlayers(title){
-            return this.rankingTeams.find(item => item.title === title).players
+            return this.rankingTeams.find(item => item.title === title).players ? this.rankingTeams.find(item => item.title === title).players : ''
         }
     },
     computed: {
+        ...mapState(['tournaments', 'currentTournamentIndex']),
+        tournament() {
+            return this.tournaments[this.currentTournamentIndex]
+        },
         tournamentIsFinished(){
-            return localStorage.getItem('playOffStage') ? JSON.parse(localStorage.getItem('playOffStage')) === 0 : false
+            return this.tournament.playOffStage ? this.tournament.playOffStage === 0 : false
         },
         tournamentRanking(){
             let tournamentRanking = [];
-            const playOffList = JSON.parse(JSON.stringify(this.playOffBracket.stages)).reverse();
-            const thirdPlaceGame = JSON.parse(JSON.stringify(this.playOffBracket.thirdPlace));
+            const playOffList = JSON.parse(JSON.stringify(this.tournament.playOffBracket.stages)).reverse();
+            const thirdPlaceGame = JSON.parse(JSON.stringify(this.tournament.playOffBracket.thirdPlace));
             let teamsInRanking = [];
             for (let i = 0; i < playOffList.length; i++){
                 if(playOffList[i].stageLabel === 1){
@@ -142,10 +148,10 @@ export default {
                     })
                 }
             }
-          if (this.gamesList.length > 0){
-            this.rankingTeams.slice(this.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
+          if (this.tournament.games.length > 0){
+            this.rankingTeams.slice(this.tournament.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
               const teamPlace = {
-                place: this.playOffBracket.stages[0].teamsCount + index + 1,
+                place: this.tournament.playOffBracket.stages[0].teamsCount + index + 1,
                 title: team.title
               }
               tournamentRanking.push(teamPlace)

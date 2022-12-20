@@ -1,45 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&display=swap');
+
 body {
-	margin: 0;	
-	font-family: 'Manrope', sans-serif;
-	font-size: 16px;
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 16px;
 }
 
 .container {
-	padding: 20px;
+    padding: 20px;
 }
 
 .form-group {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
+
 .team-list {
-  max-width: 400px;
+    max-width: 400px;
 }
 
 .team-list li {
-  display: flex;
-  justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
+
 .team-rating {
-  margin: 0 10px;
-  flex: 0 0 20%;
+    margin: 0 10px;
+    flex: 0 0 20%;
 }
 
 .team-title {
-  flex: 0 0 70%;
+    flex: 0 0 70%;
 }
 
 .game-row {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     padding: 3px 0;
     border-radius: 4px;
 }
 
 .game-row span.team-block {
-	flex: 0 0 calc(50% - 105px);
+    flex: 0 0 calc(50% - 105px);
 }
 
 .game-row span.score-block {
@@ -49,90 +52,90 @@ body {
 }
 
 .game-row div {
-	flex: 0 0 100%;
-	margin-top: 10px;	
+    flex: 0 0 100%;
+    margin-top: 10px;
 }
 
 .td-50 {
-	width: 50px;
+    width: 50px;
 }
 
 .td-100 {
-	width: 100px;
+    width: 100px;
 }
 
 .title.is-1 {
-	margin-top: 30px;
+    margin-top: 30px;
 }
 
 .title sup {
-	font-size: 0.3em;
+    font-size: 0.3em;
 }
 
 .text-center {
-	text-align: center;
+    text-align: center;
 }
 
 .text-right {
-	text-align: right;
+    text-align: right;
 }
 
 #ranking {
-	counter-reset: ranking;
+    counter-reset: ranking;
 }
 
 .count:before {
-	counter-increment: ranking;
-  content: counter(ranking);
+    counter-increment: ranking;
+    content: counter(ranking);
 }
 
 .input.-small {
-	max-width: 70px;
-	margin: 0 10px;
+    max-width: 70px;
+    margin: 0 10px;
 }
 
 #table-list {
-	counter-reset: teamlist;
+    counter-reset: teamlist;
 }
 
 #table-list tr {
-	counter-increment: teamlist;
+    counter-increment: teamlist;
 }
 
 #table-list tr td:first-child:before {
-	content: counter(teamlist)". ";
+    content: counter(teamlist) ". ";
 }
 
 #table-ranking {
-	counter-reset: ranking;
+    counter-reset: ranking;
 }
 
 .team-count:before {
-	counter-increment: ranking;
+    counter-increment: ranking;
     content: counter(ranking);
 }
 
 .play-off-wrapper.columns {
-  margin: 0;
-  display: flex;
-  padding: 20px;
+    margin: 0;
+    display: flex;
+    padding: 20px;
 }
 
 .play-off-stage {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  height: calc(100% - 24px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: calc(100% - 24px);
     position: relative;
 }
 
 .play-off-stage-wrapper:last-child .play-off-game:before {
-  display: none;
+    display: none;
 }
 
 .play-off-game {
-  position: relative;
-  height: 91px;
+    position: relative;
+    height: 91px;
     margin-bottom: 24px !important;
 }
 
@@ -150,115 +153,116 @@ body {
     left: 50%;
     top: -30px;
     transform: translateX(-50%);
-    background: rgba(255,255,255,0.7);
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .play-off-game:before {
-  content: "";
-  display: inline-block;
-  width: 131px;
-  height: 2px;
-  background: #ddd;
-  position: absolute;
-  top: calc(50% - 1px);
-  left: 100%;
+    content: "";
+    display: inline-block;
+    width: 131px;
+    height: 2px;
+    background: #ddd;
+    position: absolute;
+    top: calc(50% - 1px);
+    left: 100%;
 }
 
 .play-off-game:after {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background: #fff;
-  border-radius: 6px;
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: 6px;
 }
 
 .play-off-game-vertical-line {
-  display: inline-block;
-  width: 2px;
-  height: 100px;
-  background: #ddd;
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
+    display: inline-block;
+    width: 2px;
+    height: 100px;
+    background: #ddd;
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
 }
 
 .play-off-game-vertical-line.-bottom {
-  top: 50%;
+    top: 50%;
 }
 
 .play-off-team-place {
-  color: #fff;
-  background: #aaa;
-  position: absolute;
-  z-index: 1;
-  font-size: 9px;
-  padding: 2px 3px;
-  top: 5px;
-  left: -20px;
-  min-width: 16px;
-  text-align: center;
+    color: #fff;
+    background: #aaa;
+    position: absolute;
+    z-index: 1;
+    font-size: 9px;
+    padding: 2px 3px;
+    top: 5px;
+    left: -20px;
+    min-width: 16px;
+    text-align: center;
 }
 
 .play-off-team {
-  position: relative;
-  z-index: 1;
-  white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
 }
 
 .play-off-team-title {
-  display: inline-block;
-  width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
+    display: inline-block;
+    width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
 }
 
 .play-off-team-score {
-  display: inline-block;
-  font-weight: 700;
-  width: 20px;
-  text-align: center;
-  vertical-align: middle;
+    display: inline-block;
+    font-weight: 700;
+    width: 20px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .modal-content {
-  background: white;
-  max-height: calc(100vh - 100px);
+    background: white;
+    max-height: calc(100vh - 100px);
 }
 
 @media screen and (min-width: 769px) {
-  .modal-content {
-    max-width: calc(100% - 100px);
-    width: auto;
-  }
+    .modal-content {
+        max-width: calc(100% - 100px);
+        width: auto;
+    }
+
     .lane-block {
         display: flex;
         flex-direction: column;
         line-height: 1;
     }
 
-    .game-row:nth-child(odd){
+    .game-row:nth-child(odd) {
         background-color: #f2efef70;
     }
 }
 
-@media all and (max-width: 768px){
+@media all and (max-width: 768px) {
     .game-row {
         flex-direction: column;
         border-bottom: solid 1px #ccc;
         margin-bottom: 0;
         padding: 15px 0;
     }
-    
+
     .game-row:last-child {
         margin-bottom: 25px;
     }
-    
+
     .game-row span.score-block {
         flex-basis: auto;
         margin: 10px 0;

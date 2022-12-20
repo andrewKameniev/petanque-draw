@@ -4,22 +4,37 @@
             <div class="has-text-right">
                 <a href="#" class="delete is-large" @click.prevent="$emit('closeMenu')"></a>
             </div>
-            <p class="menu-label">
+            <p class="menu-label is-hidden-desktop" v-if="tournaments.length > 1">
+                Active tournaments
+            </p>
+            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="tournaments.length > 1">
+                <a class="navbar-link">
+                    Choose
+                </a>
+                <div class="navbar-dropdown" v-if="tournaments.length > 1">
+                    <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}"
+                       v-for="(item, index) in tournaments" :key="index"
+                       @click.prevent="setActiveTournament(index)">
+                        {{item.name || 'Tournament ' + tournamentNames[index]}}
+                    </a>
+                </div>
+            </div>
+            <p class="menu-label" v-if="savedTournaments.length">
                 Saved tournaments
             </p>
             <ul class="menu-list">
-                <li v-for="(title, index) in tournaments" :key="index">
-                    <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ title }}</a>
+                <li v-for="(item, index) in savedTournaments" :key="index">
+                    <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
                 </li>
             </ul>
             <p class="menu-label">
                 Info
             </p>
             <ul class="menu-list">
-                <li><a>Swiss system</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">Swiss system</a></li>
             </ul>
             <p class="menu-label">
-                Usefull Links
+                Useful Links
             </p>
             <ul class="menu-list">
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">Portal</a></li>
@@ -29,11 +44,20 @@
 </template>
 
 <script>
+import {mapMutations, mapState} from "vuex";
+import {tournamentNames} from "../helpers";
+
 export default {
     name: 'Menu',
-    props: ['active', 'tournaments'],
+    data() {
+        return {
+            tournamentNames
+        }
+    },
+    props: ['active'],
+    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments']),
     methods: {
-
+        ...mapMutations(['setActiveTournament']),
     },
 }
 </script>
@@ -55,6 +79,7 @@ export default {
     }
     .menu-wrapper {
         position: fixed;
+        z-index: 100;
         opacity: 0;
         visibility: hidden;
         left: 0;

@@ -21,7 +21,7 @@
                 <label class="label">How many team in group?</label>
                 <div class="control">
                     <div class="select">
-                        <select v-model="teamsInGroup">
+                        <select v-model.number="teamsInGroup">
                             <template v-for="(team, index) in tournament.teams" :key="index">
                                 <option v-if="index > 1">{{index + 1}}</option>
                             </template>
@@ -67,7 +67,7 @@
                     <h2 class="h2">Go to play-off?</h2>
                     <div class="is-flex is-align-items-center">Choose number of teams
                         <div class="select ml-3">
-                            <select v-model="teamToPlayOff">
+                            <select v-model.number="teamToPlayOff">
                                 <option v-if="tournament.teams.length >= 2">2</option>
                                 <option v-if="tournament.teams.length >= 4">4</option>
                                 <option v-if="tournament.teams.length >= 8">8</option>
@@ -141,7 +141,7 @@ export default {
                         this.rankingTeams.forEach(group => playOffList.push(group[i]));
                     }
                 } else {
-                    playOffList = this.rankingTeams.slice(0, this.teamToPlayOff)
+                    playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff)
                 }
             }
             let playOffScheme = [];

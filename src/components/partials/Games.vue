@@ -220,8 +220,8 @@ export default {
             }
         },
         createGroups() {
-            if(!this.teamsInGroup) {
-                this.showMessage({title: 'Can\'t draw', text: `Choose number of teams in group`, type: 'error'});
+            if(this.teamsInGroup < 3) {
+                this.showMessage({title: 'Can\'t draw', text: `Choose correct number of teams in group`, type: 'error'});
                 return false;
             }
             const groupsQuantity = Math.round(this.tournament.teams.length / this.teamsInGroup);
@@ -234,7 +234,7 @@ export default {
                 for (let j = 0; j < teamsToDraw.length; j++) {
                     for (let i = 0; i < groupsQuantity; i++) {
                         const teamIndex = this.tournament.useRating ? 0 : this.getRandomWithOneExclusion(teamsToDraw.length);
-                        if (teamIndex !== -1) {
+                        if (teamIndex !== -1 && teamsToDraw.length >= 1) {
                             const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
                             groups[i].push(this.tournament.teams[teamIndexInList])
                             teamsToDraw.splice(teamIndex, 1);

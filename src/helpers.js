@@ -101,7 +101,6 @@ function getTournamentRanking(tournament, rankingTeams){
     } else {
         if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
             const rankingTeamsList = tournament.system === 'swiss' ? rankingTeams : rankingTeams[0];
-            console.log(rankingTeamsList);
             rankingTeamsList.forEach((team,index) =>{
                 const teamPlace = {
                     place: index + 1,

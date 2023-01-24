@@ -220,10 +220,10 @@ export default {
             }
         },
         createGroups() {
-            /*if(this.tournament.teams.length % this.teamsInGroup !== 0) {
-                this.showMessage({title: 'Can\'t draw', text: `You should have multiple ${this.teamsInGroup} number of teams to create tournament`, type: 'error'});
+            if(!this.teamsInGroup) {
+                this.showMessage({title: 'Can\'t draw', text: `Choose number of teams in group`, type: 'error'});
                 return false;
-            }*/
+            }
             const groupsQuantity = Math.round(this.tournament.teams.length / this.teamsInGroup);
             let groups = [];
             for (let i = 1; i <= groupsQuantity; i++) {
@@ -323,7 +323,7 @@ export default {
                 [array[currentIndex], array[randomIndex]] = [
                     array[randomIndex], array[currentIndex]];
             }
-            if (this.tournament.teams.length % 2 !== 0) {
+            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
                 const technicalGameIndex = array.findIndex(game => game.team_2 === 'Technical');
                 const technicalGame = array[technicalGameIndex];
                 array.splice(technicalGameIndex, 1);

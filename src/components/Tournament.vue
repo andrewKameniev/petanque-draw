@@ -22,17 +22,9 @@
                 <div class="control">
                     <div class="select">
                         <select v-model="teamsInGroup">
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                            <option>6</option>
-                            <option>7</option>
-                            <option>8</option>
-                            <option>9</option>
-                            <option>10</option>
-                            <option>11</option>
-                            <option>12</option>
-                            <option>{{tournament.teams.length}}</option>
+                            <template v-for="(team, index) in tournament.teams" :key="index">
+                                <option v-if="index > 1">{{index + 1}}</option>
+                            </template>
                         </select>
                     </div>
                 </div>
@@ -125,7 +117,7 @@ export default {
             removeConfirm: false,
             changeNameModal: false,
             playB: false,
-            teamsInGroup: 4
+            teamsInGroup: null
         }
     },
     created() {

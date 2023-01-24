@@ -28,8 +28,12 @@ export default {
     components: {Modal},
     data() {
         return {
-            name: ''
+            name: '',
+            hasError: false
         }
+    },
+    created() {
+        this.name = this.tournament.name
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
@@ -40,8 +44,14 @@ export default {
     methods: {
         ...mapMutations(['changeTournamentName']),
         changeCurrentTournamentName() {
-            this.changeTournamentName(this.name);
-            this.$emit('close-modal')
+            this.hasError = false;
+            if (this.name !== '') {
+                this.changeTournamentName(this.name);
+                this.$emit('close-modal')
+            } else {
+                this.hasError = true
+            }
+
         }
     },
 }

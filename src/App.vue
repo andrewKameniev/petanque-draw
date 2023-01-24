@@ -13,9 +13,11 @@
         <button class="button is-info" @click="addTournament">Add new tournament</button>
         <Message v-if="message.show"/>
         <Menu :active="menuOpen"
-              @closeMenu="menuOpen = false" @openSavedTournament="openSavedTournament"/>
+              @closeMenu="menuOpen = false"
+              @openSavedTournament="openSavedTournament" @open-help="menuOpen = false; helpOpen = true"/>
         <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
                               @close-modal="closeTournamentModal"/>
+        <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
     </div>
 </template>
 
@@ -26,6 +28,7 @@ import SavedTournamentModal from './components/partials/SavedTournamentModal';
 import Tournament from "./components/Tournament";
 import {mapState, mapMutations} from 'vuex'
 import Navbar from "./components/Navbar";
+import Help from "@/components/Help";
 
 export default {
     name: 'App',
@@ -34,7 +37,8 @@ export default {
             showSaveTournament: false,
             menuOpen: false,
             showSavedTournament: false,
-            savedTournamentsActive: null,
+            helpOpen: false,
+            savedTournamentsActive: false
         }
     },
     mounted() {
@@ -66,6 +70,7 @@ export default {
         },
     },
     components: {
+        Help,
         Navbar,
         Tournament,
         SavedTournamentModal,

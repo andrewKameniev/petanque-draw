@@ -14,7 +14,7 @@
                 <div class="navbar-dropdown" v-if="tournaments.length > 1">
                     <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}"
                        v-for="(item, index) in tournaments" :key="index"
-                       @click.prevent="setActiveTournament(index)">
+                       @click.prevent="chooseTournament(index)">
                         {{item.name || 'Tournament ' + tournamentNames[index]}}
                     </a>
                 </div>
@@ -32,6 +32,7 @@
             </p>
             <ul class="menu-list">
                 <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">Swiss system</a></li>
+                <li><a href="#" @click.prevent="$emit('openHelp')">How to use (in progress)?</a></li>
             </ul>
             <p class="menu-label">
                 Useful Links
@@ -58,6 +59,11 @@ export default {
     computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments']),
     methods: {
         ...mapMutations(['setActiveTournament']),
+        chooseTournament(index) {
+            this.setActiveTournament(index);
+            this.$emit('closeMenu')
+
+        }
     },
 }
 </script>

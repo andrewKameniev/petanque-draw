@@ -17,7 +17,7 @@
                 <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="text" placeholder="Team title">
             </div>
         </div>
-        <div class="column is-one-fifth" v-if="showRating">
+        <div class="column is-one-fifth" v-if="tournament.useRating">
             <div class="field control">
                 <input v-model="teamRating" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="number" id="rating" placeholder="Rating">
             </div>
@@ -30,8 +30,8 @@
     </div>
     <div>
          <label class="checkbox">
-              <input type="checkbox" :checked="tournament.showRating" @change="changeDrawType($event.target.checked)">
-              Use team rating for drawing (else first round will be drawed randomly)
+              <input type="checkbox" :checked="tournament.useRating" @change="changeDrawType($event.target.checked)">
+              Use team rating for drawing
         </label>
     </div>
 </template>

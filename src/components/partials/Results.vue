@@ -1,7 +1,10 @@
 <template>
     <div class="content tabs-content">
         <div v-if="tournament.games.length || tournament.playOffBracket">
-            <h3 v-if="tournament.games.length" class="has-text-centered">Swiss rounds</h3>
+            <h3 v-if="tournament.games.length" class="has-text-centered">
+                <span v-if="tournament.system ==='swiss'">Swiss</span>
+                <span v-else>Group</span>
+                rounds</h3>
             <div class="table-container">
                 <table v-if="tournament.games.length" class="table is-striped mb-5">
                     <tbody>

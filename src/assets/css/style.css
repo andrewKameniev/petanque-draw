@@ -234,6 +234,10 @@ body {
     max-height: calc(100vh - 100px);
 }
 
+.no-wrap {
+    white-space: nowrap;
+}
+
 @media screen and (min-width: 769px) {
     .modal-content {
         max-width: calc(100% - 100px);

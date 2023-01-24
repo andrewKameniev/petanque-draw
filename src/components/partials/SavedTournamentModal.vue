@@ -16,26 +16,26 @@
                 </button>
             </header>
             <div class="card-content" :class="{active: showSwissTable}">
-                <Ranking :gamesList="tournament.swiss"
-                          :showIfUseRating="true" :isPlayOff="tournament.playOff" :rankingTeams="tournament.ranking" :activeRound="false"/>
+                <Ranking :tournament="tournament"
+                         :rankingTeams="tournament.ranking" showInSaved="true"/>
             </div>
         </div>
-        <div class="card" v-if="tournament.swiss">
+        <div class="card" v-if="tournament.games">
             <header class="card-header" @click="showSwissTable = false; showGames = !showGames">
                 <p class="card-header-title">
                     Games
                 </p>
                 <button class="card-header-icon" aria-label="more options">
                   <span class="icon">
-
+                      <i class="fas fa-angle-down" aria-hidden="true"></i>
                   </span>
                 </button>
             </header>
             <div class="card-content" :class="{active: showGames}">
                 <div class="table-container">
-                    <table v-if="tournament.swiss" class="table is-striped mb-5">
+                    <table v-if="tournament.games" class="table is-striped mb-5">
                         <tbody>
-                        <template v-for="(round, index) in tournament.swiss" :key="index">
+                        <template v-for="(round, index) in tournament.games" :key="index">
                             <tr v-for="(game, i) in round" :key="i">
                                 <td>R{{index + 1}}</td>
                                 <td>{{game.team_1}}</td>

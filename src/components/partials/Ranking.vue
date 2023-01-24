@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="tournament.playOff && tournament.tournamentIsFinished" class="mb-5">
+        <div v-if="tournament.tournamentIsFinished" class="mb-5">
             <div class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>Tournament Result</h2>
                 <button class="button is-info" @click="copyResults">Copy results</button>
@@ -8,55 +8,94 @@
             <div class="table-container">
                 <table id="table-finish-ranking" class="table">
                     <thead>
-                        <tr>
-                            <th>Place</th>
-                            <th>Team</th>
-                            <th>Players</th>
-                        </tr>
+                    <tr>
+                        <th>Place</th>
+                        <th>Team</th>
+                        <th>Players</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(team, index) in tournamentRanking" :key="index">
-                            <td>{{ team.place }}</td>
-                            <td>{{ team.title}}</td>
-                            <td>
-                                <div class="is-size-7" v-if="getTeamPlayers(team.title).length">
-                                    <span class="has-text-dark" v-for="(player, index) in getTeamPlayers(team.title)" :key="index">
-                                    {{player.name}} {{player.surname}}<span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
-                                      </span>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr v-for="(team, index) in showInSaved ? rankingTeams : tournamentRanking" :key="index">
+                        <td>{{ team.place }}</td>
+                        <td>{{ team.title }}</td>
+                        <td>
+                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : getTeamPlayers(team.title).length">
+                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : getTeamPlayers(team.title)"
+                                      :key="index">
+                                        {{ player.name }} {{ player.surname }}
+                                    <span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
+                                  </span>
+                            </div>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <div v-if="tournament.games.length > 0">
-            <h2>Ranking after <span v-if="activeRound">{{activeRound - 1}} round{{activeRound > 1 && activeRound !== 0 ? 's' : '' }}</span> swiss</h2>
-            <div class="table-container">
-                <table id="table-ranking" class="table">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Team</th>
-                        <th>Wins</th>
-                        <th>Buh</th>
-                        <th>SBuh</th>
-                        <th>Points</th>
-                        <th v-if="tournament.useRating">Rating</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="team in rankingTeams" :key="team.title">
-                        <td><span class="team-count"></span></td>
-                        <td>{{team.title}}</td>
-                        <td align="center">{{team.wins}}</td>
-                        <td align="center">{{team.buhgolts}}</td>
-                        <td align="center">{{team.smallBuhgolts}}</td>
-                        <td align="center">{{team.pointsPlus}}:{{team.pointsMinus}}</td>
-                        <td v-if="tournament.useRating">{{team.rating}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+            <h2 v-if="tournament.system === 'swiss'">Ranking
+                <span v-if="activeRound">after {{ activeRound - 1 }} round{{
+                        activeRound > 2 && activeRound !== 0 ? 's ' : ' '
+                    }}</span>
+                <span v-if="tournament.system === 'swiss'">swiss</span>
+            </h2>
+            <div v-if="tournament.system === 'swiss'">
+                <div class="table-container">
+                    <table id="table-ranking" class="table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Team</th>
+                            <th>Wins</th>
+                            <th>Buh</th>
+                            <th>SBuh</th>
+                            <th>Points</th>
+                            <th v-if="tournament.useRating">Rating</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="team in rankingTeams" :key="team.title">
+                            <td><span class="team-count"></span></td>
+                            <td>{{ team.title }}</td>
+                            <td align="center">{{ team.wins }}</td>
+                            <td align="center">{{ team.buhgolts }}</td>
+                            <td align="center">{{ team.smallBuhgolts }}</td>
+                            <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                            <td v-if="tournament.useRating">{{ team.rating }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div v-else-if="tournament.groups">
+                <div v-for="(group, index) in rankingTeams" :key="index">
+                    <h4 v-if="tournament.groups && tournament.groups.length > 1">Group {{ groupsNames[index] }}</h4>
+                    <div class="table-container mb-5">
+                        <table class="table table is-striped">
+                            <thead>
+                            <tr>
+                                <th>Place</th>
+                                <th>Team</th>
+                                <th v-for="(team, index) in group" :key="index" align="center">{{ index + 1 }}</th>
+                                <th>Wins</th>
+                                <th>Points</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(team, index) in group" :key="index">
+                                <td>{{ index + 1 }}</td>
+                                <td>{{ team.title }}</td>
+                                <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
+                                    class="no-wrap">
+                                    {{ getGameResultInGroup(tournament.games, team.title, opponent.title) }}
+                                </td>
+                                <td align="center">{{ team.wins }}</td>
+                                <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -64,18 +103,19 @@
 
 
 <script>
-import {mapState} from "vuex";
+import {tournamentNames, getGameResultInGroup, getTournamentRanking} from "@/helpers";
 
 export default {
     name: 'Ranking',
-    props: ['rankingTeams', 'activeRound'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved'],
     emits: ['is-playoff'],
-    data(){
+    data() {
         return {
-            playOffBracket: localStorage.getItem('playOffBracket') ?  JSON.parse(localStorage.getItem('playOffBracket')) : null
+            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null
         }
     },
     methods: {
+        getGameResultInGroup: getGameResultInGroup,
         copyResults() {
             const el = document.createElement('div')
             let content = ''
@@ -92,73 +132,17 @@ export default {
             document.execCommand('copy')
             el.remove()
         },
-        getTeamPlayers(title){
-            return this.rankingTeams.find(item => item.title === title).players ? this.rankingTeams.find(item => item.title === title).players : ''
-        }
+        getTeamPlayers(title) {
+            return this.tournament.teams && this.tournament.teams.find(item => item.title === title).players ? this.tournament.teams.find(item => item.title === title).players : ''
+        },
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+        groupsNames() {
+            return tournamentNames
         },
-        tournamentIsFinished(){
-            return this.tournament.playOffStage ? this.tournament.playOffStage === 0 : false
+        tournamentRanking() {
+            return getTournamentRanking(this.tournament, this.rankingTeams)
         },
-        tournamentRanking(){
-            let tournamentRanking = [];
-            const playOffList = JSON.parse(JSON.stringify(this.tournament.playOffBracket.stages)).reverse();
-            const thirdPlaceGame = JSON.parse(JSON.stringify(this.tournament.playOffBracket.thirdPlace));
-            let teamsInRanking = [];
-            for (let i = 0; i < playOffList.length; i++){
-                if(playOffList[i].stageLabel === 1){
-                    const firstPlace = {
-                        place: '1',
-                        title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_1 : playOffList[i].teams[0].team_2
-                    }
-                    tournamentRanking.push(firstPlace)
-                    teamsInRanking.push(firstPlace.title)
-                    const secondPlace = {
-                        place: '2',
-                        title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_2 : playOffList[i].teams[0].team_1
-                    }
-                    tournamentRanking.push(secondPlace)
-                    teamsInRanking.push(secondPlace.title)
-                } else if(playOffList[i].stageLabel === 2){
-                    const thirdPlace = {
-                        place: '3',
-                        title: thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2
-                    }
-                    tournamentRanking.push(thirdPlace)
-                    teamsInRanking.push(thirdPlace.title)
-                    const fourthPlace = {
-                        place: '4',
-                        title:thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1
-                    }
-                    tournamentRanking.push(fourthPlace)
-                    teamsInRanking.push(fourthPlace.title)
-                } else {
-                    playOffList[i].teams.forEach(round => {
-                        const teamTitle = teamsInRanking.includes(round.team_1) ? round.team_2 : round.team_1
-                        const teamPlace = {
-                            place: playOffList[i].stageLabel + 1 + '-' + playOffList[i].stageLabel * 2,
-                            title: teamTitle
-                        }
-                        tournamentRanking.push(teamPlace)
-                        teamsInRanking.push(teamPlace.title)
-                    })
-                }
-            }
-          if (this.tournament.games.length > 0){
-            this.rankingTeams.slice(this.tournament.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
-              const teamPlace = {
-                place: this.tournament.playOffBracket.stages[0].teamsCount + index + 1,
-                title: team.title
-              }
-              tournamentRanking.push(teamPlace)
-            })
-          }
-            return tournamentRanking
-        }
     },
 }
 </script>

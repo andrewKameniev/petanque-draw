@@ -3,7 +3,9 @@ import {tournamentNames} from "@/helpers";
 const newTournament = {
     name: 'Tournament A',
     games: [],
+    gamesCopy: [],
     teams: [],
+    system: 'swiss',
     roundIsActive: false,
     useRating: false,
     isPlayOff: false,
@@ -57,7 +59,12 @@ const store = createStore({
         },
         addRoundToGames(state, round){
             state.tournaments[state.currentTournamentIndex].games.push(round);
+            state.tournaments[state.currentTournamentIndex].gamesCopy.push(round);
             state.tournaments[state.currentTournamentIndex].roundIsActive = true;
+        },
+        restoreRound(state) {
+            state.tournaments[state.currentTournamentIndex].games.pop()
+            state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.opponents.pop())
         },
         setPlayOff(state, scheme) {
             state.tournaments[state.currentTournamentIndex].playOff = scheme

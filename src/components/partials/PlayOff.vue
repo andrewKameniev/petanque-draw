@@ -8,7 +8,7 @@
             <div v-if="playOffStageCurrent === 0" class="has-text-centered is-size-4">
                 Tournament has finished. <a href="#" @click.prevent="$emit('openResults')">See result</a>
             </div>
-            <Fragment v-else>
+            <template v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? 'Final' : '1/' + playOffStageCurrent + ' final'}}</h2>
                 <div class="game-row" v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
                     <span class="text-right team-block">
@@ -51,7 +51,7 @@
                 <div class="text-center mt-5">
                     <button class="button is-success" @click="saveResults">Save results</button>
                 </div>
-            </Fragment>
+            </template>
         </div>
         <Bracket v-if="showBracket" :bracket="playOffBracket" @close-modal="showBracket = false"/>
     </div>

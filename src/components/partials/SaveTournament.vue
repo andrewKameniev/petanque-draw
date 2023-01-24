@@ -25,6 +25,7 @@
 <script>
 import {mapMutations, mapState} from "vuex";
 import Modal from "@/components/Modal";
+import {getTournamentRanking} from "@/helpers";
 
 export default {
     name: 'SaveTournament',
@@ -37,7 +38,7 @@ export default {
             hasError: false
         }
     },
-    mounted() {
+    created() {
         this.name = this.tournament.name
     },
     computed: {
@@ -54,84 +55,22 @@ export default {
                 return tournamentsTitles
             } else return false
         },
-        tournamentRanking(){
-            let tournamentRanking = [];
-            if(this.tournament.playOffBracket) {
-                const playOffList = JSON.parse(JSON.stringify(this.tournament.playOffBracket.stages)).reverse();
-                const thirdPlaceGame = JSON.parse(JSON.stringify(this.tournament.playOffBracket.thirdPlace));
-                let teamsInRanking = [];
-                for (let i = 0; i < playOffList.length; i++){
-                    if(playOffList[i].stageLabel === 1){
-                        const firstPlace = {
-                            place: '1',
-                            title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_1 : playOffList[i].teams[0].team_2
-                        }
-                        tournamentRanking.push(firstPlace)
-                        teamsInRanking.push(firstPlace.title)
-                        const secondPlace = {
-                            place: '2',
-                            title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_2 : playOffList[i].teams[0].team_1
-                        }
-                        tournamentRanking.push(secondPlace)
-                        teamsInRanking.push(secondPlace.title)
-                    } else if(playOffList[i].stageLabel === 2){
-                        const thirdPlace = {
-                            place: '3',
-                            title: thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2
-                        }
-                        tournamentRanking.push(thirdPlace)
-                        teamsInRanking.push(thirdPlace.title)
-                        const fourthPlace = {
-                            place: '4',
-                            title:thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1
-                        }
-                        tournamentRanking.push(fourthPlace)
-                        teamsInRanking.push(fourthPlace.title)
-                    } else {
-                        playOffList[i].teams.forEach(round => {
-                            const teamTitle = teamsInRanking.includes(round.team_1) ? round.team_2 : round.team_1
-                            const teamPlace = {
-                                place: playOffList[i].stageLabel + 1 + '-' + playOffList[i].stageLabel * 2,
-                                title: teamTitle
-                            }
-                            tournamentRanking.push(teamPlace)
-                            teamsInRanking.push(teamPlace.title)
-                        })
-                    }
-                }
-
-                if (this.tournament.games.length > 0){
-                    this.rankingTeams.slice(this.tournament.playOffBracket.stages[0].teamsCount, this.rankingTeams.length).forEach((team,index) =>{
-                        const teamPlace = {
-                            place: this.tournament.playOffBracket.stages[0].teamsCount + index + 1,
-                            title: team.title
-                        }
-                        tournamentRanking.push(teamPlace)
-                    })
-                }
-            } else {
-                this.rankingTeams.forEach((team,index) =>{
-                    const teamPlace = {
-                        place: index + 1,
-                        title: team.title
-                    }
-                    tournamentRanking.push(teamPlace)
-                })
-            }
-
-            return tournamentRanking
-        }
+        tournamentRanking() {
+            return getTournamentRanking(this.tournament, this.rankingTeams)
+        },
     },
     methods: {
         ...mapMutations(['addToSaved', 'showMessage']),
         saveTournament(){
             this.hasError = false;
-            if(!this.name || this.tournamentsNames && this.tournamentsNames.includes(this.name)){
+            if(!this.tournament.name || this.tournamentsNames && this.tournamentsNames.includes(this.name)){
                 this.hasError = true
             } else {
                 const currentTournament = {
                     name: this.name,
-                    swiss: this.tournament.games,
+                    system: this.tournament.system,
+                    tournamentIsFinished: this.tournament.tournamentIsFinished,
+                    games: this.tournament.games,
                     playOff: this.tournament.playOffBracket ? this.tournament.playOffBracket : null,
                     ranking: this.tournamentRanking
                 }

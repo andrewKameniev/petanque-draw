@@ -137,7 +137,7 @@ export default {
             } else {
                 if(this.tournament.groups.length > 1) {
                     playOffList = [];
-                    for (let i = 0; i < this.teamToPlayOff / 2; i++) {
+                    for (let i = 0; i < this.teamToPlayOff / this.tournament.groups.length; i++) {
                         this.rankingTeams.forEach(group => playOffList.push(group[i]));
                     }
                 } else {

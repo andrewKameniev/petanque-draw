@@ -89,11 +89,13 @@ function getTournamentRanking(tournament, rankingTeams){
                 });
                 for (let i = 0; i < teamsGroupsAfterPlayOff[0].length; i++) {
                     teamsGroupsAfterPlayOff.forEach(group => {
-                        const teamPlace = {
-                            place: teamsCountPlayOff + i * 2 + 1 + '-' + (teamsCountPlayOff + i * 2 + 2),
-                            title: group[i].title,
+                        if(group[i]) {
+                            const teamPlace = {
+                                place: teamsCountPlayOff + i * groupsCount + 1 + '-' + (teamsCountPlayOff + i * groupsCount + groupsCount),
+                                title: group[i].title,
+                            }
+                            tournamentRanking.push(teamPlace);
                         }
-                        tournamentRanking.push(teamPlace);
                     });
                 }
             }

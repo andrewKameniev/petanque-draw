@@ -41,11 +41,11 @@ import {tournamentNames} from "@/helpers";
 
 export default {
     name: "TeamsList",
-    props: ['activeRound'],
+    props: ['previewTournament', 'activeRound'],
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.previewTournament || this.tournaments[this.currentTournamentIndex]
         },
         groupsNames() {
             return tournamentNames

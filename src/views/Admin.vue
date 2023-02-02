@@ -6,10 +6,7 @@
 
 import Page from "@/components/Page";
 export default {
-    name: 'Login',
+    name: 'Admin',
     components: {Page},
-    methods: {
-
-    },
 }
 </script>

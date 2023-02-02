@@ -5,6 +5,8 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 import Page from "./components/Page";
 import Login from "./views/Login";
 import Admin from "@/views/Admin";
+import Public from "@/views/Public";
+
 
 const app = createApp(App);
 const router = createRouter({
@@ -16,6 +18,11 @@ const router = createRouter({
             component: Page
         },
         {
+            path: '/tournaments/:id',
+            name: 'view',
+            component: Public
+        },
+        {
             path: '/login',
             name: 'login',
             component: Login
@@ -23,9 +30,17 @@ const router = createRouter({
         {
             path: '/admin',
             name: 'admin',
-            component: Admin
+            component: Admin,
+            beforeEnter: (to, from, next) =>{
+                if (store.state.isAdmin){
+                    next()
+                } else{
+                    next({name: 'public'})
+                }
+            }
         }
     ]
 })
 
-app.use(store).use(router).mount('#app')
+app.use(store).use(router).mount('#app');
+

@@ -24,10 +24,17 @@ const store = createStore({
                 text: '',
             },
             savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
-            currentTournamentIndex: null
+            currentTournamentIndex: null,
+            isAdmin: false
         }
     },
     mutations: {
+        setTournamentIdFromPortal(state, value) {
+            state.tournaments[state.currentTournamentIndex].portalIdTournament = value
+        },
+        loginAdmin (state, value) {
+            state.isAdmin = value
+        },
         setActiveTournament (state, index) {
             state.currentTournamentIndex = index
         },

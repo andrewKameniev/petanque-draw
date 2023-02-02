@@ -48,6 +48,7 @@ body {
 .game-row span.score-block {
     flex: 0 0 210px;
     display: flex;
+    justify-content: center;
     align-items: center;
 }
 

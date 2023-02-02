@@ -5,7 +5,7 @@
             <div class="column">
                 <Tournament v-if="tournament"/>
             </div>
-            <div class="column is-one-third is-hidden-touch" v-if="isAdmin">
+            <div class="column is-one-third is-hidden-touch">
                 <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
             </div>
         </div>

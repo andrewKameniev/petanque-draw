@@ -80,7 +80,8 @@ export default {
     },
     mounted() {
         this.getInfo();
-        this.requestPermission()
+        this.requestPermission();
+        this.registerSw()
     },
     computed: {
         activeRound() {
@@ -101,6 +102,16 @@ export default {
             } else {
                 alert("Error" + response.status);
             }
+        },
+        registerSw() {
+            navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
+                // registration worked
+                console.log(reg);
+                console.log('Registration succeeded. Scope is ' + reg.scope);
+            }).catch(function(error) {
+                // registration failed
+                console.log('Registration failed with ' + error);
+            });
         },
         requestPermission() {
             console.log('Requesting permission...');

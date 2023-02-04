@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'development') {
       console.error('Error during service worker registration:', error)
     }
   });
-  register(`${process.env.BASE_URL}firebase-messaging-sw.js`, {
+  register(`https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js`, {
     ready () {
        console.log('firebase is ready')
     },

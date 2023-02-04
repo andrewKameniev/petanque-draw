@@ -229,7 +229,7 @@ export default {
             for (let i = 1; i <= groupsQuantity; i++) {
                 groups.push([]);
             }
-            let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams));
+            let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams.sort((a, b) => b.rating - a.rating)));
             while (teamsToDraw.length >= 1) {
                 for (let j = 0; j < teamsToDraw.length; j++) {
                     for (let i = 0; i < groupsQuantity; i++) {

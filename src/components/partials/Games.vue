@@ -8,11 +8,6 @@
                         {{ activeRound === 1 ? 'First' : `Draw ${activeRound}` }} Round
                     </button>
                 </div>
-                <div class="control ml-auto" v-if="tournament.system === 'swiss' && tournament.games.length > 1 && tournament.roundIsActive">
-                    <button class="button is-danger" @click="restoreRoundGames">
-                        Restore previous round
-                    </button>
-                </div>
             </div>
             <div v-if="tournament.games.length && tournament.roundIsActive">
                 <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">Show <span
@@ -49,6 +44,11 @@
                 <div class="text-center mt-3">
                     <button class="button is-success" @click="saveResults" :disabled=saveDisabled>Save results</button>
                 </div>
+                <div class="text-center mt-3" v-if="tournament.system === 'swiss' && tournament.games.length > 1 && tournament.roundIsActive">
+                    <button class="button is-danger" @click="restoreRoundGames">
+                        Restore previous round
+                    </button>
+                </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">There was an unexpectable error, sorry for that,
                     you can write developer about it (contact in footer), but this will not help you in this situation:))
                 </div>
@@ -79,7 +79,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
@@ -330,7 +330,7 @@ export default {
                 array.push(technicalGame)
             }
             return array;
-        },
+        }
     },
 }
 </script>

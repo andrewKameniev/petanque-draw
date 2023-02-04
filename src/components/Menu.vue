@@ -40,6 +40,15 @@
             <ul class="menu-list">
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">Portal</a></li>
             </ul>
+            <p class="menu-label">
+                Admin section
+            </p>
+            <div>
+                <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
+                <router-link v-else to="/login" class="button is-light">
+                    Log in as Admin
+                </router-link>
+            </div>
         </aside>
     </div>
 </template>
@@ -56,13 +65,17 @@ export default {
         }
     },
     props: ['active'],
-    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments']),
+    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin']),
     methods: {
-        ...mapMutations(['setActiveTournament']),
+        ...mapMutations(['setActiveTournament', 'loginAdmin']),
         chooseTournament(index) {
             this.setActiveTournament(index);
             this.$emit('closeMenu')
 
+        },
+        logout() {
+            this.loginAdmin(false);
+            this.$router.push('/')
         }
     },
 }

@@ -10,7 +10,8 @@ const newTournament = {
     useRating: false,
     isPlayOff: false,
     playoff: false,
-    tournamentIsFinished: false
+    tournamentIsFinished: false,
+    tournamentMessage: ''
 }
 const store = createStore({
     state () {
@@ -24,10 +25,20 @@ const store = createStore({
                 text: '',
             },
             savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
-            currentTournamentIndex: null
+            currentTournamentIndex: null,
+            isAdmin: false
         }
     },
     mutations: {
+        setTournamentIdFromPortal(state, value) {
+            state.tournaments[state.currentTournamentIndex].portalIdTournament = value
+        },
+        loginAdmin (state, value) {
+            state.isAdmin = value;
+            if(!value) {
+                sessionStorage.removeItem("isAdmin")
+            }
+        },
         setActiveTournament (state, index) {
             state.currentTournamentIndex = index
         },

@@ -46,11 +46,11 @@
                         <tr>
                             <th>#</th>
                             <th>Team</th>
-                            <th>Wins</th>
-                            <th>Buh</th>
-                            <th>SBuh</th>
-                            <th>Points</th>
-                            <th v-if="tournament.useRating">Rating</th>
+                            <th align="center">Wins</th>
+                            <th align="center">Buh</th>
+                            <th align="center">SBuh</th>
+                            <th align="center">Points</th>
+                            <th v-if="tournament.useRating" align="center">Rating</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -76,9 +76,9 @@
                             <tr>
                                 <th>Place</th>
                                 <th>Team</th>
-                                <th v-for="(team, index) in group" :key="index" align="center">{{ index + 1 }}</th>
-                                <th>Wins</th>
-                                <th>Points</th>
+                                <th v-for="(index) in group" :key="index" align="center">{{ index + 1 }}</th>
+                                <th align="center">Wins</th>
+                                <th align="center">Points</th>
                             </tr>
                             </thead>
                             <tbody>

@@ -28,5 +28,13 @@ if (process.env.NODE_ENV === 'production') {
     error (error) {
       console.error('Error during service worker registration:', error)
     }
+  });
+  register(`${process.env.BASE_URL}firebase-messaging-sw.js`, {
+    ready () {
+       console.log('firebase is ready')
+    },
+    registered () {
+      console.log('Service worker has been registered.')
+    },
   })
 }

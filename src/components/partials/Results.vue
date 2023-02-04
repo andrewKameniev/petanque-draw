@@ -65,10 +65,11 @@ import {mapState} from "vuex";
 
 export default {
     name: 'Results',
+    props: ['previewTournament'],
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.previewTournament || this.tournaments[this.currentTournamentIndex]
         },
     }
 }

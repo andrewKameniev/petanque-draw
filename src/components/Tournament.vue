@@ -1,5 +1,20 @@
 <template>
     <div>
+        <div class="box" v-if="isAdmin && tournament.portalIdTournament">
+            <h2 class="is-size-5 mb-3">Remote availabilities:</h2>
+            <div class="buttons">
+                <button class="button is-info" @click="showInfoOnServer">Post tournament on server</button>
+                <button class="button is-light" @click="showQrCode = true">Show tournament links</button>
+                <button class="button is-warning" @click="showTypeMessage = !showTypeMessage">
+                    <span v-if="!showTypeMessage">Write </span><span v-else>Hide </span>&nbsp;message
+                </button>
+            </div>
+            <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
+            <div class="field" v-if="showTypeMessage">
+                <textarea name="info" id="" cols="30" rows="10" v-model="tournament.tournamentMessage" class="textarea"></textarea>
+            </div>
+            <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
+        </div>
         <div class="text-center is-size-3">
             <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong> <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
@@ -105,6 +120,7 @@ import {mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getGameResultInGroup} from "@/helpers";
+import QrCode from "@/components/partials/QrCode";
 
 export default {
     name: 'Tournament',
@@ -117,14 +133,17 @@ export default {
             removeConfirm: false,
             changeNameModal: false,
             playB: false,
-            teamsInGroup: null
+            teamsInGroup: null,
+            showQrCode: false,
+            showTypeMessage: false,
+            loadingOnServer: false
         }
     },
     created() {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament']),
+        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage']),
         saveTournament(tournament) {
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;
@@ -213,9 +232,35 @@ export default {
             });
             return whereCount;
         },
+        showInfoOnServer() {
+            const id = this.tournament.portalIdTournament;
+
+            let infoToPost = JSON.parse(JSON.stringify(this.tournament));
+            delete infoToPost.gamesCopy;
+            infoToPost.ranking = this.rankingTeams;
+            let formData = new URLSearchParams();
+            formData.append('meta', JSON.stringify(infoToPost));
+
+            try {
+                this.loadingOnServer = true;
+                fetch(`https://portal.petanque.org.ua/tournament/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData,
+                }).then(() => {
+                    this.loadingOnServer = false;
+                    this.showMessage({title: 'Success', text: 'Tournament is live!'});
+                });
+            } catch (error) {
+                alert(error);
+                this.showMessage({title: 'Error', type: 'error', text: error});
+            }
+        },
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
@@ -250,6 +295,7 @@ export default {
         },
     },
     components: {
+        QrCode,
         ChangeTournamentName,
         ConfirmRemoveModal,
         TeamsList,

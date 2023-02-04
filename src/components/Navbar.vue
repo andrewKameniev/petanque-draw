@@ -38,9 +38,10 @@
             <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                        <a class="button is-light">
-                            Log in
-                        </a>
+                        <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
+                        <router-link v-else to="/login" class="button is-light">
+                            Log in as Admin
+                        </router-link>
                     </div>
                 </div>
             </div>
@@ -54,13 +55,17 @@ import {mapMutations, mapState} from "vuex";
 export default {
     name: "Navbar",
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
     },
     methods: {
-        ...mapMutations(['setActiveTournament']),
+        ...mapMutations(['setActiveTournament', 'loginAdmin']),
+        logout() {
+            this.loginAdmin(false);
+            this.$router.push('/');
+        }
     }
 }
 </script>

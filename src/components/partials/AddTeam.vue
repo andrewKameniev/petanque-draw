@@ -57,7 +57,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage']),
+        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal']),
         addTeam(title, rating, players = false){
             if(title !== null && title !== ''){
                 let teamExists = false;
@@ -98,6 +98,8 @@ export default {
                 importedList.teams.forEach(team => {
                     this.addTeam(team.name, +team.power, team.players);
                 } )
+
+                this.setTournamentIdFromPortal(this.tournamentId)
 
             } else {
                 alert("Error" + response.status);

@@ -1,12 +1,13 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import {store} from "./store";
+import './registerServiceWorker'
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Page from "./components/Page";
 import Login from "./views/Login";
 import Admin from "@/views/Admin";
 import Public from "@/views/Public";
-
+import { getMessaging } from "firebase/messaging";
 
 const app = createApp(App);
 const router = createRouter({
@@ -41,6 +42,8 @@ const router = createRouter({
         }
     ]
 })
+app.config.globalProperties.$messaging = getMessaging;
+
 
 app.use(store).use(router).mount('#app');
 

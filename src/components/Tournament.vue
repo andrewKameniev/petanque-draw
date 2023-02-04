@@ -9,8 +9,9 @@
                     <span v-if="!showTypeMessage">Write </span><span v-else>Hide </span>&nbsp;message
                 </button>
             </div>
+            <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
             <div class="field" v-if="showTypeMessage">
-                <textarea name="info" id="" cols="30" rows="10" v-model="tournamentInfo" class="textarea"></textarea>
+                <textarea name="info" id="" cols="30" rows="10" v-model="tournament.tournamentMessage" class="textarea"></textarea>
             </div>
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
         </div>
@@ -135,7 +136,7 @@ export default {
             teamsInGroup: null,
             showQrCode: false,
             showTypeMessage: false,
-            tournamentInfo: ''
+            loadingOnServer: false
         }
     },
     created() {
@@ -236,12 +237,12 @@ export default {
 
             let infoToPost = JSON.parse(JSON.stringify(this.tournament));
             delete infoToPost.gamesCopy;
-            infoToPost.message = this.tournamentInfo;
             infoToPost.ranking = this.rankingTeams;
             let formData = new URLSearchParams();
             formData.append('meta', JSON.stringify(infoToPost));
 
             try {
+                this.loadingOnServer = true;
                 fetch(`https://portal.petanque.org.ua/tournament/${id}`, {
                     method: 'POST',
                     headers: {
@@ -249,12 +250,12 @@ export default {
                     },
                     body: formData,
                 }).then(() => {
-                    console.log(this);
+                    this.loadingOnServer = false;
                     this.showMessage({title: 'Success', text: 'Tournament is live!'});
-
                 });
             } catch (error) {
-                alert(error)
+                alert(error);
+                this.showMessage({title: 'Error', type: 'error', text: error});
             }
         },
     },

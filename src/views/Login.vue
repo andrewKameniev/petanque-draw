@@ -30,9 +30,10 @@ export default {
         ...mapMutations(['loginAdmin']),
         login() {
             this.isError = false;
-            if (this.password == '12345') {
-                this.loginAdmin(true)
-                this.$router.push('/admin')
+            if (this.password == 'petanque') {
+                this.loginAdmin(true);
+                sessionStorage.setItem("isAdmin", "true");
+                this.$router.push('/admin');
             } else {
                 this.isError = true
             }

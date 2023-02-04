@@ -19,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 getToken(messaging, {vapidKey: "BMGD4Al6TGUV0IPrRTyhJoLyFznaTd-Q190wgKE3vpvopFUpt1qRr0t2g7NpVyzUlaE-MsrfPLPB2RUwGxvMB9A"}).then((currentToken) => {
     if (currentToken) {
+        console.log("token is " + currentToken);
         // Send the token to your server and update the UI if necessary
         // ...
     } else {

@@ -10,7 +10,8 @@ const newTournament = {
     useRating: false,
     isPlayOff: false,
     playoff: false,
-    tournamentIsFinished: false
+    tournamentIsFinished: false,
+    tournamentMessage: ''
 }
 const store = createStore({
     state () {
@@ -33,7 +34,10 @@ const store = createStore({
             state.tournaments[state.currentTournamentIndex].portalIdTournament = value
         },
         loginAdmin (state, value) {
-            state.isAdmin = value
+            state.isAdmin = value;
+            if(!value) {
+                sessionStorage.removeItem("isAdmin")
+            }
         },
         setActiveTournament (state, index) {
             state.currentTournamentIndex = index

@@ -4,7 +4,7 @@
         <div class="text-center">
             <qrcode-vue :value="tournamentLink" :size="size" level="H" />
             <div class="my-3">
-                <a :href="tournamentLink" target="_blank" class="is-size-3">{{tournamentLink}}</a>
+                <a :href="tournamentLink" target="_blank" class="is-size-3 tournament-link">{{tournamentLink}}</a>
             </div>
         </div>
         <div class="buttons is-centered">
@@ -37,3 +37,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.tournament-link {
+    word-break: break-word;
+}
+</style>

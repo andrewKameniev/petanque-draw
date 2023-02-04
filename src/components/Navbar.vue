@@ -40,7 +40,7 @@
                     <div class="buttons">
                         <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
                         <router-link v-else to="/login" class="button is-light">
-                            Log in
+                            Log in as Admin
                         </router-link>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ export default {
         ...mapMutations(['setActiveTournament', 'loginAdmin']),
         logout() {
             this.loginAdmin(false);
-            this.$router.push('/')
+            this.$router.push('/');
         }
     }
 }

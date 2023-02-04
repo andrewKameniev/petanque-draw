@@ -46,7 +46,7 @@
             <div>
                 <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
                 <router-link v-else to="/login" class="button is-light">
-                    Log in
+                    Log in as Admin
                 </router-link>
             </div>
         </aside>

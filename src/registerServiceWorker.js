@@ -37,12 +37,4 @@ if (process.env.NODE_ENV === 'development') {
       console.log('Service worker has been registered.')
     },
   })*/
-  navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
-    // registration worked
-    console.log(reg);
-    console.log('Registration succeeded. Scope is ' + reg.scope);
-  }).catch(function(error) {
-    // registration failed
-    console.log('Registration failed with ' + error);
-  });
 }

@@ -65,7 +65,7 @@ import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
 import { initializeApp } from "firebase/app";
-import { getMessaging,  getToken } from "firebase/messaging";
+import { getMessaging,  getToken, onMessage } from "firebase/messaging";
 
 export default {
     name: 'Public',
@@ -125,6 +125,7 @@ export default {
                 const app = initializeApp(firebaseConfig);
 
                 const messaging = getMessaging(app);
+                // messaging.useServiceWorker(reg);
                 getToken(messaging, {vapidKey: "BMGD4Al6TGUV0IPrRTyhJoLyFznaTd-Q190wgKE3vpvopFUpt1qRr0t2g7NpVyzUlaE-MsrfPLPB2RUwGxvMB9A"}).then((currentToken) => {
                     if (currentToken) {
                         console.log("token is " + currentToken);
@@ -137,6 +138,11 @@ export default {
                     }
                 }).catch((err) => {
                     console.log('An error occurred while retrieving token. ', err);
+                    // ...
+                });
+
+                onMessage(messaging, (payload) => {
+                    console.log('Message received. ', payload);
                     // ...
                 });
 

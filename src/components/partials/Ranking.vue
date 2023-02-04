@@ -76,7 +76,7 @@
                             <tr>
                                 <th>Place</th>
                                 <th>Team</th>
-                                <th v-for="(index) in group" :key="index" align="center">{{ index + 1 }}</th>
+                                <th v-for="(group, index) in group" :key="index" align="center">{{ index + 1 }}</th>
                                 <th align="center">Wins</th>
                                 <th align="center">Points</th>
                             </tr>

@@ -29,12 +29,20 @@ if (process.env.NODE_ENV === 'development') {
       console.error('Error during service worker registration:', error)
     }
   });
-  register(`https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js`, {
+  /*register(`https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js`, {
     ready () {
        console.log('firebase is ready')
     },
     registered () {
       console.log('Service worker has been registered.')
     },
-  })
+  })*/
+  navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
+    // registration worked
+    console.log(reg);
+    console.log('Registration succeeded. Scope is ' + reg.scope);
+  }).catch(function(error) {
+    // registration failed
+    console.log('Registration failed with ' + error);
+  });
 }

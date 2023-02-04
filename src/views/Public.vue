@@ -91,7 +91,7 @@ export default {
         async getInfo() {
             this.isLoading = true;
             const id = this.$route.params.id;
-            let response = await fetch(`http://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
+            let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
 
             if (response.ok) {
                 let tournamentInfo = await response.json();

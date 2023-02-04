@@ -31,7 +31,7 @@ export default {
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
         tournamentLink() {
-            const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/' : '/#/';
+            const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/#/' : '/#/';
             return `${window.location.origin}${domain}tournaments/${this.tournaments[this.currentTournamentIndex].portalIdTournament}`
         }
     }

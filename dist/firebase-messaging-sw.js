@@ -10,4 +10,19 @@ const firebaseConfig = {
     appId: "1:774303828599:web:78c14845b68be7fd4e5472"
 };
 
-const app = firebase.initializeApp(firebaseConfig)
+firebase.initializeApp(firebaseConfig);
+
+// Retrieve firebase messaging
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage(function(payload) {
+    console.log('Received background message ', payload);
+
+    const notificationTitle = payload.notification.title;
+    const notificationOptions = {
+        body: payload.notification.body,
+    };
+
+    self.registration.showNotification(notificationTitle,
+        notificationOptions);
+});

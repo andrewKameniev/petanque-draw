@@ -82,7 +82,7 @@ export default {
     mounted() {
         this.getInfo();
         this.requestPermission();
-        this.registerSw()
+        this.registerSw();
     },
     computed: {
         activeRound() {
@@ -103,6 +103,12 @@ export default {
             } else {
                 alert("Error" + response.status);
             }
+        },
+        showNotification(message) {
+            new Notification(message.notification.title, {
+                body: message.notification.body,
+                icon: 'https://i.imgur.com/S8zDbo4.png'
+            })
         },
         registerSw() {
             navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
@@ -143,7 +149,7 @@ export default {
 
                 onMessage(messaging, (payload) => {
                     console.log('Message received. ', payload);
-                    // ...
+                    this.showNotification(payload)
                 });
 
 

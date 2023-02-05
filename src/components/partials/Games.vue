@@ -192,27 +192,29 @@ export default {
                 if(this.tournament.groups) {
                     this.tournament.groups.forEach((group, index) => {
                         const isTechnical = group.length % 2 !== 0;
-                        for (let i = 0; i < this.tournament.groupsScheme.top.length; i++) {
-                            if(!isTechnical || isTechnical
-                                && (this.tournament.groupsScheme.top[i] !== group.length && this.tournament.groupsScheme.bottom[i] !== group.length)) {
-                                game = {
-                                    group: index,
-                                    team_1: group[this.tournament.groupsScheme.top[i]].title,
-                                    team_1_score: null,
-                                    team_2: group[this.tournament.groupsScheme.bottom[i]].title,
-                                    team_2_score: null
+                        if (this.tournament.games.length < (isTechnical ? group.length + 1 : group.length)) {
+                            for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
+                                if(!isTechnical || isTechnical
+                                    && (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
+                                    game = {
+                                        group: index,
+                                        team_1: group[this.tournament.groupsScheme[index].top[i]].title,
+                                        team_1_score: null,
+                                        team_2: group[this.tournament.groupsScheme[index].bottom[i]].title,
+                                        team_2_score: null
+                                    }
+                                    round.push(game);
                                 }
-                                round.push(game);
                             }
+
+                            this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1])
+                            this.tournament.groupsScheme[index].top.unshift(this.tournament.groupsScheme[index].bottom[0]);
+                            this.tournament.groupsScheme[index].top.splice(this.tournament.groupsScheme[index].top.length - 1, 1);
+                            this.tournament.groupsScheme[index].top.splice(1, 1);
+                            this.tournament.groupsScheme[index].top.unshift(0);
+                            this.tournament.groupsScheme[index].bottom.splice(0, 1)
                         }
                     });
-
-                    this.tournament.groupsScheme.bottom.push(this.tournament.groupsScheme.top[this.tournament.groupsScheme.top.length - 1])
-                    this.tournament.groupsScheme.top.unshift(this.tournament.groupsScheme.bottom[0]);
-                    this.tournament.groupsScheme.top.splice(this.tournament.groupsScheme.top.length - 1, 1);
-                    this.tournament.groupsScheme.top.splice(1, 1);
-                    this.tournament.groupsScheme.top.unshift(0);
-                    this.tournament.groupsScheme.bottom.splice(0, 1)
 
                     this.addRoundToGames(this.shuffleArray(round)); // записали в игры
                     this.startRound();
@@ -244,15 +246,44 @@ export default {
             }
             this.tournament.groups = groups;
 
-            let scheme = {
-                top: [],
-                bottom: []
-            }
+            let schemas = [];
 
-            let defaultGroup = [];
+            this.tournament.groups.forEach(group => {
+                let groupIndexes = [];
+                group.forEach((item, index) => {
+                    groupIndexes.push(index)
+                });
+
+                if(group.length % 2 !== 0) {
+                    groupIndexes.push(group.length);
+                }
+
+                let scheme = {
+                    top: [],
+                    bottom: []
+                }
+
+                for (let i = 0; i < groupIndexes.length / 2; i++) {
+                    scheme.top.push(i)
+                }
+
+                for (let i = groupIndexes.length - 1; i >= groupIndexes.length / 2; i--) {
+                    scheme.bottom.push(i)
+                }
+
+                schemas.push(scheme)
+            });
+
+
+
+            this.tournament.groupsScheme = schemas;
+
+            /*let defaultGroup = [];
+
             this.tournament.groups[0].forEach((item, index) => {
                 defaultGroup.push(index);
             });
+
             if(defaultGroup.length % 2 !== 0) {
                 defaultGroup.push(defaultGroup.length);
             }
@@ -265,7 +296,7 @@ export default {
                 scheme.bottom.push(i)
             }
 
-            this.tournament.groupsScheme = scheme;
+            this.tournament.groupsScheme = scheme;*/
         },
         saveResults() {
             this.scoreError = false;

@@ -192,7 +192,7 @@ export default {
                 if(this.tournament.groups) {
                     this.tournament.groups.forEach((group, index) => {
                         const isTechnical = group.length % 2 !== 0;
-                        if (this.tournament.games.length < (isTechnical ? group.length + 1 : group.length)) {
+                        if (this.tournament.games.length < (isTechnical ? group.length : group.length - 1)) {
                             for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
                                 if(!isTechnical || isTechnical
                                     && (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
@@ -232,23 +232,60 @@ export default {
                 groups.push([]);
             }
             let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams.sort((a, b) => b.rating - a.rating)));
-            while (teamsToDraw.length >= 1) {
-                for (let j = 0; j < teamsToDraw.length; j++) {
-                    for (let i = 0; i < groupsQuantity; i++) {
-                        const teamIndex = this.tournament.useRating ? 0 : this.getRandomWithOneExclusion(teamsToDraw.length);
+
+            if (this.tournament.useRating && groupsQuantity === 2) {
+                let groupQueue = 0;
+                let firstIteration = true;
+                let drawIteration = 1;
+                while (teamsToDraw.length >= 1) {
+                    let teamIndexes = [0, teamsToDraw.length - 1];
+                    if (firstIteration && this.tournament.teams.length % 2 !== 0) {
+                        teamIndexes.push(teamsToDraw.length - 2);
+                    }
+                    teamIndexes.forEach(teamIndex => {
                         if (teamIndex !== -1 && teamsToDraw.length >= 1) {
                             const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
-                            groups[i].push(this.tournament.teams[teamIndexInList])
-                            teamsToDraw.splice(teamIndex, 1);
+                            groups[groupQueue].push(this.tournament.teams[teamIndexInList])
+                            delete teamsToDraw[teamIndex];
+                        }
+                    });
+                    teamsToDraw = teamsToDraw.filter(el => el != null);
+
+                    if (drawIteration === 2) {
+                        drawIteration--
+                        groupQueue = groupQueue === 1 ? 0 : 1;
+                    } else {
+                        drawIteration++
+                    }
+
+                    if (firstIteration) {
+                        drawIteration = 1;
+                        groupQueue = 1;
+                    }
+                    firstIteration = false;
+                }
+            } else {
+                while (teamsToDraw.length >= 1) {
+                    for (let j = 0; j < teamsToDraw.length; j++) {
+                        for (let i = 0; i < groupsQuantity; i++) {
+                            const teamIndex = this.tournament.useRating ? 0 : this.getRandomWithOneExclusion(teamsToDraw.length);
+                            if (teamIndex !== -1 && teamsToDraw.length >= 1) {
+                                const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
+                                groups[i].push(this.tournament.teams[teamIndexInList])
+                                teamsToDraw.splice(teamIndex, 1);
+                            }
                         }
                     }
                 }
             }
+
             this.tournament.groups = groups;
 
             let schemas = [];
 
             this.tournament.groups.forEach(group => {
+                group.sort((a, b) => b.rating - a.rating);
+
                 let groupIndexes = [];
                 group.forEach((item, index) => {
                     groupIndexes.push(index)
@@ -274,29 +311,8 @@ export default {
                 schemas.push(scheme)
             });
 
-
-
             this.tournament.groupsScheme = schemas;
 
-            /*let defaultGroup = [];
-
-            this.tournament.groups[0].forEach((item, index) => {
-                defaultGroup.push(index);
-            });
-
-            if(defaultGroup.length % 2 !== 0) {
-                defaultGroup.push(defaultGroup.length);
-            }
-
-            for (let i = 0; i < defaultGroup.length / 2; i++) {
-                scheme.top.push(i)
-            }
-
-            for (let i = defaultGroup.length - 1; i >= defaultGroup.length / 2; i--) {
-                scheme.bottom.push(i)
-            }
-
-            this.tournament.groupsScheme = scheme;*/
         },
         saveResults() {
             this.scoreError = false;

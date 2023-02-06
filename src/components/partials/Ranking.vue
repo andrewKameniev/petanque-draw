@@ -67,7 +67,7 @@
                     </table>
                 </div>
             </div>
-            <div v-else-if="tournament.groups">
+            <div v-else-if="tournament.groups && tournament.games.length > 1">
                 <div v-for="(group, index) in rankingTeams" :key="index">
                     <h4 v-if="tournament.groups && tournament.groups.length > 1">Group {{ groupsNames[index] }}</h4>
                     <div class="table-container mb-5">

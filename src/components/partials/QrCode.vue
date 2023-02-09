@@ -9,7 +9,7 @@
         </div>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="$emit('close-modal')">Close</button>
+                <button class="button" @click="copyContent(tournamentLink)">Copy link</button>
             </div>
         </div>
     </Modal>
@@ -19,6 +19,7 @@
 import QrcodeVue from 'qrcode.vue'
 import Modal from "@/components/Modal";
 import {mapState} from "vuex";
+import {copyContent} from "@/helpers";
 
 export default {
     name: 'QrCode',
@@ -33,8 +34,9 @@ export default {
         tournamentLink() {
             const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/#/' : '/#/';
             return `${window.location.origin}${domain}tournaments/${this.tournaments[this.currentTournamentIndex].portalIdTournament}`
-        }
-    }
+        },
+    },
+    methods: {copyContent}
 }
 </script>
 

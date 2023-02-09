@@ -117,4 +117,17 @@ function getTournamentRanking(tournament, rankingTeams){
     return tournamentRanking
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking}
+function copyContent(data) {
+    const el = document.createElement('div')
+    el.innerHTML = data.trim()
+    document.body.appendChild(el)
+    const range = new Range()
+    range.selectNode(el)
+    const select = window.getSelection()
+    select.removeAllRanges()
+    select.addRange(range)
+    document.execCommand('copy')
+    el.remove()
+}
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent}

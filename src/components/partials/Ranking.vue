@@ -103,7 +103,7 @@
 
 
 <script>
-import {tournamentNames, getGameResultInGroup, getTournamentRanking} from "@/helpers";
+import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
 
 export default {
     name: 'Ranking',
@@ -117,20 +117,11 @@ export default {
     methods: {
         getGameResultInGroup: getGameResultInGroup,
         copyResults() {
-            const el = document.createElement('div')
             let content = ''
             this.tournamentRanking.forEach(item => {
                 content = content + '<span>' + item.place + '</span><p>' + item.title + '</p>'
             })
-            el.innerHTML = content.trim()
-            document.body.appendChild(el)
-            const range = new Range()
-            range.selectNode(el)
-            const select = window.getSelection()
-            select.removeAllRanges()
-            select.addRange(range)
-            document.execCommand('copy')
-            el.remove()
+            copyContent(content)
         },
         getTeamPlayers(title) {
             return this.tournament.teams && this.tournament.teams.find(item => item.title === title).players ? this.tournament.teams.find(item => item.title === title).players : ''

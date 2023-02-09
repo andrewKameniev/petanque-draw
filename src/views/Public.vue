@@ -47,7 +47,8 @@
             </div>
             <Results v-if="activeTab === 'Results'" :previewTournament="tournament"/>
             <div class="content tabs-content" v-if="activeTab === 'Ranking'">
-                <Ranking :tournament="tournament" :rankingTeams="tournament.ranking" :activeRound="tournament.activeRound"/>
+                <Ranking :tournament="tournament"
+                         :rankingTeams="tournament.ranking" :activeRound="tournament.activeRound"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -64,8 +65,10 @@
 import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import { initializeApp } from "firebase/app";
-import { getMessaging,  getToken, onMessage } from "firebase/messaging";
+import { getToken, onMessage } from "firebase/messaging";
+import { ref, push } from "firebase/database";
+import {database, messaging} from "@/firebase";
+
 
 export default {
     name: 'Public',
@@ -105,65 +108,42 @@ export default {
             }
         },
         showNotification(message) {
-            new Notification(message.notification.title, {
-                body: message.notification.body,
+            new Notification(message.data.title, {
+                body: message.data.body,
                 icon: 'https://i.imgur.com/S8zDbo4.png'
             })
         },
         registerSw() {
+            const self = this;
             navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
-                // registration worked
-                console.log(reg);
+            // navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
 
-
-// Your web app's Firebase configuration
-                const firebaseConfig = {
-                    apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
-                    authDomain: "petanque-draw.firebaseapp.com",
-                    projectId: "petanque-draw",
-                    storageBucket: "petanque-draw.appspot.com",
-                    messagingSenderId: "774303828599",
-                    appId: "1:774303828599:web:78c14845b68be7fd4e5472"
-                };
-
-// Initialize Firebase
-                const app = initializeApp(firebaseConfig);
-
-                const messaging = getMessaging(app);
-                // messaging.useServiceWorker(reg);
                 getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: "BMGD4Al6TGUV0IPrRTyhJoLyFznaTd-Q190wgKE3vpvopFUpt1qRr0t2g7NpVyzUlaE-MsrfPLPB2RUwGxvMB9A"}).then((currentToken) => {
                     if (currentToken) {
                         console.log("token is " + currentToken);
-                        // Send the token to your server and update the UI if necessary
-                        // ...
+                        push(ref(database, 'tokens'), {
+                            time: Date.now(),
+                            token: currentToken
+                        });
                     } else {
-                        // Show permission request UI
                         console.log('No registration token available. Request permission to generate one.');
-                        // ...
                     }
                 }).catch((err) => {
                     console.log('An error occurred while retrieving token. ', err);
-                    // ...
                 });
 
                 onMessage(messaging, (payload) => {
-                    console.log('Message received. ', payload);
-                    this.showNotification(payload)
+                    self.showNotification(payload)
                 });
-
-
             }).catch(function(error) {
-                // registration failed
                 console.log('Registration failed with ' + error);
             });
         },
         requestPermission() {
-            console.log('Requesting permission...');
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
                     this.notificationsEnabled = true
-                    console.log('Notification permission granted.');
                 } else {
                     this.notificationsEnabled = false
                 }

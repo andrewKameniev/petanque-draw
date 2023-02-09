@@ -257,12 +257,18 @@ export default {
                     } else {
                         drawIteration++
                     }
-
                     if (firstIteration) {
                         drawIteration = 1;
                         groupQueue = 1;
                     }
                     firstIteration = false;
+                    if(this.teamsInGroup % 2 !== 0 && this.tournament.teams.length % 2 === 0 && teamsToDraw.length === 2 && groupsQuantity === 2) {
+                        const teamIndexBeforeLast = this.tournament.teams.findIndex(team => team.title === teamsToDraw[1].title);
+                        groups[0].push(this.tournament.teams[teamIndexBeforeLast]);
+                        const teamIndexLast = this.tournament.teams.findIndex(team => team.title === teamsToDraw[0].title);
+                        groups[1].push(this.tournament.teams[teamIndexLast]);
+                        teamsToDraw.splice(0, 2)
+                    }
                 }
             } else {
                 while (teamsToDraw.length >= 1) {

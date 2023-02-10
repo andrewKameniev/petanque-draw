@@ -108,12 +108,15 @@ export default {
             }
         },
         showNotification(message) {
+            alert(1);
             navigator.serviceWorker.ready.then(function(registration) {
+                alert(message.data.title);
                 registration.showNotification(message.data.title, {
                     body: message.data.body,
                         icon: 'https://i.imgur.com/S8zDbo4.png'
                 });
             });
+            alert(3);
         },
         registerSw() {
             const self = this;

@@ -120,8 +120,8 @@ export default {
         },
         registerSw() {
             const self = this;
-            // navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' }).then(function(reg) {
+            navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
+            // navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
 
                 getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: "BMGD4Al6TGUV0IPrRTyhJoLyFznaTd-Q190wgKE3vpvopFUpt1qRr0t2g7NpVyzUlaE-MsrfPLPB2RUwGxvMB9A"}).then((currentToken) => {

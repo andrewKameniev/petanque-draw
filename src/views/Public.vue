@@ -120,7 +120,7 @@ export default {
         },
         registerSw() {
             const self = this;
-            navigator.serviceWorker.register('/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: '/petanque-swiss-vue/dist/' }).then(function(reg) {
+            navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
             // navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
 

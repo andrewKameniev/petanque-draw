@@ -66,7 +66,6 @@ import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
 import { onMessage } from "firebase/messaging";
-import {ref, get, child, getDatabase} from "firebase/database";
 import { messaging} from "@/firebase";
 
 
@@ -122,18 +121,6 @@ export default {
             const self = this;
             navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
-                const dbRef = ref(getDatabase());
-                get(child(dbRef, `apikey`)).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        console.log(snapshot.val());
-
-                    } else {
-                        console.log("No data available");
-                    }
-                }).catch((error) => {
-                    console.error(error);
-                });
-
 
                 onMessage(messaging, (payload) => {
                     console.log(payload);

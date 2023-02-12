@@ -65,9 +65,8 @@
 import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import { getToken, onMessage } from "firebase/messaging";
-import { ref, push } from "firebase/database";
-import {database, messaging} from "@/firebase";
+import { onMessage } from "firebase/messaging";
+import { messaging} from "@/firebase";
 
 
 export default {
@@ -121,22 +120,9 @@ export default {
         registerSw() {
             const self = this;
             navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
-            // navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
 
-                getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: "BMGD4Al6TGUV0IPrRTyhJoLyFznaTd-Q190wgKE3vpvopFUpt1qRr0t2g7NpVyzUlaE-MsrfPLPB2RUwGxvMB9A"}).then((currentToken) => {
-                    if (currentToken) {
-                        console.log("token is " + currentToken);
-                        push(ref(database, 'tokens'), {
-                            time: Date.now(),
-                            token: currentToken
-                        });
-                    } else {
-                        console.log('No registration token available. Request permission to generate one.');
-                    }
-                }).catch((err) => {
-                    console.log('An error occurred while retrieving token. ', err);
-                });
+
 
                 onMessage(messaging, (payload) => {
                     console.log(payload);

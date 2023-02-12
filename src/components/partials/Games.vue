@@ -84,7 +84,7 @@ export default {
             return this.tournaments[this.currentTournamentIndex]
         },
         teamsCount() {
-            return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 : this.teamsInGroup % 2 !== 0 ? this.teamsInGroup : this.teamsInGroup - 1;
+            return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 : this.tournament.groups[0].length - 1;
         },
     },
     methods: {

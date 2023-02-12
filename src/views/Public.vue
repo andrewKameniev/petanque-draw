@@ -65,9 +65,9 @@
 import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import { getToken, onMessage } from "firebase/messaging";
-import {ref, push, get, child, getDatabase} from "firebase/database";
-import {database, messaging} from "@/firebase";
+import { onMessage } from "firebase/messaging";
+import {ref, get, child, getDatabase} from "firebase/database";
+import { messaging} from "@/firebase";
 
 
 export default {
@@ -125,19 +125,8 @@ export default {
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
                     if (snapshot.exists()) {
-                        getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
-                            if (currentToken) {
-                                console.log("token is " + currentToken);
-                                push(ref(database, 'tokens'), {
-                                    time: Date.now(),
-                                    token: currentToken
-                                });
-                            } else {
-                                console.log('No registration token available. Request permission to generate one.');
-                            }
-                        }).catch((err) => {
-                            console.log('An error occurred while retrieving token. ', err);
-                        });
+                        console.log(snapshot.val());
+
                     } else {
                         console.log("No data available");
                     }

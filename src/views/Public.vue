@@ -65,8 +65,9 @@
 import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import { onMessage } from "firebase/messaging";
-import { messaging} from "@/firebase";
+import { getToken, onMessage } from "firebase/messaging";
+import {ref, push, get, child, getDatabase} from "firebase/database";
+import {database, messaging} from "@/firebase";
 
 
 export default {
@@ -121,6 +122,30 @@ export default {
             const self = this;
             navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
+                const dbRef = ref(getDatabase());
+                get(child(dbRef, `apikey`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        console.log(snapshot.val());
+                        getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
+                            if (currentToken) {
+                                console.log("token is " + currentToken);
+                                push(ref(database, 'tokens'), {
+                                    time: Date.now(),
+                                    token: currentToken
+                                });
+                            } else {
+                                console.log('No registration token available. Request permission to generate one.');
+                            }
+                        }).catch((err) => {
+                            console.log('An error occurred while retrieving token. ', err);
+                        });
+                    } else {
+                        console.log("No data available");
+                    }
+                }).catch((error) => {
+                    console.error(error);
+                });
+
 
                 onMessage(messaging, (payload) => {
                     console.log(payload);

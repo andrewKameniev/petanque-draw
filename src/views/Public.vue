@@ -85,7 +85,7 @@ export default {
     mounted() {
         this.getInfo();
         this.requestPermission();
-        setTimeout(this.registerSw, 2000);
+        setTimeout(this.registerSw, 1000);
     },
     computed: {
         activeRound() {
@@ -111,7 +111,9 @@ export default {
             navigator.serviceWorker.ready.then(function(registration) {
                 registration.showNotification(message.data.title, {
                     body: message.data.body,
-                        icon: 'https://i.imgur.com/S8zDbo4.png'
+                    icon: 'https://i.imgur.com/S8zDbo4.png',
+                    vibrate: [200, 100, 200, 100],
+                    click_action : window.location.href
                 });
             });
         },

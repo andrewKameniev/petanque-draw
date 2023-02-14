@@ -281,7 +281,7 @@ export default {
                             data: {
                                 title: 'New draw info is available',
                                 body: 'Reload page to see updates',
-                                url: link
+                                data: {url: link}
                             },
                             to: token
                         };

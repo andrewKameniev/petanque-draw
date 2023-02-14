@@ -143,7 +143,6 @@ export default {
                     console.error(error);
                 });
 
-
                 onMessage(messaging, (payload) => {
                     console.log(payload);
                     self.showNotification(payload)

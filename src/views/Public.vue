@@ -119,6 +119,7 @@ export default {
             const self = this;
             navigator.serviceWorker.register('https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
+                alert(1);
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
                     if (snapshot.exists()) {
@@ -145,6 +146,7 @@ export default {
 
                 onMessage(messaging, (payload) => {
                     console.log(payload);
+                    alert(2);
                     self.showNotification(payload)
                 });
             }).catch(function(error) {

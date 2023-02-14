@@ -114,7 +114,7 @@ export default {
                     body: message.data.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
-                    data: {url: message.data.data.url},
+                    data: {url: message.data.url},
                     actions: [{action: "open_url", title: "Open"}]
                 });
             });

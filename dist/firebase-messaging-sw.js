@@ -17,7 +17,7 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        data: {url: payload.notification.data.url},
+        data: {url: payload.notification.url},
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
         actions: [{action: "open_url", title: "Open"}]
@@ -26,6 +26,7 @@ messaging.onBackgroundMessage((payload) => {
         notificationOptions);
 });
 self.addEventListener('notificationclick', event => {
+    console.log(event);
     let url = event.notification.data.url;
     event.notification.close(); // Android needs explicit close.
     event.waitUntil(

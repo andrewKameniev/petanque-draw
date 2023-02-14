@@ -113,8 +113,8 @@ export default {
                     body: message.data.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
-                    data: { url: message.data.click_action },
-                    actions: [{action: "open_url", title: "Update"}]
+                    url: message.data.url,
+                    actions: [{action: "open_url", title: "Open"}]
                 });
             });
         },

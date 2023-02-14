@@ -17,16 +17,16 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        data: { url:payload.data.click_action },
+        url: payload.notification.url,
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
-        actions: [{action: "open_url", title: "Update"}]
+        actions: [{action: "open_url", title: "Open"}]
     };
     return self.registration.showNotification(notificationTitle,
         notificationOptions);
 });
 self.addEventListener('notificationclick', event => {
-    let url = event.notification.data.url;
+    let url = event.notification.url;
     event.notification.close(); // Android needs explicit close.
     event.waitUntil(
         clients.matchAll({type: 'window'}).then( windowClients => {

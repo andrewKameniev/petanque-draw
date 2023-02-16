@@ -3,9 +3,13 @@
         Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
         <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
     </div>
-    <div v-if="isLoading" class="has-text-centered is-size-3">
-        <img src="@/assets/img/fun.jpg" alt="Loading..."><br>
-        Page is loading...
+    <div v-if="isLoading" class="gooey">
+        <span class="dot"></span>
+        <div class="dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
     </div>
     <div v-else>
         <div v-if="tournament" class="container">
@@ -167,3 +171,54 @@ export default {
     }
 }
 </script>
+<style>
+.gooey {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 142px;
+    height: 40px;
+    margin: -20px 0 0 -71px;
+}
+
+.gooey .dot {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 12px;
+    left: 15px;
+    background: #471aa0;
+    border-radius: 50%;
+    transform: translateX(0);
+    animation: dot 2.8s infinite;
+}
+
+.gooey .dots {
+    transform: translateX(0);
+    margin-top: 12px;
+    margin-left: 31px;
+    animation: dots 2.8s infinite;
+}
+
+.gooey .dots span {
+    display: block;
+    float: left;
+    width: 16px;
+    height: 16px;
+    margin-left: 16px;
+    background: #471aa0;
+    border-radius: 50%;
+}
+@keyframes dot {
+    50% {
+        transform: translateX(96px)
+    }
+}
+
+@keyframes dots {
+    50% {
+        transform: translateX(-31px)
+    }
+}
+
+</style>

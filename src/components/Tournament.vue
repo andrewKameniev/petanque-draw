@@ -281,9 +281,7 @@ export default {
                             notification: {
                                 title: 'New draw info is available',
                                 body: 'Reload page to see updates',
-                                data: {
-                                    url: link
-                                },
+                                url: link
                             },
                             to: token
                         };

@@ -153,7 +153,6 @@ export default {
 
                 onMessage(messaging, (payload) => {
                     console.log(payload);
-                    alert('On message event');
                     self.showNotification(payload)
                 });
             }).catch(function(error) {

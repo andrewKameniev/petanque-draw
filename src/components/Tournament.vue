@@ -279,8 +279,6 @@ export default {
                     tokens.forEach(token => {
                         const message = {
                             data: {
-                                title: 'New draw info is available',
-                                body: 'Reload page to see updates',
                                 url: link
                             },
                             notification: {

@@ -19,6 +19,7 @@ messaging.onBackgroundMessage((payload) => {
     const notificationOptions = {
         body: payload.notification.body,
         data: {url: payload.data['gcm.notification.url']},
+        tag: "notification-default",
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
         actions: [{action: "open_url", title: "Open"}]

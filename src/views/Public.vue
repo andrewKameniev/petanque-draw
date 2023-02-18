@@ -114,8 +114,8 @@ export default {
         showNotification(message) {
             navigator.serviceWorker.ready.then(function(registration) {
                 console.log(message);
-                registration.showNotification(message.data.title, {
-                    body: message.data.body,
+                registration.showNotification(message.notification.title, {
+                    body: message.notification.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
                     data: {url: message.data.url},
@@ -130,10 +130,8 @@ export default {
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
                     if (snapshot.exists()) {
-                        console.log(snapshot.val());
                         getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
-                                console.log("token is " + currentToken);
                                 push(ref(database, 'tokens'), {
                                     time: Date.now(),
                                     token: currentToken

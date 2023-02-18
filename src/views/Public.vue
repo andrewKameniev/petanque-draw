@@ -125,7 +125,7 @@ export default {
         },
         registerSw() {
             const self = this;
-            navigator.serviceWorker.register('https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js?v=3', { scope: './' }).then(function(reg) {
+            navigator.serviceWorker.register('https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js?v=4', { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {

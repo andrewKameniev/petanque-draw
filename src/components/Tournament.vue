@@ -278,21 +278,19 @@ export default {
                     const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
                     tokens.forEach(token => {
                         const message = {
-                            "message": {
-                                "token": token,
-                                "notification": {
-                                    "title": "Background Message Title",
-                                    "body": "Background message body"
-                                },
-                                "webpush": {
-                                    "fcm_options": {
-                                        "link": link
-                                    }
-                                }
-                            }
+                            data: {
+                                title: 'New draw info is available',
+                                body: 'Reload page to see updates',
+                                url: link
+                            },
+                            notification: {
+                                title: 'New draw info is available',
+                                body: 'Reload page to see updates',
+                            },
+                            to: token
                         };
 
-                        fetch('https://fcm.googleapis.com//v1/projects/petanque-draw/messages:send', {
+                        fetch('https://fcm.googleapis.com/fcm/send', {
                             method: 'POST',
                             headers: {
                                 'Accept': 'application/json',

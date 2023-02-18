@@ -26,6 +26,7 @@ messaging.onBackgroundMessage((payload) => {
     return self.registration.showNotification(notificationTitle,
         notificationOptions);
 });
+self.registration.showNotification("Test");
 self.addEventListener('notificationclick', event => {
     console.log(event);
     let url = event.notification.data.url;

@@ -278,7 +278,7 @@ export default {
                     const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
                     tokens.forEach(token => {
                         const message = {
-                            notification: {
+                            data: {
                                 title: 'New draw info is available',
                                 body: 'Reload page to see updates',
                                 url: link
@@ -286,6 +286,14 @@ export default {
                             to: token
                         };
 
+                        /*const message = {
+                            notification: {
+                                title: 'New draw info is available',
+                                body: 'Reload page to see updates',
+                                url: link
+                            },
+                            to: token
+                        };*/
                         fetch('https://fcm.googleapis.com/fcm/send', {
                             method: 'POST',
                             headers: {

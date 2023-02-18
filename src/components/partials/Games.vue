@@ -235,8 +235,20 @@ export default {
             }
             let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams.sort((a, b) => b.rating - a.rating)));
 
-            if (this.tournament.useRating && groupsQuantity === 2) {
-                let groupQueue = 0;
+            if (this.tournament.useRating && groupsQuantity === 2 && teamsToDraw.length < 33) {
+                const indexesScheme = {
+                    0: [1,32,16,17,9,24,8,25,5,28,12,21,13,20,4,29],
+                    1: [3,30,14,19,11,22,6,27,7,26,10,23,15,18,2,31]
+                };
+                Object.keys(indexesScheme).forEach(key => {
+                    indexesScheme[key].forEach(item => {
+                        const teamIndexInList = teamsToDraw[item - 1] ? this.tournament.teams.findIndex(team => team.title === teamsToDraw[item - 1].title) : -1;
+                        if(teamIndexInList !== -1) {
+                            groups[key].push(this.tournament.teams[teamIndexInList])
+                        }
+                    })
+                })
+                /*let groupQueue = 0;
                 let firstIteration = true;
                 let drawIteration = 1;
                 while (teamsToDraw.length >= 1) {
@@ -271,7 +283,7 @@ export default {
                         groups[1].push(this.tournament.teams[teamIndexLast]);
                         teamsToDraw.splice(0, 2)
                     }
-                }
+                }*/
             } else {
                 while (teamsToDraw.length >= 1) {
                     for (let j = 0; j < teamsToDraw.length; j++) {

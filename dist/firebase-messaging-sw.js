@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/8.2.7/firebase-app.js')
-importScripts('https://www.gstatic.com/firebasejs/8.2.7/firebase-messaging.js')
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
 const firebaseConfig = {
     apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
@@ -12,6 +12,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
+
+console.log(messaging);
+
 messaging.onBackgroundMessage((payload) => {
     console.log('Received background message ', payload);
     alert('On background message event' + payload.notification.url);
@@ -26,7 +29,6 @@ messaging.onBackgroundMessage((payload) => {
     return self.registration.showNotification(notificationTitle,
         notificationOptions);
 });
-self.registration.showNotification("Test");
 self.addEventListener('notificationclick', event => {
     console.log(event);
     let url = event.notification.data.url;

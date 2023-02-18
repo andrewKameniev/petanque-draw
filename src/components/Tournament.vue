@@ -278,12 +278,12 @@ export default {
                     const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
                     tokens.forEach(token => {
                         const message = {
-                            data: {
-                                url: link
-                            },
                             notification: {
                                 title: 'New draw info is available',
                                 body: 'Reload page to see updates',
+                                data: {
+                                    url: link
+                                },
                             },
                             to: token
                         };

@@ -15,7 +15,6 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('Received background message ', payload);
-    self.registration.hideNotification();
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
@@ -24,7 +23,7 @@ messaging.onBackgroundMessage((payload) => {
         vibrate: [200, 100, 200, 100],
         actions: [{action: "open_url", title: "Open"}]
     };
-    return self.registration.showNotification(notificationTitle,
+    self.registration.showNotification(notificationTitle,
         notificationOptions);
 });
 self.addEventListener('notificationclick', event => {

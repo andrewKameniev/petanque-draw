@@ -274,17 +274,17 @@ export default {
                     }
                     tokens = new Set([...tokens]);
 
-                    const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/#/' : '/#/';
-                    const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
+                    // const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/#/' : '/#/';
+                    // const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
                     tokens.forEach(token => {
 
                         const message = {
-                            notification: {
-                                title: 'New draw info is available',
-                                body: 'Reload page to see updates',
-                                url: link
+                            "to": token,
+                            "data": {
+                                "title": 'New draw info is available',
+                                "body": 'Reload page to see updates',
                             },
-                            to: token
+                            "priority": "high"
                         };
                         fetch('https://fcm.googleapis.com/fcm/send', {
                             method: 'POST',

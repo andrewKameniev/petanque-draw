@@ -15,10 +15,10 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('Received background message ', payload);
-    const notificationTitle = payload.notification.title;
+    const notificationTitle = payload.data.title;
     const notificationOptions = {
-        body: payload.notification.body,
-        data: {url: payload.data['gcm.notification.url']},
+        body: payload.data.body,
+        // data: {url: payload.data['gcm.notification.url']},
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
         actions: [{action: "open_url", title: "Open"}]
@@ -28,7 +28,8 @@ messaging.onBackgroundMessage((payload) => {
 });
 self.addEventListener('notificationclick', event => {
     console.log(event);
-    let url = event.notification.data.url;
+    // let url = event.notification.data.url;
+    let url = 'https://google.com';
     event.notification.close(); // Android needs explicit close.
     event.waitUntil(
         clients.matchAll({type: 'window'}).then( windowClients => {

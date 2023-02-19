@@ -18,7 +18,7 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.data.title;
     const notificationOptions = {
         body: payload.data.body,
-        // data: {url: payload.data['gcm.notification.url']},
+        data: {url: payload.data.url},
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
         actions: [{action: "open_url", title: "Open"}]
@@ -28,8 +28,7 @@ messaging.onBackgroundMessage((payload) => {
 });
 self.addEventListener('notificationclick', event => {
     console.log(event);
-    // let url = event.notification.data.url;
-    let url = 'https://google.com';
+    let url = event.notification.data.url;
     event.notification.close(); // Android needs explicit close.
     event.waitUntil(
         clients.matchAll({type: 'window'}).then( windowClients => {

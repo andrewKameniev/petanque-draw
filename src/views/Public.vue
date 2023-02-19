@@ -114,8 +114,8 @@ export default {
         showNotification(message) {
             navigator.serviceWorker.ready.then(function(registration) {
                 console.log(message);
-                registration.showNotification(message.notification.title, {
-                    body: message.notification.body,
+                registration.showNotification(message.data.title, {
+                    body: message.data.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
                     data: {url: message.data.url},

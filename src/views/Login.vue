@@ -32,7 +32,7 @@ export default {
             this.isError = false;
             if (this.password == 'petanque') {
                 this.loginAdmin(true);
-                sessionStorage.setItem("isAdmin", "true");
+                localStorage.setItem("isAdmin", "true");
                 this.$router.push('/admin');
             } else {
                 this.isError = true

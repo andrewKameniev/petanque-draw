@@ -36,7 +36,7 @@ const store = createStore({
         loginAdmin (state, value) {
             state.isAdmin = value;
             if(!value) {
-                sessionStorage.removeItem("isAdmin")
+                localStorage.removeItem("isAdmin")
             }
         },
         setActiveTournament (state, index) {

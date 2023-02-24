@@ -12,7 +12,7 @@ export default {
         ...mapMutations(['loginAdmin'])
     },
     mounted() {
-        if (sessionStorage.getItem('isAdmin')) {
+        if (localStorage.getItem('isAdmin')) {
             this.loginAdmin(true);
             this.$router.push('/admin');
         }

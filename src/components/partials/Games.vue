@@ -8,6 +8,11 @@
                         {{ activeRound === 1 ? 'First' : `Draw ${activeRound}` }} Round
                     </button>
                 </div>
+                <div class="control" v-if="tournament.roundIsActive">
+                    <button class="button is-info" @click="shuffleLanes">
+                        Shuffle lanes
+                    </button>
+                </div>
             </div>
             <div v-if="tournament.games.length && tournament.roundIsActive">
                 <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">Show <span
@@ -91,6 +96,9 @@ export default {
     },
     methods: {
         ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage']),
+        shuffleLanes() {
+            this.tournament.games[this.tournament.games.length - 1] = this.shuffleArray(this.tournament.games[this.tournament.games.length - 1])
+        },
         getRandomWithOneExclusion(lengthOfArray, indexToExclude = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;
             while (rand === null || rand === indexToExclude) {
@@ -217,7 +225,6 @@ export default {
                             this.tournament.groupsScheme[index].bottom.splice(0, 1)
                         }
                     });
-
                     this.addRoundToGames(this.shuffleArray(round)); // записали в игры
                     this.startRound();
                 }
@@ -384,7 +391,7 @@ export default {
         },
         shuffleArray(array) {
             let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
+            while (currentIndex !== 0) {
                 randomIndex = Math.floor(Math.random() * currentIndex);
                 currentIndex--;
                 [array[currentIndex], array[randomIndex]] = [

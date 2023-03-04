@@ -82,7 +82,7 @@ export default {
             isLoading: false,
             tournament: null,
             tabs: ['Teams', 'Results', 'Ranking'],
-            activeTab: "Teams",
+            activeTab: "Results",
             notificationsEnabled: false
         }
     },

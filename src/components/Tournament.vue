@@ -331,6 +331,13 @@ export default {
                 let sortedGroups = [];
                 this.tournament.groups.forEach(group => {
                     group.forEach(team => {
+                        // If was page reload copy necessary teams data to groups
+                        const teamInfo = this.tournament.teams.find(item => item.title === team.title);
+                        team.wins = teamInfo.wins;
+                        team.opponents = teamInfo.opponents;
+                        team.pointsPlus = teamInfo.pointsPlus;
+                        team.pointsMinus = teamInfo.pointsMinus;
+
                         let directPoints = 0;
                         team.opponents.forEach(opponent => {
                             const opponentIndex = group.findIndex(team => team.title === opponent);

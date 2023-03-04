@@ -255,42 +255,6 @@ export default {
                         }
                     })
                 })
-                /*let groupQueue = 0;
-                let firstIteration = true;
-                let drawIteration = 1;
-                while (teamsToDraw.length >= 1) {
-                    let teamIndexes = [0, teamsToDraw.length - 1];
-                    if (firstIteration && this.tournament.teams.length % 2 !== 0) {
-                        teamIndexes.push(teamsToDraw.length - 2);
-                    }
-                    teamIndexes.forEach(teamIndex => {
-                        if (teamIndex !== -1 && teamsToDraw.length >= 1) {
-                            const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
-                            groups[groupQueue].push(this.tournament.teams[teamIndexInList])
-                            delete teamsToDraw[teamIndex];
-                        }
-                    });
-                    teamsToDraw = teamsToDraw.filter(el => el != null);
-
-                    if (drawIteration === 2) {
-                        drawIteration--
-                        groupQueue = groupQueue === 1 ? 0 : 1;
-                    } else {
-                        drawIteration++
-                    }
-                    if (firstIteration) {
-                        drawIteration = 1;
-                        groupQueue = 1;
-                    }
-                    firstIteration = false;
-                    if(this.teamsInGroup % 2 !== 0 && this.tournament.teams.length % 2 === 0 && teamsToDraw.length === 2 && groupsQuantity === 2) {
-                        const teamIndexBeforeLast = this.tournament.teams.findIndex(team => team.title === teamsToDraw[1].title);
-                        groups[0].push(this.tournament.teams[teamIndexBeforeLast]);
-                        const teamIndexLast = this.tournament.teams.findIndex(team => team.title === teamsToDraw[0].title);
-                        groups[1].push(this.tournament.teams[teamIndexLast]);
-                        teamsToDraw.splice(0, 2)
-                    }
-                }*/
             } else {
                 while (teamsToDraw.length >= 1) {
                     for (let j = 0; j < teamsToDraw.length; j++) {

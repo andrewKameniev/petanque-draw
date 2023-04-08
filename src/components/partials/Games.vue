@@ -133,6 +133,8 @@ export default {
             let game; // объект с соперниками
 
             if (this.tournament.system === 'swiss') {
+                // Дополнительная сортировка, а то иногда computed не срабатывало
+                teamsToDraw.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating)
                 let expandListIteration = 0; // количество итераций, когда приходится увеличивать кол-во команд (понятно будет дальше)
                 let stopExpandIndex = Math.round(teamsToDraw.length / 2 - 1); // максимально возможное число, когда можно увеличивать список команд
                 let teamsDrawed = []; //массив с уже пожеребенными командами

@@ -11,7 +11,13 @@ const newTournament = {
     isPlayOff: false,
     playoff: false,
     tournamentIsFinished: false,
-    tournamentMessage: ''
+    tournamentMessage: '',
+    preferences: {
+        technical: {
+            technicalFirst: 13,
+            technicalSecond: 7
+        }
+    }
 }
 const store = createStore({
     state () {

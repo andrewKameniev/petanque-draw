@@ -66,6 +66,9 @@
                 <div class="control">
                     <button class="button is-danger" @click="removeConfirm = true">Remove tournament</button>
                 </div>
+                <div class="control">
+                    <button class="button is-info" @click="showPreferences = true">Preferences</button>
+                </div>
                 <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
                     <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
                 </div>
@@ -109,6 +112,7 @@
                         @close-modal="showSaveTournament = false"/>
         <ConfirmRemoveModal v-if="removeConfirm" @close-modal="removeConfirm = false"/>
         <ChangeTournamentName v-if="changeNameModal" @close-modal="changeNameModal = false"/>
+        <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
     </div>
 </template>
 
@@ -126,6 +130,7 @@ import {getGameResultInGroup} from "@/helpers";
 import QrCode from "@/components/partials/QrCode";
 import {getDatabase, ref, child, get, set} from "firebase/database";
 import {database} from "@/firebase";
+import Preferences from "@/components/partials/Preferences";
 
 export default {
     name: 'Tournament',
@@ -141,7 +146,8 @@ export default {
             teamsInGroup: null,
             showQrCode: false,
             showTypeMessage: false,
-            loadingOnServer: false
+            loadingOnServer: false,
+            showPreferences: false
         }
     },
     created() {
@@ -360,6 +366,7 @@ export default {
         },
     },
     components: {
+        Preferences,
         QrCode,
         ChangeTournamentName,
         ConfirmRemoveModal,

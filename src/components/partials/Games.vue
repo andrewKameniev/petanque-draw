@@ -27,15 +27,13 @@
                         </span>
                         <span class="text-center score-block">
                             <input :id="'team_' + index" v-model="game.team_1_score" class="input -small" type="number"
-                                   min="0" max="13"
                                    :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                             <span class="lane-block is-size-7">
                                 Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                             </span>
                             <input :id="'opponent_' + index" v-model="game.team_2_score" class="input -small"
-                                   type="number" min="0" max="13"
-                                   :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
+                                   type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                         </span>
                         <span class="team-block">
@@ -156,9 +154,9 @@ export default {
                     }
                     game = {
                         team_1: technicalTeam.title,
-                        team_1_score: 13,
+                        team_1_score: this.tournament.preferences.technical.technicalFirst,
                         team_2: 'Technical',
-                        team_2_score: 7
+                        team_2_score: this.tournament.preferences.technical.technicalSecond
                     };
                     round.push(game);
                     teamsToDraw.splice(technicalTeamIndex, 1);

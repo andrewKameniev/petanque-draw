@@ -73,7 +73,7 @@ import {mapMutations, mapState} from "vuex";
 export default {
     name: 'Games',
     components: {PlayOff},
-    props: ['activeRound', 'teamsInGroup'],
+    props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
             saveDisabled: false,
@@ -106,6 +106,7 @@ export default {
         },
         generateCompetitors(teamList, reverse = false) { //функция для распределения пар
             let teamIndex, opponentIndex;
+            console.log(teamList);
             if (this.activeRound === 1 && !this.tournament.useRating) {
                 teamIndex = this.getRandomWithOneExclusion(teamList.length);
                 opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
@@ -126,7 +127,8 @@ export default {
             }
         },
         drawRound() {
-            let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
+            let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
+            // let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
             let round = []; // массив куда будем сохранять пары соперников
             let game; // объект с соперниками
 
@@ -333,22 +335,22 @@ export default {
         saveResultsForRound(round) {
             this.tournament.games[round].forEach(game => {
                 const firstTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_1);
-                if (firstTeamIndex != -1) {
+                if (firstTeamIndex !== -1) {
                     this.tournament.teams[firstTeamIndex].opponents.push(game.team_2);
                     this.tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
                     this.tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
                 }
                 const secondTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_2);
-                if (secondTeamIndex != -1) {
+                if (secondTeamIndex !== -1) {
                     this.tournament.teams[secondTeamIndex].opponents.push(game.team_1);
                     this.tournament.teams[secondTeamIndex].pointsPlus += game.team_2_score;
                     this.tournament.teams[secondTeamIndex].pointsMinus += game.team_1_score;
                 }
                 if (game.team_1_score > game.team_2_score) {
-                    if (firstTeamIndex != -1) {
+                    if (firstTeamIndex !== -1) {
                         this.tournament.teams[firstTeamIndex].wins++
                     }
-                } else if (!secondTeamIndex != -1 && game.team_2 !== "Technical") {
+                } else if (!secondTeamIndex !== -1 && game.team_2 !== "Technical") {
                     this.tournament.teams[secondTeamIndex].wins++
                 }
             })

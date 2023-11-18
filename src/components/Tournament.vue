@@ -78,6 +78,7 @@
             </div>
         </div>
         <Games v-if="activeTab === 'Games'"
+               :rankingTeams="rankingTeams"
                :activeRound="activeRound" :teams-in-group="teamsInGroup"
                @openResults="activeTab = 'Ranking'"/>
         <Results v-if="activeTab === 'Results'"/>
@@ -102,7 +103,7 @@
                 </div>
                 <div class="mt-5" v-if="tournament.system === 'swiss'">
                     <label class="checkbox">
-                        <input type="checkbox" :checked="playB" @change="playB">
+                        <input type="checkbox" v-model="playB">
                         Also play <strong>Tournament B</strong>?
                     </label>
                 </div>

@@ -91,6 +91,7 @@ export default {
         width: 300px;
         max-width: 90%;
         height: 100vh;
+        overflow: auto;
         padding: 20px;
         transition: all 0.3s;
         transform: translateX(-100%);

@@ -5,6 +5,7 @@
             <ol>
                 <li>To change tournament name just click on its default name.</li>
                 <li>In swiss system you can modify previous round result if you wrote it not correct. This possibility available when you already draw next round.</li>
+                <li>You can change the score for technical win by clicking "Preferences" button on "Teams" tab.</li>
             </ol>
             <div class="buttons is-centered">
                 <div class="control">

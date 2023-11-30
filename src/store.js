@@ -108,6 +108,10 @@ const store = createStore({
             state.message.show = false
         },
         addTournament(state) {
+            if (state.tournaments.length >= 10) {
+                store.commit('showMessage', {title: 'Not available', text: 'You can make only 10 tournaments simultaneously. Remove old tournaments, please', type: 'error'});
+                return false
+            }
             state.tournaments.push(JSON.parse(JSON.stringify(newTournament)));
             state.currentTournamentIndex = state.tournaments.length - 1;
             store.commit('changeTournamentName', `Tournament ${tournamentNames[state.tournaments.length - 1]}`);

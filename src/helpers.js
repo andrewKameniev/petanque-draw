@@ -1,4 +1,4 @@
-const tournamentNames = ['A', 'B', 'C', 'D', 'E', 'F'];
+const tournamentNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'I'];
 
 function getGameResultInGroup(where, team1, team2, difference) {
     if (team1 === team2) {

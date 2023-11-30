@@ -97,9 +97,9 @@ export default {
         shuffleLanes() {
             this.tournament.games[this.tournament.games.length - 1] = this.shuffleArray(this.tournament.games[this.tournament.games.length - 1])
         },
-        getRandomWithOneExclusion(lengthOfArray, indexToExclude = null) { // для определения рандомного соперника, если жеребим не по рейтингу
+        getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;
-            while (rand === null || rand === indexToExclude) {
+            while (rand === null || rand === indexToExclude1 || rand === indexToExclude2) {
                 rand = Math.round(Math.random() * (lengthOfArray - 1));
             }
             return rand;
@@ -194,9 +194,6 @@ export default {
                         console.log("Game is empty");
                     }
                 } // когда в массиве пожеребенных не осталось команд, заканчиваем цикл
-                this.addRoundToGames(this.shuffleArray(round)); // записали в игры
-                this.startRound();
-
             } else if (this.tournament.system === 'groups') {
                 if (this.activeRound === 1) {
                     this.createGroups();
@@ -227,10 +224,82 @@ export default {
                             this.tournament.groupsScheme[index].bottom.splice(0, 1)
                         }
                     });
-                    this.addRoundToGames(this.shuffleArray(round)); // записали в игры
-                    this.startRound();
+                }
+            } else if (this.tournament.system === 'supermele') {
+                const playersCount = this.tournament.teams.length;
+                let gamesCount = playersCount / this.tournament.supermelePlayers;
+                gamesCount = gamesCount % 2 === 0 ? gamesCount : Math.floor(this.tournament.supermelePlayers == 2 ? gamesCount - 1 : gamesCount + 1);
+                let superMeleScheme = {
+                    doubles: this.tournament.supermelePlayers == 2 ? gamesCount : 0,
+                    triples: this.tournament.supermelePlayers == 3 ? gamesCount : 0
+                }
+                let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+                while(sum !== playersCount) {
+                    if (this.tournament.supermelePlayers == 2) {
+                        superMeleScheme.doubles--;
+                        superMeleScheme.triples++;
+                    } else {
+                        superMeleScheme.triples--;
+                        superMeleScheme.doubles++;
+                    }
+
+                    sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+                }
+                let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams));
+                let teamsForRound = [];
+
+                for (let i = 1; i <= superMeleScheme.doubles; i++) {
+                    const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
+                    let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+
+                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
+                        player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                    }
+                    teamsForRound.push({
+                        title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title,
+                        players: [teamsToDraw[player1].title, teamsToDraw[player2].title]
+                    });
+                    let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title];
+                    teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+                }
+
+                for (let j = 1; j <= superMeleScheme.triples; j++) {
+                    const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
+                    let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                    let player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
+
+                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
+                        player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                    }
+
+                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) && teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)) {
+                        player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
+                    }
+
+                    teamsForRound.push({
+                        title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title + ', '+ teamsToDraw[player3].title,
+                        players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title]
+                    });
+                    let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title];
+                    teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+                }
+
+                for (let r = 0; r < gamesCount / 2; r++) {
+                    game = {
+                        team_1: teamsForRound[0].title,
+                        team_1_players: teamsForRound[0].players,
+                        team_1_score: null,
+                        team_2: teamsForRound[1].title,
+                        team_2_players: teamsForRound[1].players,
+                        team_2_score: null
+                    };
+                    round.push(game);
+                    teamsForRound.splice(0, 2);
                 }
             }
+
+            this.addRoundToGames(this.shuffleArray(round)); // записали в игры
+            this.startRound();
         },
         createGroups() {
             if(this.teamsInGroup < 3) {
@@ -333,27 +402,57 @@ export default {
             }
         },
         saveResultsForRound(round) {
-            this.tournament.games[round].forEach(game => {
-                const firstTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_1);
-                if (firstTeamIndex !== -1) {
-                    this.tournament.teams[firstTeamIndex].opponents.push(game.team_2);
-                    this.tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
-                    this.tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
-                }
-                const secondTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_2);
-                if (secondTeamIndex !== -1) {
-                    this.tournament.teams[secondTeamIndex].opponents.push(game.team_1);
-                    this.tournament.teams[secondTeamIndex].pointsPlus += game.team_2_score;
-                    this.tournament.teams[secondTeamIndex].pointsMinus += game.team_1_score;
-                }
-                if (game.team_1_score > game.team_2_score) {
+            if (this.tournament.system === 'supermele') {
+                this.tournament.games[round].forEach(game => {
+                    console.log(game);
+                    game.team_1_players.forEach(player => {
+                        const playerIndex = this.tournament.teams.findIndex(item => item.title === player);
+                        if (playerIndex !== -1) {
+                            const partners = game.team_1_players.filter(item => item !== player);
+                            partners.forEach(item => this.tournament.teams[playerIndex].opponents.push(item));
+                            this.tournament.teams[playerIndex].pointsPlus += game.team_1_score;
+                            this.tournament.teams[playerIndex].pointsMinus += game.team_2_score;
+                            if (game.team_1_score > game.team_2_score) {
+                                this.tournament.teams[playerIndex].wins++;
+                            }
+                        }
+                    });
+                    game.team_2_players.forEach(player => {
+                        const playerIndex = this.tournament.teams.findIndex(item => item.title === player);
+                        if (playerIndex !== -1) {
+                            const partners = game.team_2_players.filter(item => item !== player);
+                            partners.forEach(item => this.tournament.teams[playerIndex].opponents.push(item));
+                            this.tournament.teams[playerIndex].pointsPlus += game.team_2_score;
+                            this.tournament.teams[playerIndex].pointsMinus += game.team_1_score;
+                            if (game.team_2_score > game.team_1_score) {
+                                this.tournament.teams[playerIndex].wins++;
+                            }
+                        }
+                    })
+                })
+            } else {
+                this.tournament.games[round].forEach(game => {
+                    const firstTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_1);
                     if (firstTeamIndex !== -1) {
-                        this.tournament.teams[firstTeamIndex].wins++
+                        this.tournament.teams[firstTeamIndex].opponents.push(game.team_2);
+                        this.tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
+                        this.tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
                     }
-                } else if (!secondTeamIndex !== -1 && game.team_2 !== "Technical") {
-                    this.tournament.teams[secondTeamIndex].wins++
-                }
-            })
+                    const secondTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_2);
+                    if (secondTeamIndex !== -1) {
+                        this.tournament.teams[secondTeamIndex].opponents.push(game.team_1);
+                        this.tournament.teams[secondTeamIndex].pointsPlus += game.team_2_score;
+                        this.tournament.teams[secondTeamIndex].pointsMinus += game.team_1_score;
+                    }
+                    if (game.team_1_score > game.team_2_score) {
+                        if (firstTeamIndex !== -1) {
+                            this.tournament.teams[firstTeamIndex].wins++
+                        }
+                    } else if (!secondTeamIndex !== -1 && game.team_2 !== "Technical") {
+                        this.tournament.teams[secondTeamIndex].wins++
+                    }
+                })
+            }
         },
         shuffleArray(array) {
             let currentIndex = array.length, randomIndex;

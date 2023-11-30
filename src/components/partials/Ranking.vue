@@ -33,7 +33,7 @@
             </div>
         </div>
         <div v-if="tournament.games.length > 0">
-            <h2 v-if="tournament.system === 'swiss'">Ranking
+            <h2 v-if="tournament.system !== 'groups'">Ranking
                 <span v-if="activeRound">after {{ activeRound - 1 }} round{{
                         activeRound > 2 && activeRound !== 0 ? 's ' : ' '
                     }}</span>
@@ -60,6 +60,32 @@
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
+                            <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                            <td v-if="tournament.useRating">{{ team.rating }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div v-else-if="tournament.system === 'supermele'">
+                <div class="table-container">
+                    <table id="table-ranking" class="table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th align="center">Wins</th>
+                            <th align="center">Difference</th>
+                            <th align="center">Points</th>
+                            <th v-if="tournament.useRating" align="center">Rating</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="team in rankingTeams" :key="team.title">
+                            <td><span class="team-count"></span></td>
+                            <td>{{ team.title }}</td>
+                            <td align="center">{{ team.wins }}</td>
+                            <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
                             <td v-if="tournament.useRating">{{ team.rating }}</td>
                         </tr>

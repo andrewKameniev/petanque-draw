@@ -33,6 +33,10 @@
                         <input type="radio" name="system" id="groups" value="groups" v-model="tournament.system">
                         Groups
                     </label>
+                    <label class="radio">
+                        <input type="radio" name="system" id="supermele" value="supermele" v-model="tournament.system">
+                        SuperMele
+                    </label>
                 </div>
             </div>
             <div class="field" v-if="tournament.system === 'groups'">
@@ -43,6 +47,17 @@
                             <template v-for="(team, index) in tournament.teams" :key="index">
                                 <option v-if="index > 1">{{index + 1}}</option>
                             </template>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field" v-if="tournament.system === 'supermele'">
+                <label class="label">How many players in a team?</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model.number="tournament.supermelePlayers">
+                            <option value="2" selected="selected">2</option>
+                            <option value="3">3</option>
                         </select>
                     </div>
                 </div>
@@ -228,6 +243,10 @@ export default {
             const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
             return teamRanking
         },
+        sortTeamsForSupermele(teamsToSort) {
+            const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
+            return teamRanking
+        },
         countBuhgolts(whereCount, whatBuhgolts) {
             const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
             whereCount.forEach(team => {
@@ -358,6 +377,8 @@ export default {
                     sortedGroups.push(groupRanking);
                 });
                 return sortedGroups;
+            } else if (this.tournament.system === 'supermele') {
+                return this.sortTeamsForSupermele(this.tournament.teams)
             } else {
                 return this.sortTeams(this.tournament.teams);
             }

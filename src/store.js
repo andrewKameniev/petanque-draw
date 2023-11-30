@@ -10,6 +10,7 @@ const newTournament = {
     useRating: false,
     isPlayOff: false,
     playoff: false,
+    supermelePlayers: 2,
     tournamentIsFinished: false,
     tournamentMessage: '',
     preferences: {

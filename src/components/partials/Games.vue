@@ -227,8 +227,13 @@ export default {
                 }
             } else if (this.tournament.system === 'supermele') {
                 const playersCount = this.tournament.teams.length;
-                let gamesCount = playersCount / this.tournament.supermelePlayers;
-                gamesCount = gamesCount % 2 === 0 ? gamesCount : Math.floor(this.tournament.supermelePlayers == 2 ? gamesCount - 1 : gamesCount + 1);
+                let gamesCount = Math.floor(playersCount / this.tournament.supermelePlayers) + 1;
+                while(gamesCount % 2 !== 0) {
+                    console.log(gamesCount % 2, gamesCount);
+                    gamesCount = this.tournament.supermelePlayers == 2 ? gamesCount - 1 : gamesCount + 1;
+                }
+
+                console.log(gamesCount);
                 let superMeleScheme = {
                     doubles: this.tournament.supermelePlayers == 2 ? gamesCount : 0,
                     triples: this.tournament.supermelePlayers == 3 ? gamesCount : 0
@@ -242,9 +247,10 @@ export default {
                         superMeleScheme.triples--;
                         superMeleScheme.doubles++;
                     }
-
+                    console.log(superMeleScheme);
                     sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
                 }
+
                 let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams));
                 let teamsForRound = [];
 

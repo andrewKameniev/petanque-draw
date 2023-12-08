@@ -72,7 +72,8 @@
             </ul>
         </div>
         <div class="content tabs-content" v-if="activeTab === 'Teams'">
-            <AddTeam v-if="!tournament.games.length"/>
+            <AddTeam v-if="tournament.system === 'supermele' || !tournament.games.length"
+                     :import-hidden="tournament.system === 'supermele' && tournament.games.length > 0"/>
             <TeamsList v-if="tournament.teams.length" :activeRound="activeRound"/>
             <div v-else class="mb-5 mt-5">
                 Please, add team

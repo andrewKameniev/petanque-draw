@@ -1,5 +1,5 @@
 <template>
-    <div class="columns">
+    <div class="columns" v-if="!importHidden">
         <div class="column is-three-fifths">
             <div class="field control">
                 <input v-model="tournamentId" @keydown.enter="importList" class="input" type="number" placeholder="Tournament ID">
@@ -41,7 +41,7 @@ import {mapMutations, mapState} from "vuex";
 
 export default {
     name: 'AddTeam',
-    props: ['showRating'],
+    props: ['importHidden'],
     data(){
         return {
             teamTitle: null,

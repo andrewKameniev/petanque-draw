@@ -1,6 +1,6 @@
 module.exports = {
     publicPath: process.env.NODE_ENV === 'production'
-        ? '/petanque-swiss-vue/dist/'
+        ? '/petanque-draw/dist/'
         : '/',
     pwa: {
         name: 'Petanque Draw',

@@ -245,7 +245,7 @@ export default {
             return teamRanking
         },
         sortTeamsForSupermele(teamsToSort) {
-            const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
+            const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating);
             return teamRanking
         },
         countBuhgolts(whereCount, whatBuhgolts) {

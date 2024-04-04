@@ -227,18 +227,20 @@ export default {
                 }
             } else if (this.tournament.system === 'supermele') {
                 const playersCount = this.tournament.teams.length;
-                let gamesCount = Math.floor(playersCount / this.tournament.supermelePlayers) + 1;
-                while(gamesCount % 2 !== 0) {
-                    console.log(gamesCount % 2, gamesCount);
+                let gamesCount = Math.floor(playersCount / this.tournament.supermelePlayers);
+              while(gamesCount % 2 !== 0) {
                     gamesCount = this.tournament.supermelePlayers == 2 ? gamesCount - 1 : gamesCount + 1;
-                }
+              }
 
-                console.log(gamesCount);
+              if ( playersCount > gamesCount * 3) {
+                gamesCount+=2;
+              }
                 let superMeleScheme = {
                     doubles: this.tournament.supermelePlayers == 2 ? gamesCount : 0,
                     triples: this.tournament.supermelePlayers == 3 ? gamesCount : 0
                 }
-                let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+              let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+
                 while(sum !== playersCount) {
                     if (this.tournament.supermelePlayers == 2) {
                         superMeleScheme.doubles--;
@@ -247,25 +249,26 @@ export default {
                         superMeleScheme.triples--;
                         superMeleScheme.doubles++;
                     }
-                    console.log(superMeleScheme);
                     sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
                 }
 
                 let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams));
-                let teamsForRound = [];
+              console.log(teamsToDraw);
+              let teamsForRound = [];
 
                 for (let i = 1; i <= superMeleScheme.doubles; i++) {
                     const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
                     let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-
-                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
-                        player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                    let tryToFindOpponent;
+                    while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
+                      player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                      tryToFindOpponent++
                     }
                     teamsForRound.push({
                         title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title,
                         players: [teamsToDraw[player1].title, teamsToDraw[player2].title]
                     });
-                    let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title];
+                  let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title];
                     teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
                 }
 
@@ -273,16 +276,19 @@ export default {
                     const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
                     let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
                     let player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
+                    let tryToFindOpponent = 1;
+                    while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
 
-                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
-                        player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                      player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
+                      tryToFindOpponent++;
                     }
-
-                    while(teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) && teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)) {
-                        player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
+                  let tryToFindOpponent2 = 1
+                    while(tryToFindOpponent2 < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) && teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)) {
+                      player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
+                      tryToFindOpponent2++;
                     }
-
-                    teamsForRound.push({
+                  console.log(teamsForRound);
+                  teamsForRound.push({
                         title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title + ', '+ teamsToDraw[player3].title,
                         players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title]
                     });

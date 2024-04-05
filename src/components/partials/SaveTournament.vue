@@ -71,6 +71,7 @@ export default {
                     system: this.tournament.system,
                     tournamentIsFinished: this.tournament.tournamentIsFinished,
                     games: this.tournament.games,
+                    teams: this.tournament.teams,
                     playOff: this.tournament.playOffBracket ? this.tournament.playOffBracket : null,
                     ranking: this.tournamentRanking
                 }

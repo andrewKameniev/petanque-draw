@@ -15,7 +15,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(team, index) in showInSaved ? rankingTeams : tournamentRanking" :key="index">
+                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index">
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>

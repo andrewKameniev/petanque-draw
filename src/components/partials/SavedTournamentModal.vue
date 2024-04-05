@@ -17,7 +17,7 @@
             </header>
             <div class="card-content" :class="{active: showSwissTable}">
                 <Ranking :tournament="tournament"
-                         :rankingTeams="tournament.ranking" showInSaved="true"/>
+                         :rankingTeams="sortTeams(tournament.teams)" showInSaved="true"/>
             </div>
         </div>
         <div class="card" v-if="tournament.games">
@@ -84,7 +84,31 @@ export default {
             showGames: false
         }
     },
-    methods: mapMutations(['removeSavedTournament'])
+    methods: {
+      ...mapMutations(['removeSavedTournament']),
+      sortTeams(teamsToSort) {
+        this.countBuhgolts(teamsToSort, 'buhgolts');
+        this.countBuhgolts(teamsToSort, 'smallBuhgolts');
+        const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
+        return teamRanking
+      },
+      countBuhgolts(whereCount, whatBuhgolts) {
+        const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
+        whereCount.forEach(team => {
+          let currentTeamBuhgolts = 0;
+          if (team.opponents.length) {
+            team.opponents.forEach(opponent => {
+              const opponentIndex = whereCount.findIndex(team => team.title === opponent);
+              if (opponentIndex !== -1) {
+                currentTeamBuhgolts += whereCount[opponentIndex][whatCount];
+              }
+            })
+          }
+          team[whatBuhgolts] = currentTeamBuhgolts;
+        });
+        return whereCount;
+      },
+    }
 }
 </script>
 

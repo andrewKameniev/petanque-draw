@@ -301,7 +301,7 @@ export default {
                     }
                     tokens = new Set([...tokens]);
 
-                    const domain = process.env.NODE_ENV === 'production' ? '/petanque-swiss-vue/dist/#/' : '/#/';
+                    const domain = process.env.NODE_ENV === 'production' ? '/petanque-draw/dist/#/' : '/#/';
                     const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
                     tokens.forEach(token => {
 

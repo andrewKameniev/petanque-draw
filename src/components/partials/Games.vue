@@ -22,7 +22,7 @@
                 <div class="games-list">
                     <div class="game-row" :class="{compact: compactView}"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="text-right team-block">
+                        <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
                             <label :for="'team_' + index">{{ game.team_1 }}</label>
                         </span>
                         <span class="text-center score-block">
@@ -36,7 +36,7 @@
                                    type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                         </span>
-                        <span class="team-block">
+                        <span class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
                             <label :for="'opponent_' + index">{{ game.team_2 }}</label>
                         </span>
                     </div>
@@ -391,7 +391,7 @@ export default {
         saveResults() {
             this.scoreError = false;
 
-            const resultsError = (game) => game.team_1_score === game.team_2_score || (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
+            const resultsError = (game) => game.team_1_score === game.team_2_score || (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > this.tournament.preferences.maxScore) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > this.tournament.preferences.maxScore)
             if (this.tournament.games[this.activeRound - 1].some(game => resultsError(game))) {
                 this.scoreError = true;
                 return false

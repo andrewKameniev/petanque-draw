@@ -221,12 +221,17 @@ export default {
 
                 playOffScheme.push(game)
             }
-            this.setPlayOff(playOffScheme);
+            if (stageValue === 8) {
+              [playOffScheme[2], playOffScheme[4]] = [playOffScheme[4], playOffScheme[2]];
+              [playOffScheme[3], playOffScheme[5]] = [playOffScheme[5], playOffScheme[3]];
+            }
+          this.setPlayOff(playOffScheme);
 
             this.activeTab = 'Games';
 
             if (this.playB) {
-                const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length);
+                const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
+                    .map(team => ({ ...team }));
                 tournamentBTeams.forEach(team => {
                     team.wins = 0;
                     team.buhgolts = 0;

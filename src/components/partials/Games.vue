@@ -221,7 +221,7 @@ export default {
                         teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]); // => добавляю в список, который надо пожеребить две предыдущие команды
                         teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 2]);
                         teamsDrawed.splice(teamsDrawed.length - 2, 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
-                        competitors = this.generateCompetitors(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
+                        competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
                     }
                     if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) { // если пробежали сверху вниз и снизу вверх и не нашли пару
                         this.saveDisabled = true

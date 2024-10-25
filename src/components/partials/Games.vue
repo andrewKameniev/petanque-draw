@@ -126,6 +126,56 @@ export default {
                 return {teamIndex, opponentIndex}; // отдали пару
             }
         },
+        generateCompetitorsFirstLast(teamList, reverse = false, iteration) { //функция для распределения пар
+          let teamIndex, opponentIndex;
+          if (this.activeRound === 1 && !this.tournament.useRating) {
+            teamIndex = this.getRandomWithOneExclusion(teamList.length);
+            opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
+            return {teamIndex, opponentIndex};
+          } else {
+            let teamsWithSameWins, isOneTeamWithSameWins;
+            if (reverse) {
+              teamIndex = 0;
+              opponentIndex = iteration || teamList.length - 1;
+            } else {
+              teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins); // отбираем команды с одинаковым кол-вом побед
+
+              isOneTeamWithSameWins = teamsWithSameWins.length === 1; // флаг, что одна команда с одинаковым кол-вом побед
+              if (isOneTeamWithSameWins) {
+                teamsWithSameWins.push(teamList[1]); // если одна команда с одинаковым кол-вом побед, то добавляем следующую
+              }
+              if (teamsWithSameWins.length % 2 !== 0) {
+                // удаляем одну команду, если нечетное кол-во
+                teamsWithSameWins.splice(teamsWithSameWins.length - 1, 1);
+              }
+
+              teamIndex = 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
+              opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
+            }
+
+            if (reverse) {
+              while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)
+              && teamList[opponentIndex + 1].opponents.includes(teamList[opponentIndex + 2].title)) {
+                opponentIndex = iteration ? iteration + 1 : opponentIndex + 1;
+
+                if (!teamList[opponentIndex]) {
+                  opponentIndex = -1;
+                  return {teamIndex, opponentIndex};
+                }
+              }
+            } else {
+              while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)) { // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
+                isOneTeamWithSameWins ? opponentIndex++ : opponentIndex-- // если играли, то подбираем соперника следующего по списку в зависимости от флага
+
+                if (!teamList[opponentIndex] || teamIndex === opponentIndex) { // если не удалось подобрать соперника, так и говорим
+                  opponentIndex = -1;
+                  return {teamIndex, opponentIndex};
+                }
+              }
+            }
+            return {teamIndex, opponentIndex}; // отдали пару
+          }
+        },
         drawRound() {
             let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
             // let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
@@ -164,14 +214,14 @@ export default {
                     teamsToDraw.splice(technicalTeamIndex, 1);
                 }
                 while (teamsToDraw.length > 0) { // вся магия здесь
-                    competitors = this.generateCompetitors(teamsToDraw, expandListIteration > 0); // определили пару команд
+                    competitors = this.generateCompetitorsFirstLast(teamsToDraw, expandListIteration > 0); // определили пару команд
                     while (competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex) { // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
                         expandListIteration++;
                         round.splice(round.length - 1, 1); // => убираю предыдущую пожеребенную пару
                         teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]); // => добавляю в список, который надо пожеребить две предыдущие команды
                         teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 2]);
                         teamsDrawed.splice(teamsDrawed.length - 2, 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
-                        competitors = this.generateCompetitors(teamsToDraw, true); // => ищу соперников начиная не с верха списка, а снизу
+                        competitors = this.generateCompetitors(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
                     }
                     if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) { // если пробежали сверху вниз и снизу вверх и не нашли пару
                         this.saveDisabled = true

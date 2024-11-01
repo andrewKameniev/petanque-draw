@@ -41,6 +41,10 @@ const store = createStore({
         setTournamentIdFromPortal(state, value) {
             state.tournaments[state.currentTournamentIndex].portalIdTournament = value
         },
+        setTournamentInfoFromPortal(state, info) {
+            state.tournaments[state.currentTournamentIndex].name = info.name
+            state.tournaments[state.currentTournamentIndex].date = info.start_date
+        },
         loginAdmin (state, value) {
             state.isAdmin = value;
             if(!value) {

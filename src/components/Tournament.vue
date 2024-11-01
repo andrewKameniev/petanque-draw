@@ -91,6 +91,9 @@
                 <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games.length > 1">
                     <button class="button is-info" @click="finishTournament">Finish tournament</button>
                 </div>
+              <div class="control">
+                    <button class="button is-info" @click="showProtocol = true">Show protocol</button>
+                </div>
             </div>
         </div>
         <Games v-if="activeTab === 'Games'"
@@ -130,6 +133,7 @@
         <ConfirmRemoveModal v-if="removeConfirm" @close-modal="removeConfirm = false"/>
         <ChangeTournamentName v-if="changeNameModal" @close-modal="changeNameModal = false"/>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
+        <Protocol v-if="showProtocol" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
 </template>
 
@@ -148,6 +152,7 @@ import QrCode from "@/components/partials/QrCode";
 import {getDatabase, ref, child, get, set} from "firebase/database";
 import {database} from "@/firebase";
 import Preferences from "@/components/partials/Preferences";
+import Protocol from "@/views/Protocol";
 
 export default {
     name: 'Tournament',
@@ -164,7 +169,8 @@ export default {
             showQrCode: false,
             showTypeMessage: false,
             loadingOnServer: false,
-            showPreferences: false
+            showPreferences: false,
+            showProtocol: false
         }
     },
     created() {
@@ -394,6 +400,7 @@ export default {
         },
     },
     components: {
+        Protocol,
         Preferences,
         QrCode,
         ChangeTournamentName,

@@ -130,4 +130,20 @@ function copyContent(data) {
     el.remove()
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent}
+const regions = {
+    1: 'Київ',
+    2: 'Харківська',
+    3: 'Харківська',
+    4: 'Закарпатська',
+    6: 'Харківська',
+    10: 'Закарпатська',
+    11: 'Київська',
+    13: 'Закарпатська',
+    14: 'Львівська',
+    16: 'Київська',
+    17: 'Полтавська',
+    19: 'Київська',
+    20: 'Закарпатська',
+}
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent, regions}

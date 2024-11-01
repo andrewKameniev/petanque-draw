@@ -1,11 +1,11 @@
 <template>
     <div>
         <div v-if="tournament.tournamentIsFinished" class="mb-5">
-            <div class="is-flex is-justify-content-space-between is-align-content-center">
+            <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>Tournament Result</h2>
                 <button class="button is-info" @click="copyResults">Copy results</button>
             </div>
-            <div class="table-container">
+            <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
                     <thead>
                     <tr>
@@ -33,7 +33,7 @@
             </div>
         </div>
         <div v-if="tournament.games.length > 0">
-            <h2 v-if="tournament.system !== 'groups'">Ranking
+            <h2 v-if="!isForProtocol && tournament.system !== 'groups'">Ranking
                 <span v-if="activeRound">after {{ activeRound - 1 }} round{{
                         activeRound > 2 && activeRound !== 0 ? 's ' : ' '
                     }}</span>
@@ -41,7 +41,7 @@
             </h2>
             <div v-if="tournament.system === 'swiss'">
                 <div class="table-container">
-                    <table id="table-ranking" class="table">
+                    <table id="table-ranking" class="table" :class="{'is-bordered': isForProtocol}">
                         <thead>
                         <tr>
                             <th>#</th>
@@ -56,7 +56,7 @@
                         <tbody>
                         <tr v-for="team in rankingTeams" :key="team.title">
                             <td><span class="team-count"></span></td>
-                            <td>{{ team.title }}</td>
+                            <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
@@ -133,7 +133,7 @@ import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent
 
 export default {
     name: 'Ranking',
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
         return {

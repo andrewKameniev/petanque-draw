@@ -80,7 +80,7 @@
             </div>
             <div class="field is-grouped">
                 <div class="control">
-                    <button class="button is-danger" @click="removeConfirm = true">Remove tournament</button>
+                    <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">Remove tournament</button>
                 </div>
                 <div class="control">
                     <button class="button is-info" @click="showPreferences = true">Preferences</button>

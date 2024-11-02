@@ -58,7 +58,7 @@
                             <td class="has-text-centered" :rowspan="team.players.length + 1">{{tournamentRanking.find(item => item.title === team.title).place}}</td>
                         </tr>
                         <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
-                            <td contenteditable="true">{{ player.surname + ' ' + player.name }} </td>
+                            <td contenteditable="true">{{ player.surname + ' ' + player.name + ' ' + getPlayerThirdName(player.surname, player.name) }} </td>
                             <td>{{ regions[player.club_id] || '-' }} </td>
                             <td contenteditable="true"></td>
                         </tr>
@@ -94,7 +94,9 @@
 import Results from "@/components/partials/Results";
 import {getTournamentRanking, regions} from "@/helpers";
 import Ranking from "@/components/partials/Ranking";
-import html2pdf from "html2pdf.js";
+import html2pdf from "../../../node_modules/html2pdf.js/dist/html2pdf";
+import playersNames from '../../data.json'
+import {mapMutations} from "vuex";
 
 export default {
     name: 'Protocol',
@@ -105,7 +107,8 @@ export default {
             regions,
             titleCounts: {},
             mixedTeamCount: 1,
-            protocolTitles: {}
+            noRegionTeamCount: 1,
+            protocolTitles: {},
         }
     },
     mounted() {
@@ -128,31 +131,41 @@ export default {
         },
     },
     methods: {
+        ...mapMutations(['showMessage']),
+        getPlayerThirdName(surname, name) {
+            const playerInfo = playersNames.find(item => item.includes(surname + ' ' + name));
+            if (playerInfo) {
+                const playerInfoArray = playerInfo.split(' ');
+                if (playerInfoArray.length === 3) {
+                    return playerInfoArray[2];
+                } else {
+                    return '!!! ДОПИШІТЬ МЕНЕ!!!'
+                }
+            } else {
+                return '!!! ДОПИШІТЬ МЕНЕ!!!'
+            }
+        },
         copyProtocol() {
             const element = document.getElementById("protocol");
 
-            // Create a range and select the content
             const range = document.createRange();
             range.selectNodeContents(element);
 
-            // Clear current selection and add the new range
             const selection = window.getSelection();
             selection.removeAllRanges();
             selection.addRange(range);
 
-            // Execute the copy command
             try {
                 const successful = document.execCommand("copy");
                 if (successful) {
-                    alert("Styled content copied to clipboard!");
+                    this.showMessage({title: 'Success!', text: 'Protocol is in your buffer'});
                 } else {
-                    console.error("Failed to copy.");
+                    this.showMessage({title: 'Error!', text: 'Can\'t copy protocol' });
                 }
             } catch (err) {
                 console.error("Error copying to clipboard:", err);
             }
 
-            // Clear the selection
             selection.removeAllRanges();
         },
         exportPdf() {
@@ -163,18 +176,23 @@ export default {
         },
         setTeamTitle(team, players) {
             const firstPlayerClubName = this.regions[players[0].club_id];
-            let title;
-            if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
-                title = `Збірна ${firstPlayerClubName.replace('ка', 'кої')} області`;
-                if (this.titleCounts[title]) {
-                    this.titleCounts[title]++;
+            let title = '';
+            if (firstPlayerClubName){
+                if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
+                    title = `Збірна ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
+                    if (this.titleCounts[title]) {
+                        this.titleCounts[title]++;
+                    } else {
+                        this.titleCounts[title] = 1;
+                    }
+                    title += ` ${this.titleCounts[title]}`;
                 } else {
-                    this.titleCounts[title] = 1;
+                    title = `Збірна команда ${this.mixedTeamCount}`;
+                    this.mixedTeamCount++;
                 }
-                title += ` ${this.titleCounts[title]}`;
             } else {
-                title = `Збірна команда ${this.mixedTeamCount}`;
-                this.mixedTeamCount++;
+                title = `Команда без регіону ${this.noRegionTeamCount}`;
+                this.noRegionTeamCount++
             }
 
             this.protocolTitles[team] = title
@@ -191,5 +209,9 @@ export default {
 
 #protocol h2, #protocol h3 {
     font-weight: bold;
+}
+
+#protocol table td {
+    padding: 0.2em 0.3em;
 }
 </style>

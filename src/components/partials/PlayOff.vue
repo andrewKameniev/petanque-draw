@@ -11,7 +11,7 @@
             <template v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? 'Final' : '1/' + playOffStageCurrent + ' final'}}</h2>
                 <div class="game-row" v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
-                    <span class="text-right team-block">
+                    <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
                         <label :for="'team_' + ind">{{ game.team_1 }}</label>
                     </span>
                     <span class="text-center score-block">
@@ -23,14 +23,14 @@
                         <input :id="'opponent_' + ind" v-model="game.team_2_score" class="input -small"
                                type="number" min="0" max="13" @keyup.enter="saveResults">
                     </span>
-                    <span class="team-block">
+                    <span class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
                         <label :for="'opponent_' + ind">{{ game.team_2 }}</label>
                     </span>
                 </div>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">Game for 3d place</h3>
                     <div class="game-row">
-                        <span class="text-right team-block">
+                        <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_1_score > playOffBracket.thirdPlace.team_2_score}">
                             <label :for="'team_1_3p'">{{ playOffBracket.thirdPlace.team_1 }}</label>
                         </span>
                         <span class="text-center score-block">
@@ -42,7 +42,7 @@
                             <input :id="'opponent_3p'" v-model="playOffBracket.thirdPlace.team_2_score" class="input -small"
                                    type="number" min="0" max="13" @keyup.enter="saveResults">
                         </span>
-                        <span class="team-block">
+                        <span class="team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_2_score > playOffBracket.thirdPlace.team_1_score}">
                             <label :for="'opponent_3p'">{{ playOffBracket.thirdPlace.team_2 }}</label>
                         </span>
                     </div>

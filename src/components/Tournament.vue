@@ -92,7 +92,7 @@
                     <button class="button is-info" @click="finishTournament">Finish tournament</button>
                 </div>
               <div class="control">
-                    <button class="button is-info" @click="showProtocol = true">Show protocol</button>
+                    <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ? 'Hide' : 'Show'}} protocol</button>
                 </div>
             </div>
         </div>
@@ -152,7 +152,7 @@ import QrCode from "@/components/partials/QrCode";
 import {getDatabase, ref, child, get, set} from "firebase/database";
 import {database} from "@/firebase";
 import Preferences from "@/components/partials/Preferences";
-import Protocol from "@/views/Protocol";
+import Protocol from "@/components/partials/Protocol";
 
 export default {
     name: 'Tournament',

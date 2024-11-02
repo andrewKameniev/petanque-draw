@@ -91,7 +91,7 @@
                 <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games.length > 1">
                     <button class="button is-info" @click="finishTournament">Finish tournament</button>
                 </div>
-              <div class="control">
+              <div class="control" v-if="isAdmin">
                     <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ? 'Hide' : 'Show'}} protocol</button>
                 </div>
             </div>

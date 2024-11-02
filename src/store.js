@@ -34,7 +34,8 @@ const store = createStore({
             },
             savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
             currentTournamentIndex: null,
-            isAdmin: false
+            isAdmin: false,
+            user: false
         }
     },
     mutations: {
@@ -49,6 +50,12 @@ const store = createStore({
             state.isAdmin = value;
             if(!value) {
                 localStorage.removeItem("isAdmin")
+            }
+        },
+        loginUser (state, value) {
+            state.user = value;
+            if(!value) {
+                // localStorage.removeItem("isAdmin")
             }
         },
         setActiveTournament (state, index) {

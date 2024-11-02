@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging } from "firebase/messaging";
 import {getDatabase} from "firebase/database";
-
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
@@ -14,12 +14,12 @@ const firebaseConfig = {
     appId: "1:774303828599:web:78c14845b68be7fd4e5472"
 };
 
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 const database = getDatabase(app);
 const messaging = getMessaging(app);
 
-export {database, messaging}
+export {database, messaging, auth}
 

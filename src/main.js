@@ -7,6 +7,7 @@ import Page from "./components/Page";
 import Login from "./views/Login";
 import Admin from "@/views/Admin";
 import Public from "@/views/Public";
+import LoginUser from "@/views/LoginUser";
 
 const app = createApp(App);
 const router = createRouter({
@@ -26,6 +27,11 @@ const router = createRouter({
             path: '/login',
             name: 'login',
             component: Login
+        },
+        {
+            path: '/login-user',
+            name: 'loginUser',
+            component: LoginUser
         },
         {
             path: '/admin',

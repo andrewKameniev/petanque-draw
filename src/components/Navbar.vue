@@ -42,6 +42,10 @@
                         <router-link v-else to="/login" class="button is-light">
                             Log in as Admin
                         </router-link>
+                        <button v-if="user" class="button is-light" @click="signOutUser">Logout as User</button>
+                        <router-link v-else to="/login-user" class="button is-light">
+                            Log in
+                        </router-link>
                     </div>
                 </div>
             </div>
@@ -51,21 +55,33 @@
 
 <script>
 import {mapMutations, mapState} from "vuex";
+import { signOut } from "firebase/auth";
+import {auth} from "@/firebase";
 
 export default {
     name: "Navbar",
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginAdmin']),
+        ...mapMutations(['setActiveTournament', 'loginAdmin', 'loginUser']),
         logout() {
             this.loginAdmin(false);
             this.$router.push('/');
-        }
+        },
+        signOutUser () {
+            signOut(auth)
+                .then(() => {
+                    this.loginUser(false);
+                    this.$router.push('/');
+                })
+                .catch((error) => {
+                    console.error("Error during sign out:", error);
+                });
+        },
     }
 }
 </script>

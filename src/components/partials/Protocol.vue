@@ -160,7 +160,7 @@ export default {
                 if (successful) {
                     this.showMessage({title: 'Success!', text: 'Protocol is in your buffer'});
                 } else {
-                    this.showMessage({title: 'Error!', text: 'Can\'t copy protocol' });
+                    this.showMessage({title: 'Error!', text: 'Can\'t copy protocol', type: 'error' });
                 }
             } catch (err) {
                 console.error("Error copying to clipboard:", err);

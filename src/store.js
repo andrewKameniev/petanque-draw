@@ -1,5 +1,7 @@
 import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
+import {get, getDatabase, ref, set, remove, update} from "firebase/database";
+import {database} from "@/firebase";
 const newTournament = {
     name: 'Tournament A',
     games: [],
@@ -24,21 +26,65 @@ const newTournament = {
 const store = createStore({
     state () {
         return {
-            tournaments: localStorage.getItem('tournaments') ?
-                JSON.parse(localStorage.getItem('tournaments')) : [JSON.parse(JSON.stringify(newTournament))],
+            tournaments: [],
             message: {
                 show: false,
                 type: 'success',
                 title: 'Message',
                 text: '',
             },
-            savedTournaments: localStorage.getItem('tournamentsList') ?  JSON.parse(localStorage.getItem('tournamentsList')) : [],
+            savedTournaments: [],
             currentTournamentIndex: null,
             isAdmin: false,
             user: false
         }
     },
+    actions: {
+        async getTournaments({state, commit}) {
+            if (state.user) {
+                const dbRef = ref(database, `${state.user.uid}/tournaments/`);
+                const snapshot = await get(dbRef);
+                console.log(snapshot);
+                if (snapshot.exists()) {
+                    console.log(1111);
+                    commit('setTournaments', snapshot.val());
+                } else {
+                    console.log(222);
+                    commit('setTournaments', {});
+                }
+                const dbRefSaved = ref(database, `${state.user.uid}/saved/`);
+                const snapshotSaved = await get(dbRefSaved);
+                if (snapshot.exists()) {
+                    commit('setSavedTournaments', snapshotSaved.val());
+                } else {
+                    commit('setSavedTournaments', {});
+                }
+            } else {
+                const tournaments = localStorage.getItem('tournaments') ?
+                    JSON.parse(localStorage.getItem('tournaments')) : {
+                    [newTournament.id]: JSON.parse(JSON.stringify(newTournament))
+                    };
+                commit('setTournaments', tournaments);
+                const savedTournaments = localStorage.getItem('tournamentsList') ?
+                    JSON.parse(localStorage.getItem('tournamentsList')) : {};
+                commit('setSavedTournaments', savedTournaments);
+            }
+        },
+    },
     mutations: {
+        setTournaments(state, tournaments) {
+            state.tournaments = tournaments;
+            console.log(tournaments);
+            store.commit('setActiveTournament', Object.keys(state.tournaments).length - 1)
+            console.log(Object.keys(state.tournaments).length);
+            if (!Object.keys(state.tournaments).length) {
+                console.log(1);
+                store.commit('addTournament');
+            }
+        },
+        setSavedTournaments(state, tournaments) {
+            state.savedTournaments = tournaments;
+        },
         setTournamentIdFromPortal(state, value) {
             state.tournaments[state.currentTournamentIndex].portalIdTournament = value
         },
@@ -65,12 +111,23 @@ const store = createStore({
             state.tournaments[state.currentTournamentIndex].name = name
         },
         removeTournament (state) {
-            if (state.tournaments.length > 1) {
-                state.tournaments.splice(state.currentTournamentIndex, 1);
-                state.currentTournamentIndex = 0
-            } else {
-                state.tournaments[state.currentTournamentIndex] = JSON.parse(JSON.stringify(newTournament));
-            }
+            const db = getDatabase();
+            const dataRef = ref(db, `${state.user.uid}/tournaments/${state.currentTournamentIndex}`);
+
+            remove(dataRef)
+                .then(() => {
+                    delete state.tournaments[state.currentTournamentIndex];
+                    if (Object.keys(state.tournaments).length > 1) {
+                        state.currentTournamentIndex = Object.keys(state.tournaments)[0];
+                    } else {
+                        store.commit('addTournament');
+                        // state.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
+                    }
+                    console.log('Data successfully deleted');
+                })
+                .catch((error) => {
+                    console.error('Error deleting data:', error);
+                });
         },
         addTeamToStore (state, team) {
             state.tournaments[state.currentTournamentIndex].teams.push(team);
@@ -120,19 +177,33 @@ const store = createStore({
             state.message.show = false
         },
         addTournament(state) {
-            if (state.tournaments.length >= 10) {
+            if (Object.keys(state.tournaments).length >=10) {
                 store.commit('showMessage', {title: 'Not available', text: 'You can make only 10 tournaments simultaneously. Remove old tournaments, please', type: 'error'});
                 return false
             }
-            state.tournaments.push(JSON.parse(JSON.stringify(newTournament)));
-            state.currentTournamentIndex = state.tournaments.length - 1;
-            store.commit('changeTournamentName', `Tournament ${tournamentNames[state.tournaments.length - 1]}`);
+            newTournament.id = Date.now();
+            state.tournaments[newTournament.id] = newTournament;
+            state.currentTournamentIndex = newTournament.id;
+            store.commit('changeTournamentName', `Tournament ${tournamentNames[Object.keys(state.tournaments).length - 1]}`);
+
         },
         addToSaved(state, tournament) {
-            state.savedTournaments.push(tournament)
+            const db = getDatabase();
+            set(ref(db, `${state.user.uid}/saved/${tournament.id}`), tournament);
+            state.savedTournaments[tournament.id] = tournament;
         },
-        removeSavedTournament (state, name) {
-            state.savedTournaments = state.savedTournaments.filter(item => item.name !== name)
+        removeSavedTournament (state, id) {
+            const db = getDatabase();
+            const dataRef = ref(db, `${state.user.uid}/saved/${id}`);
+
+            remove(dataRef)
+                .then(() => {
+                    delete state.savedTournaments[id];
+                    console.log('Data successfully deleted');
+                })
+                .catch((error) => {
+                    console.error('Error deleting data:', error);
+                });
         },
         addBTournament(state, teams) {
             store.commit('addTournament');
@@ -142,8 +213,20 @@ const store = createStore({
 })
 
 store.subscribe((mutation, state) => {
-    localStorage.setItem('tournaments', JSON.stringify(state.tournaments));
-    localStorage.setItem('tournamentsList', JSON.stringify(state.savedTournaments));
+    console.log(mutation);
+    if (mutation.type !== 'LoginUser' && mutation.type !== 'setSavedTournaments') {
+        if (state.user && state.user.uid && state.currentTournamentIndex) {
+            localStorage.setItem('tournaments', JSON.stringify(state.tournaments));
+            const db = getDatabase();
+            update(ref(db, `${state.user.uid}/tournaments/`), {
+                [state.currentTournamentIndex]: state.tournaments[state.currentTournamentIndex]
+            }).catch(error => console.error('Error updating specific tournament:', error));
+            // localStorage.setItem('tournamentsList', JSON.stringify(state.savedTournaments));
+            // set(ref(db, `${state.user.uid}/saved/`), state.savedTournaments);
+        }
+    }
+
+
 });
 
 export {store}

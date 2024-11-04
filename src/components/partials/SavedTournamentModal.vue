@@ -2,7 +2,7 @@
     <Modal @close-modal="$emit('close-modal')">
         <div class="content is-flex is-justify-content-space-between mb-3">
             <h2>{{ tournament.name }}</h2>
-            <button class="button is-danger" @click="removeSavedTournament(tournament.name); $emit('close-modal')">Remove tournament</button>
+            <button class="button is-danger" @click="removeSavedTournament(tournament.id); $emit('close-modal')">Remove tournament</button>
         </div>
         <div class="card" v-if="tournament.ranking">
             <header class="card-header" @click="showGames = false; showSwissTable = !showSwissTable">

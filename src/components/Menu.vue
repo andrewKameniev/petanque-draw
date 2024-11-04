@@ -4,14 +4,14 @@
             <div class="has-text-right">
                 <a href="#" class="delete is-large" @click.prevent="$emit('closeMenu')"></a>
             </div>
-            <p class="menu-label is-hidden-desktop" v-if="tournaments.length > 1">
+            <p class="menu-label is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
                 Active tournaments
             </p>
-            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="tournaments.length > 1">
+            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
                 <a class="navbar-link">
                     Choose
                 </a>
-                <div class="navbar-dropdown" v-if="tournaments.length > 1">
+                <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
                     <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}"
                        v-for="(item, index) in tournaments" :key="index"
                        @click.prevent="chooseTournament(index)">
@@ -19,7 +19,7 @@
                     </a>
                 </div>
             </div>
-            <p class="menu-label" v-if="savedTournaments.length">
+            <p class="menu-label" v-if="Object.keys(savedTournaments).length > 1">
                 Saved tournaments
             </p>
             <ul class="menu-list">
@@ -48,6 +48,10 @@
                 <router-link v-else to="/login" class="button is-light">
                     Log in as Admin
                 </router-link>
+                <button v-if="user" class="button is-light" @click="signOutUser">Logout as User</button>
+                <router-link v-else to="/login-user" class="button is-light">
+                    Log in as User
+                </router-link>
             </div>
         </aside>
     </div>
@@ -56,6 +60,8 @@
 <script>
 import {mapMutations, mapState} from "vuex";
 import {tournamentNames} from "../helpers";
+import {signOut} from "firebase/auth";
+import {auth} from "@/firebase";
 
 export default {
     name: 'Menu',
@@ -65,7 +71,7 @@ export default {
         }
     },
     props: ['active'],
-    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin']),
+    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
     methods: {
         ...mapMutations(['setActiveTournament', 'loginAdmin']),
         chooseTournament(index) {
@@ -76,7 +82,17 @@ export default {
         logout() {
             this.loginAdmin(false);
             this.$router.push('/')
-        }
+        },
+        signOutUser () {
+            signOut(auth)
+                .then(() => {
+                    this.loginUser(false);
+                    this.$router.push('/');
+                })
+                .catch((error) => {
+                    console.error("Error during sign out:", error);
+                });
+        },
     },
 }
 </script>

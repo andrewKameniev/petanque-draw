@@ -22,12 +22,12 @@
                     Menu
                 </a>
 
-                <div class="navbar-item has-dropdown is-hoverable" v-if="tournaments.length > 1">
+                <div class="navbar-item has-dropdown is-hoverable" v-if="Object.keys(tournaments).length > 1">
                     <a class="navbar-link">
                         Active tournaments
                     </a>
 
-                    <div class="navbar-dropdown" v-if="tournaments.length > 1">
+                    <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
                         <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}" v-for="(item, index) in tournaments" :key="index"
                            @click.prevent="setActiveTournament(index)">
                             {{ item.name }}
@@ -44,7 +44,7 @@
                         </router-link>
                         <button v-if="user" class="button is-light" @click="signOutUser">Logout as User</button>
                         <router-link v-else to="/login-user" class="button is-light">
-                            Log in
+                            Log in as User
                         </router-link>
                     </div>
                 </div>

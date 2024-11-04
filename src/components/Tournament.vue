@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="box" v-if="isAdmin && tournament.portalIdTournament">
+        <div class="box" v-if="isAdmin && tournament.portalIdTournament || user">
             <h2 class="is-size-5 mb-3">Remote availabilities:</h2>
             <div class="buttons">
                 <button class="button is-info" @click="showInfoOnServer">Post tournament on server</button>
@@ -276,31 +276,37 @@ export default {
             return whereCount;
         },
         showInfoOnServer() {
-            const id = this.tournament.portalIdTournament;
-
             let infoToPost = JSON.parse(JSON.stringify(this.tournament));
             delete infoToPost.gamesCopy;
             infoToPost.ranking = this.rankingTeams;
-            let formData = new URLSearchParams();
-            formData.append('meta', JSON.stringify(infoToPost));
 
-            try {
-                this.loadingOnServer = true;
-                fetch(`https://portal.petanque.org.ua/tournament/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: formData,
-                }).then(() => {
-                    this.loadingOnServer = false;
-                    this.sendNotification();
-                    this.showMessage({title: 'Success', text: 'Tournament is live!'});
-                });
-            } catch (error) {
-                alert(error);
-                this.showMessage({title: 'Error', type: 'error', text: error});
+            if (this.user) {
+                const db = getDatabase();
+                set(ref(db, `${this.user.uid}/tournaments/${infoToPost.id}`),  infoToPost);
+            } else {
+                const id = this.tournament.portalIdTournament;
+                let formData = new URLSearchParams();
+                formData.append('meta', JSON.stringify(infoToPost));
+
+                try {
+                    this.loadingOnServer = true;
+                    fetch(`https://portal.petanque.org.ua/tournament/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: formData,
+                    }).then(() => {
+                        this.loadingOnServer = false;
+                        this.sendNotification();
+                        this.showMessage({title: 'Success', text: 'Tournament is live!'});
+                    });
+                } catch (error) {
+                    alert(error);
+                    this.showMessage({title: 'Error', type: 'error', text: error});
+                }
             }
+
         },
         sendNotification() {
             const dbRef = ref(getDatabase());
@@ -356,7 +362,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },

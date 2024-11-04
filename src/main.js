@@ -24,6 +24,11 @@ const router = createRouter({
             component: Public
         },
         {
+            path: '/show/',
+            name: 'view',
+            component: Public
+        },
+        {
             path: '/login',
             name: 'login',
             component: Login

@@ -70,22 +70,22 @@ export default {
             if (this.registerShow) {
                 createUserWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
                     .then((data) => {
-                        this.loginUser(data.user)
-                        this.$router.push('/')
+                        this.loginUser(data.user);
+                        this.$router.push('/');
                     })
                     .catch(error => {
-                        console.log(error.code)
-                        this.handleFirebaseErrors(error.code)
+                        console.log(error.code);
+                        this.handleFirebaseErrors(error.code);
                     });
             } else {
-                signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim()) // THIS LINE CHANGED
+                signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
                     .then((data) => {
-                        this.loginUser(data.user)
-                        this.$router.push('/')
+                        this.loginUser(data.user);
+                        this.$router.push('/');
                     })
                     .catch(error => {
-                        console.log(error.code)
-                        this.handleFirebaseErrors(error.code)
+                        console.log(error.code);
+                        this.handleFirebaseErrors(error.code);
                     });
             }
         },

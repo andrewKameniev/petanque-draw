@@ -99,17 +99,34 @@ export default {
     methods: {
         async getInfo() {
             this.isLoading = true;
-            const id = this.$route.params.id;
-            let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
-
-            if (response.ok) {
-                let tournamentInfo = await response.json();
-                this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
+            if (this.$route.query) {
+                try {
+                    const user = this.$route.query.user;
+                    const tournamentId = this.$route.query.tournament;
+                    const dbRef = ref(database, `${user}/tournaments/${tournamentId}`);
+                    const snapshot = await get(dbRef);
+                    if (snapshot.exists()) {
+                        this.tournament = snapshot.val();
+                    }
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
                 this.isLoading = false;
-
             } else {
-                alert("Error" + response.status);
+                const id = this.$route.params.id;
+                let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
+
+                if (response.ok) {
+                    let tournamentInfo = await response.json();
+                    this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
+                    this.isLoading = false;
+
+                } else {
+                    alert("Error" + response.status);
+                }
             }
+
+
         },
         showNotification(message) {
             navigator.serviceWorker.ready.then(function(registration) {
@@ -150,7 +167,6 @@ export default {
                 });
 
                 onMessage(messaging, (payload) => {
-                    console.log(payload);
                     self.showNotification(payload)
                 });
             }).catch(function(error) {

@@ -1,16 +1,19 @@
 <template>
     <Navbar @open-menu="menuOpen = !menuOpen"/>
-    <div class="container ">
+    <div class="container">
         <div class="columns">
-            <div class="column">
+            <div class="column" v-if="user">
                 <Tournament v-if="tournament"/>
+            </div>
+            <div v-else class="is-flex is-align-items-center is-size-3 p-3 has-text-centered">
+                You can use this program only when login to the system as User
             </div>
             <div class="column is-one-third is-hidden-touch">
                 <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
             </div>
         </div>
         <hr>
-        <button class="button is-info" @click="addTournament">Add new tournament</button>
+        <button v-if="user" class="button is-info" @click="addTournament">Add new tournament</button>
         <Message v-if="message.show"/>
         <Menu :active="menuOpen"
               @closeMenu="menuOpen = false"
@@ -19,6 +22,7 @@
                               @close-modal="closeTournamentModal"/>
         <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
     </div>
+    <footer class="p-3 has-text-centered">Developed by <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
 </template>
 
 <script>
@@ -29,6 +33,8 @@ import Tournament from "./Tournament";
 import {mapState, mapMutations} from 'vuex'
 import Navbar from "./Navbar";
 import Help from "./Help";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebase";
 
 export default {
     name: 'Page',
@@ -43,10 +49,19 @@ export default {
         }
     },
     mounted() {
-        this.setActiveTournament(0)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                this.loginUser(user);
+                this.$store.dispatch('getTournaments');
+            } else {
+                this.loginUser(false);
+                // this.setActiveTournament(0);
+            }
+
+        });
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'addTournament']),
+        ...mapMutations(['setActiveTournament', 'addTournament', 'loginUser']),
         openSavedTournament(index) {
             this.savedTournamentsActive = index;
             this.menuOpen = false;
@@ -62,7 +77,7 @@ export default {
         },
     },
     computed: {
-        ...mapState(['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments']),
+        ...mapState(['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },

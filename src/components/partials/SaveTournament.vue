@@ -67,6 +67,7 @@ export default {
                 this.hasError = true
             } else {
                 const currentTournament = {
+                    id: this.tournament.id,
                     name: this.name,
                     system: this.tournament.system,
                     tournamentIsFinished: this.tournament.tournamentIsFinished,

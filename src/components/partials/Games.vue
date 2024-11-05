@@ -3,7 +3,8 @@
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <div v-else>
             <div class="field is-grouped">
-                <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive && tournament.games.length < teamsCount">
+                <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
+                && (tournament.games && tournament.games.length < teamsCount) || !tournament.games">
                     <button class="button is-info" @click="drawRound">
                         {{ activeRound === 1 ? 'First' : `Draw ${activeRound}` }} Round
                     </button>
@@ -14,7 +15,7 @@
                     </button>
                 </div>
             </div>
-            <div v-if="tournament.games.length && tournament.roundIsActive">
+            <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
                 <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">Show <span
                     v-if="!compactView">&nbsp;Compact&nbsp;</span> <span v-if="compactView">&nbsp;Full&nbsp;</span> View
                 </button>
@@ -47,7 +48,7 @@
                 <div class="text-center mt-3">
                     <button class="button is-success" @click="saveResults" :disabled=saveDisabled>Save results</button>
                 </div>
-                <div class="text-center mt-3" v-if="tournament.system === 'swiss' && tournament.games.length > 1 && tournament.roundIsActive">
+                <div class="text-center mt-3" v-if="tournament.system === 'swiss' && tournament.games && tournament.games.length > 1 && tournament.roundIsActive">
                     <button class="button is-danger" @click="restoreRoundGames">
                         Restore previous round
                     </button>
@@ -56,8 +57,8 @@
                     you can write developer about it (contact in footer), but this will not help you in this situation:))
                 </div>
             </div>
-            <div v-else-if="tournament.games.length === 0">No games, yet</div>
-            <div v-else-if="tournament.games.length >= teamsCount">Rounds quantity can't be more than teams</div>
+            <div v-else-if="tournament.games && tournament.games.length === 0">No games, yet</div>
+            <div v-else-if="tournament.games && tournament.games.length >= teamsCount">Rounds quantity can't be more than teams</div>
             <div v-else class="mb-5 mt-5">
                 Please, click on button to draw <b>{{ activeRound === 1 ? 'first' : activeRound }}</b> round
             </div>
@@ -454,7 +455,7 @@ export default {
         restoreRoundGames(){
             this.restoreRound();
             this.tournament.teams.forEach(team => {
-                team.opponents = [];
+                team.opponents = ['placeholder'];
                 team.pointsPlus = 0;
                 team.pointsMinus = 0;
                 team.wins = 0;

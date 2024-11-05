@@ -1,28 +1,38 @@
 <template>
-    <Navbar @open-menu="menuOpen = !menuOpen"/>
-    <div class="container">
-        <div class="columns">
-            <div class="column" v-if="user">
-                <Tournament v-if="tournament"/>
-            </div>
-            <div v-else class="is-flex is-align-items-center is-size-3 p-3 has-text-centered">
-                You can use this program only when login to the system as User
-            </div>
-            <div class="column is-one-third is-hidden-touch">
-                <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
-            </div>
+    <div v-if="isLoading" class="gooey">
+        <span class="dot"></span>
+        <div class="dots">
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
-        <hr>
-        <button v-if="user" class="button is-info" @click="addTournament">Add new tournament</button>
-        <Message v-if="message.show"/>
-        <Menu :active="menuOpen"
-              @closeMenu="menuOpen = false"
-              @openSavedTournament="openSavedTournament" @open-help="menuOpen = false; helpOpen = true"/>
-        <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
-                              @close-modal="closeTournamentModal"/>
-        <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
     </div>
-    <footer class="p-3 has-text-centered">Developed by <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
+    <div v-else>
+        <Navbar @open-menu="menuOpen = !menuOpen"/>
+        <div class="container">
+            <div class="columns">
+                <div class="column" v-if="user">
+                    <Tournament v-if="tournament"/>
+                </div>
+                <div v-else class="is-flex is-align-items-center is-size-3 p-3 has-text-centered">
+                    You can use this program only when login to the system as User
+                </div>
+                <div class="column is-one-third is-hidden-touch">
+                    <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
+                </div>
+            </div>
+            <hr>
+            <button v-if="user" class="button is-info" @click="addTournament">Add new tournament</button>
+            <Message v-if="message.show"/>
+            <Menu :active="menuOpen"
+                  @closeMenu="menuOpen = false"
+                  @openSavedTournament="openSavedTournament" @open-help="menuOpen = false; helpOpen = true"/>
+            <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
+                                  @close-modal="closeTournamentModal"/>
+            <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
+        </div>
+        <footer class="p-3 has-text-centered">Developed by <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
+    </div>
 </template>
 
 <script>
@@ -45,19 +55,20 @@ export default {
             menuOpen: false,
             showSavedTournament: false,
             helpOpen: false,
-            savedTournamentsActive: false
+            savedTournamentsActive: false,
+            isLoading: false
         }
     },
     mounted() {
+        this.isLoading = true
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 this.loginUser(user);
                 this.$store.dispatch('getTournaments');
             } else {
                 this.loginUser(false);
-                // this.setActiveTournament(0);
             }
-
+            this.isLoading = false
         });
     },
     methods: {

@@ -28,8 +28,9 @@
                     </a>
 
                     <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
-                        <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}" v-for="(item, index) in tournaments" :key="index"
-                           @click.prevent="setActiveTournament(index)">
+                        <a class="navbar-item" :class="{'is-active': item.id === currentTournamentIndex}"
+                           v-for="item in tournaments" :key="item.id"
+                           @click.prevent="setActiveTournament(item.id)">
                             {{ item.name }}
                         </a>
                     </div>
@@ -38,7 +39,7 @@
             <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                        <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
+                        <button v-if="isAdmin" class="button is-light" @click="logout">Logout as Admin</button>
                         <router-link v-else to="/login" class="button is-light">
                             Log in as Admin
                         </router-link>

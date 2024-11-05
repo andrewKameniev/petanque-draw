@@ -117,6 +117,67 @@ function getTournamentRanking(tournament, rankingTeams){
     return tournamentRanking
 }
 
+function sortTeams(teamsToSort) {
+    countBuhgolts(teamsToSort, 'buhgolts');
+    countBuhgolts(teamsToSort, 'smallBuhgolts');
+    return teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
+}
+
+function countBuhgolts(whereCount, whatBuhgolts) {
+    const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
+    whereCount.forEach(team => {
+        let currentTeamBuhgolts = 0;
+        if (team.opponents[0] !== 'placeholder' && team.opponents.length) {
+            team.opponents.forEach(opponent => {
+                const opponentIndex = whereCount.findIndex(team => team.title === opponent);
+                if (opponentIndex !== -1) {
+                    currentTeamBuhgolts += whereCount[opponentIndex][whatCount];
+                }
+            })
+        }
+        team[whatBuhgolts] = currentTeamBuhgolts;
+    });
+    return whereCount;
+}
+
+function sortTeamsForSupermele(teamsToSort) {
+    return teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating);
+}
+function getTeamsRanking(tournament, activeRound) {
+    if (tournament.teams) {
+        if (tournament.system === 'groups' && activeRound > 1) {
+            let sortedGroups = [];
+            tournament.groups.forEach(group => {
+                group.forEach(team => {
+                    // If was page reload copy necessary teams data to groups
+                    const teamInfo = this.tournament.teams.find(item => item.title === team.title);
+                    team.wins = teamInfo.wins;
+                    team.opponents = teamInfo.opponents;
+                    team.pointsPlus = teamInfo.pointsPlus;
+                    team.pointsMinus = teamInfo.pointsMinus;
+
+                    let directPoints = 0;
+                    team.opponents.forEach(opponent => {
+                        const opponentIndex = group.findIndex(team => team.title === opponent);
+                        if (team.wins === group[opponentIndex].wins) {
+                            directPoints += getGameResultInGroup(tournament.games, team.title, group[opponentIndex].title, true)
+                        }
+                    })
+                    team.directPoints = directPoints
+                })
+                let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
+                sortedGroups.push(groupRanking);
+            });
+            return sortedGroups;
+        } else if (tournament.system === 'supermele') {
+            return sortTeamsForSupermele(tournament.teams)
+        } else {
+            return sortTeams(tournament.teams);
+        }
+    } else {
+        return []
+    }
+}
 function copyContent(data) {
     const el = document.createElement('div')
     el.innerHTML = data.trim()
@@ -146,4 +207,4 @@ const regions = {
     20: 'Закарпатська',
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent, regions}
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, copyContent, regions}

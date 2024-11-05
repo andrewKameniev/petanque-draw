@@ -78,7 +78,6 @@ export default {
                 }
                 this.addToSaved(currentTournament);
                 this.$emit('close-modal');
-                this.showMessage({title: 'Saved', text: 'You can see your saved tournaments in the menu'})
             }
         }
     }

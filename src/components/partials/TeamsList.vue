@@ -28,7 +28,7 @@
                 </div>
             </td>
             <td class="td-100" v-if="tournament.useRating">{{team.rating}}</td>
-            <td class="td-50" v-if="tournament.system === 'supermele' || !tournament.games.length">
+            <td class="td-50" v-if="!previewTournament && (tournament.system === 'supermele' || (!tournament.games && !tournament.playOff))">
                 <span class="delete" @click="removeTeam(team.title)"></span>
             </td>
         </tr>

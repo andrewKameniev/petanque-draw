@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container" :class="{'content': activeTournament}">
         <div class="is-flex is-justify-content-space-between is-align-content-center">
             <h2>PlayOff</h2>
             <button class="button is-info" @click="showBracket = true">Show play off bracket</button>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">Something wrong in games results</div>
-                <div class="text-center mt-5">
+                <div class="text-center mt-5" v-if="!activeTournament">
                     <button class="button is-success" @click="saveResults">Save results</button>
                 </div>
             </template>
@@ -62,6 +62,7 @@ import Bracket from './Bracket';
 import {mapMutations, mapState} from "vuex";
 export default {
     name: 'PlayOff',
+    props: ['activeTournament'],
     emits: ['openResults'],
     components: {Bracket},
     data(){
@@ -78,7 +79,7 @@ export default {
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
         },
         playOffStageCurrent() {
             return 'playOffStage' in this.tournament ? this.tournament.playOffStage : this.tournament.playOff[0].stage

@@ -32,7 +32,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games.length > 0">
+        <div v-if="tournament.games?.length > 0">
             <h2 v-if="!isForProtocol && tournament.system !== 'groups'">Ranking
                 <span v-if="activeRound">after {{ activeRound - 1 }} round{{
                         activeRound > 2 && activeRound !== 0 ? 's ' : ' '
@@ -123,6 +123,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div v-else>
+            No ranking
         </div>
     </div>
 </template>

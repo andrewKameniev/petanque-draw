@@ -3,7 +3,7 @@
         <div class="box" v-if="isAdmin && tournament.portalIdTournament || user">
             <h2 class="is-size-5 mb-3">Remote availabilities:</h2>
             <div class="buttons">
-                <button class="button is-info" @click="showInfoOnServer">Post tournament on server</button>
+                <button class="button is-info" @click="sendNotification">Send update notification</button>
                 <button class="button is-light" @click="showQrCode = true">Show tournament links</button>
                 <button class="button is-warning" @click="showTypeMessage = !showTypeMessage">
                     <span v-if="!showTypeMessage">Write </span><span v-else>Hide </span>&nbsp;message
@@ -21,7 +21,7 @@
         <div class="text-center is-size-3">
             <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong> <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
-        <div v-if="!tournament.games.length">
+        <div v-if="!tournament.games && !tournament.playOff">
             <div class="field">
                 <label class="label" for="">System</label>
                 <div class="control">
@@ -72,9 +72,9 @@
             </ul>
         </div>
         <div class="content tabs-content" v-if="activeTab === 'Teams'">
-            <AddTeam v-if="tournament.system === 'supermele' || !tournament.games.length"
-                     :import-hidden="tournament.system === 'supermele' && tournament.games.length > 0"/>
-            <TeamsList v-if="tournament.teams.length" :activeRound="activeRound"/>
+            <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                     :import-hidden="!isAdmin || tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
+            <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
             <div v-else class="mb-5 mt-5">
                 Please, add team
             </div>
@@ -88,10 +88,10 @@
                 <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
                     <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
                 </div>
-                <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games.length > 1">
+                <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games && tournament.games.length > 1">
                     <button class="button is-info" @click="finishTournament">Finish tournament</button>
                 </div>
-              <div class="control" v-if="isAdmin">
+              <div class="control" v-if="isAdmin && tournament.teams && tournament.teams.length">
                     <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ? 'Hide' : 'Show'}} protocol</button>
                 </div>
             </div>
@@ -103,7 +103,7 @@
         <Results v-if="activeTab === 'Results'"/>
         <div class="content tabs-content" v-if="activeTab === 'Ranking'">
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-            <div v-if="!tournament.playOff && tournament.teams.length > 1">
+            <div v-if="!tournament.playOff && tournament.teams && tournament.teams.length > 1">
                 <div class="mt-5">
                     <h2 class="h2">Go to play-off?</h2>
                     <div class="is-flex is-align-items-center">Choose number of teams
@@ -147,7 +147,7 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
-import {getGameResultInGroup} from "@/helpers";
+import {getTeamsRanking} from "@/helpers";
 import QrCode from "@/components/partials/QrCode";
 import {getDatabase, ref, child, get, set} from "firebase/database";
 import {database} from "@/firebase";
@@ -181,7 +181,6 @@ export default {
         saveTournament(tournament) {
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;
-            localStorage.setItem('tournamentsList', JSON.stringify(this.savedTournaments))
         },
         startPlayOff() {
             let playOffList;
@@ -244,69 +243,10 @@ export default {
                     team.smallBuhgolts = 0;
                     team.pointsPlus = 0;
                     team.pointsMinus = 0;
-                    team.opponents = [];
+                    team.opponents = ['placeholder'];
                 })
                 this.addBTournament(tournamentBTeams);
             }
-        },
-        sortTeams(teamsToSort) {
-            this.countBuhgolts(teamsToSort, 'buhgolts');
-            this.countBuhgolts(teamsToSort, 'smallBuhgolts');
-            const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
-            return teamRanking
-        },
-        sortTeamsForSupermele(teamsToSort) {
-            const teamRanking = teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating);
-            return teamRanking
-        },
-        countBuhgolts(whereCount, whatBuhgolts) {
-            const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
-            whereCount.forEach(team => {
-                let currentTeamBuhgolts = 0;
-                if (team.opponents.length) {
-                    team.opponents.forEach(opponent => {
-                        const opponentIndex = whereCount.findIndex(team => team.title === opponent);
-                        if (opponentIndex !== -1) {
-                            currentTeamBuhgolts += whereCount[opponentIndex][whatCount];
-                        }
-                    })
-                }
-                team[whatBuhgolts] = currentTeamBuhgolts;
-            });
-            return whereCount;
-        },
-        showInfoOnServer() {
-            let infoToPost = JSON.parse(JSON.stringify(this.tournament));
-            delete infoToPost.gamesCopy;
-            infoToPost.ranking = this.rankingTeams;
-
-            if (this.user) {
-                const db = getDatabase();
-                set(ref(db, `${this.user.uid}/tournaments/${infoToPost.id}`),  infoToPost);
-            } else {
-                const id = this.tournament.portalIdTournament;
-                let formData = new URLSearchParams();
-                formData.append('meta', JSON.stringify(infoToPost));
-
-                try {
-                    this.loadingOnServer = true;
-                    fetch(`https://portal.petanque.org.ua/tournament/${id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: formData,
-                    }).then(() => {
-                        this.loadingOnServer = false;
-                        this.sendNotification();
-                        this.showMessage({title: 'Success', text: 'Tournament is live!'});
-                    });
-                } catch (error) {
-                    alert(error);
-                    this.showMessage({title: 'Error', type: 'error', text: error});
-                }
-            }
-
         },
         sendNotification() {
             const dbRef = ref(getDatabase());
@@ -367,42 +307,16 @@ export default {
             return this.tournaments[this.currentTournamentIndex]
         },
         canSaveTournament() {
-            return this.tournament.tournamentIsFinished && this.tournament.games && this.tournament.games.length > 1
+            return this.tournament.tournamentIsFinished && this.tournament.games.length > 1
                 || this.tournament.playoff && this.tournament.playoff[this.tournament.playoff.length - 1].teams[0].team_1_score !== null
         },
         rankingTeams() {
-            if (this.tournament.system === 'groups' && this.activeRound > 1) {
-                let sortedGroups = [];
-                this.tournament.groups.forEach(group => {
-                    group.forEach(team => {
-                        // If was page reload copy necessary teams data to groups
-                        const teamInfo = this.tournament.teams.find(item => item.title === team.title);
-                        team.wins = teamInfo.wins;
-                        team.opponents = teamInfo.opponents;
-                        team.pointsPlus = teamInfo.pointsPlus;
-                        team.pointsMinus = teamInfo.pointsMinus;
-
-                        let directPoints = 0;
-                        team.opponents.forEach(opponent => {
-                            const opponentIndex = group.findIndex(team => team.title === opponent);
-                            if (team.wins === group[opponentIndex].wins) {
-                                directPoints += getGameResultInGroup(this.tournament.games, team.title, group[opponentIndex].title, true)
-                            }
-                        })
-                        team.directPoints = directPoints
-                    })
-                    let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
-                    sortedGroups.push(groupRanking);
-                });
-                return sortedGroups;
-            } else if (this.tournament.system === 'supermele') {
-                return this.sortTeamsForSupermele(this.tournament.teams)
-            } else {
-                return this.sortTeams(this.tournament.teams);
-            }
+            return getTeamsRanking(this.tournament, this.activeRound)
         },
         activeRound() {
-            return this.tournament.games.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
+            return this.tournament.games && this.tournament.games.length ?
+                this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1
+                : 1;
         },
     },
     components: {

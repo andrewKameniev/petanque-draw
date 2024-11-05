@@ -19,7 +19,7 @@
                     </a>
                 </div>
             </div>
-            <p class="menu-label" v-if="Object.keys(savedTournaments).length > 1">
+            <p class="menu-label" v-if="Object.keys(savedTournaments).length">
                 Saved tournaments
             </p>
             <ul class="menu-list">
@@ -40,11 +40,11 @@
             <ul class="menu-list">
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">Portal</a></li>
             </ul>
-            <p class="menu-label">
+            <p class="menu-label is-invisible-desktop">
                 Admin section
             </p>
-            <div>
-                <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
+            <div class="is-invisible-desktop">
+                <button v-if="isAdmin" class="button is-light" @click="logout">Logout as Admin</button>
                 <router-link v-else to="/login" class="button is-light">
                     Log in as Admin
                 </router-link>

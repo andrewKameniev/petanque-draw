@@ -96,7 +96,7 @@ export default {
         const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
         whereCount.forEach(team => {
           let currentTeamBuhgolts = 0;
-          if (team.opponents.length) {
+          if (team.opponents[0] !== 'placeholder' && team.opponents.length) {
             team.opponents.forEach(opponent => {
               const opponentIndex = whereCount.findIndex(team => team.title === opponent);
               if (opponentIndex !== -1) {

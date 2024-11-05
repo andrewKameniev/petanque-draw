@@ -13,29 +13,32 @@
     </div>
     <div v-else>
         <div v-if="tournament" class="container">
-            <div class="text-center is-size-3">
-                <strong> {{ tournament.name }}</strong> <span
-                class="is-size-5 is-capitalized">({{ tournament.system }})</span>
-            </div>
             <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5">
                 {{ tournament.tournamentMessage }}
             </div>
-            <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} round</h2>
-            <div class="games-list">
-                <div class="game-row compact"
-                     v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
+            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="$emit('openResults')"/>
+            <div v-if="tournament.games">
+                <div class="text-center is-size-3">
+                    <strong> {{ tournament.name }}</strong> <span
+                    class="is-size-5 is-capitalized">({{ tournament.system }})</span>
+                </div>
+                <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} round</h2>
+                <div class="games-list">
+                    <div class="game-row compact"
+                         v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
                         <span class="text-right team-block">
                             <label :for="'team_' + index">{{ game.team_1 }}</label>
                         </span>
-                    <span class="text-center score-block">
+                        <span class="text-center score-block">
 
                             <span class="lane-block is-size-7">
                                 Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                             </span>
                         </span>
-                    <span class="team-block">
+                        <span class="team-block">
                             <label :for="'opponent_' + index">{{ game.team_2 }}</label>
                         </span>
+                    </div>
                 </div>
             </div>
             <div class="tabs">
@@ -52,7 +55,7 @@
             <Results v-if="activeTab === 'Results'" :previewTournament="tournament"/>
             <div class="content tabs-content" v-if="activeTab === 'Ranking'">
                 <Ranking :tournament="tournament"
-                         :rankingTeams="tournament.ranking" :activeRound="tournament.activeRound"/>
+                         :rankingTeams="rankingTeams" :activeRound="tournament.activeRound"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -72,11 +75,13 @@ import TeamsList from "@/components/partials/TeamsList";
 import { getToken, onMessage } from "firebase/messaging";
 import {ref, push, get, child, getDatabase} from "firebase/database";
 import {database, messaging} from "@/firebase";
+import {getTeamsRanking} from "@/helpers";
+import PlayOff from "@/components/partials/PlayOff.vue";
 
 
 export default {
     name: 'Public',
-    components: {TeamsList, Ranking, Results},
+    components: {PlayOff, TeamsList, Ranking, Results},
     data() {
         return {
             isLoading: false,
@@ -93,8 +98,11 @@ export default {
     },
     computed: {
         activeRound() {
-            return this.tournament.games.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
-        }
+            return this.tournament.games?.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
+        },
+        rankingTeams() {
+            return getTeamsRanking(this.tournament, this.activeRound)
+        },
     },
     methods: {
         async getInfo() {

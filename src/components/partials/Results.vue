@@ -1,14 +1,14 @@
 <template>
     <div class="content tabs-content">
-        <div v-if="tournament.games.length || tournament.playOffBracket">
+        <div v-if="tournament.games?.length || tournament.playOffBracket">
             <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
-                <h3 v-if="tournament.games.length && !isForProtocol" class="has-text-centered">
+                <h3 v-if="tournament.games?.length && !isForProtocol" class="has-text-centered">
                     <span v-if="tournament.system ==='swiss'">Swiss</span>
                     <span v-else-if="tournament.system ==='groups'">Group</span>
                     <span v-else-if="tournament.system ==='supermele'">Supermele</span>
                     rounds</h3>
                 <div class="table-container">
-                    <table v-if="tournament.games.length" class="table mb-5"
+                    <table v-if="tournament.games?.length" class="table mb-5"
                            :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
                         <tbody>
                             <template v-for="(round, index) in tournament.games" :key="index">

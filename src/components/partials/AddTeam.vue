@@ -61,6 +61,9 @@ export default {
         addTeam(title, rating, players = false){
             if(title !== null && title !== ''){
                 let teamExists = false;
+                if (!this.tournament.teams) {
+                    this.tournament.teams = [];
+                }
                 this.tournament.teams.forEach(team => {
                     if(team.title === title){
                         teamExists = true;
@@ -76,7 +79,7 @@ export default {
                         smallBuhgolts: 0,
                         pointsPlus: 0,
                         pointsMinus: 0,
-                        opponents: [],
+                        opponents: ['placeholder'],
                     }
                     this.addTeamToStore(team)
                     this.teamTitle = null;

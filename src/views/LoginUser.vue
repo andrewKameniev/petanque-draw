@@ -5,27 +5,29 @@
         </router-link>
         <div class="p-5 login-form">
             <h1 class="has-text-centered mb-2 is-size-3 is-bold">{{ registerShow ? 'Register new account' : 'Login as User' }}</h1>
-            <div class="field">
-                <label for="password" class="label">Enter email</label>
-                <input type="email" id="email" class="input" :class="{'is-danger': isEmailError}"
-                       v-model="email" @keyup.enter="loginOrRegister">
-                <p v-if="isEmailError" class="help is-danger">Email is not correct</p>
-            </div>
-            <div class="field">
-                <label for="password" class="label">Enter password</label>
-                <input type="password" id="password" class="input" :class="{'is-danger': isPasswordError}" autocomplete="off"
-                       v-model="password" @keyup.enter="loginOrRegister">
-                <p v-if="isPasswordError" class="help is-danger">Password is not correct</p>
-            </div>
-            <div class="field text-center">
-                <button class="button is-info" @click="loginOrRegister">{{ registerShow ? 'Register me' : 'Login as User'}}</button>
-            </div>
-            <div class="has-text-centered" v-if="!registerShow">
-                <a href="#" @click.prevent="resetPassword">Forgot password? Reset it</a>
-            </div>
-            <div class="has-text-centered">
-                <a href="#" @click.prevent="registerShow = !registerShow">{{ registerShow ? 'Just Log in me' : 'New User? Register here'}}</a>
-            </div>
+            <form action="post">
+                <div class="field">
+                    <label for="password" class="label">Enter email</label>
+                    <input type="email" id="email" class="input" :class="{'is-danger': isEmailError}"
+                           v-model="email" @keyup.enter.prevent="loginOrRegister">
+                    <p v-if="isEmailError" class="help is-danger">Email is not correct</p>
+                </div>
+                <div class="field">
+                    <label for="password" class="label">Enter password</label>
+                    <input type="password" id="password" class="input" :class="{'is-danger': isPasswordError}" autocomplete="off"
+                           v-model="password" @keyup.enter.prevent="loginOrRegister">
+                    <p v-if="isPasswordError" class="help is-danger">Password is not correct</p>
+                </div>
+                <div class="field text-center">
+                    <button class="button is-info" @click.prevent="loginOrRegister">{{ registerShow ? 'Register me' : 'Login as User'}}</button>
+                </div>
+                <div class="has-text-centered" v-if="!registerShow">
+                    <a href="#" @click.prevent="resetPassword">Forgot password? Reset it</a>
+                </div>
+                <div class="has-text-centered">
+                    <a href="#" @click.prevent="registerShow = !registerShow">{{ registerShow ? 'Just Log in me' : 'New User? Register here'}}</a>
+                </div>
+            </form>
         </div>
         <Message v-if="message.show"/>
     </div>
@@ -80,6 +82,7 @@ export default {
             } else {
                 signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
                     .then((data) => {
+                        console.log(data.user);
                         this.loginUser(data.user);
                         this.$router.push('/');
                     })

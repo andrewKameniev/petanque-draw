@@ -4,22 +4,22 @@
         <div v-else>
             <div class="field is-grouped">
                 <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
-                && (tournament.games && tournament.games.length < teamsCount) || !tournament.games">
+                && (tournament.games && tournament.games.length < teamsCount) || !tournament.games && tournament.teams">
                     <button class="button is-info" @click="drawRound">
-                        {{ activeRound === 1 ? 'First' : `Draw ${activeRound}` }} Round
+                        {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </button>
                 </div>
                 <div class="control" v-if="tournament.roundIsActive">
                     <button class="button is-info" @click="shuffleLanes">
-                        Shuffle lanes
+                        {{ $t('games.shuffleLanes') }}
                     </button>
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
-                <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">Show <span
-                    v-if="!compactView">&nbsp;Compact&nbsp;</span> <span v-if="compactView">&nbsp;Full&nbsp;</span> View
+                <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">{{ $t('games.show') }}<span
+                    v-if="!compactView">&nbsp;{{ $t('games.compact') }}&nbsp;</span> <span v-if="compactView">&nbsp;{{ $t('games.full') }}&nbsp;</span> {{ $t('games.view') }}
                 </button>
-                <h2 class="text-center">Round {{ activeRound }}</h2>
+                <h2 class="text-center">{{ $t('common.round') }} {{ activeRound }}</h2>
                 <div class="games-list">
                     <div class="game-row" :class="{compact: compactView}"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
@@ -31,7 +31,7 @@
                                    :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                             <span class="lane-block is-size-7">
-                                Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                             </span>
                             <input :id="'opponent_' + index" v-model="game.team_2_score" class="input -small"
                                    type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
@@ -41,26 +41,24 @@
                             <label :for="'opponent_' + index">{{ game.team_2 }}</label>
                         </span>
                     </div>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">Something wrong in games
-                        results
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="text-center mt-3">
-                    <button class="button is-success" @click="saveResults" :disabled=saveDisabled>Save results</button>
+                    <button class="button is-success" @click="saveResults" :disabled=saveDisabled>{{ $t('games.saveResults') }}</button>
                 </div>
                 <div class="text-center mt-3" v-if="tournament.system === 'swiss' && tournament.games && tournament.games.length > 1 && tournament.roundIsActive">
                     <button class="button is-danger" @click="restoreRoundGames">
-                        Restore previous round
+                        {{ $t('games.restoreRound') }}
                     </button>
                 </div>
-                <div class="has-text-danger mt-3" v-if="saveDisabled">There was an unexpectable error, sorry for that,
-                    you can write developer about it (contact in footer), but this will not help you in this situation:))
+                <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}
                 </div>
             </div>
-            <div v-else-if="tournament.games && tournament.games.length === 0">No games, yet</div>
-            <div v-else-if="tournament.games && tournament.games.length >= teamsCount">Rounds quantity can't be more than teams</div>
-            <div v-else class="mb-5 mt-5">
-                Please, click on button to draw <b>{{ activeRound === 1 ? 'first' : activeRound }}</b> round
+            <div v-else-if="tournament.games && tournament.games.length === 0">{{ $t('games.noGames') }}</div>
+            <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
+            <div v-else-if="tournament.teams?.length" class="mb-5 mt-5">
+                {{ $t('games.clickToDraw') }} <b>{{ activeRound === 1 ?  $t('games.first') : activeRound }}</b> {{ $t('common.round') }}
             </div>
         </div>
     </div>

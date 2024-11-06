@@ -1,6 +1,6 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <div class="is-size-4 mb-3">Please, enter tournament name</div>
+        <div class="is-size-4 mb-3">{{ $t('modals.enterTournamentName') }}</div>
         <div class="field">
             <div class="control">
                 <input class="input" v-model="name" :class="{'is-danger': hasError}"
@@ -9,14 +9,14 @@
             </div>
         </div>
         <div class="field has-text-danger" v-if="hasError">
-            It seems you already have such tournament name
+            {{ $t('modals.alreadyHaveName') }}
         </div>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="$emit('close-modal')">Cancel</button>
+                <button class="button" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
             </div>
             <div class="control">
-                <button class="button is-success" @click="saveTournament">Save</button>
+                <button class="button is-success" @click="saveTournament">{{ $t('common.save') }}</button>
             </div>
         </div>
     </Modal>

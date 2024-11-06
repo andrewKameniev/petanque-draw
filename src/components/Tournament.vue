@@ -1,12 +1,12 @@
 <template>
     <div>
         <div class="box" v-if="isAdmin && tournament.portalIdTournament || user">
-            <h2 class="is-size-5 mb-3">Remote availabilities:</h2>
+            <h2 class="is-size-5 mb-3">{{ $t('remote.remoteAvailabilities') }}:</h2>
             <div class="buttons">
-                <button class="button is-info" @click="sendNotification">Send update notification</button>
-                <button class="button is-light" @click="showQrCode = true">Show tournament links</button>
+                <button class="button is-info" @click="sendNotification">{{ $t('remote.sendNotification') }}</button>
+                <button class="button is-light" @click="showQrCode = true">{{ $t('remote.showLinks') }}</button>
                 <button class="button is-warning" @click="showTypeMessage = !showTypeMessage">
-                    <span v-if="!showTypeMessage">Write </span><span v-else>Hide </span>&nbsp;message
+                    <span v-if="!showTypeMessage">{{ $t('remote.writeMessage') }}</span><span v-else>{{ $t('remote.hideMessage') }} </span>
                 </button>
                 <button class="button is-danger" @click="removeNotificationsDb">
                     Clear notifications db
@@ -19,28 +19,29 @@
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
         </div>
         <div class="text-center is-size-3">
-            <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong> <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
+            <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong>
+            <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
         <div v-if="!tournament.games && !tournament.playOff">
             <div class="field">
-                <label class="label" for="">System</label>
+                <label class="label" for="">{{ $t('teams.system') }}</label>
                 <div class="control">
                     <label class="radio">
                         <input type="radio" name="system" id="swiss" value="swiss" v-model="tournament.system">
-                        Swiss
+                        {{ $t('teams.swiss') }}
                     </label>
                     <label class="radio">
                         <input type="radio" name="system" id="groups" value="groups" v-model="tournament.system">
-                        Groups
+                        {{ $t('teams.groups') }}
                     </label>
                     <label class="radio">
                         <input type="radio" name="system" id="supermele" value="supermele" v-model="tournament.system">
-                        SuperMele
+                        {{ $t('teams.supermele') }}
                     </label>
                 </div>
             </div>
             <div class="field" v-if="tournament.system === 'groups'">
-                <label class="label">How many team in group?</label>
+                <label class="label">{{ $t('teams.teamsInGroup') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model.number="teamsInGroup">
@@ -52,7 +53,7 @@
                 </div>
             </div>
             <div class="field" v-if="tournament.system === 'supermele'">
-                <label class="label">How many players in a team?</label>
+                <label class="label">{{ $t('teams.playersInTeam') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model.number="tournament.supermelePlayers">
@@ -66,47 +67,49 @@
         <div class="tabs">
             <ul>
                 <li v-for="(tab, index) in tabs" :key="index"
-                    :class="{'is-active': tab === activeTab}">
-                    <a href="#" @click.prevent="activeTab = tab">{{ tab }}</a>
+                    :class="{'is-active': tab.id === activeTab}">
+                    <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
                 </li>
             </ul>
         </div>
-        <div class="content tabs-content" v-if="activeTab === 'Teams'">
+        <div class="content tabs-content" v-if="activeTab === 'teams'">
             <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
                      :import-hidden="!isAdmin || tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
             <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
             <div v-else class="mb-5 mt-5">
-                Please, add team
+                {{ $t('common.please') }} {{ $t('teams.addTeam') }}
             </div>
-            <div class="field is-grouped">
+            <div class="field is-grouped buttons">
                 <div class="control">
-                    <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">Remove tournament</button>
+                    <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">{{ $t('teams.removeTournament') }}</button>
                 </div>
                 <div class="control">
-                    <button class="button is-info" @click="showPreferences = true">Preferences</button>
+                    <button class="button is-info" @click="showPreferences = true">{{ $t('teams.preferences') }}</button>
                 </div>
                 <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
-                    <button class="button is-success" @click="showSaveTournament = true">Save tournament</button>
+                    <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
                 </div>
                 <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games && tournament.games.length > 1">
-                    <button class="button is-info" @click="finishTournament">Finish tournament</button>
+                    <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
                 </div>
               <div class="control" v-if="isAdmin && tournament.teams && tournament.teams.length">
-                    <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ? 'Hide' : 'Show'}} protocol</button>
+                    <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
+                        {{ $t('teams.protocol') }}
+                    </button>
                 </div>
             </div>
         </div>
-        <Games v-if="activeTab === 'Games'"
+        <Games v-if="activeTab === 'games'"
                :rankingTeams="rankingTeams"
                :activeRound="activeRound" :teams-in-group="teamsInGroup"
-               @openResults="activeTab = 'Ranking'"/>
-        <Results v-if="activeTab === 'Results'"/>
-        <div class="content tabs-content" v-if="activeTab === 'Ranking'">
+               @openResults="activeTab = 'ranking'"/>
+        <Results v-if="activeTab === 'results'"/>
+        <div class="content tabs-content" v-if="activeTab === 'ranking'">
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
             <div v-if="!tournament.playOff && tournament.teams && tournament.teams.length > 1">
                 <div class="mt-5">
-                    <h2 class="h2">Go to play-off?</h2>
-                    <div class="is-flex is-align-items-center">Choose number of teams
+                    <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
+                    <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}
                         <div class="select ml-3">
                             <select v-model.number="teamToPlayOff">
                                 <option v-if="tournament.teams.length >= 2">2</option>
@@ -117,13 +120,13 @@
                                 <option v-if="tournament.teams.length >= 64">64</option>
                             </select>
                         </div>
-                        <button @click="startPlayOff" class="button is-success ml-3">Go!</button>
+                        <button @click="startPlayOff" class="button is-success ml-3">{{ $t('ranking.go') }}</button>
                     </div>
                 </div>
                 <div class="mt-5" v-if="tournament.system === 'swiss'">
                     <label class="checkbox">
                         <input type="checkbox" v-model="playB">
-                        Also play <strong>Tournament B</strong>?
+                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('tournamentB') }}</strong>?
                     </label>
                 </div>
             </div>
@@ -158,8 +161,7 @@ export default {
     name: 'Tournament',
     data() {
         return {
-            tabs: ['Teams', 'Games', 'Results', 'Ranking'],
-            activeTab: "Teams",
+            activeTab: "teams",
             showSaveTournament: false,
             teamToPlayOff: null,
             removeConfirm: false,
@@ -303,6 +305,26 @@ export default {
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        tabs() {
+            return [
+                {
+                    id: 'teams',
+                    label: this.$t('teams.teams')
+                },
+                {
+                    id: 'games',
+                    label: this.$t('teams.games')
+                },
+                {
+                    id: 'results',
+                    label: this.$t('teams.results')
+                },
+                {
+                    id: 'ranking',
+                    label: this.$t('teams.ranking')
+                }
+            ];
+        },
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },

@@ -4,27 +4,27 @@
         <div class="modal-content">
             <div class="columns play-off-wrapper">
                 <div v-for="(stage, index) in bracket.stages" :key="index" class="column play-off-stage-wrapper">
-                    <div class="has-text-centered has-text-weight-bold mb-3">{{stage.stageLabel === 1 ? 'Final' : '1/' + stage.stageLabel + ' final'}}</div>
+                    <div class="has-text-centered has-text-weight-bold mb-3">{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</div>
                     <div class="play-off-stage" ref="stage" >
                         <div v-for="(game, ind) in stage.teams" :key="ind" class="play-off-game box">
                             <div class="play-off-game-vertical-line -top" v-if="index !== 0" :style="{height: stageHeight/stage.teamsCount/2 +'px'}"></div>
                             <div class="play-off-game-vertical-line -bottom" v-if="index !== 0" :style="{height: stageHeight/stage.teamsCount/2 +'px'}"></div>
                             <div class="play-off-team">
                                 <span class="play-off-team-place" v-if="game.team_1_place">{{game.team_1_place}}</span>
-                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !game.team_1}">{{game.team_1 || 'Someone'}}</span><span class="play-off-team-score">{{game.team_1_score}}</span>
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !game.team_1}">{{game.team_1 || $t('games.someone')}}</span><span class="play-off-team-score">{{game.team_1_score}}</span>
                             </div>
                             <div class="play-off-team">
                                 <span class="play-off-team-place" v-if="game.team_2_place">{{game.team_2_place}}</span>
-                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !game.team_2}">{{game.team_2 || 'Lucky guy'}}</span><span class="play-off-team-score">{{game.team_2_score}}</span>
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !game.team_2}">{{game.team_2 || $t('games.lucky')}}</span><span class="play-off-team-score">{{game.team_2_score}}</span>
                             </div>
                         </div>
                         <div class="play-off-game box third-place" :class="{'third-place-bottom': bracket.stages.length === 2}" v-if="stage.stageLabel === 1">
-                            <div class="has-text-centered has-text-weight-bold mb-3 third-place-title">Third Place</div>
+                            <div class="has-text-centered has-text-weight-bold mb-3 third-place-title">{{ $t('games.thirdPlace') }}</div>
                             <div class="play-off-team">
-                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace?.team_1}">{{bracket.thirdPlace?.team_1 || 'Someone'}}</span><span class="play-off-team-score">{{bracket.thirdPlace?.team_1_score}}</span>
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace?.team_1}">{{bracket.thirdPlace?.team_1 || $t('games.someone')}}</span><span class="play-off-team-score">{{bracket.thirdPlace?.team_1_score}}</span>
                             </div>
                             <div class="play-off-team">
-                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace?.team_2}">{{bracket.thirdPlace?.team_2 || 'Lucky guy'}}</span><span class="play-off-team-score">{{bracket.thirdPlace?.team_2_score}}</span>
+                                <span class="play-off-team-title" :class="{'has-text-grey-lighter': !bracket.thirdPlace?.team_2}">{{bracket.thirdPlace?.team_2 || $t('games.lucky')}}</span><span class="play-off-team-score">{{bracket.thirdPlace?.team_2_score}}</span>
                             </div>
                         </div>
                     </div>

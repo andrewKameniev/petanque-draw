@@ -1,31 +1,31 @@
 <template>
     <div class="is-flex is-align-items-center is-justify-content-center login-container">
         <router-link to="/" class="button is-light back-link">
-            Back
+            {{ $t('login.back') }}
         </router-link>
         <div class="p-5 login-form">
-            <h1 class="has-text-centered mb-2 is-size-3 is-bold">{{ registerShow ? 'Register new account' : 'Login as User' }}</h1>
+            <h1 class="has-text-centered mb-2 is-size-3 is-bold">{{ registerShow ? $t('login.registerAccount') : $t('common.loginUser') }}</h1>
             <form action="post">
                 <div class="field">
-                    <label for="password" class="label">Enter email</label>
+                    <label for="password" class="label">{{ $t('login.email') }}</label>
                     <input type="email" id="email" class="input" :class="{'is-danger': isEmailError}"
                            v-model="email" @keyup.enter.prevent="loginOrRegister">
-                    <p v-if="isEmailError" class="help is-danger">Email is not correct</p>
+                    <p v-if="isEmailError" class="help is-danger">{{ $t('login.emailError') }}</p>
                 </div>
                 <div class="field">
-                    <label for="password" class="label">Enter password</label>
+                    <label for="password" class="label">{{ $t('login.password') }}</label>
                     <input type="password" id="password" class="input" :class="{'is-danger': isPasswordError}" autocomplete="off"
                            v-model="password" @keyup.enter.prevent="loginOrRegister">
-                    <p v-if="isPasswordError" class="help is-danger">Password is not correct</p>
+                    <p v-if="isPasswordError" class="help is-danger">{{ $t('login.passwordError') }}</p>
                 </div>
                 <div class="field text-center">
-                    <button class="button is-info" @click.prevent="loginOrRegister">{{ registerShow ? 'Register me' : 'Login as User'}}</button>
+                    <button class="button is-info" @click.prevent="loginOrRegister">{{ registerShow ? $t('login.register') : $t('common.loginUser')}}</button>
                 </div>
                 <div class="has-text-centered" v-if="!registerShow">
-                    <a href="#" @click.prevent="resetPassword">Forgot password? Reset it</a>
+                    <a href="#" @click.prevent="resetPassword">{{ $t('login.forgot') }}</a>
                 </div>
                 <div class="has-text-centered">
-                    <a href="#" @click.prevent="registerShow = !registerShow">{{ registerShow ? 'Just Log in me' : 'New User? Register here'}}</a>
+                    <a href="#" @click.prevent="registerShow = !registerShow">{{ registerShow ? $t('login.justLogin') : $t('login.newUser')}}</a>
                 </div>
             </form>
         </div>

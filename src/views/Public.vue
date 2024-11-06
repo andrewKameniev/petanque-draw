@@ -13,15 +13,16 @@
     </div>
     <div v-else>
         <div v-if="tournament" class="container">
+            <LanguageSwitcher/>
+            <div class="text-center is-size-3">
+                <strong> {{ tournament.name }}</strong> <span
+                class="is-size-5 is-capitalized">({{ tournament.system }})</span>
+            </div>
             <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5">
                 {{ tournament.tournamentMessage }}
             </div>
-            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="$emit('openResults')"/>
+            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="activeTab = 'ranking'"/>
             <div v-if="tournament.games">
-                <div class="text-center is-size-3">
-                    <strong> {{ tournament.name }}</strong> <span
-                    class="is-size-5 is-capitalized">({{ tournament.system }})</span>
-                </div>
                 <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} round</h2>
                 <div class="games-list">
                     <div class="game-row compact"
@@ -44,16 +45,16 @@
             <div class="tabs">
                 <ul>
                     <li v-for="(tab, index) in tabs" :key="index"
-                        :class="{'is-active': tab === activeTab}">
-                        <a href="#" @click.prevent="activeTab = tab">{{ tab }}</a>
+                        :class="{'is-active': tab.id === activeTab}">
+                        <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
                     </li>
                 </ul>
             </div>
-            <div class="content tabs-content" v-if="activeTab === 'Teams'">
+            <div class="content tabs-content" v-if="activeTab === 'teams'">
                 <TeamsList :previewTournament="tournament"/>
             </div>
-            <Results v-if="activeTab === 'Results'" :previewTournament="tournament"/>
-            <div class="content tabs-content" v-if="activeTab === 'Ranking'">
+            <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
+            <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament"
                          :rankingTeams="rankingTeams" :activeRound="tournament.activeRound"/>
             </div>
@@ -77,16 +78,16 @@ import {ref, push, get, child, getDatabase} from "firebase/database";
 import {database, messaging} from "@/firebase";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 
 
 export default {
     name: 'Public',
-    components: {PlayOff, TeamsList, Ranking, Results},
+    components: {LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
     data() {
         return {
             isLoading: false,
             tournament: null,
-            tabs: ['Teams', 'Results', 'Ranking'],
             activeTab: "Results",
             notificationsEnabled: false
         }
@@ -97,6 +98,26 @@ export default {
         setTimeout(this.registerSw, 1000);
     },
     computed: {
+        tabs() {
+            return [
+                {
+                    id: 'teams',
+                    label: this.$t('teams.teams')
+                },
+                {
+                    id: 'games',
+                    label: this.$t('teams.games')
+                },
+                {
+                    id: 'results',
+                    label: this.$t('teams.results')
+                },
+                {
+                    id: 'ranking',
+                    label: this.$t('teams.ranking')
+                }
+            ];
+        },
         activeRound() {
             return this.tournament.games?.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
         },

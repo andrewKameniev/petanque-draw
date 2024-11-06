@@ -2,16 +2,16 @@
     <div>
         <div v-if="tournament.tournamentIsFinished" class="mb-5">
             <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
-                <h2>Tournament Result</h2>
-                <button class="button is-info" @click="copyResults">Copy results</button>
+                <h2>{{ $t('ranking.tournamentResult') }}</h2>
+                <button class="button is-info" @click="copyResults">{{ $t('ranking.copyResults') }}</button>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
                     <thead>
                     <tr>
-                        <th>Place</th>
-                        <th>Team</th>
-                        <th>Players</th>
+                        <th>{{ $t('ranking.place') }}</th>
+                        <th>{{ $t('ranking.team') }}</th>
+                        <th>{{ $t('ranking.players') }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -33,11 +33,11 @@
             </div>
         </div>
         <div v-if="tournament.games?.length > 0">
-            <h2 v-if="!isForProtocol && tournament.system !== 'groups'">Ranking
-                <span v-if="activeRound">after {{ activeRound - 1 }} round{{
-                        activeRound > 2 && activeRound !== 0 ? 's ' : ' '
-                    }}</span>
-                <span v-if="tournament.system === 'swiss'">swiss</span>
+            <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
+                <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
+                    {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}
+                </span>
+                <span v-if="tournament.system === 'swiss'"> {{ $t('ranking.swiss') }} </span>
             </h2>
             <div v-if="tournament.system === 'swiss'">
                 <div class="table-container">
@@ -45,12 +45,12 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>Team</th>
-                            <th align="center">Wins</th>
-                            <th align="center">Buh</th>
-                            <th align="center">SBuh</th>
-                            <th align="center">Points</th>
-                            <th v-if="tournament.useRating" align="center">Rating</th>
+                            <th>{{ $t('ranking.team') }}</th>
+                            <th align="center">{{ $t('ranking.wins') }}</th>
+                            <th align="center">{{ $t('ranking.buh') }}</th>
+                            <th align="center">{{ $t('ranking.sbuh') }}</th>
+                            <th align="center">{{ $t('ranking.points') }}</th>
+                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -73,11 +73,11 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>Player</th>
-                            <th align="center">Wins</th>
-                            <th align="center">Difference</th>
-                            <th align="center">Points</th>
-                            <th v-if="tournament.useRating" align="center">Rating</th>
+                            <th>{{ $t('ranking.player') }}</th>
+                            <th align="center">{{ $t('ranking.wins') }}</th>
+                            <th align="center">{{ $t('ranking.difference') }}</th>
+                            <th align="center">{{ $t('ranking.points') }}</th>
+                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -100,11 +100,11 @@
                         <table class="table table is-striped">
                             <thead>
                             <tr>
-                                <th>Place</th>
-                                <th>Team</th>
+                                <th>{{ $t('ranking.place') }}</th>
+                                <th>{{ $t('ranking.team') }}</th>
                                 <th v-for="(group, index) in group" :key="index" align="center">{{ index + 1 }}</th>
-                                <th align="center">Wins</th>
-                                <th align="center">Points</th>
+                                <th align="center">{{ $t('ranking.wins') }}</th>
+                                <th align="center">{{ $t('ranking.points') }}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -125,7 +125,7 @@
             </div>
         </div>
         <div v-else>
-            No ranking
+            {{ $t('ranking.noRanking') }}
         </div>
     </div>
 </template>

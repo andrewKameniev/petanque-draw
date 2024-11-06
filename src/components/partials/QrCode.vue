@@ -1,6 +1,6 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <div class="is-size-3 mb-3 text-center">QRCode and link for tournament</div>
+        <div class="is-size-3 mb-3 text-center">{{ $t('remote.qrAndLink') }}</div>
         <div class="text-center">
             <qrcode-vue :value="tournamentLink" :size="size" level="H" />
             <div class="my-3">
@@ -9,7 +9,7 @@
         </div>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="copyContent(tournamentLink)">Copy link</button>
+                <button class="button" @click="copyContent(tournamentLink)">{{ $t('remote.copyLink') }}</button>
             </div>
         </div>
     </Modal>

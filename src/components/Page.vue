@@ -15,14 +15,14 @@
                     <Tournament v-if="tournament"/>
                 </div>
                 <div v-else class="is-flex is-align-items-center is-size-3 p-3 has-text-centered">
-                    You can use this program only when login to the system as User
+                    {{ $t('common.onlyLoginMessage') }}
                 </div>
                 <div class="column is-one-third is-hidden-touch">
                     <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
                 </div>
             </div>
             <hr>
-            <button v-if="user" class="button is-info" @click="addTournament">Add new tournament</button>
+            <button v-if="user" class="button is-info" @click="addTournament">{{ $t('common.addTournament') }}</button>
             <Message v-if="message.show"/>
             <Menu :active="menuOpen"
                   @closeMenu="menuOpen = false"
@@ -31,7 +31,7 @@
                                   @close-modal="closeTournamentModal"/>
             <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
         </div>
-        <footer class="p-3 has-text-centered">Developed by <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
+        <footer class="p-3 has-text-centered">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
     </div>
 </template>
 

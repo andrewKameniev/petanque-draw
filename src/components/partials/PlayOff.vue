@@ -1,15 +1,15 @@
 <template>
     <div class="container" :class="{'content': activeTournament}">
         <div class="is-flex is-justify-content-space-between is-align-content-center">
-            <h2>PlayOff</h2>
-            <button class="button is-info" @click="showBracket = true">Show play off bracket</button>
+            <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
+            <button class="button is-info" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
         <div class="column play-off-stage-wrapper" v-if="playOffBracket">
             <div v-if="playOffStageCurrent === 0" class="has-text-centered is-size-4">
-                Tournament has finished. <a href="#" @click.prevent="$emit('openResults')">See result</a>
+                {{ $t('games.tournamentFinished') }}. <a href="#" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
             </div>
             <template v-else>
-                <h2 class="text-center">{{playOffStageCurrent === 1 ? 'Final' : '1/' + playOffStageCurrent + ' final'}}</h2>
+                <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <div class="game-row" v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
                     <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
                         <label :for="'team_' + ind">{{ game.team_1 }}</label>
@@ -18,7 +18,7 @@
                         <input :id="'team_' + ind" v-model="game.team_1_score" class="input -small"
                                type="number" min="0" max="13" @keyup.enter="saveResults">
                         <span class="lane-block is-size-7">
-                            Lane <span class="is-size-5 has-text-weight-bold">{{ ind + 1 }}</span>
+                            {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ ind + 1 }}</span>
                         </span>
                         <input :id="'opponent_' + ind" v-model="game.team_2_score" class="input -small"
                                type="number" min="0" max="13" @keyup.enter="saveResults">
@@ -28,7 +28,7 @@
                     </span>
                 </div>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
-                    <h3 class="text-center mt-5">Game for 3d place</h3>
+                    <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
                     <div class="game-row">
                         <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_1_score > playOffBracket.thirdPlace.team_2_score}">
                             <label :for="'team_1_3p'">{{ playOffBracket.thirdPlace.team_1 }}</label>
@@ -37,7 +37,7 @@
                             <input :id="'team_1_3p'" v-model="playOffBracket.thirdPlace.team_1_score" class="input -small"
                                    type="number" min="0" max="13" @keyup.enter="saveResults">
                             <span class="lane-block is-size-7">
-                                Lane <span class="is-size-5 has-text-weight-bold">2</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">2</span>
                             </span>
                             <input :id="'opponent_3p'" v-model="playOffBracket.thirdPlace.team_2_score" class="input -small"
                                    type="number" min="0" max="13" @keyup.enter="saveResults">
@@ -47,9 +47,9 @@
                         </span>
                     </div>
                 </div>
-                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">Something wrong in games results</div>
+                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
-                    <button class="button is-success" @click="saveResults">Save results</button>
+                    <button class="button is-success" @click="saveResults">{{ $t('games.saveResults') }}</button>
                 </div>
             </template>
         </div>
@@ -111,16 +111,23 @@ export default {
                 this.setPlayOffStage(0)
                 this.finishTournament();
             } else {
-                let bracket = JSON.parse(JSON.stringify(this.playOffBracket))
+                let bracket = JSON.parse(JSON.stringify(this.playOffBracket));
+                console.log(bracket);
                 bracket.stages[this.currentPlayOffBracketIndex].teams.forEach((game, index) => {
                     if(index % 2 === 0){
                         bracket.stages[this.currentPlayOffBracketIndex + 1].teams[index / 2].team_1 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
                         if(bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
+                            if (!bracket.thirdPlace) {
+                                bracket.thirdPlace = {}
+                            }
                             bracket.thirdPlace.team_1 =  game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
                         }
                     } else {
                         bracket.stages[this.currentPlayOffBracketIndex + 1].teams[(index - 1) / 2].team_2 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
                         if(bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
+                            if (!bracket.thirdPlace) {
+                                bracket.thirdPlace = {}
+                            }
                             bracket.thirdPlace.team_2 = game.team_1_score < game.team_2_score ? game.team_1 : game.team_2
                         }
                     }

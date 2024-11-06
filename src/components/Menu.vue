@@ -4,12 +4,13 @@
             <div class="has-text-right">
                 <a href="#" class="delete is-large" @click.prevent="$emit('closeMenu')"></a>
             </div>
+            <LanguageSwitcher class="is-hidden-desktop"/>
             <p class="menu-label is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
-                Active tournaments
+                {{ $t('common.activeTournaments') }}
             </p>
             <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
                 <a class="navbar-link">
-                    Choose
+                    {{ $t('common.choose') }}
                 </a>
                 <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
                     <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}"
@@ -20,7 +21,7 @@
                 </div>
             </div>
             <p class="menu-label" v-if="Object.keys(savedTournaments).length">
-                Saved tournaments
+                {{ $t('common.saved') }}
             </p>
             <ul class="menu-list">
                 <li v-for="(item, index) in savedTournaments" :key="index">
@@ -28,30 +29,34 @@
                 </li>
             </ul>
             <p class="menu-label">
-                Info
+                {{ $t('common.info') }}
             </p>
             <ul class="menu-list">
-                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">Swiss system</a></li>
-                <li><a href="#" @click.prevent="$emit('openHelp')">How to use (in progress)?</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
+                <li><a href="#" @click.prevent="$emit('openHelp')">{{ $t('common.howUse') }}</a></li>
             </ul>
             <p class="menu-label">
-                Useful Links
+                {{ $t('common.useful') }}
             </p>
             <ul class="menu-list">
-                <li><a href="http://portal.petanque.org.ua/" target="_blank">Portal</a></li>
+                <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
             </ul>
             <p class="menu-label is-invisible-desktop">
-                Admin section
+                {{ $t('common.adminSection') }}
             </p>
             <div class="is-invisible-desktop">
-                <button v-if="isAdmin" class="button is-light" @click="logout">Logout as Admin</button>
-                <router-link v-else to="/login" class="button is-light">
-                    Log in as Admin
-                </router-link>
-                <button v-if="user" class="button is-light" @click="signOutUser">Logout as User</button>
-                <router-link v-else to="/login-user" class="button is-light">
-                    Log in as User
-                </router-link>
+                <div class="mb-3">
+                    <button v-if="isAdmin" class="button is-light" @click="logout">{{ $t('common.logoutAdmin') }}</button>
+                    <router-link v-else to="/login" class="button is-light">
+                        {{ $t('common.loginAdmin') }}
+                    </router-link>
+                    </div>
+                <div>
+                    <button v-if="user" class="button is-light" @click="signOutUser">{{ $t('common.logoutUser') }}</button>
+                    <router-link v-else to="/login-user" class="button is-light">
+                        {{ $t('common.loginUser') }}
+                    </router-link>
+                </div>
             </div>
         </aside>
     </div>
@@ -62,9 +67,11 @@ import {mapMutations, mapState} from "vuex";
 import {tournamentNames} from "../helpers";
 import {signOut} from "firebase/auth";
 import {auth} from "@/firebase";
+import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 
 export default {
     name: 'Menu',
+    components: {LanguageSwitcher},
     data() {
         return {
             tournamentNames

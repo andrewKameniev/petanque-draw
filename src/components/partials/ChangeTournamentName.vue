@@ -1,19 +1,19 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <div class="is-size-4 mb-3">Please, enter tournament name</div>
+        <div class="is-size-4 mb-3">{{ $t('modals.enterTournamentName') }}</div>
         <div class="field">
             <div class="control">
                 <input class="input" v-model="name" :class="{'is-danger': hasError}"
-                       type="text" placeholder="Tournament name"
+                       type="text" :placeholder="$t('common.tournamentName')"
                        @keyup.enter="changeCurrentTournamentName">
             </div>
         </div>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="$emit('close-modal')">Cancel</button>
+                <button class="button" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
             </div>
             <div class="control">
-                <button class="button is-success" @click="changeCurrentTournamentName">Change</button>
+                <button class="button is-success" @click="changeCurrentTournamentName">{{ $t('common.change') }}</button>
             </div>
         </div>
     </Modal>

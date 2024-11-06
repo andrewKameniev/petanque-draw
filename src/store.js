@@ -211,7 +211,6 @@ const store = createStore({
 })
 
 store.subscribe((mutation, state) => {
-    console.log(mutation);
     if (mutationsAfterUpdateDb.includes(mutation.type)) {
         if (state.user && state.user.uid && state.currentTournamentIndex) {
             const db = getDatabase();

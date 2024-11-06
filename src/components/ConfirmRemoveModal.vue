@@ -1,13 +1,13 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <p class="text-center mb-4 is-size-4">Are you sure you want to delete <br>
+        <p class="text-center mb-4 is-size-4">{{ $t('modals.sureRemove') }} <br>
             <strong>{{tournament.name}}</strong>?</p>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="$emit('close-modal')">Cancel</button>
+                <button class="button" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
             </div>
             <div class="control">
-                <button class="button is-danger" @click="removeCurrentTournament">Remove</button>
+                <button class="button is-danger" @click="removeCurrentTournament">{{ $t('common.remove') }}</button>
             </div>
         </div>
     </Modal>

@@ -77,13 +77,13 @@
         </div>
         <div class="field is-grouped">
             <div class="control">
-                <button class="button is-info" @click="$emit('close')">Close</button>
+                <button class="button is-info" @click="$emit('close')">{{ $t('common.close') }}</button>
             </div>
             <div class="control">
-                <button class="button is-info" @click="exportPdf">Export to PDF</button>
+                <button class="button is-info" @click="exportPdf">{{ $t('teams.exportPdf') }}</button>
             </div>
             <div class="control">
-                <button class="button is-info" @click="copyProtocol">Copy protocol</button>
+                <button class="button is-info" @click="copyProtocol">{{ $t('teams.copyProtocol') }}</button>
             </div>
         </div>
     </div>

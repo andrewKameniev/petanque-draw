@@ -2,12 +2,12 @@
     <Modal @close-modal="$emit('close-modal')">
         <div class="content is-flex is-justify-content-space-between mb-3">
             <h2>{{ tournament.name }}</h2>
-            <button class="button is-danger" @click="removeSavedTournament(tournament.id); $emit('close-modal')">Remove tournament</button>
+            <button class="button is-danger" @click="removeSavedTournament(tournament.id); $emit('close-modal')">{{ $t('teams.removeTournament') }}</button>
         </div>
         <div class="card" v-if="tournament.ranking">
             <header class="card-header" @click="showGames = false; showSwissTable = !showSwissTable">
                 <p class="card-header-title">
-                    Results in tables
+                    {{ $t('modals.resultsInTable') }}
                 </p>
                 <button class="card-header-icon" aria-label="more options">
                   <span class="icon">
@@ -23,7 +23,7 @@
         <div class="card" v-if="tournament.games">
             <header class="card-header" @click="showSwissTable = false; showGames = !showGames">
                 <p class="card-header-title">
-                    Games
+                    {{ $t('common.games') }}
                 </p>
                 <button class="card-header-icon" aria-label="more options">
                   <span class="icon">
@@ -49,7 +49,7 @@
                 </div>
                 <div v-if="tournament.playOff">
                     <div v-for="(stage, index) in tournament.playOff.stages" :key="index" class="mb-5">
-                        <h3 class="has-text-centered">{{stage.stageLabel === 1 ? 'Final' : '1/' + stage.stageLabel + ' final'}}</h3>
+                        <h3 class="has-text-centered">{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</h3>
                         <div class="table-container">
                             <table class="table is-striped">
                                 <tbody>

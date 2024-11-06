@@ -19,12 +19,12 @@
         <div id="navbarBasicExample" class="navbar-menu">
             <div class="navbar-start">
                 <a class="navbar-item" @click="$emit('open-menu')">
-                    Menu
+                    {{ $t('common.menu') }}
                 </a>
 
                 <div class="navbar-item has-dropdown is-hoverable" v-if="Object.keys(tournaments).length > 1">
                     <a class="navbar-link">
-                        Active tournaments
+                        {{ $t('common.activeTournaments') }}
                     </a>
 
                     <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
@@ -35,17 +35,18 @@
                         </a>
                     </div>
                 </div>
+            <LanguageSwitcher/>
             </div>
             <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                        <button v-if="isAdmin" class="button is-light" @click="logout">Logout as Admin</button>
+                        <button v-if="isAdmin" class="button is-light" @click="logout">{{ $t('common.logoutAdmin') }}</button>
                         <router-link v-else to="/login" class="button is-light">
-                            Log in as Admin
+                            {{ $t('common.loginAdmin') }}
                         </router-link>
-                        <button v-if="user" class="button is-light" @click="signOutUser">Logout as User</button>
+                        <button v-if="user" class="button is-light" @click="signOutUser">{{ $t('common.logoutUser') }}</button>
                         <router-link v-else to="/login-user" class="button is-light">
-                            Log in as User
+                            {{ $t('common.loginUser') }}
                         </router-link>
                     </div>
                 </div>
@@ -58,9 +59,11 @@
 import {mapMutations, mapState} from "vuex";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
+import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 
 export default {
     name: "Navbar",
+    components: {LanguageSwitcher},
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
         tournament() {

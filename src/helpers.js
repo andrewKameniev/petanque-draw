@@ -147,25 +147,31 @@ function getTeamsRanking(tournament, activeRound) {
     if (tournament.teams) {
         if (tournament.system === 'groups' && activeRound > 1) {
             let sortedGroups = [];
+
             tournament.groups.forEach(group => {
                 group.forEach(team => {
-                    // If was page reload copy necessary teams data to groups
-                    const teamInfo = this.tournament.teams.find(item => item.title === team.title);
+                    const teamInfo = tournament.teams.find(item => item.title === team.title);
                     team.wins = teamInfo.wins;
                     team.opponents = teamInfo.opponents;
                     team.pointsPlus = teamInfo.pointsPlus;
                     team.pointsMinus = teamInfo.pointsMinus;
 
                     let directPoints = 0;
+                    let directWins = 0;
                     team.opponents.forEach(opponent => {
-                        const opponentIndex = group.findIndex(team => team.title === opponent);
-                        if (team.wins === group[opponentIndex].wins) {
-                            directPoints += getGameResultInGroup(tournament.games, team.title, group[opponentIndex].title, true)
+                        const opponentIndex = tournament.teams.findIndex(team => team.title === opponent);
+
+                        if (team.wins === tournament.teams[opponentIndex].wins) {
+                            if (getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true) > 0) {
+                                directWins++
+                            }
+                            directPoints += getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true)
                         }
                     })
-                    team.directPoints = directPoints
+                    team.directWins = directWins;
+                    team.directPoints = directPoints;
                 })
-                let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
+                let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directWins - a.directWins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
                 sortedGroups.push(groupRanking);
             });
             return sortedGroups;
@@ -177,6 +183,9 @@ function getTeamsRanking(tournament, activeRound) {
     } else {
         return []
     }
+}
+function gameHasError(game) {
+    return (game.team_1_score && game.team_2_score) && game.team_1_score === game.team_2_score || (game.team_1_score < 0 || game.team_1_score > this.tournament.preferences.maxScore) || (game.team_2_score < 0 || game.team_2_score > this.tournament.preferences.maxScore)
 }
 function copyContent(data) {
     const el = document.createElement('div')
@@ -207,4 +216,4 @@ const regions = {
     20: 'Закарпатська',
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, copyContent, regions}
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions}

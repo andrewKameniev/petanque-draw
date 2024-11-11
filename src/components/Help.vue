@@ -1,40 +1,76 @@
 <template>
-    <Modal @close-modal="$emit('close-modal')">
-        <div class="content">
-            <h3>Some notes</h3>
-            <ol>
-                <li>To change tournament name just click on its default name.</li>
-                <li>In swiss system you can modify previous round result if you wrote it not correct. This possibility available when you already draw next round.</li>
-                <li>You can change the score for technical win by clicking "Preferences" button on "Teams" tab.</li>
-            </ol>
-            <div class="buttons is-centered">
-                <div class="control">
-                    <button class="button" @click="$emit('close-modal')">Close</button>
+        <div class="container">
+            <div class="content">
+                <button class="button is-light" @click="back">Back</button>
+                <h1 class="has-text-centered">Як користуватися цією програмою</h1>
+                <p>Для того щоб використовувати програму треба зареєструвати акаунт. Жодних персональних даних не потрібно (навіть email ніхто бачити не буде (навіть я, як розробник))</p>
+                <p>Вхід під адміністратором дає доступ імпортувати гравців з порталу федерації України. Пароль я можу видати по запиту для українських гравців.</p>
+                <h2>Основний інтерфейс</h2>
+                <img src="@/assets/img/docs/Doc1.png" alt="Interface" class="image">
+                <ol>
+                    <li>Змінити назву турніру можна натиснувши на заголовок.</li>
+                    <li>Вибір системи по якій буде проводитись турнір (наразі доступна Швейцарка, кругова (підтримуються групи в яких буде гратися кругова система), супермеле (наразі працює рандомно, не дуже протестована, можуть бути певні баги).</li>
+                    <li>(Тільки для адміністраторів) Можливість імпортувати команди з порталу ФПУ. Треба ввести останні цифри з адреси турніру на порталі (наприклад https://portal.petanque.org.ua/tournament/ <strong>573</strong>)</li>
+                    <li>Назва команди</li>
+                    <li>Налаштування чи використовувати рейтинг при жеребкуванні першого раунду</li>
+                </ol>
+                <h2>Основні вкладки</h2>
+                <img src="@/assets/img/docs/Doc2.png" alt="Tabs" class="image">
+                <ol>
+                    <li>Список команд, можливість додати чи видалити команду (до того як пожеребкували перший раунд або будь-коли, якщо грається супермеле), налаштування турніру, можливість зберегти, завершити або видалити турнір</li>
+                    <li>Поточне жеребкування і внесення результатів</li>
+                    <li>Результати всіх зіграних ігор</li>
+                    <li>Підсумкова таблиця після кожного раунду і результати всього турніру</li>
+                </ol>
+                <h2>Жеребкування і результати</h2>
+                <img src="@/assets/img/docs/Doc3.png" alt="Draw" class="image">
+                <ol>
+                    <li>Кнопка, щоб перетасувати доріжки. Програма не слідкує за тим чи грала одна команда декілька на одній і тій же доріжці, тому ця функція корисна при невеликій кількості команд (загалом розподілення доріжок рандомне, крім плей-офф).</li>
+                    <li>Зберегти результати. Можна зберегти тільки коли внесені всі результати.</li>
+                    <li>Дуже важлива кнопка! Якщо ви помилились при внесенні результату, то є можливість змінити попередній раунд. Доступна коли ви вже пожеребкували наступний раунд.</li>
+                </ol>
+                <h2>Ранкінг</h2>
+                <img src="@/assets/img/docs/Doc4.png" alt="Ranking" class="image">
+                <p>Підсумкова таблиця по швейцарці визначається за такими критеріями</p>
+                <ol>
+                    <li>Кількість перемог</li>
+                    <li>Коефіцієнт Бухгольця (сума перемог суперників)</li>
+                    <li>Коефіцієнт малого Бухгольця (сума бухгольців суперників)</li>
+                    <li>Різниця набраних/пропущених очок</li>
+                    <li>Після кожного раунду можна розпочати грати турнір по олімпійській системі (на виліт). Потрібно вибрати кількість команд і буде згенерована сітка плей-офф з тої кількості кращих команд, яку ви виберете</li>
+                    <li>Якщо вибрати цю галочку, то автоматично буде створений новий турнір в який додадуться команди, які не грають у плей-офф.</li>
+                </ol>
+                Якщо турнір грається по круговій системі, то перший критерій..............
+                <h2>Плеф-офф</h2>
+                Коли турнір вже грається по олімпійській системі, то на вкладці "Поточні ігри" є можливість подивитись сітку плей-офф. Програма дозволяє жеребкувати максимум 64 команди по олімпійській системі.
+                <img src="@/assets/img/docs/Doc5.png" alt="Play Off" class="image">
+                <h2>Віддалене керування</h2>
+                <img src="@/assets/img/docs/Doc6.png" alt="Remote" class="image">
+                <img src="@/assets/img/docs/Doc7.png" alt="Remote" class="image">
+                <h2>Віддалене керування</h2>
+                <img src="@/assets/img/docs/Doc8.png" alt="Remote" class="image">
+                <img src="@/assets/img/docs/Doc9.png" alt="Results" class="image">
+                <div class="has-text-centered">
+                    <router-link class="button is-success" to="/">Let's start</router-link>
                 </div>
+                <h3>Some notes</h3>
+                <ol>
+                    <li>To change tournament name just click on its default name.</li>
+                    <li>In swiss system you can modify previous round result if you wrote it not correct. This possibility available when you already draw next round.</li>
+                    <li>You can change the score for technical win by clicking "Preferences" button on "Teams" tab.</li>
+                </ol>
             </div>
         </div>
-    </Modal>
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
-import Modal from "@/components/Modal";
 
 export default {
     name: 'Help',
-    components: {Modal},
-    computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        }
-    },
     methods: {
-        ...mapMutations(['removeTournament']),
-        removeCurrentTournament() {
-            this.removeTournament();
-            this.$emit('close-modal')
+        back() {
+            this.$router.go(-1);
         }
-    },
+    }
 }
 </script>

@@ -38,7 +38,7 @@
             <table class="table is-bordered">
                 <thead>
                     <tr class="has-text-centered">
-                        <th>№ з/п</th>
+                        <th>№ <span style="white-space: nowrap">з/п</span></th>
                         <th>ПІП</th>
                         <th>Регіон</th>
                         <th>Тренер</th>
@@ -49,19 +49,27 @@
                 </thead>
                 <tbody>
                     <template v-for="(team, index) in rankingTeams" :key="index">
-                        <tr v-if="team.players.length > 1">
-                            <td v-if="team.players.length > 1" :rowspan="team.players.length + 1">{{ index + 1 }} </td>
-                            <td class="has-text-weight-bold" colspan="2">{{ protocolTitles[team.title] }} </td>
-                            <td contenteditable="true" :rowspan="team.players.length + 1"></td>
-                            <td></td>
-                            <td class="has-text-centered" :rowspan="team.players.length + 1">{{index + 1}}</td>
-                            <td class="has-text-centered" :rowspan="team.players.length + 1">{{tournamentRanking.find(item => item.title === team.title).place}}</td>
-                        </tr>
-                        <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
-                            <td contenteditable="true">{{ player.surname + ' ' + player.name + ' ' + getPlayerThirdName(player.surname, player.name) }} </td>
-                            <td>{{ regions[player.club_id] || '-' }} </td>
+                        <tr>
+                            <td :rowspan="team.players.length > 1 ? team.players.length + 1 : 1" class="has-text-centered">{{ index + 1 }} </td>
+                            <td class="has-text-weight-bold" :colspan="team.players.length > 1 ? 2 : 1">
+                                <span v-if="team.players.length > 1">{{ protocolTitles[team.title] }}</span>
+                                <span v-else>{{ team.players[0].surname + ' ' + team.players[0].name + ' ' + getPlayerThirdName(team.players[0].surname, team.players[0].name) }}</span>
+                            </td>
+                            <td v-if="team.players.length === 1">{{ regions[team.players[0].club_id] || '-' }}</td>
+                            <td contenteditable="true" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1"></td>
                             <td contenteditable="true"></td>
+                            <td class="has-text-centered" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1">{{index + 1}}</td>
+                            <td class="has-text-centered" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1">
+                                {{tournamentRanking.find(item => item.title === team.title).place}}
+                            </td>
                         </tr>
+                        <template v-if="team.players.length > 1">
+                            <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
+                                <td contenteditable="true">{{ player.surname + ' ' + player.name + ' ' + getPlayerThirdName(player.surname, player.name) }} </td>
+                                <td>{{ regions[player.club_id] || '-' }} </td>
+                                <td contenteditable="true"></td>
+                            </tr>
+                        </template>
                     </template>
                 </tbody>
             </table>
@@ -71,9 +79,11 @@
                 <span class="is-size-5">(швейцарська система ({{ tournament.games.length }} раундів))</span>
             </h3>
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :is-for-protocol="true" :team-titles="protocolTitles"/>
-            <div class="mt-3 mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
-            <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
-            <Results :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
+            <div v-if="tournament.playOff?.length">
+                <div class="mt-3 mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
+                <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
+                <Results :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
+            </div>
         </div>
         <div class="field is-grouped">
             <div class="control">
@@ -112,11 +122,9 @@ export default {
         }
     },
     mounted() {
-        if (this.rankingTeams[0].players.length > 1) {
-            this.rankingTeams.forEach(team => {
-                this.setTeamTitle(team.title, team.players)
-            })
-        }
+        this.rankingTeams.forEach(team => {
+            this.setTeamTitle(team.title, team.players)
+        })
     },
     computed: {
         playersCount() {
@@ -175,26 +183,29 @@ export default {
             });
         },
         setTeamTitle(team, players) {
-            const firstPlayerClubName = this.regions[players[0].club_id];
             let title = '';
-            if (firstPlayerClubName){
-                if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
-                    title = `Збірна ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
-                    if (this.titleCounts[title]) {
-                        this.titleCounts[title]++;
+            if (players.length > 1) {
+                const firstPlayerClubName = this.regions[players[0].club_id];
+                if (firstPlayerClubName){
+                    if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
+                        title = `Збірна ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
+                        if (this.titleCounts[title]) {
+                            this.titleCounts[title]++;
+                        } else {
+                            this.titleCounts[title] = 1;
+                        }
+                        title += ` ${this.titleCounts[title]}`;
                     } else {
-                        this.titleCounts[title] = 1;
+                        title = `Збірна команда ${this.mixedTeamCount}`;
+                        this.mixedTeamCount++;
                     }
-                    title += ` ${this.titleCounts[title]}`;
                 } else {
-                    title = `Збірна команда ${this.mixedTeamCount}`;
-                    this.mixedTeamCount++;
+                    title = `Команда без регіону ${this.noRegionTeamCount}`;
+                    this.noRegionTeamCount++
                 }
             } else {
-                title = `Команда без регіону ${this.noRegionTeamCount}`;
-                this.noRegionTeamCount++
+                title = team
             }
-
             this.protocolTitles[team] = title
         }
     }
@@ -209,6 +220,13 @@ export default {
 
 #protocol h2, #protocol h3 {
     font-weight: bold;
+}
+
+#protocol .content h3,
+#protocol .content h4,
+#protocol table th,
+#protocol table td {
+    color: #000;
 }
 
 #protocol table td {

@@ -10,6 +10,7 @@ import Admin from "@/views/Admin";
 import Public from "@/views/Public";
 import LoginUser from "@/views/LoginUser";
 import languages from "@/languages";
+import Help from "@/components/Help.vue";
 
 const app = createApp(App);
 const router = createRouter({
@@ -21,12 +22,7 @@ const router = createRouter({
             component: Page
         },
         {
-            path: '/tournaments/:id',
-            name: 'view',
-            component: Public
-        },
-        {
-            path: '/show/',
+            path: '/show',
             name: 'view',
             component: Public
         },
@@ -39,6 +35,11 @@ const router = createRouter({
             path: '/login-user',
             name: 'loginUser',
             component: LoginUser
+        },
+        {
+            path: '/doc',
+            name: 'Documentation',
+            component: Help
         },
         {
             path: '/admin',

@@ -33,7 +33,7 @@
             </p>
             <ul class="menu-list">
                 <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
-                <li><a href="#" @click.prevent="$emit('openHelp')">{{ $t('common.howUse') }}</a></li>
+                <li><router-link to="doc">{{ $t('common.howUse') }}</router-link></li>
             </ul>
             <p class="menu-label">
                 {{ $t('common.useful') }}

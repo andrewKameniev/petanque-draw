@@ -3,13 +3,9 @@
         <div class="box" v-if="isAdmin && tournament.portalIdTournament || user">
             <h2 class="is-size-5 mb-3">{{ $t('remote.remoteAvailabilities') }}:</h2>
             <div class="buttons">
-                <button class="button is-info" @click="sendNotification">{{ $t('remote.sendNotification') }}</button>
                 <button class="button is-light" @click="showQrCode = true">{{ $t('remote.showLinks') }}</button>
                 <button class="button is-warning" @click="showTypeMessage = !showTypeMessage">
                     <span v-if="!showTypeMessage">{{ $t('remote.writeMessage') }}</span><span v-else>{{ $t('remote.hideMessage') }} </span>
-                </button>
-                <button class="button is-danger" @click="removeNotificationsDb">
-                    Clear notifications db
                 </button>
             </div>
             <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
@@ -22,7 +18,7 @@
             <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong>
             <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
-        <div v-if="!tournament.games && !tournament.playOff">
+        <div v-if="!tournament.games?.length && !tournament.playOff">
             <div class="field">
                 <label class="label" for="">{{ $t('teams.system') }}</label>
                 <div class="control">
@@ -126,7 +122,7 @@
                 <div class="mt-5" v-if="tournament.system === 'swiss'">
                     <label class="checkbox">
                         <input type="checkbox" v-model="playB">
-                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('tournamentB') }}</strong>?
+                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>?
                     </label>
                 </div>
             </div>
@@ -232,9 +228,18 @@ export default {
               [playOffScheme[2], playOffScheme[4]] = [playOffScheme[4], playOffScheme[2]];
               [playOffScheme[3], playOffScheme[5]] = [playOffScheme[5], playOffScheme[3]];
             }
-          this.setPlayOff(playOffScheme);
+            if (stageValue === 16) {
+                const newOrder = [0, 1, 8, 9, 13, 12, 5, 4, 15, 14, 7, 6, 2, 3, 10, 11];
+                playOffScheme = newOrder.map(index => playOffScheme[index]);
+            }
+            if (stageValue === 32) {
+                const newOrder = [0, 1, 16, 17, 8, 9, 24, 25, 29, 28, 13, 12, 21, 20, 5, 4, 31, 30, 15, 14, 23, 22, 7, 6, 2, 3, 18, 19, 10, 11, 26, 27];
+                playOffScheme = newOrder.map(index => playOffScheme[index]);
+            }
 
-            this.activeTab = 'Games';
+            this.setPlayOff(playOffScheme);
+
+            this.activeTab = 'games';
 
             if (this.playB) {
                 const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
@@ -261,7 +266,7 @@ export default {
                     tokens = new Set([...tokens]);
 
                     const domain = process.env.NODE_ENV === 'production' ? '/petanque-draw/dist/#/' : '/#/';
-                    const link = `${window.location.origin}${domain}tournaments/${this.tournament.portalIdTournament}`
+                    const link = `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournament.id}`
                     tokens.forEach(token => {
 
                         const message = {
@@ -273,7 +278,8 @@ export default {
                             },
                             "priority": "high"
                         };
-                        fetch('https://fcm.googleapis.com/fcm/send', {
+                        console.log(message);
+                        fetch('https://fcm.googleapis.com/v1/projects/petanque-draw/messages:send', {
                             method: 'POST',
                             headers: {
                                 'Accept': 'application/json',

@@ -46,11 +46,26 @@
                         <tr>
                             <th>#</th>
                             <th>{{ $t('ranking.team') }}</th>
-                            <th align="center">{{ $t('ranking.wins') }}</th>
-                            <th align="center">{{ $t('ranking.buh') }}</th>
-                            <th align="center">{{ $t('ranking.sbuh') }}</th>
-                            <th align="center">{{ $t('ranking.points') }}</th>
-                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                            </th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
+                            </th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
+                            </th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                            </th>
+                            <th v-if="tournament.useRating" align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -61,7 +76,7 @@
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -74,10 +89,22 @@
                         <tr>
                             <th>#</th>
                             <th>{{ $t('ranking.player') }}</th>
-                            <th align="center">{{ $t('ranking.wins') }}</th>
-                            <th align="center">{{ $t('ranking.difference') }}</th>
-                            <th align="center">{{ $t('ranking.points') }}</th>
-                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                            </th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.difference') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.differenceMobile') }}</span>
+                            </th>
+                            <th align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                            </th>
+                            <th v-if="tournament.useRating" align="center">
+                                <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
+                                <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -87,7 +114,7 @@
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -103,8 +130,14 @@
                                 <th>{{ $t('ranking.place') }}</th>
                                 <th>{{ $t('ranking.team') }}</th>
                                 <th v-for="(group, index) in group" :key="index" align="center">{{ index + 1 }}</th>
-                                <th align="center">{{ $t('ranking.wins') }}</th>
-                                <th align="center">{{ $t('ranking.points') }}</th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                                </th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                </th>
                             </tr>
                             </thead>
                             <tbody>

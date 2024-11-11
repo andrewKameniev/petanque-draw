@@ -10,17 +10,18 @@
             </div>
             <template v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
-                <div class="game-row" v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
+                <div class="game-row" :class="{'has-background-danger': gameHasError(game), 'compact': activeTournament}"
+                     v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
                     <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
                         <label :for="'team_' + ind">{{ game.team_1 }}</label>
                     </span>
                     <span class="text-center score-block">
-                        <input :id="'team_' + ind" v-model="game.team_1_score" class="input -small"
+                        <input v-if="!activeTournament" :id="'team_' + ind" v-model="game.team_1_score" class="input -small"
                                type="number" min="0" max="13" @keyup.enter="saveResults">
                         <span class="lane-block is-size-7">
                             {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ ind + 1 }}</span>
                         </span>
-                        <input :id="'opponent_' + ind" v-model="game.team_2_score" class="input -small"
+                        <input v-if="!activeTournament" :id="'opponent_' + ind" v-model="game.team_2_score" class="input -small"
                                type="number" min="0" max="13" @keyup.enter="saveResults">
                     </span>
                     <span class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
@@ -29,17 +30,17 @@
                 </div>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
-                    <div class="game-row">
+                    <div class="game-row" :class="{'has-background-danger': gameHasError(playOffBracket.thirdPlace)}">
                         <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_1_score > playOffBracket.thirdPlace.team_2_score}">
                             <label :for="'team_1_3p'">{{ playOffBracket.thirdPlace.team_1 }}</label>
                         </span>
                         <span class="text-center score-block">
-                            <input :id="'team_1_3p'" v-model="playOffBracket.thirdPlace.team_1_score" class="input -small"
+                            <input v-if="!activeTournament" :id="'team_1_3p'" v-model="playOffBracket.thirdPlace.team_1_score" class="input -small"
                                    type="number" min="0" max="13" @keyup.enter="saveResults">
                             <span class="lane-block is-size-7">
                                 {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">2</span>
                             </span>
-                            <input :id="'opponent_3p'" v-model="playOffBracket.thirdPlace.team_2_score" class="input -small"
+                            <input v-if="!activeTournament" :id="'opponent_3p'" v-model="playOffBracket.thirdPlace.team_2_score" class="input -small"
                                    type="number" min="0" max="13" @keyup.enter="saveResults">
                         </span>
                         <span class="team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_2_score > playOffBracket.thirdPlace.team_1_score}">
@@ -60,6 +61,8 @@
 <script>
 import Bracket from './Bracket';
 import {mapMutations, mapState} from "vuex";
+import {gameHasError} from "@/helpers";
+
 export default {
     name: 'PlayOff',
     props: ['activeTournament'],
@@ -100,6 +103,7 @@ export default {
     },
     methods: {
         ...mapMutations(['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
+        gameHasError,
         saveResults() {
             this.scoreError = false;
             const resultsError = (game) => (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)

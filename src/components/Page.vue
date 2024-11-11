@@ -7,7 +7,7 @@
             <span></span>
         </div>
     </div>
-    <div v-else>
+    <div v-else class="wrapper">
         <Navbar @open-menu="menuOpen = !menuOpen"/>
         <div class="container">
             <div class="columns">
@@ -31,7 +31,7 @@
                                   @close-modal="closeTournamentModal"/>
             <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
         </div>
-        <footer class="p-3 has-text-centered">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></footer>
+        <Footer/>
     </div>
 </template>
 
@@ -45,6 +45,7 @@ import Navbar from "./Navbar";
 import Help from "./Help";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase";
+import Footer from "@/components/partials/Footer.vue";
 
 export default {
     name: 'Page',
@@ -97,6 +98,7 @@ export default {
         },
     },
     components: {
+        Footer,
         Help,
         Navbar,
         Tournament,

@@ -13,8 +13,8 @@
                                 <tr v-for="(game, i) in round" :key="i">
                                     <td>R{{index + 1}}</td>
                                     <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
-                                    <td>{{game.team_1_score}}</td>
-                                    <td>{{game.team_2_score}}</td>
+                                    <td align="center">{{game.team_1_score}}</td>
+                                    <td align="center">{{game.team_2_score}}</td>
                                     <td>{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
                                 </tr>
                             </template>
@@ -24,29 +24,31 @@
             </div>
             <div v-if="tournament.playOffBracket && !onlyQualifying">
                 <div v-for="(stage, index) in tournament.playOffBracket.stages" :key="index" class="mb-5">
-                    <h3 class="has-text-centered">{{stage.stageLabel === 1 ? 'Final' : '1/' + stage.stageLabel + ' final'}}</h3>
-                    <div class="table-container">
-                        <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
-                            <tbody>
-                                <tr v-for="(game, i) in stage.teams" :key="i">
-                                    <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
-                                    <td>{{game.team_1_score}}</td>
-                                    <td>{{game.team_2_score}}</td>
-                                    <td>{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div v-if="stage.teams[0].team_1_score">
+                        <h3 class="has-text-centered">{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</h3>
+                        <div class="table-container">
+                            <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
+                                <tbody>
+                                    <tr v-for="(game, i) in stage.teams" :key="i">
+                                        <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
+                                        <td align="center">{{game.team_1_score}}</td>
+                                        <td align="center">{{game.team_2_score}}</td>
+                                        <td>{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div v-if="tournament.playOffBracket.thirdPlace && Object.keys(tournament.playOffBracket.thirdPlace).length !== 0">
-                    <h4 class="has-text-centered">Game for 3d Place</h4>
+                    <h4 class="has-text-centered">{{$t('games.thirdPlace')}}</h4>
                     <div class="table-container">
                         <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
                             <tbody>
                             <tr>
                                 <td>{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_1] : tournament.playOffBracket.thirdPlace.team_1}}</td>
-                                <td>{{tournament.playOffBracket.thirdPlace.team_1_score}}</td>
-                                <td>{{tournament.playOffBracket.thirdPlace.team_2_score}}</td>
+                                <td align="center">{{tournament.playOffBracket.thirdPlace.team_1_score}}</td>
+                                <td align="center">{{tournament.playOffBracket.thirdPlace.team_2_score}}</td>
                                 <td>{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_2] : tournament.playOffBracket.thirdPlace.team_2}}</td>
                             </tr>
                             </tbody>

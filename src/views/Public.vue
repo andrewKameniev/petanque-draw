@@ -1,8 +1,4 @@
 <template>
-    <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
-        Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
-        <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
-    </div>
     <div v-if="isLoading" class="gooey">
         <span class="dot"></span>
         <div class="dots">
@@ -11,8 +7,12 @@
             <span></span>
         </div>
     </div>
-    <div v-else>
+    <div v-else class="wrapper">
         <div v-if="tournament" class="container">
+            <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
+                Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
+                <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
+            </div>
             <LanguageSwitcher/>
             <div class="text-center is-size-3">
                 <strong> {{ tournament.name }}</strong> <span
@@ -23,7 +23,7 @@
             </div>
             <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="activeTab = 'ranking'"/>
             <div v-if="tournament.games">
-                <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} round</h2>
+                <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} {{ $t('common.round') }}</h2>
                 <div class="games-list">
                     <div class="game-row compact"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
@@ -31,9 +31,8 @@
                             <label :for="'team_' + index">{{ game.team_1 }}</label>
                         </span>
                         <span class="text-center score-block">
-
                             <span class="lane-block is-size-7">
-                                Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                             </span>
                         </span>
                         <span class="team-block">
@@ -65,6 +64,7 @@
                 <img src="@/assets/img/girl.jpg" alt="In the petanque land"><br>
             </div>
         </div>
+        <Footer/>
     </div>
 </template>
 
@@ -79,16 +79,17 @@ import {database, messaging} from "@/firebase";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
+import Footer from "@/components/partials/Footer.vue";
 
 
 export default {
     name: 'Public',
-    components: {LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
+    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
     data() {
         return {
             isLoading: false,
             tournament: null,
-            activeTab: "Results",
+            activeTab: "ranking",
             notificationsEnabled: false
         }
     },
@@ -103,10 +104,6 @@ export default {
                 {
                     id: 'teams',
                     label: this.$t('teams.teams')
-                },
-                {
-                    id: 'games',
-                    label: this.$t('teams.games')
                 },
                 {
                     id: 'results',
@@ -171,7 +168,8 @@ export default {
         },
         registerSw() {
             const self = this;
-            navigator.serviceWorker.register('https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
+            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}petanque-swiss-vue/dist` : `${window.location.origin}`;
+            navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {

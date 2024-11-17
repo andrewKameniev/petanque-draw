@@ -28,7 +28,8 @@ function getTournamentRanking(tournament, rankingTeams){
     let tournamentRanking = [];
     if(tournament.playOffBracket) {
         const playOffList = JSON.parse(JSON.stringify(tournament.playOffBracket.stages)).reverse();
-        const thirdPlaceGame = JSON.parse(JSON.stringify(tournament.playOffBracket.thirdPlace));
+        console.log(playOffList);
+        const thirdPlaceGame = tournament.playOffBracket.thirdPlace ? JSON.parse(JSON.stringify(tournament.playOffBracket.thirdPlace)) : undefined;
         let teamsInRanking = [];
         for (let i = 0; i < playOffList.length; i++){
             if(playOffList[i].stageLabel === 1){
@@ -45,18 +46,20 @@ function getTournamentRanking(tournament, rankingTeams){
                 tournamentRanking.push(secondPlace)
                 teamsInRanking.push(secondPlace.title)
             } else if(playOffList[i].stageLabel === 2){
-                const thirdPlace = {
-                    place: '3',
-                    title: thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2
+                if (thirdPlaceGame) {
+                    const thirdPlace = {
+                        place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '3' : '3-4',
+                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2 : thirdPlaceGame.team_1
+                    }
+                    tournamentRanking.push(thirdPlace)
+                    teamsInRanking.push(thirdPlace.title)
+                    const fourthPlace = {
+                        place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '4' : '3-4',
+                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1 : thirdPlaceGame.team_2
+                    }
+                    tournamentRanking.push(fourthPlace)
+                    teamsInRanking.push(fourthPlace.title)
                 }
-                tournamentRanking.push(thirdPlace)
-                teamsInRanking.push(thirdPlace.title)
-                const fourthPlace = {
-                    place: '4',
-                    title:thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1
-                }
-                tournamentRanking.push(fourthPlace)
-                teamsInRanking.push(fourthPlace.title)
             } else {
                 playOffList[i].teams.forEach(round => {
                     const teamTitle = teamsInRanking.includes(round.team_1) ? round.team_2 : round.team_1
@@ -70,7 +73,7 @@ function getTournamentRanking(tournament, rankingTeams){
             }
         }
 
-        if (tournament.games.length > 0){
+        if (tournament.games?.length > 0){
             if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
                 rankingTeams.slice(tournament.playOffBracket.stages[0].teamsCount, rankingTeams.length).forEach((team,index) =>{
                     const teamPlace = {

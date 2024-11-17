@@ -22,7 +22,7 @@
                     {{ $t('common.menu') }}
                 </a>
 
-                <div class="navbar-item has-dropdown is-hoverable" v-if="Object.keys(tournaments).length > 1">
+                <div class="navbar-item has-dropdown is-hoverable" v-if="user && Object.keys(tournaments).length > 1">
                     <a class="navbar-link">
                         {{ $t('common.activeTournaments') }}
                     </a>

@@ -32,7 +32,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games?.length > 0">
+        <div v-if="tournament.games?.length">
             <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
                 <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
                     {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}
@@ -120,7 +120,7 @@
                     </table>
                 </div>
             </div>
-            <div v-else-if="tournament.groups && tournament.games.length > 1">
+            <div v-else-if="tournament.groups">
                 <div v-for="(group, index) in rankingTeams" :key="index">
                     <h4 v-if="tournament.groups && tournament.groups.length > 1">Group {{ groupsNames[index] }}</h4>
                     <div class="table-container mb-5">

@@ -129,59 +129,59 @@ export default {
             }
         },
         generateCompetitorsFirstLast(teamList, reverse = false, iteration) { //функция для распределения пар
-            console.log(teamList);
-            let teamIndex, opponentIndex;
-          if (this.activeRound === 1 && !this.tournament.useRating) {
-            teamIndex = this.getRandomWithOneExclusion(teamList.length);
-            opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
-            return {teamIndex, opponentIndex};
-          } else {
-            let teamsWithSameWins, isOneTeamWithSameWins;
-            if (reverse) {
-              teamIndex = 0;
-              opponentIndex = iteration || teamList.length - 1;
-            } else {
-              teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins); // отбираем команды с одинаковым кол-вом побед
+            try {
+                let teamIndex, opponentIndex;
+                if (this.activeRound === 1 && !this.tournament.useRating) {
+                    teamIndex = this.getRandomWithOneExclusion(teamList.length);
+                    opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
+                    return {teamIndex, opponentIndex};
+                } else {
+                    let teamsWithSameWins, isOneTeamWithSameWins;
+                    if (reverse) {
+                        teamIndex = 0;
+                        opponentIndex = iteration || teamList.length - 1;
+                    } else {
+                        teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins); // отбираем команды с одинаковым кол-вом побед
 
-              isOneTeamWithSameWins = teamsWithSameWins.length === 1; // флаг, что одна команда с одинаковым кол-вом побед
-              if (isOneTeamWithSameWins) {
-                teamsWithSameWins.push(teamList[1]); // если одна команда с одинаковым кол-вом побед, то добавляем следующую
-              }
-              if (teamsWithSameWins.length % 2 !== 0) {
-                // удаляем одну команду, если нечетное кол-во
-                teamsWithSameWins.splice(teamsWithSameWins.length - 1, 1);
-              }
+                        isOneTeamWithSameWins = teamsWithSameWins.length === 1; // флаг, что одна команда с одинаковым кол-вом побед
+                        if (isOneTeamWithSameWins) {
+                            teamsWithSameWins.push(teamList[1]); // если одна команда с одинаковым кол-вом побед, то добавляем следующую
+                        }
+                        if (teamsWithSameWins.length % 2 !== 0) {
+                            // удаляем одну команду, если нечетное кол-во
+                            teamsWithSameWins.splice(teamsWithSameWins.length - 1, 1);
+                        }
 
-              teamIndex = 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
-              opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
-            }
-              console.log(teamIndex, opponentIndex);
-              if (reverse) {
-                console.log(2222, teamList[teamIndex].opponents, teamList[opponentIndex].title, teamList[teamIndex].opponents.includes(teamList[opponentIndex].title));
-                while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)
-              && teamList[opponentIndex + 1].opponents.includes(teamList[opponentIndex + 2].title)) {
-                    console.log(3333);
-                    opponentIndex = iteration ? iteration + 1 : opponentIndex + 1;
+                        teamIndex = 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
+                        opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
+                    }
+                    console.log(teamIndex, opponentIndex);
+                    if (reverse) {
+                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)
+                        && teamList[opponentIndex + 1].opponents.includes(teamList[opponentIndex + 2].title)) {
+                            opponentIndex = iteration ? iteration + 1 : opponentIndex + 1;
 
-                if (!teamList[opponentIndex]) {
-                  opponentIndex = -1;
-                  return {teamIndex, opponentIndex};
+                            if (!teamList[opponentIndex]) {
+                                opponentIndex = -1;
+                                return {teamIndex, opponentIndex};
+                            }
+                        }
+                    } else {
+                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)) { // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
+                            isOneTeamWithSameWins || teamsWithSameWins.length < 3 ? opponentIndex++ : opponentIndex-- // если играли, то подбираем соперника следующего по списку в зависимости от флага
+
+                            if (!teamList[opponentIndex] || teamIndex === opponentIndex) { // если не удалось подобрать соперника, так и говорим
+                                opponentIndex = -1;
+                                return {teamIndex, opponentIndex};
+                            }
+                        }
+                    }
+                    return {teamIndex, opponentIndex}; // отдали пару
                 }
-              }
-            } else {
-                console.log(111, isOneTeamWithSameWins);
-                while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)) { // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
-                    console.log(teamsWithSameWins.length);
-                    isOneTeamWithSameWins || teamsWithSameWins.length < 3 ? opponentIndex++ : opponentIndex-- // если играли, то подбираем соперника следующего по списку в зависимости от флага
-
-                if (!teamList[opponentIndex] || teamIndex === opponentIndex) { // если не удалось подобрать соперника, так и говорим
-                  opponentIndex = -1;
-                  return {teamIndex, opponentIndex};
-                }
-              }
+            } catch (error) {
+                this.showMessage({title: 'Can\'t draw', text: `Some error happened`, type: 'error'});
             }
-            return {teamIndex, opponentIndex}; // отдали пару
-          }
+
         },
         drawRound() {
             let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
@@ -222,7 +222,6 @@ export default {
                 }
                 while (teamsToDraw.length > 0) { // вся магия здесь
                     competitors = this.generateCompetitorsFirstLast(teamsToDraw); // определили пару команд
-                    console.log('expand ' + expandListIteration);
                     while (competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex) { // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
                         expandListIteration++;
                         if (teamsDrawed.length){
@@ -238,7 +237,6 @@ export default {
                         this.showMessage({title: 'Can\'t draw this round', text: 'Too mush games for swiss with this number of teams. Sorry, shit happens', type: 'error'});
                         return
                     }
-                    console.log(teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title);
                     game = { // записали пару
                         team_1: teamsToDraw[competitors.teamIndex].title,
                         team_1_score: null,
@@ -262,7 +260,6 @@ export default {
                 if(this.tournament.groups) {
                     this.tournament.groups.forEach((group, index) => {
                         const isTechnical = group.length % 2 !== 0;
-                        console.log(this.tournament.games);
                         if (this.tournament.games?.length > (isTechnical ? group.length : group.length - 1)) {
                             return
                         }
@@ -316,7 +313,6 @@ export default {
                 }
 
                 let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams));
-              console.log(teamsToDraw);
               let teamsForRound = [];
 
                 for (let i = 1; i <= superMeleScheme.doubles; i++) {
@@ -350,7 +346,6 @@ export default {
                       player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
                       tryToFindOpponent2++;
                     }
-                  console.log(teamsForRound);
                   teamsForRound.push({
                         title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title + ', '+ teamsToDraw[player3].title,
                         players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title]

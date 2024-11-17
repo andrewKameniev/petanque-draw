@@ -12,6 +12,7 @@
                             <template v-for="(round, index) in tournament.games" :key="index">
                                 <tr v-for="(game, i) in round" :key="i">
                                     <td>R{{index + 1}}</td>
+                                    <td v-if="tournament.system === 'groups' && tournament?.groups.length > 1"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
                                     <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
                                     <td align="center">{{game.team_1_score}}</td>
                                     <td align="center">{{game.team_2_score}}</td>
@@ -66,6 +67,7 @@
 
 <script>
 import {mapState} from "vuex";
+import {tournamentNames} from "@/helpers";
 
 export default {
     name: 'Results',
@@ -75,6 +77,9 @@ export default {
         tournament() {
             return this.previewTournament || this.tournaments[this.currentTournamentIndex]
         },
+        groupsNames() {
+            return tournamentNames
+        }
     }
 }
 </script>

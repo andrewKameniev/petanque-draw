@@ -114,7 +114,11 @@ const store = createStore({
                 });
         },
         addTeamToStore (state, team) {
+            if(!state.tournaments[state.currentTournamentIndex].teams) {
+                state.tournaments[state.currentTournamentIndex].teams = []
+            }
             state.tournaments[state.currentTournamentIndex].teams.push(team);
+            localStorage.setItem('petanqueDrawTeamsRestore', JSON.stringify(state.tournaments[state.currentTournamentIndex].teams));
         },
         removeTeam (state, titleToRemove){
             state.tournaments[state.currentTournamentIndex].teams = state.tournaments[state.currentTournamentIndex].teams.filter(team => team.title !== titleToRemove);

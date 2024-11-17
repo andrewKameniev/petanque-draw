@@ -93,9 +93,6 @@ export default {
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
-        canSaveTournament() {
-            return this.games && this.games.length > 0 || this.playoff && this.playoff[this.playoff.length - 1].teams[0].team_1_score !== null
-        },
     },
     components: {
         Footer,

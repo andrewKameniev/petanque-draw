@@ -10,7 +10,7 @@
             </div>
             <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
             <div class="field" v-if="showTypeMessage">
-                <textarea name="info" id="" cols="30" rows="10" v-model="tournament.tournamentMessage" class="textarea"></textarea>
+                <textarea name="info" id="" cols="30" rows="5" v-model="tournament.tournamentMessage" class="textarea"></textarea>
             </div>
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
         </div>
@@ -73,26 +73,7 @@
                      :import-hidden="!isAdmin || tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
             <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
             <div v-else class="mb-5 mt-5">
-                {{ $t('common.please') }} {{ $t('teams.addTeam') }}
-            </div>
-            <div class="field is-grouped buttons">
-                <div class="control">
-                    <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">{{ $t('teams.removeTournament') }}</button>
-                </div>
-                <div class="control">
-                    <button class="button is-info" @click="showPreferences = true">{{ $t('teams.preferences') }}</button>
-                </div>
-                <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
-                    <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
-                </div>
-                <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games && tournament.games.length > 1">
-                    <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
-                </div>
-              <div class="control" v-if="isAdmin && tournament.teams && tournament.teams.length">
-                    <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
-                        {{ $t('teams.protocol') }}
-                    </button>
-                </div>
+                {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
             </div>
         </div>
         <Games v-if="activeTab === 'games'"
@@ -125,6 +106,29 @@
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>?
                     </label>
                 </div>
+            </div>
+        </div>
+        <hr>
+        <div class="field is-grouped buttons">
+            <div class="control">
+                <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">{{ $t('teams.removeTournament') }}</button>
+            </div>
+            <div class="control">
+                <button class="button is-info" @click="showPreferences = true">{{ $t('teams.preferences') }}</button>
+            </div>
+            <div class="control" v-if="!tournament.teams?.length">
+                <button class="button is-info" @click="restoreTeamsFromLocalStorage">{{ $t('teams.restoreTeams') }}</button>
+            </div>
+            <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
+                <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
+            </div>
+            <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games && tournament.games.length > 1">
+                <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
+            </div>
+            <div class="control" v-if="isAdmin && tournament.teams?.length && tournament.system === 'swiss'">
+                <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
+                    {{ $t('teams.protocol') }}
+                </button>
             </div>
         </div>
         <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
@@ -175,7 +179,7 @@ export default {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage']),
+        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore']),
         saveTournament(tournament) {
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;
@@ -307,6 +311,12 @@ export default {
                 alert(error);
                 this.showMessage({title: 'Error', type: 'error', text: error});
             }
+        },
+        restoreTeamsFromLocalStorage() {
+            const teams = JSON.parse(localStorage.getItem('petanqueDrawTeamsRestore'));
+            teams.forEach(item => {
+                this.addTeamToStore(item)
+            })
         }
     },
     computed: {
@@ -335,7 +345,7 @@ export default {
             return this.tournaments[this.currentTournamentIndex]
         },
         canSaveTournament() {
-            return this.tournament.tournamentIsFinished && this.tournament.games.length > 1
+            return this.tournament.tournamentIsFinished && this.tournament.games?.length > 1
                 || this.tournament.playoff && this.tournament.playoff[this.tournament.playoff.length - 1].teams[0].team_1_score !== null
         },
         rankingTeams() {

@@ -51,7 +51,7 @@
                     <template v-for="(team, index) in rankingTeams" :key="index">
                         <tr>
                             <td :rowspan="team.players.length > 1 ? team.players.length + 1 : 1" class="has-text-centered">{{ index + 1 }} </td>
-                            <td class="has-text-weight-bold" :colspan="team.players.length > 1 ? 2 : 1">
+                            <td class="has-text-weight-bold" :colspan="team.players.length > 1 ? 2 : 1" contenteditable="true">
                                 <span v-if="team.players.length > 1">{{ protocolTitles[team.title] }}</span>
                                 <span v-else>{{ team.players[0].surname + ' ' + team.players[0].name + ' ' + getPlayerThirdName(team.players[0].surname, team.players[0].name) }}</span>
                             </td>

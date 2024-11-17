@@ -9,16 +9,16 @@
     </div>
     <div v-else class="wrapper">
         <div v-if="tournament" class="container">
-            <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
+<!--            <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
                 Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
                 <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
-            </div>
+            </div>-->
             <LanguageSwitcher/>
             <div class="text-center is-size-3">
                 <strong> {{ tournament.name }}</strong> <span
                 class="is-size-5 is-capitalized">({{ tournament.system }})</span>
             </div>
-            <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5">
+            <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5" style="white-space: pre-wrap;">
                 {{ tournament.tournamentMessage }}
             </div>
             <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="activeTab = 'ranking'"/>
@@ -95,8 +95,8 @@ export default {
     },
     mounted() {
         this.getInfo();
-        this.requestPermission();
-        setTimeout(this.registerSw, 1000);
+        // this.requestPermission();
+        // setTimeout(this.registerSw, 1000);
     },
     computed: {
         tabs() {

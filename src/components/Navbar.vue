@@ -1,7 +1,7 @@
 <template>
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
-            <a class="navbar-item" href="/">
+            <a class="navbar-item" href="https://andrewkameniev.github.io/petanque-draw/dist/">
                 <picture>
                     <source srcset="../assets/img/logo.webp" type="image/webp">
                     <source srcset="../assets/img/logo.png" type="image/jpeg">

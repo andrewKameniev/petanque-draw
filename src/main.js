@@ -56,8 +56,8 @@ const router = createRouter({
     ]
 })
 const i18n = createI18n({
-    locale: 'ua',
-    fallbackLocale: 'en',
+    locale: 'en',
+    fallbackLocale: 'ua',
     messages: languages
 })
 

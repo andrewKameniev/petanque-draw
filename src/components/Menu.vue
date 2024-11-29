@@ -40,6 +40,7 @@
             </p>
             <ul class="menu-list">
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
+                <li><router-link to="stats">Stats</router-link></li>
             </ul>
             <p class="menu-label is-invisible-desktop">
                 {{ $t('common.adminSection') }}

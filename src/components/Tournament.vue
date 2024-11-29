@@ -122,7 +122,7 @@
             <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
                 <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
             </div>
-            <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games && tournament.games.length > 1">
+            <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length">
                 <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
             </div>
             <div class="control" v-if="isAdmin && tournament.teams?.length && tournament.system === 'swiss'">

@@ -11,7 +11,6 @@ const newTournament = {
     system: 'swiss',
     roundIsActive: false,
     useRating: false,
-    isPlayOff: false,
     playoff: false,
     supermelePlayers: 2,
     tournamentIsFinished: false,

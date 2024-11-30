@@ -106,7 +106,7 @@ export default {
         gameHasError,
         saveResults() {
             this.scoreError = false;
-            const resultsError = (game) => (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
+            const resultsError = (game) => (!game.team_1_score || game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (!game.team_2_score || game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => resultsError(game))){
                 this.scoreError = true;
                 return false

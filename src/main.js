@@ -15,6 +15,7 @@ import Help from "@/components/Help.vue";
 const app = createApp(App);
 const router = createRouter({
     history: createWebHashHistory(),
+    mode: 'hash',
     routes: [
         {
             path: '/',

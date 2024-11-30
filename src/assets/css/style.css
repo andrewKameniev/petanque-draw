@@ -4,6 +4,8 @@ body {
     margin: 0;
     font-family: 'Manrope', sans-serif;
     font-size: 1em;
+    background: url("../img/bg-mountains.avif") center/cover;
+    background-attachment: fixed;
 }
 
 .wrapper {
@@ -108,7 +110,12 @@ footer {
     max-width: 70px;
     margin: 0 10px;
 }
-
+.input {
+    background-color: #ffffff80;
+}
+.table {
+    background-color: #ffffff80;
+}
 #table-list {
     counter-reset: teamlist;
 }

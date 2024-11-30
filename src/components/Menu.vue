@@ -5,10 +5,10 @@
                 <a href="#" class="delete is-large" @click.prevent="$emit('closeMenu')"></a>
             </div>
             <LanguageSwitcher class="is-hidden-desktop"/>
-            <p class="menu-label is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
+            <p class="menu-label is-hidden-desktop" v-if="Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
                 {{ $t('common.activeTournaments') }}
             </p>
-            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="Object.keys(tournaments).length > 1">
+            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
                 <a class="navbar-link">
                     {{ $t('common.choose') }}
                 </a>
@@ -20,14 +20,16 @@
                     </a>
                 </div>
             </div>
-            <p class="menu-label" v-if="Object.keys(savedTournaments).length">
-                {{ $t('common.saved') }}
-            </p>
-            <ul class="menu-list">
-                <li v-for="(item, index) in savedTournaments" :key="index">
-                    <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
-                </li>
-            </ul>
+            <div v-if="$route.name !== 'Statistics'">
+                <p class="menu-label" v-if="Object.keys(savedTournaments).length">
+                    {{ $t('common.saved') }}
+                </p>
+                <ul class="menu-list">
+                    <li v-for="(item, index) in savedTournaments" :key="index">
+                        <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
+                    </li>
+                </ul>
+            </div>
             <p class="menu-label">
                 {{ $t('common.info') }}
             </p>
@@ -40,6 +42,7 @@
             </p>
             <ul class="menu-list">
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
+                <li><router-link to="/">Draw</router-link></li>
                 <li><router-link to="stats">Stats</router-link></li>
             </ul>
             <p class="menu-label is-invisible-desktop">

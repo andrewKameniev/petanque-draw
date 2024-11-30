@@ -59,13 +59,13 @@ export default {
         <div class="is-flex" style="gap: 5px">
             <div class="checkbox-wrapper-10">
                 <input class="tgl tgl-flip" :id="iterator" type="checkbox" :checked="type === 'p'"
-                       @change="$emit('update:type', $event.target.checked ? 'p' : 't')"
+                       @change="$emit('updatetype', $event.target.checked ? 'p' : 't')"
                        @click="handleElementClick"/>
                 <label class="tgl-btn" data-tg-off="Tir" data-tg-on="Point" :for="iterator"></label>
             </div>
             <div class="checkbox-wrapper-44">
                 <label class="toggleButton">
-                    <input type="checkbox" :checked="result" @change="$emit('update:result', $event.target.checked)"
+                    <input type="checkbox" :checked="result" @change="$emit('updateresult', $event.target.checked)"
                            @click="handleElementClick">
                     <span>
                         <svg viewBox="0 0 44 44">

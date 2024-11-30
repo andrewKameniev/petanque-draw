@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
 import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
-const mutationsAfterUpdateDb = ['finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound'];
+const mutationsAfterUpdateDb = ['finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
     name: 'Tournament A',
     games: [],
@@ -58,6 +58,9 @@ const store = createStore({
         },
     },
     mutations: {
+        shuffleLanesStore(state, games) {
+            state.tournaments[state.currentTournamentIndex].games[state.tournaments[state.currentTournamentIndex].games.length - 1] = games;
+        },
         setTournaments(state, tournaments) {
             state.tournaments = tournaments;
             if (!Object.keys(state.tournaments).length) {

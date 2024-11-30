@@ -94,10 +94,11 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage']),
+        ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
-            this.tournament.games[this.tournament.games.length - 1] = this.shuffleArray(this.tournament.games[this.tournament.games.length - 1])
+            this.tournament.games[this.tournament.games.length - 1] = this.shuffleArray(this.tournament.games[this.tournament.games.length - 1]);
+            this.shuffleLanesStore(this.tournament.games[this.tournament.games.length - 1]);
         },
         getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;

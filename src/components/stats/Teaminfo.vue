@@ -22,7 +22,7 @@
                 </div>
                 <div class="player-name">{{ player.name }}</div>
                 <div class="throw-result-container">
-                                    <span class="throw-result" :class="{'-success': item === 1}"
+                                    <span class="throw-result" :class="{'-success': item.success}"
                                           v-for="(item, itemIndex) in teamStats[index].serie.slice(-12)"
                                           :key="itemIndex"></span>
                 </div>

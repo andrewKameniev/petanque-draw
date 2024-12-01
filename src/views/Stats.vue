@@ -6,67 +6,90 @@
                   @closeMenu="menuOpen = false"
             />
             <div class="stat-container">
-                <div v-if="currentMan === null">
-                    <label class="label" for="gameName">Enter game name</label>
-                    <div class="field control">
-                        <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
-                    </div>
-                    <div class="field">
-                        <label class="radio" v-for="item in gameTypes" :key="item.id">
-                            <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
-                            {{ item.label }}
-                        </label>
-                    </div>
-                    <label class="label">Scenario</label>
-                    <div class="field">
-                        <label class="radio">
-                            <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
-                            Negative
-                        </label>
-                        <label class="radio">
-                            <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
-                            Positive
-                        </label>
-                    </div>
-                    <div class="columns mb-3" v-if="team1.players?.length">
-                        <div class="column is-half">
-                            <div class="label">Team 1</div>
-                            <div class="field control" v-for="(player, index) in team1.players" :key="index">
-                                <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
+                <div v-else>
+                    <div v-if="currentMan === null">
+                        <div class="has-text-right">
+                            <button @click="archiveOpen = true" class="button is-info">Archive</button>
+                        </div>
+                        <label class="label" for="gameName">Enter game name</label>
+                        <div class="field control">
+                            <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
+                        </div>
+                        <div class="field">
+                            <label class="radio" v-for="item in gameTypes" :key="item.id">
+                                <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
+                                {{ item.label }}
+                            </label>
+                        </div>
+                        <label class="label">Scenario</label>
+                        <div class="field">
+                            <label class="radio">
+                                <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
+                                Negative
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
+                                Positive
+                            </label>
+                        </div>
+                        <div class="columns mb-3" v-if="team1.players?.length">
+                            <div class="column is-half">
+                                <div class="label">Team 1</div>
+                                <div class="field control" v-for="(player, index) in team1.players" :key="index">
+                                    <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                </div>
+                            </div>
+                            <div class="column is-half">
+                                <div class="label">Team 2</div>
+                                <div class="field control" v-for="(player, index) in team2.players" :key="index">
+                                    <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                </div>
                             </div>
                         </div>
-                        <div class="column is-half">
-                            <div class="label">Team 2</div>
-                            <div class="field control" v-for="(player, index) in team2.players" :key="index">
-                                <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                        <button @click="currentMan = 0" class="button is-success">Start</button>
+                    </div>
+                    <div v-else-if="showResults">
+                        <button @click="showResults = false" class="button is-info">New game</button>
+                        <div class="columns">
+                            <div class="column is-half-desktop">
+                                <div class="label">Team 1</div>
+                                <StatResult :team="team1" :team-stats="teamsStat.team1"/>
+                            </div>
+                            <div class="column is-half-desktop">
+                                <div class="label">Team 2</div>
+                                <StatResult :team="team2" :team-stats="teamsStat.team2"/>
                             </div>
                         </div>
                     </div>
-                    <button @click="currentMan = 0" class="button is-success">Start</button>
-                </div>
-                <div v-else @touchstart="onTouchStart"
-                     @touchmove="onTouchMove"
-                     @touchend="onTouchEnd">
-                    <div class="is-flex is-justify-content-space-between">
-                        <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
-                        <div>
-                            <strong>Score</strong>
-                            {{currentScore.team1}} : {{currentScore.team2}}
+                    <div v-else @touchstart="onTouchStart"
+                         @touchmove="onTouchMove"
+                         @touchend="onTouchEnd">
+                        <div class="mb-3">
+                            <button @click="finishGame" class="button is-info">Finish game</button>
                         </div>
-                    </div>
-                    <Teaminfo :team="team1" :team-stats="teamsStat.team1" :current-man="currentMan" :iterator="1"
-                              @update-score="updateTeamScore" @removethrow="removeThrow"
-                              @updatethrow="updateThrow"
-                    />
-                    <hr>
-                    <Teaminfo :team="team2" :team-stats="teamsStat.team2" :current-man="currentMan" :iterator="2"
-                              @update-score="updateTeamScore" @removethrow="removeThrow"
-                              @updatethrow="updateThrow"
-                    />
-                    <div class="is-flex is-justify-content-space-between mt-3">
-                        <button class="button is-info" @click="currentMan--" v-if="currentMan >= 0">Prev</button>
-                        <button class="button is-danger" v-if="currentMan === manCount - 1" @click="removeMan">Remove man</button>
-                        <button class="button is-success" @click="currentMan++">Next</button>
+                        <div class="is-flex is-justify-content-space-between">
+                            <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
+                            <div>
+                                <strong>Score</strong>
+                                {{currentScore.team1}} : {{currentScore.team2}}
+                            </div>
+                        </div>
+                        <hr>
+                        <Teaminfo :team="team1" :team-stats="teamsStat.team1" :current-man="currentMan" :iterator="1"
+                                  @update-score="updateTeamScore" @removethrow="removeThrow"
+                                  @updatethrow="updateThrow"
+                        />
+                        <hr>
+                        <Teaminfo :team="team2" :team-stats="teamsStat.team2" :current-man="currentMan" :iterator="2"
+                                  @update-score="updateTeamScore" @removethrow="removeThrow"
+                                  @updatethrow="updateThrow"
+                        />
+                        <div class="is-flex is-justify-content-space-between mt-3">
+                            <button class="button is-info" @click="currentMan--" v-if="currentMan >= 0">Prev</button>
+                            <button class="button is-danger" v-if="currentMan === manCount - 1" @click="removeMan">Remove man</button>
+                            <button class="button is-success" @click="currentMan++">Next</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -81,12 +104,18 @@ import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
+import {getDatabase, ref, set} from "firebase/database";
+import {mapMutations, mapState} from "vuex";
+import StatsArchive from "@/components/stats/StatsArchive.vue";
+import StatResult from "@/components/stats/StatResult.vue";
 export default {
     name: 'Stats',
-    components: {Teaminfo, Menu, Navbar, Footer},
+    components: {StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
     data() {
         return {
+            archiveOpen: false,
             menuOpen: false,
+            showResults: false,
             startX: 0,
             startY: 0,
             swipeDirection: null,
@@ -127,6 +156,7 @@ export default {
         this.changePlayers();
     },
     computed: {
+        ...mapState(['user']),
         currentScore() {
             return {
                 team1: this.team1.score.reduce((a, b) => a + b, 0),
@@ -154,6 +184,23 @@ export default {
         }
     },
     methods: {
+        ...mapMutations(['showMessage']),
+        finishGame() {
+            this.showResults = true;
+            let statResult = {
+                date: Date.now(),
+                name: this.gameName,
+                team1: this.team1,
+                team2: this.team2
+            }
+            const db = getDatabase();
+            set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
+                this.showMessage({title: 'Awesome!', text: 'Statistics saved to db'});
+            }).catch((error) => {
+                console.error('Error save:', error);
+                this.showMessage({title: 'error', text: error, type: 'error'});
+            });
+        },
         calculateTeamStat(team) {
             let teamStat = [];
             team.players.forEach(() => {
@@ -177,20 +224,17 @@ export default {
                             if (item.type === 'p') {
                                 if (item.success) {
                                     teamStat[index].points.positive += 1;
-                                    teamStat[index].serie.push(1);
                                 } else {
                                     teamStat[index].points.negative += 1;
-                                    teamStat[index].serie.push(0);
                                 }
                             } else {
                                 if (item.success) {
                                     teamStat[index].tirs.positive += 1;
-                                    teamStat[index].serie.push(1);
                                 } else {
                                     teamStat[index].tirs.negative += 1;
-                                    teamStat[index].serie.push(0);
                                 }
                             }
+                            teamStat[index].serie.push(item);
                         })
                     })
                     teamStat[index].all = {

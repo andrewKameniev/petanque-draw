@@ -28,7 +28,6 @@ function getTournamentRanking(tournament, rankingTeams){
     let tournamentRanking = [];
     if(tournament.playOffBracket) {
         const playOffList = JSON.parse(JSON.stringify(tournament.playOffBracket.stages)).reverse();
-        console.log(playOffList);
         const thirdPlaceGame = tournament.playOffBracket.thirdPlace ? JSON.parse(JSON.stringify(tournament.playOffBracket.thirdPlace)) : undefined;
         let teamsInRanking = [];
         for (let i = 0; i < playOffList.length; i++){
@@ -104,7 +103,7 @@ function getTournamentRanking(tournament, rankingTeams){
             }
         }
     } else {
-        if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
+        if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams?.length === 1)) {
             const rankingTeamsList = tournament.system === 'swiss' ? rankingTeams : rankingTeams[0];
             rankingTeamsList.forEach((team,index) =>{
                 const teamPlace = {
@@ -180,7 +179,7 @@ function getTeamsRanking(tournament, activeRound) {
             return sortedGroups;
         } else if (tournament.system === 'supermele') {
             return sortTeamsForSupermele(tournament.teams)
-        } else {
+        } else if (tournament.system === 'swiss') {
             return sortTeams(tournament.teams);
         }
     } else {

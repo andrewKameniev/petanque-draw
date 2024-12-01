@@ -32,7 +32,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games?.length">
+        <div v-if="tournament.games?.length && rankingTeams">
             <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
                 <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
                     {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}

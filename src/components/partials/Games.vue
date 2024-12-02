@@ -185,12 +185,13 @@ export default {
 
         },
         drawRound() {
-            let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
+
             // let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
             let round = []; // массив куда будем сохранять пары соперников
             let game; // объект с соперниками
 
             if (this.tournament.system === 'swiss') {
+                let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
                 // Дополнительная сортировка, а то иногда computed не срабатывало
                 teamsToDraw.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating)
                 let expandListIteration = 0; // количество итераций, когда приходится увеличивать кол-во команд (понятно будет дальше)

@@ -1,24 +1,46 @@
 <script>
+const clickOutsideDirective = {
+    beforeMount(el, binding) {
+        el.clickOutsideEvent = (event) => {
+            if (!(el === event.target || el.contains(event.target))) {
+                // Call the method provided in the binding
+                binding.value(event);
+            }
+        };
+        document.body.addEventListener('click', el.clickOutsideEvent);
+    },
+    unmounted(el) {
+        document.body.removeEventListener('click', el.clickOutsideEvent);
+    },
+};
 export default {
     name: "ThrowResult",
-    props: ['type', 'result', 'iterator'],
+    props: ['info', 'iterator', 'system'],
     data() {
         return {
             isMenuVisible: false,
             longPressTimer: null,
-            isLongPress: false
+            isLongPress: false,
+            selectOpen: false,
+            frenchSystem: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
         };
+    },
+    directives: {
+        clickOutside: clickOutsideDirective,
     },
     methods: {
         // Show the menu
         showMenu() {
-            this.isMenuVisible = true;
+            if (!this.selectOpen) {
+                this.isMenuVisible = true;
+            }
         },
         hideMenu() {
             this.isMenuVisible = false;
         },
         handleMouseDown() {
             this.isLongPress = false; // Reset the long-press flag
+
             this.longPressTimer = setTimeout(() => {
                 this.isLongPress = true;
                 this.showMenu();
@@ -39,15 +61,30 @@ export default {
         },
         handleElementClick(event) {
             if (this.isLongPress) {
-                // Prevent normal click behavior if it was a long press
                 event.preventDefault();
                 event.stopPropagation();
             }
         },
         removeThrow() {
-            this.$emit('removethrow');
+            this.$emit('remove');
             this.hideMenu();
         },
+        superThrow(result) {
+            this.$emit('super', !result);
+            this.hideMenu();
+        },
+        onClickOutside () {
+            this.hideMenu()
+        },
+        getFrenchLabel(value) {
+            if (value === 'H') {
+                return '+'
+            } else if (value === 'I') {
+                return '-'
+            } else {
+                return value
+            }
+        }
     },
 }
 </script>
@@ -55,17 +92,18 @@ export default {
 <template>
     <div @mousedown.stop="handleMouseDown" @mouseup="handleMouseUp" @mouseleave="handleMouseUp"
          @touchstart.stop="handleTouchStart" @touchend="handleTouchEnd" @touchcancel="handleTouchEnd"
-         class="longpress-area">
-        <div class="is-flex" style="gap: 5px">
+         class="longpress-area" v-click-outside="onClickOutside">
+        <div class="is-flex is-align-items-center" style="gap: 5px" v-if="info.isMade">
+            <span class="is-size-3" :class="{'has-text-success': info.success, 'has-text-danger': !info.success}" v-if="info.x2">!</span>
             <div class="checkbox-wrapper-10">
-                <input class="tgl tgl-flip" :id="iterator" type="checkbox" :checked="type === 'p'"
+                <input class="tgl tgl-flip" :id="iterator" type="checkbox" :checked="info.type === 'p'"
                        @change="$emit('updatetype', $event.target.checked ? 'p' : 't')"
                        @click="handleElementClick"/>
                 <label class="tgl-btn" data-tg-off="Tir" data-tg-on="Point" :for="iterator"></label>
             </div>
-            <div class="checkbox-wrapper-44">
+            <div class="checkbox-wrapper-44" v-if="system === 'simple'">
                 <label class="toggleButton">
-                    <input type="checkbox" :checked="result" @change="$emit('updateresult', $event.target.checked)"
+                    <input type="checkbox" :checked="info.success" @change="$emit('updateresult', $event.target.checked)"
                            @click="handleElementClick">
                     <span>
                         <svg viewBox="0 0 44 44">
@@ -74,10 +112,20 @@ export default {
                     </span>
                 </label>
             </div>
+            <div v-else class="control">
+                <div class="select">
+                    <select :name="'throwResult' + iterator" :id="'throwResult' + iterator" :value="info.french"
+                            @focus="selectOpen = true" @blur="selectOpen = true" @change="$emit('updateresultfrench', $event.target.value)">
+                        <option v-for="value in frenchSystem" :value="value" :key="value">{{ getFrenchLabel(value) }}</option>
+                    </select>
+                </div>
+            </div>
         </div>
+        <div v-else class="gost-throw" @click="$emit('add')"></div>
         <div v-if="isMenuVisible" class="custom-menu">
             <ul>
-                <li @click="removeThrow('Option 1')">Remove throw</li>
+                <li @click="removeThrow()">Remove throw</li>
+                <li v-if="system === 'simple'" @click="superThrow(info.x2)">{{ info.x2 ? 'remove x2' : 'x2 result' }}</li>
             </ul>
         </div>
     </div>
@@ -85,6 +133,14 @@ export default {
 </template>
 
 <style scoped>
+.gost-throw {
+    width: 79px;
+    height: 32px;
+    border: solid 1px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
 .longpress-area {
     width: 100%;
     position: relative;
@@ -93,6 +149,7 @@ export default {
 
 .custom-menu {
     position: absolute;
+    right: 0;
     background-color: #fff;
     border: 1px solid #ccc;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

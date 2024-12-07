@@ -22,6 +22,28 @@
                                 {{ item.label }}
                             </label>
                         </div>
+                        <label class="label">Mode</label>
+                        <div class="field">
+                            <label class="radio">
+                                <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
+                                Classic
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
+                                Fast
+                            </label>
+                        </div>
+                        <label class="label">System</label>
+                        <div class="field">
+                            <label class="radio">
+                                <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
+                                Simple
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
+                                French (A, B, ...)
+                            </label>
+                        </div>
                         <label class="label">Scenario</label>
                         <div class="field">
                             <label class="radio">
@@ -50,7 +72,8 @@
                         <button @click="currentMan = 0" class="button is-success">Start</button>
                     </div>
                     <div v-else-if="showResults">
-                        <button @click="showResults = false" class="button is-info">New game</button>
+                        <button @click="startNewGame" class="button is-info">New game</button>
+                        <h2 class="my-3 is-size-4">{{ gameName }}</h2>
                         <div class="columns">
                             <div class="column is-half-desktop">
                                 <div class="label">Team 1</div>
@@ -65,8 +88,13 @@
                     <div v-else @touchstart="onTouchStart"
                          @touchmove="onTouchMove"
                          @touchend="onTouchEnd">
-                        <div class="mb-3">
-                            <button @click="finishGame" class="button is-info">Finish game</button>
+                        <div class="is-flex is-justify-content-space-between mb-3">
+                            <div class="control">
+                                <button @click="startNewGame" class="button is-danger">New game</button>
+                            </div>
+                            <div class="control">
+                                <button @click="finishGame" class="button is-info">Finish game</button>
+                            </div>
                         </div>
                         <div class="is-flex is-justify-content-space-between">
                             <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
@@ -76,18 +104,20 @@
                             </div>
                         </div>
                         <hr>
-                        <Teaminfo :team="team1" :team-stats="teamsStat.team1" :current-man="currentMan" :iterator="1"
-                                  @update-score="updateTeamScore" @removethrow="removeThrow"
-                                  @updatethrow="updateThrow"
+                        <Teaminfo :team="team1" :team-stats="teamsStat.team1" :current-man="currentMan" :iterator="1" :system="statSystem"
+                                  @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
+                                  @x2throw="doubleThrowResult"
+                                  @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                         />
                         <hr>
-                        <Teaminfo :team="team2" :team-stats="teamsStat.team2" :current-man="currentMan" :iterator="2"
-                                  @update-score="updateTeamScore" @removethrow="removeThrow"
-                                  @updatethrow="updateThrow"
+                        <Teaminfo :team="team2" :team-stats="teamsStat.team2" :current-man="currentMan" :iterator="2" :system="statSystem"
+                                  @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
+                                  @x2throw="doubleThrowResult"
+                                  @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                         />
                         <div class="is-flex is-justify-content-space-between mt-3">
-                            <button class="button is-info" @click="currentMan--" v-if="currentMan >= 0">Prev</button>
-                            <button class="button is-danger" v-if="currentMan === manCount - 1" @click="removeMan">Remove man</button>
+                            <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">Prev</button>
+                            <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">Remove man</button>
                             <button class="button is-success" @click="currentMan++">Next</button>
                         </div>
                     </div>
@@ -139,6 +169,8 @@ export default {
             gameName: '',
             gameType: 1,
             statScenario: false,
+            statMode: false,
+            statSystem: 'simple',
             currentMan: null,
             team1: {
                 score: []
@@ -147,8 +179,48 @@ export default {
                 score: []
             },
             throwInfo: {
+                isMade: false,
                 type: 'p',
-                success: false
+                success: false,
+                french: 'D'
+            },
+            frenchInfoStat: {
+                A: {
+                    volume: 1.5,
+                    intensity: 1
+                },
+                B: {
+                    volume: 1,
+                    intensity: 1
+                },
+                C: {
+                    volume: 0.5,
+                    intensity: 1
+                },
+                D: {
+                    volume: 0,
+                    intensity: 0.5
+                },
+                E: {
+                    volume: -0.5,
+                    intensity: 0
+                },
+                F: {
+                    volume: -1,
+                    intensity: 0
+                },
+                G: {
+                    volume: -1.5,
+                    intensity: 0
+                },
+                H: {
+                    volume: 2,
+                    intensity: 1
+                },
+                I: {
+                    volume: -2,
+                    intensity: 0
+                }
             }
         }
     },
@@ -177,6 +249,9 @@ export default {
         statScenario(newValue) {
             this.throwInfo.success = newValue;
         },
+        statMode(newValue) {
+            this.throwInfo.isMade = newValue;
+        },
         currentMan() {
             if (this.currentScore.team1 < 13 || this.currentScore.team2 < 13) {
                 this.nextMan()
@@ -185,6 +260,15 @@ export default {
     },
     methods: {
         ...mapMutations(['showMessage']),
+        changePlayerInTeam(teamIndex, playerIndex, playerName) {
+            this.addPlayer(this['team' + teamIndex], playerName);
+            this.addPlayerStats(this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1]);
+            this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].onChanged = this.currentMan;
+            this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
+            for (let i = 0; i < this.currentMan; i++) {
+                this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].stat.unshift([]);
+            }
+        },
         finishGame() {
             this.showResults = true;
             let statResult = {
@@ -201,45 +285,106 @@ export default {
                 this.showMessage({title: 'error', text: error, type: 'error'});
             });
         },
+        startNewGame() {
+            this.showResults = false;
+            this.currentMan = null;
+            this.team1.score = [];
+            this.team2.score = [];
+            this.changePlayers()
+        },
         calculateTeamStat(team) {
             let teamStat = [];
             team.players.forEach(() => {
-                teamStat.push({
-                    points: {
-                        positive: 0,
-                        negative: 0
-                    },
-                    tirs: {
-                        positive: 0,
-                        negative: 0
-                    },
-                    serie: []
-                })
+                if (this.statSystem === 'simple') {
+                    teamStat.push({
+                        points: {
+                            positive: 0,
+                            negative: 0
+                        },
+                        tirs: {
+                            positive: 0,
+                            negative: 0
+                        },
+                        x2: {
+                            points: {
+                                positive: 0,
+                                negative: 0
+                            },
+                            tirs: {
+                                positive: 0,
+                                negative: 0
+                            }
+                        },
+                        serie: []
+                    })
+                } else {
+                    teamStat.push({
+                        points: {
+                            volume: 0,
+                            intensity: 0
+                        },
+                        tirs: {
+                            volume: 0,
+                            intensity: 0
+                        },
+                        serie: []
+                    })
+                }
             })
 
             if (team.players[0].stat?.length) {
                 team.players.forEach((player, index) => {
                     player.stat.forEach(man => {
                         man.forEach(item => {
-                            if (item.type === 'p') {
-                                if (item.success) {
-                                    teamStat[index].points.positive += 1;
+                            if (item.isMade){
+                                if (item.type === 'p') {
+                                    if (this.statSystem === 'simple') {
+                                        if (item.success) {
+                                            teamStat[index].points.positive += 1;
+                                            if (item.x2) {
+                                                teamStat[index].x2.points.positive += 1;
+                                            }
+                                        } else {
+                                            teamStat[index].points.negative += 1;
+                                            if (item.x2) {
+                                                teamStat[index].x2.points.negative += 1;
+                                            }
+                                        }
+                                    } else {
+                                        teamStat[index].points.volume += this.frenchInfoStat[item.french].volume;
+                                        teamStat[index].points.intensity += this.frenchInfoStat[item.french].intensity
+                                    }
                                 } else {
-                                    teamStat[index].points.negative += 1;
+                                    if (this.statSystem === 'simple') {
+                                        if (item.success) {
+                                            teamStat[index].tirs.positive += 1;
+                                            if (item.x2) {
+                                                teamStat[index].x2.tirs.positive += 1;
+                                            }
+                                        } else {
+                                            teamStat[index].tirs.negative += 1;
+                                            if (item.x2) {
+                                                teamStat[index].x2.tirs.negative += 1;
+                                            }
+                                        }
+                                    } else {
+                                        teamStat[index].tirs.volume += this.frenchInfoStat[item.french].volume;
+                                        if (item.french === 'E') {
+                                            teamStat[index].tirs.intensity += 0.5
+                                        } else {
+                                            teamStat[index].tirs.intensity += this.frenchInfoStat[item.french].intensity
+                                        }
+                                    }
                                 }
-                            } else {
-                                if (item.success) {
-                                    teamStat[index].tirs.positive += 1;
-                                } else {
-                                    teamStat[index].tirs.negative += 1;
-                                }
+                                teamStat[index].serie.push(item);
                             }
-                            teamStat[index].serie.push(item);
                         })
                     })
-                    teamStat[index].all = {
-                        positive: teamStat[index].points.positive + teamStat[index].tirs.positive,
-                        negative: teamStat[index].points.negative + teamStat[index].tirs.negative
+                    if (this.statSystem === 'simple') {
+                        teamStat[index].all = {
+                            positive: teamStat[index].points.positive + teamStat[index].tirs.positive,
+                            negative: teamStat[index].points.negative + teamStat[index].tirs.negative
+                        }
                     }
                 })
             }
@@ -248,6 +393,12 @@ export default {
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
             team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)
+        },
+        addThrow(team, playerIndex, manIndex, throwIndex) {
+            team.players[playerIndex].stat[manIndex][throwIndex].isMade = true
+        },
+        doubleThrowResult(team, playerIndex, manIndex, throwIndex, res) {
+            team.players[playerIndex].stat[manIndex][throwIndex].x2 = res
         },
         updateThrow(team, playerIndex, manIndex, throwIndex, type, value) {
             team.players[playerIndex].stat[manIndex][throwIndex][type] = value
@@ -280,12 +431,20 @@ export default {
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 this.swipeDirection = deltaX > 0 ? "right" : "left";
-                this.swipeDirection === 'right' ? this.currentMan-- : this.currentMan++
+                if (Math.abs(endX - this.startX) > 100) {
+                    if (this.swipeDirection === 'right') {
+                        if (this.currentMan > 0) {
+                            this.currentMan--
+                        }
+                    } else {
+                        this.currentMan++
+                    }
+                }
             } else {
                 this.swipeDirection = deltaY > 0 ? "down" : "up";
             }
         },
-        addPlayerStats(players) {
+        addPlayersStats(players) {
             players.forEach((player, index) => {
                 if (index === 2) {
                     this.throwInfo.type = 't'
@@ -293,38 +452,41 @@ export default {
                     this.throwInfo.type = 'p'
                 }
 
-                const statEntry = [
-                    JSON.parse(JSON.stringify(this.throwInfo)),
-                    JSON.parse(JSON.stringify(this.throwInfo)),
-                ];
-
-                if (this.gameType === 1 || this.gameType === 2) {
-                    statEntry.push(JSON.parse(JSON.stringify(this.throwInfo)));
-                }
-
-                player.stat.push(statEntry);
+                this.addPlayerStats(player);
             });
+        },
+        addPlayerStats(player) {
+            const statEntry = [
+                JSON.parse(JSON.stringify(this.throwInfo)),
+                JSON.parse(JSON.stringify(this.throwInfo)),
+            ];
+
+            if (this.gameType === 1 || this.gameType === 2) {
+                statEntry.push(JSON.parse(JSON.stringify(this.throwInfo)));
+            }
+
+            player.stat.push(statEntry);
         },
         nextMan() {
             if (this.team1.players[0].stat.length <= this.currentMan) {
-                this.addPlayerStats(this.team1.players);
-                this.addPlayerStats(this.team2.players);
+                this.addPlayersStats(this.team1.players);
+                this.addPlayersStats(this.team2.players);
             }
         },
         changePlayers() {
             this.team1.players = [];
             this.team2.players = [];
             for (let i = 0; i < this.gameType; i++) {
-                this.addPlayer();
+                this.addPlayer(this.team1);
+                this.addPlayer(this.team2);
             }
         },
-        addPlayer() {
+        addPlayer(team, name = '') {
             const playerInfo = {
-                name: '',
+                name: name,
                 stat: []
             }
-            this.team1.players.push({ ...JSON.parse(JSON.stringify(playerInfo)) });
-            this.team2.players.push({ ...JSON.parse(JSON.stringify(playerInfo)) });
+            team.players.push({ ...JSON.parse(JSON.stringify(playerInfo)) });
         }
     },
 }

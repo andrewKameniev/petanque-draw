@@ -77,11 +77,11 @@
                         <div class="columns">
                             <div class="column is-half-desktop">
                                 <div class="label">Team 1</div>
-                                <StatResult :team="team1" :team-stats="teamsStat.team1"/>
+                                <StatResult :team="team1" :system="statSystem"/>
                             </div>
                             <div class="column is-half-desktop">
                                 <div class="label">Team 2</div>
-                                <StatResult :team="team2" :team-stats="teamsStat.team2"/>
+                                <StatResult :team="team2" :system="statSystem"/>
                             </div>
                         </div>
                     </div>
@@ -104,13 +104,13 @@
                             </div>
                         </div>
                         <hr>
-                        <Teaminfo :team="team1" :team-stats="teamsStat.team1" :current-man="currentMan" :iterator="1" :system="statSystem"
+                        <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem"
                                   @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                   @x2throw="doubleThrowResult"
                                   @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                         />
                         <hr>
-                        <Teaminfo :team="team2" :team-stats="teamsStat.team2" :current-man="currentMan" :iterator="2" :system="statSystem"
+                        <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem"
                                   @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                   @x2throw="doubleThrowResult"
                                   @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
@@ -184,44 +184,6 @@ export default {
                 success: false,
                 french: 'D'
             },
-            frenchInfoStat: {
-                A: {
-                    volume: 1.5,
-                    intensity: 1
-                },
-                B: {
-                    volume: 1,
-                    intensity: 1
-                },
-                C: {
-                    volume: 0.5,
-                    intensity: 1
-                },
-                D: {
-                    volume: 0,
-                    intensity: 0.5
-                },
-                E: {
-                    volume: -0.5,
-                    intensity: 0
-                },
-                F: {
-                    volume: -1,
-                    intensity: 0
-                },
-                G: {
-                    volume: -1.5,
-                    intensity: 0
-                },
-                H: {
-                    volume: 2,
-                    intensity: 1
-                },
-                I: {
-                    volume: -2,
-                    intensity: 0
-                }
-            }
         }
     },
     mounted() {
@@ -237,12 +199,6 @@ export default {
         },
         manCount() {
             return this.team1.players[0].stat.length
-        },
-        teamsStat() {
-          return {
-              team1: this.calculateTeamStat(this.team1),
-              team2: this.calculateTeamStat(this.team2)
-          }
         },
     },
     watch: {
@@ -262,8 +218,10 @@ export default {
         ...mapMutations(['showMessage']),
         changePlayerInTeam(teamIndex, playerIndex, playerName) {
             this.addPlayer(this['team' + teamIndex], playerName);
-            this.addPlayerStats(this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1]);
-            this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].onChanged = this.currentMan;
+            const currentPlayer = this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1];
+            this.addPlayerStats(currentPlayer);
+            currentPlayer.stat = Array(currentPlayer.onChanged).fill(null);
+            currentPlayer.onChanged = this.currentMan;
             this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
             for (let i = 0; i < this.currentMan; i++) {
                 this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].stat.unshift([]);
@@ -273,6 +231,7 @@ export default {
             this.showResults = true;
             let statResult = {
                 date: Date.now(),
+                system: this.statSystem,
                 name: this.gameName,
                 team1: this.team1,
                 team2: this.team2
@@ -291,105 +250,6 @@ export default {
             this.team1.score = [];
             this.team2.score = [];
             this.changePlayers()
-        },
-        calculateTeamStat(team) {
-            let teamStat = [];
-            team.players.forEach(() => {
-                if (this.statSystem === 'simple') {
-                    teamStat.push({
-                        points: {
-                            positive: 0,
-                            negative: 0
-                        },
-                        tirs: {
-                            positive: 0,
-                            negative: 0
-                        },
-                        x2: {
-                            points: {
-                                positive: 0,
-                                negative: 0
-                            },
-                            tirs: {
-                                positive: 0,
-                                negative: 0
-                            }
-                        },
-                        serie: []
-                    })
-                } else {
-                    teamStat.push({
-                        points: {
-                            volume: 0,
-                            intensity: 0
-                        },
-                        tirs: {
-                            volume: 0,
-                            intensity: 0
-                        },
-                        serie: []
-                    })
-                }
-            })
-
-            if (team.players[0].stat?.length) {
-                team.players.forEach((player, index) => {
-                    player.stat.forEach(man => {
-                        man.forEach(item => {
-                            if (item.isMade){
-                                if (item.type === 'p') {
-                                    if (this.statSystem === 'simple') {
-                                        if (item.success) {
-                                            teamStat[index].points.positive += 1;
-                                            if (item.x2) {
-                                                teamStat[index].x2.points.positive += 1;
-                                            }
-                                        } else {
-                                            teamStat[index].points.negative += 1;
-                                            if (item.x2) {
-                                                teamStat[index].x2.points.negative += 1;
-                                            }
-                                        }
-                                    } else {
-                                        teamStat[index].points.volume += this.frenchInfoStat[item.french].volume;
-                                        teamStat[index].points.intensity += this.frenchInfoStat[item.french].intensity
-                                    }
-                                } else {
-                                    if (this.statSystem === 'simple') {
-                                        if (item.success) {
-                                            teamStat[index].tirs.positive += 1;
-                                            if (item.x2) {
-                                                teamStat[index].x2.tirs.positive += 1;
-                                            }
-                                        } else {
-                                            teamStat[index].tirs.negative += 1;
-                                            if (item.x2) {
-                                                teamStat[index].x2.tirs.negative += 1;
-                                            }
-                                        }
-                                    } else {
-                                        teamStat[index].tirs.volume += this.frenchInfoStat[item.french].volume;
-                                        if (item.french === 'E') {
-                                            teamStat[index].tirs.intensity += 0.5
-                                        } else {
-                                            teamStat[index].tirs.intensity += this.frenchInfoStat[item.french].intensity
-                                        }
-                                    }
-                                }
-                                teamStat[index].serie.push(item);
-                            }
-                        })
-                    })
-                    if (this.statSystem === 'simple') {
-                        teamStat[index].all = {
-                            positive: teamStat[index].points.positive + teamStat[index].tirs.positive,
-                            negative: teamStat[index].points.negative + teamStat[index].tirs.negative
-                        }
-                    }
-                })
-            }
-
-            return teamStat
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
             team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)

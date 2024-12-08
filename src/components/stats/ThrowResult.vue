@@ -22,7 +22,7 @@ export default {
             longPressTimer: null,
             isLongPress: false,
             selectOpen: false,
-            frenchSystem: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+            frenchSystem: ['H', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I']
         };
     },
     directives: {
@@ -124,8 +124,8 @@ export default {
         <div v-else class="gost-throw" @click="$emit('add')"></div>
         <div v-if="isMenuVisible" class="custom-menu">
             <ul>
-                <li @click="removeThrow()">Remove throw</li>
                 <li v-if="system === 'simple'" @click="superThrow(info.x2)">{{ info.x2 ? 'remove x2' : 'x2 result' }}</li>
+                <li @click="removeThrow()">Remove throw</li>
             </ul>
         </div>
     </div>

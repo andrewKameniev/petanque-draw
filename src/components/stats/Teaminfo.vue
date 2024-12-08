@@ -1,45 +1,66 @@
 <template>
     <div>
-        <div class="mb-2 has-text-right is-flex is-justify-content-end is-align-items-center">
-            Enter how many points team won
-            <input type="number" class="input has-text-centered ml-2" style="width: 60px;"
-                   :value="team.score[currentMan]"
-                   @input="updateScore($event.target.value)">
+        <div class="team-info is-flex mb-2">
+            <div v-if="system === 'simple'">
+                <div v-if="commonTeamStat.all.positive + commonTeamStat.all.negative > 0">
+                    Total: {{commonTeamStat.all.positive}}/{{commonTeamStat.all.positive + commonTeamStat.all.negative}} -
+                    <strong class="is-size-6">{{Math.round(commonTeamStat.all.positive/(commonTeamStat.all.positive + commonTeamStat.all.negative) * 100)}}%</strong>,
+                    Points: {{commonTeamStat.points.positive}}/{{commonTeamStat.points.positive + commonTeamStat.points.negative}}
+                    <strong class="is-size-6" v-if="commonTeamStat.points.positive + commonTeamStat.points.negative !== 0">- {{Math.round(commonTeamStat.points.positive/(commonTeamStat.points.positive + commonTeamStat.points.negative) * 100)}}%</strong>
+                    Tirs: {{commonTeamStat.tirs.positive}}/{{commonTeamStat.tirs.positive + commonTeamStat.tirs.negative}}
+                    <strong class="is-size-6" v-if="commonTeamStat.tirs.positive + commonTeamStat.tirs.negative !== 0">- {{Math.round(commonTeamStat.tirs.positive/(commonTeamStat.tirs.positive + commonTeamStat.tirs.negative) * 100)}}%</strong>
+                </div>
+            </div>
+            <div v-else>
+                <div>
+                    <strong>Points:</strong> vol. - {{ commonTeamStat.points.volume / team.players.length }}%, int. - {{ commonTeamStat.points.intensity / team.players.length }}%, eff. {{ ((commonTeamStat.points.volume + commonTeamStat.points.intensity) / 2) / team.players.length }}%,
+                </div>
+                <div>
+                    <strong>Tirs:</strong> vol. - {{ commonTeamStat.tirs.volume / team.players.length}}%, int. - {{ commonTeamStat.tirs.intensity / team.players.length }}%, eff. {{ ((commonTeamStat.tirs.volume + commonTeamStat.tirs.intensity) / 2) / team.players.length }}%
+                </div>
+            </div>
+
+            <div class="has-text-right is-flex is-align-items-center is-justify-content-end ml-auto">
+                Enter how many points team won
+                <input type="number" class="input has-text-centered ml-2" style="width: 60px;"
+                       :value="team.score[currentMan]"
+                       @input="updateScore($event.target.value)">
+            </div>
         </div>
         <div v-for="(player, index) in team.players" :key="index">
             <div class="player-info mb-2 is-flex is-justify-content-space-between is-align-items-center" v-if="(!player.isChanged && !player.wasChanged) || player.isChanged >= currentMan || player.wasChanged > currentMan">
                 <div class="is-relative player-info-content">
                     <button v-if="!changePlayerName" class="button is-danger change-player-btn" @click="showChangePlayerModal(index)">Change player</button>
-                    <div class="is-size-7" v-if="system === 'simple'">
-                        {{teamStats[index].all.positive}}/{{teamStats[index].all.positive + teamStats[index].all.negative}} -
-                        <strong>{{Math.round(teamStats[index].all.positive/(teamStats[index].all.positive + teamStats[index].all.negative) * 100)}}%</strong>
-                        (p: {{teamStats[index].points.positive}}/{{teamStats[index].points.positive + teamStats[index].points.negative}}
-                        <span v-if="teamStats[index].points.positive + teamStats[index].points.negative !== 0">
-                                            - <strong>{{Math.round(teamStats[index].points.positive/(teamStats[index].points.positive + teamStats[index].points.negative) * 100)}}%</strong>
+                    <div class="is-size-7" v-if="system === 'simple' && teamsStat[index].all.positive + teamsStat[index].all.negative > 0">
+                        {{teamsStat[index].all.positive}}/{{teamsStat[index].all.positive + teamsStat[index].all.negative}} -
+                        <strong>{{Math.round(teamsStat[index].all.positive/(teamsStat[index].all.positive + teamsStat[index].all.negative) * 100)}}%</strong>
+                        (p: {{teamsStat[index].points.positive}}/{{teamsStat[index].points.positive + teamsStat[index].points.negative}}
+                        <span v-if="teamsStat[index].points.positive + teamsStat[index].points.negative !== 0">
+                                            - <strong>{{Math.round(teamsStat[index].points.positive/(teamsStat[index].points.positive + teamsStat[index].points.negative) * 100)}}%</strong>
                                         </span>,
-                        t: {{teamStats[index].tirs.positive}}/{{teamStats[index].tirs.positive + teamStats[index].tirs.negative}}
-                        <span v-if="teamStats[index].tirs.positive + teamStats[index].tirs.negative !== 0">
-                                            - <strong>{{Math.round(teamStats[index].tirs.positive/(teamStats[index].tirs.positive + teamStats[index].tirs.negative) * 100)}}%</strong>
+                        t: {{teamsStat[index].tirs.positive}}/{{teamsStat[index].tirs.positive + teamsStat[index].tirs.negative}}
+                        <span v-if="teamsStat[index].tirs.positive + teamsStat[index].tirs.negative !== 0">
+                                            - <strong>{{Math.round(teamsStat[index].tirs.positive/(teamsStat[index].tirs.positive + teamsStat[index].tirs.negative) * 100)}}%</strong>
                                         </span>)
                     </div>
                     <div v-else class="is-size-7">
-                        <div v-if="teamStats[index].serie.filter(item => item.type === 'p').length">
-                            <strong>Point</strong>: vol: {{ getFrenchStat(teamStats[index].points.volume, teamStats[index].serie.filter(item => item.type === 'p').length) }}%,
-                            int: {{ getFrenchStat(teamStats[index].points.intensity, teamStats[index].serie.filter(item => item.type === 'p').length) }}%,
-                            eff: {{ (getFrenchStat(teamStats[index].points.volume, teamStats[index].serie.filter(item => item.type === 'p').length)
-                            + getFrenchStat(teamStats[index].points.intensity, teamStats[index].serie.filter(item => item.type === 'p').length)) / 2 }}%
+                        <div v-if="teamsStat[index].serie.filter(item => item.type === 'p').length">
+                            <strong>Point</strong>: vol: {{ getFrenchStat(teamsStat[index].points.volume, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%,
+                            int: {{ getFrenchStat(teamsStat[index].points.intensity, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%,
+                            eff: {{ (getFrenchStat(teamsStat[index].points.volume, teamsStat[index].serie.filter(item => item.type === 'p').length)
+                            + getFrenchStat(teamsStat[index].points.intensity, teamsStat[index].serie.filter(item => item.type === 'p').length)) / 2 }}%
                         </div>
-                        <div v-if="teamStats[index].serie.filter(item => item.type === 't').length">
-                            <strong>Tir</strong>: vol: {{ getFrenchStat(teamStats[index].tirs.volume, teamStats[index].serie.filter(item => item.type === 't').length) }}%,
-                            int: {{ getFrenchStat(teamStats[index].tirs.intensity, teamStats[index].serie.filter(item => item.type === 't').length) }}%,
-                            eff: {{ (getFrenchStat(teamStats[index].tirs.volume, teamStats[index].serie.filter(item => item.type === 't').length)
-                            + getFrenchStat(teamStats[index].tirs.intensity, teamStats[index].serie.filter(item => item.type === 't').length)) / 2 }}%
+                        <div v-if="teamsStat[index].serie.filter(item => item.type === 't').length">
+                            <strong>Tir</strong>: vol: {{ getFrenchStat(teamsStat[index].tirs.volume, teamsStat[index].serie.filter(item => item.type === 't').length) }}%,
+                            int: {{ getFrenchStat(teamsStat[index].tirs.intensity, teamsStat[index].serie.filter(item => item.type === 't').length) }}%,
+                            eff: {{ (getFrenchStat(teamsStat[index].tirs.volume, teamsStat[index].serie.filter(item => item.type === 't').length)
+                            + getFrenchStat(teamsStat[index].tirs.intensity, teamsStat[index].serie.filter(item => item.type === 't').length)) / 2 }}%
                         </div>
                     </div>
                     <div class="player-name">{{ player.name }}</div>
                     <div class="throw-result-container" v-if="system === 'simple'">
                         <span class="throw-result" :class="{'-success': item.success}"
-                              v-for="(item, itemIndex) in teamStats[index].serie.slice(-12)"
+                              v-for="(item, itemIndex) in teamsStat[index].serie.slice(-12)"
                               :key="itemIndex"></span>
                     </div>
                 </div>
@@ -75,10 +96,11 @@
 <script>
 import ThrowResult from "@/components/stats/ThrowResult.vue";
 import Modal from "@/components/Modal.vue";
+import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "@/helpers-stat";
 
 export default {
     components: {Modal, ThrowResult},
-    props: ['team', 'teamStats', 'currentMan', 'iterator', 'showThrow', 'system'],
+    props: ['team', 'currentMan', 'iterator', 'showThrow', 'system'],
     data() {
         return {
             changePlayerModalOpen: false,
@@ -86,10 +108,16 @@ export default {
             changePlayerIndex: null
         }
     },
-    methods: {
-        getFrenchStat(value, count) {
-            return Math.round(value / count * 100)
+    computed: {
+        teamsStat() {
+            return calculateTeamPlayersStat(this.team, this.system)
         },
+        commonTeamStat() {
+            return calculateCommonTeamStat(this.teamsStat, this.system);
+        },
+    },
+    methods: {
+        getFrenchStat,
         showChangePlayerModal(index) {
             this.changePlayerModalOpen = true;
             this.changePlayerIndex = index;
@@ -102,6 +130,16 @@ export default {
 </script>
 
 <style scoped>
+@media screen and (min-width: 768px) {
+    .team-info {
+        align-items: center;
+    }
+}
+@media screen and (max-width: 767px){
+    .team-info {
+        flex-direction: column-reverse;
+    }
+}
 .player-info-content:hover .change-player-btn {
     display: inline-block;
 }

@@ -97,22 +97,24 @@ export default {
             if (team.players[0].stat?.length) {
                 team.players.forEach((player, index) => {
                     player.stat.forEach(man => {
-                        man.forEach(item => {
-                            if (item.type === 'p') {
-                                if (item.success) {
-                                    teamStat[index].points.positive += 1;
+                        if (man !== null) {
+                            man.forEach(item => {
+                                if (item.type === 'p') {
+                                    if (item.success) {
+                                        teamStat[index].points.positive += 1;
+                                    } else {
+                                        teamStat[index].points.negative += 1;
+                                    }
                                 } else {
-                                    teamStat[index].points.negative += 1;
+                                    if (item.success) {
+                                        teamStat[index].tirs.positive += 1;
+                                    } else {
+                                        teamStat[index].tirs.negative += 1;
+                                    }
                                 }
-                            } else {
-                                if (item.success) {
-                                    teamStat[index].tirs.positive += 1;
-                                } else {
-                                    teamStat[index].tirs.negative += 1;
-                                }
-                            }
-                            teamStat[index].serie.push(item);
-                        })
+                                teamStat[index].serie.push(item);
+                            })
+                        }
                     })
                     teamStat[index].all = {
                         positive: teamStat[index].points.positive + teamStat[index].tirs.positive,
@@ -132,21 +134,21 @@ export default {
         <button class="button is-info" @click="$emit('close')">Back</button>
         <div v-if="statsList" class="mt-3">
             <div v-for="item in statsList" :key="item.date">
-                <div class="p-2 mb-2 is-flex is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = true">
+                <div class="p-2 mb-2 is-flex is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
                     <span>
                         {{ item.name }}
                         <span>{{getDate(item.date)}}</span>
                     </span>
-                    <span class="delete" @click="removeGame(item.date)"></span>
+                    <span class="delete" @click.stop="removeGame(item.date)"></span>
                 </div>
                 <div class="columns" v-if="item.isOpen">
                     <div class="column is-half-desktop">
                         <div class="label">Team 1</div>
-                        <StatResult :team="item.team1" :team-stats="getTeamStat(item.team1)"/>
+                        <StatResult :team="item.team1" :system="item.statSystem"/>
                     </div>
                     <div class="column is-half-desktop">
                         <div class="label">Team 2</div>
-                        <StatResult :team="item.team2" :team-stats="getTeamStat(item.team2)"/>
+                        <StatResult :team="item.team2" :system="item.statSystem"/>
                     </div>
                 </div>
             </div>

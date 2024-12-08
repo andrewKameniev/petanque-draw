@@ -9,7 +9,7 @@ export default {
             return calculateTeamPlayersStat(this.team, this.system)
         },
         commonStat() {
-            return calculateCommonTeamStat(this.teamStats)
+            return calculateCommonTeamStat(this.teamStats, this.system)
         }
     },
     methods: {

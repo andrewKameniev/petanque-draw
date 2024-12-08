@@ -144,11 +144,11 @@ export default {
                 <div class="columns" v-if="item.isOpen">
                     <div class="column is-half-desktop">
                         <div class="label">Team 1</div>
-                        <StatResult :team="item.team1" :system="item.statSystem"/>
+                        <StatResult :team="item.team1" :system="item.system"/>
                     </div>
                     <div class="column is-half-desktop">
                         <div class="label">Team 2</div>
-                        <StatResult :team="item.team2" :system="item.statSystem"/>
+                        <StatResult :team="item.team2" :system="item.system"/>
                     </div>
                 </div>
             </div>

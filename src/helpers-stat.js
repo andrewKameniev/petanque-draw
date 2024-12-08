@@ -2,8 +2,8 @@ export function calculateCommonTeamStat (playersStat, system){
     if (system === 'simple') {
         return {
             all: {
-                positive: playersStat.reduce((acc, item) => acc + item.all.positive, 0),
-                negative: playersStat.reduce((acc, item) => acc + item.all.negative, 0)
+                positive: playersStat.reduce((acc, item) => acc + item.points.positive + item.tirs.positive, 0),
+                negative: playersStat.reduce((acc, item) => acc + item.points.negative + item.tirs.negative, 0)
             },
             points: {
                 positive: playersStat.reduce((acc, item) => acc + item.points.positive, 0),

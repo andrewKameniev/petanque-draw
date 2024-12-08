@@ -2,11 +2,11 @@
     <div>
         <div class="team-info is-flex mb-2">
             <div v-if="system === 'simple'">
-                <div v-if="commonTeamStat.all.positive + commonTeamStat.all.negative > 0">
+                <div v-if="commonTeamStat && commonTeamStat.all.positive + commonTeamStat.all.negative > 0">
                     Total: {{commonTeamStat.all.positive}}/{{commonTeamStat.all.positive + commonTeamStat.all.negative}} -
                     <strong class="is-size-6">{{Math.round(commonTeamStat.all.positive/(commonTeamStat.all.positive + commonTeamStat.all.negative) * 100)}}%</strong>,
                     Points: {{commonTeamStat.points.positive}}/{{commonTeamStat.points.positive + commonTeamStat.points.negative}}
-                    <strong class="is-size-6" v-if="commonTeamStat.points.positive + commonTeamStat.points.negative !== 0">- {{Math.round(commonTeamStat.points.positive/(commonTeamStat.points.positive + commonTeamStat.points.negative) * 100)}}%</strong>
+                    <strong class="is-size-6" v-if="commonTeamStat.points.positive + commonTeamStat.points.negative !== 0">- {{Math.round(commonTeamStat.points.positive/(commonTeamStat.points.positive + commonTeamStat.points.negative) * 100)}}%</strong>,
                     Tirs: {{commonTeamStat.tirs.positive}}/{{commonTeamStat.tirs.positive + commonTeamStat.tirs.negative}}
                     <strong class="is-size-6" v-if="commonTeamStat.tirs.positive + commonTeamStat.tirs.negative !== 0">- {{Math.round(commonTeamStat.tirs.positive/(commonTeamStat.tirs.positive + commonTeamStat.tirs.negative) * 100)}}%</strong>
                 </div>

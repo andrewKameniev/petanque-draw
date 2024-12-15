@@ -2,12 +2,14 @@
 import {mapMutations, mapState} from "vuex";
 import {getDatabase, ref, get, remove} from "firebase/database";
 import StatResult from "@/components/stats/StatResult.vue";
+import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
 export default {
     name: "StatsArchive",
-    components: {StatResult},
+    components: {StatsAnalysis, StatResult},
     data() {
         return {
-            statsList: null
+            statsList: null,
+            showStatAnalysis: false
         }
     },
     mounted() {
@@ -37,7 +39,7 @@ export default {
             })
             .catch((error) => {
                 console.error('Error loading statistics:', error);
-                this.statsList = null; // Reset the data in case of error
+                this.statsList = null;
                 this.showMessage({
                     title: 'Error',
                     text: 'Failed to load statistics. Please try again later.',
@@ -45,7 +47,7 @@ export default {
                 });
             })
             .finally(() => {
-                this.isLoading = false; // Hide the loading indicator
+                this.isLoading = false;
             });
     },
     computed: {
@@ -78,52 +80,15 @@ export default {
             const d = new Date(time);
             return `(${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()})`
         },
-        getTeamStat(team) {
-            let teamStat = [];
-            team.players.forEach(() => {
-                teamStat.push({
-                    points: {
-                        positive: 0,
-                        negative: 0
-                    },
-                    tirs: {
-                        positive: 0,
-                        negative: 0
-                    },
-                    serie: []
-                })
-            })
-
-            if (team.players[0].stat?.length) {
-                team.players.forEach((player, index) => {
-                    player.stat.forEach(man => {
-                        if (man !== null) {
-                            man.forEach(item => {
-                                if (item.type === 'p') {
-                                    if (item.success) {
-                                        teamStat[index].points.positive += 1;
-                                    } else {
-                                        teamStat[index].points.negative += 1;
-                                    }
-                                } else {
-                                    if (item.success) {
-                                        teamStat[index].tirs.positive += 1;
-                                    } else {
-                                        teamStat[index].tirs.negative += 1;
-                                    }
-                                }
-                                teamStat[index].serie.push(item);
-                            })
-                        }
-                    })
-                    teamStat[index].all = {
-                        positive: teamStat[index].points.positive + teamStat[index].tirs.positive,
-                        negative: teamStat[index].points.negative + teamStat[index].tirs.negative
-                    }
-                })
+        countTeamScore(scores) {
+            if (!Array.isArray(scores)) {
+                const tempArray = []
+                Object.values(scores).forEach(value => tempArray.push(value))
+                scores = tempArray;
             }
-
-            return teamStat
+            return scores
+                .filter(value => value !== undefined) // Remove undefined or missing values
+                .reduce((acc, value) => acc + value, 0);
         }
     }
 }
@@ -131,23 +96,31 @@ export default {
 
 <template>
     <div>
-        <button class="button is-info" @click="$emit('close')">Back</button>
+        <div class="is-flex is-justify-content-space-between">
+            <button class="button is-info" @click="$emit('close')">Back</button>
+            <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
+        </div>
         <div v-if="statsList" class="mt-3">
+            <StatsAnalysis v-if="showStatAnalysis" :stats="statsList"/>
             <div v-for="item in statsList" :key="item.date">
-                <div class="p-2 mb-2 is-flex is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
-                    <span>
+                <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
+                    <span class="is-size-4">
                         {{ item.name }}
-                        <span>{{getDate(item.date)}}</span>
+                        <span class="is-size-6">{{getDate(item.date)}}</span>
                     </span>
                     <span class="delete" @click.stop="removeGame(item.date)"></span>
                 </div>
                 <div class="columns" v-if="item.isOpen">
                     <div class="column is-half-desktop">
-                        <div class="label">Team 1</div>
+                        <div class="label">
+                            Team 1 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team1.score) }}</span>
+                        </div>
                         <StatResult :team="item.team1" :system="item.system"/>
                     </div>
                     <div class="column is-half-desktop">
-                        <div class="label">Team 2</div>
+                        <div class="label">
+                            Team 2 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team2.score) }}</span>
+                        </div>
                         <StatResult :team="item.team2" :system="item.system"/>
                     </div>
                 </div>

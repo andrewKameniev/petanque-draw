@@ -264,7 +264,7 @@ export default {
             team.players[playerIndex].stat[manIndex][throwIndex][type] = value
         },
         updateTeamScore(team, newScore, manIndex) {
-            team.score[manIndex] = newScore;
+            team.score[manIndex] = newScore || null;
         },
         removeMan() {
             this.team1.players.forEach(player => {

@@ -10,6 +10,15 @@ export default {
         },
         commonStat() {
             return calculateCommonTeamStat(this.teamStats, this.system)
+        },
+        boulesOnMan() {
+            const infoEveryMan = [];
+            this.team.players.forEach(player => {
+                player.stat.forEach((man, index) => {
+                    infoEveryMan[index] = (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0)
+                })
+            })
+            return infoEveryMan
         }
     },
     methods: {
@@ -34,6 +43,23 @@ export default {
                 <div class="is-size-5">
                     Tirs: {{commonStat.tirs.positive}}/{{commonStat.tirs.positive + commonStat.tirs.negative}}
                     <strong class="is-size-4" v-if="commonStat.tirs.positive + commonStat.tirs.negative !== 0">- {{Math.round(commonStat.tirs.positive/(commonStat.tirs.positive + commonStat.tirs.negative) * 100)}}%</strong>
+                </div>
+                <div class="mt-3 is-size-4">Result boules for every mene:</div>
+                <div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td v-for="(item, index) in boulesOnMan" :key="index">{{index + 1}}</td>
+                                <td>Av</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
+                                <td>{{ (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(1) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div v-else>
@@ -105,6 +131,7 @@ export default {
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 

@@ -5,34 +5,36 @@
                 Підсумковий протокол результатів командної першості учасників спортивних змагань з петанку
             </h2>
             <table class="table is-bordered">
-                <tr>
-                    <td>Назва змагань</td>
-                    <td contenteditable="true">{{ tournament.name }}</td>
-                </tr>
-                <tr>
-                    <td>Дата початку змагань</td>
-                    <td contenteditable="true">{{ tournament.date || '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Дата закінчення змагань</td>
-                    <td contenteditable="true">{{ tournament.date || '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Місце/місто проведення</td>
-                    <td contenteditable="true"></td>
-                </tr>
-                <tr>
-                    <td>Організатор</td>
-                    <td contenteditable="true"></td>
-                </tr>
-                <tr>
-                    <td>Головний суддя</td>
-                    <td contenteditable="true"></td>
-                </tr>
-                <tr>
-                    <td>Загальна кількість гравців</td>
-                    <td>{{ playersCount }}</td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td>Назва змагань</td>
+                        <td contenteditable="true">{{ tournament.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Дата початку змагань</td>
+                        <td contenteditable="true">{{ tournament.date || '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Дата закінчення змагань</td>
+                        <td contenteditable="true">{{ tournament.date || '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Місце/місто проведення</td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                    <tr>
+                        <td>Організатор</td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                    <tr>
+                        <td>Головний суддя</td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                    <tr>
+                        <td>Загальна кількість гравців</td>
+                        <td>{{ playersCount }}</td>
+                    </tr>
+                </tbody>
             </table>
             <h3 class="text-center is-size-4 mb-2">Учасники та результати</h3>
             <table class="table is-bordered">

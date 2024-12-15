@@ -2,22 +2,24 @@
     <Modal @close-modal="$emit('close-modal')">
         <div class="is-size-2 mb-3">{{ $t('modals.tournamentPreferences') }}</div>
         <table class="table">
-            <tr>
-                <td class="is-size-5">{{ $t('modals.technicalScore') }}</td>
-                <td>
-                    <input class="input" v-model="tournament.preferences.technical.technicalFirst" type="number">
-                </td>
-                <td>
-                    <input class="input" v-model="tournament.preferences.technical.technicalSecond" type="number">
-                </td>
-            </tr>
-            <tr>
-                <td class="is-size-5">{{ $t('modals.maxScore') }}</td>
-                <td>
-                    <input class="input" v-model="tournament.preferences.maxScore" type="number">
-                </td>
-                <td></td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td class="is-size-5">{{ $t('modals.technicalScore') }}</td>
+                    <td>
+                        <input class="input" v-model="tournament.preferences.technical.technicalFirst" type="number">
+                    </td>
+                    <td>
+                        <input class="input" v-model="tournament.preferences.technical.technicalSecond" type="number">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="is-size-5">{{ $t('modals.maxScore') }}</td>
+                    <td>
+                        <input class="input" v-model="tournament.preferences.maxScore" type="number">
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
         </table>
         <div class="buttons is-centered">
             <div class="control">

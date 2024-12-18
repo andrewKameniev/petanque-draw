@@ -157,8 +157,8 @@ export function calculatePlayerStat(gameScenario, system) {
         })
         if (system === 'simple') {
             playerStat.all = Math.round((playerStat.points.positive + playerStat.tirs.positive) / (playerStat.points.positive + playerStat.tirs.positive + playerStat.points.negative + playerStat.tirs.negative) * 100);
-            playerStat.points = (playerStat.points.positive + playerStat.points.negative) > 1 ? Math.round(playerStat.points.positive / (playerStat.points.positive + playerStat.points.negative) * 100) : '-';
-            playerStat.tirs = (playerStat.tirs.positive + playerStat.tirs.negative) > 1 ? Math.round(playerStat.tirs.positive / (playerStat.tirs.positive + playerStat.tirs.negative) * 100) : '-';
+            playerStat.points = (playerStat.points.positive + playerStat.points.negative) > 0 ? Math.round(playerStat.points.positive / (playerStat.points.positive + playerStat.points.negative) * 100) : '-';
+            playerStat.tirs = (playerStat.tirs.positive + playerStat.tirs.negative) > 0 ? Math.round(playerStat.tirs.positive / (playerStat.tirs.positive + playerStat.tirs.negative) * 100) : '-';
         }
     }
 

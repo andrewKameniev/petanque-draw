@@ -128,13 +128,12 @@ export default {
                 if ((timeFrom && key < timeFrom) || (timeTo && key > timeTo)) {
                     return false
                 }
-                if (this.filterGamesType && this.filterGamesType !== this.stats[key].mode) {
+                if (this.filterGamesType && this.filterGamesType !== this.stats[key].team1.players.length) {
                     return false
                 }
                 if (this.stats[key].team1.players.find(player => player.name === this.player)) {
                     const game = {
                         date: key,
-                        mode: this.stats[key].team1.players.length,
                         stat: calculatePlayerStat(this.stats[key].team1.players.find(player => player.name === this.player).stat, 'simple')
                     }
                     this.playerStatList.push(game)
@@ -142,7 +141,6 @@ export default {
                 if (this.stats[key].team2.players.find(player => player.name === this.player)) {
                     const game = {
                         date: key,
-                        mode: this.stats[key].team2.players.length,
                         stat: calculatePlayerStat(this.stats[key].team2.players.find(player => player.name === this.player).stat, 'simple')
                     }
                     this.playerStatList.push(game)
@@ -151,12 +149,8 @@ export default {
 
             this.playerStatList.forEach(game => {
                 this.chartOptions.xaxis.categories.push(getDate(+game.date));
-                if (game.stat.points !== '-') {
-                    this.chartData[0].data.push(game.stat.points);
-                }
-                if (game.stat.tirs !== '-') {
-                    this.chartData[1].data.push(game.stat.tirs);
-                }
+                this.chartData[0].data.push(game.stat.points !== '-' ? game.stat.points : null);
+                this.chartData[1].data.push(game.stat.tirs !== '-' ? game.stat.tirs : null);
             });
             if (this.chartOptions.xaxis.categories.length > 1) {
                 this.chartOptions.title.text = this.player + ' charts';

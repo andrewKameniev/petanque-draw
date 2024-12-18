@@ -1,5 +1,6 @@
 <script>
 import {mapMutations, mapState} from "vuex";
+import {getDate} from "@/helpers-stat";
 import {getDatabase, ref, get, remove} from "firebase/database";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
@@ -76,10 +77,6 @@ export default {
                     });
                 });
         },
-        getDate(time) {
-            const d = new Date(time);
-            return `(${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()})`
-        },
         countTeamScore(scores) {
             if (!Array.isArray(scores)) {
                 const tempArray = []
@@ -89,14 +86,15 @@ export default {
             return scores
                 .filter(value => value !== undefined) // Remove undefined or missing values
                 .reduce((acc, value) => acc + value, 0);
-        }
+        },
+        getDate
     }
 }
 </script>
 
 <template>
-    <div>
-        <div class="is-flex is-justify-content-space-between">
+    <div class="mobile-stat-container">
+        <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">Back</button>
             <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
         </div>

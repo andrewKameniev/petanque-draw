@@ -91,7 +91,7 @@ export default {
 
 <template>
     <div @mousedown.stop="handleMouseDown" @mouseup="handleMouseUp" @mouseleave="handleMouseUp"
-         @touchstart.stop="handleTouchStart" @touchend="handleTouchEnd" @touchcancel="handleTouchEnd"
+         @touchstart.stop="handleTouchStart" @touchend.stop="handleTouchEnd" @touchcancel="handleTouchEnd"
          class="longpress-area" v-click-outside="onClickOutside">
         <div class="is-flex is-align-items-center" style="gap: 5px" v-if="info.isMade">
             <span class="is-size-3" :class="{'has-text-success': info.success, 'has-text-danger': !info.success}" v-if="info.x2">!</span>

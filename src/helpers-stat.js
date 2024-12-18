@@ -67,6 +67,103 @@ const frenchInfoStat= {
         intensity: 0
     }
 }
+
+export function calculatePlayerStat(gameScenario, system) {
+    let playerStat;
+
+    if (system === 'simple') {
+        playerStat = {
+            points: {
+                positive: 0,
+                negative: 0
+            },
+            tirs: {
+                positive: 0,
+                negative: 0
+            },
+            x2: {
+                points: {
+                    positive: 0,
+                    negative: 0
+                },
+                tirs: {
+                    positive: 0,
+                    negative: 0
+                }
+            },
+            serie: []
+        }
+    } else {
+        playerStat = {
+            points: {
+                volume: 0,
+                intensity: 0
+            },
+            tirs: {
+                volume: 0,
+                intensity: 0
+            },
+            serie: []
+        }
+    }
+
+
+    if (gameScenario.length) {
+        gameScenario.forEach(man => {
+            man.forEach(item => {
+                if (item.isMade){
+                    if (item.type === 'p') {
+                        if (system === 'simple') {
+                            if (item.success) {
+                                playerStat.points.positive += 1;
+                                if (item.x2) {
+                                    playerStat.x2.points.positive += 1;
+                                }
+                            } else {
+                                playerStat.points.negative += 1;
+                                if (item.x2) {
+                                    playerStat.x2.points.negative += 1;
+                                }
+                            }
+                        } else {
+                            playerStat.points.volume += frenchInfoStat[item.french].volume;
+                            playerStat.points.intensity += frenchInfoStat[item.french].intensity
+                        }
+                    } else {
+                        if (system === 'simple') {
+                            if (item.success) {
+                                playerStat.tirs.positive += 1;
+                                if (item.x2) {
+                                    playerStat.x2.tirs.positive += 1;
+                                }
+                            } else {
+                                playerStat.tirs.negative += 1;
+                                if (item.x2) {
+                                    playerStat.x2.tirs.negative += 1;
+                                }
+                            }
+                        } else {
+                            playerStat.tirs.volume += frenchInfoStat[item.french].volume;
+                            if (item.french === 'E') {
+                                playerStat.tirs.intensity += 0.5
+                            } else {
+                                playerStat.tirs.intensity += frenchInfoStat[item.french].intensity
+                            }
+                        }
+                    }
+                    playerStat.serie.push(item);
+                }
+            })
+        })
+        if (system === 'simple') {
+            playerStat.all = Math.round((playerStat.points.positive + playerStat.tirs.positive) / (playerStat.points.positive + playerStat.tirs.positive + playerStat.points.negative + playerStat.tirs.negative) * 100);
+            playerStat.points = (playerStat.points.positive + playerStat.points.negative) > 1 ? Math.round(playerStat.points.positive / (playerStat.points.positive + playerStat.points.negative) * 100) : '-';
+            playerStat.tirs = (playerStat.tirs.positive + playerStat.tirs.negative) > 1 ? Math.round(playerStat.tirs.positive / (playerStat.tirs.positive + playerStat.tirs.negative) * 100) : '-';
+        }
+    }
+
+    return playerStat
+}
 export function calculateTeamPlayersStat(team, system) {
     let teamStat = [];
     team.players.forEach(() => {
@@ -170,3 +267,26 @@ export function calculateTeamPlayersStat(team, system) {
 export function getFrenchStat(value, count) {
     return isNaN(Math.round(value / count * 100)) ? 0 : Math.round(value / count * 100)
 }
+
+export function getDate(time) {
+    const d = new Date(time);
+    return `(${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()})`
+}
+
+export const gameTypes = [
+    {
+        id: 'tet',
+        label: 'Tet-a-tet',
+        value: 1,
+    },
+    {
+        id: 'doublet',
+        label: 'Doublet',
+        value: 2,
+    },
+    {
+        id: 'triplet',
+        label: 'Triplet',
+        value: 3,
+    },
+]

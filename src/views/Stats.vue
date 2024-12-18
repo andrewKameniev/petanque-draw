@@ -7,9 +7,9 @@
             />
             <div class="stat-container">
                 <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
-                <div v-else>
-                    <div v-if="currentMan === null">
-                        <div class="has-text-right">
+                <div v-else class="mobile-stat-container">
+                    <div v-if="currentMan === null" class="mobile-stat-container">
+                        <div class="has-text-right mobile-stat-container-header">
                             <button @click="archiveOpen = true" class="button is-info">Archive</button>
                         </div>
                         <label class="label" for="gameName">Enter game name</label>
@@ -71,8 +71,10 @@
                         </div>
                         <button @click="currentMan = 0" class="button is-success">Start</button>
                     </div>
-                    <div v-else-if="showResults">
-                        <button @click="startNewGame" class="button is-info">New game</button>
+                    <div v-else-if="showResults" class="mobile-stat-container">
+                        <div class="mobile-stat-container-header">
+                            <button @click="startNewGame" class="button is-info">New game</button>
+                        </div>
                         <h2 class="my-3 is-size-4">{{ gameName }}</h2>
                         <div class="columns">
                             <div class="column is-half-desktop">
@@ -87,13 +89,17 @@
                     </div>
                     <div v-else @touchstart="onTouchStart"
                          @touchmove="onTouchMove"
-                         @touchend="onTouchEnd">
-                        <div class="is-flex is-justify-content-space-between mb-3">
-                            <div class="control">
-                                <button @click="startNewGame" class="button is-danger">New game</button>
-                            </div>
-                            <div class="control">
-                                <button @click="finishGame" class="button is-info">Finish game</button>
+                         @touchend="onTouchEnd"
+                         class="mobile-stat-container"
+                    >
+                        <div class="mobile-stat-container-header">
+                            <div class="is-flex is-justify-content-space-between mb-3">
+                                <div class="control">
+                                    <button @click="startNewGame" class="button is-danger">New game</button>
+                                </div>
+                                <div class="control">
+                                    <button @click="finishGame" class="button is-info">Finish game</button>
+                                </div>
                             </div>
                         </div>
                         <div class="is-flex is-justify-content-space-between">
@@ -138,6 +144,7 @@ import {getDatabase, ref, set} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
+import {gameTypes} from "@/helpers-stat.js"
 export default {
     name: 'Stats',
     components: {StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
@@ -149,29 +156,13 @@ export default {
             startX: 0,
             startY: 0,
             swipeDirection: null,
-            gameTypes: [
-                {
-                    id: 'tet',
-                    label: 'Tet-a-tet',
-                    value: 1,
-                },
-                {
-                    id: 'doublet',
-                    label: 'Doublet',
-                    value: 2,
-                },
-                {
-                    id: 'triplet',
-                    label: 'Triplet',
-                    value: 3,
-                },
-            ],
             gameName: '',
             gameType: 1,
             statScenario: false,
             statMode: false,
             statSystem: 'simple',
             currentMan: null,
+            gameTypes,
             team1: {
                 score: []
             },
@@ -291,7 +282,7 @@ export default {
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 this.swipeDirection = deltaX > 0 ? "right" : "left";
-                if (Math.abs(endX - this.startX) > 100) {
+                if (Math.abs(endX - this.startX) > 50) {
                     if (this.swipeDirection === 'right') {
                         if (this.currentMan > 0) {
                             this.currentMan--
@@ -362,7 +353,17 @@ export default {
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        padding-bottom: 10vh;
+        padding-bottom: 15vh;
+    }
+
+    .mobile-stat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mobile-stat-container-header {
+        margin-bottom: auto;
     }
 }
 

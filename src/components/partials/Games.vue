@@ -185,7 +185,11 @@ export default {
 
         },
         drawRound() {
+            if (this.tournament.teams.length < 8 && this.tournament.system === 'swiss') {
 
+                this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
+                return;
+            }
             // let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
             let round = []; // массив куда будем сохранять пары соперников
             let game; // объект с соперниками

@@ -14,6 +14,7 @@ export default {
         }
     },
     mounted() {
+        console.log(this.user);
         const db = getDatabase();
         const statsRef = ref(db, `${this.user.uid}/stats/`);
 
@@ -78,14 +79,20 @@ export default {
                 });
         },
         countTeamScore(scores) {
-            if (!Array.isArray(scores)) {
-                const tempArray = []
-                Object.values(scores).forEach(value => tempArray.push(value))
-                scores = tempArray;
+            if (scores) {
+                if (!Array.isArray(scores)) {
+                    const tempArray = []
+                    Object.values(scores).forEach(value => tempArray.push(value))
+                    scores = tempArray;
+                }
+
+                return scores
+                    .filter(value => value !== undefined) // Remove undefined or missing values
+                    .reduce((acc, value) => acc + value, 0);
+            } else {
+                return 'N/A'
             }
-            return scores
-                .filter(value => value !== undefined) // Remove undefined or missing values
-                .reduce((acc, value) => acc + value, 0);
+
         },
         getDate
     }
@@ -93,39 +100,44 @@ export default {
 </script>
 
 <template>
-    <div class="mobile-stat-container">
+    <div class="mobile-stat-container" >
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">Back</button>
-            <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
+            <button v-if="user" class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
         </div>
-        <div v-if="statsList" class="mt-3">
-            <StatsAnalysis v-if="showStatAnalysis" :stats="statsList"/>
-            <div v-for="item in statsList" :key="item.date">
-                <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
+        <div v-if="user">
+            <div v-if="statsList" class="mt-3">
+                <StatsAnalysis v-if="showStatAnalysis" :stats="statsList"/>
+                <div v-for="item in statsList" :key="item.date">
+                    <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
                     <span class="is-size-4">
                         {{ item.name }}
                         <span class="is-size-6">{{getDate(item.date)}}</span>
                     </span>
-                    <span class="delete" @click.stop="removeGame(item.date)"></span>
-                </div>
-                <div class="columns" v-if="item.isOpen">
-                    <div class="column is-half-desktop">
-                        <div class="label">
-                            Team 1 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team1.score) }}</span>
-                        </div>
-                        <StatResult :team="item.team1" :system="item.system"/>
+                        <span class="delete" @click.stop="removeGame(item.date)"></span>
                     </div>
-                    <div class="column is-half-desktop">
-                        <div class="label">
-                            Team 2 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team2.score) }}</span>
+                    <div class="columns" v-if="item.isOpen">
+                        <div class="column is-half-desktop">
+                            <div class="label">
+                                Team 1 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team1.score) }}</span>
+                            </div>
+                            <StatResult :team="item.team1" :system="item.system"/>
                         </div>
-                        <StatResult :team="item.team2" :system="item.system"/>
+                        <div class="column is-half-desktop">
+                            <div class="label">
+                                Team 2 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team2.score) }}</span>
+                            </div>
+                            <StatResult :team="item.team2" :system="item.system"/>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div v-else class="mt-3">
+                Nothing to show
+            </div>
         </div>
-        <div v-else class="mt-3">
-            Nothing to show
+        <div v-else class="is-size-3 p-3 has-text-centered">
+            You can view saved statistic only as login user
         </div>
     </div>
 </template>

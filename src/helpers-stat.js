@@ -206,51 +206,53 @@ export function calculateTeamPlayersStat(team, system) {
 
     if (team.players[0].stat?.length) {
         team.players.forEach((player, index) => {
-            player.stat.forEach(man => {
-                man.forEach(item => {
-                    if (item.isMade){
-                        if (item.type === 'p') {
-                            if (system === 'simple') {
-                                if (item.success) {
-                                    teamStat[index].points.positive += 1;
-                                    if (item.x2) {
-                                        teamStat[index].x2.points.positive += 1;
+            player.stat?.forEach(man => {
+                if (man) {
+                    man.forEach(item => {
+                        if (item.isMade){
+                            if (item.type === 'p') {
+                                if (system === 'simple') {
+                                    if (item.success) {
+                                        teamStat[index].points.positive += 1;
+                                        if (item.x2) {
+                                            teamStat[index].x2.points.positive += 1;
+                                        }
+                                    } else {
+                                        teamStat[index].points.negative += 1;
+                                        if (item.x2) {
+                                            teamStat[index].x2.points.negative += 1;
+                                        }
                                     }
                                 } else {
-                                    teamStat[index].points.negative += 1;
-                                    if (item.x2) {
-                                        teamStat[index].x2.points.negative += 1;
-                                    }
+                                    teamStat[index].points.volume += frenchInfoStat[item.french].volume;
+                                    teamStat[index].points.intensity += frenchInfoStat[item.french].intensity
                                 }
                             } else {
-                                teamStat[index].points.volume += frenchInfoStat[item.french].volume;
-                                teamStat[index].points.intensity += frenchInfoStat[item.french].intensity
-                            }
-                        } else {
-                            if (system === 'simple') {
-                                if (item.success) {
-                                    teamStat[index].tirs.positive += 1;
-                                    if (item.x2) {
-                                        teamStat[index].x2.tirs.positive += 1;
+                                if (system === 'simple') {
+                                    if (item.success) {
+                                        teamStat[index].tirs.positive += 1;
+                                        if (item.x2) {
+                                            teamStat[index].x2.tirs.positive += 1;
+                                        }
+                                    } else {
+                                        teamStat[index].tirs.negative += 1;
+                                        if (item.x2) {
+                                            teamStat[index].x2.tirs.negative += 1;
+                                        }
                                     }
                                 } else {
-                                    teamStat[index].tirs.negative += 1;
-                                    if (item.x2) {
-                                        teamStat[index].x2.tirs.negative += 1;
+                                    teamStat[index].tirs.volume += frenchInfoStat[item.french].volume;
+                                    if (item.french === 'E') {
+                                        teamStat[index].tirs.intensity += 0.5
+                                    } else {
+                                        teamStat[index].tirs.intensity += frenchInfoStat[item.french].intensity
                                     }
                                 }
-                            } else {
-                                teamStat[index].tirs.volume += frenchInfoStat[item.french].volume;
-                                if (item.french === 'E') {
-                                    teamStat[index].tirs.intensity += 0.5
-                                } else {
-                                    teamStat[index].tirs.intensity += frenchInfoStat[item.french].intensity
-                                }
                             }
+                            teamStat[index].serie.push(item);
                         }
-                        teamStat[index].serie.push(item);
-                    }
-                })
+                    })
+                }
             })
             if (system === 'simple') {
                 teamStat[index].all = {

@@ -4,8 +4,13 @@ body {
     margin: 0;
     font-family: 'Manrope', sans-serif;
     font-size: 1em;
-    background: url("../img/bg-mountains.avif") center/cover;
-    background-attachment: fixed;
+}
+
+@media screen and (min-width: 575px){
+    body {
+        background: url("../img/bg-mountains.avif") center/cover;
+        background-attachment: fixed;
+    }
 }
 
 .wrapper {

@@ -58,7 +58,7 @@ export default {
             const calculateAverage = (key) => {
                 const validGames = this.playerStatList.filter(game => game.stat[key] !== '-');
                 const total = validGames.reduce((acc, game) => acc + game.stat[key], 0);
-                return validGames.length > 0 ? total / validGames.length : 0; // Avoid division by zero
+                return validGames.length > 0 ? (total / validGames.length).toFixed(1) : 0; // Avoid division by zero
             };
 
             return {
@@ -117,43 +117,39 @@ export default {
             this.playerStatList = [];
             this.chartData[0].data = [];
             this.chartData[1].data = [];
-            this.chartData[1].data = [];
             this.chartOptions.xaxis.categories = [];
-            let timeFrom, timeTo;
-            if (this.date) {
-                timeFrom = this.date[0].getTime();
-                timeTo = this.date[1].getTime();
-            }
-            Object.keys(this.stats).forEach(key => {
-                if ((timeFrom && key < timeFrom) || (timeTo && key > timeTo)) {
-                    return false
-                }
-                if (this.filterGamesType && this.filterGamesType !== this.stats[key].team1.players.length) {
-                    return false
-                }
-                if (this.stats[key].team1.players.find(player => player.name === this.player)) {
-                    const game = {
-                        date: key,
-                        stat: calculatePlayerStat(this.stats[key].team1.players.find(player => player.name === this.player).stat, 'simple')
+
+            let timeFrom = this.date ? this.date[0].getTime() : null;
+            let timeTo = this.date ? this.date[1].getTime() : null;
+
+            Object.entries(this.stats).forEach(([key, game]) => {
+                if ((timeFrom && key < timeFrom) || (timeTo && key > timeTo)) return;
+
+                if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
+
+                const checkAndAddStat = (team) => {
+                    const player = team.players.find(player => player.name.trim() === this.player.trim());
+                    if (player) {
+                        this.playerStatList.push({
+                            date: key,
+                            stat: calculatePlayerStat(player.stat, 'simple')
+                        });
                     }
-                    this.playerStatList.push(game)
-                }
-                if (this.stats[key].team2.players.find(player => player.name === this.player)) {
-                    const game = {
-                        date: key,
-                        stat: calculatePlayerStat(this.stats[key].team2.players.find(player => player.name === this.player).stat, 'simple')
-                    }
-                    this.playerStatList.push(game)
-                }
-            })
+                };
+
+                checkAndAddStat(game.team1);
+                checkAndAddStat(game.team2);
+            });
 
             this.playerStatList.forEach(game => {
+                const { points, tirs } = game.stat;
                 this.chartOptions.xaxis.categories.push(getDate(+game.date));
-                this.chartData[0].data.push(game.stat.points !== '-' ? game.stat.points : null);
-                this.chartData[1].data.push(game.stat.tirs !== '-' ? game.stat.tirs : null);
+                this.chartData[0].data.push(points !== '-' ? points : null);
+                this.chartData[1].data.push(tirs !== '-' ? tirs : null);
             });
+
             if (this.chartOptions.xaxis.categories.length > 1) {
-                this.chartOptions.title.text = this.player + ' charts';
+                this.chartOptions.title.text = `${this.player} charts`;
                 this.showSinusoids = true;
             }
         }

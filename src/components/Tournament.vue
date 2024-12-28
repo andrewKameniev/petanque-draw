@@ -19,10 +19,10 @@
             <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
         <div v-if="!tournament.games?.length && !tournament.playOff">
-            <div class="field">
+            <div class="field" v-if="tournament.teams?.length > 2">
                 <label class="label" for="">{{ $t('teams.system') }}</label>
                 <div class="control">
-                    <label class="radio">
+                    <label class="radio" v-if="tournament.teams?.length > 7">
                         <input type="radio" name="system" id="swiss" value="swiss" v-model="tournament.system">
                         {{ $t('teams.swiss') }}
                     </label>

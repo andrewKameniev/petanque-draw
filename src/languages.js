@@ -53,6 +53,8 @@ export default {
             playOff: 'PlayOff',
             someone: 'Someone',
             lucky: 'Lucky guy',
+            chooseSystem: 'Choose tournament system',
+            chooseSystemText: 'Prohibited to play swiss system with less then 8 teams',
         },
         results: {
             title: 'Every round results',
@@ -307,6 +309,8 @@ export default {
             playOff: 'Плей офф',
             someone: 'Якийсь',
             lucky: 'щасливчик',
+            chooseSystem: 'Виберіть систему розіграшу',
+            chooseSystemText: 'Забороняється грати турнір по швейцарській системі при кількості команд менше 8',
         },
         results: {
             title: 'Результати кожного раунду',

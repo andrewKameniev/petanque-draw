@@ -129,6 +129,7 @@
                     </div>
                 </div>
             </div>
+            <Message v-if="message.show"/>
             <Footer/>
         </div>
     </div>
@@ -145,9 +146,10 @@ import {mapMutations, mapState} from "vuex";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import {gameTypes} from "@/helpers-stat.js"
+import Message from "@/components/Message.vue";
 export default {
     name: 'Stats',
-    components: {StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
+    components: {Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
     data() {
         return {
             archiveOpen: false,
@@ -181,7 +183,7 @@ export default {
         this.changePlayers();
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(['user', 'message']),
         currentScore() {
             return {
                 team1: this.team1.score.reduce((a, b) => a + b, 0),

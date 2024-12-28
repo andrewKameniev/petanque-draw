@@ -15,7 +15,9 @@ export default {
             const infoEveryMan = [];
             this.team.players.forEach(player => {
                 player.stat.forEach((man, index) => {
-                    infoEveryMan[index] = (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0)
+                    if (man) {
+                        infoEveryMan[index] = (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0)
+                    }
                 })
             })
             return infoEveryMan

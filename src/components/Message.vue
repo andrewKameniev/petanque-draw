@@ -17,7 +17,7 @@ export default {
     name: 'Message',
     mounted(){
         const self = this;
-        setTimeout(self.hideMessage, 3000);
+        setTimeout(self.hideMessage, 5000);
     },
     computed: mapState(['message']),
     methods: {

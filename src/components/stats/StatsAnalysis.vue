@@ -128,7 +128,8 @@ export default {
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
                 const checkAndAddStat = (team) => {
-                    const player = team.players.find(player => player.name.trim() === this.player.trim());
+                    console.log(team);
+                    const player = team.players.find(player => player?.name.trim() === this.player.trim());
                     if (player) {
                         this.playerStatList.push({
                             date: key,

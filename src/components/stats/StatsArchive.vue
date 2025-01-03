@@ -23,7 +23,13 @@ export default {
         get(statsRef)
             .then((snapshot) => {
                 if (snapshot.exists()) {
-                    this.statsList = snapshot.val(); // Extract the data
+                    this.statsList = Object.keys(snapshot.val()).reverse().reduce(
+                        (obj, key) => {
+                            obj[key] = snapshot.val()[key];
+                            return obj;
+                        },
+                        {}
+                    ); // Extract the data
                     Object.keys(this.statsList).forEach(key => {
                         this.statsList[key].isOpen = false
                     })
@@ -78,22 +84,6 @@ export default {
                     });
                 });
         },
-        countTeamScore(scores) {
-            if (scores) {
-                if (!Array.isArray(scores)) {
-                    const tempArray = []
-                    Object.values(scores).forEach(value => tempArray.push(value))
-                    scores = tempArray;
-                }
-
-                return scores
-                    .filter(value => value !== undefined) // Remove undefined or missing values
-                    .reduce((acc, value) => acc + value, 0);
-            } else {
-                return 'N/A'
-            }
-
-        },
         getDate
     }
 }
@@ -118,16 +108,10 @@ export default {
                     </div>
                     <div class="columns" v-if="item.isOpen">
                         <div class="column is-half-desktop">
-                            <div class="label">
-                                Team 1 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team1.score) }}</span>
-                            </div>
-                            <StatResult :team="item.team1" :system="item.system"/>
+                            <StatResult :team="item.team1" :system="item.system" label="Team 1"/>
                         </div>
                         <div class="column is-half-desktop">
-                            <div class="label">
-                                Team 2 - <span class="has-text-danger is-size-4">{{ countTeamScore(item.team2.score) }}</span>
-                            </div>
-                            <StatResult :team="item.team2" :system="item.system"/>
+                            <StatResult :team="item.team2" :system="item.system" label="Team 2"/>
                         </div>
                     </div>
                 </div>

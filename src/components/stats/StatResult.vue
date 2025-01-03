@@ -3,7 +3,7 @@ import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "
 
 export default {
     name: "StatResult",
-    props: ['team', 'system'],
+    props: ['team', 'system', 'label'],
     computed: {
         teamStats() {
             return calculateTeamPlayersStat(this.team, this.system)
@@ -21,17 +21,42 @@ export default {
                 })
             })
             return infoEveryMan
+        },
+        filledScores() {
+            let fillScoresArray = [];
+            for (let i = 0; i < this.boulesOnMan.length; i++) {
+                fillScoresArray.push(this.team.score ? this.team.score[i] || 0 : 0)
+            }
+            return fillScoresArray
         }
     },
     methods: {
-        getFrenchStat
+        getFrenchStat,
+        countTeamScore(scores) {
+            if (scores) {
+                if (!Array.isArray(scores)) {
+                    const tempArray = []
+                    Object.values(scores).forEach(value => tempArray.push(value))
+                    scores = tempArray;
+                }
+
+                return scores
+                    .filter(value => value !== undefined)
+                    .reduce((acc, value) => acc + value, 0);
+            } else {
+                return '0'
+            }
+        },
     }
 }
 </script>
 
 <template>
     <div>
-        <div class="mb-3">
+        <div class="label">
+            {{ label }} - <span class="has-text-danger is-size-4">{{ countTeamScore(team.score) }}</span>
+        </div>
+        <div class="mb-3" v-if="team.players.length > 1">
             <div class="is-size-4">Common team statistics:</div>
             <div v-if="system === 'simple'">
                 <div class="is-size-5">
@@ -46,23 +71,6 @@ export default {
                     Tirs: {{commonStat.tirs.positive}}/{{commonStat.tirs.positive + commonStat.tirs.negative}}
                     <strong class="is-size-4" v-if="commonStat.tirs.positive + commonStat.tirs.negative !== 0">- {{Math.round(commonStat.tirs.positive/(commonStat.tirs.positive + commonStat.tirs.negative) * 100)}}%</strong>
                 </div>
-                <div class="mt-3 is-size-4">Result boules for every mene:</div>
-                <div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td v-for="(item, index) in boulesOnMan" :key="index">{{index + 1}}</td>
-                                <td>Av</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
-                                <td>{{ (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(1) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
             <div v-else>
                 <div>
@@ -71,6 +79,32 @@ export default {
                 <div>
                     <strong>Tirs:</strong> vol. - {{ Math.round(commonStat.tirs.volume / team.players.length) }}%, int. - {{ Math.round(commonStat.tirs.intensity / team.players.length) }}%, eff. {{ Math.round(((commonStat.tirs.volume + commonStat.tirs.intensity) / 2) / team.players.length) }}%
                 </div>
+            </div>
+        </div>
+        <div class="mt-3 is-size-5">Every mene result:</div>
+        <div class="mb-3">
+            <div class="table-container">
+                <table class="table has-text-centered">
+                    <thead>
+                    <tr>
+                        <td></td>
+                        <td v-for="(item, index) in boulesOnMan" :key="index" class="is-size-7">{{index + 1}}</td>
+                        <td class="is-size-7">Av</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="is-size-7">Res. <br> boules</td>
+                        <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
+                        <td>{{ (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(1) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="is-size-7">Win <br> boules</td>
+                        <td v-for="(score, index) in filledScores" :key="index">{{ score || 0 }}</td>
+                        <td>{{ (filledScores.reduce((acc, item) => acc + item, 0)) }}</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="player-info -result mb-2" v-for="(player, index) in team.players" :key="index">

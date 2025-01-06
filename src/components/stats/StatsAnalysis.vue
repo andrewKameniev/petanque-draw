@@ -107,9 +107,6 @@ export default {
             return list;
         }
     },
-    mounted() {
-
-    },
     methods: {
         ...mapMutations(['showMessage']),
         showPlayerStat() {

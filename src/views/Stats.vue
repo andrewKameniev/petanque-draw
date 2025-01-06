@@ -6,138 +6,143 @@
                   @closeMenu="menuOpen = false"
             />
             <div class="stat-container">
-                <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
-                <div v-else class="mobile-stat-container">
-                    <div v-if="currentMan === null" class="mobile-stat-container">
-                        <div class="has-text-right mobile-stat-container-header">
-                            <button @click="archiveOpen = true" class="button is-info">Archive</button>
-                        </div>
-                        <label class="label" for="gameName">Enter game name</label>
-                        <div class="field control">
-                            <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
-                        </div>
-                        <div class="field">
-                            <label class="radio" v-for="item in gameTypes" :key="item.id">
-                                <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
-                                {{ item.label }}
-                            </label>
-                        </div>
-                        <label class="label">Mode</label>
-                        <div class="field">
-                            <label class="radio">
-                                <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
-                                Classic
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
-                                Fast
-                            </label>
-                        </div>
-                        <label class="label">System</label>
-                        <div class="field">
-                            <label class="radio">
-                                <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
-                                Simple
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
-                                French (A, B, ...)
-                            </label>
-                        </div>
-                        <label class="label">Scenario</label>
-                        <div class="field">
-                            <label class="radio">
-                                <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
-                                Negative
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
-                                Positive
-                            </label>
-                        </div>
-                        <div class="columns mb-3" v-if="team1.players?.length">
-                            <div class="column is-half">
-                                <div class="label">Team 1</div>
-                                <div class="field control" v-for="(player, index) in team1.players" :key="index">
-                                    <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                <div v-if="user">
+                    <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
+                    <div v-else class="mobile-stat-container">
+                        <div v-if="currentMan === null" class="mobile-stat-container">
+                            <div class="has-text-right mobile-stat-container-header">
+                                <button @click="archiveOpen = true" class="button is-info">Archive</button>
+                            </div>
+                            <label class="label" for="gameName">Enter game name</label>
+                            <div class="field control">
+                                <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
+                            </div>
+                            <div class="field">
+                                <label class="radio" v-for="item in gameTypes" :key="item.id">
+                                    <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
+                                    {{ item.label }}
+                                </label>
+                            </div>
+                            <label class="label">Mode</label>
+                            <div class="field">
+                                <label class="radio">
+                                    <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
+                                    Classic
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
+                                    Fast
+                                </label>
+                            </div>
+                            <label class="label">System</label>
+                            <div class="field">
+                                <label class="radio">
+                                    <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
+                                    Simple
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
+                                    French (A, B, ...)
+                                </label>
+                            </div>
+                            <label class="label">Scenario</label>
+                            <div class="field">
+                                <label class="radio">
+                                    <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
+                                    Negative
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
+                                    Positive
+                                </label>
+                            </div>
+                            <div class="columns mb-3" v-if="team1.players?.length">
+                                <div class="column is-half">
+                                    <div class="label">Team 1</div>
+                                    <div class="field control" v-for="(player, index) in team1.players" :key="index">
+                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                    </div>
+                                </div>
+                                <div class="column is-half">
+                                    <div class="label">Team 2</div>
+                                    <div class="field control" v-for="(player, index) in team2.players" :key="index">
+                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="column is-half">
-                                <div class="label">Team 2</div>
-                                <div class="field control" v-for="(player, index) in team2.players" :key="index">
-                                    <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                            <button @click="currentMan = 0" class="button is-success">Start</button>
+                        </div>
+                        <div v-else-if="showResults" class="mobile-stat-container">
+                            <div class="mobile-stat-container-header">
+                                <button @click="startNewGame" class="button is-info">New game</button>
+                            </div>
+                            <h2 class="my-3 is-size-4">{{ gameName }}</h2>
+                            <div class="columns">
+                                <div class="column is-half-desktop">
+                                    <div class="label">Team 1</div>
+                                    <StatResult :team="team1" :system="statSystem"/>
                                 </div>
-                            </div>
-                        </div>
-                        <button @click="currentMan = 0" class="button is-success">Start</button>
-                    </div>
-                    <div v-else-if="showResults" class="mobile-stat-container">
-                        <div class="mobile-stat-container-header">
-                            <button @click="startNewGame" class="button is-info">New game</button>
-                        </div>
-                        <h2 class="my-3 is-size-4">{{ gameName }}</h2>
-                        <div class="columns">
-                            <div class="column is-half-desktop">
-                                <div class="label">Team 1</div>
-                                <StatResult :team="team1" :system="statSystem"/>
-                            </div>
-                            <div class="column is-half-desktop">
-                                <div class="label">Team 2</div>
-                                <StatResult :team="team2" :system="statSystem"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-else @touchstart="onTouchStart"
-                         @touchmove="onTouchMove"
-                         @touchend="onTouchEnd"
-                         class="mobile-stat-container"
-                    >
-                        <div class="mobile-stat-container-header">
-                            <div class="is-flex is-justify-content-space-between mb-3">
-                                <div class="control">
-                                    <button @click="startNewGame" class="button is-danger">New game</button>
-                                </div>
-                                <div class="control">
-                                    <button @click="finishGame" class="button is-info">Finish game</button>
+                                <div class="column is-half-desktop">
+                                    <div class="label">Team 2</div>
+                                    <StatResult :team="team2" :system="statSystem"/>
                                 </div>
                             </div>
                         </div>
-                        <div class="is-flex is-justify-content-space-between">
-                            <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
-                            <div>
-                                <strong>Score</strong>
-                                {{currentScore.team1}} : {{currentScore.team2}}
+                        <div v-else @touchstart="onTouchStart"
+                             @touchmove="onTouchMove"
+                             @touchend="onTouchEnd"
+                             class="mobile-stat-container"
+                        >
+                            <div class="mobile-stat-container-header">
+                                <div class="is-flex is-justify-content-space-between mb-3">
+                                    <div class="control">
+                                        <button @click="startNewGame" class="button is-danger">New game</button>
+                                    </div>
+                                    <div class="control">
+                                        <button @click="finishGame" class="button is-info">Finish game</button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <hr>
-                        <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem"
-                                  @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                  @x2throw="doubleThrowResult"
-                                  @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
-                        />
-                        <hr>
-                        <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem"
-                                  @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                  @x2throw="doubleThrowResult"
-                                  @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
-                        />
-                        <div class="is-flex is-justify-content-space-between mt-3">
-                            <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">Prev</button>
-                            <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">Remove man</button>
-                            <button class="button is-success" @click="currentMan++">Next</button>
+                            <div class="is-flex is-justify-content-space-between">
+                                <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
+                                <div>
+                                    <strong>Score</strong>
+                                    {{currentScore.team1}} : {{currentScore.team2}}
+                                </div>
+                            </div>
+                            <hr>
+                            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem"
+                                      @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
+                                      @x2throw="doubleThrowResult"
+                                      @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
+                            />
+                            <hr>
+                            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem"
+                                      @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
+                                      @x2throw="doubleThrowResult"
+                                      @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
+                            />
+                            <div class="is-flex is-justify-content-space-between mt-3">
+                                <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">Prev</button>
+                                <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">Remove man</button>
+                                <button class="button is-success" @click="currentMan++">Next</button>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div v-else class="is-size-3 p-3 has-text-centered">
+                    You can count statistic only as login user
+                </div>
             </div>
             <Message v-if="message.show"/>
-            <Footer/>
+<!--            <Footer/>-->
         </div>
     </div>
 </template>
 
 <script>
 
-import Footer from "@/components/partials/Footer.vue";
+// import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
@@ -149,7 +154,7 @@ import {gameTypes} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
 export default {
     name: 'Stats',
-    components: {Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
+    components: {Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
     data() {
         return {
             archiveOpen: false,
@@ -180,7 +185,7 @@ export default {
         }
     },
     mounted() {
-        this.changePlayers();
+        this.getLocalData();
     },
     computed: {
         ...mapState(['user', 'message']),
@@ -209,6 +214,33 @@ export default {
     },
     methods: {
         ...mapMutations(['showMessage']),
+        saveLocalData() {
+            const data = {
+                type: this.gameType,
+                system: this.statSystem,
+                name: this.gameName,
+                scenario: this.statScenario,
+                mode: this.statMode,
+                team1: {...this.team1},
+                team2: {...this.team2}
+            }
+            localStorage.setItem('statGame', JSON.stringify(data))
+        },
+        getLocalData(){
+            if (localStorage.getItem('statGame')) {
+                const gameData = JSON.parse(localStorage.getItem('statGame'));
+                this.gameType = gameData.type;
+                this.statMode = gameData.mode;
+                this.statScenario = gameData.scenario;
+                this.statSystem = gameData.system;
+                this.gameName = gameData.name;
+                this.team1 = {...gameData.team1};
+                this.team2 = {...gameData.team2};
+                this.currentMan = this.manCount - 1;
+            } else {
+                this.changePlayers();
+            }
+        },
         changePlayerInTeam(teamIndex, playerIndex, playerName) {
             this.addPlayer(this['team' + teamIndex], playerName);
             const currentPlayer = this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1];
@@ -232,6 +264,7 @@ export default {
             const db = getDatabase();
             set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
                 this.showMessage({title: 'Awesome!', text: 'Statistics saved to db'});
+                localStorage.removeItem('statGame');
             }).catch((error) => {
                 console.error('Error save:', error);
                 this.showMessage({title: 'error', text: error, type: 'error'});
@@ -240,9 +273,14 @@ export default {
         startNewGame() {
             this.showResults = false;
             this.currentMan = null;
-            this.team1.score = [];
-            this.team2.score = [];
-            this.changePlayers()
+            this.gameName = '';
+            this.team1 = {
+                score: []
+            };
+            this.team2 = {
+                score: []
+            };
+            this.changePlayers();
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
             team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)
@@ -324,6 +362,7 @@ export default {
             if (this.team1.players[0].stat.length <= this.currentMan) {
                 this.addPlayersStats(this.team1.players);
                 this.addPlayersStats(this.team2.players);
+                this.saveLocalData();
             }
         },
         changePlayers() {

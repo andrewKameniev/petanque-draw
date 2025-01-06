@@ -93,9 +93,9 @@ export default {
     <div class="mobile-stat-container" >
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">Back</button>
-            <button v-if="user" class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
+            <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
         </div>
-        <div v-if="user">
+        <div>
             <div v-if="statsList" class="mt-3">
                 <StatsAnalysis v-if="showStatAnalysis" :stats="statsList"/>
                 <div v-for="item in statsList" :key="item.date">
@@ -120,9 +120,7 @@ export default {
                 Nothing to show
             </div>
         </div>
-        <div v-else class="is-size-3 p-3 has-text-centered">
-            You can view saved statistic only as login user
-        </div>
+
     </div>
 </template>
 

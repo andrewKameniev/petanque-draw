@@ -12,6 +12,7 @@ import LoginUser from "@/views/LoginUser";
 import languages from "@/languages";
 import Help from "@/components/Help.vue";
 import Stats from "@/views/Stats.vue";
+import Training from "@/views/Training.vue";
 
 const app = createApp(App);
 const router = createRouter({
@@ -47,6 +48,11 @@ const router = createRouter({
             path: '/stats',
             name: 'Statistics',
             component: Stats
+        },
+        {
+            path: '/training',
+            name: 'Training',
+            component: Training
         },
         {
             path: '/admin',

@@ -6,7 +6,7 @@
                   @closeMenu="menuOpen = false"
             />
             <div class="stat-container">
-                <div v-if="user">
+                <div v-if="user" class="mobile-stat-container">
                     <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
                     <div v-else class="mobile-stat-container">
                         <div v-if="currentMan === null" class="mobile-stat-container">

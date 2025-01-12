@@ -47,9 +47,6 @@ export default {
                 xaxis: {
                     categories: []
                 },
-                title: {
-                    text: ''
-                }
             }
         }
     },
@@ -125,7 +122,6 @@ export default {
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
                 const checkAndAddStat = (team) => {
-                    console.log(team);
                     const player = team.players.find(player => player?.name.trim() === this.player.trim());
                     if (player) {
                         this.playerStatList.push({
@@ -145,11 +141,13 @@ export default {
                 this.chartData[0].data.push(points !== '-' ? points : null);
                 this.chartData[1].data.push(tirs !== '-' ? tirs : null);
             });
-
             if (this.chartOptions.xaxis.categories.length > 1) {
-                this.chartOptions.title.text = `${this.player} charts`;
                 this.showSinusoids = true;
             }
+        },
+        clearGameType() {
+            this.filterGamesType = null;
+            this.showPlayerStat();
         }
     }
 }
@@ -160,25 +158,22 @@ export default {
         <div class="columns mb-1">
             <div class="column is-half-desktop">
                 <label for="" class="label">Find Player</label>
-                <VueSelect v-model="player" :options="playersList"/>
+                <VueSelect v-model="player" :options="playersList" @option-selected="showPlayerStat"/>
             </div>
             <div class="column is-half-desktop" v-if="player">
                 <label for="" class="label">Choose period</label>
-                <VueDatePicker v-model="date" range multi-calendars />
+                <VueDatePicker v-model="date" range multi-calendars @update:model-value="showPlayerStat"/>
             </div>
         </div>
         <div class="field" v-if="player">
             <form action="">
                 <label for="" class="label">Choose only</label>
                 <label class="radio" v-for="item in gameTypes" :key="item.id">
-                    <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType">
+                    <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType" @change="showPlayerStat">
                     {{ item.label }}
                 </label>
-                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="filterGamesType = null">Clear</button>
+                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">Clear</button>
             </form>
-        </div>
-        <div class="mb-3" v-if="player">
-            <button class="button is-info" @click="showPlayerStat">Show player statistics</button>
         </div>
         <div v-if="player && playerStatList.length">
             <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} games)</div>

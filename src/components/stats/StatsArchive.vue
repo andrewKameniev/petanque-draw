@@ -14,11 +14,10 @@ export default {
         }
     },
     mounted() {
-        console.log(this.user);
         const db = getDatabase();
         const statsRef = ref(db, `${this.user.uid}/stats/`);
 
-        this.isLoading = true; // Assume `isLoading` is a data property
+        this.isLoading = true;
 
         get(statsRef)
             .then((snapshot) => {

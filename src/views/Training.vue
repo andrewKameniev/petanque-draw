@@ -16,84 +16,12 @@
                                 </button>
                             </div>
                         </div>
-                        <div v-if="addExerciseOpen">
-                            <div class="field">
-                                <label class="label" for="gameName">Enter training exercise name</label>
-                                <div class="control">
-                                    <input v-model="exercise.name" class="input" type="text" id="exerciseName" placeholder="Exercise name">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Distances</label>
-                                <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
-                                    <label class="checkbox" v-for="item in distances" :key="item">
-                                        <input type="checkbox" :checked="exercise.distances.includes(item)"
-                                               @change="updateCheckboxValues('distances', item, $event.target.checked)"/>
-                                        {{ item }}m
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Serie quantity</label>
-                                <div class="control">
-                                    <div class="select">
-                                        <select v-model.number="exercise.length">
-                                            <template v-for="(item) in 20" :key="item">
-                                                <option>{{item}}</option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Throw value</label>
-                                <div class="field">
-                                    <label class="radio">
-                                        <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="exercise.value">
-                                        Logical
-                                    </label>
-                                    <label class="radio">
-                                        <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="exercise.value">
-                                        Points
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="field" v-if="exercise.value">
-                                <label class="label">What points will be available?</label>
-                                <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
-                                    <label class="checkbox" v-for="item in possiblePoints" :key="item">
-                                        <input type="checkbox" :checked="exercise.points.includes(item)"
-                                               @change="updateCheckboxValues('points', item, $event.target.checked)"/>
-                                        {{ item }}m
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="field" v-if="!exercise.value">
-                                <label class="label">Exercise scenario</label>
-                                <div class="field">
-                                    <label class="radio">
-                                        <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="exercise.scenario">
-                                        Negative
-                                    </label>
-                                    <label class="radio">
-                                        <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="exercise.scenario">
-                                        Positive
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="checkbox">
-                                    <input type="checkbox" id="distanceFirst" v-model="exercise.distanceFirst"/>
-                                    Distance first
-                                </label>
-                            </div>
-                            <button @click="saveExercise" class="button is-success">Add</button>
-                        </div>
+                        <TrainingAdd v-if="addExerciseOpen" @add="addExToList"/>
                         <TrainingItem v-else-if="exerciseInProcess" :data="exercise" :exid="exerciseInProcess" @end="exerciseInProcess = false"/>
                         <TrainingResult v-else-if="resultsOpen" :exid="resultsOpen" :exdata="exercisesList[resultsOpen]" @back="resultsOpen = false"/>
                         <div v-else>
                             <div v-if="exercisesList">
-                                <div class="is-size-4">Exercises list</div>
+                                <div class="is-size-4 mb-5">Exercises list</div>
                                 <div v-for="(item, key) in exercisesList" :key="key" class="exercise-item is-rounded mb-3 p-3">
                                     <div>
                                         <div class="mb-2">
@@ -136,14 +64,15 @@
 // import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
-import {get, getDatabase, ref, remove, set} from "firebase/database";
+import {get, getDatabase, ref, remove} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
 import Message from "@/components/Message.vue";
 import TrainingItem from "@/components/training/TrainingItem.vue";
 import TrainingResult from "@/components/training/TrainingResult.vue";
+import TrainingAdd from "@/components/training/TrainingAdd.vue";
 export default {
     name: 'Training',
-    components: {TrainingResult, TrainingItem, Message, Menu, Navbar, /*Footer*/},
+    components: {TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, /*Footer*/},
     data() {
         return {
             resultsOpen: false,
@@ -151,22 +80,11 @@ export default {
             menuOpen: false,
             showResults: false,
             exerciseInProcess: false,
-            exercise: {
-                value: false,
-                scenario: false,
-                name: '',
-                length: 10,
-                distances: [6,7,8,9],
-                points: [0,3,5],
-                distanceFirst: false
-            },
-            distances: [4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,11.5,12],
-            possiblePoints: [0,1,2,3,4,5,6,7,8,9,10],
-            exercisesList: {}
+            exercisesList: {},
+            exercise: null
         }
     },
     mounted() {
-        // this.getLocalData();
         const db = getDatabase();
         const statsRef = ref(db, `${this.user.uid}/training/list`);
 
@@ -204,9 +122,7 @@ export default {
     computed: {
         ...mapState(['user', 'message']),
     },
-    watch: {
 
-    },
     methods: {
         ...mapMutations(['showMessage']),
         start(id) {
@@ -216,44 +132,9 @@ export default {
         viewResults(id) {
             this.resultsOpen = id;
         },
-        saveLocalData() {
-            const data = {
-                type: this.gameType,
-                system: this.statSystem,
-                name: this.gameName,
-                scenario: this.statScenario,
-                mode: this.statMode,
-                team1: {...this.team1},
-                team2: {...this.team2}
-            }
-            localStorage.setItem('statGame', JSON.stringify(data))
-        },
-        getLocalData(){
-            if (localStorage.getItem('statGame')) {
-                const gameData = JSON.parse(localStorage.getItem('statGame'));
-                this.gameType = gameData.type;
-                this.statMode = gameData.mode;
-                this.statScenario = gameData.scenario;
-                this.statSystem = gameData.system;
-                this.gameName = gameData.name;
-                this.team1 = {...gameData.team1};
-                this.team2 = {...gameData.team2};
-                this.currentMan = this.manCount - 1;
-            } else {
-                this.changePlayers();
-            }
-        },
-        saveExercise() {
-            const exerciseId = Date.now();
-            const db = getDatabase();
-            set(ref(db, `${this.user.uid}/training/list/${exerciseId}`), this.exercise).then(() => {
-                this.showMessage({title: 'Awesome!', text: 'Exercise saved to db'});
-                this.addExerciseOpen = false;
-                this.exercisesList[exerciseId] = this.exercise;
-            }).catch((error) => {
-                console.error('Error save:', error);
-                this.showMessage({title: 'error', text: error, type: 'error'});
-            });
+        addExToList(date, ex) {
+            this.addExerciseOpen = false;
+            this.exercisesList[date] = ex;
         },
         removeExercise(id) {
             const db = getDatabase();
@@ -276,15 +157,7 @@ export default {
                     });
                 });
         },
-        updateCheckboxValues(property, item, isChecked) {
-            if (isChecked) {
-                if (!this.exercise[property].includes(item)) {
-                    this.exercise[property].push(item);
-                }
-            } else {
-                this.exercise[property] = this.exercise[property].filter(distance => distance !== item);
-            }
-        }
+
     },
 }
 </script>

@@ -56,6 +56,12 @@
                                     Positive
                                 </label>
                             </div>
+                            <div class="field">
+                                <label class="checkbox">
+                                    <input type="checkbox" id="distanceFirst" v-model="asCouch"/>
+                                    As couch
+                                </label>
+                            </div>
                             <div class="columns mb-3" v-if="team1.players?.length">
                                 <div class="column is-half">
                                     <div class="label">Team 1</div>
@@ -79,12 +85,10 @@
                             <h2 class="my-3 is-size-4">{{ gameName }}</h2>
                             <div class="columns">
                                 <div class="column is-half-desktop">
-                                    <div class="label">Team 1</div>
-                                    <StatResult :team="team1" :system="statSystem"/>
+                                    <StatResult label="Team 1" :team="team1" :system="statSystem"/>
                                 </div>
                                 <div class="column is-half-desktop">
-                                    <div class="label">Team 2</div>
-                                    <StatResult :team="team2" :system="statSystem"/>
+                                    <StatResult label="Team 2" :team="team2" :system="statSystem"/>
                                 </div>
                             </div>
                         </div>
@@ -111,13 +115,13 @@
                                 </div>
                             </div>
                             <hr>
-                            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem"
+                            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                       @x2throw="doubleThrowResult"
                                       @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                             />
                             <hr>
-                            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem"
+                            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                       @x2throw="doubleThrowResult"
                                       @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
@@ -167,6 +171,7 @@ export default {
             gameType: 1,
             statScenario: false,
             statMode: false,
+            asCouch: false,
             statSystem: 'simple',
             currentMan: null,
             gameTypes,
@@ -220,6 +225,7 @@ export default {
                 system: this.statSystem,
                 name: this.gameName,
                 scenario: this.statScenario,
+                asCouch: this.asCouch,
                 mode: this.statMode,
                 team1: {...this.team1},
                 team2: {...this.team2}
@@ -362,7 +368,11 @@ export default {
             if (this.team1.players[0].stat.length <= this.currentMan) {
                 this.addPlayersStats(this.team1.players);
                 this.addPlayersStats(this.team2.players);
-                this.saveLocalData();
+                if(this.currentMan) {
+                    this.saveLocalData();
+                } else {
+                    localStorage.removeItem('statGame');
+                }
             }
         },
         changePlayers() {

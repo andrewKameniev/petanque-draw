@@ -11,9 +11,9 @@
                     <div v-else class="mobile-stat-container">
                         <div v-if="currentMan === null" class="mobile-stat-container">
                             <div class="has-text-right mobile-stat-container-header">
-                                <button @click="archiveOpen = true" class="button is-info">Archive</button>
+                                <button @click="archiveOpen = true" class="button is-info">{{ $t('stat.archive') }}</button>
                             </div>
-                            <label class="label" for="gameName">Enter game name</label>
+                            <label class="label" for="gameName">{{ $t('stat.enterName') }}</label>
                             <div class="field control">
                                 <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
                             </div>
@@ -23,64 +23,64 @@
                                     {{ item.label }}
                                 </label>
                             </div>
-                            <label class="label">Mode</label>
+                            <label class="label">{{ $t('stat.mode') }}</label>
                             <div class="field">
                                 <label class="radio">
                                     <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
-                                    Classic
+                                    {{ $t('stat.classic') }}
                                 </label>
                                 <label class="radio">
                                     <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
-                                    Fast
+                                    {{ $t('stat.fast') }}
                                 </label>
                             </div>
-                            <label class="label">System</label>
+                            <label class="label">{{ $t('stat.system') }}</label>
                             <div class="field">
                                 <label class="radio">
                                     <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
-                                    Simple
+                                    {{ $t('stat.simple') }}
                                 </label>
                                 <label class="radio">
                                     <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
-                                    French (A, B, ...)
+                                    {{ $t('stat.french') }}
                                 </label>
                             </div>
-                            <label class="label">Scenario</label>
+                            <label class="label">{{ $t('stat.scenario') }}</label>
                             <div class="field">
                                 <label class="radio">
                                     <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
-                                    Negative
+                                    {{ $t('stat.negative') }}
                                 </label>
                                 <label class="radio">
                                     <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
-                                    Positive
+                                    {{ $t('stat.positive') }}
                                 </label>
                             </div>
                             <div class="field">
                                 <label class="checkbox">
                                     <input type="checkbox" id="distanceFirst" v-model="asCouch"/>
-                                    As couch
+                                    {{ $t('stat.asCouch') }}
                                 </label>
                             </div>
                             <div class="columns mb-3" v-if="team1.players?.length">
                                 <div class="column is-half">
-                                    <div class="label">Team 1</div>
+                                    <div class="label">{{ $t('stat.team') }} 1</div>
                                     <div class="field control" v-for="(player, index) in team1.players" :key="index">
                                         <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
                                     </div>
                                 </div>
                                 <div class="column is-half">
-                                    <div class="label">Team 2</div>
+                                    <div class="label">{{ $t('stat.team') }} 2</div>
                                     <div class="field control" v-for="(player, index) in team2.players" :key="index">
                                         <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
                                     </div>
                                 </div>
                             </div>
-                            <button @click="currentMan = 0" class="button is-success">Start</button>
+                            <button @click="currentMan = 0" class="button is-success">{{ $t('stat.start') }}</button>
                         </div>
                         <div v-else-if="showResults" class="mobile-stat-container">
                             <div class="mobile-stat-container-header">
-                                <button @click="startNewGame" class="button is-info">New game</button>
+                                <button @click="startNewGame" class="button is-info">{{ $t('stat.newGame') }}</button>
                             </div>
                             <h2 class="my-3 is-size-4">{{ gameName }}</h2>
                             <div class="columns">
@@ -100,17 +100,17 @@
                             <div class="mobile-stat-container-header">
                                 <div class="is-flex is-justify-content-space-between mb-3">
                                     <div class="control">
-                                        <button @click="startNewGame" class="button is-danger">New game</button>
+                                        <button @click="startNewGame" class="button is-danger">{{ $t('stat.newGame') }}</button>
                                     </div>
                                     <div class="control">
-                                        <button @click="finishGame" class="button is-info">Finish game</button>
+                                        <button @click="finishGame" class="button is-info">{{ $t('stat.finishGame') }}</button>
                                     </div>
                                 </div>
                             </div>
                             <div class="is-flex is-justify-content-space-between">
-                                <div>Man <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
+                                <div>{{ $t('stat.man') }} <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
                                 <div>
-                                    <strong>Score</strong>
+                                    <strong>{{ $t('stat.score') }}</strong>
                                     {{currentScore.team1}} : {{currentScore.team2}}
                                 </div>
                             </div>
@@ -127,15 +127,15 @@
                                       @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                             />
                             <div class="is-flex is-justify-content-space-between mt-3">
-                                <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">Prev</button>
-                                <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">Remove man</button>
-                                <button class="button is-success" @click="currentMan++">Next</button>
+                                <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">{{ $t('stat.prev') }}</button>
+                                <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">{{ $t('stat.removeMan') }}</button>
+                                <button class="button is-success" @click="currentMan++">{{ $t('stat.next') }}</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
-                    You can count statistic only as login user
+                    {{ $t('stat.onlyLogin') }}
                 </div>
             </div>
             <Message v-if="message.show"/>

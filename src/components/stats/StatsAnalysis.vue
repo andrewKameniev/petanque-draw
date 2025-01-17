@@ -157,29 +157,29 @@ export default {
     <div>
         <div class="columns mb-1">
             <div class="column is-half-desktop">
-                <label for="" class="label">Find Player</label>
+                <label for="" class="label">{{ $t('stat.findPlayer') }}</label>
                 <VueSelect v-model="player" :options="playersList" @option-selected="showPlayerStat"/>
             </div>
             <div class="column is-half-desktop" v-if="player">
-                <label for="" class="label">Choose period</label>
+                <label for="" class="label">{{ $t('stat.choosePeriod') }}</label>
                 <VueDatePicker v-model="date" range multi-calendars @update:model-value="showPlayerStat"/>
             </div>
         </div>
         <div class="field" v-if="player">
             <form action="">
-                <label for="" class="label">Choose only</label>
+                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
                 <label class="radio" v-for="item in gameTypes" :key="item.id">
                     <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType" @change="showPlayerStat">
                     {{ item.label }}
                 </label>
-                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">Clear</button>
+                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
             </form>
         </div>
         <div v-if="player && playerStatList.length">
-            <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} games)</div>
-            <p>All: {{allPeriodStat.all}}%</p>
-            <p>Points: {{allPeriodStat.points}}%</p>
-            <p>Tirs: {{allPeriodStat.tirs}}%</p>
+            <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} {{ $t('stat.games') }})</div>
+            <p>{{ $t('stat.all') }}: {{allPeriodStat.all}}%</p>
+            <p>{{ $t('stat.points') }}: {{allPeriodStat.points}}%</p>
+            <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirs}}%</p>
             <div v-if="showSinusoids" class="has-background-white p-3 mt-3">
                 <apexchart
                     type="line"
@@ -190,7 +190,7 @@ export default {
             </div>
         </div>
         <div v-else>
-            No statistics with your filters
+            {{ $t('stat.noStat') }}
         </div>
         <hr>
     </div>

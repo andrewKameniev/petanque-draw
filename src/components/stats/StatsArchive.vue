@@ -91,8 +91,8 @@ export default {
 <template>
     <div class="mobile-stat-container" >
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
-            <button class="button is-info" @click="$emit('close')">Back</button>
-            <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? 'Hide' : 'Show'}} analysis</button>
+            <button class="button is-info" @click="$emit('close')">{{$t('stat.back')}}</button>
+            <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}</button>
         </div>
         <div>
             <div v-if="statsList" class="mt-3">
@@ -116,7 +116,7 @@ export default {
                 </div>
             </div>
             <div v-else class="mt-3">
-                Nothing to show
+                {{$t('stat.nothingShow') }}
             </div>
         </div>
 

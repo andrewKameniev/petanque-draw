@@ -92,13 +92,13 @@ export default {
 <template>
     <div v-if="trainingData" class="mobile-stat-container">
         <div class="mobile-stat-container-header is-flex is-justify-content-space-between">
-            <button @click="$emit('end')" class="button is-info">Back</button>
-            <button @click="finishTraining" class="button is-info">Finish training</button>
+            <button @click="$emit('end')" class="button is-info">{{ $t('stat.back') }}</button>
+            <button @click="finishTraining" class="button is-info">{{ $t('training.finishTraining') }}</button>
         </div>
         <div class="has-text-right-mobile is-size-3 mb-3">
             <span v-if="data.complex">{{data.seriesNames[currentDistance]}}</span>
             <span v-else>
-                {{data.distanceFirst ? currentDistance + 1 + ' attempt' : currentDistanceLabel + ' meters'}}
+                {{data.distanceFirst ? currentDistance + 1 + ' ' + $t('training.attempt') : currentDistanceLabel + ' ' + $t('training.meters')}}
             </span>
         </div>
         <div>
@@ -139,8 +139,12 @@ export default {
 
         </div>
         <div class="is-flex">
-            <button @click="currentDistance--" class="button is-info" v-if="currentDistance > 0">Prev {{ data.distanceFirst ? 'attempt' : 'distance'}}</button>
-            <button @click="currentDistance++" class="ml-auto button is-success" v-if="currentDistance < (data.distanceFirst ? data.length - 1 : data.distances.length - 1)">Next {{ data.distanceFirst ? 'attempt' : 'distance'}}</button>
+            <button @click="currentDistance--" class="button is-info" v-if="currentDistance > 0">
+                {{$t('stat.prev')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+            </button>
+            <button @click="currentDistance++" class="ml-auto button is-success" v-if="currentDistance < (data.distanceFirst ? data.length - 1 : data.distances.length - 1)">
+                {{$t('stat.next')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+            </button>
         </div>
     </div>
 </template>

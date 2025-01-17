@@ -152,8 +152,6 @@ import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getTeamsRanking} from "@/helpers";
 import QrCode from "@/components/partials/QrCode";
-import {getDatabase, ref, child, get, set} from "firebase/database";
-import {database} from "@/firebase";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 
@@ -257,59 +255,6 @@ export default {
                     team.opponents = ['placeholder'];
                 })
                 this.addBTournament(tournamentBTeams);
-            }
-        },
-        sendNotification() {
-            const dbRef = ref(getDatabase());
-            let tokens = [];
-            get(child(dbRef, `tokens`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    for (let key in snapshot.val()) {
-                        tokens.push(snapshot.val()[key].token);
-                    }
-                    tokens = new Set([...tokens]);
-
-                    const domain = process.env.NODE_ENV === 'production' ? '/petanque-draw/dist/#/' : '/#/';
-                    const link = `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournament.id}`
-                    tokens.forEach(token => {
-
-                        const message = {
-                            "to": token,
-                            "data": {
-                                "title": 'New draw info is available',
-                                "body": 'Reload page to see updates',
-                                "url": link,
-                            },
-                            "priority": "high"
-                        };
-                        console.log(message);
-                        fetch('https://fcm.googleapis.com/v1/projects/petanque-draw/messages:send', {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                                'Authorization': 'key=AAAAtEgaync:APA91bExQUfnpTYo2CRT1fn_So0pOWriu9Ri6OIjkQXbRDh-VNABGESd-_F_twcl762zcDcn379nAtXnreFi8YPGQWyMXqYChzUOTwuE5hBM6ntWhOzneV_obn-4O3_MMfYmx4S3kxrQ'
-                            },
-                            body: JSON.stringify(message)
-                        });
-                    })
-
-
-                } else {
-                    console.log("No data available");
-                }
-            }).catch((error) => {
-                console.error(error);
-            });
-        },
-        removeNotificationsDb() {
-            try {
-                set(ref(database, 'tokens'), {}).then(() => {
-                    this.showMessage({title: 'Awesome!', text: 'Notifications db was removed'});
-                });
-            } catch (error) {
-                alert(error);
-                this.showMessage({title: 'Error', type: 'error', text: error});
             }
         },
         restoreTeamsFromLocalStorage() {

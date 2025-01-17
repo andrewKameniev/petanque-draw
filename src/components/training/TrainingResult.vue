@@ -99,12 +99,12 @@ export default {
     <div v-if="isLoading">Loading results...</div>
     <div v-else>
         <div class="mb-5">
-            <button @click="$emit('back')" class="button is-info">Back</button>
+            <button @click="$emit('back')" class="button is-info">{{$t('stat.back')}}</button>
         </div>
         <div v-if="results">
             <div v-if="exTotalResults" class="is-flex-tablet is-justify-content-space-between mb-3">
                 <div>
-                    Total: {{exTotalResults.total}}/{{this.totalAllTimeLength}} -
+                    {{$t('stat.total')}}: {{exTotalResults.total}}/{{this.totalAllTimeLength}} -
                     (<strong>{{Math.round((exTotalResults.total / this.totalAllTimeLength) * 100)}}%</strong>)
                 </div>
                 <div>
@@ -120,7 +120,7 @@ export default {
                     <div>{{getDate(item.date)}}</div>
                     <div class="is-flex-tablet is-justify-content-space-between">
                         <div>
-                            Total: {{getTotalResults(item.distances)}}/{{this.totalExLength}} -
+                            {{$t('stat.total')}}: {{getTotalResults(item.distances)}}/{{this.totalExLength}} -
                             (<strong>{{Math.round((getTotalResults(item.distances) / this.totalExLength) * 100)}}%</strong>)
                         </div>
                         <div>
@@ -133,7 +133,7 @@ export default {
             </div>
         </div>
         <div v-else>
-            No results
+            {{$t('training.noResults')}}
         </div>
     </div>
 </template>

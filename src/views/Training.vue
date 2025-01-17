@@ -11,8 +11,8 @@
                         <div class="has-text-right mobile-stat-container-header">
                             <div class="is-flex is-justify-content-space-between mb-3">
                                 <button v-if="!exerciseInProcess && !resultsOpen" @click="addExerciseOpen = !addExerciseOpen" class="button is-info">
-                                    <span v-if="addExerciseOpen">To list</span>
-                                    <span v-else>Add exercise</span>
+                                    <span v-if="addExerciseOpen">{{ $t('training.toList') }}</span>
+                                    <span v-else>{{ $t('training.addEx') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -21,20 +21,20 @@
                         <TrainingResult v-else-if="resultsOpen" :exid="resultsOpen" :exdata="exercisesList[resultsOpen]" @back="resultsOpen = false"/>
                         <div v-else>
                             <div v-if="exercisesList">
-                                <div class="is-size-4 mb-5">Exercises list</div>
+                                <div class="is-size-4 mb-5">{{ $t('training.exList') }}</div>
                                 <div v-for="(item, key) in exercisesList" :key="key" class="exercise-item is-rounded mb-3 p-3">
                                     <div>
                                         <div class="mb-2">
                                             <span class="is-size-5">{{item.name}}</span>
-                                            <span class="is-size-7"> ({{item.distances.length}} distances, serie length - {{item.length}})</span>
+                                            <span class="is-size-7"> ({{item.distances.length}} {{ $t('training.distances') }}, {{ $t('training.serieLength') }} - {{item.length}})</span>
                                         </div>
                                         <div class="is-flex is-align-items-center">
                                             <div class="field is-grouped">
                                                 <div class="control">
-                                                    <button class="button is-success" @click="start(key)">Start training</button>
+                                                    <button class="button is-success" @click="start(key)">{{ $t('training.startTraining') }}</button>
                                                 </div>
                                                 <div class="control">
-                                                    <button class="button is-info" @click="viewResults(key)">View results</button>
+                                                    <button class="button is-info" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
                                                 </div>
                                             </div>
                                             <button class="ml-auto delete" @click.stop="removeExercise(key)"></button>
@@ -43,14 +43,14 @@
                                 </div>
                             </div>
                             <div v-else>
-                                Add exercise to begin trainings
+                                {{ $t('training.addExToBegin') }}
                             </div>
 
                         </div>
                     </div>
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
-                    You can count trainings statistic only as login user
+                    {{ $t('training.asLogin') }}
                 </div>
             </div>
             <Message v-if="message.show"/>

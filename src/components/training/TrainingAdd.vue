@@ -1,13 +1,13 @@
 <template>
     <div>
         <div class="field">
-            <label class="label" for="gameName">Enter training exercise name</label>
+            <label class="label" for="gameName">{{ $t('training.enterExName') }}</label>
             <div class="control">
                 <input v-model="exercise.name" class="input" type="text" id="exerciseName" placeholder="Exercise name">
             </div>
         </div>
         <div class="field">
-            <label class="label">Distances</label>
+            <label class="label">{{ $t('training.distances') }}</label>
             <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
                 <label class="checkbox" v-for="item in distances" :key="item">
                     <input type="checkbox" :checked="exercise.distances.includes(item)"
@@ -17,7 +17,7 @@
             </div>
         </div>
         <div class="field">
-            <label class="label">Serie quantity</label>
+            <label class="label">{{ $t('training.serieQuantity') }}</label>
             <div class="control">
                 <div class="select">
                     <select v-model.number="exercise.length">
@@ -31,7 +31,7 @@
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" id="distanceFirst" v-model="exercise.complex"/>
-                Name every serie?
+                {{ $t('training.nameSerie') }}
             </label>
         </div>
         <div class="field" v-if="exercise.complex">
@@ -40,15 +40,15 @@
             </div>
         </div>
         <div class="field">
-            <label class="label">Throw value</label>
+            <label class="label">{{ $t('training.throwValue') }}</label>
             <div class="field">
                 <label class="radio">
                     <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="exercise.value">
-                    Logical
+                    {{ $t('training.logical') }}
                 </label>
                 <label class="radio">
                     <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="exercise.value">
-                    Points
+                    {{ $t('training.points') }}
                 </label>
             </div>
         </div>
@@ -63,25 +63,25 @@
             </div>
         </div>
         <div class="field" v-if="!exercise.value">
-            <label class="label">Exercise scenario</label>
+            <label class="label">{{ $t('training.exScenario') }}</label>
             <div class="field">
                 <label class="radio">
                     <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="exercise.scenario">
-                    Negative
+                    {{ $t('stat.negative') }}
                 </label>
                 <label class="radio">
                     <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="exercise.scenario">
-                    Positive
+                    {{ $t('stat.positive') }}
                 </label>
             </div>
         </div>
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" id="distanceFirst" v-model="exercise.distanceFirst"/>
-                Distance first
+                {{ $t('training.distFirst') }}
             </label>
         </div>
-        <button @click="saveExercise" class="button is-success">Add</button>
+        <button @click="saveExercise" class="button is-success">{{ $t('stat.add') }}</button>
     </div>
 </template>
 <script>

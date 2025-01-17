@@ -12,7 +12,7 @@
                 <label class="checkbox" v-for="item in distances" :key="item">
                     <input type="checkbox" :checked="exercise.distances.includes(item)"
                            @change="updateCheckboxValues('distances', item, $event.target.checked)"/>
-                    {{ item }}m
+                    {{ item.includes('-') ? item.replace('-', '.') : item }}m
                 </label>
             </div>
         </div>
@@ -97,11 +97,11 @@ export default {
                 scenario: false,
                 name: '',
                 length: 10,
-                distances: [6,7,8,9],
+                distances: ['6','7','8','9'],
                 points: [0,3,5],
                 distanceFirst: false
             },
-            distances: [4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,11.5,12],
+            distances: ['4','4-5','5','5-5','6','6-5','7','7-5','8','8-5','9','9-5','10','10-5','11','11-5','12'],
             possiblePoints: [0,1,2,3,4,5,6,7,8,9,10],
         }
     },

@@ -104,7 +104,7 @@ export default {
         <div>
             <div v-if="data.distanceFirst" class="training-item-container">
                 <div v-for="(item, key) in trainingData[currentDistance]" :key="key" class="training-item">
-                    <div class="is-size-4 training-item-cell">{{item.dist + 'm'}}</div>
+                    <div class="is-size-4 training-item-cell">{{item.dist.includes('-') ? item.dist.replace('-', '.') + 'm' : item.dist + 'm'}}</div>
                     <div class="training-item-cell">
                         <StatCheckbox v-if="!data.value" :checked-value="item.value" @changeval="setResult($event, item.dist)"/>
                         <div class="control" v-else>

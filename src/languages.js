@@ -313,6 +313,8 @@ export default {
             attempt: 'attempt',
             meters: 'meters',
             noResults: 'No results',
+            distance: 'Distance',
+            exGradedText: 'This exercise is graded by points scored, not percentages',
         }
     },
     ua: {
@@ -630,6 +632,8 @@ export default {
             meters: 'метрів',
             noResults: 'Поки немає результатів',
             points: 'Очки',
+            distance: 'дистанція',
+            exGradedText: 'Ця вправа оцінюється по набраним очкам, а не по відсоткам',
         }
     }
 }

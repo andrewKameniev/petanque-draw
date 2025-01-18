@@ -102,16 +102,26 @@ export default {
             <button @click="$emit('back')" class="button is-info">{{$t('stat.back')}}</button>
         </div>
         <div v-if="results">
-            <div v-if="exTotalResults" class="is-flex-tablet is-justify-content-space-between mb-3">
-                <div>
-                    {{$t('stat.total')}}: {{exTotalResults.total}}/{{this.totalAllTimeLength}} -
-                    (<strong>{{Math.round((exTotalResults.total / this.totalAllTimeLength) * 100)}}%</strong>)
+            <div v-if="exTotalResults">
+                <div class="is-size-3 my-3">
+                    {{exdata.name}}
                 </div>
-                <div>
-                    <span v-for="(dist, key) in exTotalResults.distances" :key="key" class="ml-5">
-                        {{key}}m - {{dist}} / {{this.totalAllTimeLength / this.exdata.distances.length}}
-                        (<strong>{{Math.round(dist / (this.totalAllTimeLength / this.exdata.distances.length) * 100)}}%</strong>)
-                    </span>
+                <div v-if="exdata.value" class="is-size-6 mb-3">{{$t('training.exGradedText')}}</div>
+                <div class="is-flex-tablet is-justify-content-space-between mb-3">
+                    <div>
+                        {{$t('stat.total')}}: {{exTotalResults.total}}/{{this.totalAllTimeLength}}
+                        <span v-if="!exdata.value">-
+                            (<strong>{{Math.round((exTotalResults.total / this.totalAllTimeLength) * 100)}}%</strong>)
+                        </span>
+                    </div>
+                    <div>
+                        <span v-for="(dist, key) in exTotalResults.distances" :key="key" class="ml-5">
+                            {{key}}m - {{dist}} / {{this.totalAllTimeLength / this.exdata.distances.length}}
+                            <span v-if="!exdata.value">-
+                                (<strong>{{Math.round(dist / (this.totalAllTimeLength / this.exdata.distances.length) * 100)}}%</strong>)
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
             <hr>
@@ -120,8 +130,10 @@ export default {
                     <div>{{getDate(item.date)}}</div>
                     <div class="is-flex-tablet is-justify-content-space-between">
                         <div>
-                            {{$t('stat.total')}}: {{getTotalResults(item.distances)}}/{{this.totalExLength}} -
-                            (<strong>{{Math.round((getTotalResults(item.distances) / this.totalExLength) * 100)}}%</strong>)
+                            {{$t('stat.total')}}: {{getTotalResults(item.distances)}}/{{this.totalExLength}}
+                            <span v-if="!exdata.value">-
+                                (<strong>{{Math.round((getTotalResults(item.distances) / this.totalExLength) * 100)}}%</strong>)
+                            </span>
                         </div>
                         <div>
                             <span v-for="(dist, key) in item.distances" :key="key" class="ml-5">

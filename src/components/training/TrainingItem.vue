@@ -95,7 +95,10 @@ export default {
             <button @click="$emit('end')" class="button is-info">{{ $t('stat.back') }}</button>
             <button @click="finishTraining" class="button is-info">{{ $t('training.finishTraining') }}</button>
         </div>
-        <div class="has-text-right-mobile is-size-3 mb-3">
+        <div class="is-size-3 my-3">
+            {{data.name}}
+        </div>
+        <div class="has-text-right-mobile is-size-4 mb-3">
             <span v-if="data.complex">{{data.seriesNames[currentDistance]}}</span>
             <span v-else>
                 {{data.distanceFirst ? currentDistance + 1 + ' ' + $t('training.attempt') : currentDistanceLabel + ' ' + $t('training.meters')}}

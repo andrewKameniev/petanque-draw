@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="box" v-if="isAdmin && tournament.portalIdTournament || user">
+        <div class="box" v-if="user">
             <h2 class="is-size-5 mb-3">{{ $t('remote.remoteAvailabilities') }}:</h2>
             <div class="buttons">
                 <button class="button is-light" @click="showQrCode = true">{{ $t('remote.showLinks') }}</button>
@@ -70,7 +70,7 @@
         </div>
         <div class="content tabs-content" v-if="activeTab === 'teams'">
             <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
-                     :import-hidden="!isAdmin || tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
+                     :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
             <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
             <div v-else class="mb-5 mt-5">
                 {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}

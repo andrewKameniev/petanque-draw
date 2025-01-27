@@ -24,7 +24,7 @@
             <div class="has-text-right is-flex is-align-items-center is-justify-content-end ml-auto">
                 {{ $t('stat.howManyPoints') }}
                 <input type="number" class="input has-text-centered ml-2" style="width: 60px;"
-                       :value="team.score[currentMan]"
+                       :value="team.score[currentMan]" @keyup.enter="$emit('next')"
                        @input="updateScore($event.target.value)">
             </div>
         </div>

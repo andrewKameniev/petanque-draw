@@ -40,11 +40,7 @@
             <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                        <button v-if="isAdmin" class="button is-light" @click="logout">{{ $t('common.logoutAdmin') }}</button>
-                        <router-link v-else to="/login" class="button is-light">
-                            {{ $t('common.loginAdmin') }}
-                        </router-link>
-                        <button v-if="user" class="button is-light" @click="signOutUser">{{ $t('common.logoutUser') }}</button>
+                        <button v-if="user" class="button is-light" @click="signOutUser">{{ user.email }}</button>
                         <router-link v-else to="/login-user" class="button is-light">
                             {{ $t('common.loginUser') }}
                         </router-link>
@@ -72,10 +68,6 @@ export default {
     },
     methods: {
         ...mapMutations(['setActiveTournament', 'loginAdmin', 'loginUser']),
-        logout() {
-            this.loginAdmin(false);
-            this.$router.push('/');
-        },
         signOutUser () {
             signOut(auth)
                 .then(() => {

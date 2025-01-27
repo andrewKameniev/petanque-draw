@@ -117,13 +117,13 @@
                             <hr>
                             <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                      @x2throw="doubleThrowResult"
+                                      @x2throw="doubleThrowResult" @next="currentMan++"
                                       @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                             />
                             <hr>
                             <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                      @x2throw="doubleThrowResult"
+                                      @x2throw="doubleThrowResult" @next="currentMan++"
                                       @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
                             />
                             <div class="is-flex is-justify-content-space-between mt-3">
@@ -396,7 +396,7 @@ export default {
 
 <style>
 .stat-container {
-    min-height: 100vh;
+    min-height: calc(100vh - 96px);
 }
 
 @media screen and (max-width: 500px) {
@@ -405,6 +405,7 @@ export default {
         flex-direction: column;
         justify-content: flex-end;
         padding-bottom: 15vh;
+        min-height: calc(100vh - 60px);
     }
 
     .mobile-stat-container {

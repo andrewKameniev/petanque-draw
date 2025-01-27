@@ -50,18 +50,10 @@
                 {{ $t('common.adminSection') }}
             </p>
             <div class="is-invisible-desktop">
-                <div class="mb-3">
-                    <button v-if="isAdmin" class="button is-light" @click="logout">{{ $t('common.logoutAdmin') }}</button>
-                    <router-link v-else to="/login" class="button is-light">
-                        {{ $t('common.loginAdmin') }}
-                    </router-link>
-                    </div>
-                <div>
-                    <button v-if="user" class="button is-light" @click="signOutUser">{{ $t('common.logoutUser') }}</button>
-                    <router-link v-else to="/login-user" class="button is-light">
-                        {{ $t('common.loginUser') }}
-                    </router-link>
-                </div>
+                <button v-if="user" class="button is-light" @click="signOutUser">{{ user.email }}</button>
+                <router-link v-else to="/login-user" class="button is-light">
+                    {{ $t('common.loginUser') }}
+                </router-link>
             </div>
         </aside>
     </div>

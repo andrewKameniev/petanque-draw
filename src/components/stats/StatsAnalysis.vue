@@ -66,13 +66,12 @@ export default {
         },
         playersList() {
             let list = [];
-            let playerCounts = {}; // Object to track occurrences of each player
+            let playerCounts = {};
 
             const countPlayer = (player) => {
                 playerCounts[player.name] = (playerCounts[player.name] || 0) + 1;
             };
 
-            // First pass: Count occurrences of each player
             Object.keys(this.stats).forEach(key => {
                 this.stats[key].team1.players.forEach(player => {
                     countPlayer(player);
@@ -114,7 +113,7 @@ export default {
             this.chartOptions.xaxis.categories = [];
 
             let timeFrom = this.date ? this.date[0].getTime() : null;
-            let timeTo = this.date ? this.date[1].getTime() : null;
+            let timeTo = this.date && this.date[1] ? this.date[1].getTime() : Date.now();
 
             Object.entries(this.stats).forEach(([key, game]) => {
                 if ((timeFrom && key < timeFrom) || (timeTo && key > timeTo)) return;

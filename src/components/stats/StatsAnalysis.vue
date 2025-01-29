@@ -154,7 +154,7 @@ export default {
 
 <template>
     <div>
-        <div class="columns mb-1">
+        <div class="columns is-desktop mb-1">
             <div class="column is-half-desktop">
                 <label for="" class="label">{{ $t('stat.findPlayer') }}</label>
                 <VueSelect v-model="player" :options="playersList" @option-selected="showPlayerStat"/>

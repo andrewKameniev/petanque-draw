@@ -105,7 +105,7 @@ export default {
                     </span>
                         <span class="delete" @click.stop="removeGame(item.date)"></span>
                     </div>
-                    <div class="columns" v-if="item.isOpen">
+                    <div class="columns is-desktop" v-if="item.isOpen">
                         <div class="column is-half-desktop">
                             <StatResult :team="item.team1" :system="item.system" label="Team 1"/>
                         </div>

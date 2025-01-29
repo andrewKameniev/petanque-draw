@@ -83,7 +83,7 @@
                                 <button @click="startNewGame" class="button is-info">{{ $t('stat.newGame') }}</button>
                             </div>
                             <h2 class="my-3 is-size-4">{{ gameName }}</h2>
-                            <div class="columns">
+                            <div class="columns is-desktop">
                                 <div class="column is-half-desktop">
                                     <StatResult label="Team 1" :team="team1" :system="statSystem"/>
                                 </div>

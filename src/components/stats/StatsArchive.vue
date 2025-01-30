@@ -4,11 +4,13 @@ import {getDate} from "@/helpers-stat";
 import {getDatabase, ref, get, remove} from "firebase/database";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
+import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 export default {
     name: "StatsArchive",
-    components: {StatsAnalysis, StatResult},
+    components: {ConfirmRemoveModal, StatsAnalysis, StatResult},
     data() {
         return {
+            confirmRemoveId: null,
             statsList: null,
             showStatAnalysis: false
         }
@@ -89,7 +91,8 @@ export default {
 </script>
 
 <template>
-    <div class="mobile-stat-container" >
+    <div class="mobile-stat-container">
+        <ConfirmRemoveModal title="Remove this game?" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">{{$t('stat.back')}}</button>
             <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}</button>
@@ -103,7 +106,7 @@ export default {
                         {{ item.name }}
                         <span class="is-size-6">{{getDate(item.date)}}</span>
                     </span>
-                        <span class="delete" @click.stop="removeGame(item.date)"></span>
+                        <span class="delete" @click.stop="confirmRemoveId = item.date"></span>
                     </div>
                     <div class="columns is-desktop" v-if="item.isOpen">
                         <div class="column is-half-desktop">

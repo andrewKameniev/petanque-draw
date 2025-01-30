@@ -111,7 +111,7 @@
         <hr>
         <div class="field is-grouped buttons">
             <div class="control">
-                <button class="button is-danger" @click="showProtocol = false; removeConfirm = true">{{ $t('teams.removeTournament') }}</button>
+                <button class="button is-danger" @click="showProtocol = false; removeConfirmId = 1">{{ $t('teams.removeTournament') }}</button>
             </div>
             <div class="control">
                 <button class="button is-info" @click="showPreferences = true">{{ $t('teams.preferences') }}</button>
@@ -133,7 +133,7 @@
         </div>
         <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
                         @close-modal="showSaveTournament = false"/>
-        <ConfirmRemoveModal v-if="removeConfirm" @close-modal="removeConfirm = false"/>
+        <ConfirmRemoveModal v-if="removeConfirmId" :title="$t('modals.sureRemove') + ' ' + tournament.name + '?'" @close="removeConfirmId = null" @remove="removeTournament"/>
         <ChangeTournamentName v-if="changeNameModal" @close-modal="changeNameModal = false"/>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
         <Protocol v-if="showProtocol" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
@@ -162,7 +162,7 @@ export default {
             activeTab: "teams",
             showSaveTournament: false,
             teamToPlayOff: null,
-            removeConfirm: false,
+            removeConfirmId: null,
             changeNameModal: false,
             playB: false,
             teamsInGroup: null,

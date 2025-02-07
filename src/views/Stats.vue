@@ -103,7 +103,10 @@
                                         <button @click="startNewGame" class="button is-danger">{{ $t('stat.newGame') }}</button>
                                     </div>
                                     <div class="control">
-                                        <button @click="finishGame" class="button is-info">{{ $t('stat.finishGame') }}</button>
+                                        <button @click="finishGame" class="button is-info">
+                                            <Loader v-if="isSaving"/>
+                                            <span :class="{'opacity-0': isSaving}">{{ $t('stat.finishGame') }}</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -156,11 +159,13 @@ import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import {gameTypes} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
+import Loader from "@/components/Loader.vue";
 export default {
     name: 'Stats',
-    components: {Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
+    components: {Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
     data() {
         return {
+            isSaving: true,
             archiveOpen: false,
             menuOpen: false,
             showResults: false,
@@ -268,9 +273,11 @@ export default {
                 team2: this.team2
             }
             const db = getDatabase();
+            this.isSaving = true;
             set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
                 this.showMessage({title: 'Awesome!', text: 'Statistics saved to db'});
                 localStorage.removeItem('statGame');
+                this.isSaving = false;
             }).catch((error) => {
                 console.error('Error save:', error);
                 this.showMessage({title: 'error', text: error, type: 'error'});

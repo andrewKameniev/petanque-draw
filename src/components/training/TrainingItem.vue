@@ -2,17 +2,19 @@
 import StatCheckbox from "@/components/stats/StatCheckbox.vue";
 import {getDatabase, set, ref} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
+import Loader from "@/components/Loader.vue";
 
 export default {
     name: "TrainingItem",
-    components: {StatCheckbox},
+    components: {Loader, StatCheckbox},
     props: ['data', 'exid'],
     data() {
         return {
             currentDistance: 0,
             trainingData: {},
             fastMode: false,
-            exNotSaved: false
+            exNotSaved: false,
+            isSaving: false
         }
     },
     mounted() {
@@ -50,7 +52,7 @@ export default {
                     this.data.distances.forEach(dist => {
                         this.trainingData[dist] = [];
                         for (let i = 0; i <= this.data.length - 1; i++) {
-                            this.trainingData[dist].push(this.data.value ? null : this.data.scenario)
+                            this.trainingData[dist].push({isMade: false, value: this.data.value ? null : this.data.scenario})
                         }
                     })
                 }
@@ -60,11 +62,15 @@ export default {
             if (this.data.distanceFirst) {
                 this.trainingData[this.currentDistance][this.trainingData[this.currentDistance].findIndex(item => item.dist == key)].value = val;
             } else {
-                this.trainingData[this.currentDistanceLabel][key] = val;
+                this.trainingData[this.currentDistanceLabel][key].value = val;
             }
         },
         finishTraining() {
             const db = getDatabase();
+            if (!this.fastMode && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
+                this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
+                return
+            }
             let exResult = {};
 
             if (this.exNotSaved) {
@@ -82,19 +88,26 @@ export default {
                     })
                     exResult.distances = revertedData;
                 } else {
-                    exResult.distances = this.trainingData
+                    let optimizedData = {};
+                    Object.keys(this.trainingData).forEach(key =>{
+                        optimizedData[key] = this.trainingData[key].map(item => item.value);
+                    })
+
+                    exResult.distances = optimizedData
                 }
             }
-
+            console.log(exResult);
             if (navigator.onLine) {
                 if (Object.values(exResult.distances).every(array => Array.isArray(array) && array.every(value => value !== null))) {
+                    this.isSaving = true;
                     set(ref(db, `${this.user.uid}/training/${this.exid}/${exResult.date}`), exResult).then(() => {
                         this.showMessage({
                             title: 'Awesome!',
                             text: 'Exercise result saved the database!',
                         });
                         this.$emit('end');
-                        this.removeLocalData()
+                        this.removeLocalData();
+                        this.isSaving = false;
                     }).catch((error) => {
                         console.error('Error save:', error);
                         this.showMessage({title: 'error', text: 'Failed to save data. ' + error, type: 'error'});
@@ -137,7 +150,9 @@ export default {
         <div class="mobile-stat-container-header is-flex is-justify-content-space-between">
             <button @click="$emit('end')" class="button is-info">{{ $t('stat.back') }}</button>
             <button v-if="!data.value" @click="fastMode = !fastMode" class="button is-warning">Fast mode {{fastMode ? 'On' : 'Off'}}</button>
-            <button v-if="!exNotSaved" @click="finishTraining" class="button is-info">{{ $t('training.finishTraining') }}</button>
+            <button v-if="!exNotSaved" @click="finishTraining" class="button is-info" :disabled="isSaving">
+                <Loader v-if="isSaving"/><span :class="{'opacity-0': isSaving}">{{ $t('training.finishTraining') }}</span>
+            </button>
         </div>
         <div v-if="exNotSaved">
             <p class="mt-5 is-size-4">Your training is not saved to database.</p>
@@ -185,7 +200,10 @@ export default {
                     <div v-for="(item, key) in trainingData[currentDistanceLabel]" :key="key" class="training-item">
                         <div class="is-size-4 training-item-cell">{{key + 1}}</div>
                         <div class="training-item-cell">
-                            <StatCheckbox v-if="!data.value" :checked-value="item" @changeval="setResult($event, key)"/>
+                            <div v-if="!data.value">
+                                <StatCheckbox v-if="fastMode || item.isMade" :checked-value="item.value" @changeval="setResult($event, key)"/>
+                                <div v-else class="gost-throw" @click="item.isMade = true"></div>
+                            </div>
                             <div class="control" v-else>
                                 <div class="select">
                                     <select v-model.number="trainingData[currentDistanceLabel][key]">

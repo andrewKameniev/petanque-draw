@@ -90,6 +90,17 @@ export default {
                 total += dist.reduce((acc, item) => acc + +item, 0);
             })
             return total
+        },
+        getStatComplex(ex) {
+            const result = [];
+            for (let i = 0; i < this.exdata.seriesNames.length; i++) {
+                result.push({
+                    name: this.exdata.seriesNames[i],
+                    result: Object.values(ex).reduce((acc, item) => acc + item[i], 0)
+                });
+            }
+
+            return result
         }
     }
 }
@@ -108,15 +119,18 @@ export default {
                 </div>
                 <div v-if="exdata.value" class="is-size-6 mb-3">{{$t('training.exGradedText')}}</div>
                 <div class="is-flex-tablet is-justify-content-space-between mb-3">
-                    <div>
-                        {{$t('stat.total')}}: {{exTotalResults.total}}/{{this.totalAllTimeLength}}
-                        <span v-if="!exdata.value">-
+                    <div v-if="!exdata.value">
+                        {{$t('stat.total')}}: <strong>{{exTotalResults.total}}</strong>/{{this.totalAllTimeLength}}
+                        <span>-
                             (<strong>{{Math.round((exTotalResults.total / this.totalAllTimeLength) * 100)}}%</strong>)
                         </span>
                     </div>
-                    <div>
+                    <div v-else>
+                        {{$t('training.average')}}: <strong>{{exTotalResults.total / Object.keys(results).length }}</strong>
+                    </div>
+                    <div v-if="!exdata.complex">
                         <span v-for="(dist, key) in exTotalResults.distances" :key="key" class="ml-5">
-                            {{key}}m - {{dist}} / {{this.totalAllTimeLength / this.exdata.distances.length}}
+                            {{key}}m - {{dist}} <span v-if="!exdata.value">/ {{this.totalAllTimeLength / this.exdata.distances.length}}</span>
                             <span v-if="!exdata.value">-
                                 (<strong>{{Math.round(dist / (this.totalAllTimeLength / this.exdata.distances.length) * 100)}}%</strong>)
                             </span>
@@ -130,14 +144,21 @@ export default {
                     <div>{{getDate(item.date)}}</div>
                     <div class="is-flex-tablet is-justify-content-space-between">
                         <div>
-                            {{$t('stat.total')}}: {{getTotalResults(item.distances)}}/{{this.totalExLength}}
+                            {{$t('stat.total')}}:
+                            <strong>{{getTotalResults(item.distances)}}</strong><span v-if="!exdata.value">/{{this.totalExLength}}</span>
                             <span v-if="!exdata.value">-
                                 (<strong>{{Math.round((getTotalResults(item.distances) / this.totalExLength) * 100)}}%</strong>)
                             </span>
                         </div>
-                        <div>
+                        <div v-if="exdata.complex">
+                            <span v-for="(item, key) in getStatComplex(item.distances)" :key="key" class="ml-5 is-block-mobile">
+                                <span>{{item.name}}</span>
+                                <strong> - {{item.result}}</strong>
+                            </span>
+                        </div>
+                        <div v-else>
                             <span v-for="(dist, key) in item.distances" :key="key" class="ml-5">
-                                {{key}}m - {{dist.reduce((acc, item) => acc + +item, 0)}} / {{this.exdata.length}}
+                                {{key}}m - {{dist.reduce((acc, item) => acc + +item, 0)}} <span v-if="!exdata.value">/ {{this.exdata.length}}</span>
                             </span>
                         </div>
                     </div>

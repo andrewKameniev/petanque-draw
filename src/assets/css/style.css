@@ -373,3 +373,7 @@ footer {
         top: 1px;
     }
 }
+
+.opacity-0 {
+    opacity: 0;
+}

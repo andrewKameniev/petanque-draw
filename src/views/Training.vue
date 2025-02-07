@@ -37,7 +37,7 @@
                                                     <button class="button is-info" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
                                                 </div>
                                             </div>
-                                            <button class="ml-auto delete" @click.stop="removeExercise(key)"></button>
+                                            <button class="ml-auto delete" @click.stop="confirmRemoveId = key"></button>
                                         </div>
                                     </div>
                                 </div>
@@ -54,6 +54,7 @@
                 </div>
             </div>
             <Message v-if="message.show"/>
+            <ConfirmRemoveModal title="Remove this exercise?" @remove="removeExercise(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
 <!--            <Footer/>-->
         </div>
     </div>
@@ -70,9 +71,10 @@ import Message from "@/components/Message.vue";
 import TrainingItem from "@/components/training/TrainingItem.vue";
 import TrainingResult from "@/components/training/TrainingResult.vue";
 import TrainingAdd from "@/components/training/TrainingAdd.vue";
+import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 export default {
     name: 'Training',
-    components: {TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, /*Footer*/},
+    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, /*Footer*/},
     data() {
         return {
             resultsOpen: false,
@@ -81,7 +83,8 @@ export default {
             showResults: false,
             exerciseInProcess: false,
             exercisesList: {},
-            exercise: null
+            exercise: null,
+            confirmRemoveId: null
         }
     },
     mounted() {

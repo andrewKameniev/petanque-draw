@@ -315,6 +315,7 @@ export default {
             noResults: 'No results',
             distance: 'Distance',
             exGradedText: 'This exercise is graded by points scored, not percentages',
+            average: 'All time Average result ',
         }
     },
     ua: {
@@ -634,6 +635,7 @@ export default {
             points: 'Очки',
             distance: 'дистанція',
             exGradedText: 'Ця вправа оцінюється по набраним очкам, а не по відсоткам',
+            average: 'Середній результат за весь час',
         }
     }
 }

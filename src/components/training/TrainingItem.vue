@@ -67,11 +67,26 @@ export default {
         },
         finishTraining() {
             const db = getDatabase();
-            if (!this.fastMode && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
+            if (!this.fastMode && !this.data.value && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
                 this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
                 return
             }
             let exResult = {};
+
+            let localData = JSON.parse(localStorage.getItem('trainingData'));
+            localData[this.exid] = exResult;
+            localStorage.setItem('trainingData', JSON.stringify(localData));
+
+            if (Object.keys(this.trainingData).some(key => key.includes('.'))) {
+                const newTrainingData = {};
+
+                Object.keys(this.trainingData).forEach(key => {
+                    const newKey = key.includes('.') ? key.replace(/\./g, '_') : key;
+                    newTrainingData[newKey] = this.trainingData[key];
+                });
+
+                this.trainingData = newTrainingData;
+            }
 
             if (this.exNotSaved) {
                 let data = JSON.parse(localStorage.getItem('trainingData'));
@@ -88,12 +103,15 @@ export default {
                     })
                     exResult.distances = revertedData;
                 } else {
-                    let optimizedData = {};
-                    Object.keys(this.trainingData).forEach(key =>{
-                        optimizedData[key] = this.trainingData[key].map(item => item.value);
-                    })
-
-                    exResult.distances = optimizedData
+                    if (!this.data.value) {
+                        let optimizedData = {};
+                        Object.keys(this.trainingData).forEach(key =>{
+                            optimizedData[key] = this.trainingData[key].map(item => item.value);
+                        })
+                        exResult.distances = optimizedData
+                    } else {
+                        exResult.distances = this.trainingData
+                    }
                 }
             }
             console.log(exResult);
@@ -116,10 +134,6 @@ export default {
                     this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
                 }
             } else {
-                console.log(exResult);
-                let data = JSON.parse(localStorage.getItem('trainingData'));
-                data[this.exid] = exResult;
-                localStorage.setItem('trainingData', JSON.stringify(data))
                 this.showMessage({title: 'You are offline', text: 'Your training saved in browser. Save it when you will be online', type: 'error'});
             }
         },

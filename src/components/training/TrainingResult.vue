@@ -70,7 +70,7 @@ export default {
                 })
                 Object.values(this.results).forEach(res => {
                     Object.keys(res.distances).forEach(key => {
-                        totalAllTime.distances[key] += res.distances[key].reduce((acc, item) => acc + +item, 0);
+                        totalAllTime.distances[key.replace('_', '.')] += res.distances[key].reduce((acc, item) => acc + +item, 0);
                     })
                 })
                 totalAllTime.total = Object.values(totalAllTime.distances).reduce((acc, item) => acc + item, 0);
@@ -130,7 +130,7 @@ export default {
                     </div>
                     <div v-if="!exdata.complex">
                         <span v-for="(dist, key) in exTotalResults.distances" :key="key" class="ml-5">
-                            {{key}}m - {{dist}} <span v-if="!exdata.value">/ {{this.totalAllTimeLength / this.exdata.distances.length}}</span>
+                            {{key}}m&nbsp;-&nbsp;{{dist}} <span v-if="!exdata.value">/ {{this.totalAllTimeLength / this.exdata.distances.length}}</span>
                             <span v-if="!exdata.value">-
                                 (<strong>{{Math.round(dist / (this.totalAllTimeLength / this.exdata.distances.length) * 100)}}%</strong>)
                             </span>
@@ -158,7 +158,7 @@ export default {
                         </div>
                         <div v-else>
                             <span v-for="(dist, key) in item.distances" :key="key" class="ml-5">
-                                {{key}}m - {{dist.reduce((acc, item) => acc + +item, 0)}} <span v-if="!exdata.value">/ {{this.exdata.length}}</span>
+                                {{key.replace('_', '.')}}m&nbsp;-&nbsp;{{dist.reduce((acc, item) => acc + +item, 0)}} <span v-if="!exdata.value">/ {{this.exdata.length}}</span>
                             </span>
                         </div>
                     </div>

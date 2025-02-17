@@ -165,7 +165,7 @@ export default {
     components: {Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
     data() {
         return {
-            isSaving: true,
+            isSaving: false,
             archiveOpen: false,
             menuOpen: false,
             showResults: false,
@@ -217,7 +217,7 @@ export default {
             this.throwInfo.isMade = newValue;
         },
         currentMan() {
-            if (this.currentScore.team1 < 13 || this.currentScore.team2 < 13) {
+            if (this.currentMan !== null && (this.currentScore.team1 < 13 || this.currentScore.team2 < 13)) {
                 this.nextMan()
             }
         }

@@ -2,9 +2,12 @@
     <div class="content tabs-content">
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <div v-else>
+            <div v-if="teamsCount < 10 && tournament.system === 'swiss'" class="mb-2 has-text-danger">
+                {{$t('games.playMaximum')}} <strong class="has-text-danger">{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
+            </div>
             <div class="field is-grouped">
                 <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
-                && (tournament.games && tournament.games.length < teamsCount) || !tournament.games && tournament.teams?.length">
+                && (tournament.games && tournament.games.length < teamsCount) && activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds">
                     <button class="button is-info" @click="drawRound">
                         {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </button>
@@ -53,12 +56,11 @@
                         {{ $t('games.restoreRound') }}
                     </button>
                 </div>
-                <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}
-                </div>
+                <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
             </div>
             <div v-else-if="tournament.games && tournament.games.length === 0">{{ $t('games.noGames') }}</div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
-            <div v-else-if="tournament.teams?.length" class="mb-5 mt-5">
+            <div v-else-if="tournament.teams?.length && activeRound < maxSwissRounds" class="mb-5 mt-5">
                 {{ $t('games.clickToDraw') }} <b>{{ activeRound === 1 ?  $t('games.first') : activeRound }}</b> {{ $t('common.round') }}
             </div>
         </div>
@@ -92,6 +94,9 @@ export default {
                 this.tournament.groups ? this.tournament.groups[0].length % 2 !== 0 ? this.tournament.groups[0].length :
                     this.tournament.groups[0].length - 1 : this.tournament.teams.length - 1;
         },
+        maxSwissRounds() {
+            return Math.round(this.tournament.teams.length / 2) - 1
+        }
     },
     methods: {
         ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),

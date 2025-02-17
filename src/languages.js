@@ -55,6 +55,7 @@ export default {
             lucky: 'Lucky guy',
             chooseSystem: 'Choose tournament system',
             chooseSystemText: 'Prohibited to play swiss system with less then 8 teams',
+            playMaximum: 'You can play maximum ',
         },
         results: {
             title: 'Every round results',
@@ -383,6 +384,7 @@ export default {
             lucky: 'щасливчик',
             chooseSystem: 'Виберіть систему розіграшу',
             chooseSystemText: 'Забороняється грати турнір по швейцарській системі при кількості команд менше 8',
+            playMaximum: 'Ви можете зіграти максимум',
         },
         results: {
             title: 'Результати кожного раунду',

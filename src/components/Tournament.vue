@@ -125,7 +125,7 @@
             <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length">
                 <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
             </div>
-            <div class="control" v-if="isAdmin && tournament.teams?.length && tournament.system === 'swiss'">
+            <div class="control" v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length && tournament.system === 'swiss'">
                 <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
                     {{ $t('teams.protocol') }}
                 </button>
@@ -136,7 +136,7 @@
         <ConfirmRemoveModal v-if="removeConfirmId" :title="$t('modals.sureRemove') + ' ' + tournament.name + '?'" @close="removeConfirmId = null" @remove="removeTournament"/>
         <ChangeTournamentName v-if="changeNameModal" @close-modal="changeNameModal = false"/>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
-        <Protocol v-if="showProtocol" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
+        <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
 </template>
 

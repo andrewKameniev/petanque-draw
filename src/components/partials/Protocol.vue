@@ -28,7 +28,7 @@
                     </tr>
                     <tr>
                         <td>Головний суддя</td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="true">{{ arbitr }}</td>
                     </tr>
                     <tr>
                         <td>Загальна кількість гравців</td>
@@ -86,6 +86,55 @@
                 <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
                 <Results :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
             </div>
+            <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
+            <table class="table is-bordered">
+                <thead class="has-text-centered">
+                    <tr>
+                        <th>№ з/п</th>
+                        <th>Прізвище, ім'я, по батькові</th>
+                        <th>Посада</th>
+                        <th>Суддівська категорія</th>
+                        <th>№ посвідчення</th>
+                        <th>Термін дії суддівської категорії до</th>
+                        <th>Регіон</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in arbitres" :key="index">
+                        <td>{{ index + 1 }}</td>
+                        <td contenteditable="true">{{ item.name }}</td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div>
+                <table width="100%" class="is-fullwidth">
+                    <tr>
+                        <td>Головний суддя змагань</td>
+                        <td class="has-text-centered">___________________ <br> (печатка)</td>
+                        <td class="has-text-right"></td>
+                    </tr>
+                    <tr>
+                        <td>Суддя</td>
+                        <td class="has-text-centered">___________________ <br> (підпис)</td>
+                        <td class="has-text-right"></td>
+                    </tr>
+                    <tr>
+                        <td>Головний секретар змагань</td>
+                        <td class="has-text-centered">___________________ <br> (підпис)</td>
+                        <td class="has-text-right"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="field is-grouped">
+            <div class="control">
+                <button class="button is-success" @click="addArbitr">Додати суддю</button>
+            </div>
         </div>
         <div class="field is-grouped">
             <div class="control">
@@ -121,6 +170,10 @@ export default {
             mixedTeamCount: 1,
             noRegionTeamCount: 1,
             protocolTitles: {},
+            arbitr: '',
+            arbitres: [
+
+            ]
         }
     },
     mounted() {
@@ -142,6 +195,11 @@ export default {
     },
     methods: {
         ...mapMutations(['showMessage']),
+        addArbitr() {
+            this.arbitres.push({
+                name: ''
+            })
+        },
         getPlayerThirdName(surname, name) {
             const playerInfo = playersNames.find(item => item.includes(surname + ' ' + name));
             if (playerInfo) {

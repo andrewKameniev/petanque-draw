@@ -292,3 +292,5 @@ export const gameTypes = [
         value: 3,
     },
 ]
+
+export const throwDistances = [6,7,8,9,10,11]

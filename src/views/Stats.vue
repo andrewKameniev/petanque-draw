@@ -118,6 +118,15 @@
                                 </div>
                             </div>
                             <hr>
+                            <div>
+                                <div>What distance?</div>
+                                <div class="field">
+                                    <label class="radio" v-for="dist in throwDistances" :key="dist">
+                                        <input type="radio" name="manDistance" :id="'manDistance' + dist" :value="dist" v-model="manDistance">
+                                        {{dist === 11 ? '>10m' : '~' + dist + 'm'}}
+                                    </label>
+                                </div>
+                            </div>
                             <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                       @x2throw="doubleThrowResult" @next="currentMan++"
@@ -157,7 +166,7 @@ import {getDatabase, ref, set} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
-import {gameTypes} from "@/helpers-stat.js"
+import {gameTypes, throwDistances} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
 import Loader from "@/components/Loader.vue";
 export default {
@@ -186,11 +195,14 @@ export default {
             team2: {
                 score: []
             },
+            throwDistances,
+            manDistance: 6,
             throwInfo: {
                 isMade: false,
                 type: 'p',
                 success: false,
-                french: 'D'
+                french: 'D',
+                distance: this.manDistance
             },
         }
     },
@@ -220,6 +232,15 @@ export default {
             if (this.currentMan !== null && (this.currentScore.team1 < 13 || this.currentScore.team2 < 13)) {
                 this.nextMan()
             }
+        },
+        manDistance(newValue) {
+            console.log(newValue);
+            this.team1.players.forEach(player => player.stat[this.currentMan].forEach(item => {
+                item.distance = newValue
+            }));
+            this.team2.players.forEach(player => player.stat[this.currentMan].forEach(item => {
+                item.distance = newValue
+            }))
         }
     },
     methods: {
@@ -360,6 +381,7 @@ export default {
             });
         },
         addPlayerStats(player) {
+            console.log(this.throwInfo);
             const statEntry = [
                 JSON.parse(JSON.stringify(this.throwInfo)),
                 JSON.parse(JSON.stringify(this.throwInfo)),

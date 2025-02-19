@@ -113,21 +113,23 @@
             </table>
             <div>
                 <table width="100%" class="is-fullwidth">
-                    <tr>
-                        <td>Головний суддя змагань</td>
-                        <td class="has-text-centered">___________________ <br> (печатка)</td>
-                        <td class="has-text-right"></td>
-                    </tr>
-                    <tr>
-                        <td>Суддя</td>
-                        <td class="has-text-centered">___________________ <br> (підпис)</td>
-                        <td class="has-text-right"></td>
-                    </tr>
-                    <tr>
-                        <td>Головний секретар змагань</td>
-                        <td class="has-text-centered">___________________ <br> (підпис)</td>
-                        <td class="has-text-right"></td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td>Головний суддя змагань</td>
+                            <td class="has-text-centered">___________________ <br> (печатка)</td>
+                            <td class="has-text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>Суддя</td>
+                            <td class="has-text-centered">___________________ <br> (підпис)</td>
+                            <td class="has-text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>Головний секретар змагань</td>
+                            <td class="has-text-centered">___________________ <br> (підпис)</td>
+                            <td class="has-text-right"></td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>

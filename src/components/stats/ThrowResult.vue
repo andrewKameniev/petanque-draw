@@ -1,11 +1,11 @@
 <script>
 import StatCheckbox from "@/components/stats/StatCheckbox.vue";
+import {throwDistances} from "@/helpers-stat";
 
 const clickOutsideDirective = {
     beforeMount(el, binding) {
         el.clickOutsideEvent = (event) => {
             if (!(el === event.target || el.contains(event.target))) {
-                // Call the method provided in the binding
                 binding.value(event);
             }
         };
@@ -31,8 +31,12 @@ export default {
     directives: {
         clickOutside: clickOutsideDirective,
     },
+    computed: {
+        getThrowDistances() {
+            return throwDistances
+        }
+    },
     methods: {
-        // Show the menu
         showMenu() {
             if (!this.selectOpen) {
                 this.isMenuVisible = true;
@@ -42,8 +46,7 @@ export default {
             this.isMenuVisible = false;
         },
         handleMouseDown() {
-            this.isLongPress = false; // Reset the long-press flag
-
+            this.isLongPress = false;
             this.longPressTimer = setTimeout(() => {
                 this.isLongPress = true;
                 this.showMenu();
@@ -53,7 +56,7 @@ export default {
             clearTimeout(this.longPressTimer);
         },
         handleTouchStart() {
-            this.isLongPress = false; // Reset the long-press flag
+            this.isLongPress = false;
             this.longPressTimer = setTimeout(() => {
                 this.isLongPress = true;
                 this.showMenu();
@@ -108,7 +111,7 @@ export default {
             <div v-else class="control">
                 <div class="select">
                     <select :name="'throwResult' + iterator" :id="'throwResult' + iterator" :value="info.french"
-                            @focus="selectOpen = true" @blur="selectOpen = true" @change="$emit('updateresultfrench', $event.target.value)">
+                            @focus="selectOpen = true" @blur="selectOpen = false" @change="$emit('updateresultfrench', $event.target.value)">
                         <option v-for="value in frenchSystem" :value="value" :key="value">{{ getFrenchLabel(value) }}</option>
                     </select>
                 </div>
@@ -119,6 +122,15 @@ export default {
             <ul>
                 <li v-if="system === 'simple'" @click="superThrow(info.x2)">{{ info.x2 ? 'remove x2' : 'x2 result' }}</li>
                 <li @click="removeThrow()">Remove throw</li>
+                <li class="is-flex is-align-items-center" style="gap: 5px">
+                    <span class="select">
+                        <select :name="'throwResultDistances' + iterator" :id="'throwResultDistances' + iterator" :value="info.distance"
+                                @focus="selectOpen = true" @blur="selectOpen = false" @change="$emit('updatedistance', $event.target.value)">
+                            <option v-for="value in getThrowDistances" :value="value" :key="value">~{{value}}m</option>
+                        </select>
+                    </span>
+                    m
+                </li>
             </ul>
         </div>
     </div>

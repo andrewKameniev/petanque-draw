@@ -77,6 +77,7 @@
                                  @updatetype="$emit('updatethrow', team, index, currentMan, throwIndex, 'type', $event)"
                                  @updateresult="$emit('updatethrow', team, index, currentMan, throwIndex, 'success', $event)"
                                  @updateresultfrench="$emit('updatethrow', team, index, currentMan, throwIndex, 'french', $event)"
+                                 @updatedistance="$emit('updatethrow', team, index, currentMan, throwIndex, 'distance', $event)"
                     />
                 </div>
             </div>

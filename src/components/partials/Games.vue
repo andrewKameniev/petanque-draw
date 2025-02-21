@@ -114,7 +114,6 @@ export default {
         },
         generateCompetitors(teamList, reverse = false) { //функция для распределения пар
             let teamIndex, opponentIndex;
-            console.log(teamList);
             if (this.activeRound === 1 && !this.tournament.useRating) {
                 teamIndex = this.getRandomWithOneExclusion(teamList.length);
                 opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
@@ -161,7 +160,6 @@ export default {
                         teamIndex = 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
                         opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
                     }
-                    console.log(teamIndex, opponentIndex);
                     if (reverse) {
                         while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)
                         && teamList[opponentIndex + 1].opponents.includes(teamList[opponentIndex + 2].title)) {
@@ -490,7 +488,6 @@ export default {
             }
             if (this.tournament.system === 'supermele') {
                 this.tournament.games[round].forEach(game => {
-                    console.log(game);
                     game.team_1_players.forEach(player => {
                         const playerIndex = this.tournament.teams.findIndex(item => item.title === player);
                         if (playerIndex !== -1) {

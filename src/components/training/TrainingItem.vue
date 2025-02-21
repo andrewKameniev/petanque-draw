@@ -114,7 +114,6 @@ export default {
                     }
                 }
             }
-            console.log(exResult);
             if (navigator.onLine) {
                 if (Object.values(exResult.distances).every(array => Array.isArray(array) && array.every(value => value !== null))) {
                     this.isSaving = true;

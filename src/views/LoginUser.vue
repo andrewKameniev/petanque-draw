@@ -82,7 +82,6 @@ export default {
             } else {
                 signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
                     .then((data) => {
-                        console.log(data.user);
                         this.loginUser(data.user);
                         this.$router.push('/');
                     })

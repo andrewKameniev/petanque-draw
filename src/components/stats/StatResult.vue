@@ -126,7 +126,7 @@ export default {
                     </div>
                     <div>
                         {{ $t('stat.tirs') }}:
-                        <span class="throw-result" :class="{'-success': item.success}"
+                        <span class="throw-result" :class="{'-success': item.success, '-carro': item.x2}"
                               v-for="(item, itemIndex) in teamStats[index].serie.filter((item) => item.type === 't')"
                               :key="itemIndex"></span>
                     </div>

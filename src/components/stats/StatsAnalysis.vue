@@ -5,7 +5,7 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import {calculatePlayerStat, getDate} from "@/helpers-stat";
 import VueApexCharts from 'vue3-apexcharts';
-import {gameTypes} from "@/helpers-stat.js"
+import {gameTypes, throwDistances} from "@/helpers-stat.js"
 
 export default {
     name: "StatsAnalysis",
@@ -15,7 +15,9 @@ export default {
         return {
             date: null,
             gameTypes,
+            throwDistances,
             filterGamesType: null,
+            filterThrowDistance: null,
             player: '',
             playerStatList: [],
             showSinusoids: false,
@@ -55,13 +57,21 @@ export default {
             const calculateAverage = (key) => {
                 const validGames = this.playerStatList.filter(game => game.stat[key] !== '-');
                 const total = validGames.reduce((acc, game) => acc + game.stat[key], 0);
-                return validGames.length > 0 ? (total / validGames.length).toFixed(1) : 0; // Avoid division by zero
+                return validGames.length > 0 ? (total / validGames.length).toFixed(1) : 0;
             };
 
+            const getThrowTotal = (key) => {
+                const positive = this.playerStatList.reduce((acc, game) => acc + game.stat[key].positive, 0);
+                const total = this.playerStatList.reduce((acc, game) => acc + game.stat[key].negative + game.stat[key].positive, 0);
+                return `${positive}/${total}`
+            }
+
             return {
-                all: calculateAverage('all'),
-                points: calculateAverage('points'),
-                tirs: calculateAverage('tirs'),
+                points: getThrowTotal('points'),
+                tirs: getThrowTotal('tirs'),
+                allPercent: calculateAverage('allPercent'),
+                pointsPercent: calculateAverage('pointsPercent'),
+                tirsPercent: calculateAverage('tirsPercent'),
             };
         },
         playersList() {
@@ -125,7 +135,7 @@ export default {
                     if (player) {
                         this.playerStatList.push({
                             date: key,
-                            stat: calculatePlayerStat(player.stat, 'simple')
+                            stat: calculatePlayerStat(player.stat, 'simple', this.filterThrowDistance)
                         });
                     }
                 };
@@ -135,10 +145,10 @@ export default {
             });
 
             this.playerStatList.forEach(game => {
-                const { points, tirs } = game.stat;
+                const { pointsPercent, tirsPercent } = game.stat;
                 this.chartOptions.xaxis.categories.push(getDate(+game.date));
-                this.chartData[0].data.push(points !== '-' ? points : null);
-                this.chartData[1].data.push(tirs !== '-' ? tirs : null);
+                this.chartData[0].data.push(pointsPercent !== '-' ? pointsPercent : null);
+                this.chartData[1].data.push(tirsPercent !== '-' ? tirsPercent : null);
             });
             if (this.chartOptions.xaxis.categories.length > 1) {
                 this.showSinusoids = true;
@@ -146,6 +156,10 @@ export default {
         },
         clearGameType() {
             this.filterGamesType = null;
+            this.showPlayerStat();
+        },
+        clearFilterDistance() {
+            this.filterThrowDistance = null;
             this.showPlayerStat();
         }
     }
@@ -174,11 +188,21 @@ export default {
                 <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
             </form>
         </div>
+        <div class="field" v-if="player">
+            <form action="">
+                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                <label class="radio" v-for="dist in throwDistances" :key="dist">
+                    <input type="radio" name="gameType" :id="'dist' + dist" :value="dist" v-model="filterThrowDistance" @change="showPlayerStat">
+                    {{dist === 11 ? '>10m' : '~' + dist + 'm'}}
+                </label>
+                <button class="button is-small ml-2" type="reset" v-if="filterThrowDistance" @click="clearFilterDistance">{{ $t('stat.clear') }}</button>
+            </form>
+        </div>
         <div v-if="player && playerStatList.length">
             <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} {{ $t('stat.games') }})</div>
-            <p>{{ $t('stat.all') }}: {{allPeriodStat.all}}%</p>
-            <p>{{ $t('stat.points') }}: {{allPeriodStat.points}}%</p>
-            <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirs}}%</p>
+            <p>{{ $t('stat.all') }}: {{allPeriodStat.allPercent}}%</p>
+            <p>{{ $t('stat.points') }}: {{allPeriodStat.pointsPercent}}%, ({{allPeriodStat.points}})</p>
+            <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirsPercent}}%, ({{allPeriodStat.tirs}})</p>
             <div v-if="showSinusoids" class="has-background-white p-3 mt-3">
                 <apexchart
                     type="line"

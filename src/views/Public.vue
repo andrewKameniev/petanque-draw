@@ -156,7 +156,6 @@ export default {
         },
         showNotification(message) {
             navigator.serviceWorker.ready.then(function(registration) {
-                console.log(message);
                 registration.showNotification(message.data.title, {
                     body: message.data.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',

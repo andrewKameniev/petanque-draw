@@ -68,7 +68,7 @@ const frenchInfoStat= {
     }
 }
 
-export function calculatePlayerStat(gameScenario, system) {
+export function calculatePlayerStat(gameScenario, system, filterDistance) {
     let playerStat;
 
     if (system === 'simple') {
@@ -112,6 +112,9 @@ export function calculatePlayerStat(gameScenario, system) {
         gameScenario.forEach(man => {
             man.forEach(item => {
                 if (item.isMade){
+                    if (filterDistance && item.distance !== filterDistance) {
+                        return
+                    }
                     if (item.type === 'p') {
                         if (system === 'simple') {
                             if (item.success) {
@@ -156,13 +159,17 @@ export function calculatePlayerStat(gameScenario, system) {
             })
         })
         if (system === 'simple') {
-            playerStat.all = Math.round((playerStat.points.positive + playerStat.tirs.positive) / (playerStat.points.positive + playerStat.tirs.positive + playerStat.points.negative + playerStat.tirs.negative) * 100);
-            playerStat.points = (playerStat.points.positive + playerStat.points.negative) > 0 ? Math.round(playerStat.points.positive / (playerStat.points.positive + playerStat.points.negative) * 100) : '-';
-            playerStat.tirs = (playerStat.tirs.positive + playerStat.tirs.negative) > 0 ? Math.round(playerStat.tirs.positive / (playerStat.tirs.positive + playerStat.tirs.negative) * 100) : '-';
+            playerStat.allPercent = playerStat.points.positive + playerStat.points.negative > 0 ? Math.round((playerStat.points.positive + playerStat.tirs.positive) / (playerStat.points.positive + playerStat.tirs.positive + playerStat.points.negative + playerStat.tirs.negative) * 100) : '-';
+            playerStat.pointsPercent = getStatPercentValue(playerStat.points.positive, playerStat.points.negative);
+            playerStat.tirsPercent = getStatPercentValue(playerStat.tirs.positive, playerStat.tirs.negative);
         }
     }
 
     return playerStat
+}
+
+function getStatPercentValue(pos, neg) {
+    return (pos + neg) > 0 ? Math.round(pos / (pos + neg) * 100) : '-';
 }
 export function calculateTeamPlayersStat(team, system) {
     let teamStat = [];

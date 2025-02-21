@@ -197,13 +197,6 @@ export default {
             },
             throwDistances,
             manDistance: 6,
-            throwInfo: {
-                isMade: false,
-                type: 'p',
-                success: false,
-                french: 'D',
-                distance: this.manDistance
-            },
         }
     },
     mounted() {
@@ -220,6 +213,15 @@ export default {
         manCount() {
             return this.team1.players[0].stat.length
         },
+        throwInfo() {
+            return {
+                isMade: false,
+                type: 'p',
+                success: false,
+                french: 'D',
+                distance: this.manDistance
+            }
+        },
     },
     watch: {
         statScenario(newValue) {
@@ -234,7 +236,6 @@ export default {
             }
         },
         manDistance(newValue) {
-            console.log(newValue);
             this.team1.players.forEach(player => player.stat[this.currentMan].forEach(item => {
                 item.distance = newValue
             }));
@@ -381,7 +382,6 @@ export default {
             });
         },
         addPlayerStats(player) {
-            console.log(this.throwInfo);
             const statEntry = [
                 JSON.parse(JSON.stringify(this.throwInfo)),
                 JSON.parse(JSON.stringify(this.throwInfo)),
@@ -467,5 +467,9 @@ export default {
 
 .throw-result.-success {
     background: green;
+}
+
+.throw-result.-carro {
+    background: dodgerblue;
 }
 </style>

@@ -7,6 +7,7 @@ import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 export default {
     name: "StatsArchive",
+    props: ['tags'],
     components: {ConfirmRemoveModal, StatsAnalysis, StatResult},
     data() {
         return {
@@ -34,6 +35,7 @@ export default {
                     Object.keys(this.statsList).forEach(key => {
                         this.statsList[key].isOpen = false
                     })
+                    delete this.statsList['tags'];
                     this.showMessage({
                         title: 'Awesome!',
                         text: 'Statistics successfully loaded from the database!',
@@ -99,13 +101,13 @@ export default {
         </div>
         <div>
             <div v-if="statsList" class="mt-3">
-                <StatsAnalysis v-if="showStatAnalysis" :stats="statsList"/>
+                <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags"/>
                 <div v-for="item in statsList" :key="item.date">
                     <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
-                    <span class="is-size-4">
-                        {{ item.name }}
-                        <span class="is-size-6">{{getDate(item.date)}}</span>
-                    </span>
+                        <span class="is-size-4">
+                            {{ item.name }}
+                            <span class="is-size-6">{{getDate(item.date)}}</span>
+                        </span>
                         <span class="delete" @click.stop="confirmRemoveId = item.date"></span>
                     </div>
                     <div class="columns is-desktop" v-if="item.isOpen">

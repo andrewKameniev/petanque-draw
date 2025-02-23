@@ -7,7 +7,7 @@
             />
             <div class="stat-container">
                 <div v-if="user" class="mobile-stat-container">
-                    <StatsArchive v-if="archiveOpen" @close="archiveOpen = false"/>
+                    <StatsArchive v-if="archiveOpen" @close="archiveOpen = false" :tags="tags"/>
                     <div v-else class="mobile-stat-container">
                         <div v-if="currentMan === null" class="mobile-stat-container">
                             <div class="has-text-right mobile-stat-container-header">
@@ -16,6 +16,23 @@
                             <label class="label" for="gameName">{{ $t('stat.enterName') }}</label>
                             <div class="field control">
                                 <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
+                            </div>
+                            <div v-if="gameTags.length > 0" class="mb-2 is-size-7">
+                                Теги гри: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}</strong>
+                            </div>
+                            <div v-if="tags" class="mb-2">
+                                <div class="label">Add tag: </div>
+                                <div class="tags">
+                                    <button class="cursor-pointer tag is-rounded" v-for="tag in tags" :key="tag.id" @click="addTagToGame(tag)" :disabled="gameTags.includes(tag)">
+                                      {{tag}}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3" v-if="showTags">
+                                <StatTags :tags="tags" @addtag="addTag" @removetag="removeTag"/>
+                            </div>
+                            <div class="mb-3">
+                                <button class="button is-info is-small" @click="showTags = !showTags">{{showTags ? 'Hide' : 'Show'}} tags</button>
                             </div>
                             <div class="field">
                                 <label class="radio" v-for="item in gameTypes" :key="item.id">
@@ -162,19 +179,24 @@
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
-import {getDatabase, ref, set} from "firebase/database";
+import {get, getDatabase, ref, set} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import {gameTypes, throwDistances} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
 import Loader from "@/components/Loader.vue";
+import StatTags from "@/components/stats/StatTags.vue";
 export default {
     name: 'Stats',
-    components: {Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
+    components: {StatTags, Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
     data() {
         return {
             isSaving: false,
+            tagsLoading: false,
+            showTags: false,
+            tags: null,
+            gameTags: [],
             archiveOpen: false,
             menuOpen: false,
             showResults: false,
@@ -201,6 +223,7 @@ export default {
     },
     mounted() {
         this.getLocalData();
+        this.getTags()
     },
     computed: {
         ...mapState(['user', 'message']),
@@ -215,7 +238,7 @@ export default {
         },
         throwInfo() {
             return {
-                isMade: false,
+                isMade: this.statMode,
                 type: 'p',
                 success: false,
                 french: 'D',
@@ -246,6 +269,33 @@ export default {
     },
     methods: {
         ...mapMutations(['showMessage']),
+        getTags() {
+            const db = getDatabase();
+            const statsRef = ref(db, `${this.user.uid}/stats/tags`);
+
+            this.tagsLoading = true;
+
+            get(statsRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        this.tags = snapshot.val();
+                    } else {
+                        this.tags = null;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading statistics:', error);
+                    this.tags = null;
+                    this.showMessage({
+                        title: 'Error',
+                        text: 'Failed to load tags. Please try again later.',
+                        type: 'error',
+                    });
+                })
+                .finally(() => {
+                    this.tagsLoading = false;
+                });
+        },
         saveLocalData() {
             const data = {
                 type: this.gameType,
@@ -285,11 +335,21 @@ export default {
                 this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].stat.unshift([]);
             }
         },
+        addTagToGame(tag) {
+            this.gameTags.push(tag)
+        },
+        addTag(id, name) {
+            this.tags[id] = name;
+        },
+        removeTag(id) {
+            delete this.tags[id]
+        },
         finishGame() {
             this.showResults = true;
             let statResult = {
                 date: Date.now(),
                 system: this.statSystem,
+                tags: this.gameTags,
                 name: this.gameName,
                 team1: this.team1,
                 team2: this.team2

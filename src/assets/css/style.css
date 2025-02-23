@@ -377,3 +377,11 @@ footer {
 .opacity-0 {
     opacity: 0;
 }
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+button.tag {
+    border: 0;
+}

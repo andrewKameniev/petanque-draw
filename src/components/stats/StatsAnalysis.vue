@@ -10,12 +10,13 @@ import {gameTypes, throwDistances} from "@/helpers-stat.js"
 export default {
     name: "StatsAnalysis",
     components: {VueSelect, VueDatePicker, apexchart: VueApexCharts},
-    props: ['stats'],
+    props: ['stats', 'tags'],
     data() {
         return {
             date: null,
             gameTypes,
             throwDistances,
+            filterGamesTag: [],
             filterGamesType: null,
             filterThrowDistance: null,
             player: '',
@@ -130,6 +131,8 @@ export default {
 
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
+                if (this.filterGamesTag.length && this.filterGamesTag !== game.tags) return;
+
                 const checkAndAddStat = (team) => {
                     const player = team.players.find(player => player?.name.trim() === this.player.trim());
                     if (player) {
@@ -184,6 +187,14 @@ export default {
                 <label class="radio" v-for="item in gameTypes" :key="item.id">
                     <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType" @change="showPlayerStat">
                     {{ item.label }}
+                </label>
+                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
+            </form>
+            <form action="">
+                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                <label class="radio" v-for="(tag, key) in tags" :key="key">
+                    <input type="checkbox" :name="'gameTag' + key" :id="'tag' + key" :checked="filterGamesTag" @change="showPlayerStat">
+                    {{ tag }}
                 </label>
                 <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
             </form>

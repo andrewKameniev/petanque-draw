@@ -62,7 +62,7 @@
                     </div>
                     <div class="player-name">{{ player.name }}</div>
                     <div class="throw-result-container" v-if="system === 'simple' && isCouch">
-                        <span class="throw-result" :class="{'-success': item.success, '-carro': item.x2 && item.type === 't'}"
+                        <span class="throw-result" :class="{'-success': item.success, '-carro': item.x2 && item.type === 't' && item.success}"
                               v-for="(item, itemIndex) in teamsStat[index].serie.slice(-12)"
                               :key="itemIndex"></span>
                     </div>

@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="tags" v-if="Object.keys(tags).length > 0">
-            <span class="tag is-rounded" v-for="(tag, key) in tags" :key="key">
+            <span class="tag is-rounded is-white" v-for="(tag, key) in tags" :key="key">
               {{ tag }}
               <button class="delete is-small" @click="removeTag(key)"></button>
             </span>
@@ -40,7 +40,7 @@ export default {
         addTag() {
             const tagId = Date.now();
             const db = getDatabase();
-            set(ref(db, `${this.user.uid}/stats/tags/${tagId}`), this.tagName).then(() => {
+            set(ref(db, `${this.user.uid}/stats/tags/${tagId}`), this.tagName.trim()).then(() => {
                 this.showMessage({title: 'Awesome!', text: 'Tag saved to db'});
                 this.$emit('addtag', tagId, this.tagName);
                 this.tagName = '';

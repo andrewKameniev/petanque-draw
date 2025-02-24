@@ -131,7 +131,10 @@ export default {
 
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
-                if (this.filterGamesTag.length && this.filterGamesTag !== game.tags) return;
+                if (this.filterGamesTag.length) {
+                    const hasMatchingTag = game.tags?.some(tag => this.filterGamesTag.includes(tag));
+                    if (!hasMatchingTag) return;
+                }
 
                 const checkAndAddStat = (team) => {
                     const player = team.players.find(player => player?.name.trim() === this.player.trim());
@@ -164,6 +167,14 @@ export default {
         clearFilterDistance() {
             this.filterThrowDistance = null;
             this.showPlayerStat();
+        },
+        toggleTagFilter(tag) {
+            if (this.filterGamesTag.includes(tag)) {
+                this.filterGamesTag = this.filterGamesTag.filter(item => item !== tag)
+            } else {
+                this.filterGamesTag.push(tag);
+            }
+            this.showPlayerStat()
         }
     }
 }
@@ -181,33 +192,40 @@ export default {
                 <VueDatePicker v-model="date" range multi-calendars @update:model-value="showPlayerStat"/>
             </div>
         </div>
-        <div class="field" v-if="player">
-            <form action="">
-                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
-                <label class="radio" v-for="item in gameTypes" :key="item.id">
-                    <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType" @change="showPlayerStat">
-                    {{ item.label }}
-                </label>
-                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
-            </form>
-            <form action="">
-                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
-                <label class="radio" v-for="(tag, key) in tags" :key="key">
-                    <input type="checkbox" :name="'gameTag' + key" :id="'tag' + key" :checked="filterGamesTag" @change="showPlayerStat">
-                    {{ tag }}
-                </label>
-                <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
-            </form>
-        </div>
-        <div class="field" v-if="player">
-            <form action="">
-                <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
-                <label class="radio" v-for="dist in throwDistances" :key="dist">
-                    <input type="radio" name="gameType" :id="'dist' + dist" :value="dist" v-model="filterThrowDistance" @change="showPlayerStat">
-                    {{dist === 11 ? '>10m' : '~' + dist + 'm'}}
-                </label>
-                <button class="button is-small ml-2" type="reset" v-if="filterThrowDistance" @click="clearFilterDistance">{{ $t('stat.clear') }}</button>
-            </form>
+        <div v-if="player">
+            <div class="field">
+                <form action="">
+                    <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                    <label class="radio" v-for="item in gameTypes" :key="item.id">
+                        <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="filterGamesType" @change="showPlayerStat">
+                        {{ item.label }}
+                    </label>
+                    <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
+                </form>
+            </div>
+            <div class="field">
+                <form action="">
+                    <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                    <div class="is-flex is-align-items-center is-flex-wrap-wrap">
+                        <label class="radio" v-for="(tag, key) in tags" :key="key">
+                            <input type="checkbox" :name="'gameTag' + key" :id="'tag' + key"
+                                   :checked="filterGamesTag.includes(tag)" @change="toggleTagFilter(tag)">
+                            {{ tag }}
+                        </label>
+                        <button class="button is-small ml-2" type="reset" v-if="filterGamesTag" @click=" filterGamesTag = []; showPlayerStat();">{{ $t('stat.clear') }}</button>
+                    </div>
+                </form>
+            </div>
+            <div class="field">
+                <form action="">
+                    <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                    <label class="radio" v-for="dist in throwDistances" :key="dist">
+                        <input type="radio" name="gameType" :id="'dist' + dist" :value="dist" v-model="filterThrowDistance" @change="showPlayerStat">
+                        {{dist === 11 ? '>10m' : '~' + dist + 'm'}}
+                    </label>
+                    <button class="button is-small ml-2" type="reset" v-if="filterThrowDistance" @click="clearFilterDistance">{{ $t('stat.clear') }}</button>
+                </form>
+            </div>
         </div>
         <div v-if="player && playerStatList.length">
             <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} {{ $t('stat.games') }})</div>

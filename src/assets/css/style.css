@@ -8,7 +8,7 @@ body {
 }
 
 @media screen and (min-width: 575px){
-    body {
+    body:not(.documentation) {
         background: url("../img/bg-mountains.avif") center/cover;
         background-attachment: fixed;
     }

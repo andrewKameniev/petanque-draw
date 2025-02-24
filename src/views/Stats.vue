@@ -18,12 +18,13 @@
                                 <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
                             </div>
                             <div v-if="gameTags.length > 0" class="mb-2 is-size-7">
-                                Теги гри: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}</strong>
+                                Теги гри: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}<span v-if="index !== gameTags.length - 1">, </span></strong>
                             </div>
                             <div v-if="tags" class="mb-2">
                                 <div class="label">Add tag: </div>
                                 <div class="tags">
-                                    <button class="cursor-pointer tag is-rounded" v-for="tag in tags" :key="tag.id" @click="addTagToGame(tag)" :disabled="gameTags.includes(tag)">
+                                    <button class="cursor-pointer tag is-white is-rounded" v-for="(tag, key) in tags" :key="key"
+                                            @click="addTagToGame(tag)" :class="{'is-hidden': gameTags.includes(tag)}">
                                       {{tag}}
                                     </button>
                                 </div>
@@ -34,44 +35,51 @@
                             <div class="mb-3">
                                 <button class="button is-info is-small" @click="showTags = !showTags">{{showTags ? 'Hide' : 'Show'}} tags</button>
                             </div>
-                            <div class="field">
-                                <label class="radio" v-for="item in gameTypes" :key="item.id">
-                                    <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
-                                    {{ item.label }}
-                                </label>
-                            </div>
-                            <label class="label">{{ $t('stat.mode') }}</label>
-                            <div class="field">
-                                <label class="radio">
-                                    <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
-                                    {{ $t('stat.classic') }}
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
-                                    {{ $t('stat.fast') }}
-                                </label>
-                            </div>
-                            <label class="label">{{ $t('stat.system') }}</label>
-                            <div class="field">
-                                <label class="radio">
-                                    <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
-                                    {{ $t('stat.simple') }}
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
-                                    {{ $t('stat.french') }}
-                                </label>
-                            </div>
-                            <label class="label">{{ $t('stat.scenario') }}</label>
-                            <div class="field">
-                                <label class="radio">
-                                    <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
-                                    {{ $t('stat.negative') }}
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
-                                    {{ $t('stat.positive') }}
-                                </label>
+                            <div class="columns">
+                                <div class="column is-half">
+                                    <label class="label">{{ $t('stat.format') }}</label>
+                                    <div class="field">
+                                        <label class="radio" v-for="item in gameTypes" :key="item.id">
+                                            <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
+                                            {{ item.label }}
+                                        </label>
+                                    </div>
+                                    <label class="label">{{ $t('stat.mode') }}</label>
+                                    <div class="field">
+                                        <label class="radio">
+                                            <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
+                                            {{ $t('stat.classic') }}
+                                        </label>
+                                        <label class="radio">
+                                            <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
+                                            {{ $t('stat.fast') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="column is-half">
+                                    <label class="label">{{ $t('stat.system') }}</label>
+                                    <div class="field">
+                                        <label class="radio">
+                                            <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
+                                            {{ $t('stat.simple') }}
+                                        </label>
+                                        <label class="radio">
+                                            <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
+                                            {{ $t('stat.french') }}
+                                        </label>
+                                    </div>
+                                    <label class="label">{{ $t('stat.scenario') }}</label>
+                                    <div class="field">
+                                        <label class="radio">
+                                            <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
+                                            {{ $t('stat.negative') }}
+                                        </label>
+                                        <label class="radio">
+                                            <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
+                                            {{ $t('stat.positive') }}
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="field">
                                 <label class="checkbox">
@@ -144,6 +152,7 @@
                                     </label>
                                 </div>
                             </div>
+                            <hr>
                             <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
                                       @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
                                       @x2throw="doubleThrowResult" @next="currentMan++"
@@ -218,7 +227,7 @@ export default {
                 score: []
             },
             throwDistances,
-            manDistance: 6,
+            manDistance: null,
         }
     },
     mounted() {
@@ -240,19 +249,13 @@ export default {
             return {
                 isMade: this.statMode,
                 type: 'p',
-                success: false,
+                success: this.statScenario,
                 french: 'D',
                 distance: this.manDistance
             }
         },
     },
     watch: {
-        statScenario(newValue) {
-            this.throwInfo.success = newValue;
-        },
-        statMode(newValue) {
-            this.throwInfo.isMade = newValue;
-        },
         currentMan() {
             if (this.currentMan !== null && (this.currentScore.team1 < 13 || this.currentScore.team2 < 13)) {
                 this.nextMan()
@@ -369,6 +372,7 @@ export default {
             this.showResults = false;
             this.currentMan = null;
             this.gameName = '';
+            this.gameTags = [];
             this.team1 = {
                 score: []
             };

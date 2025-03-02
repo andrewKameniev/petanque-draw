@@ -18,6 +18,7 @@ export default {
         }
     },
     mounted() {
+        console.log(this.user.uid);
         const db = getDatabase();
         const statsRef = ref(db, `${this.user.uid}/stats/`);
 
@@ -33,9 +34,11 @@ export default {
                         },
                         {}
                     ); // Extract the data
+                    console.log(222, this.statsList);
                     Object.keys(this.statsList).forEach(key => {
                         this.statsList[key].isOpen = false
                     })
+                    console.log(111);
                     delete this.statsList['tags'];
                     this.showMessage({
                         title: 'Awesome!',
@@ -65,7 +68,7 @@ export default {
     computed: {
         ...mapState(['user']),
         filteredGames() {
-            return this.filterGamesTag.length ? Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) : this.statsList;
+            return this.tags?.length && this.filterGamesTag.length ? Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) : this.statsList;
         }
     },
     methods: {
@@ -134,7 +137,7 @@ export default {
         </div>
         <div>
             <div v-if="filteredGames" class="mt-3">
-                <div class="field" v-if="Object.keys(tags).length && !showStatAnalysis">
+                <div class="field" v-if="tags && Object.keys(tags)?.length && !showStatAnalysis">
                     <form action="">
                         <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
                         <div class="is-flex is-align-items-center is-flex-wrap-wrap">
@@ -191,7 +194,6 @@ export default {
                 {{$t('stat.nothingShow') }}
             </div>
         </div>
-
     </div>
 </template>
 

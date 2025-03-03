@@ -34,11 +34,9 @@ export default {
                         },
                         {}
                     ); // Extract the data
-                    console.log(222, this.statsList);
                     Object.keys(this.statsList).forEach(key => {
                         this.statsList[key].isOpen = false
                     })
-                    console.log(111);
                     delete this.statsList['tags'];
                     this.showMessage({
                         title: 'Awesome!',
@@ -68,7 +66,9 @@ export default {
     computed: {
         ...mapState(['user']),
         filteredGames() {
-            return this.tags?.length && this.filterGamesTag.length ? Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) : this.statsList;
+            return (this.filterGamesTag.length > 0) ?
+                Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) :
+                this.statsList;
         }
     },
     methods: {

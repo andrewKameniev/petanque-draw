@@ -23,6 +23,7 @@
             </div>
             <DocsDraw v-if="activeTab === 1"/>
             <DocsStat v-if="activeTab === 2"/>
+            <DocsStat v-if="activeTab === 3"/>
         </div>
     </div>
     <Footer/>
@@ -49,6 +50,10 @@ export default {
                 {
                     id: 2,
                     label: 'Stat'
+                },
+                {
+                    id: 3,
+                    label: 'Training'
                 },
             ]
         }

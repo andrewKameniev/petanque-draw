@@ -23,7 +23,7 @@
             </div>
             <DocsDraw v-if="activeTab === 1"/>
             <DocsStat v-if="activeTab === 2"/>
-            <DocsStat v-if="activeTab === 3"/>
+            <DocsTraining v-if="activeTab === 3"/>
         </div>
     </div>
     <Footer/>
@@ -35,10 +35,11 @@ import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 import DocsDraw from "@/components/docs/DocsDraw.vue";
 import DocsStat from "@/components/docs/DocsStat.vue";
+import DocsTraining from "@/components/docs/DocsTraining.vue";
 
 export default {
     name: 'Help',
-    components: {DocsDraw, DocsStat, Footer, LanguageSwitcher},
+    components: {DocsDraw, DocsStat, DocsTraining, Footer, LanguageSwitcher},
     data() {
         return {
             activeTab: 1,

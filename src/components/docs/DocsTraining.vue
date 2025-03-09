@@ -1,6 +1,6 @@
 <script>
 export default {
-    name: "DocsStat"
+    name: "DocsTraining"
 }
 </script>
 

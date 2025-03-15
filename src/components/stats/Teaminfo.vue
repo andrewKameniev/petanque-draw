@@ -82,7 +82,7 @@
                 </div>
             </div>
         </div>
-        <Modal v-if="changePlayerModalOpen">
+        <Modal v-if="changePlayerModalOpen" @close-modal="changePlayerModalOpen = false">
             <label for="changePlayerName">{{$t('stat.enterPlayerName')}}</label>
             <div class="field control">
                 <input type="text" id="changePlayerName" class="input" v-model="changePlayerName"/>

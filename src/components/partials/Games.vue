@@ -7,7 +7,7 @@
             </div>
             <div class="field is-grouped">
                 <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
-                && (tournament.games && tournament.games.length < teamsCount) && activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds">
+                && (tournament.games && tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds) : true)">
                     <button class="button is-info" @click="drawRound">
                         {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </button>

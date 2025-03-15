@@ -151,7 +151,9 @@ function getTeamsRanking(tournament, activeRound) {
             let sortedGroups = [];
 
             tournament.groups.forEach(group => {
+                console.log(group);
                 group.forEach(team => {
+                    console.log(team);
                     const teamInfo = tournament.teams.find(item => item.title === team.title);
                     team.wins = teamInfo.wins;
                     team.opponents = teamInfo.opponents;

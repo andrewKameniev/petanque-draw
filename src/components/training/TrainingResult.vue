@@ -2,9 +2,11 @@
 import {get, getDatabase, ref} from "firebase/database";
 import {mapMutations, mapState} from "vuex";
 import {getDate} from "@/helpers-stat";
+import TrainingResultGraph from "@/components/training/TrainingResultGraph.vue";
 
 export default {
     name: "TrainingResult",
+    components: {TrainingResultGraph},
     props: ['exid', 'exdata'],
     data() {
         return{
@@ -78,6 +80,18 @@ export default {
             } else {
                 return null
             }
+        },
+        exGraphData() {
+            let graphData = {
+                results: [],
+                dates: []
+            };
+            Object.values(this.results).forEach(res => {
+                graphData.results.push(this.getTotalResults(res.distances))
+                graphData.dates.push(getDate(+res.date))
+            })
+            console.log(graphData);
+            return graphData
         }
     },
     methods: {
@@ -126,7 +140,7 @@ export default {
                         </span>
                     </div>
                     <div v-else>
-                        {{$t('training.average')}}: <strong>{{exTotalResults.total / Object.keys(results).length }}</strong>
+                        {{$t('training.average')}}: <strong>{{Math.round(exTotalResults.total / Object.keys(results).length) }}</strong>
                     </div>
                     <div v-if="!exdata.complex">
                         <span v-for="(dist, key) in exTotalResults.distances" :key="key" class="ml-5">
@@ -139,6 +153,7 @@ export default {
                 </div>
             </div>
             <hr>
+            <TrainingResultGraph v-if="exGraphData" :graph-data="exGraphData"/>
             <div class="training-item-container">
                 <div v-for="(item, key) in results" :key="key" class="exercise-item p-3 mb-3">
                     <div>{{getDate(item.date)}}</div>

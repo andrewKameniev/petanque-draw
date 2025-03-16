@@ -151,9 +151,7 @@ function getTeamsRanking(tournament, activeRound) {
             let sortedGroups = [];
 
             tournament.groups.forEach(group => {
-                console.log(group);
                 group.forEach(team => {
-                    console.log(team);
                     const teamInfo = tournament.teams.find(item => item.title === team.title);
                     team.wins = teamInfo.wins;
                     team.opponents = teamInfo.opponents;
@@ -162,18 +160,20 @@ function getTeamsRanking(tournament, activeRound) {
 
                     let directPoints = 0;
                     let directWins = 0;
-                    team.opponents.forEach(opponent => {
-                        const opponentIndex = tournament.teams.findIndex(team => team.title === opponent);
-
-                        if (team.wins === tournament.teams[opponentIndex].wins) {
-                            if (getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true) > 0) {
-                                directWins++
+                    if (team.opponents) {
+                        team.opponents.forEach(opponent => {
+                            const opponentIndex = tournament.teams.findIndex(team => team.title === opponent);
+                            if (opponentIndex !== -1 && team.wins === tournament.teams[opponentIndex].wins) {
+                                if (getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true) > 0) {
+                                    directWins++
+                                }
+                                directPoints += getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true)
                             }
-                            directPoints += getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true)
-                        }
-                    })
-                    team.directWins = directWins;
-                    team.directPoints = directPoints;
+                        })
+                        team.directWins = directWins;
+                        team.directPoints = directPoints;
+                    }
+
                 })
                 let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directWins - a.directWins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
                 sortedGroups.push(groupRanking);

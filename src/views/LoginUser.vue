@@ -56,7 +56,7 @@ export default {
         ...mapState(['message']),
     },
     methods: {
-        ...mapMutations(['loginAdmin', 'loginUser', 'showMessage']),
+        ...mapMutations(['loginUser', 'showMessage']),
         async resetPassword() {
             try {
                 this.resetErrors();
@@ -115,16 +115,6 @@ export default {
                     break
             }
         },
-        login() {
-            this.isError = false;
-            if (this.password == 'petanque') {
-                this.loginAdmin(true);
-                localStorage.setItem("isAdmin", "true");
-                this.$router.push('/admin');
-            } else {
-                this.isError = true
-            }
-        }
     },
 }
 </script>

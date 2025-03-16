@@ -2,12 +2,12 @@
     <div class="content tabs-content">
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <div v-else>
-            <div v-if="teamsCount < 10 && tournament.system === 'swiss'" class="mb-2 has-text-danger">
+            <div v-if="tournament.system === 'swiss' && tournament.teams.length" class="mb-2 has-text-danger">
                 {{$t('games.playMaximum')}} <strong class="has-text-danger">{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
             </div>
             <div class="field is-grouped">
                 <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
-                && (tournament.games && tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds) : true)">
+                && (tournament.games ? tournament.games.length < teamsCount : true) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds) : true)">
                     <button class="button is-info" @click="drawRound">
                         {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </button>
@@ -141,10 +141,12 @@ export default {
                     opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
                     return {teamIndex, opponentIndex};
                 } else {
+                    console.log('teamList', reverse);
+                    teamList.forEach(item => console.log(item.title))
                     let teamsWithSameWins, isOneTeamWithSameWins;
                     if (reverse) {
                         teamIndex = 0;
-                        opponentIndex = iteration || teamList.length - 1;
+                        opponentIndex = iteration % 2 === 0 ? teamList.length - 1 : teamIndex + 1;
                     } else {
                         teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins); // отбираем команды с одинаковым кол-вом побед
 
@@ -161,9 +163,11 @@ export default {
                         opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
                     }
                     if (reverse) {
-                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)
-                        && teamList[opponentIndex + 1].opponents.includes(teamList[opponentIndex + 2].title)) {
-                            opponentIndex = iteration ? iteration + 1 : opponentIndex + 1;
+                        console.log('iteration', iteration, teamIndex, opponentIndex);
+                        const condition = teamList.length > 4 && teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title);
+                        console.log(condition);
+                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title) && condition) {
+                            opponentIndex = iteration ? iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1 : opponentIndex + 1;
 
                             if (!teamList[opponentIndex]) {
                                 opponentIndex = -1;
@@ -180,6 +184,7 @@ export default {
                             }
                         }
                     }
+                    console.log(6666, teamIndex, opponentIndex);
                     return {teamIndex, opponentIndex}; // отдали пару
                 }
             } catch (error) {
@@ -203,6 +208,7 @@ export default {
                 teamsToDraw.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating)
                 let expandListIteration = 0; // количество итераций, когда приходится увеличивать кол-во команд (понятно будет дальше)
                 let stopExpandIndex = Math.round(teamsToDraw.length / 2 - 1); // максимально возможное число, когда можно увеличивать список команд
+                console.log('stopExpandIndex', stopExpandIndex);
                 let teamsDrawed = []; //массив с уже пожеребенными командами
                 let competitors; // пара которая получается в результате вызова generateCompetitors()
 
@@ -220,6 +226,7 @@ export default {
                             }
                         }
                     }
+                    console.log(technicalTeam.title, 'technical');
                     game = {
                         team_1: technicalTeam.title,
                         team_1_score: this.tournament.preferences.technical.technicalFirst,
@@ -230,14 +237,17 @@ export default {
                     teamsToDraw.splice(technicalTeamIndex, 1);
                 }
                 while (teamsToDraw.length > 0) { // вся магия здесь
+
                     competitors = this.generateCompetitorsFirstLast(teamsToDraw); // определили пару команд
                     while (competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex) { // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
                         expandListIteration++;
                         if (teamsDrawed.length){
-                            round.splice(round.length - 1, 1); // => убираю предыдущую пожеребенную пару
-                            teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 1]); // => добавляю в список, который надо пожеребить две предыдущие команды
-                            teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - 2]);
-                            teamsDrawed.splice(teamsDrawed.length - 2, 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
+                            console.log(444, expandListIteration);
+                            round.splice(round.length - 1, expandListIteration); // => убираю предыдущую пожеребенную пару
+                            for (let k = 1; k <= expandListIteration * 2; k++) {
+                                teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - k]); // => добавляю в список, который надо пожеребить две предыдущие команды
+                            }
+                            teamsDrawed.splice(teamsDrawed.length - (expandListIteration * 2), expandListIteration * 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
                         }
                         competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
                     }
@@ -246,6 +256,7 @@ export default {
                         this.showMessage({title: 'Can\'t draw this round', text: 'Too mush games for swiss with this number of teams. Sorry, shit happens', type: 'error'});
                         return
                     }
+                    console.log(teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title);
                     game = { // записали пару
                         team_1: teamsToDraw[competitors.teamIndex].title,
                         team_1_score: null,
@@ -470,14 +481,16 @@ export default {
         },
         restoreRoundGames(){
             this.restoreRound();
-            this.tournament.teams.forEach(team => {
-                team.opponents = ['placeholder'];
-                team.pointsPlus = 0;
-                team.pointsMinus = 0;
-                team.wins = 0;
-            })
-            for (let i = 0; i < this.activeRound - 2; i++) {
-                this.saveResultsForRound(i);
+            if (this.tournament.system === 'groups') {
+                this.tournament.teams.forEach(team => {
+                    team.opponents = ['placeholder'];
+                    team.pointsPlus = 0;
+                    team.pointsMinus = 0;
+                    team.wins = 0;
+                })
+                for (let i = 0; i < this.activeRound - 2; i++) {
+                    this.saveResultsForRound(i);
+                }
             }
         },
         saveResultsForRound(round) {

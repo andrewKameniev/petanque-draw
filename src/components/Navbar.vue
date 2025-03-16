@@ -67,7 +67,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginAdmin', 'loginUser']),
+        ...mapMutations(['setActiveTournament', 'loginUser']),
         signOutUser () {
             signOut(auth)
                 .then(() => {

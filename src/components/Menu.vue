@@ -77,15 +77,11 @@ export default {
     props: ['active'],
     computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginAdmin']),
+        ...mapMutations(['setActiveTournament']),
         chooseTournament(index) {
             this.setActiveTournament(index);
             this.$emit('closeMenu')
 
-        },
-        logout() {
-            this.loginAdmin(false);
-            this.$router.push('/')
         },
         signOutUser () {
             signOut(auth)

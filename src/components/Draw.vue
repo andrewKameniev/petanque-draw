@@ -48,8 +48,7 @@ import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";
 
 export default {
-    name: 'Page',
-    props: ['isAdmin'],
+    name: 'Draw',
     data() {
         return {
             showSaveTournament: false,

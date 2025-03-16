@@ -144,7 +144,7 @@
                             </div>
                             <hr>
                             <div>
-                                <div>What distance?</div>
+                                <div>{{ $t('stat.whatDistance') }}</div>
                                 <div class="field">
                                     <label class="radio" v-for="dist in throwDistances" :key="dist">
                                         <input type="radio" name="manDistance" :id="'manDistance' + dist" :value="dist" v-model="manDistance">

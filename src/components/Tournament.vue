@@ -83,7 +83,7 @@
         <Results v-if="activeTab === 'results'"/>
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-            <div v-if="!tournament.playOff && tournament.teams && tournament.teams.length > 1">
+            <div v-if="!tournament.playOff && tournament.teams?.length > 1">
                 <div class="mt-5">
                     <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
                     <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}

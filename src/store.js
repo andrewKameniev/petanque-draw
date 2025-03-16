@@ -78,17 +78,8 @@ const store = createStore({
             state.tournaments[state.currentTournamentIndex].name = info.name
             state.tournaments[state.currentTournamentIndex].date = info.start_date
         },
-        loginAdmin (state, value) {
-            state.isAdmin = value;
-            if(!value) {
-                localStorage.removeItem("isAdmin")
-            }
-        },
         loginUser (state, value) {
             state.user = value;
-            if(!value) {
-                // localStorage.removeItem("isAdmin")
-            }
         },
         setActiveTournament (state, index) {
             state.currentTournamentIndex = index

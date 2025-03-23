@@ -164,7 +164,13 @@ export default {
                     }
                     if (reverse) {
                         console.log('iteration', iteration, teamIndex, opponentIndex);
-                        const condition = teamList.length > 4 && teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title);
+                        let condition;
+                        if (teamList.length === 4) {
+                            condition = teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title);
+                        } else if (teamList.length > 4){
+                            condition = (teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title))
+                                && (teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 4 : opponentIndex + 4].title));
+                        }
                         console.log(condition);
                         while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title) && condition) {
                             opponentIndex = iteration ? iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1 : opponentIndex + 1;

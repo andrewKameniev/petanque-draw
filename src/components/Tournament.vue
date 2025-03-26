@@ -22,7 +22,7 @@
             <div class="field" v-if="tournament.teams?.length > 2">
                 <label class="label" for="">{{ $t('teams.system') }}</label>
                 <div class="control">
-                    <label class="radio" v-if="tournament.teams?.length > 7">
+                    <label class="radio" v-if="tournament.teams?.length > 5">
                         <input type="radio" name="system" id="swiss" value="swiss" v-model="tournament.system">
                         {{ $t('teams.swiss') }}
                     </label>

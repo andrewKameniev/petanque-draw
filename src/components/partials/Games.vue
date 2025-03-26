@@ -199,7 +199,7 @@ export default {
 
         },
         drawRound() {
-            if (this.tournament.teams.length < 8 && this.tournament.system === 'swiss') {
+            if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
 
                 this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
                 return;

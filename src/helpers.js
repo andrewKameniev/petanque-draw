@@ -122,7 +122,8 @@ function getTournamentRanking(tournament, rankingTeams){
 function sortTeams(teamsToSort) {
     countBuhgolts(teamsToSort, 'buhgolts');
     countBuhgolts(teamsToSort, 'smallBuhgolts');
-    return teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.rating - a.rating);
+    return teamsToSort.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts ||
+        (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating);
 }
 
 function countBuhgolts(whereCount, whatBuhgolts) {

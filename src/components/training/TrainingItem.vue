@@ -183,10 +183,13 @@ export default {
                 {{data.name}}
             </div>
             <div class="has-text-right-mobile is-size-4 mb-3">
-                <span v-if="data.complex">{{data.seriesNames[currentDistance]}}</span>
+                <span v-if="data.complex">
+                    {{data.seriesNames[currentDistance]}}
+                    <span v-if="!data.distanceFirst">({{currentDistanceLabel + ' ' + $t('training.meters')}})</span>
+                </span>
                 <span v-else>
-                {{data.distanceFirst ? currentDistance + 1 + ' ' + $t('training.attempt') : currentDistanceLabel + ' ' + $t('training.meters')}}
-            </span>
+                    {{data.distanceFirst ? currentDistance + 1 + ' ' + $t('training.attempt') : currentDistanceLabel + ' ' + $t('training.meters')}}
+                </span>
             </div>
             <div>
                 <div v-if="data.distanceFirst" class="training-item-container">

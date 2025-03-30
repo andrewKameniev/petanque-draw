@@ -248,6 +248,116 @@ export default {
             thanksMessageOr: 'or',
             thanksMessageMessenger: 'messenger',
             pressBtnSeeInterface: 'Press this button to see the interface:',
+            "training": {
+                "title": "Training",
+                "description": "This module is designed to track the training process. It allows you to create exercises for training, record, and analyze their results.",
+                "exerciseListTitle": "Exercise List Page",
+                "exerciseList": {
+                    "add": "Go to the add new exercise page",
+                    "list": "List of created exercises",
+                    "delete": "Delete exercise",
+                    "viewResults": "View all results of a specific exercise",
+                    "startTraining": "Start training for a specific exercise"
+                },
+                "addExerciseTitle": "Add New Exercise Page",
+                "addExerciseDescription": "Typically, any exercise consists of a certain number of throws at a certain number of distances. The combination of these options allows you to create any training exercise variation.",
+                "addExercise": {
+                    "back": "Return to exercise list",
+                    "name": "Exercise name, as it will appear in the general list",
+                    "distances": "Distances for which the exercise will be performed",
+                    "throws": "Number of throws for each distance",
+                    "series": "Here you can name each series. Thus, you can perform a comprehensive exercise. As an example – a shooting competition. In fact, you are performing three different exercises. Example of creation – at the end of the page.",
+                    "scoring": "How each throw will be evaluated. You can choose a logical value (hit/miss, set/not set) or score each throw with a certain number of points.",
+                    "scenario": "If you choose a logical value, the option to select a training scenario becomes available. If positive - all throws will be marked as successful by default, and vice versa.",
+                    "order": "When there are multiple distances and a certain number of throws for each, you can conduct training in different sequences. First, throw a series of, for example, 10 throws at one distance, then 10 throws at the next, and so on. Or you can throw one throw at each distance in rotation."
+                },
+                "trainingProcessTitle": "Training Process Page",
+                "trainingProcess": {
+                    "inputResult": "Enter throw result here",
+                    "navigation": "Navigation through throws or distances",
+                    "finish": "When all throws are completed, to finish the training and calculate the result, press here"
+                },
+                "exerciseResultsTitle": "Exercise Results Page",
+                "exerciseResults": {
+                    "average": "The average result for the exercise over the entire history of records (can be either a percentage or a specific number, depending on the selected throw result value)",
+                    "byDistance": "Results for each distance separately",
+                    "history": "Results of each training session in chronological order"
+                },
+                exampleCreation: "Example of creating a classical shooting exercise",
+                exampleCreationText: "With these settings, you will create an exercise for recording training results according to the rules of classical shooting."
+            },
+            "stat": {
+                "title": "Statistics",
+                "description": "Allows you to count statistics in pétanque games and analyze data according to various criteria.",
+                "settings": {
+                    "title": "Game Settings",
+                    "description": "The main settings require only specifying the game name and the game format (triplet, doublet, or têt). It is also recommended to specify the players.",
+                    "gameName": "The name of the game as it will appear in the list.",
+                    "tags": "Game tags. These are keywords that can describe the game and allow future filtering of data. For example, you might want to know how you played in games of a specific tournament or analyze statistics for different fields. You can manage tags by clicking the \"Show tags\" button.",
+                    "mode": "Mode. The fast mode was created to make it more comfortable to record statistics during the game as a player. It allows you to spend less time looking at your phone. More details below.",
+                    "showStats": "If you check this box, the statistics will be displayed during the game. This allows decisions to be made regarding player substitutions. If you are recording statistics as a player, this could influence your decisions during the game.",
+                    "scoringSystem": "Select a scoring system. Currently, you can use the simple or French system. At this stage, analysis is available only for the simple system.",
+                    "scenario": "Game scenario. Here you can specify which throwing result will be shown by default. If you are playing as one of the top world players, use the positive scenario."
+                },
+                "tracking": {
+                    "title": "Tracking",
+                    "distance": "For each round, you can specify the distance players are playing. It is not mandatory, but it allows you to filter data by distance during analysis. This sets the distance for all throws in this round. If you want to change the distance for a specific throw, see point 7.",
+                    "teamStats": "Current team statistics as percentages and overall (only displayed if \"Coach\" checkbox is selected).",
+                    "playerStats": "Current player statistics (only displayed if \"Coach\" checkbox is selected).",
+                    "shotsSeries": "Player's shot series (green - successful shot, red - unsuccessful shot, blue - caro (only in tie)).",
+                    "roundPoints": "How many points the team won in the played round.",
+                    "highlight": "A green exclamation mark shows a caro in a tie or point where 2 balls were played.",
+                    "contextMenu": "Context menu for a throw. Appears when pressing the throw result for more than half a second. Additional shot effectiveness can be specified (for a successful shot, this means a caro, for a miss it means a knocked-out ball, for a point, it could mean either a knocked-out ball or a moved cochonnet with more than one ball played). You can also delete the throw (relevant for fast play mode when a cochonnet was knocked out and not all balls were thrown). Also, you can change the distance of a specific throw (relevant when the cochonnet was moved during the game).",
+                    "shotType": "The type and result of the shot. This can be toggled with a simple press.",
+                    "negativeHighlight": "A red exclamation mark indicates a knocked-out ball or a foreign ball played after the throw.",
+                    "navigation": "Navigation between rounds."
+                },
+                "result": {
+                    "title": "Game Result",
+                    "finalScore": "Game result.",
+                    "teamPerformance": "Final team performance.",
+                    "shotsPerRound": "Successful shots per round (accurate only when you specify the successful shot as one that \"played\"). This is a rather specific metric that may not be useful for everyone.",
+                    "roundPoints": "How many points the team won in each round.",
+                    "playerSeries": "Series of throws for each player.",
+                    "playerPerformance": "Individual player performance by the end of the game."
+                },
+                "modes": {
+                    "title": "Modes and Scenarios",
+                    "simple": "Simple mode. The first click makes the throw active. This is counted as a performed throw.",
+                    "fastModePositive": "Fast mode. At the beginning of the round, all throws are recorded as performed. Below is fast mode with a POSITIVE scenario. By default, all throws are successful.",
+                    "fastModeNegative": "Here is the NEGATIVE scenario. Currently, this scenario is winning in Ukraine.",
+                    "fastModeDescription": "Fast mode allows you to track statistics without being distracted by recording EVERY throw. It was made to make it easier to enter data during the game."
+                },
+                "tags": {
+                    "title": "Tags",
+                    "description": "Tags are keywords that describe games. You can create and delete tags.",
+                    "usage": "For each game, you can add an unlimited number of tags (this can be done either at the start of the game or later when the game is already recorded). This allows you to filter games by these tags and analyze statistics accordingly. For example, you could add the tag 'Hard Court' and then look at statistics only on hard courts. The possibilities are endless."
+                },
+                "substitutions": {
+                    "title": "Substitutions",
+                    "description": "During the game, you can make a player substitution. Hover over the player's name, and a button will appear that opens a modal window where you can enter the new player's name."
+                },
+                "archive": {
+                    "title": "Archive",
+                    "description": "This page stores all recorded games.",
+                    "filterTags": "Tags that can be used to filter games.",
+                    "gameName": "Game name. You can delete the game, but you cannot change its name.",
+                    "recordDate": "Date when the game was recorded.",
+                    "addedTags": "Tags added to the game.",
+                    "addTag": "Option to add a new tag to the game after it has been recorded."
+                },
+                "analysis": {
+                    "title": "Analysis",
+                    "description": "In this section, you can view detailed statistics for a specific player.",
+                    "selectPlayer": "Select a player to view their statistics.",
+                    "selectPeriod": "Select the period for which statistics will be displayed.",
+                    "selectFormat": "Select the game format for the statistics.",
+                    "selectTag": "Select the tag to filter the statistics.",
+                    "selectDistance": "Select the distance for which statistics will be displayed.",
+                    "result": "The result based on the selected filters.",
+                    "charts": "Charts showing the dynamics of statistics, separately for points and shots."
+                }
+            }
         },
         stat: {
             archive: 'Archive',
@@ -319,6 +429,7 @@ export default {
             distance: 'Distance',
             exGradedText: 'This exercise is graded by points scored, not percentages',
             average: 'All time Average result ',
+            points: 'Points ',
         }
     },
     ua: {
@@ -570,6 +681,116 @@ export default {
             thanksMessageOr: 'або у',
             thanksMessageMessenger: 'месенджер',
             pressBtnSeeInterface: 'Натиснувши цю кнопку, ви побачите такий інтерфейс:',
+            "training": {
+                "title": "Тренування",
+                "description": "Цей модуль розроблений для відслідковування тренувального процесу. Дозволяє створювати вправи для тренувань, записувати та аналізувати їх результати.",
+                "exerciseListTitle": "Сторінка списку вправ",
+                "exerciseList": {
+                    "add": "Перехід на сторінку додавання нової вправи",
+                    "list": "Список створених вправ",
+                    "delete": "Видалити вправу",
+                    "viewResults": "Подивитись всі результати конкретної вправи",
+                    "startTraining": "Почати тренування по конкретній вправі"
+                },
+                "addExerciseTitle": "Сторінка додавання нової вправи",
+                "addExerciseDescription": "Зазвичай люба вправа складається з певної кількості кидків на певну кількість дистанцій. Комбінація цих варіантів дозволяє зробити будь-який варіант тренувальної вправи",
+                "addExercise": {
+                    "back": "Повернутись до списку вправ",
+                    "name": "Назва вправи, як вона буде виглядати в загальному списку",
+                    "distances": "Дистанції на які буде виконуватись вправа",
+                    "throws": "Кількість кидків на кожну дистанцію",
+                    "series": "Тут можна назвати кожну серію. Таким чином ви можете зробити комплексну вправу. Як приклад - змагання з тиру. Коли під по факту ви виконуєте три різні вправи. Приклад створення - в кінці сторінки",
+                    "scoring": "Як буде оцінюватися кожен кидок. Можна вибрати логічне значення (влучив / не влучив, поставив / не поставив). Або оцінювати кожен кидок певною кількістю очок.",
+                    "scenario": "Якщо вибрати логічне значення, то доступна опція вибору сценарію тренування. При позитивному - всі кидки за замовчуванням будуть вказані, як успішні і навпаки",
+                    "order": "Коли є кілька дистанцій і певна кількість кидків на цю дистанцію, то можна провести тренування в різному порядку. Спочатку кинути серію з, наприклад, 10 кидків на одну дистанцію, потім 10 кидків на наступну і т.д. Або можна кидати по одному кидку на кожну дистанцію."
+                },
+                "trainingProcessTitle": "Сторінка процесу тренування",
+                "trainingProcess": {
+                    "inputResult": "Тут вводиться результат кидка",
+                    "navigation": "Навігація по кидкам чи дистанціям",
+                    "finish": "Коли всі кидки виконані, щоб закінчити тренування і порахувати результат, натисність сюди"
+                },
+                "exerciseResultsTitle": "Сторінка результатів конкретної вправи",
+                "exerciseResults": {
+                    "average": "Середній результат по вправі за всю історію записів (може бути або відсоток, або конкретна цифра, в залежності від вибраного значення результату кидка)",
+                    "byDistance": "Результати по кожній дистанції окремо",
+                    "history": "Результати кожного тренування в хронологічному порядку"
+                }
+            },
+            "stat": {
+                "title": "Статистика",
+                "description": "Дозволяє рахувати статистику в іграх з петанку та аналізувати дані по багатьом критеріям.",
+                "settings": {
+                    "title": "Налаштування гри",
+                    "description": "Із основних налаштувань треба вказати тільки назву гри та формат гри (триплет, дуплет чи тет). А також бажано вказати гравців.",
+                    "gameName": "Назва гри як вона буде відображатись в списку.",
+                    "tags": "Теги гри. Це ключові слова яким можна описати гру і завдяки яким можна буде в майбутньому фільтрувати дані. Наприклад, вам може бути цікаво як ви зіграли в іграх конкретного турніру. Або ви хочете аналізувати статистику по різним майданчикам. Управляти тегами можна натиснувши кнопку \"Показати теги\".",
+                    "mode": "Режим. Швидкий режим був зроблений, щоб було комфортніше записувати статистику під час гри як гравець. Це дозволяє менше часу заглядати в телефон. Детальніше нижче.",
+                    "showStats": "Якщо поставите цю галку, то цифри статистики будуть показуватись під час гри. Тобто по ним можна приймати рішення щодо заміни гравця. Якщо ви записуєте статистику як гравець - це може впливати на ваші думки під час гри.",
+                    "scoringSystem": "Вибрати систему підрахунку. На даному етапі можна рахувати по простій системі або по французькій. На даному етапі аналіз доступний тільки для простої системи.",
+                    "scenario": "Сценарій гри. Тут можна вказати який результат кидку буде вказаний за замовчуванням. Якщо ви граєте як топові гравці світу, то вказуйте позитивний сценарій."
+                },
+                "tracking": {
+                    "title": "Процес ведення статистики",
+                    "distance": "Кожен раунд можна вказати на яку дистанцію грають гравці. Вибирати не обов'язково. Але потім при аналізі статистики можна буде фільтрувати дані по дистанціям. Це задає дистанцію відразу для всіх кидків в цьому раунді. Якщо хочете змінити відстань для конкретного кидка, дивіться 7 пункт.",
+                    "teamStats": "Поточна статистика команди у відсотках та в загальному (буде показуватись тільки якщо вибрана галка \"Як тренер\").",
+                    "playerStats": "Поточна статистика гравця (буде показуватись тільки якщо вибрана галка \"Як тренер\").",
+                    "shotsSeries": "Серія кидків гравця (зелений - результативний кидок, червоний - нерезультативний кидок, синій - каро (тільки при тирі)).",
+                    "roundPoints": "Скільки очок виграла команда в результаті зіграного раунду.",
+                    "highlight": "Зелений знак оклику показує, що це каро при тирі або поінт, при якому заграло 2 кулі.",
+                    "contextMenu": "Контекстне меню кидка. Показується при довгому натисканні на результат кидка (більше ніж пів секунди). Можна вказати додаткову ефективність кидка (при результативному шуті це означатиме каро, при промаху це означатиме вибиту свою кулю, при поінті це може значити або підбита своя куля або переміщений кошонет при якому заграло більше ніж одна куля). Також можна видалити кидок (актуально при швидкому режимі гри, коли був вибитий кошонет і не всі кулі були кинуті). Також можна змінити відстань конкретного кидка (актуально коли під час гри кошонет був переміщений).",
+                    "shotType": "Тип і результат кидку. Перелючається простим натисканням.",
+                    "negativeHighlight": "Червоний знак оклику показує вибиту свою кулю при тирі або при поінті, якщо в результаті кидка заграла чужа куля.",
+                    "navigation": "Навігація між раундами."
+                },
+                "result": {
+                    "title": "Результат гри",
+                    "finalScore": "Результат гри.",
+                    "teamPerformance": "Кінцева результативність гри (командна).",
+                    "shotsPerRound": "Результативні кулі за кожний раунд (рахуються коректно тільки тоді, коли ви вказуєте в статистиці результативний кидок як той, що \"зіграв\"). Це досить специфічний показник, який не кожному потрібен, насправді).",
+                    "roundPoints": "Скільки очок виграла команда кожного раунду.",
+                    "playerSeries": "Серії кидків кожного гравця.",
+                    "playerPerformance": "Індивідуальна результативність гравця по результату гри."
+                },
+                "modes": {
+                    "title": "Режими та сценарії",
+                    "simple": "Простий режим. Перший клік - зробити кидок активним. Це рахується як кидок, який виконаний.",
+                    "fastModePositive": "Швидкий режим. На початку раунду всі кидки будуть записані як виконані. На скріні нижче - швидкий режим та ПОЗИТИВНИЙ сценарій. Тобто за замовчуванням всі кидки результативні.",
+                    "fastModeNegative": "А ось нижче вже НЕГАТИВНИЙ сценарій. Поки що в Україні він перемагає.",
+                    "fastModeDescription": "Швидкий режим дозволяє вести статистику не відволікаючись на запис КОЖНОГО кидку. Зроблений, як вже вказано вище, щоб легше було писати дані під час гри."
+                },
+                "tags": {
+                    "title": "Теги",
+                    "description": "Теги - це ключові слова, якими можна описувати ігри. Можна створювати і видаляти теги.",
+                    "usage": "Для кожної гри можна додати необмежену кількість тегів (це можна зробити як на початку гри, так і вже потім, коли гра давно записана). Це дозволяє фільтрувати ігри по цим тегам і аналізувати статистику відповідно до цих тегів. Наприклад, ви можете додати тег \"Твердий майданчик\" і потім дивитись статистику тільки на твердих майданчиках. Тут тільки ваша фантазія."
+                },
+                "substitutions": {
+                    "title": "Заміни",
+                    "description": "В процесі гри можна зробити заміну гравця. Треба заховерити на прізвище гравця і з'явиться кнопка, натиснувши на яку відкриється модальне вікно з можливістю ввести прізвище нового гравця."
+                },
+                "archive": {
+                    "title": "Архів",
+                    "description": "На цій сторінці зберігаються всі записані ігри.",
+                    "filterTags": "Теги по яким можна фільтрувати ігри.",
+                    "gameName": "Назва гри. Можна видалити гру, але не можна змінити назву.",
+                    "recordDate": "Дата, коли була гра записана.",
+                    "addedTags": "Доданий тег до гри.",
+                    "addTag": "Можливість додати додатковий тег до гри вже після того, як вона записана."
+                },
+                "analysis": {
+                    "title": "Аналіз",
+                    "description": "В цьому блоці можна подивитись детальну статистику по конкретному гравцю.",
+                    "selectPlayer": "Вибрати гравця по якому дивитись статистику.",
+                    "selectPeriod": "Вибрати період за який буде показана статистика.",
+                    "selectFormat": "Вибрати формат гри по якому показувати статистику.",
+                    "selectTag": "Вибрати тег по якому фільтрувати статистику.",
+                    "selectDistance": "Вибрати дистанцію по якій показувати статистику.",
+                    "result": "Результат в результаті вибраних фільтрів.",
+                    "charts": "Графіки. Динаміка статистики окремо по поінтам та шутам."
+                },
+                exampleCreation: "Приклад створення вправи для тиру",
+                exampleCreationText: "З такими налаштуваннями ви створите вправу для запису результатів тренувань за правилами класичного тиру"
+            }
         },
         stat: {
             archive: 'Архів',

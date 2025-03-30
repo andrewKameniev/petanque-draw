@@ -42,19 +42,23 @@ export default {
     components: {DocsDraw, DocsStat, DocsTraining, Footer, LanguageSwitcher},
     data() {
         return {
-            activeTab: 1,
-            tabs: [
+            activeTab: 1
+        }
+    },
+    computed: {
+        tabs() {
+            return[
                 {
                     id: 1,
-                    label: 'Draw'
+                    label: this.$t('common.draw')
                 },
                 {
                     id: 2,
-                    label: 'Stat'
+                    label: this.$t('common.stat')
                 },
                 {
                     id: 3,
-                    label: 'Training'
+                    label: this.$t('common.training')
                 },
             ]
         }

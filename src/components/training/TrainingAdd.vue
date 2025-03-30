@@ -7,7 +7,7 @@
             </div>
         </div>
         <div class="field">
-            <label class="label">{{ $t('training.distances') }}</label>
+            <label class="label is-capitalized">{{ $t('training.distances') }}</label>
             <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
                 <label class="checkbox" v-for="item in distances" :key="item">
                     <input type="checkbox" :checked="exercise.distances.includes(item)"

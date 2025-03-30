@@ -137,7 +137,7 @@ const store = createStore({
             state.tournaments[state.currentTournamentIndex].roundIsActive = true;
         },
         restoreRound(state) {
-            state.tournaments[state.currentTournamentIndex].games.pop()
+            state.tournaments[state.currentTournamentIndex].games.pop();
             state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.opponents.pop())
         },
         setPlayOff(state, scheme) {

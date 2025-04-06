@@ -90,7 +90,6 @@ export default {
                 graphData.results.push(this.getTotalResults(res.distances))
                 graphData.dates.push(getDate(+res.date))
             })
-            console.log(graphData);
             return graphData
         }
     },

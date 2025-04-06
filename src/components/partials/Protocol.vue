@@ -2,7 +2,7 @@
     <div class="container">
         <div id="protocol" class="mb-3">
             <h2 class="text-center is-size-3 mb-2">
-                Підсумковий протокол результатів командної першості учасників спортивних змагань з петанку
+                Підсумковий протокол результатів {{tournament.teams[0].players.length === 1 ? 'індивідуальної' : 'командної' }} першості учасників спортивних змагань з петанку
             </h2>
             <table class="table is-bordered">
                 <tbody>
@@ -36,6 +36,7 @@
                     </tr>
                 </tbody>
             </table>
+            <br>
             <h3 class="text-center is-size-4 mb-2">Учасники та результати</h3>
             <table class="table is-bordered">
                 <thead>
@@ -75,17 +76,21 @@
                     </template>
                 </tbody>
             </table>
+            <br>
             <h3 class="text-center is-size-4 mb-2">Результати кожного раунду</h3>
             <Results :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles"/>
+            <br>
             <h3 class="text-center is-size-4 mb-2">Результати відбіркових ігор
                 <span class="is-size-5">(швейцарська система ({{ tournament.games.length }} раундів))</span>
             </h3>
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :is-for-protocol="true" :team-titles="protocolTitles"/>
+            <br>
             <div v-if="tournament.playOff?.length">
                 <div class="mt-3 mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
                 <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
                 <Results :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
             </div>
+            <br>
             <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
             <table class="table is-bordered">
                 <thead class="has-text-centered">

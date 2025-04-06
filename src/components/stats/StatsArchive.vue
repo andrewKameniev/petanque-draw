@@ -114,7 +114,6 @@ export default {
             this.saveGame(game, this.statsList[game].tags);
         },
         saveGame(game, tags) {
-            console.log(game, tags);
             const db = getDatabase();
             const statsRef = ref(db, `${this.user.uid}/stats/${game}`);
             update(statsRef, {tags}).then(() => {

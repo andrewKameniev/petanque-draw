@@ -198,7 +198,6 @@ export default {
                 this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
                 return;
             }
-            // let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams)); //список команд, которые надо пожеребить
             let round = []; // массив куда будем сохранять пары соперников
             let game; // объект с соперниками
 
@@ -386,8 +385,7 @@ export default {
                 }
             }
 
-            // this.addRoundToGames(this.shuffleArray(round)); // записали в игры
-            this.addRoundToGames(round); // записали в игры
+            this.addRoundToGames(this.shuffleArray(round)); // записали в игры
             this.startRound();
         },
         createGroups() {

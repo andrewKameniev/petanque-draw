@@ -136,6 +136,7 @@ export default {
         },
         generateCompetitorsFirstLast(teamList, reverse = false, iteration) { //функция для распределения пар
             try {
+                console.log(teamList);
                 let teamIndex, opponentIndex;
                 if (this.activeRound === 1 && !this.tournament.useRating) {
                     teamIndex = this.getRandomWithOneExclusion(teamList.length);
@@ -164,14 +165,13 @@ export default {
                     if (reverse) {
                         let condition;
                         if (teamList.length === 4) {
-                            condition = teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title);
+                            condition = teamList[iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].title);
                         } else if (teamList.length > 4){
-                            condition = (teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title))
-                                && (teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 4 : opponentIndex + 4].title));
+                            condition = (teamList[iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].title))
+                                && (teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title));
                         }
                         while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title) && condition) {
                             opponentIndex = iteration ? iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1 : opponentIndex + 1;
-
                             if (!teamList[opponentIndex]) {
                                 opponentIndex = -1;
                                 return {teamIndex, opponentIndex};
@@ -248,13 +248,15 @@ export default {
                             }
                             teamsDrawed.splice(teamsDrawed.length - (expandListIteration * 2), expandListIteration * 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
                         }
-                        competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
+                        // competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
+                        competitors = this.generateCompetitors(teamsToDraw, true); // => ищу соперников начиная не с верха списка, а снизу
                     }
                     if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) { // если пробежали сверху вниз и снизу вверх и не нашли пару
                         this.saveDisabled = true
                         this.showMessage({title: 'Can\'t draw this round', text: 'Too mush games for swiss with this number of teams. Sorry, shit happens', type: 'error'});
                         return
                     }
+                    console.log(teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title);
                     game = { // записали пару
                         team_1: teamsToDraw[competitors.teamIndex].title,
                         team_1_score: null,

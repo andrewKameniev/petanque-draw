@@ -61,7 +61,7 @@
 <script>
 import Bracket from './Bracket';
 import {mapMutations, mapState} from "vuex";
-import {gameHasError} from "@/helpers";
+import {gameHasError, isScoreError} from "@/helpers";
 
 export default {
     name: 'PlayOff',
@@ -106,8 +106,7 @@ export default {
         gameHasError,
         saveResults() {
             this.scoreError = false;
-            const resultsError = (game) => (!game.team_1_score || game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > 13) || (!game.team_2_score || game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > 13)
-            if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => resultsError(game))){
+            if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => isScoreError(game, this.tournament.preferences.maxScore))){
                 this.scoreError = true;
                 return false
             }

@@ -71,7 +71,7 @@
 
 import PlayOff from './PlayOff';
 import {mapMutations, mapState} from "vuex";
-import {gameHasError, sortTeams} from '@/helpers'
+import {gameHasError, isScoreError, sortTeams} from '@/helpers'
 
 export default {
     name: 'Games',
@@ -466,8 +466,7 @@ export default {
         saveResults() {
             this.scoreError = false;
 
-            const resultsError = (game) => game.team_1_score === game.team_2_score || (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > this.tournament.preferences.maxScore) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > this.tournament.preferences.maxScore)
-            if (this.tournament.games[this.activeRound - 1].some(game => resultsError(game))) {
+            if (this.tournament.games[this.activeRound - 1].some(game => isScoreError(game, this.tournament.preferences.maxScore))) {
                 this.scoreError = true;
                 return false
             }

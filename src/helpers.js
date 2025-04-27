@@ -205,6 +205,10 @@ function copyContent(data) {
     el.remove()
 }
 
+function isScoreError (game, maxScore) {
+    return game.team_1_score === game.team_2_score || (game.team_1_score === null || game.team_1_score < 0 || game.team_1_score > maxScore) || (game.team_2_score === null || game.team_2_score < 0 || game.team_2_score > maxScore)
+}
+
 const regions = {
     1: 'Київ',
     2: 'Харківська',
@@ -221,4 +225,4 @@ const regions = {
     20: 'Закарпатська',
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts}
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError}

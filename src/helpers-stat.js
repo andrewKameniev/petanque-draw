@@ -213,9 +213,11 @@ export function calculateTeamPlayersStat(team, system) {
 
     if (team.players[0].stat?.length) {
         team.players.forEach((player, index) => {
-            player.stat?.forEach(man => {
+            const playerStat = player.onChanged ? player.stat[player.onChanged + 1] : player.stat;
+            playerStat?.forEach(man => {
                 if (man) {
-                    man.forEach(item => {
+                    const manData = !Array.isArray(man) ? Array.from(man) : man;
+                    manData.forEach(item => {
                         if (item.isMade){
                             if (item.type === 'p') {
                                 if (system === 'simple') {

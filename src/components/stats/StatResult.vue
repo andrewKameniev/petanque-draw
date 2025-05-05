@@ -14,7 +14,8 @@ export default {
         boulesOnMan() {
             const infoEveryMan = [];
             this.team.players.forEach(player => {
-                player.stat.forEach((man, index) => {
+                const playerStat = !Array.isArray(player.stat) ? Array.from(player.stat) : player.stat;
+                playerStat.forEach((man, index) => {
                     if (man) {
                         infoEveryMan[index] = (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0)
                     }

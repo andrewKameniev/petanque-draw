@@ -5,12 +5,14 @@ import {getDatabase, ref, get, remove, update} from "firebase/database";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
+import Loader from "@/components/Loader";
 export default {
     name: "StatsArchive",
     props: ['tags'],
-    components: {ConfirmRemoveModal, StatsAnalysis, StatResult},
+    components: {Loader, ConfirmRemoveModal, StatsAnalysis, StatResult},
     data() {
         return {
+            isLoading: false,
             confirmRemoveId: null,
             statsList: null,
             showStatAnalysis: false,
@@ -135,23 +137,27 @@ export default {
             <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}</button>
         </div>
         <div>
-            <div v-if="filteredGames" class="mt-3">
-                <div class="field" v-if="tags && Object.keys(tags)?.length && !showStatAnalysis">
-                    <form action="">
-                        <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
-                        <div class="is-flex is-align-items-center is-flex-wrap-wrap">
-                            <label class="radio" v-for="(tag, key) in tags" :key="key">
-                                <input type="checkbox" :name="'gameTag' + key" :id="'tag' + key"
-                                       :checked="filterGamesTag.includes(tag)" @change="toggleTagFilter(tag)">
-                                {{ tag }}
-                            </label>
-                            <button class="button is-small ml-2" type="reset" v-if="filterGamesTag" @click="filterGamesTag = []">{{ $t('stat.clear') }}</button>
-                        </div>
-                    </form>
-                </div>
-                <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags"/>
-                <div v-for="(item, gameKey) in filteredGames" :key="item.date">
-                    <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
+            <div v-if="isLoading" class="has-text-centered p-3">
+                <Loader/>
+            </div>
+            <div v-else>
+                <div v-if="filteredGames" class="mt-3">
+                    <div class="field" v-if="tags && Object.keys(tags)?.length && !showStatAnalysis">
+                        <form action="">
+                            <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
+                            <div class="is-flex is-align-items-center is-flex-wrap-wrap">
+                                <label class="radio" v-for="(tag, key) in tags" :key="key">
+                                    <input type="checkbox" :name="'gameTag' + key" :id="'tag' + key"
+                                           :checked="filterGamesTag.includes(tag)" @change="toggleTagFilter(tag)">
+                                    {{ tag }}
+                                </label>
+                                <button class="button is-small ml-2" type="reset" v-if="filterGamesTag" @click="filterGamesTag = []">{{ $t('stat.clear') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                    <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags"/>
+                    <div v-for="(item, gameKey) in filteredGames" :key="item.date">
+                        <div class="player-info p-2 mb-2 is-flex is-align-items-center is-justify-content-space-between" style="cursor: pointer" @click="item.isOpen = !item.isOpen">
                         <span class="is-size-4">
                             {{ item.name }}
                             <span class="is-size-6">{{getDate(item.date)}}</span>
@@ -159,38 +165,39 @@ export default {
                                 (<span v-for="(tag, index) in item.tags" :key="index">{{tag}}<span v-if="index !== item.tags.length - 1">, </span></span>)
                             </span>
                         </span>
-                        <span class="delete" @click.stop="confirmRemoveId = item.date"></span>
-                    </div>
-                    <div v-if="item.isOpen">
-                        <div v-if="item.tags" class="tags">
+                            <span class="delete" @click.stop="confirmRemoveId = item.date"></span>
+                        </div>
+                        <div v-if="item.isOpen">
+                            <div v-if="item.tags" class="tags">
                              <span class="tag is-rounded is-white" v-for="(tag, key) in item.tags" :key="key">
                               {{ tag }}
                               <button class="delete is-small" @click="removeTagFromGame(gameKey, tag)"></button>
                             </span>
-                        </div>
-                        <div v-if="tags" class="mb-2">
-                            <div class="label">Add tag: </div>
-                            <div class="tags">
-                                <button class="cursor-pointer tag is-white is-rounded" :class="{'is-hidden': item.tags?.includes(tag)}"
-                                        v-for="(tag, key) in tags" :key="key"
-                                        @click="addTagToGame(gameKey, tag)">
-                                    {{tag}}
-                                </button>
                             </div>
-                        </div>
-                        <div class="columns is-desktop" >
-                            <div class="column is-half-desktop">
-                                <StatResult :team="item.team1" :system="item.system" label="Team 1"/>
+                            <div v-if="tags" class="mb-2">
+                                <div class="label">Add tag: </div>
+                                <div class="tags">
+                                    <button class="cursor-pointer tag is-white is-rounded" :class="{'is-hidden': item.tags?.includes(tag)}"
+                                            v-for="(tag, key) in tags" :key="key"
+                                            @click="addTagToGame(gameKey, tag)">
+                                        {{tag}}
+                                    </button>
+                                </div>
                             </div>
-                            <div class="column is-half-desktop">
-                                <StatResult :team="item.team2" :system="item.system" label="Team 2"/>
+                            <div class="columns is-desktop" >
+                                <div class="column is-half-desktop">
+                                    <StatResult :team="item.team1" :system="item.system" label="Team 1"/>
+                                </div>
+                                <div class="column is-half-desktop">
+                                    <StatResult :team="item.team2" :system="item.system" label="Team 2"/>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div v-else class="mt-3">
-                {{$t('stat.nothingShow') }}
+                <div v-else class="mt-3">
+                    {{$t('stat.nothingShow') }}
+                </div>
             </div>
         </div>
     </div>

@@ -57,7 +57,7 @@ export default {
         allPeriodStat() {
             const calculateAverage = (key) => {
                 const validGames = this.playerStatList.filter(game => game.stat[key] !== '-');
-                const total = validGames.reduce((acc, game) => acc + game.stat[key], 0);
+                const total = validGames.reduce((acc, game) => acc + ((game.stat[key] === null || game.stat[key] === undefined) ? 0 : game.stat[key]), 0);
                 return validGames.length > 0 ? (total / validGames.length).toFixed(1) : 0;
             };
 

@@ -1,15 +1,15 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <div class="is-size-3 mb-3 text-center">QRCode and link for tournament</div>
+        <div class="is-size-3 mb-3 text-center">{{ $t('remote.qrAndLink') }}</div>
         <div class="text-center">
             <qrcode-vue :value="tournamentLink" :size="size" level="H" />
             <div class="my-3">
-                <a :href="tournamentLink" target="_blank" class="is-size-3 tournament-link">{{tournamentLink}}</a>
+                <a :href="tournamentLink" target="_blank" class="is-size-5 tournament-link">{{tournamentLink}}</a>
             </div>
         </div>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="copyContent(tournamentLink)">Copy link</button>
+                <button class="button" @click="copyContent(tournamentLink)">{{ $t('remote.copyLink') }}</button>
             </div>
         </div>
     </Modal>
@@ -30,10 +30,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(['tournaments', 'currentTournamentIndex', 'user']),
         tournamentLink() {
             const domain = process.env.NODE_ENV === 'production' ? '/petanque-draw/dist/#/' : '/#/';
-            return `${window.location.origin}${domain}tournaments/${this.tournaments[this.currentTournamentIndex].portalIdTournament}`
+            return `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournaments[this.currentTournamentIndex].id}`
         },
     },
     methods: {copyContent}

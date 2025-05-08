@@ -2,36 +2,36 @@
     <div class="columns" v-if="!importHidden">
         <div class="column is-three-fifths">
             <div class="field control">
-                <input v-model="tournamentId" @keydown.enter="importList" class="input" type="number" placeholder="Tournament ID">
+                <input v-model="tournamentId" @keydown.enter="importList" class="input" type="number" :placeholder="$t('teams.tournamentId')">
             </div>
         </div>
         <div class="column is-two-fifths">
             <div class="field control">
-                <button class="button is-success is-fullwidth" @click="importList">Import from portal</button>
+                <button class="button is-success is-fullwidth" @click="importList">{{ $t('teams.importPortal') }}</button>
             </div>
         </div>
     </div>
     <div class="columns">
         <div class="column is-three-fifths-desktop is-two-fifths-tablet">
             <div class="field control">
-                <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="text" placeholder="Team title">
+                <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="text" :placeholder="$t('teams.teamTitle')">
             </div>
         </div>
         <div class="column is-one-fifth" v-if="tournament.useRating">
             <div class="field control">
-                <input v-model="teamRating" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="number" id="rating" placeholder="Rating">
+                <input v-model="teamRating" @keyup.enter="addTeam(teamTitle, teamRating)" class="input" type="number" id="rating" :placeholder="$t('teams.rating')">
             </div>
         </div>
         <div class="column is-one-fifth-desktop is-two-fifths-tablet is-full-mobile">
             <div class="field control">
-                <button class="button is-success is-fullwidth" @click="addTeam(teamTitle, teamRating)">Add team</button>
+                <button class="button is-success is-fullwidth" @click="addTeam(teamTitle, teamRating)">{{ $t('teams.addTeam') }}</button>
             </div>
         </div>
     </div>
     <div>
          <label class="checkbox">
               <input type="checkbox" :checked="tournament.useRating" @change="changeDrawType($event.target.checked)">
-              Use team rating for drawing
+             {{ $t('teams.useTeamRating') }}
         </label>
     </div>
 </template>
@@ -57,10 +57,13 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal']),
+        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
         addTeam(title, rating, players = false){
             if(title !== null && title !== ''){
                 let teamExists = false;
+                if (!this.tournament.teams) {
+                    this.tournament.teams = [];
+                }
                 this.tournament.teams.forEach(team => {
                     if(team.title === title){
                         teamExists = true;
@@ -76,7 +79,7 @@ export default {
                         smallBuhgolts: 0,
                         pointsPlus: 0,
                         pointsMinus: 0,
-                        opponents: [],
+                        opponents: ['placeholder'],
                     }
                     this.addTeamToStore(team)
                     this.teamTitle = null;
@@ -98,8 +101,8 @@ export default {
                 importedList.teams.forEach(team => {
                     this.addTeam(team.name, +team.power, team.players);
                 } )
-
-                this.setTournamentIdFromPortal(this.tournamentId)
+                this.setTournamentInfoFromPortal(importedList.tournament);
+                this.setTournamentIdFromPortal(this.tournamentId);
 
             } else {
                 alert("Error" + response.status);

@@ -1,8 +1,4 @@
 <template>
-    <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
-        Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
-        <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
-    </div>
     <div v-if="isLoading" class="gooey">
         <span class="dot"></span>
         <div class="dots">
@@ -11,48 +7,55 @@
             <span></span>
         </div>
     </div>
-    <div v-else>
+    <div v-else class="wrapper">
         <div v-if="tournament" class="container">
+<!--            <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
+                Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
+                <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
+            </div>-->
+            <LanguageSwitcher/>
             <div class="text-center is-size-3">
                 <strong> {{ tournament.name }}</strong> <span
                 class="is-size-5 is-capitalized">({{ tournament.system }})</span>
             </div>
-            <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5">
+            <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5" style="white-space: pre-wrap;">
                 {{ tournament.tournamentMessage }}
             </div>
-            <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} round</h2>
-            <div class="games-list">
-                <div class="game-row compact"
-                     v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
+            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="activeTab = 'ranking'"/>
+            <div v-if="tournament.games">
+                <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} {{ $t('common.round') }}</h2>
+                <div class="games-list">
+                    <div class="game-row compact"
+                         v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
                         <span class="text-right team-block">
                             <label :for="'team_' + index">{{ game.team_1 }}</label>
                         </span>
-                    <span class="text-center score-block">
-
+                        <span class="text-center score-block">
                             <span class="lane-block is-size-7">
-                                Lane <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
                             </span>
                         </span>
-                    <span class="team-block">
+                        <span class="team-block">
                             <label :for="'opponent_' + index">{{ game.team_2 }}</label>
                         </span>
+                    </div>
                 </div>
             </div>
             <div class="tabs">
                 <ul>
                     <li v-for="(tab, index) in tabs" :key="index"
-                        :class="{'is-active': tab === activeTab}">
-                        <a href="#" @click.prevent="activeTab = tab">{{ tab }}</a>
+                        :class="{'is-active': tab.id === activeTab}">
+                        <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
                     </li>
                 </ul>
             </div>
-            <div class="content tabs-content" v-if="activeTab === 'Teams'">
+            <div class="content tabs-content" v-if="activeTab === 'teams'">
                 <TeamsList :previewTournament="tournament"/>
             </div>
-            <Results v-if="activeTab === 'Results'" :previewTournament="tournament"/>
-            <div class="content tabs-content" v-if="activeTab === 'Ranking'">
+            <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
+            <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament"
-                         :rankingTeams="tournament.ranking" :activeRound="tournament.activeRound"/>
+                         :rankingTeams="rankingTeams" :activeRound="tournament.activeRound"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -61,6 +64,7 @@
                 <img src="@/assets/img/girl.jpg" alt="In the petanque land"><br>
             </div>
         </div>
+        <Footer/>
     </div>
 </template>
 
@@ -72,48 +76,84 @@ import TeamsList from "@/components/partials/TeamsList";
 import { getToken, onMessage } from "firebase/messaging";
 import {ref, push, get, child, getDatabase} from "firebase/database";
 import {database, messaging} from "@/firebase";
+import {getTeamsRanking} from "@/helpers";
+import PlayOff from "@/components/partials/PlayOff.vue";
+import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
+import Footer from "@/components/partials/Footer.vue";
 
 
 export default {
     name: 'Public',
-    components: {TeamsList, Ranking, Results},
+    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
     data() {
         return {
             isLoading: false,
             tournament: null,
-            tabs: ['Teams', 'Results', 'Ranking'],
-            activeTab: "Results",
+            activeTab: "ranking",
             notificationsEnabled: false
         }
     },
     mounted() {
         this.getInfo();
-        this.requestPermission();
-        setTimeout(this.registerSw, 1000);
+        // this.requestPermission();
+        // setTimeout(this.registerSw, 1000);
     },
     computed: {
+        tabs() {
+            return [
+                {
+                    id: 'teams',
+                    label: this.$t('teams.teams')
+                },
+                {
+                    id: 'results',
+                    label: this.$t('teams.results')
+                },
+                {
+                    id: 'ranking',
+                    label: this.$t('teams.ranking')
+                }
+            ];
+        },
         activeRound() {
-            return this.tournament.games.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
-        }
+            return this.tournament.games?.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
+        },
+        rankingTeams() {
+            return getTeamsRanking(this.tournament, this.activeRound)
+        },
     },
     methods: {
         async getInfo() {
             this.isLoading = true;
-            const id = this.$route.params.id;
-            let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
-
-            if (response.ok) {
-                let tournamentInfo = await response.json();
-                this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
+            if (this.$route.query) {
+                try {
+                    const user = this.$route.query.user;
+                    const tournamentId = this.$route.query.tournament;
+                    const dbRef = ref(database, `${user}/tournaments/${tournamentId}`);
+                    const snapshot = await get(dbRef);
+                    if (snapshot.exists()) {
+                        this.tournament = snapshot.val();
+                    }
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
                 this.isLoading = false;
-
             } else {
-                alert("Error" + response.status);
+                const id = this.$route.params.id;
+                let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
+
+                if (response.ok) {
+                    let tournamentInfo = await response.json();
+                    this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
+                    this.isLoading = false;
+
+                } else {
+                    alert("Error" + response.status);
+                }
             }
         },
         showNotification(message) {
             navigator.serviceWorker.ready.then(function(registration) {
-                console.log(message);
                 registration.showNotification(message.data.title, {
                     body: message.data.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
@@ -125,7 +165,8 @@ export default {
         },
         registerSw() {
             const self = this;
-            navigator.serviceWorker.register('https://andrew-kamenev.github.io/petanque-swiss-vue/dist/firebase-messaging-sw.js', { scope: './' }).then(function(reg) {
+            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}petanque-swiss-vue/dist` : `${window.location.origin}`;
+            navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
@@ -150,7 +191,6 @@ export default {
                 });
 
                 onMessage(messaging, (payload) => {
-                    console.log(payload);
                     self.showNotification(payload)
                 });
             }).catch(function(error) {

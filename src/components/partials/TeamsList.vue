@@ -1,8 +1,8 @@
 <template>
-    <h2>Current list</h2>
+    <h2>{{ $t('teams.currentList') }}</h2>
     <div v-if="tournament.system === 'groups' && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
         <div v-for="(group, index) in tournament.groups" :key="index">
-            <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">Group {{ groupsNames[index] }}</h4>
+            <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
             <table class="table">
                 <tr v-for="(team, teamIndex) in group" :key="team.title">
                     <td style="width: 30px">{{teamIndex + 1}}.</td>
@@ -28,7 +28,7 @@
                 </div>
             </td>
             <td class="td-100" v-if="tournament.useRating">{{team.rating}}</td>
-            <td class="td-50" v-if="tournament.system === 'supermele' || !tournament.games.length">
+            <td class="td-50" v-if="!previewTournament && (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))">
                 <span class="delete" @click="removeTeam(team.title)"></span>
             </td>
         </tr>

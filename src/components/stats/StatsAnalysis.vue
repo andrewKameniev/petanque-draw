@@ -55,24 +55,22 @@ export default {
     },
     computed: {
         allPeriodStat() {
-            const calculateAverage = (key) => {
-                const validGames = this.playerStatList.filter(game => game.stat[key] !== '-');
-                const total = validGames.reduce((acc, game) => acc + ((game.stat[key] === null || game.stat[key] === undefined) ? 0 : game.stat[key]), 0);
-                return validGames.length > 0 ? (total / validGames.length).toFixed(1) : 0;
-            };
 
             const getThrowTotal = (key) => {
                 const positive = this.playerStatList.reduce((acc, game) => acc + game.stat[key].positive, 0);
                 const total = this.playerStatList.reduce((acc, game) => acc + game.stat[key].negative + game.stat[key].positive, 0);
-                return `${positive}/${total}`
+                return {
+                    positive,
+                    total
+                }
             }
 
             return {
-                points: getThrowTotal('points'),
-                tirs: getThrowTotal('tirs'),
-                allPercent: calculateAverage('allPercent'),
-                pointsPercent: calculateAverage('pointsPercent'),
-                tirsPercent: calculateAverage('tirsPercent'),
+                points: `${getThrowTotal('points').positive}/${getThrowTotal('points').total}`,
+                tirs: `${getThrowTotal('tirs').positive}/${getThrowTotal('tirs').total}`,
+                allPercent: (((getThrowTotal('points').positive + getThrowTotal('tirs').positive) / (getThrowTotal('points').total + getThrowTotal('tirs').total)) * 100).toFixed(1) + '%' || '0',
+                pointsPercent: isNaN(getThrowTotal('points').positive / getThrowTotal('points').total) ? '-' : (getThrowTotal('points').positive / getThrowTotal('points').total * 100).toFixed(1) + '%' || '0',
+                tirsPercent: isNaN(getThrowTotal('tirs').positive / getThrowTotal('tirs').total) ? '-' : (getThrowTotal('tirs').positive / getThrowTotal('tirs').total * 100).toFixed(1) + '%' || '0',
             };
         },
         playersList() {
@@ -229,9 +227,9 @@ export default {
         </div>
         <div v-if="player && playerStatList.length">
             <div class="is-size-4 has-text-weight-bold">{{player}} ({{playerStatList.length}} {{ $t('stat.games') }})</div>
-            <p>{{ $t('stat.all') }}: {{allPeriodStat.allPercent}}%</p>
-            <p>{{ $t('stat.points') }}: {{allPeriodStat.pointsPercent}}%, ({{allPeriodStat.points}})</p>
-            <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirsPercent}}%, ({{allPeriodStat.tirs}})</p>
+            <p>{{ $t('stat.all') }}: {{allPeriodStat.allPercent}}</p>
+            <p>{{ $t('stat.points') }}: {{allPeriodStat.pointsPercent}}, ({{allPeriodStat.points}})</p>
+            <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirsPercent}}, ({{allPeriodStat.tirs}})</p>
             <div v-if="showSinusoids" class="has-background-white p-3 mt-3">
                 <apexchart
                     type="line"

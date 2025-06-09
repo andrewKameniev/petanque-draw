@@ -230,6 +230,7 @@ const regions = {
     19: 'Київська',
     20: 'Закарпатська',
     21: 'Київська',
+    22: 'Волинська',
 }
 
 export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError}

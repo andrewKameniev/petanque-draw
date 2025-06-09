@@ -44,7 +44,7 @@
                         <th>№ <span style="white-space: nowrap">з/п</span></th>
                         <th>ПІП</th>
                         <th>Регіон</th>
-                        <th>Тренер</th>
+                        <th>Тренер(и)</th>
                         <th>Спортивний розряд/звання</th>
                         <th>Місце після відбіркових ігор </th>
                         <th>Загальне підсумкове місце</th>
@@ -60,7 +60,7 @@
                             </td>
                             <td v-if="team.players.length === 1">{{ regions[team.players[0].club_id] || '-' }}</td>
                             <td contenteditable="true" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1"></td>
-                            <td contenteditable="true">{{team.players[0].sport_title === 'candidate' ? 'КМС' : ''}}</td>
+                            <td contenteditable="true">{{team.players.length === 1 && team.players[0].sport_title === 'candidate' ? 'КМСУ' : ''}}</td>
                             <td class="has-text-centered" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1">{{index + 1}}</td>
                             <td class="has-text-centered" :rowspan="team.players.length > 1 ? team.players.length + 1 : 1">
                                 {{tournamentRanking.find(item => item.title === team.title).place}}
@@ -68,9 +68,9 @@
                         </tr>
                         <template v-if="team.players.length > 1">
                             <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
-                                <td contenteditable="true">{{ player.surname + ' ' + player.name + ' ' + (player.second_name ? player.second_name : getPlayerThirdName(player.surname, player.name)) }} </td>
+                                <td contenteditable="true"><span class="is-capitalized">{{ player.surname.toLowerCase() + ' ' + player.name.toLowerCase() + ' ' + (player.second_name ? player.second_name.toLowerCase() : getPlayerThirdName(player.surname, player.name)) }}</span> </td>
                                 <td>{{ regions[player.club_id] || '-' }} </td>
-                                <td contenteditable="true">{{player.sport_title === 'candidate' ? 'КМС' : ''}}</td>
+                                <td contenteditable="true">{{player.sport_title === 'candidate' ? 'КМСУ' : ''}}</td>
                             </tr>
                         </template>
                     </template>
@@ -100,7 +100,6 @@
                         <th>Посада</th>
                         <th>Суддівська категорія</th>
                         <th>№ посвідчення</th>
-                        <th>Термін дії суддівської категорії до</th>
                         <th>Регіон</th>
                     </tr>
                 </thead>
@@ -108,7 +107,6 @@
                     <tr v-for="(item, index) in arbitres" :key="index">
                         <td>{{ index + 1 }}</td>
                         <td contenteditable="true">{{ item.name }}</td>
-                        <td contenteditable="true"></td>
                         <td contenteditable="true"></td>
                         <td contenteditable="true"></td>
                         <td contenteditable="true"></td>
@@ -133,6 +131,11 @@
                             <td>Головний секретар змагань</td>
                             <td class="has-text-centered">___________________ <br> (підпис)</td>
                             <td class="has-text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>Президент ГС «Федерація петанку України»</td>
+                            <td class="has-text-centered">___________________ <br> (підпис)</td>
+                            <td class="has-text-right">Литвин Лілія Миколаївна</td>
                         </tr>
                     </tbody>
                 </table>
@@ -208,11 +211,12 @@ export default {
             })
         },
         getPlayerThirdName(surname, name) {
-            const playerInfo = playersNames.find(item => item.includes(surname + ' ' + name));
+            const playerInfo = playersNames.find(item => item.includes(surname.toUpperCase() + ' ' + name.toUpperCase()));
+            console.log(surname, name);
             if (playerInfo) {
                 const playerInfoArray = playerInfo.split(' ');
                 if (playerInfoArray.length === 3) {
-                    return playerInfoArray[2];
+                    return playerInfoArray[2].toLowerCase();
                 } else {
                     return '!!! ДОПИШІТЬ МЕНЕ!!!'
                 }
@@ -255,7 +259,7 @@ export default {
                 const firstPlayerClubName = this.regions[players[0].club_id];
                 if (firstPlayerClubName){
                     if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
-                        title = `Збірна ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
+                        title = `Команда ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
                         if (this.titleCounts[title]) {
                             this.titleCounts[title]++;
                         } else {

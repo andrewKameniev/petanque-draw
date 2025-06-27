@@ -2,14 +2,11 @@
     <div class="container">
         <div id="protocol" class="mb-3">
             <h2 class="text-center is-size-3 mb-2">
-                Підсумковий протокол результатів {{tournament.teams[0].players.length === 1 ? 'індивідуальної' : 'командної' }} першості учасників спортивних змагань з петанку
+                Підсумковий протокол <br>
+                {{ tournament.name }}
             </h2>
             <table class="table is-bordered">
                 <tbody>
-                    <tr>
-                        <td>Назва змагань</td>
-                        <td contenteditable="true">{{ tournament.name }}</td>
-                    </tr>
                     <tr>
                         <td>Дата початку змагань</td>
                         <td contenteditable="true">{{ tournament.date || '-' }}</td>

@@ -19,11 +19,11 @@
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>
-                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : getTeamPlayers(team.title).length">
-                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : getTeamPlayers(team.title)"
+                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : (team.title && getTeamPlayers(team.title).length)">
+                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : (team.title && getTeamPlayers(team.title))"
                                       :key="index">
                                         {{ player.name }} {{ player.surname || '' }}
-                                    <span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
+                                    <span v-if="team.title && index < getTeamPlayers(team.title).length - 1">, </span>
                                   </span>
                             </div>
                         </td>

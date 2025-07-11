@@ -125,7 +125,7 @@
             <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length">
                 <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
             </div>
-            <div class="control" v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length && tournament.system === 'swiss'">
+            <div class="control" v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length">
                 <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
                     {{ $t('teams.protocol') }}
                 </button>

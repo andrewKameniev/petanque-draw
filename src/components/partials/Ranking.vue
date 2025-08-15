@@ -19,11 +19,11 @@
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>
-                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : getTeamPlayers(team.title).length">
-                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : getTeamPlayers(team.title)"
+                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : (team.title && getTeamPlayers(team.title).length)">
+                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : (team.title && getTeamPlayers(team.title))"
                                       :key="index">
                                         {{ player.name }} {{ player.surname || '' }}
-                                    <span v-if="index < getTeamPlayers(team.title).length - 1">, </span>
+                                    <span v-if="team.title && index < getTeamPlayers(team.title).length - 1">, </span>
                                   </span>
                             </div>
                         </td>
@@ -123,28 +123,28 @@
             </div>
             <div v-else-if="tournament.groups">
                 <div v-for="(group, index) in rankingTeams" :key="index">
-                    <h4 v-if="tournament.groups && tournament.groups.length > 1">Group {{ groupsNames[index] }}</h4>
+                    <h4 v-if="tournament.groups && tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
                     <div class="table-container mb-5">
                         <table class="table table is-striped">
                             <thead>
-                            <tr>
-                                <th>{{ $t('ranking.place') }}</th>
-                                <th>{{ $t('ranking.team') }}</th>
-                                <th v-for="(group, index) in group" :key="index" align="center">{{ index + 1 }}</th>
-                                <th align="center">
-                                    <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
-                                    <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
-                                </th>
-                                <th align="center">
-                                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
-                                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
-                                </th>
-                            </tr>
+                                <tr>
+                                    <th>{{ $t('ranking.place') }}</th>
+                                    <th>{{ $t('ranking.team') }}</th>
+                                    <th v-for="(group, index) in group" :key="index" align="center">{{ index + 1 }}</th>
+                                    <th align="center">
+                                        <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                        <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                                    </th>
+                                    <th align="center">
+                                        <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                        <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
                             <tr v-for="(team, index) in group" :key="index">
                                 <td>{{ index + 1 }}</td>
-                                <td>{{ team.title }}</td>
+                                <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
                                     class="no-wrap">
                                     {{ getGameResultInGroup(tournament.games, team.title, opponent.title) }}

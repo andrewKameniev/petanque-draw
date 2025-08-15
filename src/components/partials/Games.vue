@@ -96,7 +96,7 @@ export default {
                     this.tournament.groups[0].length - 1 : this.tournament.teams.length - 1;
         },
         maxSwissRounds() {
-            return Math.round(this.tournament.teams.length / 2) - 1
+            return Math.round(this.tournament.teams.length / 2)
         }
     },
     methods: {

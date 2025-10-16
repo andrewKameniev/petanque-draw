@@ -232,7 +232,8 @@ export default {
     },
     mounted() {
         this.getLocalData();
-        this.getTags()
+        this.getTags();
+        console.log(this.user.uid);
     },
     computed: {
         ...mapState(['user', 'message']),
@@ -331,12 +332,13 @@ export default {
             this.addPlayer(this['team' + teamIndex], playerName);
             const currentPlayer = this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1];
             this.addPlayerStats(currentPlayer);
-            currentPlayer.stat = Array(currentPlayer.onChanged).fill(null);
-            currentPlayer.onChanged = this.currentMan;
+            currentPlayer.isChanged = this.currentMan;
+            currentPlayer.stat = Array(currentPlayer.isChanged).fill(null);
             this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
             for (let i = 0; i < this.currentMan; i++) {
                 this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].stat.unshift([]);
             }
+            console.log(currentPlayer);
         },
         addTagToGame(tag) {
             this.gameTags.push(tag)
@@ -454,8 +456,9 @@ export default {
             if (this.gameType === 1 || this.gameType === 2) {
                 statEntry.push(JSON.parse(JSON.stringify(this.throwInfo)));
             }
-
-            player.stat.push(statEntry);
+            if (!player.wasChanged) {
+                player.stat.push(statEntry);
+            }
         },
         nextMan() {
             if (this.team1.players[0].stat.length <= this.currentMan) {

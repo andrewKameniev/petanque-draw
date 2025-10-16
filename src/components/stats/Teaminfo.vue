@@ -29,7 +29,8 @@
             </div>
         </div>
         <div v-for="(player, index) in team.players" :key="index">
-            <div class="player-info mb-2 is-flex is-justify-content-space-between is-align-items-center" v-if="(!player.isChanged && !player.wasChanged) || player.isChanged >= currentMan || player.wasChanged > currentMan">
+            <div class="player-info mb-2 is-flex is-justify-content-space-between is-align-items-center"
+                 v-if="!player.wasChanged || player.isChanged >= currentMan || player.wasChanged >= currentMan">
                 <div class="is-relative player-info-content">
                     <button v-if="!changePlayerName" class="button is-danger change-player-btn" @click="showChangePlayerModal(index)">{{ $t('stat.changePlayer') }}</button>
                     <div v-if="isCouch">

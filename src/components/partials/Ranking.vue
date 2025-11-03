@@ -70,7 +70,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'has-background-success-light': index < tournament.preferences.playOffTeams}">
+                            :class="{'has-background-success-light': index < tournament.preferences?.playOffTeams}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>

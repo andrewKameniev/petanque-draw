@@ -24,7 +24,7 @@
                 <p class="menu-label" v-if="Object.keys(savedTournaments).length">
                     {{ $t('common.saved') }}
                 </p>
-                <ul class="menu-list">
+                <ul class="menu-list" style="max-height: calc(100vh - 505px); overflow: auto">
                     <li v-for="(item, index) in savedTournaments" :key="index">
                         <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
                     </li>
@@ -34,14 +34,14 @@
                 {{ $t('common.info') }}
             </p>
             <ul class="menu-list">
-                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
                 <li><router-link to="doc">{{ $t('common.howUse') }}</router-link></li>
+                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
+                <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
             </ul>
             <p class="menu-label">
                 {{ $t('common.useful') }}
             </p>
             <ul class="menu-list">
-                <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
                 <li><router-link to="/">{{ $t('common.draw') }}</router-link></li>
                 <li><router-link to="stats">{{ $t('common.stat') }}</router-link></li>
                 <li><router-link to="training">{{ $t('common.training') }}</router-link></li>

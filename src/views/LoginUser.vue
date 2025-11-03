@@ -18,10 +18,10 @@
                            v-model="password" @keyup.enter.prevent="loginOrRegister">
                     <p v-if="isPasswordError" class="help is-danger">{{ $t('login.passwordError') }}</p>
                 </div>
-                <div class="field text-center">
+                <div class="field text-center mb-3">
                     <button class="button is-info" @click.prevent="loginOrRegister">{{ registerShow ? $t('login.register') : $t('common.loginUser')}}</button>
                 </div>
-                <div class="has-text-centered" v-if="!registerShow">
+                <div class="has-text-centered mb-4" v-if="!registerShow">
                     <a href="#" @click.prevent="resetPassword">{{ $t('login.forgot') }}</a>
                 </div>
                 <div class="has-text-centered">

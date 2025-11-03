@@ -21,7 +21,7 @@ const newTournament = {
             technicalSecond: 7
         },
         maxScore: 13,
-        playOffTeams: null
+        playOffTeams: 8
     }
 }
 const store = createStore({

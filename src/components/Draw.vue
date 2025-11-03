@@ -14,11 +14,16 @@
                 <div class="column" v-if="user">
                     <Tournament v-if="tournament"/>
                 </div>
-                <div v-else class="is-flex is-align-items-center is-size-3 p-3 has-text-centered">
-                    {{ $t('common.onlyLoginMessage') }}
+                <div v-else class="is-flex is-flex-direction-column is-align-items-center is-size-3 p-3 has-text-centered">
+                    <div class="mb-3">{{ $t('common.onlyLoginMessage') }}</div>
+                    <div>
+                        <router-link to="/login-user" class="button">
+                            {{ $t('common.loginUser') }}
+                        </router-link>
+                    </div>
                 </div>
                 <div class="column is-one-third is-hidden-touch">
-                    <img src="@/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
+                    <img src="@/assets/img/bg.jpg" srcset="@/assets/img/bg.avif, @/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
                 </div>
             </div>
             <hr>

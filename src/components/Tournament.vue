@@ -75,6 +75,9 @@
             <div v-else class="mb-5 mt-5">
                 {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
             </div>
+            <div class="control" v-if="!tournament.tournamentIsFinished">
+                <button class="button is-success" @click="saveTournamentData">{{ $t('teams.saveTournamentData') }}</button>
+            </div>
         </div>
         <Games v-if="activeTab === 'games'"
                :rankingTeams="rankingTeams"
@@ -121,6 +124,9 @@
             </div>
             <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
                 <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
+            </div>
+            <div class="control" v-if="!tournament.roundIsActive && !tournament.tournamentIsFinished && activeRound === 1">
+                <button class="button is-info" @click="activeTab = 'games'">{{ $t('teams.startTournament') }}</button>
             </div>
             <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length">
                 <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
@@ -177,7 +183,7 @@ export default {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore']),
+        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData']),
         saveTournament(tournament) {
             this.savedTournaments.push(tournament);
             this.showSaveTournament = false;

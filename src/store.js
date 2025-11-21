@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
 import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
-const mutationsAfterUpdateDb = ['finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
+const mutationsAfterUpdateDb = ['saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
     name: 'Tournament A',
     games: [],
@@ -204,6 +204,9 @@ const store = createStore({
             newTournament.teams = teams;
             store.commit('addTournament');
             newTournament.teams = [];
+        },
+        saveTournamentData() {
+            store.commit('showMessage', {title: 'Saved', text: 'Tournament data saved'});
         }
     }
 })
@@ -214,7 +217,10 @@ store.subscribe((mutation, state) => {
             const db = getDatabase();
             update(ref(db, `${state.user.uid}/tournaments/`), {
                 [state.currentTournamentIndex]: state.tournaments[state.currentTournamentIndex]
-            }).catch(error => console.error('Error updating specific tournament:', error));
+            }).catch(error => {
+                console.error('Error updating specific tournament:', error)
+                store.commit('showMessage', {title: 'Error', text: 'Something went wrong while saving tournament data', type: 'error'});
+            });
         }
     }
 });

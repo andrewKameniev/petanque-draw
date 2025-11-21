@@ -9,13 +9,18 @@
     </div>
     <div v-else class="wrapper">
         <div v-if="tournament" class="container">
-<!--            <div v-if="!notificationsEnabled" class="notification is-danger has-text-centered">
-                Notification in your browser are disabled. If you want to know about tournament updates, please, enable notifications.
-                <a href="https://support.humblebundle.com/hc/en-us/articles/360008513933-Enabling-and-Disabling-Browser-Notifications-in-Various-Browsers" target="_blank">How to do it?</a>
-            </div>-->
-            <LanguageSwitcher/>
+            <div class="is-flex is-justify-content-space-between">
+                <a class="navbar-item" href="https://andrewkameniev.github.io/petanque-draw/dist/">
+                    <picture>
+                        <source srcset="../assets/img/logo.webp" type="image/webp">
+                        <source srcset="../assets/img/logo.png" type="image/jpeg">
+                        <img src="../assets/img/logo.png" alt="logo">
+                    </picture>
+                </a>
+                <LanguageSwitcher/>
+            </div>
             <div class="text-center is-size-3">
-                <strong> {{ tournament.name }}</strong> <span
+                <strong>{{ tournament.name }}</strong> <span
                 class="is-size-5 is-capitalized">({{ tournament.system }})</span>
             </div>
             <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5" style="white-space: pre-wrap;">

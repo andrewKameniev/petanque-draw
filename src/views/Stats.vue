@@ -333,12 +333,8 @@ export default {
             const currentPlayer = this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1];
             this.addPlayerStats(currentPlayer);
             currentPlayer.isChanged = this.currentMan;
-            currentPlayer.stat = Array(currentPlayer.isChanged).fill(null);
+            currentPlayer.stat = Array(currentPlayer.isChanged + 1).fill([]);
             this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
-            for (let i = 0; i < this.currentMan; i++) {
-                this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1].stat.unshift([]);
-            }
-            console.log(currentPlayer);
         },
         addTagToGame(tag) {
             this.gameTags.push(tag)

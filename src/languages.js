@@ -124,6 +124,7 @@ export default {
             maxScore: 'Maximum score',
             technicalScore: 'Technical score',
             playOffTeams: 'How many team go to playoff?',
+            fieldsStart: 'From which field should the numbering begin?',
         },
         common: {
             group: 'Group',
@@ -560,6 +561,7 @@ export default {
             maxScore: 'Максимально можливий рахунок',
             technicalScore: 'Рахунок для технічної перемоги',
             playOffTeams: 'Скільки команд виходять у плей-офф?',
+            fieldsStart: 'З якого майданчика починати нумерацію?',
         },
         common: {
             group: 'Група',

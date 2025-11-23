@@ -40,7 +40,7 @@
                                    :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                             <span class="lane-block is-size-7">
-                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + tournament.preferences.fieldsStart }}</span>
                             </span>
                             <input :id="'opponent_' + index" v-model="game.team_2_score" class="input -small"
                                    type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"

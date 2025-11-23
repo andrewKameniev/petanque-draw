@@ -26,6 +26,13 @@
                     </td>
                     <td></td>
                 </tr>
+                <tr>
+                    <td class="is-size-5">{{ $t('modals.fieldsStart') }}</td>
+                    <td>
+                        <input class="input" v-model="tournament.preferences.fieldsStart" type="number">
+                    </td>
+                    <td></td>
+                </tr>
             </tbody>
         </table>
         <div class="buttons is-centered">

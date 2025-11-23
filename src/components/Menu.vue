@@ -25,8 +25,8 @@
                     {{ $t('common.saved') }}
                 </p>
                 <ul class="menu-list" style="max-height: calc(100vh - 505px); overflow: auto">
-                    <li v-for="(item, index) in savedTournaments" :key="index">
-                        <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
+                    <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
+                        <a href="#" @click.prevent="$emit('openSavedTournament', key)">{{ item.name }}</a>
                     </li>
                 </ul>
             </div>

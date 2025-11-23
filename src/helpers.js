@@ -34,13 +34,15 @@ function getTournamentRanking(tournament, rankingTeams){
             if(playOffList[i].stageLabel === 1){
                 const firstPlace = {
                     place: '1',
-                    title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_1 : playOffList[i].teams[0].team_2
+                    title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_1 : playOffList[i].teams[0].team_2,
+                    players: tournament.teams.find(team => team.title === (playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_1 : playOffList[i].teams[0].team_2))?.players || []
                 }
                 tournamentRanking.push(firstPlace)
                 teamsInRanking.push(firstPlace.title)
                 const secondPlace = {
                     place: '2',
-                    title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_2 : playOffList[i].teams[0].team_1
+                    title: playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_2 : playOffList[i].teams[0].team_1,
+                    players: tournament.teams.find(team => team.title === (playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score ? playOffList[i].teams[0].team_2 : playOffList[i].teams[0].team_1))?.players || []
                 }
                 tournamentRanking.push(secondPlace)
                 teamsInRanking.push(secondPlace.title)
@@ -48,13 +50,15 @@ function getTournamentRanking(tournament, rankingTeams){
                 if (thirdPlaceGame) {
                     const thirdPlace = {
                         place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '3' : '3-4',
-                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2 : thirdPlaceGame.team_1
+                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2 : thirdPlaceGame.team_1,
+                        players: tournament.teams.find(team => team.title === (thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1 : thirdPlaceGame.team_2 : thirdPlaceGame.team_1))?.players || []
                     }
                     tournamentRanking.push(thirdPlace)
                     teamsInRanking.push(thirdPlace.title)
                     const fourthPlace = {
                         place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '4' : '3-4',
-                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1 : thirdPlaceGame.team_2
+                        title: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1 : thirdPlaceGame.team_2,
+                        players: tournament.teams.find(team => team.title === (thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score ? thirdPlaceGame.team_2 : thirdPlaceGame.team_1 : thirdPlaceGame.team_2))?.players || []
                     }
                     tournamentRanking.push(fourthPlace)
                     teamsInRanking.push(fourthPlace.title)
@@ -65,6 +69,7 @@ function getTournamentRanking(tournament, rankingTeams){
                     const teamPlace = {
                         place: playOffList[i].stageLabel + 1 + '-' + playOffList[i].stageLabel * 2,
                         title: teamTitle,
+                        players: tournament.teams.find(team => team.title === teamTitle)?.players || []
                     }
                     tournamentRanking.push(teamPlace)
                     teamsInRanking.push(teamPlace.title)

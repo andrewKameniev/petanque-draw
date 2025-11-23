@@ -268,6 +268,14 @@ footer {
     white-space: nowrap;
 }
 
+.card-header-icon .icon {
+    transition: transform 0.3s ease;
+}
+
+.card-header-icon.active .icon {
+    transform: rotate(180deg);
+}
+
 @media screen and (min-width: 769px) {
     .modal-content {
         max-width: calc(100% - 100px);

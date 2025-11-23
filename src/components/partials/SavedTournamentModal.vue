@@ -1,6 +1,6 @@
 <template>
     <Modal @close-modal="$emit('close-modal')">
-        <div class="content is-flex is-justify-content-space-between mb-3">
+        <div class="content is-flex is-justify-content-space-between mb-3" style="gap: 24px">
             <h2>{{ tournament.name }}</h2>
             <button class="button is-danger" @click="removeSavedTournament(tournament.id); $emit('close-modal')">{{ $t('teams.removeTournament') }}</button>
         </div>
@@ -9,9 +9,11 @@
                 <p class="card-header-title">
                     {{ $t('modals.resultsInTable') }}
                 </p>
-                <button class="card-header-icon" aria-label="more options">
+                <button class="card-header-icon" aria-label="more options" :class="{active: showSwissTable}">
                   <span class="icon">
-                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.66992 5.75293C1.31113 5.39414 1.31113 4.8129 1.66992 4.4541C2.02873 4.09551 2.61002 4.09537 2.96875 4.4541L7.11621 8.60156L11.2637 4.4541C11.6224 4.0954 12.2037 4.09543 12.5625 4.4541C12.9213 4.81288 12.9212 5.39413 12.5625 5.75293L7.11621 11.2002L1.66992 5.75293Z" fill="#0B1B48"/>
+                    </svg>
                   </span>
                 </button>
             </header>
@@ -25,9 +27,11 @@
                 <p class="card-header-title">
                     {{ $t('common.games') }}
                 </p>
-                <button class="card-header-icon" aria-label="more options">
+                <button class="card-header-icon" aria-label="more options" :class="{active: showGames}">
                   <span class="icon">
-                      <i class="fas fa-angle-down" aria-hidden="true"></i>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.66992 5.75293C1.31113 5.39414 1.31113 4.8129 1.66992 4.4541C2.02873 4.09551 2.61002 4.09537 2.96875 4.4541L7.11621 8.60156L11.2637 4.4541C11.6224 4.0954 12.2037 4.09543 12.5625 4.4541C12.9213 4.81288 12.9212 5.39413 12.5625 5.75293L7.11621 11.2002L1.66992 5.75293Z" fill="#0B1B48"/>
+                    </svg>
                   </span>
                 </button>
             </header>

@@ -2,7 +2,7 @@
     <article class="message is-success" :class='{"is-danger": message.type === "error"}'>
         <div class="message-header">
             <p>{{message.title}}</p>
-            <button class="delete" aria-label="delete" @click="closeMessage"></button>
+            <button class="delete" aria-label="delete" @click="hideMessage"></button>
         </div>
         <div class="message-body">
             {{message.text}}

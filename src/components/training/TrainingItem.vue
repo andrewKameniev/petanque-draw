@@ -74,7 +74,7 @@ export default {
             }
             let exResult = {};
 
-            let localData = JSON.parse(localStorage.getItem('trainingData'));
+            let localData = JSON.parse(localStorage.getItem('trainingData')) || {};
             localData[this.exid] = exResult;
             localStorage.setItem('trainingData', JSON.stringify(localData));
             console.log(2);

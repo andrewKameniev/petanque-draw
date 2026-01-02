@@ -511,7 +511,7 @@ export default {
             }
         },
         saveResultsForRound(round) {
-            if (this.tournament.games.length === 1) {
+            if (this.tournament.games.length <= 2) {
                 this.tournament.teams.forEach(team => {
                     team.opponents = team.opponents.filter(item => item !== 'placeholder');
                 })

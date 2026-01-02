@@ -66,6 +66,7 @@ export default {
             }
         },
         finishTraining() {
+            console.log(1);
             const db = getDatabase();
             if (!this.fastMode && !this.data.value && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
                 this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
@@ -76,7 +77,7 @@ export default {
             let localData = JSON.parse(localStorage.getItem('trainingData'));
             localData[this.exid] = exResult;
             localStorage.setItem('trainingData', JSON.stringify(localData));
-
+            console.log(2);
             if (Object.keys(this.trainingData).some(key => key.includes('.'))) {
                 const newTrainingData = {};
 
@@ -114,9 +115,11 @@ export default {
                     }
                 }
             }
+            console.log(3);
             if (navigator.onLine) {
                 if (Object.values(exResult.distances).every(array => Array.isArray(array) && array.every(value => value !== null))) {
                     this.isSaving = true;
+                    console.log(4);
                     set(ref(db, `${this.user.uid}/training/${this.exid}/${exResult.date}`), exResult).then(() => {
                         this.showMessage({
                             title: 'Awesome!',
@@ -125,6 +128,7 @@ export default {
                         this.$emit('end');
                         this.removeLocalData();
                         this.isSaving = false;
+                        console.log(5);
                     }).catch((error) => {
                         console.error('Error save:', error);
                         this.showMessage({title: 'error', text: 'Failed to save data. ' + error, type: 'error'});

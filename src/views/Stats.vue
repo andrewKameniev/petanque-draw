@@ -233,7 +233,6 @@ export default {
     mounted() {
         this.getLocalData();
         this.getTags();
-        console.log(this.user.uid);
     },
     computed: {
         ...mapState(['user', 'message']),
@@ -252,7 +251,8 @@ export default {
                 type: 'p',
                 success: this.statScenario,
                 french: 'D',
-                distance: this.manDistance
+                distance: this.manDistance,
+                important: this.currentScore.team1 > 9 && this.currentScore.team2 > 9,
             }
         },
     },

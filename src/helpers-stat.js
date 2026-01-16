@@ -194,6 +194,16 @@ export function calculateTeamPlayersStat(team, system) {
                         negative: 0
                     }
                 },
+                important: {
+                    points: {
+                        positive: 0,
+                        negative: 0
+                    },
+                    tirs: {
+                        positive: 0,
+                        negative: 0
+                    }
+                },
                 serie: []
             })
         } else {
@@ -226,10 +236,16 @@ export function calculateTeamPlayersStat(team, system) {
                                         if (item.x2) {
                                             teamStat[index].x2.points.positive += 1;
                                         }
+                                        if (item.important) {
+                                            teamStat[index].important.points.positive += 1;
+                                        }
                                     } else {
                                         teamStat[index].points.negative += 1;
                                         if (item.x2) {
                                             teamStat[index].x2.points.negative += 1;
+                                        }
+                                        if (item.important) {
+                                            teamStat[index].important.points.negative += 1;
                                         }
                                     }
                                 } else {
@@ -243,10 +259,16 @@ export function calculateTeamPlayersStat(team, system) {
                                         if (item.x2) {
                                             teamStat[index].x2.tirs.positive += 1;
                                         }
+                                        if (item.important) {
+                                            teamStat[index].important.tirs.positive += 1;
+                                        }
                                     } else {
                                         teamStat[index].tirs.negative += 1;
                                         if (item.x2) {
                                             teamStat[index].x2.tirs.negative += 1;
+                                        }
+                                        if (item.important) {
+                                            teamStat[index].important.tirs.negative += 1;
                                         }
                                     }
                                 } else {

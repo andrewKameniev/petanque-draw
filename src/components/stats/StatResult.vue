@@ -132,26 +132,47 @@ export default {
                               :key="itemIndex"></span>
                     </div>
                 </div>
-                <div class="is-size-5">
-                    {{ $t('stat.total') }}: {{teamStats[index].all.positive}}/{{teamStats[index].all.positive + teamStats[index].all.negative}} -
-                    <strong class="is-size-4">{{Math.round(teamStats[index].all.positive/(teamStats[index].all.positive + teamStats[index].all.negative) * 100)}}%</strong>
+                <div class="has-text-right is-size-7 has-text-grey is-capitalized">Important throws</div>
+                <div class="is-size-5 is-flex is-justify-content-space-between">
+                    <div>
+                        {{ $t('stat.total') }}: {{teamStats[index].all.positive}}/{{teamStats[index].all.positive + teamStats[index].all.negative}} -
+                        <strong class="is-size-4">{{Math.round(teamStats[index].all.positive/(teamStats[index].all.positive + teamStats[index].all.negative) * 100)}}%</strong>
+                    </div>
+                    <div class="ml-3" v-if="teamStats[index].important.points.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.positive + teamStats[index].important.tirs.negative > 0">
+                        {{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive }} /
+                        {{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.negative }}
+                        <strong>({{ Math.round((teamStats[index].important.points.positive + teamStats[index].important.tirs.positive) / (teamStats[index].important.points.positive + teamStats[index].important.tirs.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.negative) * 100)  }}%)</strong>
+                    </div>
                 </div>
-                <div class="is-size-5">
-                    {{ $t('stat.points') }}: {{teamStats[index].points.positive}}/{{teamStats[index].points.positive + teamStats[index].points.negative}}
-                    <span v-if="teamStats[index].points.positive + teamStats[index].points.negative !== 0">
-                    - <strong class="is-size-4">{{Math.round(teamStats[index].points.positive/(teamStats[index].points.positive + teamStats[index].points.negative) * 100)}}%</strong>
-                </span>
-                    <span v-if="teamStats[index].x2?.points.positive">({{ teamStats[index].x2.points.positive }} made two)</span>
-                    <span v-if="teamStats[index].x2?.points.negative">({{ teamStats[index].x2.points.negative }} made bad)</span>
+                <div class="is-size-5 is-flex is-justify-content-space-between">
+                    <div>
+                        {{ $t('stat.points') }}: {{teamStats[index].points.positive}}/{{teamStats[index].points.positive + teamStats[index].points.negative}}
+                        <span v-if="teamStats[index].points.positive + teamStats[index].points.negative !== 0">
+                        - <strong class="is-size-4">{{Math.round(teamStats[index].points.positive/(teamStats[index].points.positive + teamStats[index].points.negative) * 100)}}%</strong>
+                    </span>
+                        <span v-if="teamStats[index].x2?.points.positive">({{ teamStats[index].x2.points.positive }} made two)</span>
+                        <span v-if="teamStats[index].x2?.points.negative">({{ teamStats[index].x2.points.negative }} made bad)</span>
+                    </div>
+                    <div class="ml-3" v-if="teamStats[index].important.points.positive + teamStats[index].important.points.negative > 0">{{ teamStats[index].important.points.positive }} /
+                        {{ teamStats[index].important.points.positive + teamStats[index].important.points.negative }}
+                        <strong>({{ Math.round(teamStats[index].important.points.positive / (teamStats[index].important.points.positive + teamStats[index].important.points.negative) * 100)  }}%)</strong>
+                    </div>
                 </div>
-                <div class="is-size-5">
-                    {{ $t('stat.tirs') }}: {{teamStats[index].tirs.positive}}/{{teamStats[index].tirs.positive + teamStats[index].tirs.negative}}
-                <span v-if="teamStats[index].tirs.positive + teamStats[index].tirs.negative !== 0">
-                - <strong class="is-size-4">{{Math.round(teamStats[index].tirs.positive/(teamStats[index].tirs.positive + teamStats[index].tirs.negative) * 100)}}%</strong>
-                </span>
-                <span v-if="teamStats[index].x2?.tirs.positive">({{ teamStats[index].x2.tirs.positive }} carro)</span>
-                <span v-if="teamStats[index].x2?.tirs.negative">({{ teamStats[index].x2.tirs.negative }} tir own)</span>
-            </div>
+                <div class="is-size-5 is-flex is-justify-content-space-between">
+                    <div>
+                        {{ $t('stat.tirs') }}: {{teamStats[index].tirs.positive}}/{{teamStats[index].tirs.positive + teamStats[index].tirs.negative}}
+                        <span v-if="teamStats[index].tirs.positive + teamStats[index].tirs.negative !== 0">
+                        - <strong class="is-size-4">{{Math.round(teamStats[index].tirs.positive/(teamStats[index].tirs.positive + teamStats[index].tirs.negative) * 100)}}%</strong>
+                        </span>
+                        <span v-if="teamStats[index].x2?.tirs.positive">({{ teamStats[index].x2.tirs.positive }} carro)</span>
+                        <span v-if="teamStats[index].x2?.tirs.negative">({{ teamStats[index].x2.tirs.negative }} tir own)</span>
+                    </div>
+                    <div class="ml-3" v-if="teamStats[index].important.tirs.positive + teamStats[index].important.tirs.negative > 0">
+                        {{ teamStats[index].important.tirs.positive }} /
+                        {{ teamStats[index].important.tirs.positive + teamStats[index].important.tirs.negative }}
+                        <strong>({{ Math.round(teamStats[index].important.tirs.positive / (teamStats[index].important.tirs.positive + teamStats[index].important.tirs.negative) * 100)  }}%)</strong>
+                    </div>
+                </div>
             </div>
             <div v-else>
                 <div v-if="teamStats[index].serie.filter(item => item.type === 'p').length">

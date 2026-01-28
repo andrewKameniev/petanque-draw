@@ -408,6 +408,8 @@ export default {
             clear: 'Clear',
             noStat: 'No statistics with your filters',
             whatDistance: 'What distance?',
+            important: 'Important throws',
+            games: 'ігор'
         },
         training: {
             addEx: 'Add exercise',
@@ -845,6 +847,8 @@ export default {
             clear: 'Очистити',
             noStat: 'Немає статистики для таких фільтрів',
             whatDistance: 'Яка дистанція?',
+            important: 'Важливі кидки',
+            games: 'games',
         },
         training: {
             addEx: 'Додати вправу',

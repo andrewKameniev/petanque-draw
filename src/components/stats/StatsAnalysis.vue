@@ -16,6 +16,7 @@ export default {
             date: null,
             gameTypes,
             throwDistances,
+            onlyImportant: false,
             filterGamesTag: [],
             filterGamesType: null,
             filterThrowDistance: null,
@@ -55,7 +56,6 @@ export default {
     },
     computed: {
         allPeriodStat() {
-
             const getThrowTotal = (key) => {
                 const positive = this.playerStatList.reduce((acc, game) => acc + game.stat[key].positive, 0);
                 const total = this.playerStatList.reduce((acc, game) => acc + game.stat[key].negative + game.stat[key].positive, 0);
@@ -94,12 +94,12 @@ export default {
             Object.keys(this.stats).forEach(key => {
                 this.stats[key].team1.players.forEach(player => {
                     if (playerCounts[player.name] > 1) {
-                        list.push({ label: player.name, value: player.name });
+                        list.push({ label: player.name.trim(), value: player.name.trim() });
                     }
                 });
                 this.stats[key].team2.players.forEach(player => {
                     if (playerCounts[player.name] > 1) {
-                        list.push({ label: player.name, value: player.name });
+                        list.push({ label: player.name.trim(), value: player.name.trim() });
                     }
                 });
             });
@@ -108,7 +108,6 @@ export default {
             list = list.filter((item, index, self) =>
                 index === self.findIndex(t => t.label === item.label && t.value === item.value)
             );
-
             return list;
         }
     },
@@ -130,7 +129,7 @@ export default {
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
                 if (this.filterGamesTag.length) {
-                    const hasMatchingTag = game.tags?.some(tag => this.filterGamesTag.includes(tag));
+                    const hasMatchingTag = game.tags?.some(tag => this.filterGamesTag.includes(tag.trim()));
                     if (!hasMatchingTag) return;
                 }
 
@@ -139,7 +138,7 @@ export default {
                     if (player) {
                         this.playerStatList.push({
                             date: key,
-                            stat: calculatePlayerStat(player.stat, 'simple', this.filterThrowDistance)
+                            stat: calculatePlayerStat(player.stat, 'simple', this.filterThrowDistance, this.onlyImportant)
                         });
                     }
                 };
@@ -147,12 +146,13 @@ export default {
                 checkAndAddStat(game.team1);
                 checkAndAddStat(game.team2);
             });
-
             this.playerStatList.forEach(game => {
                 const { pointsPercent, tirsPercent } = game.stat;
-                this.chartOptions.xaxis.categories.push(getDate(+game.date));
-                this.chartData[0].data.push(pointsPercent !== '-' ? pointsPercent : null);
-                this.chartData[1].data.push(tirsPercent !== '-' ? tirsPercent : null);
+                if (pointsPercent && tirsPercent) {
+                    this.chartOptions.xaxis.categories.push(getDate(+game.date));
+                    this.chartData[0].data.push(pointsPercent !== '-' ? pointsPercent : null);
+                    this.chartData[1].data.push(tirsPercent !== '-' ? tirsPercent : null);
+                }
             });
             if (this.chartOptions.xaxis.categories.length > 1) {
                 this.showSinusoids = true;
@@ -191,7 +191,7 @@ export default {
             </div>
         </div>
         <div v-if="player">
-            <div class="field">
+            <div class="field is-flex is-justify-content-space-between">
                 <form action="">
                     <label for="" class="label">{{ $t('stat.chooseOnly') }}</label>
                     <label class="radio" v-for="item in gameTypes" :key="item.id">
@@ -200,6 +200,11 @@ export default {
                     </label>
                     <button class="button is-small ml-2" type="reset" v-if="filterGamesType" @click="clearGameType">{{ $t('stat.clear') }}</button>
                 </form>
+                <div>
+                    <label for="filterImportant" class="checkbox is-flex is-align-content-center">{{ $t('stat.important') }}
+                        <input type="checkbox" class="ml-2 " id="filterImportant" v-model="onlyImportant" @change="showPlayerStat">
+                    </label>
+                </div>
             </div>
             <div class="field">
                 <form action="">

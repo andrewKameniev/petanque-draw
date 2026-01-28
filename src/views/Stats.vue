@@ -174,6 +174,11 @@
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
                     {{ $t('stat.onlyLogin') }}
+                    <div class="mt-4">
+                        <router-link to="/login-user" class="button">
+                            {{ $t('common.loginUser') }}
+                        </router-link>
+                    </div>
                 </div>
             </div>
             <Message v-if="message.show"/>
@@ -508,6 +513,10 @@ export default {
 
     .mobile-stat-container-header {
         margin-bottom: auto;
+    }
+
+    .is-loading .mobile-stat-container-header {
+        margin-bottom: 0;
     }
 }
 

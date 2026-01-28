@@ -29,7 +29,7 @@ export default {
                 fillScoresArray.push(this.team.score ? this.team.score[i] || 0 : 0)
             }
             return fillScoresArray
-        }
+        },
     },
     methods: {
         getFrenchStat,
@@ -48,6 +48,9 @@ export default {
                 return '0'
             }
         },
+        isImportantPresent(index) {
+            return this.teamStats[index].important.points.positive + this.teamStats[index].important.points.negative + this.teamStats[index].important.tirs.positive + this.teamStats[index].important.tirs.negative > 0
+        }
     }
 }
 </script>
@@ -132,13 +135,13 @@ export default {
                               :key="itemIndex"></span>
                     </div>
                 </div>
-                <div class="has-text-right is-size-7 has-text-grey is-capitalized">Important throws</div>
+                <div v-if="isImportantPresent(index)" class="has-text-right is-size-7 has-text-grey is-capitalized">{{ $t('stat.important') }}</div>
                 <div class="is-size-5 is-flex is-justify-content-space-between">
                     <div>
                         {{ $t('stat.total') }}: {{teamStats[index].all.positive}}/{{teamStats[index].all.positive + teamStats[index].all.negative}} -
                         <strong class="is-size-4">{{Math.round(teamStats[index].all.positive/(teamStats[index].all.positive + teamStats[index].all.negative) * 100)}}%</strong>
                     </div>
-                    <div class="ml-3" v-if="teamStats[index].important.points.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.positive + teamStats[index].important.tirs.negative > 0">
+                    <div class="ml-3" v-if="isImportantPresent(index)">
                         {{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive }} /
                         {{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.negative }}
                         <strong>({{ Math.round((teamStats[index].important.points.positive + teamStats[index].important.tirs.positive) / (teamStats[index].important.points.positive + teamStats[index].important.tirs.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.negative) * 100)  }}%)</strong>

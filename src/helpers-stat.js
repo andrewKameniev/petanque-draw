@@ -68,9 +68,8 @@ const frenchInfoStat= {
     }
 }
 
-export function calculatePlayerStat(gameScenario, system, filterDistance) {
+export function calculatePlayerStat(gameScenario, system, filterDistance, onlyImportant) {
     let playerStat;
-
     if (system === 'simple') {
         playerStat = {
             points: {
@@ -80,16 +79,6 @@ export function calculatePlayerStat(gameScenario, system, filterDistance) {
             tirs: {
                 positive: 0,
                 negative: 0
-            },
-            x2: {
-                points: {
-                    positive: 0,
-                    negative: 0
-                },
-                tirs: {
-                    positive: 0,
-                    negative: 0
-                }
             },
             serie: []
         }
@@ -115,18 +104,15 @@ export function calculatePlayerStat(gameScenario, system, filterDistance) {
                     if (filterDistance && item.distance !== filterDistance) {
                         return
                     }
+                    if (onlyImportant && !item.important) {
+                        return
+                    }
                     if (item.type === 'p') {
                         if (system === 'simple') {
                             if (item.success) {
                                 playerStat.points.positive += 1;
-                                if (item.x2) {
-                                    playerStat.x2.points.positive += 1;
-                                }
                             } else {
                                 playerStat.points.negative += 1;
-                                if (item.x2) {
-                                    playerStat.x2.points.negative += 1;
-                                }
                             }
                         } else {
                             playerStat.points.volume += frenchInfoStat[item.french].volume;
@@ -136,14 +122,8 @@ export function calculatePlayerStat(gameScenario, system, filterDistance) {
                         if (system === 'simple') {
                             if (item.success) {
                                 playerStat.tirs.positive += 1;
-                                if (item.x2) {
-                                    playerStat.x2.tirs.positive += 1;
-                                }
                             } else {
                                 playerStat.tirs.negative += 1;
-                                if (item.x2) {
-                                    playerStat.x2.tirs.negative += 1;
-                                }
                             }
                         } else {
                             playerStat.tirs.volume += frenchInfoStat[item.french].volume;
@@ -164,7 +144,6 @@ export function calculatePlayerStat(gameScenario, system, filterDistance) {
             playerStat.tirsPercent = getStatPercentValue(playerStat.tirs.positive, playerStat.tirs.negative);
         }
     }
-
     return playerStat
 }
 

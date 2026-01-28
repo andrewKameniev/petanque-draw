@@ -1,11 +1,12 @@
 <script>
 export default {
-    name: "Loader"
+    name: "Loader",
+    props: ['isDark']
 }
 </script>
 
 <template>
-    <span class="loader"></span>
+    <span class="loader" :class="{'dark': isDark}"></span>
 </template>
 
 <style scoped>
@@ -18,6 +19,12 @@ export default {
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 2s linear infinite;
+}
+
+@media screen and (max-width: 500px){
+    .loader.dark {
+        border-color: #aaa;
+    }
 }
 
 @keyframes rotation {

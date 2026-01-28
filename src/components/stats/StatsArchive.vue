@@ -130,7 +130,7 @@ export default {
 </script>
 
 <template>
-    <div class="mobile-stat-container">
+    <div class="mobile-stat-container" :class="{'is-loading': isLoading}">
         <ConfirmRemoveModal title="Remove this game?" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">{{$t('stat.back')}}</button>
@@ -138,7 +138,7 @@ export default {
         </div>
         <div>
             <div v-if="isLoading" class="has-text-centered p-3">
-                <Loader/>
+                <Loader isDark="true"/>
             </div>
             <div v-else>
                 <div v-if="filteredGames" class="mt-3">

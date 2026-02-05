@@ -175,7 +175,7 @@ export default {
         },
         registerSw() {
             const self = this;
-            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}petanque-swiss-vue/dist` : `${window.location.origin}`;
+            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}/petanque-draw/dist` : `${window.location.origin}`;
             navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
                 console.log('Registration succeeded. Scope is ' + reg.scope);
                 const dbRef = ref(getDatabase());

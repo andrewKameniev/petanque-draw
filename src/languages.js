@@ -127,6 +127,7 @@ export default {
             fieldsStart: 'From which field should the numbering begin?',
         },
         common: {
+            updated: 'has updated!',
             group: 'Group',
             change: 'Change',
             cancel: 'Cancel',
@@ -566,6 +567,7 @@ export default {
             fieldsStart: 'З якого майданчика починати нумерацію?',
         },
         common: {
+            updated: 'оновлено!',
             group: 'Група',
             change: 'Змінити',
             cancel: 'Відмінити',

@@ -100,8 +100,8 @@ export default {
     },
     mounted() {
         this.getInfo();
-        // this.requestPermission();
-        // setTimeout(this.registerSw, 1000);
+        this.requestPermission();
+        setTimeout(this.registerSw, 1000);
     },
     computed: {
         tabs() {
@@ -126,15 +126,19 @@ export default {
         rankingTeams() {
             return getTeamsRanking(this.tournament, this.activeRound)
         },
+        userId() {
+            return this.$route.query.user;
+        },
+        tournamentId() {
+            return this.$route.query.tournament;
+        }
     },
     methods: {
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
                 try {
-                    const user = this.$route.query.user;
-                    const tournamentId = this.$route.query.tournament;
-                    const dbRef = ref(database, `${user}/tournaments/${tournamentId}`);
+                    const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
                     const snapshot = await get(dbRef);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
@@ -158,12 +162,13 @@ export default {
             }
         },
         showNotification(message) {
+            console.log(message);
             navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(message.data.title, {
-                    body: message.data.body,
+                registration.showNotification(message.notification.title, {
+                    body: message.notification.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
-                    data: {url: message.data.url},
+                    data: {url: message.notification.body},
                     actions: [{action: "open_url", title: "Open"}]
                 });
             });
@@ -178,10 +183,7 @@ export default {
                     if (snapshot.exists()) {
                         getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
-                                push(ref(database, 'tokens'), {
-                                    time: Date.now(),
-                                    token: currentToken
-                                });
+                                push(ref(database, `${self.userId}/tournaments/${self.tournamentId}/tokens`), currentToken);
                             } else {
                                 console.log('No registration token available. Request permission to generate one.');
                             }

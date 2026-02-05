@@ -82,7 +82,7 @@
         <Games v-if="activeTab === 'games'"
                :rankingTeams="rankingTeams"
                :activeRound="activeRound" :teams-in-group="teamsInGroup"
-               @openResults="activeTab = 'ranking'"/>
+               @openResults="activeTab = 'ranking'" @sendMessage="sendNotifications"/>
         <Results v-if="activeTab === 'results'"/>
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
@@ -156,10 +156,12 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
-import {getTeamsRanking} from "@/helpers";
+import {getTeamsRanking, sendCloudMessage} from "@/helpers";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
+import {get, ref} from "firebase/database";
+import {database} from "@/firebase";
 
 export default {
     name: 'Tournament',
@@ -184,9 +186,17 @@ export default {
     },
     methods: {
         ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData']),
-        saveTournament(tournament) {
-            this.savedTournaments.push(tournament);
-            this.showSaveTournament = false;
+        async sendNotifications() {
+            const dbRef = ref(database, `${this.user.uid}/tournaments/${this.tournament.id}/tokens`);
+            const snapshot = await get(dbRef);
+            if (snapshot.exists()) {
+                const userTokens = Object.values(snapshot.val());
+                const message = {
+                    title: `${this.tournament.name}  ${this.$t('common.updated')}`,
+                    body: `${window.location.origin}/#/show/?user=${this.user.uid}&tournament=${this.tournament.id}`,
+                }
+                sendCloudMessage(userTokens, message)
+            }
         },
         startPlayOff() {
             let playOffList;

@@ -387,6 +387,7 @@ export default {
 
             this.addRoundToGames(this.shuffleArray(round)); // записали в игры
             this.startRound();
+            this.$emit('sendMessage');
         },
         createGroups() {
             if(this.teamsInGroup < 3) {
@@ -417,7 +418,7 @@ export default {
                 while (teamsToDraw.length >= 1) {
                     for (let j = 0; j < teamsToDraw.length; j++) {
                         for (let i = 0; i < groupsQuantity; i++) {
-                            const teamIndex = this.tournament.useRating ? 0 : this.getRandomWithOneExclusion(teamsToDraw.length);
+                            const teamIndex = this.tournament.useRating ? 0  : this.getRandomWithOneExclusion(teamsToDraw.length);
                             if (teamIndex !== -1 && teamsToDraw.length >= 1) {
                                 const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
                                 groups[i].push(this.tournament.teams[teamIndexInList])
@@ -490,6 +491,7 @@ export default {
 
             this.endRound();
             this.showMessage({title: 'Success', text: 'Your results saved'})
+            this.$emit('sendMessage');
         },
         restoreRoundGames(){
             this.isRestoredRound = true;

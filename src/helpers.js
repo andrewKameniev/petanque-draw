@@ -238,4 +238,27 @@ const regions = {
     22: 'Волинська',
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError}
+const sendCloudMessage = async (tokens, message) => {
+    const url = 'https://sendmessage-etoydcc3na-uc.a.run.app/sendMessage';
+    const payload = {
+        tokens: tokens,
+        message: message,
+    };
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Error sending message:', error);
+    }};
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, sendCloudMessage}

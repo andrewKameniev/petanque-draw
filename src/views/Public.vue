@@ -162,7 +162,6 @@ export default {
             }
         },
         showNotification(message) {
-            console.log(message);
             navigator.serviceWorker.ready.then(function(registration) {
                 registration.showNotification(`${message.notification.title} ${this.$t('common.updated')}`, {
                     body: message.notification.body,
@@ -174,10 +173,13 @@ export default {
             });
         },
         registerSw() {
+            if (!('serviceWorker' in navigator)) {
+                return;
+            }
+
             const self = this;
             const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}/petanque-draw/dist` : `${window.location.origin}`;
             navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
-                console.log('Registration succeeded. Scope is ' + reg.scope);
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
                     if (snapshot.exists()) {
@@ -205,6 +207,9 @@ export default {
             });
         },
         requestPermission() {
+            if (!("Notification" in window)) {
+                return
+            }
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
                     this.notificationsEnabled = true

@@ -195,7 +195,8 @@ export default {
                     if (snapshot.exists()) {
                         getToken(self.messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
-                                push(ref(database, `${self.userId}/tournaments/${self.tournamentId}/tokens`), currentToken);
+                                push(ref(database, `tokens/${self.userId}/${self.tournamentId}`), currentToken);
+                                console.log(12213123);
                             } else {
                                 console.log('No registration token available. Request permission to generate one.');
                             }

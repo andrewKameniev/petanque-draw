@@ -187,14 +187,19 @@ export default {
     methods: {
         ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData']),
         async sendNotifications() {
-            const dbRef = ref(database, `${this.user.uid}/tournaments/${this.tournament.id}/tokens`);
+            console.log(444);
+            const dbRef = ref(database, `tokens/${this.user.uid}/${this.tournament.id}`);
             const snapshot = await get(dbRef);
+            console.log(this.user.uid,this.tournament.id,snapshot);
             if (snapshot.exists()) {
+                console.log(34);
                 const userTokens = Object.values(snapshot.val());
+                console.log(userTokens);
                 const message = {
                     title: `${this.tournament.name}`,
                     body: `${window.location.origin}/petanque-draw/dist/#/show/?user=${this.user.uid}&tournament=${this.tournament.id}`,
                 }
+                console.log(message);
                 sendCloudMessage(userTokens, message)
             }
         },

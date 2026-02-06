@@ -244,6 +244,7 @@ const sendCloudMessage = async (tokens, message) => {
         tokens: tokens,
         message: message,
     };
+    console.log(payload);
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -252,6 +253,7 @@ const sendCloudMessage = async (tokens, message) => {
             },
             body: JSON.stringify(payload),
         });
+        console.log(1111);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }

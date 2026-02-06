@@ -92,6 +92,15 @@ const store = createStore({
         removeTournament (state) {
             const db = getDatabase();
             const dataRef = ref(db, `${state.user.uid}/tournaments/${state.currentTournamentIndex}`);
+            const tokensRef = ref(db, `tokens/${state.user.uid}/${state.currentTournamentIndex}`);
+
+            remove(tokensRef)
+                .then(() => {
+                    console.log('Tokens successfully deleted');
+                })
+                .catch((error) => {
+                    console.error('Error deleting data:', error);
+                });
 
             remove(dataRef)
                 .then(() => {

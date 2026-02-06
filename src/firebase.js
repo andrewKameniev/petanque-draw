@@ -19,10 +19,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const database = getDatabase(app);
-const messaging = (async function(){
-    if (await isSupported()) return getMessaging(app)
-    return null;
-})();
+async function initializeMessaging() {
+    if (await isSupported()) {
+        return getMessaging(app);
+    }    return null;
+}
 
-export {database, messaging, auth}
+export {database, initializeMessaging, auth}
 

@@ -80,7 +80,7 @@ import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
 import { getToken, onMessage } from "firebase/messaging";
 import {ref, push, get, child, getDatabase} from "firebase/database";
-import {database, messaging} from "@/firebase";
+import {database, initializeMessaging} from "@/firebase";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -100,8 +100,8 @@ export default {
     },
     mounted() {
         this.getInfo();
-        this.requestPermission();
-        setTimeout(this.registerSw, 1000);
+        this.initMessaging();
+        console.log(this.$t('common.updated'));
     },
     computed: {
         tabs() {
@@ -134,6 +134,14 @@ export default {
         }
     },
     methods: {
+        async initMessaging() {
+            this.messaging = await initializeMessaging();
+            if (this.messaging) {
+                this.requestPermission();
+            } else {
+                console.error("Messaging is not supported in this browser.");
+            }
+        },
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
@@ -162,8 +170,10 @@ export default {
             }
         },
         showNotification(message) {
+            console.log(message);
+            const self = this;
             navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(`${message.notification.title} ${this.$t('common.updated')}`, {
+                registration.showNotification(`${message.notification.title} ${self.$t('common.updated')}`, {
                     body: message.notification.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],
@@ -183,7 +193,7 @@ export default {
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {
                     if (snapshot.exists()) {
-                        getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
+                        getToken(self.messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
                                 push(ref(database, `${self.userId}/tournaments/${self.tournamentId}/tokens`), currentToken);
                             } else {
@@ -199,7 +209,7 @@ export default {
                     console.error(error);
                 });
 
-                onMessage(messaging, (payload) => {
+                onMessage(self.messaging, (payload) => {
                     self.showNotification(payload)
                 });
             }).catch(function(error) {
@@ -212,7 +222,8 @@ export default {
             }
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    this.notificationsEnabled = true
+                    this.notificationsEnabled = true;
+                    this.registerSw();
                 } else {
                     this.notificationsEnabled = false
                 }

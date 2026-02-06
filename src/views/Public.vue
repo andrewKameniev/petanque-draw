@@ -164,7 +164,7 @@ export default {
         showNotification(message) {
             console.log(message);
             navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(message.notification.title, {
+                registration.showNotification(`${message.notification.title} ${this.$t('common.updated')}`, {
                     body: message.notification.body,
                     icon: 'https://i.imgur.com/S8zDbo4.png',
                     vibrate: [200, 100, 200, 100],

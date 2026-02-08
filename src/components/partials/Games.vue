@@ -17,11 +17,6 @@
                         {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </button>
                 </div>
-                <div class="control" v-if="tournament.roundIsActive">
-                    <button class="button is-info" @click="shuffleLanes">
-                        {{ $t('games.shuffleLanes') }}
-                    </button>
-                </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
                 <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">{{ $t('games.show') }}<span
@@ -32,9 +27,10 @@
                     <div class="game-row" :class="{compact: compactView,
                     'has-background-danger': gameHasError(game)}"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
+                        <div class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
                             <label :for="'team_' + index">{{ game.team_1 }}</label>
-                        </span>
+                            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in tournament.teams.find(team => team.title === game.team_1).lanes" :key="index">{{lane + 1}},</sup></div>
+                        </div>
                         <span class="text-center score-block">
                             <input :id="'team_' + index" v-model="game.team_1_score" class="input -small" type="number"
                                    :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
@@ -46,9 +42,10 @@
                                    type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
                                    v-if="!compactView">
                         </span>
-                        <span class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
+                        <div class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
                             <label :for="'opponent_' + index">{{ game.team_2 }}</label>
-                        </span>
+                            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in tournament.teams.find(team => team.title === game.team_2)?.lanes" :key="index">{{lane + 1}},</sup></div>
+                        </div>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
                     </div>
@@ -384,10 +381,72 @@ export default {
                     teamsForRound.splice(0, 2);
                 }
             }
-
-            this.addRoundToGames(this.shuffleArray(round)); // записали в игры
+            this.addRoundToGames(this.assignLanes(this.shuffleArray(round))); // записали в игры
             this.startRound();
             this.$emit('sendMessage');
+        },
+        assignLanes(games) {
+            let technicalGame = null;
+            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
+                const technicalGameIndex = games.findIndex(game => game.team_2 === 'Technical');
+                technicalGame = games[technicalGameIndex];
+                games.splice(technicalGameIndex, 1);
+            }
+            const teamsMapLanes = Object.fromEntries(
+                this.tournament.teams.map(team => [team.title, team.lanes])
+            );
+            let teamsMatrix = {};
+            const firstlane = this.tournament.preferences.fieldsStart - 1;
+            // Fill matrix for each team and count how many times they played on each lane
+            this.tournament.teams.forEach(team => {
+                teamsMatrix[team.title] = {};
+                for (let i = firstlane; i < Math.floor(this.tournament.teams.length / 2); i++) {
+                    teamsMatrix[team.title][i] = 0;
+                    team.lanes.forEach(lane => {
+                        if (i === lane) {
+                            teamsMatrix[team.title][i]++;
+                        }
+                    })
+                }
+            })
+
+            const scheduledMatches = [];
+            let availableLanes = Array.from({length: Math.floor(this.tournament.teams.length / 2)}, (_, i) => i + firstlane);
+            games.forEach((game) => {
+                if (game.team_2 !== 'Technical') {
+                    let bestLane = null;
+                    let minWeight = Infinity;
+                    availableLanes.forEach(i => {
+                        const team1Lanes = teamsMapLanes[game.team_1];
+                        const team2Lanes = teamsMapLanes[game.team_2];
+
+                        const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
+                        if ((weight < minWeight) && team1Lanes[team1Lanes.length - 1] !== i && team2Lanes[team2Lanes.length - 1] !== i) {
+                            minWeight = weight;
+                            bestLane = i;
+                        }
+                    });
+                    if (bestLane === null) {
+                        minWeight = Infinity;
+                        availableLanes.forEach(i => {
+                            const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
+                            if (weight < minWeight) {
+                                minWeight = weight;
+                                bestLane = i;
+                            }
+                        });
+                    }
+                    game.lane = bestLane;
+                    teamsMatrix[game.team_1][bestLane]++;
+                    teamsMatrix[game.team_2][bestLane]++;
+                    availableLanes = availableLanes.filter(lane => lane !== bestLane);
+                    scheduledMatches.push(game);
+                }
+            })
+            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
+                scheduledMatches.push(technicalGame);
+            }
+            return scheduledMatches.sort((a, b) => a.lane - b.lane);
         },
         createGroups() {
             if(this.teamsInGroup < 3) {
@@ -576,12 +635,6 @@ export default {
                 currentIndex--;
                 [array[currentIndex], array[randomIndex]] = [
                     array[randomIndex], array[currentIndex]];
-            }
-            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
-                const technicalGameIndex = array.findIndex(game => game.team_2 === 'Technical');
-                const technicalGame = array[technicalGameIndex];
-                array.splice(technicalGameIndex, 1);
-                array.push(technicalGame)
             }
             return array;
         }

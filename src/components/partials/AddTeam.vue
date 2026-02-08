@@ -80,6 +80,7 @@ export default {
                         pointsPlus: 0,
                         pointsMinus: 0,
                         opponents: ['placeholder'],
+                        lanes: [],
                     }
                     this.addTeamToStore(team)
                     this.teamTitle = null;

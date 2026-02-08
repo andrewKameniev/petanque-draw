@@ -269,6 +269,7 @@ export default {
                     team.pointsPlus = 0;
                     team.pointsMinus = 0;
                     team.opponents = ['placeholder'];
+                    team.lanes = [];
                 })
                 this.addBTournament(tournamentBTeams);
             }

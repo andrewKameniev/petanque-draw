@@ -62,6 +62,20 @@ const store = createStore({
     mutations: {
         shuffleLanesStore(state, games) {
             state.tournaments[state.currentTournamentIndex].games[state.tournaments[state.currentTournamentIndex].games.length - 1] = games;
+            state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.lanes.pop())
+            store.commit('saveLanesToTeams', games);
+        },
+        saveLanesToTeams(state, games) {
+            games.map(game => {
+                state.tournaments[state.currentTournamentIndex].teams.map(team => {
+                    if ((team.title === game.team_1) && game.lane != null) {
+                        team.lanes.push(game.lane)
+                    }
+                    if ((team.title === game.team_2) && game.lane != null) {
+                        team.lanes.push(game.lane)
+                    }
+                })
+            })
         },
         setTournaments(state, tournaments) {
             state.tournaments = tournaments;
@@ -146,10 +160,12 @@ const store = createStore({
             }
             state.tournaments[state.currentTournamentIndex].gamesCopy.push(round);
             state.tournaments[state.currentTournamentIndex].roundIsActive = true;
+            store.commit('saveLanesToTeams', round);
         },
         restoreRound(state) {
             state.tournaments[state.currentTournamentIndex].games.pop();
             state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.opponents.pop())
+            state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.lanes.pop())
         },
         setPlayOff(state, scheme) {
             state.tournaments[state.currentTournamentIndex].playOff = scheme

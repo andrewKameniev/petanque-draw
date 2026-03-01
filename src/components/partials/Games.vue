@@ -385,7 +385,7 @@ export default {
             // Fill matrix for each team and count how many times they played on each lane
             this.tournament.teams.forEach(team => {
                 teamsMatrix[team.title] = {};
-                for (let i = firstlane; i < Math.floor(this.tournament.teams.length / 2); i++) {
+                for (let i = firstlane; i < Math.floor(firstlane + this.tournament.teams.length / 2); i++) {
                     teamsMatrix[team.title][i] = 0;
                     team.lanes.forEach(lane => {
                         if (i === lane) {

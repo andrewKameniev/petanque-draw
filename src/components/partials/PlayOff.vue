@@ -10,43 +10,14 @@
             </div>
             <template v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
-                <div class="game-row" :class="{'has-background-danger': gameHasError(game), 'compact': activeTournament}"
-                     v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind">
-                    <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
-                        <label :for="'team_' + ind">{{ game.team_1 }}</label>
-                    </span>
-                    <span class="text-center score-block">
-                        <input v-if="!activeTournament" :id="'team_' + ind" v-model="game.team_1_score" class="input -small"
-                               type="number" min="0" max="13" @keyup.enter="saveResults">
-                        <span class="lane-block is-size-7">
-                            {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ ind + 1 }}</span>
-                        </span>
-                        <input v-if="!activeTournament" :id="'opponent_' + ind" v-model="game.team_2_score" class="input -small"
-                               type="number" min="0" max="13" @keyup.enter="saveResults">
-                    </span>
-                    <span class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
-                        <label :for="'opponent_' + ind">{{ game.team_2 }}</label>
-                    </span>
-                </div>
+                <Game v-for="(game, ind) in shuffleArray(playOffBracket.stages[currentPlayOffBracketIndex].teams)" :key="ind"
+                      :active-tournament="tournament"
+                      :game="game" :game-index="ind" :is-playoff="true"
+                      :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
-                    <div class="game-row" :class="{'has-background-danger': gameHasError(playOffBracket.thirdPlace)}">
-                        <span class="text-right team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_1_score > playOffBracket.thirdPlace.team_2_score}">
-                            <label :for="'team_1_3p'">{{ playOffBracket.thirdPlace.team_1 }}</label>
-                        </span>
-                        <span class="text-center score-block">
-                            <input v-if="!activeTournament" :id="'team_1_3p'" v-model="playOffBracket.thirdPlace.team_1_score" class="input -small"
-                                   type="number" min="0" max="13" @keyup.enter="saveResults">
-                            <span class="lane-block is-size-7">
-                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">2</span>
-                            </span>
-                            <input v-if="!activeTournament" :id="'opponent_3p'" v-model="playOffBracket.thirdPlace.team_2_score" class="input -small"
-                                   type="number" min="0" max="13" @keyup.enter="saveResults">
-                        </span>
-                        <span class="team-block" :class="{'has-text-weight-bold is-underlined': playOffBracket.thirdPlace.team_2_score > playOffBracket.thirdPlace.team_1_score}">
-                            <label :for="'opponent_3p'">{{ playOffBracket.thirdPlace.team_2 }}</label>
-                        </span>
-                    </div>
+                    <Game :game="playOffBracket.thirdPlace" :is-third="true"
+                          :compact-view="activeTournament" :game-index="1" @save="saveResults"/>
                 </div>
                 <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
@@ -61,13 +32,14 @@
 <script>
 import Bracket from './Bracket';
 import {mapMutations, mapState} from "vuex";
-import {gameHasError, isScoreError} from "@/helpers";
+import {isScoreError, shuffleArray} from "@/helpers";
+import Game from "@/components/partials/Game.vue";
 
 export default {
     name: 'PlayOff',
-    props: ['activeTournament'],
+    props: ['activeTournament', 'isPublicView'],
     emits: ['openResults'],
-    components: {Bracket},
+    components: {Game, Bracket},
     data(){
         return {
             scoreError: false,
@@ -102,8 +74,8 @@ export default {
         }
     },
     methods: {
+        shuffleArray,
         ...mapMutations(['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
-        gameHasError,
         saveResults() {
             this.scoreError = false;
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => isScoreError(game, this.tournament.preferences.maxScore))){
@@ -135,7 +107,7 @@ export default {
                     }
 
                 })
-                this.setPlayOffBracket(bracket)
+                this.setPlayOffBracket(bracket);
                 this.setPlayOffStage(this.playOffStageCurrent / 2)
             }
         },
@@ -171,8 +143,43 @@ export default {
                 }
                 brackets.stages.push(stage)
             }
+            if(this.tournament.cadrage){
+                const seeding = this.getTournamentSeeding(this.tournament.cadrage.length);
+                const sortedCadrage = this.tournament.cadrage.sort((a,b) => (a.team_2_place - b.team_2_place));
+                let cadrageArray = [];
+                seeding.forEach(seed => {
+                    const game = sortedCadrage[seed - 1]
+                    if(game){
+                        cadrageArray.push(game)
+                    }
+                })
+                const cadrageStage = {
+                    teamsCount: this.tournament.cadrage.length * 2,
+                    stageLabel: 'cadrage',
+                    teams: cadrageArray,
+                }
+                brackets.stages.unshift(cadrageStage)
+            }
             this.setPlayOffBracket(brackets)
         },
+        getTournamentSeeding(n) {
+            let seeding = [1];
+            while (seeding.length < n) {
+                let nextSeeding = [];
+                let currentTotal = seeding.length * 2;
+                for (let i = 0; i < seeding.length; i++) {
+                    const team = seeding[i];
+                    const partner = currentTotal + 1 - team;
+                    if (i % 2 === 0) {
+                        nextSeeding.push(team, partner);
+                    } else {
+                        nextSeeding.push(partner, team);
+                    }
+                }
+                seeding = nextSeeding;
+            }
+            return seeding;
+        }
     },
 }
 </script>

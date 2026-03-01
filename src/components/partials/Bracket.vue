@@ -4,7 +4,8 @@
         <div class="modal-content">
             <div class="columns play-off-wrapper">
                 <div v-for="(stage, index) in bracket.stages" :key="index" class="column play-off-stage-wrapper">
-                    <div class="has-text-centered has-text-weight-bold mb-3">{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</div>
+                    <div class="has-text-centered has-text-weight-bold mb-3" v-if="stage.stageLabel === 'cadrage'">{{$t('games.cadrage')}}</div>
+                    <div class="has-text-centered has-text-weight-bold mb-3" v-else>{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</div>
                     <div class="play-off-stage" ref="stage" >
                         <div v-for="(game, ind) in stage.teams" :key="ind" class="play-off-game box">
                             <div class="play-off-game-vertical-line -top" v-if="index !== 0" :style="{height: stageHeight/stage.teamsCount/2 +'px'}"></div>

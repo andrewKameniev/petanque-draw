@@ -23,9 +23,27 @@
                     </table>
                 </div>
             </div>
+            <div v-if="tournament.cadrage">
+                <div class="mb-5">
+                    <h3 class="has-text-centered">{{$t('games.cadrage')}}</h3>
+                    <div class="table-container">
+                        <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
+                            <tbody>
+                                <tr v-for="(game, index) in tournament.cadrage" :key="index">
+                                    <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
+                                    <td align="center">{{game.team_1_score}}</td>
+                                    <td align="center">{{game.team_2_score}}</td>
+                                    <td>{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div v-if="tournament.playOffBracket && !onlyQualifying">
                 <div v-for="(stage, index) in tournament.playOffBracket.stages" :key="index" class="mb-5">
-                    <div v-if="stage.teams[0].team_1_score">
+                    <div v-if="stage.teams[0].team_1_score && stage.stageLabel !== 'cadrage'">
                         <h3 class="has-text-centered">{{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}</h3>
                         <div class="table-container">
                             <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
@@ -59,7 +77,7 @@
             </div>
         </div>
         <div v-else class="mb-5 mt-5">
-            No games, yet
+            {{ $t('games.noGames') }}
         </div>
     </div>
 </template>

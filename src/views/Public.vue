@@ -26,7 +26,8 @@
             <div v-if="tournament.tournamentMessage" class="notification is-info mt-3 mb-3 is-size-5" style="white-space: pre-wrap;">
                 {{ tournament.tournamentMessage }}
             </div>
-            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" @openResults="activeTab = 'ranking'"/>
+            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" :is-public-view="true" @openResults="activeTab = 'ranking'"/>
+            <Cadrage v-else-if="tournament.isCadrage && tournament.cadrage?.length" :active-tournament="tournament" :is-public-view="true"/>
             <div v-if="tournament.games">
                 <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} {{ $t('common.round') }}</h2>
                 <div class="games-list">
@@ -85,11 +86,12 @@ import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
+import Cadrage from "@/components/partials/Cadrage.vue";
 
 
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
+    components: {Cadrage, Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking, Results},
     data() {
         return {
             isLoading: false,
@@ -101,7 +103,6 @@ export default {
     mounted() {
         this.getInfo();
         this.initMessaging();
-        console.log(this.$t('common.updated'));
     },
     computed: {
         tabs() {
@@ -170,7 +171,6 @@ export default {
             }
         },
         showNotification(message) {
-            console.log(message);
             const self = this;
             navigator.serviceWorker.ready.then(function(registration) {
                 registration.showNotification(`${message.notification.title} ${self.$t('common.updated')}`, {
@@ -196,7 +196,6 @@ export default {
                         getToken(self.messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
                                 push(ref(database, `tokens/${self.userId}/${self.tournamentId}`), currentToken);
-                                console.log(12213123);
                             } else {
                                 console.log('No registration token available. Request permission to generate one.');
                             }

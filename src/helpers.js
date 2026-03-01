@@ -194,8 +194,8 @@ function getTeamsRanking(tournament, activeRound) {
         return []
     }
 }
-function gameHasError(game) {
-    return (game.team_1_score && game.team_2_score) && game.team_1_score === game.team_2_score || (game.team_1_score < 0 || game.team_1_score > this.tournament.preferences.maxScore) || (game.team_2_score < 0 || game.team_2_score > this.tournament.preferences.maxScore)
+function gameHasError(game, maxScore) {
+    return (game.team_1_score && game.team_2_score) && game.team_1_score === game.team_2_score || (game.team_1_score < 0 || game.team_1_score > maxScore) || (game.team_2_score < 0 || game.team_2_score > maxScore)
 }
 function copyContent(data) {
     const el = document.createElement('div')
@@ -253,12 +253,23 @@ const sendCloudMessage = async (tokens, message) => {
             },
             body: JSON.stringify(payload),
         });
-        console.log(1111);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
     } catch (error) {
         console.error('Error sending message:', error);
-    }};
+    }
+};
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, sendCloudMessage}
+const shuffleArray = (array) => {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, sendCloudMessage, shuffleArray}

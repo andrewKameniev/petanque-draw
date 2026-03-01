@@ -1,8 +1,9 @@
 <template>
     <div class="content tabs-content">
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
+        <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
-            <div v-if="tournament.system === 'swiss' && tournament.teams.length" class="mb-2 has-text-danger">
+            <div v-if="tournament.system === 'swiss' && tournament.teams?.length" class="mb-2 has-text-danger">
                 {{$t('games.playMaximum')}} <strong class="has-text-danger">{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
             </div>
             <div class="field is-grouped">
@@ -24,29 +25,11 @@
                 </button>
                 <h2 class="text-center">{{ $t('common.round') }} {{ activeRound }}</h2>
                 <div class="games-list">
-                    <div class="game-row" :class="{compact: compactView,
-                    'has-background-danger': gameHasError(game)}"
-                         v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <div class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
-                            <label :for="'team_' + index">{{ game.team_1 }}</label>
-                            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in tournament.teams.find(team => team.title === game.team_1).lanes" :key="index">{{lane + 1}},</sup></div>
-                        </div>
-                        <span class="text-center score-block">
-                            <input :id="'team_' + index" v-model="game.team_1_score" class="input -small" type="number"
-                                   :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
-                                   v-if="!compactView">
-                            <span class="lane-block is-size-7">
-                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + tournament.preferences.fieldsStart }}</span>
-                            </span>
-                            <input :id="'opponent_' + index" v-model="game.team_2_score" class="input -small"
-                                   type="number" :disabled="game.team_2 === 'Technical'" @keyup.enter="saveResults"
-                                   v-if="!compactView">
-                        </span>
-                        <div class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
-                            <label :for="'opponent_' + index">{{ game.team_2 }}</label>
-                            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in tournament.teams.find(team => team.title === game.team_2)?.lanes" :key="index">{{lane + 1}},</sup></div>
-                        </div>
-                    </div>
+                    <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
+                          :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
+                          :team1-lanes="tournament.teams.find(team => team.title === game.team_1).lanes"
+                          :team2-lanes="tournament.teams.find(team => team.title === game.team_2).lanes"
+                          @save="saveResults"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
                     </div>
                 </div>
@@ -55,7 +38,7 @@
                 </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
             </div>
-            <div v-else-if="tournament.games && tournament.games.length === 0">{{ $t('games.noGames') }}</div>
+            <div v-else-if="(tournament.games && tournament.games.length === 0) || !tournament.teams" >{{ $t('games.noGames') }}</div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
             <div v-else-if="tournament.teams?.length && activeRound < maxSwissRounds" class="mb-5 mt-5">
                 {{ $t('games.clickToDraw') }} <b>{{ activeRound === 1 ?  $t('games.first') : activeRound }}</b> {{ $t('common.round') }}
@@ -68,11 +51,13 @@
 
 import PlayOff from './PlayOff';
 import {mapMutations, mapState} from "vuex";
-import {gameHasError, isScoreError, sortTeams} from '@/helpers'
+import {gameHasError, isScoreError, shuffleArray, sortTeams} from '@/helpers'
+import Game from "@/components/partials/Game.vue";
+import Cadrage from "@/components/partials/Cadrage.vue";
 
 export default {
     name: 'Games',
-    components: {PlayOff},
+    components: {Cadrage, Game, PlayOff},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -93,14 +78,14 @@ export default {
                     this.tournament.groups[0].length - 1 : this.tournament.teams.length - 1;
         },
         maxSwissRounds() {
-            return Math.round(this.tournament.teams.length / 2)
+            return Math.round(this.tournament.teams?.length / 2)
         }
     },
     methods: {
         ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
-            this.tournament.games[this.tournament.games.length - 1] = this.shuffleArray(this.tournament.games[this.tournament.games.length - 1]);
+            this.tournament.games[this.tournament.games.length - 1] = shuffleArray(this.tournament.games[this.tournament.games.length - 1]);
             this.shuffleLanesStore(this.tournament.games[this.tournament.games.length - 1]);
         },
         getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
@@ -381,7 +366,7 @@ export default {
                     teamsForRound.splice(0, 2);
                 }
             }
-            this.addRoundToGames(this.assignLanes(this.shuffleArray(round))); // записали в игры
+            this.addRoundToGames(this.assignLanes(shuffleArray(round))); // записали в игры
             this.startRound();
             this.$emit('sendMessage');
         },
@@ -628,16 +613,6 @@ export default {
                 })
             }
         },
-        shuffleArray(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex !== 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [
-                    array[randomIndex], array[currentIndex]];
-            }
-            return array;
-        }
     },
 }
 </script>

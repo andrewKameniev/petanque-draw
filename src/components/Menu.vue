@@ -36,6 +36,7 @@
             <ul class="menu-list">
                 <li><router-link to="doc">{{ $t('common.howUse') }}</router-link></li>
                 <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
+                <li><a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a></li>
                 <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
             </ul>
             <p class="menu-label">

@@ -37,7 +37,7 @@
         </table>
         <div class="buttons is-centered">
             <div class="control">
-                <button class="button" @click="$emit('close-modal')">{{ $t('common.close') }}</button>
+                <button class="button" @click="save">{{ $t('common.close') }}</button>
             </div>
         </div>
     </Modal>
@@ -59,8 +59,8 @@ export default {
     },
     methods: {
         ...mapMutations(['savePreferences']),
-        save(info) {
-            this.savePreferences(info);
+        save() {
+            this.savePreferences();
             this.$emit('close-modal');
         }
     }

@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
 import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
-const mutationsAfterUpdateDb = ['saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
+const mutationsAfterUpdateDb = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
     name: 'Tournament A',
     games: [],
@@ -12,6 +12,7 @@ const newTournament = {
     roundIsActive: false,
     useRating: false,
     playoff: false,
+    isCadrage: false,
     supermelePlayers: 2,
     tournamentIsFinished: false,
     tournamentMessage: '',
@@ -60,6 +61,9 @@ const store = createStore({
         },
     },
     mutations: {
+        savePreferences(state, preferences) {
+            console.log(state, preferences);
+        },
         shuffleLanesStore(state, games) {
             state.tournaments[state.currentTournamentIndex].games[state.tournaments[state.currentTournamentIndex].games.length - 1] = games;
             state.tournaments[state.currentTournamentIndex].teams.forEach(team => team.lanes.pop())
@@ -170,11 +174,18 @@ const store = createStore({
         setPlayOff(state, scheme) {
             state.tournaments[state.currentTournamentIndex].playOff = scheme
         },
+        setCadrage(state, games) {
+            state.tournaments[state.currentTournamentIndex].cadrage = games;
+            state.tournaments[state.currentTournamentIndex].isCadrage = true;
+        },
         setPlayOffBracket(state, bracket) {
             state.tournaments[state.currentTournamentIndex].playOffBracket = bracket
         },
         setPlayOffStage(state, stage) {
             state.tournaments[state.currentTournamentIndex].playOffStage = stage
+        },
+        updateGameScore(state, { activeRound, gameIndex, team, score }) {
+            state.tournaments[state.currentTournamentIndex].games[activeRound][gameIndex][team] = score;
         },
         finishTournament(state) {
             state.tournaments[state.currentTournamentIndex].tournamentIsFinished = true

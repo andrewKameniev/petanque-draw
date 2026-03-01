@@ -4,14 +4,15 @@
             <div class="has-text-right">
                 <a href="#" class="delete is-large" @click.prevent="$emit('closeMenu')"></a>
             </div>
-            <p class="menu-label is-hidden-desktop" v-if="tournaments.length > 1">
-                Active tournaments
+            <LanguageSwitcher class="is-hidden-desktop"/>
+            <p class="menu-label is-hidden-desktop" v-if="Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
+                {{ $t('common.activeTournaments') }}
             </p>
-            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="tournaments.length > 1">
+            <div class="navbar-item has-dropdown is-hoverable is-hidden-desktop" v-if="Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
                 <a class="navbar-link">
-                    Choose
+                    {{ $t('common.choose') }}
                 </a>
-                <div class="navbar-dropdown" v-if="tournaments.length > 1">
+                <div class="navbar-dropdown" v-if="Object.keys(tournaments).length > 1">
                     <a class="navbar-item" :class="{'is-active': index === currentTournamentIndex}"
                        v-for="(item, index) in tournaments" :key="index"
                        @click.prevent="chooseTournament(index)">
@@ -19,34 +20,39 @@
                     </a>
                 </div>
             </div>
-            <p class="menu-label" v-if="savedTournaments.length">
-                Saved tournaments
+            <div v-if="$route.name !== 'Statistics'">
+                <p class="menu-label" v-if="Object.keys(savedTournaments).length">
+                    {{ $t('common.saved') }}
+                </p>
+                <ul class="menu-list" style="max-height: calc(100vh - 505px); overflow: auto">
+                    <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
+                        <a href="#" @click.prevent="$emit('openSavedTournament', key)">{{ item.name }}</a>
+                    </li>
+                </ul>
+            </div>
+            <p class="menu-label">
+                {{ $t('common.info') }}
             </p>
             <ul class="menu-list">
-                <li v-for="(item, index) in savedTournaments" :key="index">
-                    <a href="#" @click.prevent="$emit('openSavedTournament', index)">{{ item.name }}</a>
-                </li>
+                <li><router-link to="doc">{{ $t('common.howUse') }}</router-link></li>
+                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
+                <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
             </ul>
             <p class="menu-label">
-                Info
+                {{ $t('common.useful') }}
             </p>
             <ul class="menu-list">
-                <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">Swiss system</a></li>
-                <li><a href="#" @click.prevent="$emit('openHelp')">How to use (in progress)?</a></li>
+                <li><router-link to="/">{{ $t('common.draw') }}</router-link></li>
+                <li><router-link to="stats">{{ $t('common.stat') }}</router-link></li>
+                <li><router-link to="training">{{ $t('common.training') }}</router-link></li>
             </ul>
-            <p class="menu-label">
-                Useful Links
+            <p class="menu-label is-invisible-desktop">
+                {{ $t('common.adminSection') }}
             </p>
-            <ul class="menu-list">
-                <li><a href="http://portal.petanque.org.ua/" target="_blank">Portal</a></li>
-            </ul>
-            <p class="menu-label">
-                Admin section
-            </p>
-            <div>
-                <button v-if="isAdmin" class="button is-light" @click="logout">Logout</button>
-                <router-link v-else to="/login" class="button is-light">
-                    Log in as Admin
+            <div class="is-invisible-desktop">
+                <button v-if="user" class="button is-light" @click="signOutUser">{{ user.email }}</button>
+                <router-link v-else to="/login-user" class="button is-light">
+                    {{ $t('common.loginUser') }}
                 </router-link>
             </div>
         </aside>
@@ -56,27 +62,37 @@
 <script>
 import {mapMutations, mapState} from "vuex";
 import {tournamentNames} from "../helpers";
+import {signOut} from "firebase/auth";
+import {auth} from "@/firebase";
+import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 
 export default {
     name: 'Menu',
+    components: {LanguageSwitcher},
     data() {
         return {
             tournamentNames
         }
     },
     props: ['active'],
-    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin']),
+    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginAdmin']),
+        ...mapMutations(['setActiveTournament']),
         chooseTournament(index) {
             this.setActiveTournament(index);
             this.$emit('closeMenu')
 
         },
-        logout() {
-            this.loginAdmin(false);
-            this.$router.push('/')
-        }
+        signOutUser () {
+            signOut(auth)
+                .then(() => {
+                    this.loginUser(false);
+                    this.$router.push('/');
+                })
+                .catch((error) => {
+                    console.error("Error during sign out:", error);
+                });
+        },
     },
 }
 </script>

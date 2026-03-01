@@ -1,5 +1,5 @@
 import Login from "@/views/Login";
-import Page from "@/components/Page";
+import Page from "@/components/Draw.vue";
 import {createWebHashHistory} from "vue-router";
 
 export default {

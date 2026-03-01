@@ -3,10 +3,32 @@
 body {
     margin: 0;
     font-family: 'Manrope', sans-serif;
-    font-size: 16px;
+    font-size: 1em;
+    background-color: #f4f4f4;
+}
+
+@media screen and (min-width: 575px){
+    body:not(.documentation) {
+        background: url("../img/bg-mountains.avif") center/cover;
+        background-attachment: fixed;
+    }
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    height: 100%;
+    min-height: 100vh;
+}
+
+footer {
+    font-size: 12px;
 }
 
 .container {
+    width: 100%;
     padding: 20px;
 }
 
@@ -94,7 +116,13 @@ body {
     max-width: 70px;
     margin: 0 10px;
 }
-
+.input {
+    font-size: 16px !important;
+    background-color: #ffffff80;
+}
+.table {
+    background-color: #ffffff80;
+}
 #table-list {
     counter-reset: teamlist;
 }
@@ -151,6 +179,7 @@ body {
 
 .third-place-title {
     position: absolute;
+    width: 100%;
     left: 50%;
     top: -30px;
     transform: translateX(-50%);
@@ -239,6 +268,14 @@ body {
     white-space: nowrap;
 }
 
+.card-header-icon .icon {
+    transition: transform 0.3s ease;
+}
+
+.card-header-icon.active .icon {
+    transform: rotate(180deg);
+}
+
 @media screen and (min-width: 769px) {
     .modal-content {
         max-width: calc(100% - 100px);
@@ -298,4 +335,62 @@ body {
     .container {
         padding: 10px;
     }
+}
+@media all and (max-width: 1023px) {
+    .navbar-item.is-active .navbar-dropdown, .navbar-item.is-hoverable:focus .navbar-dropdown, .navbar-item.is-hoverable:focus-within .navbar-dropdown, .navbar-item.is-hoverable:hover .navbar-dropdown {
+        display: block;
+    }
+    .navbar-dropdown {
+        background-color: #fff;
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        border-top: 2px solid #dbdbdb;
+        box-shadow: 0 8px 8px rgba(10,10,10,.1);
+        display: none;
+        font-size: .875rem;
+        left: 0;
+        min-width: 100%;
+        position: absolute;
+        top: 100%;
+        z-index: 20;
+    }
+}
+@media all and (max-width: 500px) {
+    html {
+        font-size: 12px;
+    }
+    .columns {
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+    }
+
+    .column {
+        padding: 0.75rem 0.25rem;
+    }
+    .play-off-team-title {
+        width: 100px;
+    }
+    .play-off-game {
+        height: 50px;
+        margin-bottom: 16px !important;
+        padding: 0.5rem 0.5rem 0.5rem 20px;
+    }
+    .play-off-game:before {
+        width: 80px;
+    }
+    .play-off-team-place {
+        top: 1px;
+    }
+}
+
+.opacity-0 {
+    opacity: 0;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+button.tag {
+    border: 0;
 }

@@ -327,6 +327,10 @@ footer {
         text-align: left;
     }
 
+    .game-row.compact > div {
+        flex: 1;
+    }
+
     .game-row.compact span.team-block {
         flex: 0 0 calc(50% - 40px);
     }

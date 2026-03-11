@@ -31,6 +31,7 @@ export default {
             restoreTeams: 'Restore last teams',
         },
         games: {
+            technical: 'Technical',
             draw: 'Draw',
             first: 'First',
             shuffleLanes: 'Shuffle lanes',
@@ -483,6 +484,7 @@ export default {
             qrAndLink: 'QR код та посилання на турнір',
         },
         games: {
+            technical: 'Технічна',
             draw: 'Жеребкувати',
             first: 'Перший',
             shuffleLanes: 'Перемішати доріжки',

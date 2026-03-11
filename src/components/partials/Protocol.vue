@@ -4,7 +4,7 @@
             <div class="mb-3">
                 <div class="notification is-warning">300 грн на карту <strong>5353 5423 2447 0856</strong> і пишете в телеграм <strong>@andrewkamenev</strong>. Якщо терміново, то дзвоните мені <strong>+38-095-180-44-18</strong>, але не факт, що так буде швидше:)</div>
                 <label for="protocolPassword">Пароль</label>
-                <input class="input" id="protocolPassword" type="number" v-model="password">
+                <input class="input" id="protocolPassword" type="password" v-model="password">
             </div>
             <div class="notification is-warning is-size-4 has-text-grey-darker">Це вже платна опція. Ви отримуєте на 80% готовий протокол. Треба дописати тільки тренерів команд і трохи відформатувати текстовий документ. Ввести арбітрів можна тут же, або вже коли експортуєте у текстовий формат. </div>
             <div class="notification is-warning is-size-4 has-text-grey-darker">Кнопка "Скопіювати протокол" і відредагувати у текстовому редакторі - найкращий варіант, як показала практика</div>

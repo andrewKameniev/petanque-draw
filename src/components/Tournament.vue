@@ -323,7 +323,6 @@ export default {
                 ];
                 playOffScheme = newOrder.map(index => playOffScheme[index]);
             }
-
             this.setPlayOff(playOffScheme);
 
             this.activeTab = 'games';

@@ -107,7 +107,7 @@ export default {
                     }
 
                 })
-                this.setPlayOffBracket(shuffleArray(bracket));
+                this.setPlayOffBracket(bracket);
                 this.setPlayOffStage(this.playOffStageCurrent / 2)
             }
         },
@@ -160,7 +160,7 @@ export default {
                 }
                 brackets.stages.unshift(cadrageStage)
             }
-            this.setPlayOffBracket(shuffleArray(brackets));
+            this.setPlayOffBracket(brackets);
         },
         getTournamentSeeding(n) {
             let seeding = [1];

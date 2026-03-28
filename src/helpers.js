@@ -244,7 +244,6 @@ const sendCloudMessage = async (tokens, message) => {
         tokens: tokens,
         message: message,
     };
-    console.log(payload);
     try {
         const response = await fetch(url, {
             method: 'POST',

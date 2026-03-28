@@ -10,7 +10,7 @@
             </div>
             <template v-else>
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
-                <Game v-for="(game, ind) in shuffleArray(playOffBracket.stages[currentPlayOffBracketIndex].teams)" :key="ind"
+                <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
@@ -107,7 +107,7 @@ export default {
                     }
 
                 })
-                this.setPlayOffBracket(bracket);
+                this.setPlayOffBracket(shuffleArray(bracket));
                 this.setPlayOffStage(this.playOffStageCurrent / 2)
             }
         },
@@ -160,7 +160,7 @@ export default {
                 }
                 brackets.stages.unshift(cadrageStage)
             }
-            this.setPlayOffBracket(brackets)
+            this.setPlayOffBracket(shuffleArray(brackets));
         },
         getTournamentSeeding(n) {
             let seeding = [1];

@@ -102,7 +102,9 @@ export default {
     },
     mounted() {
         this.getInfo();
-        this.initMessaging();
+        if (this.getCookieValue('petanqueDraw_token') !== this.tournamentId) {
+            this.initMessaging();
+        }
     },
     computed: {
         tabs() {
@@ -135,6 +137,12 @@ export default {
         }
     },
     methods: {
+        getCookieValue(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        },
         async initMessaging() {
             this.messaging = await initializeMessaging();
             if (this.messaging) {
@@ -196,6 +204,7 @@ export default {
                         getToken(self.messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
                             if (currentToken) {
                                 push(ref(database, `tokens/${self.userId}/${self.tournamentId}`), currentToken);
+                                document.cookie = `petanqueDraw_token=${self.tournamentId}; path=/; max-age=86400`;
                             } else {
                                 console.log('No registration token available. Request permission to generate one.');
                             }

@@ -38,7 +38,7 @@
                         </span>
                         <span class="text-center score-block">
                             <span class="lane-block is-size-7">
-                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + 1 }}</span>
+                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + tournament.preferences.fieldsStart }}</span>
                             </span>
                         </span>
                         <span class="team-block">

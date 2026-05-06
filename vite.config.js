@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
   },
-  base: mode === 'production' ? '/petanque-draw/dist/' : '/',
+  base: mode === 'production' ? '/petanque-draw/' : '/',
   build: {
     sourcemap: true
   }

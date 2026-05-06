@@ -2,6 +2,7 @@ import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
 import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
+import i18n from "@/i18n";
 const mutationsAfterUpdateDb = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
     name: 'Tournament A',
@@ -128,11 +129,11 @@ const store = createStore({
                     } else {
                         store.commit('addTournament');
                     }
-                    store.commit('showMessage', {title: 'Removed', text: 'Tournament has been removed'});
+                    store.commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemoved')});
                 })
                 .catch((error) => {
                     console.error('Error deleting data:', error);
-                    store.commit('showMessage', {title: 'error', text: error, type: 'error'});
+                    store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
         addTeamToStore (state, team) {
@@ -206,7 +207,7 @@ const store = createStore({
         },
         addTournament(state) {
             if (Object.keys(state.tournaments).length >=10) {
-                store.commit('showMessage', {title: 'Not available', text: 'You can make only 10 tournaments simultaneously. Remove old tournaments, please', type: 'error'});
+                store.commit('showMessage', {title: i18n.global.t('messages.notAvailable'), text: i18n.global.t('messages.maxTournaments'), type: 'error'});
                 return false
             }
             const tournamentId = Date.now();
@@ -219,10 +220,10 @@ const store = createStore({
             const db = getDatabase();
             set(ref(db, `${state.user.uid}/saved/${tournament.id}`), tournament).then(() => {
                 state.savedTournaments[tournament.id] = tournament;
-                store.commit('showMessage', {title: 'Saved', text: 'You can see your saved tournaments in the menu'});
+                store.commit('showMessage', {title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentSavedList')});
             }).catch((error) => {
                 console.error('Error save:', error);
-                store.commit('showMessage', {title: 'error', text: error, type: 'error'});
+                store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
             });
         },
         removeSavedTournament (state, id) {
@@ -233,11 +234,11 @@ const store = createStore({
                 .then(() => {
                     delete state.savedTournaments[id];
                     console.log('Data successfully deleted');
-                    store.commit('showMessage', {title: 'Removed', text: 'Tournament removed from your saved tournaments'});
+                    store.commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemovedSaved')});
                 })
                 .catch((error) => {
                     console.error('Error deleting data:', error);
-                    store.commit('showMessage', {title: 'error', text: error, type: 'error'});
+                    store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
         addBTournament(state, teams) {
@@ -246,7 +247,7 @@ const store = createStore({
             newTournament.teams = [];
         },
         saveTournamentData() {
-            store.commit('showMessage', {title: 'Saved', text: 'Tournament data saved'});
+            store.commit('showMessage', {title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentDataSaved')});
         }
     }
 })
@@ -259,7 +260,7 @@ store.subscribe((mutation, state) => {
                 [state.currentTournamentIndex]: state.tournaments[state.currentTournamentIndex]
             }).catch(error => {
                 console.error('Error updating specific tournament:', error)
-                store.commit('showMessage', {title: 'Error', text: 'Something went wrong while saving tournament data', type: 'error'});
+                store.commit('showMessage', {title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
             });
         }
     }

@@ -41,14 +41,14 @@ export default {
                     })
                     delete this.statsList['tags'];
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Statistics successfully loaded from the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.statsSaved'),
                     });
                 } else {
-                    this.statsList = null; // Handle case where data doesn't exist
+                    this.statsList = null;
                     this.showMessage({
-                        title: 'Info',
-                        text: 'No statistics found for this user.',
+                        title: this.$t('messages.info'),
+                        text: this.$t('messages.noExercisesFound'),
                     });
                 }
             })
@@ -56,8 +56,8 @@ export default {
                 console.error('Error loading statistics:', error);
                 this.statsList = null;
                 this.showMessage({
-                    title: 'Error',
-                    text: 'Failed to load statistics. Please try again later.',
+                    title: this.$t('messages.error'),
+                    text: this.$t('messages.failedLoadData'),
                     type: 'error',
                 });
             })
@@ -83,14 +83,14 @@ export default {
                 .then(() => {
                     delete this.statsList[id];
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Game successfully removed the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.gameRemoved'),
                     });
                 })
                 .catch((error) => {
                     console.error('Error deleting data:', error);
                     this.showMessage({
-                        title: 'Error',
+                        title: this.$t('messages.error'),
                         text: error,
                         type: 'error',
                     });
@@ -119,10 +119,10 @@ export default {
             const db = getDatabase();
             const statsRef = ref(db, `${this.user.uid}/stats/${game}`);
             update(statsRef, {tags}).then(() => {
-                this.showMessage({title: 'Awesome!', text: 'Tag updated'});
+                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagUpdated')});
             }).catch((error) => {
                 console.error('Error save:', error);
-                this.showMessage({title: 'error', text: error, type: 'error'});
+                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
             });
         }
     }
@@ -131,7 +131,7 @@ export default {
 
 <template>
     <div class="mobile-stat-container" :class="{'is-loading': isLoading}">
-        <ConfirmRemoveModal title="Remove this game?" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
+        <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
         <div class="is-flex is-justify-content-space-between mobile-stat-container-header">
             <button class="button is-info" @click="$emit('close')">{{$t('stat.back')}}</button>
             <button class="button is-info" @click="showStatAnalysis = !showStatAnalysis">{{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}</button>
@@ -175,7 +175,7 @@ export default {
                             </span>
                             </div>
                             <div v-if="tags" class="mb-2">
-                                <div class="label">Add tag: </div>
+                                <div class="label">{{ $t('stat.addTag') }}: </div>
                                 <div class="tags">
                                     <button class="cursor-pointer tag is-white is-rounded" :class="{'is-hidden': item.tags?.includes(tag)}"
                                             v-for="(tag, key) in tags" :key="key"

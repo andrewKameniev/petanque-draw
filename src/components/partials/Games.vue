@@ -171,7 +171,7 @@ export default {
                     return {teamIndex, opponentIndex}; // отдали пару
                 }
             } catch (error) {
-                this.showMessage({title: 'Can\'t draw', text: `Some error happened`, type: 'error'});
+                this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.someError'), type: 'error'});
             }
 
         },
@@ -234,7 +234,7 @@ export default {
                     }
                     if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) { // если пробежали сверху вниз и снизу вверх и не нашли пару
                         this.saveDisabled = true
-                        this.showMessage({title: 'Can\'t draw this round', text: 'Too mush games for swiss with this number of teams. Sorry, shit happens', type: 'error'});
+                        this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
                         return
                     }
                     game = { // записали пару
@@ -439,7 +439,7 @@ export default {
         },
         createGroups() {
             if(this.teamsInGroup < 3) {
-                this.showMessage({title: 'Can\'t draw', text: `Choose correct number of teams in group`, type: 'error'});
+                this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
                 return false;
             }
             const groupsQuantity = Math.round(this.tournament.teams.length / this.teamsInGroup);
@@ -538,7 +538,7 @@ export default {
             }
 
             this.endRound();
-            this.showMessage({title: 'Success', text: 'Your results saved'})
+            this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')})
             this.$emit('sendMessage');
         },
         restoreRoundGames(){

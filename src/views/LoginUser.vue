@@ -61,9 +61,9 @@ export default {
             try {
                 this.resetErrors();
                 await sendPasswordResetEmail(auth, this.email.trim());
-                this.showMessage({title: 'Sent!', text: 'Check your email'});
+                this.showMessage({title: this.$t('messages.sent'), text: this.$t('messages.checkEmail')});
             } catch (error) {
-                this.showMessage({title: 'Error!', text: 'Something wrong', type: 'error' });
+                this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.somethingWrong'), type: 'error' });
                 this.handleFirebaseErrors(error.code);
             }
         },
@@ -99,19 +99,19 @@ export default {
             console.log(error);
             switch (error) {
                 case 'auth/missing-email':
-                    this.isEmailError = 'Missing email'
+                    this.isEmailError = this.$t('messages.missingEmail')
                     break
                 case 'auth/invalid-email':
-                    this.isEmailError = 'Invalid email'
+                    this.isEmailError = this.$t('messages.invalidEmail')
                     break
                 case 'auth/user-not-found':
-                    this.isPasswordError = 'No account with that email was found'
+                    this.isPasswordError = this.$t('messages.noAccount')
                     break
                 case 'auth/wrong-password':
-                    this.isPasswordError = 'Incorrect password'
+                    this.isPasswordError = this.$t('messages.incorrectPassword')
                     break
                 default:
-                    this.isPasswordError = 'Email or password was incorrect'
+                    this.isPasswordError = this.$t('messages.incorrectPassword')
                     break
             }
         },

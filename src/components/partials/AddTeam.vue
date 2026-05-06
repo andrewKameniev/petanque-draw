@@ -86,10 +86,10 @@ export default {
                     this.teamTitle = null;
                     this.teamRating = null;
                 } else {
-                    this.showMessage({title: 'Error', text: 'Such team already registered! Change team title, please', type: 'error'});
+                    this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.teamExists'), type: 'error'});
                 }
             } else {
-                this.showMessage({title: 'Error', text: 'Enter fields to add team', type: 'error'});
+                this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.enterFields'), type: 'error'});
             }
 
         },

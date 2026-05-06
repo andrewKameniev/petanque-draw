@@ -59,7 +59,7 @@
                 </div>
             </div>
             <Message v-if="message.show"/>
-            <ConfirmRemoveModal title="Remove this exercise?" @remove="removeExercise(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
+            <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeExercise(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
 <!--            <Footer/>-->
         </div>
     </div>
@@ -103,14 +103,14 @@ export default {
                 if (snapshot.exists()) {
                     this.exercisesList = snapshot.val();
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Exercises successfully loaded from the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.exercisesLoaded'),
                     });
                 } else {
-                    this.statsList = null; // Handle case where data doesn't exist
+                    this.statsList = null;
                     this.showMessage({
-                        title: 'Info',
-                        text: 'No exercises found for you',
+                        title: this.$t('messages.info'),
+                        text: this.$t('messages.noExercisesFound'),
                     });
                 }
             })
@@ -118,8 +118,8 @@ export default {
                 console.error('Error loading statistics:', error);
                 this.exercisesList = null;
                 this.showMessage({
-                    title: 'Error',
-                    text: 'Failed to load data. Please try again later.',
+                    title: this.$t('messages.error'),
+                    text: this.$t('messages.failedLoadData'),
                     type: 'error',
                 });
             })
@@ -152,14 +152,14 @@ export default {
                 .then(() => {
                     delete this.exercisesList[id];
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Exercise successfully removed the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.exerciseRemoved'),
                     });
                 })
                 .catch((error) => {
                     console.error('Error deleting data:', error);
                     this.showMessage({
-                        title: 'Error',
+                        title: this.$t('messages.error'),
                         text: error,
                         type: 'error',
                     });

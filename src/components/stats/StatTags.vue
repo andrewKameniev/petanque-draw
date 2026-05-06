@@ -41,12 +41,12 @@ export default {
             const tagId = Date.now();
             const db = getDatabase();
             set(ref(db, `${this.user.uid}/stats/tags/${tagId}`), this.tagName.trim()).then(() => {
-                this.showMessage({title: 'Awesome!', text: 'Tag saved to db'});
+                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagSaved')});
                 this.$emit('addtag', tagId, this.tagName);
                 this.tagName = '';
             }).catch((error) => {
                 console.error('Error save:', error);
-                this.showMessage({title: 'error', text: error, type: 'error'});
+                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
             });
         },
         removeTag(id) {
@@ -57,14 +57,14 @@ export default {
                 .then(() => {
                     this.$emit('removetag', id)
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Tag successfully removed the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.tagRemoved'),
                     });
                 })
                 .catch((error) => {
                     console.error('Error deleting data:', error);
                     this.showMessage({
-                        title: 'Error',
+                        title: this.$t('messages.error'),
                         text: error,
                         type: 'error',
                     });

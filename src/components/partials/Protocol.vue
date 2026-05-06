@@ -294,9 +294,9 @@ export default {
             try {
                 const successful = document.execCommand("copy");
                 if (successful) {
-                    this.showMessage({title: 'Success!', text: 'Protocol is in your buffer'});
+                    this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.protocolCopied')});
                 } else {
-                    this.showMessage({title: 'Error!', text: 'Can\'t copy protocol', type: 'error' });
+                    this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.cantCopyProtocol'), type: 'error' });
                 }
             } catch (err) {
                 console.error("Error copying to clipboard:", err);

@@ -26,14 +26,14 @@ export default {
                 if (snapshot.exists()) {
                     this.results = snapshot.val();
                     this.showMessage({
-                        title: 'Awesome!',
-                        text: 'Results loaded from the database!',
+                        title: this.$t('messages.awesome'),
+                        text: this.$t('messages.exercisesLoaded'),
                     });
                 } else {
-                    this.results = null; // Handle case where data doesn't exist
+                    this.results = null;
                     this.showMessage({
-                        title: 'Info',
-                        text: 'No results found for you',
+                        title: this.$t('messages.info'),
+                        text: this.$t('messages.noExercisesFound'),
                     });
                 }
             })
@@ -41,8 +41,8 @@ export default {
                 console.error('Error loading statistics:', error);
                 this.results = null;
                 this.showMessage({
-                    title: 'Error',
-                    text: 'Failed to load data. Please try again later.',
+                    title: this.$t('messages.error'),
+                    text: this.$t('messages.failedLoadData'),
                     type: 'error',
                 });
             })

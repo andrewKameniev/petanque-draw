@@ -1,6 +1,6 @@
 <script>
 import Game from "@/components/partials/Game.vue";
-import {mapState} from "vuex";
+import {mapState, mapMutations} from "vuex";
 import {getTeamsRanking} from "@/helpers";
 
 export default {
@@ -17,6 +17,10 @@ export default {
         },
     },
     methods: {
+        ...mapMutations(['saveCadrageScores']),
+        persistScores() {
+            this.saveCadrageScores();
+        },
         saveResults() {
             let teamsToPlayOff = this.rankingTeams.slice(0, this.tournament.preferences.playOffTeams / 2);
             this.tournament.cadrage.forEach(game => {
@@ -27,6 +31,7 @@ export default {
                 }
             })
             teamsToPlayOff = teamsToPlayOff.sort((a,b) => (a.team_1_place || a.team_2_place) - (b.team_1_place || b.team_2_place));
+            this.saveCadrageScores();
             this.$emit('startPlayOff', teamsToPlayOff);
         },
     }
@@ -37,7 +42,7 @@ export default {
     <h2 class="text-center">{{ $t('games.cadrage') }}</h2>
     <Game v-for="(game, ind) in tournament.cadrage" :key="ind" :active-tournament="tournament" :compact-view="isPublicView"
           :game="game" :game-index="ind" :fields-start="tournament.preferences.fieldsStart" :is-cadrage="true"
-          @save="saveResults"/>
+          @save="persistScores"/>
     <div class="text-center mt-5" v-if="!activeTournament">
         <button class="button is-success" @click="saveResults">{{ $t('games.saveResults') }}</button>
     </div>

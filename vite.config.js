@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => ({
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
   },
   base: mode === 'production' ? '/petanque-draw/' : '/',
+  optimizeDeps: {
+    include: ['html2pdf.js']
+  },
   build: {
     sourcemap: true
   }

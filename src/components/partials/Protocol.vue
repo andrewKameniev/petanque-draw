@@ -179,7 +179,7 @@
 import Results from "@/components/partials/Results";
 import {getTournamentRanking, regions} from "@/helpers";
 import Ranking from "@/components/partials/Ranking";
-import html2pdf from "../../../node_modules/html2pdf.js/dist/html2pdf";
+import html2pdf from "html2pdf.js";
 import playersNames from '../../data.json'
 import {mapMutations} from "vuex";
 

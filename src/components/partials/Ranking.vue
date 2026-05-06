@@ -3,7 +3,10 @@
         <div v-if="tournament.tournamentIsFinished && !showOnlySwiss" class="mb-5">
             <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button btn-purple-outline" @click="copyResults">{{ $t('ranking.copyResults') }}</button>
+                <button class="button btn-purple-outline" @click="copyResults">
+                    <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+                    <svg class="is-hidden-tablet copy-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
@@ -50,17 +53,20 @@
                                 <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'buh' ? null : 'buh'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
+                                <div v-if="activeTooltip === 'buh'" class="ranking-tooltip">{{ $t('ranking.buhTooltip') }}</div>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'sbuh' ? null : 'sbuh'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
+                                <div v-if="activeTooltip === 'sbuh'" class="ranking-tooltip">{{ $t('ranking.sbuhTooltip') }}</div>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'points' ? null : 'points'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                <div v-if="activeTooltip === 'points'" class="ranking-tooltip">{{ $t('ranking.pointsTooltip') }}</div>
                             </th>
                             <th v-if="tournament.useRating" align="center">
                                 <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
@@ -174,7 +180,8 @@ export default {
     emits: ['is-playoff'],
     data() {
         return {
-            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null
+            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null,
+            activeTooltip: null
         }
     },
     methods: {
@@ -200,3 +207,34 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+@media screen and (max-width: 768px) {
+    .btn-purple-outline {
+        border: none;
+        padding: 0.25rem;
+    }
+}
+
+.has-tooltip {
+    position: relative;
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.ranking-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(71, 26, 160, 0.85);
+    color: var(--color-white);
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: normal;
+    white-space: nowrap;
+    z-index: 10;
+    margin-bottom: 4px;
+}
+</style>

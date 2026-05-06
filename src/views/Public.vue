@@ -109,7 +109,7 @@
                 <div v-else class="mb-5 mt-5">{{ $t('games.noGames') }}</div>
             </div>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <div class="round-tabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished">
+                <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished">
                     <button class="button is-small mr-1 mb-1"
                             :class="{'is-purple': rankingSubtab === 'result'}"
                             @click="rankingSubtab = 'result'">
@@ -442,6 +442,21 @@ export default {
 .wrapper .tabs li.is-active a {
     border-bottom: 3px solid var(--color-primary);
     color: var(--color-primary);
+}
+
+@media screen and (max-width: 768px) {
+    .ranking-subtabs {
+        display: flex;
+    }
+
+    .ranking-subtabs .button {
+        flex: 1;
+        margin-right: 0.25rem;
+    }
+
+    .ranking-subtabs .button:last-child {
+        margin-right: 0;
+    }
 }
 
 </style>

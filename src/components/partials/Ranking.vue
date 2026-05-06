@@ -212,7 +212,10 @@ export default {
 @media screen and (max-width: 768px) {
     .btn-purple-outline {
         border: none;
-        padding: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        width: 36px;
+        height: 36px;
     }
 }
 

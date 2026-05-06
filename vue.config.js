@@ -1,7 +1,7 @@
 module.exports = {
     configureWebpack: {    devtool: 'source-map'  },
     publicPath: process.env.NODE_ENV === 'production'
-        ? '/petanque-draw/dist/'
+        ? '/petanque-draw/'
         : '/',
     pwa: {
         name: 'Petanque Draw',

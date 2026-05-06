@@ -1,9 +1,9 @@
 <template>
     <div>
-        <div v-if="tournament.tournamentIsFinished" class="mb-5">
+        <div v-if="tournament.tournamentIsFinished && !showOnlySwiss" class="mb-5">
             <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button is-info" @click="copyResults">{{ $t('ranking.copyResults') }}</button>
+                <button class="button btn-purple-outline" @click="copyResults">{{ $t('ranking.copyResults') }}</button>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
@@ -32,7 +32,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games?.length && rankingTeams">
+        <div v-if="tournament.games?.length && rankingTeams && !showOnlyResult">
             <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
                 <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
                     {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}
@@ -170,7 +170,7 @@ import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent
 
 export default {
     name: 'Ranking',
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'showOnlyResult', 'showOnlySwiss'],
     emits: ['is-playoff'],
     data() {
         return {

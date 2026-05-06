@@ -63,6 +63,7 @@ export default {
         },
         results: {
             title: 'Every round results',
+            all: 'All',
         },
         ranking: {
             ranking: 'Ranking',
@@ -88,6 +89,7 @@ export default {
             buh: 'Buh',
             buhMobile: 'B',
             tournamentResult: 'Tournament Result',
+            swissTable: 'Swiss table',
             copyResults: 'Copy results',
             goPlayOff: 'Go to play-off?',
             withCadrage: 'With cadrage',
@@ -164,7 +166,12 @@ export default {
             thankMe: 'If you like to use this program, you can thank me here',
             draw: 'Draw',
             stat: 'Statistics',
-            training: 'Training'
+            training: 'Training',
+            status: 'Status',
+            active: 'Active',
+            finished: 'Finished',
+            teamsCount: 'Teams',
+            timeLimit: 'Time limit',
         },
         help: {
             title: 'Tournament Drawing App for Petanque',
@@ -574,6 +581,7 @@ export default {
         },
         results: {
             title: 'Результати кожного раунду',
+            all: 'Всі',
         },
         ranking: {
             ranking: 'Таблиця',
@@ -599,6 +607,7 @@ export default {
             buh: 'Коеф. бухгольця',
             buhMobile: 'Б',
             tournamentResult: 'Результати турніру',
+            swissTable: 'Таблиця швейцарки',
             copyResults: 'Скопіювати результати',
             goPlayOff: 'Зіграємо на виліт?',
             withCadrage: 'З кадражем',
@@ -666,7 +675,12 @@ export default {
             thankMe: 'Якщо вам подобається користуватися цією програмкою, можете подякувати мені тут',
             draw: 'Жеребкування',
             stat: 'Статистика',
-            training: 'Тренування'
+            training: 'Тренування',
+            status: 'Статус',
+            active: 'Активний',
+            finished: 'Завершений',
+            teamsCount: 'Команди',
+            timeLimit: 'Обмеження часу',
         },
         help: {
             title: 'Програма для жеребкування турнірів з петанку',

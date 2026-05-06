@@ -175,6 +175,8 @@ export default {
             finished: 'Finished',
             teamsCount: 'Teams',
             timeLimit: 'Time limit',
+            places: 'places',
+            teamsLabel: 'teams',
         },
         help: {
             title: 'Tournament Drawing App for Petanque',
@@ -687,6 +689,8 @@ export default {
             finished: 'Завершений',
             teamsCount: 'Команди',
             timeLimit: 'Обмеження часу',
+            places: 'місця',
+            teamsLabel: 'команд',
         },
         help: {
             title: 'Програма для жеребкування турнірів з петанку',

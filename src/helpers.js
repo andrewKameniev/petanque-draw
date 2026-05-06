@@ -31,6 +31,7 @@ function getTournamentRanking(tournament, rankingTeams){
         const thirdPlaceGame = tournament.playOffBracket.thirdPlace ? JSON.parse(JSON.stringify(tournament.playOffBracket.thirdPlace)) : undefined;
         let teamsInRanking = [];
         for (let i = 0; i < playOffList.length; i++){
+            if(playOffList[i].stageLabel === 'cadrage') continue;
             if(playOffList[i].stageLabel === 1){
                 const firstPlace = {
                     place: '1',

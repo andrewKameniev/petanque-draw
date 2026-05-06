@@ -37,12 +37,25 @@
                 <div class="tournament-info-row" v-for="(line, i) in tournamentMessageLines.slice(2)" :key="i">
                     <span class="has-text-weight-semibold">{{ line }}</span>
                 </div>
+                <div class="tournament-info-row" v-if="!tournamentMessageLines.length">
+                    <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
+                    <span class="has-text-weight-semibold">{{ systemDescription }}</span>
+                </div>
                 <div class="tournament-info-row" v-if="tournament.teams">
                     <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
                     <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
                 </div>
+                <div class="tournament-info-row" v-if="tournament.cadrage">
+                    <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
+                    <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
+                </div>
+                <div class="tournament-info-row" v-if="tournament.playOff">
+                    <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
+                    <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
+                </div>
+                <button v-if="tournament.playOff" class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
             </div>
-            <PlayOff v-if="tournament.playOff" :active-tournament="tournament" :is-public-view="true" @openResults="activeTab = 'ranking'"/>
+            <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" @openResults="activeTab = 'ranking'"/>
             <Cadrage v-else-if="tournament.isCadrage && tournament.cadrage?.length" :active-tournament="tournament" :is-public-view="true"/>
             <div v-if="tournament.games">
                 <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} {{ $t('common.round') }}</h2>
@@ -75,12 +88,17 @@
                 <TeamsList :previewTournament="tournament"/>
             </div>
             <div v-if="activeTab === 'results'" class="content tabs-content">
-                <div v-if="tournament.games?.length" class="round-tabs mb-4">
+                <div v-if="tournament.games?.length || tournament.cadrage?.length" class="round-tabs mb-4">
                     <button v-for="(round, index) in tournament.games" :key="index"
                             class="button is-small mr-1 mb-1"
                             :class="{'is-purple': selectedRound === index}"
                             @click="selectedRound = index">
                         R{{ index + 1 }}
+                    </button>
+                    <button v-if="tournament.cadrage?.length" class="button is-small mr-1 mb-1"
+                            :class="{'is-purple': selectedRound === 'cadrage'}"
+                            @click="selectedRound = 'cadrage'">
+                        {{ $t('games.cadrage') }}
                     </button>
                     <button class="button is-small mr-1 mb-1"
                             :class="{'is-purple': selectedRound === -1}"
@@ -88,7 +106,7 @@
                         {{ $t('results.all') }}
                     </button>
                 </div>
-                <div class="table-container" v-if="tournament.games?.length">
+                <div class="table-container" v-if="tournament.games?.length || tournament.cadrage?.length">
                     <table class="table is-striped is-fullwidth">
                         <tbody>
                             <template v-for="(round, index) in tournament.games" :key="index">
@@ -102,6 +120,16 @@
                                         <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
                                     </tr>
                                 </template>
+                            </template>
+                            <template v-if="tournament.cadrage?.length && (selectedRound === -1 || selectedRound === 'cadrage')">
+                                <tr v-for="(game, i) in tournament.cadrage" :key="'c' + i">
+                                    <td class="is-narrow"><small class="has-text-grey">{{ $t('games.cadrage') }}</small></td>
+                                    <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
+                                    <td class="has-text-centered is-narrow">
+                                        <strong>{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                    </td>
+                                    <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
+                                </tr>
                             </template>
                         </tbody>
                     </table>
@@ -209,9 +237,40 @@ export default {
                 return new Date(this.tournament.date) < new Date(new Date().toDateString());
             }
             return false;
+        },
+        systemDescription() {
+            if (this.tournament.system !== 'swiss' || !this.tournament.games?.length) {
+                return this.$t('teams.' + this.tournament.system);
+            }
+            const n = this.tournament.games.length;
+            let desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+            if (this.tournament.playOff) {
+                desc += ' + ' + this.$t('games.playOff').toLowerCase();
+            }
+            return desc;
+        },
+        cadrageRange() {
+            if (!this.tournament?.cadrage?.length) return '';
+            const from = (this.tournament.playOff?.length || 0) + 1;
+            const to = from + this.tournament.cadrage.length * 2 - 1;
+            return `${from}-${to} ${this.$t('common.places')}`;
+        },
+        playOffTeamsCount() {
+            if (!this.tournament?.playOff?.length) return 0;
+            return this.tournament.playOff.length * 2;
         }
     },
     methods: {
+        pluralizeRounds(n) {
+            if (this.$i18n.locale === 'ua') {
+                const mod10 = n % 10;
+                const mod100 = n % 100;
+                if (mod10 === 1 && mod100 !== 11) return 'коло';
+                if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'кола';
+                return 'кіл';
+            }
+            return n === 1 ? 'round' : 'rounds';
+        },
         getCookieValue(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -234,6 +293,7 @@ export default {
                     const snapshot = await get(dbRef);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
+                        console.log(this.tournament);
                         if (this.tournament.games?.length) {
                             this.selectedRound = this.tournament.games.length - 1;
                         }
@@ -380,6 +440,25 @@ export default {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
+}
+
+.btn-bracket {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+}
+
+.btn-bracket:hover {
+    color: var(--color-white);
+}
+
+@media screen and (max-width: 768px) {
+    .btn-bracket {
+        font-size: 1rem;
+    }
 }
 
 .tournament-info-row {

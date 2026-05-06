@@ -18,7 +18,8 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index">
+                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index"
+                        :class="{'place-gold': team.place === '1', 'place-silver': team.place === '2', 'place-bronze': team.place === '3'}">
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>
@@ -76,7 +77,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'has-background-success-light': index < tournament.preferences?.playOffTeams}">
+                            :class="{'playoff-highlight': index < tournament.preferences?.playOffTeams, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -164,7 +165,7 @@
                 </div>
             </div>
         </div>
-        <div v-else>
+        <div v-else-if="!showOnlyResult && !showOnlySwiss">
             {{ $t('ranking.noRanking') }}
         </div>
     </div>
@@ -245,5 +246,33 @@ export default {
     left: auto;
     right: 0;
     transform: none;
+}
+
+.playoff-highlight td {
+    background: var(--color-highlight) !important;
+}
+
+.place-gold td {
+    background: rgba(255, 197, 0, 0.18) !important;
+}
+
+.place-gold td:first-child {
+    border-left: 3px solid #f5c518;
+}
+
+.place-silver td {
+    background: rgba(192, 192, 192, 0.25) !important;
+}
+
+.place-silver td:first-child {
+    border-left: 3px solid #aaa;
+}
+
+.place-bronze td {
+    background: rgba(205, 127, 50, 0.15) !important;
+}
+
+.place-bronze td:first-child {
+    border-left: 3px solid #cd7f32;
 }
 </style>

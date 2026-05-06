@@ -66,7 +66,8 @@ root/
 The Vuex store uses `store.subscribe()` to auto-save after specific mutations:
 - `savePreferences`, `saveTournamentData`, `finishTournament`
 - `changeTournamentName`, `setPlayOffStage`, `setPlayOffBracket`
-- `setPlayOff`, `restoreRound`, `addRoundToGames`
+- `setPlayOff`, `setCadrage`, `saveCadrageScores`
+- `restoreRound`, `addRoundToGames`
 - `endRound`, `startRound`, `shuffleLanesStore`
 
 ## Push Notifications

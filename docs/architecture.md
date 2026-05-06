@@ -4,16 +4,17 @@
 
 - **Framework**: Vue 3 (Options API)
 - **State**: Vuex 4
-- **Router**: Vue Router 4 (hash mode)
+- **Router**: Vue Router 5 (hash mode)
 - **Backend**: Firebase Realtime Database (no custom server)
 - **Auth**: Firebase Authentication (email/password)
 - **Notifications**: Firebase Cloud Messaging (FCM)
 - **CSS**: Bulma + custom styles
-- **Build**: Vue CLI 5 / Webpack
-- **i18n**: vue-i18n (English + Ukrainian)
-- **Charts**: ApexCharts (vue3-apexcharts)
+- **Build**: Vite 8
+- **i18n**: vue-i18n 11 (English + Ukrainian)
+- **Charts**: ApexCharts 5 (vue3-apexcharts)
 - **PDF**: html2pdf.js
-- **PWA**: @vue/cli-plugin-pwa (currently disabled in code)
+- **Linting**: ESLint 9 + Prettier + Stylelint
+- **CI/CD**: GitHub Actions (auto-deploy to Pages on push to develop)
 
 ## Project Structure
 
@@ -26,7 +27,7 @@ src/
 ├── helpers.js           # Tournament logic (ranking, sorting, draw utils)
 ├── helpers-stat.js      # Statistics calculation (French/Simple systems)
 ├── languages.js         # i18n translations (en/ua)
-├── router.js            # Unused legacy router file
+├── i18n.js              # Shared vue-i18n instance
 ├── data.json            # Ukrainian Petanque Federation player names
 ├── views/
 │   ├── LoginUser.vue    # Auth page (login/register)

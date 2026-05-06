@@ -196,7 +196,7 @@ export default {
             }
 
             const self = this;
-            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}/petanque-draw/dist` : `${window.location.origin}`;
+            const domain = import.meta.env.PROD ? `${window.location.origin}/petanque-draw/dist` : `${window.location.origin}`;
             navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {

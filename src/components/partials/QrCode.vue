@@ -32,7 +32,7 @@ export default {
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'user']),
         tournamentLink() {
-            const domain = process.env.NODE_ENV === 'production' ? '/petanque-draw/dist/#/' : '/#/';
+            const domain = import.meta.env.PROD ? '/petanque-draw/dist/#/' : '/#/';
             return `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournaments[this.currentTournamentIndex].id}`
         },
     },

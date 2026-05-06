@@ -68,7 +68,7 @@ export default {
         finishTraining() {
             const db = getDatabase();
             if (!this.fastMode && !this.data.value && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
-                this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
+                this.showMessage({title: this.$t('messages.notAllResults'), text: this.$t('messages.someAttemptsNotWritten'), type: 'error'});
                 return
             }
             let exResult = {};
@@ -118,21 +118,21 @@ export default {
                     this.isSaving = true;
                     set(ref(db, `${this.user.uid}/training/${this.exid}/${exResult.date}`), exResult).then(() => {
                         this.showMessage({
-                            title: 'Awesome!',
-                            text: 'Exercise result saved the database!',
+                            title: this.$t('messages.awesome'),
+                            text: this.$t('messages.exerciseSaved'),
                         });
                         this.$emit('end');
                         this.removeLocalData();
                         this.isSaving = false;
                     }).catch((error) => {
                         console.error('Error save:', error);
-                        this.showMessage({title: 'error', text: 'Failed to save data. ' + error, type: 'error'});
+                        this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.failedSaveData'), type: 'error'});
                     });
                 } else {
-                    this.showMessage({title: 'No all results', text: 'Some attempts not written', type: 'error'});
+                    this.showMessage({title: this.$t('messages.notAllResults'), text: this.$t('messages.someAttemptsNotWritten'), type: 'error'});
                 }
             } else {
-                this.showMessage({title: 'You are offline', text: 'Your training saved in browser. Save it when you will be online', type: 'error'});
+                this.showMessage({title: this.$t('messages.youAreOffline'), text: this.$t('messages.trainingSavedBrowser'), type: 'error'});
             }
         },
         saveLocalData() {

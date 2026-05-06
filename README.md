@@ -1,24 +1,55 @@
-# swiss-vue
+# Petanque Draw
 
-## Project setup
-```
+Tournament organizer, game statistics tracker, and training tool for petanque.
+
+**Live**: [https://andrewkameniev.github.io/petanque-draw/dist/](https://andrewkameniev.github.io/petanque-draw/dist/)
+
+## What it does
+
+- **Tournament Draw** — Swiss system, round-robin (groups), supermele, and playoff/knockout brackets. Automatic pairing algorithm, lane assignment, ranking with Buchholz coefficients.
+- **Remote Viewing** — Shareable link + QR code for players to follow live draws and standings. Push notifications on updates.
+- **Game Statistics** — Throw-by-throw stat tracking during games with simple and French scoring systems. Archive, tags, player analysis with charts.
+- **Training** — Custom exercise builder for shooting practice with distance tracking and progress history.
+
+## Tech Stack
+
+Vue 3 | Vuex | Vue Router | Firebase (Auth, Realtime DB, FCM) | Bulma CSS | ApexCharts
+
+## Setup
+
+```bash
 npm install
+npm run serve    # Dev server at localhost:8080
+npm run build    # Production build to dist/
+npm run lint     # ESLint
 ```
 
-### Compiles and hot-reloads for development
+## Project Structure
+
 ```
-npm run serve
+src/
+├── views/          # Route-level pages (Login, Public, Stats, Training)
+├── components/     # UI components
+│   ├── partials/   # Tournament management (Games, Ranking, PlayOff, etc.)
+│   ├── stats/      # Statistics tracking components
+│   └── training/   # Training exercise components
+├── store.js        # Vuex state + Firebase sync
+├── helpers.js      # Tournament logic (draw, ranking, sorting)
+├── helpers-stat.js # Statistics calculations
+├── firebase.js     # Firebase initialization
+└── languages.js    # i18n (English + Ukrainian)
 ```
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Features
 
-### Lints and fixes files
-```
-npm run lint
-```
+- Up to 10 simultaneous tournaments
+- Import teams from Ukrainian Petanque Federation portal
+- Swiss draw with backtracking algorithm (handles constraint violations)
+- Playoff brackets up to 64 teams with cadrage support
+- Offline team restore via localStorage
+- PDF protocol export
+- Bilingual (EN/UA)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Documentation
+
+See [docs/](./docs/README.md) for detailed architecture, domain, and feature documentation.

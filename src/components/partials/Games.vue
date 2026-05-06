@@ -85,8 +85,9 @@ export default {
         ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
-            this.tournament.games[this.tournament.games.length - 1] = shuffleArray(this.tournament.games[this.tournament.games.length - 1]);
-            this.shuffleLanesStore(this.tournament.games[this.tournament.games.length - 1]);
+            const currentRound = this.tournament.games[this.tournament.games.length - 1];
+            const reshuffled = this.assignLanes(shuffleArray([...currentRound]));
+            this.shuffleLanesStore(reshuffled);
         },
         getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;
@@ -386,8 +387,8 @@ export default {
             this.tournament.teams.forEach(team => {
                 teamsMatrix[team.title] = {};
                 for (let i = firstlane; i < Math.floor(firstlane + this.tournament.teams.length / 2); i++) {
+                    teamsMatrix[team.title][i] = 0;
                     if (team.lanes && team.lanes.length) {
-                        teamsMatrix[team.title][i] = 0;
                         team.lanes.forEach(lane => {
                             if (i === lane) {
                                 teamsMatrix[team.title][i]++;

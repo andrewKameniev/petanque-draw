@@ -234,7 +234,6 @@ export default {
                     const snapshot = await get(dbRef);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
-                        console.log(this.tournament);
                         if (this.tournament.games?.length) {
                             this.selectedRound = this.tournament.games.length - 1;
                         }

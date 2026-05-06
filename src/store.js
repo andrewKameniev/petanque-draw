@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
 import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
-const mutationsAfterUpdateDb = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
+const mutationsAfterUpdateDb = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
     name: 'Tournament A',
     games: [],
@@ -177,6 +177,9 @@ const store = createStore({
         setCadrage(state, games) {
             state.tournaments[state.currentTournamentIndex].cadrage = games;
             state.tournaments[state.currentTournamentIndex].isCadrage = true;
+        },
+        saveCadrageScores(state) {
+            state.tournaments[state.currentTournamentIndex].cadrage = [...state.tournaments[state.currentTournamentIndex].cadrage];
         },
         setPlayOffBracket(state, bracket) {
             state.tournaments[state.currentTournamentIndex].playOffBracket = bracket

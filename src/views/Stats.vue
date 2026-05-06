@@ -15,13 +15,13 @@
                             </div>
                             <label class="label" for="gameName">{{ $t('stat.enterName') }}</label>
                             <div class="field control">
-                                <input v-model="gameName" class="input" type="text" id="gameName" placeholder="Game name">
+                                <input v-model="gameName" class="input" type="text" id="gameName" :placeholder="$t('stat.enterName')">
                             </div>
                             <div v-if="gameTags.length > 0" class="mb-2 is-size-7">
-                                Теги гри: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}<span v-if="index !== gameTags.length - 1">, </span></strong>
+                                {{ $t('stat.gameTags') }}: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}<span v-if="index !== gameTags.length - 1">, </span></strong>
                             </div>
                             <div v-if="tags" class="mb-2">
-                                <div class="label">Add tag: </div>
+                                <div class="label">{{ $t('stat.addTag') }}: </div>
                                 <div class="tags">
                                     <button class="cursor-pointer tag is-white is-rounded" v-for="(tag, key) in tags" :key="key"
                                             @click="addTagToGame(tag)" :class="{'is-hidden': gameTags.includes(tag)}">
@@ -33,7 +33,7 @@
                                 <StatTags :tags="tags" @addtag="addTag" @removetag="removeTag"/>
                             </div>
                             <div class="mb-3">
-                                <button class="button is-info is-small" @click="showTags = !showTags">{{showTags ? 'Hide' : 'Show'}} tags</button>
+                                <button class="button is-info is-small" @click="showTags = !showTags">{{showTags ? $t('stat.hideTags') : $t('stat.showTags')}} {{ $t('stat.tags') }}</button>
                             </div>
                             <div class="columns">
                                 <div class="column is-half">
@@ -84,20 +84,20 @@
                             <div class="field">
                                 <label class="checkbox">
                                     <input type="checkbox" id="distanceFirst" v-model="asCouch"/>
-                                    {{ $t('stat.asCouch') }}
+                                    {{ $t('stat.asCoach') }}
                                 </label>
                             </div>
                             <div class="columns mb-3" v-if="team1.players?.length">
                                 <div class="column is-half">
                                     <div class="label">{{ $t('stat.team') }} 1</div>
                                     <div class="field control" v-for="(player, index) in team1.players" :key="index">
-                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="$t('stat.playerName') + ' ' + Number(index + 1)">
                                     </div>
                                 </div>
                                 <div class="column is-half">
                                     <div class="label">{{ $t('stat.team') }} 2</div>
                                     <div class="field control" v-for="(player, index) in team2.players" :key="index">
-                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="'Player '+ Number(index + 1)  + ' name'">
+                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="$t('stat.playerName') + ' ' + Number(index + 1)">
                                     </div>
                                 </div>
                             </div>
@@ -110,10 +110,10 @@
                             <h2 class="my-3 is-size-4">{{ gameName }}</h2>
                             <div class="columns is-desktop">
                                 <div class="column is-half-desktop">
-                                    <StatResult label="Team 1" :team="team1" :system="statSystem"/>
+                                    <StatResult :label="$t('stat.team1Label')" :team="team1" :system="statSystem"/>
                                 </div>
                                 <div class="column is-half-desktop">
-                                    <StatResult label="Team 2" :team="team2" :system="statSystem"/>
+                                    <StatResult :label="$t('stat.team2Label')" :team="team2" :system="statSystem"/>
                                 </div>
                             </div>
                         </div>
@@ -296,8 +296,8 @@ export default {
                     console.error('Error loading statistics:', error);
                     this.tags = null;
                     this.showMessage({
-                        title: 'Error',
-                        text: 'Failed to load tags. Please try again later.',
+                        title: this.$t('messages.error'),
+                        text: this.$t('messages.failedLoadTags'),
                         type: 'error',
                     });
                 })
@@ -363,12 +363,12 @@ export default {
             const db = getDatabase();
             this.isSaving = true;
             set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
-                this.showMessage({title: 'Awesome!', text: 'Statistics saved to db'});
+                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
                 localStorage.removeItem('statGame');
                 this.isSaving = false;
             }).catch((error) => {
                 console.error('Error save:', error);
-                this.showMessage({title: 'error', text: error, type: 'error'});
+                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
             });
         },
         startNewGame() {

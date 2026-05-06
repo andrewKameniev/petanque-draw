@@ -123,11 +123,11 @@ export default {
             const exerciseId = Date.now();
             const db = getDatabase();
             set(ref(db, `${this.user.uid}/training/list/${exerciseId}`), this.exercise).then(() => {
-                this.showMessage({title: 'Awesome!', text: 'Exercise saved to db'});
+                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.exerciseSaved')});
                 this.$emit('add', exerciseId, this.exercise);
             }).catch((error) => {
                 console.error('Error save:', error);
-                this.showMessage({title: 'error', text: error, type: 'error'});
+                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
             });
         },
         updateCheckboxValues(property, item, isChecked) {

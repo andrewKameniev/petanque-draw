@@ -65,7 +65,7 @@
             </div>
         </div>
         <div v-else class="p-5">
-            <h2 class="is-size-3 text-center">Tournament is not active</h2>
+            <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
                 <img src="@/assets/img/girl.jpg" alt="In the petanque land"><br>
             </div>

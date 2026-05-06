@@ -85,8 +85,9 @@ export default {
         ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
-            this.tournament.games[this.tournament.games.length - 1] = shuffleArray(this.tournament.games[this.tournament.games.length - 1]);
-            this.shuffleLanesStore(this.tournament.games[this.tournament.games.length - 1]);
+            const currentRound = this.tournament.games[this.tournament.games.length - 1];
+            const reshuffled = this.assignLanes(shuffleArray([...currentRound]));
+            this.shuffleLanesStore(reshuffled);
         },
         getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
             let rand = null;
@@ -378,43 +379,44 @@ export default {
                 games.splice(technicalGameIndex, 1);
             }
             const teamsMapLanes = Object.fromEntries(
-                this.tournament.teams.map(team => [team.title, team.lanes])
+                this.tournament.teams.map(team => [team.title, team.lanes || []])
             );
             let teamsMatrix = {};
             const firstlane = this.tournament.preferences.fieldsStart - 1;
-            // Fill matrix for each team and count how many times they played on each lane
+            const laneCount = Math.floor(this.tournament.teams.length / 2);
             this.tournament.teams.forEach(team => {
                 teamsMatrix[team.title] = {};
-                for (let i = firstlane; i < Math.floor(firstlane + this.tournament.teams.length / 2); i++) {
-                    if (team.lanes && team.lanes.length) {
-                        teamsMatrix[team.title][i] = 0;
-                        team.lanes.forEach(lane => {
-                            if (i === lane) {
-                                teamsMatrix[team.title][i]++;
-                            }
-                        })
-                    }
+                for (let i = firstlane; i < firstlane + laneCount; i++) {
+                    teamsMatrix[team.title][i] = 0;
+                }
+                if (team.lanes && team.lanes.length) {
+                    team.lanes.forEach(lane => {
+                        if (teamsMatrix[team.title][lane] !== undefined) {
+                            teamsMatrix[team.title][lane]++;
+                        }
+                    });
                 }
             })
 
             const scheduledMatches = [];
-            let availableLanes = Array.from({length: Math.floor(this.tournament.teams.length / 2)}, (_, i) => i + firstlane);
+            let availableLanes = Array.from({length: laneCount}, (_, i) => i + firstlane);
             games.forEach((game) => {
                 if (game.team_2 !== 'Technical') {
                     let bestLane = null;
                     let minWeight = Infinity;
-                    availableLanes.forEach(i => {
-                        const team1Lanes = teamsMapLanes[game.team_1];
-                        const team2Lanes = teamsMapLanes[game.team_2];
+                    const team1Lanes = teamsMapLanes[game.team_1];
+                    const team2Lanes = teamsMapLanes[game.team_2];
+                    const team1LastLane = team1Lanes.length ? team1Lanes[team1Lanes.length - 1] : null;
+                    const team2LastLane = team2Lanes.length ? team2Lanes[team2Lanes.length - 1] : null;
 
+                    availableLanes.forEach(i => {
                         const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
-                        if ((weight < minWeight) && team1Lanes[team1Lanes.length - 1] !== i && team2Lanes[team2Lanes.length - 1] !== i) {
+                        if (weight < minWeight && i !== team1LastLane && i !== team2LastLane) {
                             minWeight = weight;
                             bestLane = i;
                         }
                     });
                     if (bestLane === null) {
-                        minWeight = Infinity;
                         availableLanes.forEach(i => {
                             const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
                             if (weight < minWeight) {

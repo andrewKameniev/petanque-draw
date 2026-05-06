@@ -14,7 +14,6 @@ import i18n from "@/i18n";
 const app = createApp(App);
 const router = createRouter({
     history: createWebHashHistory(),
-    mode: 'hash',
     routes: [
         {
             path: '/',

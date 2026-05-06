@@ -189,19 +189,8 @@ export default {
 .checkbox-wrapper-10 .tgl + .tgl-btn {
     box-sizing: border-box;
 }
-.checkbox-wrapper-10 .tgl::-moz-selection,
-.checkbox-wrapper-10 .tgl:after::-moz-selection,
-.checkbox-wrapper-10 .tgl:before::-moz-selection,
-.checkbox-wrapper-10 .tgl *::-moz-selection,
-.checkbox-wrapper-10 .tgl *:after::-moz-selection,
-.checkbox-wrapper-10 .tgl *:before::-moz-selection,
-.checkbox-wrapper-10 .tgl + .tgl-btn::-moz-selection,
 .checkbox-wrapper-10 .tgl::selection,
-.checkbox-wrapper-10 .tgl:after::selection,
-.checkbox-wrapper-10 .tgl:before::selection,
 .checkbox-wrapper-10 .tgl *::selection,
-.checkbox-wrapper-10 .tgl *:after::selection,
-.checkbox-wrapper-10 .tgl *:before::selection,
 .checkbox-wrapper-10 .tgl + .tgl-btn::selection {
     background: none;
 }

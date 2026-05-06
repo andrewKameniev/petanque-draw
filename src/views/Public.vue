@@ -10,13 +10,13 @@
     <div v-else class="wrapper">
         <div v-if="tournament" class="container">
             <div class="is-flex is-justify-content-space-between">
-                <a class="navbar-item" href="https://andrewkameniev.github.io/petanque-draw/dist/">
+                <router-link class="navbar-item" to="/">
                     <picture>
                         <source srcset="../assets/img/logo.webp" type="image/webp">
                         <source srcset="../assets/img/logo.png" type="image/jpeg">
                         <img src="../assets/img/logo.png" alt="logo">
                     </picture>
-                </a>
+                </router-link>
                 <LanguageSwitcher/>
             </div>
             <div class="text-center is-size-3">
@@ -196,7 +196,7 @@ export default {
             }
 
             const self = this;
-            const domain = process.env.NODE_ENV === 'production' ? `${window.location.origin}/petanque-draw/dist` : `${window.location.origin}`;
+            const domain = import.meta.env.PROD ? `${window.location.origin}/petanque-draw` : `${window.location.origin}`;
             navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
                 const dbRef = ref(getDatabase());
                 get(child(dbRef, `apikey`)).then((snapshot) => {

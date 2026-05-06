@@ -3,8 +3,8 @@ import App from './App.vue'
 import {store} from "./store";
 // import './registerServiceWorker'
 import {createRouter, createWebHashHistory} from 'vue-router';
-import Public from "@/views/Public";
-import LoginUser from "@/views/LoginUser";
+import Public from "@/views/Public.vue";
+import LoginUser from "@/views/LoginUser.vue";
 import Help from "@/components/Help.vue";
 import Stats from "@/views/Stats.vue";
 import Training from "@/views/Training.vue";
@@ -14,7 +14,6 @@ import i18n from "@/i18n";
 const app = createApp(App);
 const router = createRouter({
     history: createWebHashHistory(),
-    mode: 'hash',
     routes: [
         {
             path: '/',

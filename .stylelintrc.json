@@ -1,0 +1,24 @@
+{
+    "extends": ["stylelint-config-standard"],
+    "plugins": ["@stylistic/stylelint-plugin"],
+    "overrides": [
+        {
+            "files": ["**/*.vue"],
+            "customSyntax": "postcss-html"
+        }
+    ],
+    "rules": {
+        "@stylistic/declaration-block-trailing-semicolon": "always",
+        "block-no-empty": true,
+        "no-empty-source": null,
+        "selector-class-pattern": null,
+        "selector-pseudo-class-no-unknown": [true, { "ignorePseudoClasses": ["global", "local", "deep"] }],
+        "property-no-unknown": true,
+        "no-descending-specificity": null,
+        "at-rule-empty-line-before": null,
+        "rule-empty-line-before": ["always", { "except": ["first-nested"] }],
+        "custom-property-empty-line-before": null,
+        "custom-property-pattern": null,
+        "media-feature-range-notation": "prefix"
+    }
+}

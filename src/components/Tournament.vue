@@ -198,7 +198,7 @@ export default {
                 const userTokens = Object.values(snapshot.val());
                 const message = {
                     title: `${this.tournament.name}`,
-                    body: `${window.location.origin}/petanque-draw/dist/#/show/?user=${this.user.uid}&tournament=${this.tournament.id}`,
+                    body: `${window.location.origin}/petanque-draw/#/show/?user=${this.user.uid}&tournament=${this.tournament.id}`,
                 }
                 sendCloudMessage(userTokens, message)
             }

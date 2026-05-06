@@ -10,13 +10,13 @@
     <div v-else class="wrapper">
         <div v-if="tournament" class="container">
             <div class="is-flex is-justify-content-space-between">
-                <a class="navbar-item" href="https://andrewkameniev.github.io/petanque-draw/">
+                <router-link class="navbar-item" to="/">
                     <picture>
                         <source srcset="../assets/img/logo.webp" type="image/webp">
                         <source srcset="../assets/img/logo.png" type="image/jpeg">
                         <img src="../assets/img/logo.png" alt="logo">
                     </picture>
-                </a>
+                </router-link>
                 <LanguageSwitcher/>
             </div>
             <div class="text-center is-size-3">

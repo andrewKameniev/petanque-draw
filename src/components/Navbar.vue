@@ -1,13 +1,13 @@
 <template>
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
-            <a class="navbar-item" href="https://andrewkameniev.github.io/petanque-draw/">
+            <router-link class="navbar-item" to="/">
                 <picture>
                     <source srcset="../assets/img/logo.webp" type="image/webp">
                     <source srcset="../assets/img/logo.png" type="image/jpeg">
                     <img src="../assets/img/logo.png" alt="logo">
                 </picture>
-            </a>
+            </router-link>
 
             <a role="button" class="navbar-burger" @click="$emit('open-menu')" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                 <span aria-hidden="true"></span>

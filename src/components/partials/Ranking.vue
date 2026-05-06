@@ -182,7 +182,7 @@ export default {
         copyResults() {
             let content = ''
             this.tournamentRanking.forEach(item => {
-                content = content + '<span>' + item.place + '</span><p>' + item.title + '</p>'
+                content += item.place + ' ' + item.title + '\n'
             })
             copyContent(content)
         },

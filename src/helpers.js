@@ -198,16 +198,7 @@ function gameHasError(game, maxScore) {
     return (game.team_1_score && game.team_2_score) && game.team_1_score === game.team_2_score || (game.team_1_score < 0 || game.team_1_score > maxScore) || (game.team_2_score < 0 || game.team_2_score > maxScore)
 }
 function copyContent(data) {
-    const el = document.createElement('div')
-    el.innerHTML = data.trim()
-    document.body.appendChild(el)
-    const range = new Range()
-    range.selectNode(el)
-    const select = window.getSelection()
-    select.removeAllRanges()
-    select.addRange(range)
-    document.execCommand('copy')
-    el.remove()
+    navigator.clipboard.writeText(data.trim())
 }
 
 function isScoreError (game, maxScore) {

@@ -23,8 +23,8 @@
                 <strong>{{ tournament.name }}</strong>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
-                <span class="badge badge-corner" :class="tournament.tournamentIsFinished ? 'badge-finished' : 'badge-active'">
-                    {{ tournament.tournamentIsFinished ? $t('common.finished') : $t('common.active') }}
+                <span class="badge badge-corner" :class="isFinished ? 'badge-finished' : 'badge-active'">
+                    {{ isFinished ? $t('common.finished') : $t('common.active') }}
                 </span>
                 <div class="tournament-info-row" v-if="tournamentMessageLines.length">
                     <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
@@ -109,7 +109,7 @@
                 <div v-else class="mb-5 mt-5">{{ $t('games.noGames') }}</div>
             </div>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished">
+                <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && isFinished">
                     <button class="button is-small mr-1 mb-1"
                             :class="{'is-purple': rankingSubtab === 'result'}"
                             @click="rankingSubtab = 'result'">
@@ -123,8 +123,8 @@
                 </div>
                 <Ranking :tournament="tournament"
                          :rankingTeams="rankingTeams" :activeRound="tournament.activeRound"
-                         :showOnlyResult="rankingSubtab === 'result'"
-                         :showOnlySwiss="rankingSubtab === 'swiss'"/>
+                         :showOnlyResult="isFinished && rankingSubtab === 'result'"
+                         :showOnlySwiss="isFinished && rankingSubtab === 'swiss'"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -202,6 +202,13 @@ export default {
         tournamentMessageLines() {
             if (!this.tournament?.tournamentMessage) return [];
             return this.tournament.tournamentMessage.split('\n').filter(l => l.trim());
+        },
+        isFinished() {
+            if (this.tournament?.tournamentIsFinished) return true;
+            if (this.tournament?.date) {
+                return new Date(this.tournament.date) < new Date(new Date().toDateString());
+            }
+            return false;
         }
     },
     methods: {
@@ -227,6 +234,7 @@ export default {
                     const snapshot = await get(dbRef);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
+                        console.log(this.tournament);
                         if (this.tournament.games?.length) {
                             this.selectedRound = this.tournament.games.length - 1;
                         }

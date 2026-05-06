@@ -43,7 +43,7 @@
                 <span v-if="tournament.system === 'swiss'"> {{ $t('ranking.swiss') }} </span>
             </h2>
             <div v-if="tournament.system === 'swiss'">
-                <div class="table-container">
+                <div class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
                     <table id="table-ranking" class="table" :class="{'is-bordered': isForProtocol}">
                         <thead>
                         <tr>
@@ -66,7 +66,7 @@
                             <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'points' ? null : 'points'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
-                                <div v-if="activeTooltip === 'points'" class="ranking-tooltip">{{ $t('ranking.pointsTooltip') }}</div>
+                                <div v-if="activeTooltip === 'points'" class="ranking-tooltip ranking-tooltip-right">{{ $t('ranking.pointsTooltip') }}</div>
                             </th>
                             <th v-if="tournament.useRating" align="center">
                                 <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
@@ -239,5 +239,11 @@ export default {
     white-space: nowrap;
     z-index: 10;
     margin-bottom: 4px;
+}
+
+.ranking-tooltip-right {
+    left: auto;
+    right: 0;
+    transform: none;
 }
 </style>

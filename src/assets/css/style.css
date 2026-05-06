@@ -135,6 +135,10 @@ footer {
     content: counter(teamlist) ". ";
 }
 
+#table-list tr td {
+    vertical-align: middle;
+}
+
 #table-ranking {
     counter-reset: ranking;
 }

@@ -29,7 +29,7 @@
     "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@stylistic/stylelint-plugin": "^5.1.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "eslint": "^9.39.4",

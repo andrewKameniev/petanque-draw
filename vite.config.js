@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [vue()],
   resolve: {
     alias: {
@@ -10,8 +10,8 @@ export default defineConfig({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
   },
-  base: '/petanque-draw/dist/',
+  base: mode === 'production' ? '/petanque-draw/dist/' : '/',
   build: {
     sourcemap: true
   }
-})
+}))

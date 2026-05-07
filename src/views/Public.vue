@@ -171,9 +171,8 @@
 
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import { getToken, onMessage } from "firebase/messaging";
-import {ref, push, get, child, getDatabase} from "firebase/database";
-import {database, initializeMessaging} from "@/firebase";
+import {ref, get} from "firebase/database";
+import {database} from "@/firebase";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -195,9 +194,6 @@ export default {
     },
     mounted() {
         this.getInfo();
-        if (this.getCookieValue('petanqueDraw_token') !== this.tournamentId) {
-            this.initMessaging();
-        }
     },
     computed: {
         tabs() {
@@ -272,20 +268,6 @@ export default {
             }
             return n === 1 ? 'round' : 'rounds';
         },
-        getCookieValue(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        },
-        async initMessaging() {
-            this.messaging = await initializeMessaging();
-            if (this.messaging) {
-                this.requestPermission();
-            } else {
-                console.error("Messaging is not supported in this browser.");
-            }
-        },
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
@@ -316,66 +298,6 @@ export default {
                 }
             }
         },
-        showNotification(message) {
-            const self = this;
-            navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(`${message.notification.title} ${self.$t('common.updated')}`, {
-                    body: message.notification.body,
-                    icon: 'https://i.imgur.com/S8zDbo4.png',
-                    vibrate: [200, 100, 200, 100],
-                    data: {url: message.notification.body},
-                    actions: [{action: "open_url", title: "Open"}]
-                });
-            });
-        },
-        registerSw() {
-            if (!('serviceWorker' in navigator)) {
-                return;
-            }
-
-            const self = this;
-            const domain = import.meta.env.PROD ? `${window.location.origin}/petanque-draw` : `${window.location.origin}`;
-            navigator.serviceWorker.register(`${domain}/firebase-messaging-sw.js`, { scope: './' }).then(function(reg) {
-                const dbRef = ref(getDatabase());
-                get(child(dbRef, `apikey`)).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        getToken(self.messaging, {serviceWorkerRegistration: reg, vapidKey: snapshot.val()}).then((currentToken) => {
-                            if (currentToken) {
-                                push(ref(database, `tokens/${self.userId}/${self.tournamentId}`), currentToken);
-                                document.cookie = `petanqueDraw_token=${self.tournamentId}; path=/; max-age=86400`;
-                            } else {
-                                console.log('No registration token available. Request permission to generate one.');
-                            }
-                        }).catch((err) => {
-                            console.log('An error occurred while retrieving token. ', err);
-                        });
-                    } else {
-                        console.log("No data available");
-                    }
-                }).catch((error) => {
-                    console.error(error);
-                });
-
-                onMessage(self.messaging, (payload) => {
-                    self.showNotification(payload)
-                });
-            }).catch(function(error) {
-                console.log('Registration failed with ' + error);
-            });
-        },
-        requestPermission() {
-            if (!("Notification" in window)) {
-                return
-            }
-            Notification.requestPermission().then((permission) => {
-                if (permission === 'granted') {
-                    this.notificationsEnabled = true;
-                    this.registerSw();
-                } else {
-                    this.notificationsEnabled = false
-                }
-            })
-        }
     }
 }
 </script>
@@ -559,7 +481,7 @@ export default {
     content: "";
     position: fixed;
     inset: 0;
-    background: url("@/assets/img/bg-petanque.png") repeat;
+    background: url("@/assets/img/bg-petanque.avif") repeat;
     background-size: 800px;
     opacity: 0.5;
     z-index: 0;

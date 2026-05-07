@@ -294,7 +294,6 @@ export default {
                     const snapshot = await get(dbRef);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
-                        console.log(this.tournament);
                         if (this.tournament.games?.length) {
                             this.selectedRound = this.tournament.games.length - 1;
                         }
@@ -382,7 +381,7 @@ export default {
 </script>
 <style>
 .gooey {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     width: 142px;
@@ -551,4 +550,24 @@ export default {
     }
 }
 
+.wrapper {
+    position: relative;
+    background: #f4f4f4;
+}
+
+.wrapper::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("@/assets/img/bg-petanque.png") repeat;
+    background-size: 800px;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wrapper > * {
+    position: relative;
+    z-index: 1;
+}
 </style>

@@ -6,18 +6,13 @@ body {
     font-family: 'Manrope', sans-serif;
     font-size: 1em;
     background-color: #f4f4f4;
-    position: relative;
 }
 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: url("../img/bg-petanque.png") repeat;
-    background-size: 800px;
-    opacity: 0.5;
-    z-index: 0;
-    pointer-events: none;
+@media screen and (min-width: 575px){
+    body:not(.documentation) {
+        background: url("../img/bg-mountains.avif") center/cover;
+        background-attachment: fixed;
+    }
 }
 
 .wrapper {
@@ -25,8 +20,6 @@ body::before {
     flex-direction: column;
     justify-content: space-between;
     flex: 1;
-    position: relative;
-    z-index: 1;
     height: 100%;
     min-height: 100vh;
 }

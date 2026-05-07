@@ -1,9 +1,12 @@
 <template>
     <div>
-        <div v-if="tournament.tournamentIsFinished" class="mb-5">
+        <div v-if="tournament.tournamentIsFinished && !showOnlySwiss" class="mb-5">
             <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button is-info" @click="copyResults">{{ $t('ranking.copyResults') }}</button>
+                <button class="button btn-purple-outline" @click="copyResults">
+                    <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+                    <svg class="is-hidden-tablet copy-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
@@ -15,7 +18,8 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index">
+                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index"
+                        :class="{'place-gold': team.place === '1', 'place-silver': team.place === '2', 'place-bronze': team.place === '3'}">
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>
@@ -32,7 +36,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games?.length && rankingTeams">
+        <div v-if="tournament.games?.length && rankingTeams && !showOnlyResult">
             <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
                 <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
                     {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}
@@ -40,7 +44,7 @@
                 <span v-if="tournament.system === 'swiss'"> {{ $t('ranking.swiss') }} </span>
             </h2>
             <div v-if="tournament.system === 'swiss'">
-                <div class="table-container">
+                <div class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
                     <table id="table-ranking" class="table" :class="{'is-bordered': isForProtocol}">
                         <thead>
                         <tr>
@@ -50,17 +54,20 @@
                                 <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'buh' ? null : 'buh'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
+                                <div v-if="activeTooltip === 'buh'" class="ranking-tooltip">{{ $t('ranking.buhTooltip') }}</div>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'sbuh' ? null : 'sbuh'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
+                                <div v-if="activeTooltip === 'sbuh'" class="ranking-tooltip">{{ $t('ranking.sbuhTooltip') }}</div>
                             </th>
-                            <th align="center">
+                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'points' ? null : 'points'">
                                 <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
                                 <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                <div v-if="activeTooltip === 'points'" class="ranking-tooltip ranking-tooltip-right">{{ $t('ranking.pointsTooltip') }}</div>
                             </th>
                             <th v-if="tournament.useRating" align="center">
                                 <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
@@ -70,7 +77,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'has-background-success-light': index < tournament.preferences?.playOffTeams}">
+                            :class="{'playoff-highlight': index < tournament.preferences?.playOffTeams, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -158,7 +165,7 @@
                 </div>
             </div>
         </div>
-        <div v-else>
+        <div v-else-if="!showOnlyResult && !showOnlySwiss">
             {{ $t('ranking.noRanking') }}
         </div>
     </div>
@@ -170,11 +177,12 @@ import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent
 
 export default {
     name: 'Ranking',
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'showOnlyResult', 'showOnlySwiss'],
     emits: ['is-playoff'],
     data() {
         return {
-            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null
+            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null,
+            activeTooltip: null
         }
     },
     methods: {
@@ -200,3 +208,71 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+@media screen and (max-width: 768px) {
+    .btn-purple-outline {
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+.has-tooltip {
+    position: relative;
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.ranking-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(71, 26, 160, 0.85);
+    color: var(--color-white);
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: normal;
+    white-space: nowrap;
+    z-index: 10;
+    margin-bottom: 4px;
+}
+
+.ranking-tooltip-right {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.playoff-highlight td {
+    background: var(--color-highlight) !important;
+}
+
+.place-gold td {
+    background: rgba(255, 197, 0, 0.18) !important;
+}
+
+.place-gold td:first-child {
+    border-left: 3px solid #f5c518;
+}
+
+.place-silver td {
+    background: rgba(192, 192, 192, 0.25) !important;
+}
+
+.place-silver td:first-child {
+    border-left: 3px solid #aaa;
+}
+
+.place-bronze td {
+    background: rgba(205, 127, 50, 0.15) !important;
+}
+
+.place-bronze td:first-child {
+    border-left: 3px solid #cd7f32;
+}
+</style>

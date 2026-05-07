@@ -1,14 +1,14 @@
 <template>
-    <div class="container" :class="{'content': activeTournament}">
-        <div class="is-flex is-justify-content-space-between is-align-content-center">
+    <div :class="{'container': !isPublicView || playOffStageCurrent !== 0, 'content': activeTournament && (!isPublicView || playOffStageCurrent !== 0)}">
+        <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!isPublicView || playOffStageCurrent !== 0">
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
-            <button class="button is-info" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
+            <button v-if="!isPublicView" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
         <div class="column play-off-stage-wrapper" v-if="playOffBracket">
-            <div v-if="playOffStageCurrent === 0" class="has-text-centered is-size-4">
+            <div v-if="playOffStageCurrent === 0 && !isPublicView" class="has-text-centered is-size-4">
                 {{ $t('games.tournamentFinished') }}. <a href="#" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
             </div>
-            <template v-else>
+            <template v-else-if="playOffStageCurrent !== 0">
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"

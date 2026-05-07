@@ -1,16 +1,116 @@
 <script>
+import {mapState} from "vuex";
+
 export default {
-    name: "Footer"
+    name: "Footer",
+    computed: mapState(['user']),
 }
 </script>
 
 <template>
-    <footer class="pt-3 px-3 pb-5 has-text-centered">
-        <p>{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
-<!--        <p>{{ $t('common.thankMe') }}</p>-->
+    <footer class="app-footer">
+        <div class="app-footer__desktop">
+            <div class="app-footer__line">
+                <div class="app-footer__links">
+                    <router-link to="/">{{ $t('common.draw') }}</router-link>
+                    <router-link :to="user ? '/stats' : '/'">{{ $t('common.stat') }}</router-link>
+                    <router-link :to="user ? '/training' : '/'">{{ $t('common.training') }}</router-link>
+                </div>
+            </div>
+            <div class="app-footer__line">
+                <div class="app-footer__links">
+                    <router-link to="/doc">{{ $t('common.howUse') }}</router-link>
+                    <a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a>
+                    <a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a>
+                    <a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a>
+                </div>
+                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
+            </div>
+        </div>
+        <p class="app-footer__credit app-footer__mobile-credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
     </footer>
 </template>
 
 <style scoped>
+.app-footer {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-white);
+}
 
+.app-footer__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+}
+
+.app-footer__links {
+    display: flex;
+    align-items: center;
+}
+
+.app-footer__links a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0 0.6rem;
+    border-right: 1px solid var(--color-border);
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.app-footer__links a:first-child {
+    padding-left: 0;
+}
+
+.app-footer__links a:last-child {
+    border-right: none;
+}
+
+.app-footer__links a:hover {
+    color: var(--color-primary);
+}
+
+.app-footer__links a.router-link-exact-active {
+    color: var(--color-primary);
+}
+
+.app-footer__credit {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    margin: 0;
+    white-space: nowrap;
+    align-self: flex-end;
+}
+
+.app-footer__credit a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.app-footer__credit a:hover {
+    color: var(--color-primary);
+}
+
+.app-footer__mobile-credit {
+    display: none;
+}
+
+@media (max-width: 1023px) {
+    .app-footer {
+        background: transparent;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .app-footer__desktop {
+        display: none;
+    }
+
+    .app-footer__mobile-credit {
+        display: block;
+    }
+}
 </style>

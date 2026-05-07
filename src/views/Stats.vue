@@ -174,8 +174,11 @@
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
                     {{ $t('stat.onlyLogin') }}
-                    <div class="mt-4">
-                        <router-link to="/login-user" class="button">
+                    <div class="mt-5">
+                        <router-link to="/" class="btn-login-primary btn-login-primary--large">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                             {{ $t('common.loginUser') }}
                         </router-link>
                     </div>

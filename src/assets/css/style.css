@@ -6,13 +6,18 @@ body {
     font-family: 'Manrope', sans-serif;
     font-size: 1em;
     background-color: #f4f4f4;
+    position: relative;
 }
 
-@media screen and (min-width: 575px){
-    body:not(.documentation) {
-        background: url("../img/bg-mountains.avif") center/cover;
-        background-attachment: fixed;
-    }
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("../img/bg-petanque.png") repeat;
+    background-size: 800px;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .wrapper {
@@ -20,6 +25,8 @@ body {
     flex-direction: column;
     justify-content: space-between;
     flex: 1;
+    position: relative;
+    z-index: 1;
     height: 100%;
     min-height: 100vh;
 }
@@ -148,124 +155,10 @@ footer {
     content: counter(ranking);
 }
 
-.play-off-wrapper.columns {
-    margin: 0;
-    display: flex;
-    padding: 20px;
-}
-
-.play-off-stage {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    height: calc(100% - 24px);
-    position: relative;
-}
-
-.play-off-stage-wrapper:last-child .play-off-game:before {
-    display: none;
-}
-
-.play-off-game {
-    position: relative;
-    height: 91px;
-    margin-bottom: 24px !important;
-}
-
-.play-off-game.third-place {
-    position: absolute;
-    bottom: 0;
-}
-
-.play-off-game.third-place-bottom {
-    bottom: -100px;
-}
-
-.third-place-title {
-    position: absolute;
-    width: 100%;
-    left: 50%;
-    top: -30px;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.7);
-}
-
-.play-off-game:before {
-    content: "";
-    display: inline-block;
-    width: 131px;
-    height: 2px;
-    background: #ddd;
-    position: absolute;
-    top: calc(50% - 1px);
-    left: 100%;
-}
-
-.play-off-game:after {
-    content: "";
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background: #fff;
-    border-radius: 6px;
-}
-
-.play-off-game-vertical-line {
-    display: inline-block;
-    width: 2px;
-    height: 100px;
-    background: #ddd;
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-}
-
-.play-off-game-vertical-line.-bottom {
-    top: 50%;
-}
-
-.play-off-team-place {
-    color: #fff;
-    background: #aaa;
-    position: absolute;
-    z-index: 1;
-    font-size: 9px;
-    padding: 2px 3px;
-    top: 5px;
-    left: -20px;
-    min-width: 16px;
-    text-align: center;
-}
-
-.play-off-team {
-    position: relative;
-    z-index: 1;
-    white-space: nowrap;
-}
-
-.play-off-team-title {
-    display: inline-block;
-    width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
-}
-
-.play-off-team-score {
-    display: inline-block;
-    font-weight: 700;
-    width: 20px;
-    text-align: center;
-    vertical-align: middle;
-}
 
 .modal-content {
     background: white;
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 80px);
 }
 
 .no-wrap {
@@ -374,20 +267,6 @@ footer {
 
     .column {
         padding: 0.75rem 0.25rem;
-    }
-    .play-off-team-title {
-        width: 100px;
-    }
-    .play-off-game {
-        height: 50px;
-        margin-bottom: 16px !important;
-        padding: 0.5rem 0.5rem 0.5rem 20px;
-    }
-    .play-off-game:before {
-        width: 80px;
-    }
-    .play-off-team-place {
-        top: 1px;
     }
 }
 

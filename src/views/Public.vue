@@ -53,7 +53,9 @@
                     <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
                     <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
                 </div>
-                <button v-if="tournament.playOff" class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
+                <div v-if="tournament.playOff" class="btn-bracket-group">
+                    <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
+                </div>
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" @openResults="activeTab = 'ranking'"/>
             <Cadrage v-else-if="tournament.isCadrage && tournament.cadrage?.length" :active-tournament="tournament" :is-public-view="true"/>
@@ -178,7 +180,6 @@ import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 
-
 export default {
     name: 'Public',
     components: {Cadrage, Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking},
@@ -189,7 +190,7 @@ export default {
             activeTab: "ranking",
             rankingSubtab: "result",
             selectedRound: -2,
-            notificationsEnabled: false
+            notificationsEnabled: false,
         }
     },
     mounted() {
@@ -442,10 +443,15 @@ export default {
     right: 0.75rem;
 }
 
-.btn-bracket {
+.btn-bracket-group {
     position: absolute;
     bottom: 0.75rem;
     right: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-bracket {
     background: var(--color-primary);
     color: var(--color-white);
     border: none;

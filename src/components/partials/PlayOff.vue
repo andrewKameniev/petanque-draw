@@ -31,7 +31,7 @@
 
 <script>
 import Bracket from './Bracket';
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
 
@@ -52,9 +52,9 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapGetters(['currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         playOffStageCurrent() {
             return 'playOffStage' in this.tournament ? this.tournament.playOffStage : this.tournament.playOff[0].stage

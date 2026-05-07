@@ -46,16 +46,16 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {tournamentNames} from "@/helpers";
 
 export default {
     name: "TeamsList",
     props: ['previewTournament', 'activeRound'],
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapGetters(['currentTournament']),
         tournament() {
-            return this.previewTournament || this.tournaments[this.currentTournamentIndex]
+            return this.previewTournament || this.currentTournament
         },
         groupsNames() {
             return tournamentNames

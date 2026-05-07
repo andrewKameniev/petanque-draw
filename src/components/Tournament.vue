@@ -158,7 +158,7 @@ import Results from './partials/Results.vue';
 import Ranking from './partials/Ranking.vue';
 import TeamsList from "./partials/TeamsList";
 import SaveTournament from "./partials/SaveTournament";
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getTeamsRanking} from "@/helpers";
@@ -337,6 +337,7 @@ export default {
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        ...mapGetters({ tournament: 'currentTournament' }),
         tabs() {
             return [
                 {
@@ -367,9 +368,6 @@ export default {
                 values.pop()
             }
             return values;
-        },
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
         },
         canSaveTournament() {
             return this.tournament.tournamentIsFinished && this.tournament.games?.length > 1

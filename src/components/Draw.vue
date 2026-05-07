@@ -45,7 +45,7 @@ import Message from './Message.vue';
 import Menu from './Menu';
 import SavedTournamentModal from './partials/SavedTournamentModal';
 import Tournament from "./Tournament";
-import {mapState, mapMutations} from 'vuex'
+import {mapGetters, mapState, mapMutations} from 'vuex'
 import Navbar from "./Navbar";
 import Help from "./Help";
 import { onAuthStateChanged } from "firebase/auth";
@@ -94,9 +94,7 @@ export default {
     },
     computed: {
         ...mapState(['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
     },
     components: {
         Footer,

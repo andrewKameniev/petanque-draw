@@ -20,13 +20,13 @@
     "apexcharts": "^5.10.6",
     "firebase": "^9.16.0",
     "html2pdf.js": "^0.10.2",
+    "pinia": "^3.0.4",
     "qrcode.vue": "^3.3.3",
     "register-service-worker": "^1.7.2",
     "vue": "^3.5.34",
     "vue-i18n": "^11.4.0",
     "vue-router": "^5.0.6",
-    "vue3-apexcharts": "1.11.1",
-    "vuex": "^4.1.0"
+    "vue3-apexcharts": "1.11.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

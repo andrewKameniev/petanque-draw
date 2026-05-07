@@ -26,14 +26,15 @@
 
 <script>
 import {gameHasError} from "@/helpers";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'Game',
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird'],
-    methods: {...mapMutations(['updateGameScore']), gameHasError},
+    methods: {...mapActions(useMainStore, ['updateGameScore']), gameHasError},
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
         tournament() {
             return this.activeTournament || this.tournaments[this.currentTournamentIndex]
         },

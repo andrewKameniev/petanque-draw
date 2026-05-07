@@ -22,7 +22,8 @@
 </template>
 <script>
 import {getDatabase, ref, remove, set} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: "StatTags",
@@ -33,10 +34,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         addTag() {
             const tagId = Date.now();
             const db = getDatabase();

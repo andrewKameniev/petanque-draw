@@ -1,5 +1,6 @@
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {getDate} from "@/helpers-stat";
 import {getDatabase, ref, get, remove, update} from "firebase/database";
 import StatResult from "@/components/stats/StatResult.vue";
@@ -66,7 +67,7 @@ export default {
             });
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(useMainStore, ['user']),
         filteredGames() {
             return (this.filterGamesTag.length > 0) ?
                 Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) :
@@ -74,7 +75,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         removeGame(id) {
             const db = getDatabase();
             const statsRef = ref(db, `${this.user.uid}/stats/${id}`);

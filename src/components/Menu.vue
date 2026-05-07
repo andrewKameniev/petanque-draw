@@ -61,7 +61,8 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "../helpers";
 import {signOut} from "firebase/auth";
 import {auth} from "@/firebase";
@@ -76,9 +77,9 @@ export default {
         }
     },
     props: ['active'],
-    computed: mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
+    computed: mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
     methods: {
-        ...mapMutations(['setActiveTournament']),
+        ...mapActions(useMainStore, ['setActiveTournament']),
         chooseTournament(index) {
             this.setActiveTournament(index);
             this.$emit('closeMenu')

@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
-import {store} from "./store";
 // import './registerServiceWorker'
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Public from "@/views/Public.vue";
@@ -12,6 +12,7 @@ import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
 
 const app = createApp(App);
+const pinia = createPinia();
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
@@ -48,5 +49,5 @@ const router = createRouter({
     ]
 })
 
-app.use(store).use(router).use(i18n).mount('#app');
+app.use(pinia).use(router).use(i18n).mount('#app');
 

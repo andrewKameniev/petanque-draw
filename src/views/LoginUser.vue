@@ -35,7 +35,8 @@
 
 <script>
 
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {auth} from "@/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail} from "firebase/auth";
 import Message from "@/components/Message";
@@ -53,10 +54,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(['message']),
+        ...mapState(useMainStore, ['message']),
     },
     methods: {
-        ...mapMutations(['loginUser', 'showMessage']),
+        ...mapActions(useMainStore, ['loginUser', 'showMessage']),
         async resetPassword() {
             try {
                 this.resetErrors();

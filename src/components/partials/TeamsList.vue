@@ -46,14 +46,15 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 
 export default {
     name: "TeamsList",
     props: ['previewTournament', 'activeRound'],
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
         tournament() {
             return this.previewTournament || this.tournaments[this.currentTournamentIndex]
         },
@@ -69,7 +70,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['removeTeam']),
+        ...mapActions(useMainStore, ['removeTeam']),
         getTeamClub(team) {
             if (team.players && team.players.length && team.players[0].club) {
                 return team.players[0].club;

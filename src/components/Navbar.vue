@@ -52,7 +52,8 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -61,13 +62,13 @@ export default {
     name: "Navbar",
     components: {LanguageSwitcher},
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
         tournament() {
             return this.tournaments[this.currentTournamentIndex]
         },
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginUser']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser']),
         signOutUser () {
             signOut(auth)
                 .then(() => {

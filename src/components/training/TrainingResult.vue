@@ -1,6 +1,7 @@
 <script>
 import {get, getDatabase, ref} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {getDate} from "@/helpers-stat";
 import TrainingResultGraph from "@/components/training/TrainingResultGraph.vue";
 
@@ -51,7 +52,7 @@ export default {
             });
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(useMainStore, ['user']),
         totalExLength() {
             return this.exdata.length * this.exdata.distances.length
         },
@@ -94,7 +95,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         getDate,
         getTotalResults(data) {
             let total = 0;

@@ -194,7 +194,8 @@ import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
 import {get, getDatabase, ref, set} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import {gameTypes, throwDistances} from "@/helpers-stat.js"
@@ -240,7 +241,7 @@ export default {
         this.getTags();
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
         currentScore() {
             return {
                 team1: this.team1.score.reduce((a, b) => a + b, 0),
@@ -277,7 +278,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         getTags() {
             const db = getDatabase();
             const statsRef = ref(db, `${this.user.uid}/stats/tags`);

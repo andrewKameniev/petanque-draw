@@ -86,7 +86,8 @@
 </template>
 <script>
 import {getDatabase, ref, set} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 export default {
     name: 'TrainingAdd',
     data() {
@@ -106,7 +107,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(useMainStore, ['user']),
     },
     watch: {
         'exercise.complex'(newValue) {
@@ -118,7 +119,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         saveExercise() {
             const exerciseId = Date.now();
             const db = getDatabase();

@@ -235,28 +235,6 @@ const regions = {
     27: 'Харківська',
 }
 
-const sendCloudMessage = async (tokens, message) => {
-    const url = 'https://sendmessage-etoydcc3na-uc.a.run.app/sendMessage';
-    const payload = {
-        tokens: tokens,
-        message: message,
-    };
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-    } catch (error) {
-        console.error('Error sending message:', error);
-    }
-};
-
 const shuffleArray = (array) => {
     let currentIndex = array.length, randomIndex;
     while (currentIndex !== 0) {

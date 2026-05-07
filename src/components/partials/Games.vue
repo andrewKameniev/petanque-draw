@@ -369,7 +369,6 @@ export default {
             }
             this.addRoundToGames(this.assignLanes(shuffleArray(round))); // записали в игры
             this.startRound();
-            this.$emit('sendMessage');
         },
         assignLanes(games) {
             let technicalGame = null;
@@ -539,7 +538,6 @@ export default {
 
             this.endRound();
             this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')})
-            this.$emit('sendMessage');
         },
         restoreRoundGames(){
             this.isRestoredRound = true;

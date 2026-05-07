@@ -82,7 +82,7 @@
         <Games v-if="activeTab === 'games'"
                :rankingTeams="rankingTeams"
                :activeRound="activeRound" :teams-in-group="teamsInGroup"
-               @openResults="activeTab = 'ranking'" @sendMessage="sendNotifications" @startPlayOff="startPlayOff"/>
+               @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"/>
         <Results v-if="activeTab === 'results'"/>
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
             <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
@@ -161,12 +161,10 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
-import {getTeamsRanking, sendCloudMessage} from "@/helpers";
+import {getTeamsRanking} from "@/helpers";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
-import {get, ref} from "firebase/database";
-import {database} from "@/firebase";
 
 export default {
     name: 'Tournament',
@@ -191,18 +189,6 @@ export default {
     },
     methods: {
         ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
-        async sendNotifications() {
-            const dbRef = ref(database, `tokens/${this.user.uid}/${this.tournament.id}`);
-            const snapshot = await get(dbRef);
-            if (snapshot.exists()) {
-                const userTokens = Object.values(snapshot.val());
-                const message = {
-                    title: `${this.tournament.name}`,
-                    body: `${window.location.origin}/petanque-draw/#/show/?user=${this.user.uid}&tournament=${this.tournament.id}`,
-                }
-                sendCloudMessage(userTokens, message)
-            }
-        },
         setPlayOffList() {
             let playOffList;
             if(this.tournament.system === 'swiss') {

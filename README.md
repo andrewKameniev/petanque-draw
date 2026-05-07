@@ -2,7 +2,7 @@
 
 Tournament organizer, game statistics tracker, and training tool for petanque.
 
-**Live**: [https://andrewkameniev.github.io/petanque-draw/dist/](https://andrewkameniev.github.io/petanque-draw/dist/)
+**Live**: [https://andrewkameniev.github.io/petanque-draw/](https://andrewkameniev.github.io/petanque-draw/)
 
 ## What it does
 
@@ -13,16 +13,21 @@ Tournament organizer, game statistics tracker, and training tool for petanque.
 
 ## Tech Stack
 
-Vue 3 | Vuex | Vue Router | Firebase (Auth, Realtime DB, FCM) | Bulma CSS | ApexCharts
+Vue 3 | Vuex 4 | Vue Router 5 | Firebase (Auth, Realtime DB, FCM) | Bulma CSS | ApexCharts | Vite 8
 
 ## Setup
 
 ```bash
 npm install
-npm run serve    # Dev server at localhost:8080
+npm run dev      # Dev server at localhost:5173
 npm run build    # Production build to dist/
-npm run lint     # ESLint
+npm run lint     # ESLint + Stylelint + Prettier check
+npm run lint:fix # Auto-fix all linting/formatting issues
 ```
+
+## Deployment
+
+Deployed automatically to GitHub Pages via GitHub Actions on push to `develop`.
 
 ## Project Structure
 
@@ -34,10 +39,11 @@ src/
 │   ├── stats/      # Statistics tracking components
 │   └── training/   # Training exercise components
 ├── store.js        # Vuex state + Firebase sync
+├── i18n.js         # vue-i18n instance (shared between app and store)
 ├── helpers.js      # Tournament logic (draw, ranking, sorting)
 ├── helpers-stat.js # Statistics calculations
 ├── firebase.js     # Firebase initialization
-└── languages.js    # i18n (English + Ukrainian)
+└── languages.js    # i18n translations (English + Ukrainian)
 ```
 
 ## Features

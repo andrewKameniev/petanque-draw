@@ -224,9 +224,15 @@ export default {
             return getTeamsRanking(this.tournament, this.activeRound)
         },
         userId() {
+            if (this.$route.query.ref) {
+                return this.parseRef().userId;
+            }
             return this.$route.query.user;
         },
         tournamentId() {
+            if (this.$route.query.ref) {
+                return this.parseRef().tournamentId;
+            }
             return this.$route.query.tournament;
         },
         tournamentMessageLines() {
@@ -263,6 +269,16 @@ export default {
         }
     },
     methods: {
+        parseRef() {
+            const refParam = this.$route.query.ref;
+            if (refParam.includes('.')) {
+                const [userId, tournamentBase36] = refParam.split('.');
+                return { userId, tournamentId: parseInt(tournamentBase36, 36).toString() };
+            }
+            const decoded = atob(refParam);
+            const [userId, tournamentId] = decoded.split(':');
+            return { userId, tournamentId };
+        },
         pluralizeRounds(n) {
             if (this.$i18n.locale === 'ua') {
                 const mod10 = n % 10;

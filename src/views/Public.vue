@@ -80,7 +80,7 @@ import Results from "@/components/partials/Results";
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
 import { getToken, onMessage } from "firebase/messaging";
-import {ref, push, get, child, getDatabase} from "firebase/database";
+import {ref, push, get, child, getDatabase, onValue} from "firebase/database";
 import {database, initializeMessaging} from "@/firebase";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
@@ -104,6 +104,11 @@ export default {
         this.getInfo();
         if (this.getCookieValue('petanqueDraw_token') !== this.tournamentId) {
             this.initMessaging();
+        }
+    },
+    beforeUnmount() {
+        if (this._unsubscribe) {
+            this._unsubscribe();
         }
     },
     computed: {
@@ -151,31 +156,32 @@ export default {
                 console.error("Messaging is not supported in this browser.");
             }
         },
-        async getInfo() {
+        getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
-                try {
-                    const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
-                    const snapshot = await get(dbRef);
+                const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
+                this._unsubscribe = onValue(dbRef, (snapshot) => {
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
                     }
-                } catch (error) {
+                    this.isLoading = false;
+                }, (error) => {
                     console.error('Error fetching data:', error);
-                }
-                this.isLoading = false;
+                    this.isLoading = false;
+                });
             } else {
                 const id = this.$route.params.id;
-                let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`);
-
-                if (response.ok) {
-                    let tournamentInfo = await response.json();
+                fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`).then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error("Error " + response.status);
+                }).then(tournamentInfo => {
                     this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
                     this.isLoading = false;
-
-                } else {
-                    alert("Error" + response.status);
-                }
+                }).catch(() => {
+                    this.isLoading = false;
+                });
             }
         },
         showNotification(message) {

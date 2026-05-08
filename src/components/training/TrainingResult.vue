@@ -1,5 +1,5 @@
 <script>
-import {get, getDatabase, ref} from "firebase/database";
+import {trainingService} from "@/services/db";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getDate} from "@/helpers-stat";
@@ -16,13 +16,9 @@ export default {
         }
     },
     mounted() {
-        const db = getDatabase();
-
-        const statsRef = ref(db, `${this.user.uid}/training/${this.exid}`);
-
         this.isLoading = true;
 
-        get(statsRef)
+        trainingService.getResults(this.user.uid, this.exid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.results = snapshot.val();

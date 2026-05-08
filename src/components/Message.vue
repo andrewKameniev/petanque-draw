@@ -35,5 +35,6 @@ export default {
         min-width: 300px;
         right: 0;
         margin: 10px;
+        z-index: 200;
     }
 </style>

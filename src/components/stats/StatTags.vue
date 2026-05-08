@@ -21,7 +21,7 @@
     </div>
 </template>
 <script>
-import {getDatabase, ref, remove, set} from "firebase/database";
+import {statsService} from "@/services/db";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 
@@ -40,8 +40,7 @@ export default {
         ...mapActions(useMainStore, ['showMessage']),
         addTag() {
             const tagId = Date.now();
-            const db = getDatabase();
-            set(ref(db, `${this.user.uid}/stats/tags/${tagId}`), this.tagName.trim()).then(() => {
+            statsService.addTag(this.user.uid, tagId, this.tagName.trim()).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagSaved')});
                 this.$emit('addtag', tagId, this.tagName);
                 this.tagName = '';
@@ -51,10 +50,7 @@ export default {
             });
         },
         removeTag(id) {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/stats/tags/${id}`);
-
-            remove(statsRef)
+            statsService.removeTag(this.user.uid, id)
                 .then(() => {
                     this.$emit('removetag', id)
                     this.showMessage({

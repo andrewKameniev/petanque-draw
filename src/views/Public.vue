@@ -164,8 +164,7 @@
 
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import {ref, onValue} from "firebase/database";
-import {database, initializeMessaging} from "@/firebase";
+import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -206,6 +205,11 @@ export default {
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
     },
+    beforeUnmount() {
+        if (this._unsubscribe) {
+            this._unsubscribe();
+        }
+    },
     computed: {
         tabs() {
             return [
@@ -230,9 +234,15 @@ export default {
             return getTeamsRanking(this.tournament, this.activeRound)
         },
         userId() {
+            if (this.$route.query.ref) {
+                return this.parseRef().userId;
+            }
             return this.$route.query.user;
         },
         tournamentId() {
+            if (this.$route.query.ref) {
+                return this.parseRef().tournamentId;
+            }
             return this.$route.query.tournament;
         },
         tournamentMessageLines() {
@@ -283,6 +293,16 @@ export default {
         }
     },
     methods: {
+        parseRef() {
+            const refParam = this.$route.query.ref;
+            if (refParam.includes('.')) {
+                const [userId, tournamentBase36] = refParam.split('.');
+                return { userId, tournamentId: parseInt(tournamentBase36, 36).toString() };
+            }
+            const decoded = atob(refParam);
+            const [userId, tournamentId] = decoded.split(':');
+            return { userId, tournamentId };
+        },
         pluralizeRounds(n) {
             if (this.$i18n.locale === 'ua') {
                 const mod10 = n % 10;
@@ -296,8 +316,7 @@ export default {
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
-                const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
-                this._unsubscribe = onValue(dbRef, (snapshot) => {
+                this._unsubscribe = tournamentService.subscribe(this.userId, this.tournamentId, (snapshot) => {
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
                         if (this.tournament.cadrage?.length) {

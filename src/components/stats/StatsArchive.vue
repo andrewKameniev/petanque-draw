@@ -2,7 +2,7 @@
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getDate} from "@/helpers-stat";
-import {getDatabase, ref, get, remove, update} from "firebase/database";
+import {statsService} from "@/services/db";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
@@ -21,13 +21,9 @@ export default {
         }
     },
     mounted() {
-        console.log(this.user.uid);
-        const db = getDatabase();
-        const statsRef = ref(db, `${this.user.uid}/stats/`);
-
         this.isLoading = true;
 
-        get(statsRef)
+        statsService.getAll(this.user.uid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.statsList = Object.keys(snapshot.val()).reverse().reduce(
@@ -77,10 +73,7 @@ export default {
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
         removeGame(id) {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/stats/${id}`);
-
-            remove(statsRef)
+            statsService.remove(this.user.uid, id)
                 .then(() => {
                     delete this.statsList[id];
                     this.showMessage({
@@ -117,9 +110,7 @@ export default {
             this.saveGame(game, this.statsList[game].tags);
         },
         saveGame(game, tags) {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/stats/${game}`);
-            update(statsRef, {tags}).then(() => {
+            statsService.update(this.user.uid, game, {tags}).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagUpdated')});
             }).catch((error) => {
                 console.error('Error save:', error);

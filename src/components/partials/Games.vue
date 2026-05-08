@@ -319,7 +319,7 @@ export default {
                 for (let i = 1; i <= superMeleScheme.doubles; i++) {
                     const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
                     let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                    let tryToFindOpponent;
+                    let tryToFindOpponent = 0;
                     while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
                       player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
                       tryToFindOpponent++
@@ -610,7 +610,7 @@ export default {
                         if (firstTeamIndex !== -1) {
                             this.tournament.teams[firstTeamIndex].wins++
                         }
-                    } else if (!secondTeamIndex !== -1 && game.team_2 !== "Technical") {
+                    } else if (secondTeamIndex !== -1 && game.team_2 !== "Technical") {
                         this.tournament.teams[secondTeamIndex].wins++
                     }
                 })

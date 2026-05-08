@@ -331,6 +331,7 @@ export default {
         },
         restoreTeamsFromLocalStorage() {
             const teams = JSON.parse(localStorage.getItem('petanqueDrawTeamsRestore'));
+            if (!teams) return;
             teams.forEach(item => {
                 this.addTeamToStore(item)
             })

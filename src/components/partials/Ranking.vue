@@ -1,6 +1,18 @@
 <template>
     <div>
-        <div v-if="tournament.tournamentIsFinished && !showOnlySwiss" class="mb-5">
+        <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished && !isForProtocol && !showInSaved">
+            <button class="button is-small mr-1 mb-1"
+                    :class="{'is-purple': rankingSubtab === 'result'}"
+                    @click="rankingSubtab = 'result'">
+                {{ $t('ranking.tournamentResult') }}
+            </button>
+            <button class="button is-small mr-1 mb-1"
+                    :class="{'is-purple': rankingSubtab === 'swiss'}"
+                    @click="rankingSubtab = 'swiss'">
+                {{ $t('ranking.swissTable') }}
+            </button>
+        </div>
+        <div v-if="tournament.tournamentIsFinished && !isSwissOnly" class="mb-5">
             <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
                 <button class="button btn-purple-outline" @click="copyResults">
@@ -19,7 +31,7 @@
                     </thead>
                     <tbody>
                     <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index"
-                        :class="{'place-gold': team.place === '1', 'place-silver': team.place === '2', 'place-bronze': team.place === '3'}">
+                        :class="{'place-gold': team.place == 1, 'place-silver': team.place == 2, 'place-bronze': team.place == 3}">
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>
@@ -36,7 +48,7 @@
                 </table>
             </div>
         </div>
-        <div v-if="tournament.games?.length && rankingTeams && !showOnlyResult">
+        <div v-if="tournament.games?.length && rankingTeams && !isResultOnly">
             <div v-if="tournament.system === 'swiss'">
                 <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">{{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}</div>
                 <div class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
@@ -111,7 +123,8 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="team in rankingTeams" :key="team.title">
+                        <tr v-for="(team, index) in rankingTeams" :key="team.title"
+                            :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2}">
                             <td><span class="team-count"></span></td>
                             <td>{{ team.title }}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -145,7 +158,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup}">
+                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
@@ -161,7 +174,7 @@
                 </div>
             </div>
         </div>
-        <div v-else-if="!showOnlyResult && !showOnlySwiss">
+        <div v-else-if="!isResultOnly && !isSwissOnly">
             {{ $t('ranking.noRanking') }}
         </div>
     </div>
@@ -173,12 +186,13 @@ import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent
 
 export default {
     name: 'Ranking',
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'showOnlyResult', 'showOnlySwiss'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
         return {
             playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null,
-            activeTooltip: null
+            activeTooltip: null,
+            rankingSubtab: 'result'
         }
     },
     methods: {
@@ -204,6 +218,12 @@ export default {
         playOffTeamsPerGroup() {
             if (!this.tournament.playOff || !this.tournament.groups?.length) return 0;
             return Math.ceil((this.tournament.preferences?.playOffTeams || 0) / this.tournament.groups.length);
+        },
+        isSwissOnly() {
+            return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'swiss';
+        },
+        isResultOnly() {
+            return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'result';
         },
     },
 }

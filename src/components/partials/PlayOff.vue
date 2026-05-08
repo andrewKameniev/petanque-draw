@@ -31,7 +31,8 @@
 
 <script>
 import Bracket from './Bracket';
-import {mapGetters, mapMutations} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
 
@@ -52,7 +53,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters(['currentTournament']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
             return this.activeTournament || this.currentTournament
         },
@@ -75,7 +76,7 @@ export default {
     },
     methods: {
         shuffleArray,
-        ...mapMutations(['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
+        ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {
             this.scoreError = false;
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => isScoreError(game, this.tournament.preferences.maxScore))){

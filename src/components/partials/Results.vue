@@ -2,38 +2,57 @@
     <div class="content tabs-content">
         <div v-if="tournament.games?.length || tournament.playOffBracket">
             <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
-                <h3 v-if="tournament.games?.length && !isForProtocol" class="has-text-centered">
-                    {{ $t('results.title') }}
-                </h3>
+                <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length)" class="round-tabs mb-4">
+                    <button v-for="(round, index) in tournament.games" :key="index"
+                            class="button is-small mr-1 mb-1"
+                            :class="{'is-purple': selectedRound === index}"
+                            @click="selectedRound = index">
+                        R{{ index + 1 }}
+                    </button>
+                    <button v-if="tournament.cadrage?.length" class="button is-small mr-1 mb-1"
+                            :class="{'is-purple': selectedRound === 'cadrage'}"
+                            @click="selectedRound = 'cadrage'">
+                        {{ $t('games.cadrage') }}
+                    </button>
+                    <button class="button is-small mr-1 mb-1"
+                            :class="{'is-purple': selectedRound === -1}"
+                            @click="selectedRound = -1">
+                        {{ $t('results.all') }}
+                    </button>
+                </div>
                 <div class="table-container">
                     <table v-if="tournament.games?.length" class="table mb-5"
-                           :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
+                           :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
                         <tbody>
                             <template v-for="(round, index) in tournament.games" :key="index">
-                                <tr v-for="(game, i) in round" :key="i">
-                                    <td>R{{index + 1}}</td>
-                                    <td v-if="tournament.system === 'groups' && tournament?.groups.length > 1"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
-                                    <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
-                                    <td align="center">{{game.team_1_score}}</td>
-                                    <td align="center">{{game.team_2_score}}</td>
-                                    <td>{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
-                                </tr>
+                                <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
+                                    <tr v-for="(game, i) in round" :key="i">
+                                        <td class="is-narrow"><small class="has-text-grey">R{{index + 1}}</small></td>
+                                        <td v-if="tournament.system === 'groups' && tournament?.groups.length > 1"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
+                                        <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
+                                        <td class="has-text-centered is-narrow">
+                                            <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
+                                        </td>
+                                        <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                    </tr>
+                                </template>
                             </template>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div v-if="tournament.cadrage">
+            <div v-if="tournament.cadrage && (isForProtocol || selectedRound === -1 || selectedRound === 'cadrage')">
                 <div class="mb-5">
                     <h3 class="has-text-centered">{{$t('games.cadrage')}}</h3>
                     <div class="table-container">
                         <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
                             <tbody>
                                 <tr v-for="(game, index) in tournament.cadrage" :key="index">
-                                    <td>{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
-                                    <td align="center">{{game.team_1_score}}</td>
-                                    <td align="center">{{game.team_2_score}}</td>
-                                    <td>{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                    <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
+                                    <td class="has-text-centered is-narrow">
+                                        <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
+                                    </td>
+                                    <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -84,14 +103,20 @@
 
 
 <script>
-import {mapGetters} from "vuex";
+import {mapState} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 
 export default {
     name: 'Results',
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
+    data() {
+        return {
+            selectedRound: -1
+        }
+    },
     computed: {
-        ...mapGetters(['currentTournament']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
             return this.previewTournament || this.currentTournament
         },

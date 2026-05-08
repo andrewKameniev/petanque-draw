@@ -1,7 +1,8 @@
 <script>
 import StatCheckbox from "@/components/stats/StatCheckbox.vue";
 import {trainingService} from "@/services/db";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Loader from "@/components/Loader.vue";
 
 export default {
@@ -21,13 +22,13 @@ export default {
         this.setTrainingData();
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(useMainStore, ['user']),
         currentDistanceLabel() {
             return this.data.distances[this.currentDistance]
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         setTrainingData() {
             const localData = JSON.parse(localStorage.getItem('trainingData'));
             if (localData && localData[this.exid]) {

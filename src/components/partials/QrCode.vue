@@ -18,7 +18,8 @@
 <script>
 import QrcodeVue from 'qrcode.vue'
 import Modal from "@/components/Modal";
-import {mapGetters, mapState} from "vuex";
+import {mapState} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {copyContent} from "@/helpers";
 
 export default {
@@ -30,11 +31,13 @@ export default {
         }
     },
     computed: {
-        ...mapState(['user']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-            const shortRef = `${this.user.uid}.${parseInt(this.tournaments[this.currentTournamentIndex].id).toString(36)}`;
+            const shortRef = `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
             return `${window.location.origin}${domain}tournament?ref=${shortRef}`
         },
     },

@@ -1,6 +1,8 @@
 <script>
-import {mapMutations} from "vuex";
+import {mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import VueSelect from "vue3-select-component";
+import "vue3-select-component/dist/styles.css";
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import {calculatePlayerStat, getDate} from "@/helpers-stat";
@@ -35,7 +37,8 @@ export default {
             ],
             chartOptions: {
                 chart: {
-                    id: 'vuechart-example'
+                    id: 'vuechart-example',
+                    background: '#fff'
                 },
                 dropShadow: {
                     enabled: true,
@@ -112,7 +115,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         showPlayerStat() {
             this.showSinusoids = false;
             this.playerStatList = [];
@@ -235,7 +238,7 @@ export default {
             <p>{{ $t('stat.all') }}: {{allPeriodStat.allPercent}}</p>
             <p>{{ $t('stat.points') }}: {{allPeriodStat.pointsPercent}}, ({{allPeriodStat.points}})</p>
             <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirsPercent}}, ({{allPeriodStat.tirs}})</p>
-            <div v-if="showSinusoids" class="has-background-white p-3 mt-3">
+            <div v-if="showSinusoids" class="has-background-white p-3 mt-3" style="border-radius: 8px; overflow: hidden">
                 <apexchart
                     type="line"
                     height="350"

@@ -82,72 +82,10 @@
             <div class="content tabs-content" v-if="activeTab === 'teams'">
                 <TeamsList :previewTournament="tournament"/>
             </div>
-            <div v-if="activeTab === 'results'" class="content tabs-content">
-                <div v-if="tournament.games?.length || tournament.cadrage?.length" class="round-tabs mb-4">
-                    <button v-for="(round, index) in tournament.games" :key="index"
-                            class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': selectedRound === index}"
-                            @click="selectedRound = index">
-                        R{{ index + 1 }}
-                    </button>
-                    <button v-if="tournament.cadrage?.length" class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': selectedRound === 'cadrage'}"
-                            @click="selectedRound = 'cadrage'">
-                        {{ $t('games.cadrage') }}
-                    </button>
-                    <button class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': selectedRound === -1}"
-                            @click="selectedRound = -1">
-                        {{ $t('results.all') }}
-                    </button>
-                </div>
-                <div class="table-container" v-if="tournament.games?.length || tournament.cadrage?.length">
-                    <table class="table is-striped is-fullwidth">
-                        <tbody>
-                            <template v-for="(round, index) in tournament.games" :key="index">
-                                <template v-if="selectedRound === -1 || selectedRound === index">
-                                    <tr v-for="(game, i) in round" :key="i">
-                                        <td class="is-narrow"><small class="has-text-grey">R{{ index + 1 }}</small></td>
-                                        <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
-                                        <td class="has-text-centered is-narrow" :class="{'score-pending': game.team_1_score == null}">
-                                            <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
-                                        </td>
-                                        <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
-                                    </tr>
-                                </template>
-                            </template>
-                            <template v-if="tournament.cadrage?.length && (selectedRound === -1 || selectedRound === 'cadrage')">
-                                <tr v-for="(game, i) in tournament.cadrage" :key="'c' + i">
-                                    <td class="is-narrow"><small class="has-text-grey">{{ $t('games.cadrage') }}</small></td>
-                                    <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
-                                    <td class="has-text-centered is-narrow" :class="{'score-pending': game.team_1_score == null}">
-                                        <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
-                                    </td>
-                                    <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-                <div v-else class="mb-5 mt-5">{{ $t('games.noGames') }}</div>
-            </div>
+            <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && isFinished">
-                    <button class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': rankingSubtab === 'result'}"
-                            @click="rankingSubtab = 'result'">
-                        {{ $t('ranking.tournamentResult') }}
-                    </button>
-                    <button class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': rankingSubtab === 'swiss'}"
-                            @click="rankingSubtab = 'swiss'">
-                        {{ $t('ranking.swissTable') }}
-                    </button>
-                </div>
                 <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound"
-                         :showOnlyResult="tournament.tournamentIsFinished && rankingSubtab === 'result'"
-                         :showOnlySwiss="tournament.tournamentIsFinished && rankingSubtab === 'swiss'"/>
+                         :rankingTeams="rankingTeams" :activeRound="activeRound"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -163,6 +101,7 @@
 <script>
 
 import Ranking from "@/components/partials/Ranking";
+import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
@@ -171,14 +110,12 @@ import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking},
+    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Results, Ranking},
     data() {
         return {
             isLoading: false,
             tournament: null,
             activeTab: "ranking",
-            rankingSubtab: "result",
-            selectedRound: -2,
             notificationsEnabled: false,
         }
     },
@@ -319,11 +256,6 @@ export default {
                 this._unsubscribe = tournamentService.subscribe(this.userId, this.tournamentId, (snapshot) => {
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
-                        if (this.tournament.cadrage?.length) {
-                            this.selectedRound = 'cadrage';
-                        } else if (this.tournament.games?.length) {
-                            this.selectedRound = this.tournament.games.length - 1;
-                        }
                     }
                     this.isLoading = false;
                 }, (error) => {
@@ -518,18 +450,6 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-    .ranking-subtabs {
-        display: flex;
-    }
-
-    .ranking-subtabs .button {
-        flex: 1;
-        margin-right: 0.25rem;
-    }
-
-    .ranking-subtabs .button:last-child {
-        margin-right: 0;
-    }
 }
 
 .wrapper {
@@ -640,14 +560,11 @@ export default {
     background: #ffffff;
 }
 
-.score-pending strong {
-    color: #ccc;
-}
-
 .match-team {
     flex: 1 1 0;
     font-weight: 700;
     font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .match-team-right {

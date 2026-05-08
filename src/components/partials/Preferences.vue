@@ -44,7 +44,8 @@
 </template>
 
 <script>
-import {mapGetters, mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Modal from "@/components/Modal";
 
 export default {
@@ -52,11 +53,13 @@ export default {
     components: {Modal},
     emits: ['close-modal'],
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
     },
     methods: {
-        ...mapMutations(['savePreferences']),
+        ...mapActions(useMainStore, ['savePreferences']),
         save() {
             this.savePreferences();
             this.$emit('close-modal');

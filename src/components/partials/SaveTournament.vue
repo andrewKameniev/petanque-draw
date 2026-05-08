@@ -23,7 +23,8 @@
 </template>
 
 <script>
-import {mapGetters, mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Modal from "@/components/Modal";
 import {getTournamentRanking} from "@/helpers";
 
@@ -42,8 +43,10 @@ export default {
         this.name = this.tournament.name
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
         tournamentsNames() {
             if (this.savedTournaments.length > 0) {
                 let tournamentsTitles = []
@@ -58,8 +61,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['showMessage']),
-        addToSaved(tournament) { this.$store.dispatch('addToSaved', tournament); },
+        ...mapActions(useMainStore, ['addToSaved', 'showMessage']),
         saveTournament(){
             this.hasError = false;
             if(!this.tournament.name || this.tournamentsNames && this.tournamentsNames.includes(this.name)){

@@ -107,10 +107,11 @@ import Message from './Message.vue';
 import Menu from './Menu';
 import SavedTournamentModal from './partials/SavedTournamentModal';
 import Tournament from "./Tournament";
-import {mapGetters, mapState, mapMutations} from 'vuex'
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main"
 import Navbar from "./Navbar";
 import Help from "./Help";
-import { onAuthStateChanged, authStateReady, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";
 
@@ -134,28 +135,11 @@ export default {
             forgotShow: false,
         }
     },
-    async mounted() {
-        this.isLoading = true
-        await authStateReady(auth);
-        if (auth.currentUser) {
-            this.loginUser(auth.currentUser);
-            this.$store.dispatch('getTournaments');
-        } else {
-            this.loginUser(false);
-        }
-        this.isLoading = false
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                this.loginUser(user);
-                this.$store.dispatch('getTournaments');
-            } else {
-                this.loginUser(false);
-            }
-        });
+    mounted() {
+        this.isLoading = false;
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'addTournament', 'loginUser', 'showMessage']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'addTournament', 'loginUser', 'getTournaments', 'showMessage']),
         openSavedTournament(index) {
             this.savedTournamentsActive = index;
             this.menuOpen = false;
@@ -238,8 +222,10 @@ export default {
         },
     },
     computed: {
-        ...mapState(['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
     },
     components: {
         Footer,

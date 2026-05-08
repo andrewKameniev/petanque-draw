@@ -64,20 +64,22 @@ const router = createRouter({
 
 app.use(pinia).use(router).use(i18n);
 
-let authReady = false;
-const authReadyPromise = new Promise(resolve => {
+const authReadyPromise = auth.authStateReady().then(async () => {
     const store = useMainStore();
-    onAuthStateChanged(auth, async (user) => {
-        store.loginUser(user || false);
-        if (user) await store.getTournaments();
-        authReady = true;
-        resolve();
-    });
+    const user = auth.currentUser;
+    store.loginUser(user || false);
+    if (user) await store.getTournaments();
+});
+
+onAuthStateChanged(auth, async (user) => {
+    const store = useMainStore();
+    store.loginUser(user || false);
+    if (user) await store.getTournaments();
 });
 
 router.beforeEach(async (to) => {
     if (to.meta.requiresAuth) {
-        if (!authReady) await authReadyPromise;
+        await authReadyPromise;
         const store = useMainStore();
         if (!store.user) return '/';
     }

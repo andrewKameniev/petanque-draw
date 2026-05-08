@@ -37,13 +37,8 @@
             </div>
         </div>
         <div v-if="tournament.games?.length && rankingTeams && !showOnlyResult">
-            <h2 v-if="!isForProtocol && tournament.system !== 'groups'">{{ $t('ranking.ranking') }}
-                <span v-if="activeRound">{{ $t('ranking.after') }} {{ activeRound - 1 }}
-                    {{ activeRound > 2 && activeRound !== 0 ? $t('ranking.rounds') + ' ' : $t('ranking.round') + ' ' }}
-                </span>
-                <span v-if="tournament.system === 'swiss'"> {{ $t('ranking.swiss') }} </span>
-            </h2>
             <div v-if="tournament.system === 'swiss'">
+                <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">{{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}</div>
                 <div class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
                     <table id="table-ranking" class="table" :class="{'is-bordered': isForProtocol}">
                         <thead>
@@ -149,7 +144,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(team, index) in group" :key="index">
+                            <tr v-for="(team, index) in group" :key="index"
+                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup}">
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
@@ -204,6 +200,10 @@ export default {
         },
         tournamentRanking() {
             return getTournamentRanking(this.tournament, this.rankingTeams)
+        },
+        playOffTeamsPerGroup() {
+            if (!this.tournament.playOff || !this.tournament.groups?.length) return 0;
+            return Math.ceil((this.tournament.preferences?.playOffTeams || 0) / this.tournament.groups.length);
         },
     },
 }

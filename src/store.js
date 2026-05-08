@@ -159,6 +159,10 @@ const store = createStore({
             if (!state.tournaments[state.currentTournamentIndex].games) {
                 state.tournaments[state.currentTournamentIndex].games = []
             }
+            if (!state.tournaments[state.currentTournamentIndex].tournamentIsStarted) {
+                state.tournaments[state.currentTournamentIndex].tournamentIsStarted = true;
+                state.tournaments[state.currentTournamentIndex].startedAt = new Date().toISOString();
+            }
             state.tournaments[state.currentTournamentIndex].games.push(round);
             if (!state.tournaments[state.currentTournamentIndex].gamesCopy) {
                 state.tournaments[state.currentTournamentIndex].gamesCopy = []
@@ -212,6 +216,7 @@ const store = createStore({
             }
             const tournamentId = Date.now();
             newTournament.id = tournamentId;
+            newTournament.createdAt = new Date().toISOString();
             state.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
             state.currentTournamentIndex = tournamentId;
             store.commit('changeTournamentName', `Tournament ${tournamentNames[Object.keys(state.tournaments).length - 1]}`);

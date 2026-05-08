@@ -50,7 +50,7 @@
 <script>
 
 import PlayOff from './PlayOff';
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import {gameHasError, isScoreError, shuffleArray, sortTeams} from '@/helpers'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
@@ -69,9 +69,7 @@ export default {
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
         teamsCount() {
             return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 :
                 this.tournament.groups ? this.tournament.groups[0].length % 2 !== 0 ? this.tournament.groups[0].length :

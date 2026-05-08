@@ -188,7 +188,8 @@ export default {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
+        ...mapMutations(['startRound', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
+        removeTournament() { this.$store.dispatch('removeTournament'); },
         setPlayOffList() {
             let playOffList;
             if(this.tournament.system === 'swiss') {

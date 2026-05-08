@@ -60,7 +60,8 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['addToSaved', 'showMessage']),
+        ...mapMutations(['showMessage']),
+        addToSaved(tournament) { this.$store.dispatch('addToSaved', tournament); },
         saveTournament(){
             this.hasError = false;
             if(!this.tournament.name || this.tournamentsNames && this.tournamentsNames.includes(this.name)){

@@ -21,16 +21,17 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'Message',
     mounted() {
         setTimeout(this.hideMessage, 3000);
     },
-    computed: mapState(['message']),
+    computed: mapState(useMainStore, ['message']),
     methods: {
-        ...mapMutations(['hideMessage']),
+        ...mapActions(useMainStore, ['hideMessage']),
     },
 }
 </script>

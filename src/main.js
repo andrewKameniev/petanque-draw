@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
-import {store} from "./store";
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Public from "@/views/Public.vue";
 import Help from "@/components/Help.vue";
@@ -8,20 +8,12 @@ import Stats from "@/views/Stats.vue";
 import Training from "@/views/Training.vue";
 import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
+import {useMainStore} from "@/stores/main";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase";
 
-let authReady = false;
-const authReadyPromise = new Promise(resolve => {
-    onAuthStateChanged(auth, async (user) => {
-        store.commit('loginUser', user || false);
-        if (user) await store.dispatch('getTournaments');
-        authReady = true;
-        resolve();
-    });
-});
-
 const app = createApp(App);
+const pinia = createPinia();
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
@@ -70,13 +62,26 @@ const router = createRouter({
     ]
 })
 
+app.use(pinia).use(router).use(i18n);
+
+let authReady = false;
+const authReadyPromise = new Promise(resolve => {
+    const store = useMainStore();
+    onAuthStateChanged(auth, async (user) => {
+        store.loginUser(user || false);
+        if (user) await store.getTournaments();
+        authReady = true;
+        resolve();
+    });
+});
+
 router.beforeEach(async (to) => {
     if (to.meta.requiresAuth) {
         if (!authReady) await authReadyPromise;
-        if (!store.state.user) return '/';
+        const store = useMainStore();
+        if (!store.user) return '/';
     }
 });
 
-app.use(store).use(router).use(i18n);
 authReadyPromise.then(() => app.mount('#app'));
 

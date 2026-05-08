@@ -74,7 +74,8 @@ import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import {trainingService} from "@/services/db";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Message from "@/components/Message.vue";
 import TrainingItem from "@/components/training/TrainingItem.vue";
 import TrainingResult from "@/components/training/TrainingResult.vue";
@@ -128,11 +129,11 @@ export default {
             });
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
     },
 
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         start(id) {
             this.exerciseInProcess = id;
             this.exercise = this.exercisesList[id]

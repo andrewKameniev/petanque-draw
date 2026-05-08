@@ -1,7 +1,20 @@
 :root {
     --color-primary: #471aa0;
     --color-primary-light: #5a2db8;
+    --color-primary-bg: #f3eeff;
+    --color-primary-bg-hover: #e8e0ff;
+    --color-primary-shadow: rgba(71, 26, 160, 0.25);
     --color-highlight: rgba(16, 185, 129, 0.12);
     --color-white: #ffffff;
     --color-grey: #b5b5b5;
+    --color-text: #1a1a2e;
+    --color-text-muted: #8b8fa3;
+    --color-text-secondary: #374151;
+    --color-border: #e5e7f0;
+    --color-border-light: #f0f1f5;
+    --color-bg-input: #f9fafb;
+    --color-error: #ef4444;
+    --color-error-bg: #fef2f2;
+    --color-dropdown-shadow: rgba(0, 0, 0, 0.12);
+    --color-card-shadow: rgba(71, 26, 160, 0.08);
 }

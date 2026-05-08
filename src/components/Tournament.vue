@@ -337,7 +337,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
         tabs() {
             return [
                 {
@@ -368,9 +371,6 @@ export default {
                 values.pop()
             }
             return values;
-        },
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
         },
         canSaveTournament() {
             return this.tournament.tournamentIsFinished && this.tournament.games?.length > 1

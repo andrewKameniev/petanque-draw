@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-// import './registerServiceWorker'
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Public from "@/views/Public.vue";
 import LoginUser from "@/views/LoginUser.vue";

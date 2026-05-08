@@ -54,9 +54,9 @@ export default {
     name: "TeamsList",
     props: ['previewTournament', 'activeRound'],
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.previewTournament || this.tournaments[this.currentTournamentIndex]
+            return this.previewTournament || this.currentTournament
         },
         groupsNames() {
             return tournamentNames

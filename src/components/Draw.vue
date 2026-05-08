@@ -94,9 +94,9 @@ export default {
         },
     },
     computed: {
-        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user']),
+        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
     },
     components: {

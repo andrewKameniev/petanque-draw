@@ -34,9 +34,9 @@ export default {
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird'],
     methods: {...mapActions(useMainStore, ['updateGameScore']), gameHasError},
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         currentGame() {
             if (this.isThird) {

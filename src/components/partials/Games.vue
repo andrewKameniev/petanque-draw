@@ -69,9 +69,9 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
         teamsCount() {
             return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 :

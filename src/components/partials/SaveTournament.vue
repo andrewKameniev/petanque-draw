@@ -43,9 +43,9 @@ export default {
         this.name = this.tournament.name
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
         tournamentsNames() {
             if (this.savedTournaments.length > 0) {

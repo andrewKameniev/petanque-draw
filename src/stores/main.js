@@ -235,6 +235,7 @@ export const useMainStore = defineStore('main', {
             }
             const tournamentId = Date.now();
             newTournament.id = tournamentId;
+            newTournament.createdAt = new Date().toISOString();
             this.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
             this.currentTournamentIndex = tournamentId;
             this.changeTournamentName(`Tournament ${tournamentNames[Object.keys(this.tournaments).length - 1]}`);

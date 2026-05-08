@@ -9,9 +9,9 @@ export default {
     props: ['activeTournament', 'isPublicView'],
     components: {Game},
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         rankingTeams() {
             return getTeamsRanking(this.tournament)

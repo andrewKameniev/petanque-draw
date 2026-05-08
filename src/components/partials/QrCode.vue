@@ -31,10 +31,13 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'user']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-            return `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournaments[this.currentTournamentIndex].id}`
+            return `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournament.id}`
         },
     },
     methods: {copyContent}

@@ -53,9 +53,9 @@ export default {
     components: {Modal},
     emits: ['close-modal'],
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
     },
     methods: {

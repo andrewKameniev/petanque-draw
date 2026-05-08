@@ -62,9 +62,9 @@ export default {
     name: "Navbar",
     components: {LanguageSwitcher},
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
     },
     methods: {

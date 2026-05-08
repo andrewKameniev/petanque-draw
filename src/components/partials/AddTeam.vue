@@ -52,9 +52,9 @@ export default {
     },
     emits: ['add-team', 'change-draw-style'],
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
     },
     methods: {

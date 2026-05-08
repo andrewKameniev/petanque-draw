@@ -84,14 +84,15 @@
 
 
 <script>
-import {mapGetters} from "vuex";
+import {mapState} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 
 export default {
     name: 'Results',
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
     computed: {
-        ...mapGetters(['currentTournament']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
             return this.previewTournament || this.currentTournament
         },

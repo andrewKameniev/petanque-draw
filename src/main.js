@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
-import {store} from "./store";
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Public from "@/views/Public.vue";
 import Help from "@/components/Help.vue";
@@ -8,8 +8,10 @@ import Stats from "@/views/Stats.vue";
 import Training from "@/views/Training.vue";
 import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
+import {useMainStore} from "@/stores/main";
 
 const app = createApp(App);
+const pinia = createPinia();
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
@@ -58,13 +60,16 @@ const router = createRouter({
     ]
 })
 
+app.use(pinia).use(router).use(i18n);
+
 router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !store.state.user) {
+    const store = useMainStore();
+    if (to.meta.requiresAuth && !store.user) {
         next('/');
     } else {
         next();
     }
 });
 
-app.use(store).use(router).use(i18n).mount('#app');
+app.mount('#app');
 

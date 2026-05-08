@@ -65,7 +65,8 @@
 </template>
 
 <script>
-import {mapGetters, mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -92,11 +93,13 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'loginUser']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser']),
         closeDropdown() {
             this.userDropdownOpen = false;
         },

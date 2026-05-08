@@ -50,7 +50,8 @@
 <script>
 
 import PlayOff from './PlayOff';
-import {mapGetters, mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray, sortTeams} from '@/helpers'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
@@ -68,8 +69,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
         teamsCount() {
             return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 :
                 this.tournament.groups ? this.tournament.groups[0].length % 2 !== 0 ? this.tournament.groups[0].length :
@@ -80,7 +83,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];

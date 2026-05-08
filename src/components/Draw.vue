@@ -107,7 +107,8 @@ import Message from './Message.vue';
 import Menu from './Menu';
 import SavedTournamentModal from './partials/SavedTournamentModal';
 import Tournament from "./Tournament";
-import {mapGetters, mapState, mapMutations} from 'vuex'
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main"
 import Navbar from "./Navbar";
 import Help from "./Help";
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
@@ -139,7 +140,7 @@ export default {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 this.loginUser(user);
-                this.$store.dispatch('getTournaments');
+                this.getTournaments();
             } else {
                 this.loginUser(false);
             }
@@ -147,7 +148,7 @@ export default {
         });
     },
     methods: {
-        ...mapMutations(['setActiveTournament', 'addTournament', 'loginUser', 'showMessage']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'addTournament', 'loginUser', 'getTournaments', 'showMessage']),
         openSavedTournament(index) {
             this.savedTournamentsActive = index;
             this.menuOpen = false;
@@ -230,8 +231,10 @@ export default {
         },
     },
     computed: {
-        ...mapState(['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user']),
-        ...mapGetters({ tournament: 'currentTournament' }),
+        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user', 'currentTournament']),
+        tournament() {
+            return this.currentTournament
+        },
     },
     components: {
         Footer,

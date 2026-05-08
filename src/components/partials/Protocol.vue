@@ -181,7 +181,8 @@ import {getTournamentRanking, regions} from "@/helpers";
 import Ranking from "@/components/partials/Ranking";
 import html2pdf from "html2pdf.js";
 import playersNames from '../../data.json'
-import {mapMutations} from "vuex";
+import {mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'Protocol',
@@ -227,7 +228,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         getAllTeams(groups) {
             let allTeams = [];
             groups.forEach(group => {

@@ -22,7 +22,8 @@
 </template>
 <script>
 import {statsService} from "@/services/db";
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: "StatTags",
@@ -33,10 +34,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         addTag() {
             const tagId = Date.now();
             statsService.addTag(this.user.uid, tagId, this.tagName.trim()).then(() => {

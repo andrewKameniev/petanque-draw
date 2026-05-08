@@ -19,7 +19,7 @@
                     </thead>
                     <tbody>
                     <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index"
-                        :class="{'place-gold': team.place === '1', 'place-silver': team.place === '2', 'place-bronze': team.place === '3'}">
+                        :class="{'place-gold': team.place == 1, 'place-silver': team.place == 2, 'place-bronze': team.place == 3}">
                         <td>{{ team.place }}</td>
                         <td>{{ team.title }}</td>
                         <td>

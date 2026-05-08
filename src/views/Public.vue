@@ -564,6 +564,7 @@ export default {
     flex: 1 1 0;
     font-weight: 700;
     font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .match-team-right {

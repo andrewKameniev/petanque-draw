@@ -158,7 +158,7 @@ import Results from './partials/Results.vue';
 import Ranking from './partials/Ranking.vue';
 import TeamsList from "./partials/TeamsList";
 import SaveTournament from "./partials/SaveTournament";
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getTeamsRanking} from "@/helpers";
@@ -188,7 +188,8 @@ export default {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapMutations(['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
+        ...mapMutations(['startRound', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
+        removeTournament() { this.$store.dispatch('removeTournament'); },
         setPlayOffList() {
             let playOffList;
             if(this.tournament.system === 'swiss') {
@@ -337,6 +338,7 @@ export default {
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
+        ...mapGetters({ tournament: 'currentTournament' }),
         tabs() {
             return [
                 {
@@ -367,9 +369,6 @@ export default {
                 values.pop()
             }
             return values;
-        },
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
         },
         canSaveTournament() {
             return this.tournament.tournamentIsFinished && this.tournament.games?.length > 1

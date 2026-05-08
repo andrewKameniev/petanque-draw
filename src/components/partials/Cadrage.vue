@@ -1,6 +1,6 @@
 <script>
 import Game from "@/components/partials/Game.vue";
-import {mapState, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {getTeamsRanking} from "@/helpers";
 
 export default {
@@ -8,9 +8,9 @@ export default {
     props: ['activeTournament', 'isPublicView'],
     components: {Game},
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapGetters(['currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         rankingTeams() {
             return getTeamsRanking(this.tournament)

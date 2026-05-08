@@ -43,6 +43,9 @@ const store = createStore({
             user: false
         }
     },
+    getters: {
+        currentTournament: (state) => state.tournaments[state.currentTournamentIndex]
+    },
     actions: {
         async getTournaments({state, commit}) {
             const dbRef = ref(database, `${state.user.uid}/tournaments/`);
@@ -58,6 +61,55 @@ const store = createStore({
                 commit('setSavedTournaments', snapshotSaved.val());
             } else {
                 commit('setSavedTournaments', {});
+            }
+        },
+        async removeTournament({state, commit}) {
+            const db = getDatabase();
+            const dataRef = ref(db, `${state.user.uid}/tournaments/${state.currentTournamentIndex}`);
+            const tokensRef = ref(db, `tokens/${state.user.uid}/${state.currentTournamentIndex}`);
+
+            try {
+                await remove(tokensRef);
+            } catch (error) {
+                console.error('Error deleting tokens:', error);
+            }
+
+            try {
+                await remove(dataRef);
+                delete state.tournaments[state.currentTournamentIndex];
+                if (Object.keys(state.tournaments).length >= 1) {
+                    state.currentTournamentIndex = Object.keys(state.tournaments)[0];
+                } else {
+                    commit('addTournament');
+                }
+                commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemoved')});
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
+            }
+        },
+        async addToSaved({state, commit}, tournament) {
+            const db = getDatabase();
+            try {
+                await set(ref(db, `${state.user.uid}/saved/${tournament.id}`), tournament);
+                state.savedTournaments[tournament.id] = tournament;
+                commit('showMessage', {title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentSavedList')});
+            } catch (error) {
+                console.error('Error save:', error);
+                commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
+            }
+        },
+        async removeSavedTournament({state, commit}, id) {
+            const db = getDatabase();
+            const dataRef = ref(db, `${state.user.uid}/saved/${id}`);
+
+            try {
+                await remove(dataRef);
+                delete state.savedTournaments[id];
+                commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemovedSaved')});
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
             }
         },
     },
@@ -108,34 +160,6 @@ const store = createStore({
         changeTournamentName(state, name) {
             state.tournaments[state.currentTournamentIndex].name = name
         },
-        removeTournament (state) {
-            const db = getDatabase();
-            const dataRef = ref(db, `${state.user.uid}/tournaments/${state.currentTournamentIndex}`);
-            const tokensRef = ref(db, `tokens/${state.user.uid}/${state.currentTournamentIndex}`);
-
-            remove(tokensRef)
-                .then(() => {
-                    console.log('Tokens successfully deleted');
-                })
-                .catch((error) => {
-                    console.error('Error deleting data:', error);
-                });
-
-            remove(dataRef)
-                .then(() => {
-                    delete state.tournaments[state.currentTournamentIndex];
-                    if (Object.keys(state.tournaments).length >= 1) {
-                        state.currentTournamentIndex = Object.keys(state.tournaments)[0];
-                    } else {
-                        store.commit('addTournament');
-                    }
-                    store.commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemoved')});
-                })
-                .catch((error) => {
-                    console.error('Error deleting data:', error);
-                    store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
-                });
-        },
         addTeamToStore (state, team) {
             if(!state.tournaments[state.currentTournamentIndex].teams) {
                 state.tournaments[state.currentTournamentIndex].teams = []
@@ -158,6 +182,10 @@ const store = createStore({
         addRoundToGames(state, round){
             if (!state.tournaments[state.currentTournamentIndex].games) {
                 state.tournaments[state.currentTournamentIndex].games = []
+            }
+            if (!state.tournaments[state.currentTournamentIndex].tournamentIsStarted) {
+                state.tournaments[state.currentTournamentIndex].tournamentIsStarted = true;
+                state.tournaments[state.currentTournamentIndex].startedAt = new Date().toISOString();
             }
             state.tournaments[state.currentTournamentIndex].games.push(round);
             if (!state.tournaments[state.currentTournamentIndex].gamesCopy) {
@@ -212,34 +240,10 @@ const store = createStore({
             }
             const tournamentId = Date.now();
             newTournament.id = tournamentId;
+            newTournament.createdAt = new Date().toISOString();
             state.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
             state.currentTournamentIndex = tournamentId;
             store.commit('changeTournamentName', `Tournament ${tournamentNames[Object.keys(state.tournaments).length - 1]}`);
-        },
-        addToSaved(state, tournament) {
-            const db = getDatabase();
-            set(ref(db, `${state.user.uid}/saved/${tournament.id}`), tournament).then(() => {
-                state.savedTournaments[tournament.id] = tournament;
-                store.commit('showMessage', {title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentSavedList')});
-            }).catch((error) => {
-                console.error('Error save:', error);
-                store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
-            });
-        },
-        removeSavedTournament (state, id) {
-            const db = getDatabase();
-            const dataRef = ref(db, `${state.user.uid}/saved/${id}`);
-
-            remove(dataRef)
-                .then(() => {
-                    delete state.savedTournaments[id];
-                    console.log('Data successfully deleted');
-                    store.commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemovedSaved')});
-                })
-                .catch((error) => {
-                    console.error('Error deleting data:', error);
-                    store.commit('showMessage', {title: i18n.global.t('messages.error'), text: error, type: 'error'});
-                });
         },
         addBTournament(state, teams) {
             newTournament.teams = teams;

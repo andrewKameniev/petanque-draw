@@ -26,16 +26,16 @@
 
 <script>
 import {gameHasError} from "@/helpers";
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 
 export default {
     name: 'Game',
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird'],
     methods: {...mapMutations(['updateGameScore']), gameHasError},
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapGetters(['currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         currentGame() {
             if (this.isThird) {

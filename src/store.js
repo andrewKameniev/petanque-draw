@@ -43,6 +43,9 @@ const store = createStore({
             user: false
         }
     },
+    getters: {
+        currentTournament: (state) => state.tournaments[state.currentTournamentIndex]
+    },
     actions: {
         async getTournaments({state, commit}) {
             const dbRef = ref(database, `${state.user.uid}/tournaments/`);

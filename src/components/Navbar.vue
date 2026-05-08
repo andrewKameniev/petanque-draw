@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -62,9 +62,7 @@ export default {
     components: {LanguageSwitcher},
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin', 'user']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
     },
     methods: {
         ...mapMutations(['setActiveTournament', 'loginUser']),

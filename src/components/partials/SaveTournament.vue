@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import Modal from "@/components/Modal";
 import {getTournamentRanking} from "@/helpers";
 
@@ -43,9 +43,7 @@ export default {
     },
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex', 'savedTournaments']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
         tournamentsNames() {
             if (this.savedTournaments.length > 0) {
                 let tournamentsTitles = []

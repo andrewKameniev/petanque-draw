@@ -52,7 +52,8 @@
 import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {gameHasError, isScoreError, shuffleArray, sortTeams} from '@/helpers'
+import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
+import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 
@@ -87,185 +88,37 @@ export default {
         gameHasError,
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
-            const reshuffled = this.assignLanes(shuffleArray([...currentRound]));
+            const reshuffled = assignLanes(shuffleArray([...currentRound]), this.tournament);
             this.shuffleLanesStore(reshuffled);
-        },
-        getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) { // для определения рандомного соперника, если жеребим не по рейтингу
-            let rand = null;
-            while (rand === null || rand === indexToExclude1 || rand === indexToExclude2) {
-                rand = Math.round(Math.random() * (lengthOfArray - 1));
-            }
-            return rand;
-        },
-        generateCompetitors(teamList, reverse = false) { //функция для распределения пар
-            let teamIndex, opponentIndex;
-            if (this.activeRound === 1 && !this.tournament.useRating) {
-                teamIndex = this.getRandomWithOneExclusion(teamList.length);
-                opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
-                return {teamIndex, opponentIndex};
-            } else {
-                teamIndex = reverse ? teamList.length - 1 : 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
-                const defaultOpponentIndex = this.activeRound === 1 ? teamList.length / 2 : 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
-                let opponentIndex = reverse ? teamList.length - 2 : defaultOpponentIndex; // даем соперника. В зависимости от флага - второй в списке или предпоследний
-                while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)) { // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
-                    reverse ? opponentIndex-- : opponentIndex++; // если играли, то подбираем соперника следующего по списку в зависимости от флага
-
-                    if (!teamList[opponentIndex]) { // если не удалось подобрать соперника, так и говорим
-                        opponentIndex = -1;
-                        return {teamIndex, opponentIndex};
-                    }
-                }
-                return {teamIndex, opponentIndex}; // отдали пару
-            }
-        },
-        generateCompetitorsFirstLast(teamList, reverse = false, iteration) { //функция для распределения пар
-            try {
-                let teamIndex, opponentIndex;
-                if (this.activeRound === 1 && !this.tournament.useRating) {
-                    teamIndex = this.getRandomWithOneExclusion(teamList.length);
-                    opponentIndex = this.getRandomWithOneExclusion(teamList.length, teamIndex);
-                    return {teamIndex, opponentIndex};
-                } else {
-                    let teamsWithSameWins, isOneTeamWithSameWins;
-                    if (reverse) {
-                        teamIndex = 0;
-                        opponentIndex = iteration % 2 === 0 ? teamList.length - 1 : teamIndex + 1;
-                    } else {
-                        teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins); // отбираем команды с одинаковым кол-вом побед
-
-                        isOneTeamWithSameWins = teamsWithSameWins.length === 1; // флаг, что одна команда с одинаковым кол-вом побед
-                        if (isOneTeamWithSameWins) {
-                            teamsWithSameWins.push(teamList[1]); // если одна команда с одинаковым кол-вом побед, то добавляем следующую
-                        }
-                        if (teamsWithSameWins.length % 2 !== 0) {
-                            // удаляем одну команду, если нечетное кол-во
-                            teamsWithSameWins.splice(teamsWithSameWins.length - 1, 1);
-                        }
-                        teamIndex = 0; //  команда для которой выбираем соперника (первая или последняя в списке в зависимости от флага). reverse - флаг, с какой стороны списка подбирать соперников
-                        opponentIndex = this.activeRound === 1 ? teamList.length / 2 : teamsWithSameWins.length - 1; // команда-соперник по умолчанию - вторая в списке. Если первый тур, то вторая во второй группе
-                    }
-                    if (reverse) {
-                        let condition;
-                        if (teamList.length === 4) {
-                            condition = teamList[iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].title);
-                        } else if (teamList.length > 4){
-                            condition = (teamList[iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].title))
-                                && (teamList[iteration % 2 === 0 ? opponentIndex - 2 : opponentIndex + 2].opponents.includes(teamList[iteration % 2 === 0 ? opponentIndex - 3 : opponentIndex + 3].title));
-                        }
-                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title) && condition) {
-                            opponentIndex = iteration ? iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1 : opponentIndex + 1;
-                            if (!teamList[opponentIndex]) {
-                                opponentIndex = -1;
-                                return {teamIndex, opponentIndex};
-                            }
-                        }
-                    } else {
-                        while (teamList[teamIndex].opponents.includes(teamList[opponentIndex].title)) { // проверяем, играли ли эти команды друг с другом (у каждой формируеится массив с соперниками)
-                            isOneTeamWithSameWins || teamsWithSameWins.length < 3 ? opponentIndex++ : opponentIndex-- // если играли, то подбираем соперника следующего по списку в зависимости от флага
-
-                            if (!teamList[opponentIndex] || teamIndex === opponentIndex) { // если не удалось подобрать соперника, так и говорим
-                                opponentIndex = -1;
-                                return {teamIndex, opponentIndex};
-                            }
-                        }
-                    }
-                    return {teamIndex, opponentIndex}; // отдали пару
-                }
-            } catch (error) {
-                this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.someError'), type: 'error'});
-            }
-
         },
         drawRound() {
             if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
-
                 this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
                 return;
             }
-            let round = []; // массив куда будем сохранять пары соперников
-            let game; // объект с соперниками
+            let round = [];
 
             if (this.tournament.system === 'swiss') {
-                let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams)); //список команд, которые надо пожеребить
-                // Дополнительная сортировка, а то иногда computed не срабатывало
-                teamsToDraw = sortTeams(teamsToDraw);
-                // teamsToDraw.sort((a, b) => b.wins - a.wins || b.buhgolts - a.buhgolts || b.smallBuhgolts - a.smallBuhgolts || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating)
-                let expandListIteration = 0; // количество итераций, когда приходится увеличивать кол-во команд (понятно будет дальше)
-                let stopExpandIndex = Math.round(teamsToDraw.length / 2 - 1); // максимально возможное число, когда можно увеличивать список команд
-                let teamsDrawed = []; //массив с уже пожеребенными командами
-                let competitors; // пара которая получается в результате вызова generateCompetitors()
-
-                const isTechnical = teamsToDraw.length % 2 !== 0; // это только в случае нечетного кол-ва команд, сейчас не важно
-
-                if (isTechnical) { //if has to be technical team
-                    let technicalTeamIndex = this.tournament.useRating || this.activeRound !== 1 ? teamsToDraw.length - 1 : this.getRandomWithOneExclusion(teamsToDraw.length);
-                    let technicalTeam = teamsToDraw[technicalTeamIndex];  // это только в случае нечетного кол-ва команд, сейчас не важно
-                    if (technicalTeam.opponents.includes('Technical')) {
-                        for (let i = 2; i < teamsToDraw.length; i++) {
-                            technicalTeamIndex = teamsToDraw.length - i
-                            technicalTeam = teamsToDraw[technicalTeamIndex];
-                            if (!technicalTeam.opponents.includes('Technical')) {
-                                break;
-                            }
-                        }
-                    }
-                    game = {
-                        team_1: technicalTeam.title,
-                        team_1_score: this.tournament.preferences.technical.technicalFirst,
-                        team_2: 'Technical',
-                        team_2_score: this.tournament.preferences.technical.technicalSecond
-                    };
-                    round.push(game);
-                    teamsToDraw.splice(technicalTeamIndex, 1);
+                const result = drawSwissRound(this.tournament, this.rankingTeams, this.activeRound);
+                if (result.error) {
+                    this.saveDisabled = true;
+                    this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
+                    return;
                 }
-                while (teamsToDraw.length > 0) { // вся магия здесь
-                    competitors = this.generateCompetitorsFirstLast(teamsToDraw); // определили пару команд
-                    // competitors = this.activeRound < this.tournament.teams.length / 4 ? this.generateCompetitorsFirstLast(teamsToDraw) : this.generateCompetitors(teamsToDraw); // определили пару команд
-                    while (competitors.opponentIndex === -1 && expandListIteration < stopExpandIndex) { // вот здесь самая большая проблема, по сути единственная. Если мы не смогли найти подходящего соперника (т.е. команды уже играли друг с другом), то я =>
-                        expandListIteration++;
-                        if (teamsDrawed.length){
-                            round.splice(-expandListIteration); // => убираю предыдущую пожеребенную пару
-                            for (let k = 1; k <= expandListIteration * 2; k++) {
-                                teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - k]); // => добавляю в список, который надо пожеребить две предыдущие команды
-                            }
-                            teamsDrawed.splice(teamsDrawed.length - (expandListIteration * 2), expandListIteration * 2); // => убираю предыдущую пожеребенную пару с массива пожеребенных
-                        }
-                        // competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
-                        competitors = this.generateCompetitorsFirstLast(teamsToDraw, true, expandListIteration); // => ищу соперников начиная не с верха списка, а снизу
-                    }
-                    if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) { // если пробежали сверху вниз и снизу вверх и не нашли пару
-                        this.saveDisabled = true
-                        this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
-                        return
-                    }
-                    game = { // записали пару
-                        team_1: teamsToDraw[competitors.teamIndex].title,
-                        team_1_score: null,
-                        team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
-                        team_2_score: null
-                    }
-                    teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]); // добавили пару в массив с пожеребенными командами
-                    let teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title];
-                    teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title)); // удалили пожеребенные команды из массива, который ужно было пожеребить
-
-                    if (game) {
-                        round.push(game) // записали в раунд
-                    } else {
-                        console.log("Game is empty");
-                    }
-                } // когда в массиве пожеребенных не осталось команд, заканчиваем цикл
+                round = result.round;
             } else if (this.tournament.system === 'groups') {
                 if (this.activeRound === 1) {
                     this.createGroups();
                 }
-                if(this.tournament.groups) {
+                if (this.tournament.groups) {
+                    let game;
                     this.tournament.groups.forEach((group, index) => {
                         const isTechnical = group.length % 2 !== 0;
                         if (this.tournament.games?.length > (isTechnical ? group.length : group.length - 1)) {
-                            return
+                            return;
                         }
                         for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
-                            if(!isTechnical || isTechnical
+                            if (!isTechnical || isTechnical
                                 && (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
                                 game = {
                                     group: index,
@@ -273,244 +126,32 @@ export default {
                                     team_1_score: null,
                                     team_2: group[this.tournament.groupsScheme[index].bottom[i]].title,
                                     team_2_score: null
-                                }
+                                };
                                 round.push(game);
                             }
                         }
-
-                        this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1])
+                        this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1]);
                         this.tournament.groupsScheme[index].top.unshift(this.tournament.groupsScheme[index].bottom[0]);
                         this.tournament.groupsScheme[index].top.splice(this.tournament.groupsScheme[index].top.length - 1, 1);
                         this.tournament.groupsScheme[index].top.splice(1, 1);
                         this.tournament.groupsScheme[index].top.unshift(0);
-                        this.tournament.groupsScheme[index].bottom.splice(0, 1)
+                        this.tournament.groupsScheme[index].bottom.splice(0, 1);
                     });
                 }
             } else if (this.tournament.system === 'supermele') {
-                const playersCount = this.tournament.teams.length;
-                let gamesCount = Math.floor(playersCount / this.tournament.supermelePlayers);
-              while(gamesCount % 2 !== 0) {
-                    gamesCount = this.tournament.supermelePlayers == 2 ? gamesCount - 1 : gamesCount + 1;
-              }
-
-              if ( playersCount > gamesCount * 3) {
-                gamesCount+=2;
-              }
-                let superMeleScheme = {
-                    doubles: this.tournament.supermelePlayers == 2 ? gamesCount : 0,
-                    triples: this.tournament.supermelePlayers == 3 ? gamesCount : 0
-                }
-              let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
-
-                while(sum !== playersCount) {
-                    if (this.tournament.supermelePlayers == 2) {
-                        superMeleScheme.doubles--;
-                        superMeleScheme.triples++;
-                    } else {
-                        superMeleScheme.triples--;
-                        superMeleScheme.doubles++;
-                    }
-                    sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
-                }
-
-                let teamsToDraw = JSON.parse(JSON.stringify(this.rankingTeams));
-              let teamsForRound = [];
-
-                for (let i = 1; i <= superMeleScheme.doubles; i++) {
-                    const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
-                    let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                    let tryToFindOpponent = 0;
-                    while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
-                      player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                      tryToFindOpponent++
-                    }
-                    teamsForRound.push({
-                        title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title,
-                        players: [teamsToDraw[player1].title, teamsToDraw[player2].title]
-                    });
-                  let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title];
-                    teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
-                }
-
-                for (let j = 1; j <= superMeleScheme.triples; j++) {
-                    const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
-                    let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                    let player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-                    let tryToFindOpponent = 1;
-                    while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
-
-                      player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                      tryToFindOpponent++;
-                    }
-                  let tryToFindOpponent2 = 1
-                    while(tryToFindOpponent2 < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) && teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)) {
-                      player3 = this.getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-                      tryToFindOpponent2++;
-                    }
-                  teamsForRound.push({
-                        title: teamsToDraw[player1].title + ', '+ teamsToDraw[player2].title + ', '+ teamsToDraw[player3].title,
-                        players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title]
-                    });
-                    let teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title];
-                    teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
-                }
-
-                for (let r = 0; r < gamesCount / 2; r++) {
-                    game = {
-                        team_1: teamsForRound[0].title,
-                        team_1_players: teamsForRound[0].players,
-                        team_1_score: null,
-                        team_2: teamsForRound[1].title,
-                        team_2_players: teamsForRound[1].players,
-                        team_2_score: null
-                    };
-                    round.push(game);
-                    teamsForRound.splice(0, 2);
-                }
+                round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
-            this.addRoundToGames(this.assignLanes(shuffleArray(round))); // записали в игры
+            this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
             this.startRound();
         },
-        assignLanes(games) {
-            let technicalGame = null;
-            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
-                const technicalGameIndex = games.findIndex(game => game.team_2 === 'Technical');
-                technicalGame = games[technicalGameIndex];
-                games.splice(technicalGameIndex, 1);
-            }
-            const teamsMapLanes = Object.fromEntries(
-                this.tournament.teams.map(team => [team.title, team.lanes || []])
-            );
-            let teamsMatrix = {};
-            const firstlane = this.tournament.preferences.fieldsStart - 1;
-            const laneCount = Math.floor(this.tournament.teams.length / 2);
-            this.tournament.teams.forEach(team => {
-                teamsMatrix[team.title] = {};
-                for (let i = firstlane; i < firstlane + laneCount; i++) {
-                    teamsMatrix[team.title][i] = 0;
-                }
-                if (team.lanes && team.lanes.length) {
-                    team.lanes.forEach(lane => {
-                        if (teamsMatrix[team.title][lane] !== undefined) {
-                            teamsMatrix[team.title][lane]++;
-                        }
-                    });
-                }
-            })
-
-            const scheduledMatches = [];
-            let availableLanes = Array.from({length: laneCount}, (_, i) => i + firstlane);
-            games.forEach((game) => {
-                if (game.team_2 !== 'Technical') {
-                    let bestLane = null;
-                    let minWeight = Infinity;
-                    const team1Lanes = teamsMapLanes[game.team_1];
-                    const team2Lanes = teamsMapLanes[game.team_2];
-                    const team1LastLane = team1Lanes.length ? team1Lanes[team1Lanes.length - 1] : null;
-                    const team2LastLane = team2Lanes.length ? team2Lanes[team2Lanes.length - 1] : null;
-
-                    availableLanes.forEach(i => {
-                        const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
-                        if (weight < minWeight && i !== team1LastLane && i !== team2LastLane) {
-                            minWeight = weight;
-                            bestLane = i;
-                        }
-                    });
-                    if (bestLane === null) {
-                        availableLanes.forEach(i => {
-                            const weight = teamsMatrix[game.team_1][i] + teamsMatrix[game.team_2][i];
-                            if (weight < minWeight) {
-                                minWeight = weight;
-                                bestLane = i;
-                            }
-                        });
-                    }
-                    game.lane = bestLane;
-                    teamsMatrix[game.team_1][bestLane]++;
-                    teamsMatrix[game.team_2][bestLane]++;
-                    availableLanes = availableLanes.filter(lane => lane !== bestLane);
-                    scheduledMatches.push(game);
-                }
-            })
-            if (this.tournament.system === 'swiss' && this.tournament.teams.length % 2 !== 0) {
-                scheduledMatches.push(technicalGame);
-            }
-            return scheduledMatches.sort((a, b) => a.lane - b.lane);
-        },
         createGroups() {
-            if(this.teamsInGroup < 3) {
+            if (this.teamsInGroup < 3) {
                 this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
                 return false;
             }
-            const groupsQuantity = Math.round(this.tournament.teams.length / this.teamsInGroup);
-            let groups = [];
-            for (let i = 1; i <= groupsQuantity; i++) {
-                groups.push([]);
-            }
-            let teamsToDraw = JSON.parse(JSON.stringify(this.tournament.teams.sort((a, b) => b.rating - a.rating)));
-
-            if (this.tournament.useRating && groupsQuantity === 2 && teamsToDraw.length < 33) {
-                const indexesScheme = {
-                    0: [1,32,16,17,9,24,8,25,5,28,12,21,13,20,4,29],
-                    1: [3,30,14,19,11,22,6,27,7,26,10,23,15,18,2,31]
-                };
-                Object.keys(indexesScheme).forEach(key => {
-                    indexesScheme[key].forEach(item => {
-                        const teamIndexInList = teamsToDraw[item - 1] ? this.tournament.teams.findIndex(team => team.title === teamsToDraw[item - 1].title) : -1;
-                        if(teamIndexInList !== -1) {
-                            groups[key].push(this.tournament.teams[teamIndexInList])
-                        }
-                    })
-                })
-            } else {
-                while (teamsToDraw.length >= 1) {
-                    for (let j = 0; j < teamsToDraw.length; j++) {
-                        for (let i = 0; i < groupsQuantity; i++) {
-                            const teamIndex = this.tournament.useRating ? 0  : this.getRandomWithOneExclusion(teamsToDraw.length);
-                            if (teamIndex !== -1 && teamsToDraw.length >= 1) {
-                                const teamIndexInList = this.tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title)
-                                groups[i].push(this.tournament.teams[teamIndexInList])
-                                teamsToDraw.splice(teamIndex, 1);
-                            }
-                        }
-                    }
-                }
-            }
-
+            const {groups, schemas} = createGroups(this.tournament, this.teamsInGroup);
             this.tournament.groups = groups;
-
-            let schemas = [];
-
-            this.tournament.groups.forEach(group => {
-                group.sort((a, b) => b.rating - a.rating);
-
-                let groupIndexes = [];
-                group.forEach((item, index) => {
-                    groupIndexes.push(index)
-                });
-
-                if(group.length % 2 !== 0) {
-                    groupIndexes.push(group.length);
-                }
-
-                let scheme = {
-                    top: [],
-                    bottom: []
-                }
-
-                for (let i = 0; i < groupIndexes.length / 2; i++) {
-                    scheme.top.push(i)
-                }
-
-                for (let i = groupIndexes.length - 1; i >= groupIndexes.length / 2; i--) {
-                    scheme.bottom.push(i)
-                }
-
-                schemas.push(scheme)
-            });
-
             this.tournament.groupsScheme = schemas;
-
         },
         saveResults() {
             this.scoreError = false;
@@ -560,61 +201,7 @@ export default {
             }
         },
         saveResultsForRound(round) {
-            if (this.tournament.games.length <= 2) {
-                this.tournament.teams.forEach(team => {
-                    team.opponents = team.opponents.filter(item => item !== 'placeholder');
-                })
-            }
-            if (this.tournament.system === 'supermele') {
-                this.tournament.games[round].forEach(game => {
-                    game.team_1_players.forEach(player => {
-                        const playerIndex = this.tournament.teams.findIndex(item => item.title === player);
-                        if (playerIndex !== -1) {
-                            const partners = game.team_1_players.filter(item => item !== player);
-                            partners.forEach(item => this.tournament.teams[playerIndex].opponents.push(item));
-                            this.tournament.teams[playerIndex].pointsPlus += game.team_1_score;
-                            this.tournament.teams[playerIndex].pointsMinus += game.team_2_score;
-                            if (game.team_1_score > game.team_2_score) {
-                                this.tournament.teams[playerIndex].wins++;
-                            }
-                        }
-                    });
-                    game.team_2_players.forEach(player => {
-                        const playerIndex = this.tournament.teams.findIndex(item => item.title === player);
-                        if (playerIndex !== -1) {
-                            const partners = game.team_2_players.filter(item => item !== player);
-                            partners.forEach(item => this.tournament.teams[playerIndex].opponents.push(item));
-                            this.tournament.teams[playerIndex].pointsPlus += game.team_2_score;
-                            this.tournament.teams[playerIndex].pointsMinus += game.team_1_score;
-                            if (game.team_2_score > game.team_1_score) {
-                                this.tournament.teams[playerIndex].wins++;
-                            }
-                        }
-                    })
-                })
-            } else {
-                this.tournament.games[round].forEach(game => {
-                    const firstTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_1);
-                    if (firstTeamIndex !== -1) {
-                        this.tournament.teams[firstTeamIndex].opponents.push(game.team_2);
-                        this.tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
-                        this.tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
-                    }
-                    const secondTeamIndex = this.tournament.teams.findIndex(item => item.title === game.team_2);
-                    if (secondTeamIndex !== -1) {
-                        this.tournament.teams[secondTeamIndex].opponents.push(game.team_1);
-                        this.tournament.teams[secondTeamIndex].pointsPlus += game.team_2_score;
-                        this.tournament.teams[secondTeamIndex].pointsMinus += game.team_1_score;
-                    }
-                    if (game.team_1_score > game.team_2_score) {
-                        if (firstTeamIndex !== -1) {
-                            this.tournament.teams[firstTeamIndex].wins++
-                        }
-                    } else if (secondTeamIndex !== -1 && game.team_2 !== "Technical") {
-                        this.tournament.teams[secondTeamIndex].wins++
-                    }
-                })
-            }
+            saveResultsForRound(this.tournament, round);
         },
     },
 }

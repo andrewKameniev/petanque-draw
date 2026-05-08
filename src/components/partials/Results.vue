@@ -84,16 +84,16 @@
 
 
 <script>
-import {mapState} from "vuex";
+import {mapGetters} from "vuex";
 import {tournamentNames} from "@/helpers";
 
 export default {
     name: 'Results',
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapGetters(['currentTournament']),
         tournament() {
-            return this.previewTournament || this.tournaments[this.currentTournamentIndex]
+            return this.previewTournament || this.currentTournament
         },
         groupsNames() {
             return tournamentNames

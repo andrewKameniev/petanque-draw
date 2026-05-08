@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 
 export default {
     name: 'AddTeam',
@@ -52,9 +52,7 @@ export default {
     emits: ['add-team', 'change-draw-style'],
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
     },
     methods: {
         ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),

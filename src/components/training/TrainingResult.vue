@@ -1,5 +1,5 @@
 <script>
-import {get, getDatabase, ref} from "firebase/database";
+import {trainingService} from "@/services/db";
 import {mapMutations, mapState} from "vuex";
 import {getDate} from "@/helpers-stat";
 import TrainingResultGraph from "@/components/training/TrainingResultGraph.vue";
@@ -15,13 +15,9 @@ export default {
         }
     },
     mounted() {
-        const db = getDatabase();
-
-        const statsRef = ref(db, `${this.user.uid}/training/${this.exid}`);
-
         this.isLoading = true;
 
-        get(statsRef)
+        trainingService.getResults(this.user.uid, this.exid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.results = snapshot.val();

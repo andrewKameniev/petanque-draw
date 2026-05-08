@@ -23,8 +23,8 @@
                 <strong>{{ tournament.name }}</strong>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
-                <span class="badge badge-corner" :class="isFinished ? 'badge-finished' : 'badge-active'">
-                    {{ isFinished ? $t('common.finished') : $t('common.active') }}
+                <span class="badge badge-corner" :class="badgeClass">
+                    {{ badgeLabel }}
                 </span>
                 <div class="tournament-info-row" v-if="tournamentMessageLines.length">
                     <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
@@ -57,24 +57,17 @@
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
                 </div>
             </div>
-            <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" @openResults="activeTab = 'ranking'"/>
-            <Cadrage v-else-if="tournament.isCadrage && tournament.cadrage?.length" :active-tournament="tournament" :is-public-view="true"/>
-            <div v-if="tournament.games">
-                <h2 class="is-size-3 text-center" v-if="tournament.roundIsActive">{{ activeRound }} {{ $t('common.round') }}</h2>
-                <div class="games-list">
-                    <div class="game-row compact"
+            <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
+            <div v-if="tournament.games && tournament.roundIsActive" class="current-round-card mt-3 mb-3">
+                <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
+                <div class="match-list">
+                    <div class="match-item"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="text-right team-block">
-                            <label :for="'team_' + index">{{ game.team_1 }}</label>
+                        <span class="match-team match-team-right">{{ game.team_1 }}</span>
+                        <span class="match-vs">
+                            <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
                         </span>
-                        <span class="text-center score-block">
-                            <span class="lane-block is-size-7">
-                                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ index + tournament.preferences.fieldsStart }}</span>
-                            </span>
-                        </span>
-                        <span class="team-block">
-                            <label :for="'opponent_' + index">{{ game.team_2 }}</label>
-                        </span>
+                        <span class="match-team">{{ game.team_2 }}</span>
                     </div>
                 </div>
             </div>
@@ -116,8 +109,8 @@
                                     <tr v-for="(game, i) in round" :key="i">
                                         <td class="is-narrow"><small class="has-text-grey">R{{ index + 1 }}</small></td>
                                         <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
-                                        <td class="has-text-centered is-narrow">
-                                            <strong>{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                        <td class="has-text-centered is-narrow" :class="{'score-pending': game.team_1_score == null}">
+                                            <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
                                         </td>
                                         <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
                                     </tr>
@@ -127,8 +120,8 @@
                                 <tr v-for="(game, i) in tournament.cadrage" :key="'c' + i">
                                     <td class="is-narrow"><small class="has-text-grey">{{ $t('games.cadrage') }}</small></td>
                                     <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
-                                    <td class="has-text-centered is-narrow">
-                                        <strong>{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                    <td class="has-text-centered is-narrow" :class="{'score-pending': game.team_1_score == null}">
+                                        <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
                                     </td>
                                     <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
                                 </tr>
@@ -152,9 +145,9 @@
                     </button>
                 </div>
                 <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="tournament.activeRound"
-                         :showOnlyResult="isFinished && rankingSubtab === 'result'"
-                         :showOnlySwiss="isFinished && rankingSubtab === 'swiss'"/>
+                         :rankingTeams="rankingTeams" :activeRound="activeRound"
+                         :showOnlyResult="tournament.tournamentIsFinished && rankingSubtab === 'result'"
+                         :showOnlySwiss="tournament.tournamentIsFinished && rankingSubtab === 'swiss'"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -171,17 +164,14 @@
 
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import {ref, onValue} from "firebase/database";
-import {database, initializeMessaging} from "@/firebase";
+import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
-import Cadrage from "@/components/partials/Cadrage.vue";
-
 export default {
     name: 'Public',
-    components: {Cadrage, Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking},
+    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Ranking},
     data() {
         return {
             isLoading: false,
@@ -194,11 +184,26 @@ export default {
     },
     mounted() {
         this.getInfo();
+        this._onResume = () => {
+            if (this._unsubscribe) {
+                this._unsubscribe();
+            }
+            this.getInfo();
+        };
+        this._onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                this._onResume();
+            }
+        };
+        document.addEventListener('visibilitychange', this._onVisibilityChange);
+        window.addEventListener('online', this._onResume);
     },
     beforeUnmount() {
         if (this._unsubscribe) {
             this._unsubscribe();
         }
+        document.removeEventListener('visibilitychange', this._onVisibilityChange);
+        window.removeEventListener('online', this._onResume);
     },
     beforeUnmount() {
         if (this._unsubscribe) {
@@ -245,19 +250,33 @@ export default {
             return this.tournament.tournamentMessage.split('\n').filter(l => l.trim());
         },
         isFinished() {
-            if (this.tournament?.tournamentIsFinished) return true;
-            if (this.tournament?.date) {
-                return new Date(this.tournament.date) < new Date(new Date().toDateString());
-            }
-            return false;
+            return !!this.tournament?.tournamentIsFinished;
+        },
+        isStarted() {
+            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length;
+        },
+        badgeClass() {
+            if (this.isFinished) return 'badge-finished';
+            if (!this.isStarted) return 'badge-not-started';
+            return 'badge-active';
+        },
+        badgeLabel() {
+            if (this.isFinished) return this.$t('common.finished');
+            if (!this.isStarted) return this.$t('common.notStarted');
+            return this.$t('common.active');
         },
         systemDescription() {
-            if (this.tournament.system !== 'swiss' || !this.tournament.games?.length) {
+            if (this.tournament.system !== 'swiss') {
                 return this.$t('teams.' + this.tournament.system);
             }
-            const n = this.tournament.games.length;
-            let desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
-            if (this.tournament.playOff) {
+            let desc;
+            if (this.tournament.games?.length) {
+                const n = this.tournament.games.length;
+                desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+            } else {
+                desc = this.$t('teams.' + this.tournament.system);
+            }
+            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffTeams < this.tournament.teams?.length) {
                 desc += ' + ' + this.$t('games.playOff').toLowerCase();
             }
             return desc;
@@ -275,12 +294,12 @@ export default {
     },
     methods: {
         parseRef() {
-            const ref = this.$route.query.ref;
-            if (ref.includes('.')) {
-                const [userId, tournamentBase36] = ref.split('.');
+            const refParam = this.$route.query.ref;
+            if (refParam.includes('.')) {
+                const [userId, tournamentBase36] = refParam.split('.');
                 return { userId, tournamentId: parseInt(tournamentBase36, 36).toString() };
             }
-            const decoded = atob(ref);
+            const decoded = atob(refParam);
             const [userId, tournamentId] = decoded.split(':');
             return { userId, tournamentId };
         },
@@ -297,11 +316,12 @@ export default {
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
-                const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
-                this._unsubscribe = onValue(dbRef, (snapshot) => {
+                this._unsubscribe = tournamentService.subscribe(this.userId, this.tournamentId, (snapshot) => {
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
-                        if (this.tournament.games?.length) {
+                        if (this.tournament.cadrage?.length) {
+                            this.selectedRound = 'cadrage';
+                        } else if (this.tournament.games?.length) {
                             this.selectedRound = this.tournament.games.length - 1;
                         }
                     }
@@ -383,6 +403,14 @@ export default {
     border: 2px solid var(--color-primary);
     border-radius: 8px;
     padding: 1rem 1.25rem;
+    padding-right: 7rem;
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-card {
+        padding-right: 1.25rem;
+        padding-top: 2.5rem;
+    }
 }
 
 .badge-corner {
@@ -445,6 +473,11 @@ export default {
 
 .badge-finished {
     background: var(--color-grey);
+    color: var(--color-white);
+}
+
+.badge-not-started {
+    background: #f0ad4e;
     color: var(--color-white);
 }
 
@@ -518,5 +551,125 @@ export default {
 .wrapper > * {
     position: relative;
     z-index: 1;
+}
+
+.playoff-public-wrapper .play-off-stage-wrapper {
+    padding: 0;
+}
+
+.playoff-public-wrapper h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper .game-row.compact {
+    background: var(--color-white);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    gap: 0.75rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.playoff-public-wrapper .game-row.compact .score-block {
+    flex: 0 0 auto;
+    min-width: 60px;
+    padding: 0 0.5rem;
+}
+
+.current-round-card {
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 1rem 50px;
+    width: fit-content;
+    min-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media screen and (max-width: 768px) {
+    .current-round-card {
+        width: auto;
+        padding: 1rem 1rem;
+    }
+}
+
+.round-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.match-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 80px;
+    border-radius: 8px;
+    background: #f7f7f7;
+    border: 1px solid #e8e8e8;
+}
+
+@media screen and (max-width: 768px) {
+    .match-item {
+        padding: 0.6rem 0.75rem;
+    }
+}
+
+.match-item:nth-child(odd) {
+    background: #ffffff;
+}
+
+.score-pending strong {
+    color: #ccc;
+}
+
+.match-team {
+    flex: 1 1 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.match-team-right {
+    text-align: right;
+}
+
+.match-vs {
+    flex: 0 0 50px;
+    text-align: center;
+    margin: 0 0.75rem;
+}
+
+.match-lane {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 </style>

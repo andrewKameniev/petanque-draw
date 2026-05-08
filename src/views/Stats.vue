@@ -196,7 +196,7 @@
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
-import {get, getDatabase, ref, set} from "firebase/database";
+import {statsService} from "@/services/db";
 import {mapMutations, mapState} from "vuex";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
@@ -282,12 +282,9 @@ export default {
     methods: {
         ...mapMutations(['showMessage']),
         getTags() {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/stats/tags`);
-
             this.tagsLoading = true;
 
-            get(statsRef)
+            statsService.getTags(this.user.uid)
                 .then((snapshot) => {
                     if (snapshot.exists()) {
                         this.tags = snapshot.val();
@@ -363,9 +360,8 @@ export default {
                 team1: this.team1,
                 team2: this.team2
             }
-            const db = getDatabase();
             this.isSaving = true;
-            set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
+            statsService.save(this.user.uid, statResult.date, statResult).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
                 localStorage.removeItem('statGame');
                 this.isSaving = false;

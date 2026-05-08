@@ -1,9 +1,10 @@
 <script>
-import {mapState} from "vuex";
+import {mapState} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: "Footer",
-    computed: mapState(['user']),
+    computed: mapState(useMainStore, ['user']),
 }
 </script>
 

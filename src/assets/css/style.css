@@ -85,6 +85,12 @@ footer {
     margin-top: 10px;
 }
 
+.lanes-played {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 2px;
+}
+
 .td-50 {
     width: 50px;
 }

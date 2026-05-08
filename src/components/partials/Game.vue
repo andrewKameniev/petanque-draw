@@ -1,8 +1,8 @@
 <template>
     <div class="game-row" :class="{compact: compactView, 'has-background-danger': gameHasError(game, maxScore)}">
-        <div class="text-right team-block" :class="{'has-text-weight-bold is-underlined': game.team_1_score > game.team_2_score}">
+        <div class="text-right team-block" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
             <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
-            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in team1Lanes" :key="index">{{lane + 1}},</sup></div>
+            <div v-if="team1Lanes && team1Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team1Lanes.map(l => l + 1).join(', ') }}</div>
         </div>
         <span class="text-center score-block">
             <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number"
@@ -17,9 +17,9 @@
                    @keyup.enter="$emit('save')"
                    v-if="!compactView">
         </span>
-        <div class="team-block" :class="{'has-text-weight-bold is-underlined': game.team_2_score > game.team_1_score}">
+        <div class="team-block" :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">
             <label :for="'opponent_' + gameIndex">{{ game.team_2 }}</label>
-            <div class="has-text-grey is-hidden-mobile"><sup v-for="(lane, index) in team2Lanes" :key="index">{{lane + 1}},</sup></div>
+            <div v-if="team2Lanes && team2Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team2Lanes.map(l => l + 1).join(', ') }}</div>
         </div>
     </div>
 </template>

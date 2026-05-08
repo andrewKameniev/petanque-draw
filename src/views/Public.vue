@@ -84,22 +84,8 @@
             </div>
             <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && isFinished">
-                    <button class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': rankingSubtab === 'result'}"
-                            @click="rankingSubtab = 'result'">
-                        {{ $t('ranking.tournamentResult') }}
-                    </button>
-                    <button class="button is-small mr-1 mb-1"
-                            :class="{'is-purple': rankingSubtab === 'swiss'}"
-                            @click="rankingSubtab = 'swiss'">
-                        {{ $t('ranking.swissTable') }}
-                    </button>
-                </div>
                 <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound"
-                         :showOnlyResult="tournament.tournamentIsFinished && rankingSubtab === 'result'"
-                         :showOnlySwiss="tournament.tournamentIsFinished && rankingSubtab === 'swiss'"/>
+                         :rankingTeams="rankingTeams" :activeRound="activeRound"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -130,7 +116,6 @@ export default {
             isLoading: false,
             tournament: null,
             activeTab: "ranking",
-            rankingSubtab: "result",
             notificationsEnabled: false,
         }
     },
@@ -465,18 +450,6 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-    .ranking-subtabs {
-        display: flex;
-    }
-
-    .ranking-subtabs .button {
-        flex: 1;
-        margin-right: 0.25rem;
-    }
-
-    .ranking-subtabs .button:last-child {
-        margin-right: 0;
-    }
 }
 
 .wrapper {

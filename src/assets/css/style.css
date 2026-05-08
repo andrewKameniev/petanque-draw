@@ -184,6 +184,21 @@ footer {
     flex-wrap: wrap;
 }
 
+@media screen and (max-width: 768px) {
+    .ranking-subtabs {
+        display: flex;
+    }
+
+    .ranking-subtabs .button {
+        flex: 1;
+        margin-right: 0.25rem;
+    }
+
+    .ranking-subtabs .button:last-child {
+        margin-right: 0;
+    }
+}
+
 .card-header-icon .icon {
     transition: transform 0.3s ease;
 }

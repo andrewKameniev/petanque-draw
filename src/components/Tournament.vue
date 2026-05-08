@@ -85,21 +85,7 @@
                @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"/>
         <Results v-if="activeTab === 'results'"/>
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
-            <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished">
-                <button class="button is-small mr-1 mb-1"
-                        :class="{'is-purple': rankingSubtab === 'result'}"
-                        @click="rankingSubtab = 'result'">
-                    {{ $t('ranking.tournamentResult') }}
-                </button>
-                <button class="button is-small mr-1 mb-1"
-                        :class="{'is-purple': rankingSubtab === 'swiss'}"
-                        @click="rankingSubtab = 'swiss'">
-                    {{ $t('ranking.swissTable') }}
-                </button>
-            </div>
-            <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"
-                     :showOnlyResult="tournament.tournamentIsFinished && rankingSubtab === 'result'"
-                     :showOnlySwiss="tournament.tournamentIsFinished && rankingSubtab === 'swiss'"/>
+            <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
             <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished">
                 <div class="mt-5">
                     <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
@@ -186,7 +172,6 @@ export default {
     data() {
         return {
             activeTab: "teams",
-            rankingSubtab: "result",
             showSaveTournament: false,
             removeConfirmId: null,
             changeNameModal: false,

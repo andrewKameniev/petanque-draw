@@ -13,9 +13,9 @@ import { auth } from "@/firebase";
 
 let authReady = false;
 const authReadyPromise = new Promise(resolve => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         store.commit('loginUser', user || false);
-        if (user) store.dispatch('getTournaments');
+        if (user) await store.dispatch('getTournaments');
         authReady = true;
         resolve();
     });
@@ -77,5 +77,6 @@ router.beforeEach(async (to) => {
     }
 });
 
-app.use(store).use(router).use(i18n).mount('#app');
+app.use(store).use(router).use(i18n);
+authReadyPromise.then(() => app.mount('#app'));
 

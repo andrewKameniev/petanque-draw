@@ -110,7 +110,7 @@ import Tournament from "./Tournament";
 import {mapGetters, mapState, mapMutations} from 'vuex'
 import Navbar from "./Navbar";
 import Help from "./Help";
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";
 
@@ -135,16 +135,7 @@ export default {
         }
     },
     mounted() {
-        this.isLoading = true
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                this.loginUser(user);
-                this.$store.dispatch('getTournaments');
-            } else {
-                this.loginUser(false);
-            }
-            this.isLoading = false
-        });
+        this.isLoading = false;
     },
     methods: {
         ...mapMutations(['setActiveTournament', 'addTournament', 'loginUser', 'showMessage']),

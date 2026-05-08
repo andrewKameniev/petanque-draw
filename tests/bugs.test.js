@@ -55,7 +55,7 @@ describe('Bug #1 FIXED: assignLanes handles supermele composite team names', () 
         expect(typeof result[0].lane).toBe('number');
     });
 
-    it('avoids last-played lanes for supermele players when alternatives exist', () => {
+    it('avoids all previously played lanes for supermele players', () => {
         const teams = [
             { ...makeTeam('P1'), lanes: [0] },
             { ...makeTeam('P2'), lanes: [0] },
@@ -76,7 +76,7 @@ describe('Bug #1 FIXED: assignLanes handles supermele composite team names', () 
             }
         ];
         const result = assignLanes(games, tournament);
-        // Should avoid lane 0 (P1, P2 last) and lane 1 (P3, P4 last)
+        // P1,P2 played lane 0; P3,P4 played lane 1 — should pick lane 2
         expect(result[0].lane).not.toBe(0);
         expect(result[0].lane).not.toBe(1);
     });

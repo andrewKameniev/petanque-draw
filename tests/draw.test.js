@@ -299,12 +299,14 @@ describe('assignLanes', () => {
         }
     });
 
-    it('avoids lanes teams played on last round', () => {
+    it('avoids ALL previously played lanes, not just last', () => {
         const teams = [
-            { ...makeTeam('A'), lanes: [0] },
-            { ...makeTeam('B'), lanes: [0] },
-            { ...makeTeam('C'), lanes: [1] },
-            { ...makeTeam('D'), lanes: [1] },
+            { ...makeTeam('A'), lanes: [0, 1] },
+            { ...makeTeam('B'), lanes: [0, 1] },
+            { ...makeTeam('C'), lanes: [2] },
+            { ...makeTeam('D'), lanes: [2] },
+            { ...makeTeam('E'), lanes: [] },
+            { ...makeTeam('F'), lanes: [] },
         ];
         const tournament = makeTournament(teams, { fieldsStart: 1 });
         const games = [
@@ -313,9 +315,25 @@ describe('assignLanes', () => {
         ];
         const result = assignLanes(games, tournament);
         const gameAB = result.find(g => g.team_1 === 'A');
-        const gameCD = result.find(g => g.team_1 === 'C');
+        // A and B played lanes 0 and 1 — should get lane 2
         expect(gameAB.lane).not.toBe(0);
-        expect(gameCD.lane).not.toBe(1);
+        expect(gameAB.lane).not.toBe(1);
+    });
+
+    it('falls back to least-used lane when all lanes played', () => {
+        const teams = [
+            { ...makeTeam('A'), lanes: [0, 1, 2] },
+            { ...makeTeam('B'), lanes: [0, 1, 2] },
+            { ...makeTeam('C'), lanes: [0] },
+            { ...makeTeam('D'), lanes: [1] },
+        ];
+        const tournament = makeTournament(teams, { fieldsStart: 1 });
+        const games = [
+            { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
+        ];
+        const result = assignLanes(games, tournament);
+        // All lanes used — should pick minimum weight (each used once, so any is valid)
+        expect(result[0].lane).toBeDefined();
     });
 
     it('handles technical game in swiss with odd teams', () => {

@@ -266,20 +266,22 @@ export function assignLanes(games, tournament) {
         return (teamsMatrix[game.team_1]?.[lane] || 0) + (teamsMatrix[game.team_2]?.[lane] || 0);
     }
 
-    function getLastLanes(game) {
+    function getPlayedLanes(game) {
         if (isSupermele) {
             const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
-            return players.map(p => {
+            const lanes = new Set();
+            players.forEach(p => {
                 const team = tournament.teams.find(t => t.title === p);
-                return team?.lanes?.length ? team.lanes[team.lanes.length - 1] : null;
-            }).filter(l => l !== null);
+                if (team?.lanes) team.lanes.forEach(l => lanes.add(l));
+            });
+            return lanes;
         }
-        const team1Lanes = tournament.teams.find(t => t.title === game.team_1)?.lanes || [];
-        const team2Lanes = tournament.teams.find(t => t.title === game.team_2)?.lanes || [];
-        const lastLanes = [];
-        if (team1Lanes.length) lastLanes.push(team1Lanes[team1Lanes.length - 1]);
-        if (team2Lanes.length) lastLanes.push(team2Lanes[team2Lanes.length - 1]);
-        return lastLanes;
+        const lanes = new Set();
+        const team1 = tournament.teams.find(t => t.title === game.team_1);
+        const team2 = tournament.teams.find(t => t.title === game.team_2);
+        if (team1?.lanes) team1.lanes.forEach(l => lanes.add(l));
+        if (team2?.lanes) team2.lanes.forEach(l => lanes.add(l));
+        return lanes;
     }
 
     function updateMatrix(game, lane) {
@@ -299,24 +301,18 @@ export function assignLanes(games, tournament) {
         if (game.team_2 !== 'Technical') {
             let bestLane = null;
             let minWeight = Infinity;
-            const lastLanes = getLastLanes(game);
+            const playedLanes = getPlayedLanes(game);
 
-            availableLanes.forEach(i => {
+            const freshLanes = availableLanes.filter(i => !playedLanes.has(i));
+            const candidates = freshLanes.length > 0 ? freshLanes : availableLanes;
+
+            candidates.forEach(i => {
                 const weight = getWeight(game, i);
-                if (weight < minWeight && !lastLanes.includes(i)) {
+                if (weight < minWeight) {
                     minWeight = weight;
                     bestLane = i;
                 }
             });
-            if (bestLane === null) {
-                availableLanes.forEach(i => {
-                    const weight = getWeight(game, i);
-                    if (weight < minWeight) {
-                        minWeight = weight;
-                        bestLane = i;
-                    }
-                });
-            }
             game.lane = bestLane;
             updateMatrix(game, bestLane);
             availableLanes = availableLanes.filter(lane => lane !== bestLane);

@@ -18,7 +18,7 @@
   "dependencies": {
     "@vuepic/vue-datepicker": "^10.0.0",
     "apexcharts": "^5.10.6",
-    "firebase": "^9.16.0",
+    "firebase": "^12.13.0",
     "html2pdf.js": "^0.10.2",
     "qrcode.vue": "^3.3.3",
     "register-service-worker": "^1.7.2",

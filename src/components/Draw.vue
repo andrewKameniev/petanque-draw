@@ -48,7 +48,7 @@ import Tournament from "./Tournament";
 import {mapState, mapMutations} from 'vuex'
 import Navbar from "./Navbar";
 import Help from "./Help";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, authStateReady } from "firebase/auth";
 import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";
 
@@ -64,8 +64,17 @@ export default {
             isLoading: false
         }
     },
-    mounted() {
+    async mounted() {
         this.isLoading = true
+        await authStateReady(auth);
+        if (auth.currentUser) {
+            this.loginUser(auth.currentUser);
+            this.$store.dispatch('getTournaments');
+        } else {
+            this.loginUser(false);
+        }
+        this.isLoading = false
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 this.loginUser(user);
@@ -73,7 +82,6 @@ export default {
             } else {
                 this.loginUser(false);
             }
-            this.isLoading = false
         });
     },
     methods: {

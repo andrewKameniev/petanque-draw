@@ -111,7 +111,8 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="team in rankingTeams" :key="team.title">
+                        <tr v-for="(team, index) in rankingTeams" :key="team.title"
+                            :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2}">
                             <td><span class="team-count"></span></td>
                             <td>{{ team.title }}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -145,7 +146,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup}">
+                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"

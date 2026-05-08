@@ -24,8 +24,10 @@ body {
 }
 
 nav.navbar {
-    position: relative;
-    z-index: 200;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--color-white);
 }
 
 footer {
@@ -81,6 +83,12 @@ footer {
 .game-row > div {
     flex: 0 0 100%;
     margin-top: 10px;
+}
+
+.lanes-played {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 2px;
 }
 
 .td-50 {
@@ -154,7 +162,7 @@ footer {
 
 
 .modal {
-    z-index: 300;
+    z-index: 500;
 }
 
 .modal-content {
@@ -164,6 +172,37 @@ footer {
 
 .no-wrap {
     white-space: nowrap;
+}
+
+.button.is-purple {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.tabs a:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.round-tabs {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+@media screen and (max-width: 768px) {
+    .ranking-subtabs {
+        display: flex;
+    }
+
+    .ranking-subtabs .button {
+        flex: 1;
+        margin-right: 0.25rem;
+    }
+
+    .ranking-subtabs .button:last-child {
+        margin-right: 0;
+    }
 }
 
 .card-header-icon .icon {

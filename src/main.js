@@ -9,6 +9,8 @@ import Training from "@/views/Training.vue";
 import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
 import {useMainStore} from "@/stores/main";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebase";
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -62,14 +64,24 @@ const router = createRouter({
 
 app.use(pinia).use(router).use(i18n);
 
-router.beforeEach((to, from, next) => {
+let authReady = false;
+const authReadyPromise = new Promise(resolve => {
     const store = useMainStore();
-    if (to.meta.requiresAuth && !store.user) {
-        next('/');
-    } else {
-        next();
+    onAuthStateChanged(auth, async (user) => {
+        store.loginUser(user || false);
+        if (user) await store.getTournaments();
+        authReady = true;
+        resolve();
+    });
+});
+
+router.beforeEach(async (to) => {
+    if (to.meta.requiresAuth) {
+        if (!authReady) await authReadyPromise;
+        const store = useMainStore();
+        if (!store.user) return '/';
     }
 });
 
-app.mount('#app');
+authReadyPromise.then(() => app.mount('#app'));
 

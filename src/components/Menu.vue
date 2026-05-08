@@ -120,6 +120,7 @@ export default {
     emits: ['closeMenu', 'openSavedTournament'],
     watch: {
         active(val) {
+            document.documentElement.style.overflow = val ? 'hidden' : '';
             document.body.style.overflow = val ? 'hidden' : '';
         }
     },

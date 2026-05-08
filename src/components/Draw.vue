@@ -111,7 +111,7 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main"
 import Navbar from "./Navbar";
 import Help from "./Help";
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";
 
@@ -136,16 +136,7 @@ export default {
         }
     },
     mounted() {
-        this.isLoading = true
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                this.loginUser(user);
-                this.getTournaments();
-            } else {
-                this.loginUser(false);
-            }
-            this.isLoading = false
-        });
+        this.isLoading = false;
     },
     methods: {
         ...mapActions(useMainStore, ['setActiveTournament', 'addTournament', 'loginUser', 'getTournaments', 'showMessage']),

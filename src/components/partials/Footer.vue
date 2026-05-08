@@ -1,9 +1,10 @@
 <script>
-import {mapState} from "vuex";
+import {mapState} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: "Footer",
-    computed: mapState(['user']),
+    computed: mapState(useMainStore, ['user']),
 }
 </script>
 
@@ -33,6 +34,8 @@ export default {
 
 <style scoped>
 .app-footer {
+    position: relative;
+    z-index: 1;
     padding: 0.75rem 1.5rem;
     background: var(--color-white);
 }

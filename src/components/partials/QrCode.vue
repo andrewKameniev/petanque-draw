@@ -31,13 +31,13 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'user', 'currentTournament']),
+        ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament']),
         tournament() {
             return this.currentTournament
         },
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-            const shortRef = `${this.user.uid}.${parseInt(this.tournaments[this.currentTournamentIndex].id).toString(36)}`;
+            const shortRef = `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
             return `${window.location.origin}${domain}tournament?ref=${shortRef}`
         },
     },

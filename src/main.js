@@ -20,9 +20,20 @@ const router = createRouter({
             component: Draw
         },
         {
-            path: '/show',
+            path: '/tournament',
             name: 'view',
             component: Public
+        },
+        {
+            path: '/show',
+            redirect: to => {
+                const { user, tournament } = to.query;
+                if (user && tournament) {
+                    const ref = `${user}.${parseInt(tournament).toString(36)}`;
+                    return { path: '/tournament', query: { ref } };
+                }
+                return '/';
+            }
         },
         {
             path: '/login-user',

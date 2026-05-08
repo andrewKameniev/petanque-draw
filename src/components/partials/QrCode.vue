@@ -34,7 +34,8 @@ export default {
         ...mapGetters({ tournament: 'currentTournament' }),
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-            return `${window.location.origin}${domain}show/?user=${this.user.uid}&tournament=${this.tournament.id}`
+            const shortRef = `${this.user.uid}.${parseInt(this.tournaments[this.currentTournamentIndex].id).toString(36)}`;
+            return `${window.location.origin}${domain}tournament?ref=${shortRef}`
         },
     },
     methods: {copyContent}

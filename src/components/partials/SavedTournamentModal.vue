@@ -75,7 +75,8 @@
 
 <script>
 import Ranking from './Ranking';
-import {mapMutations} from "vuex";
+import {mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Modal from "@/components/Modal";
 import {sortTeams} from "@/helpers";
 export default {
@@ -90,7 +91,7 @@ export default {
         }
     },
     methods: {
-      ...mapMutations(['removeSavedTournament']),
+      ...mapActions(useMainStore, ['removeSavedTournament']),
         sortTeams
     }
 }

@@ -1,7 +1,8 @@
 <script>
 import StatCheckbox from "@/components/stats/StatCheckbox.vue";
-import {getDatabase, set, ref} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {trainingService} from "@/services/db";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Loader from "@/components/Loader.vue";
 
 export default {
@@ -21,13 +22,13 @@ export default {
         this.setTrainingData();
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(useMainStore, ['user']),
         currentDistanceLabel() {
             return this.data.distances[this.currentDistance]
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         setTrainingData() {
             const localData = JSON.parse(localStorage.getItem('trainingData'));
             if (localData && localData[this.exid]) {
@@ -66,7 +67,6 @@ export default {
             }
         },
         finishTraining() {
-            const db = getDatabase();
             if (!this.fastMode && !this.data.value && Object.values(this.trainingData).some(item => item.some(value => value.isMade === false))) {
                 this.showMessage({title: this.$t('messages.notAllResults'), text: this.$t('messages.someAttemptsNotWritten'), type: 'error'});
                 return
@@ -116,7 +116,7 @@ export default {
             if (navigator.onLine) {
                 if (Object.values(exResult.distances).every(array => Array.isArray(array) && array.every(value => value !== null))) {
                     this.isSaving = true;
-                    set(ref(db, `${this.user.uid}/training/${this.exid}/${exResult.date}`), exResult).then(() => {
+                    trainingService.saveTrainingResult(this.user.uid, this.exid, exResult.date, exResult).then(() => {
                         this.showMessage({
                             title: this.$t('messages.awesome'),
                             text: this.$t('messages.exerciseSaved'),

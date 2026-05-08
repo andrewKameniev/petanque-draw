@@ -1,6 +1,7 @@
 <script>
 import Game from "@/components/partials/Game.vue";
-import {mapState, mapMutations} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {getTeamsRanking} from "@/helpers";
 
 export default {
@@ -8,16 +9,16 @@ export default {
     props: ['activeTournament', 'isPublicView'],
     components: {Game},
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         rankingTeams() {
             return getTeamsRanking(this.tournament)
         },
     },
     methods: {
-        ...mapMutations(['saveCadrageScores']),
+        ...mapActions(useMainStore, ['saveCadrageScores']),
         persistScores() {
             this.saveCadrageScores();
         },

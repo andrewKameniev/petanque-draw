@@ -50,7 +50,8 @@
 <script>
 
 import PlayOff from './PlayOff';
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray, sortTeams} from '@/helpers'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
@@ -68,9 +69,9 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex', 'isAdmin']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
         teamsCount() {
             return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 :
@@ -82,7 +83,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
         gameHasError,
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
@@ -318,7 +319,7 @@ export default {
                 for (let i = 1; i <= superMeleScheme.doubles; i++) {
                     const player1 = this.getRandomWithOneExclusion(teamsToDraw.length);
                     let player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
-                    let tryToFindOpponent;
+                    let tryToFindOpponent = 0;
                     while(tryToFindOpponent < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player2].title)) {
                       player2 = this.getRandomWithOneExclusion(teamsToDraw.length, player1);
                       tryToFindOpponent++
@@ -609,7 +610,7 @@ export default {
                         if (firstTeamIndex !== -1) {
                             this.tournament.teams[firstTeamIndex].wins++
                         }
-                    } else if (!secondTeamIndex !== -1 && game.team_2 !== "Technical") {
+                    } else if (secondTeamIndex !== -1 && game.team_2 !== "Technical") {
                         this.tournament.teams[secondTeamIndex].wins++
                     }
                 })

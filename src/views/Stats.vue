@@ -174,8 +174,11 @@
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
                     {{ $t('stat.onlyLogin') }}
-                    <div class="mt-4">
-                        <router-link to="/login-user" class="button">
+                    <div class="mt-5">
+                        <router-link to="/" class="btn-login-primary btn-login-primary--large">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                             {{ $t('common.loginUser') }}
                         </router-link>
                     </div>
@@ -193,8 +196,9 @@
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
-import {get, getDatabase, ref, set} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {statsService} from "@/services/db";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import {gameTypes, throwDistances} from "@/helpers-stat.js"
@@ -240,7 +244,7 @@ export default {
         this.getTags();
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
         currentScore() {
             return {
                 team1: this.team1.score.reduce((a, b) => a + b, 0),
@@ -277,14 +281,11 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         getTags() {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/stats/tags`);
-
             this.tagsLoading = true;
 
-            get(statsRef)
+            statsService.getTags(this.user.uid)
                 .then((snapshot) => {
                     if (snapshot.exists()) {
                         this.tags = snapshot.val();
@@ -360,9 +361,8 @@ export default {
                 team1: this.team1,
                 team2: this.team2
             }
-            const db = getDatabase();
             this.isSaving = true;
-            set(ref(db, `${this.user.uid}/stats/${statResult.date}`), statResult).then(() => {
+            statsService.save(this.user.uid, statResult.date, statResult).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
                 localStorage.removeItem('statGame');
                 this.isSaving = false;

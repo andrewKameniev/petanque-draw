@@ -20,7 +20,8 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Modal from "@/components/Modal";
 
 export default {
@@ -36,13 +37,13 @@ export default {
         this.name = this.tournament.name
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         }
     },
     methods: {
-        ...mapMutations(['changeTournamentName']),
+        ...mapActions(useMainStore, ['changeTournamentName']),
         changeCurrentTournamentName() {
             this.hasError = false;
             if (this.name !== '') {

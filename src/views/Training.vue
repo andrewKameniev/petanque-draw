@@ -51,8 +51,11 @@
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
                     {{ $t('training.asLogin') }}
-                    <div class="mt-4">
-                        <router-link to="/login-user" class="button">
+                    <div class="mt-5">
+                        <router-link to="/" class="btn-login-primary btn-login-primary--large">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                             {{ $t('common.loginUser') }}
                         </router-link>
                     </div>
@@ -70,8 +73,9 @@
 // import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
-import {get, getDatabase, ref, remove} from "firebase/database";
-import {mapMutations, mapState} from "vuex";
+import {trainingService} from "@/services/db";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import Message from "@/components/Message.vue";
 import TrainingItem from "@/components/training/TrainingItem.vue";
 import TrainingResult from "@/components/training/TrainingResult.vue";
@@ -93,12 +97,9 @@ export default {
         }
     },
     mounted() {
-        const db = getDatabase();
-        const statsRef = ref(db, `${this.user.uid}/training/list`);
-
         this.isLoading = true;
 
-        get(statsRef)
+        trainingService.getAll(this.user.uid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.exercisesList = snapshot.val();
@@ -128,11 +129,11 @@ export default {
             });
     },
     computed: {
-        ...mapState(['user', 'message']),
+        ...mapState(useMainStore, ['user', 'message']),
     },
 
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         start(id) {
             this.exerciseInProcess = id;
             this.exercise = this.exercisesList[id]
@@ -145,10 +146,7 @@ export default {
             this.exercisesList[date] = ex;
         },
         removeExercise(id) {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/training/list/${id}`);
-
-            remove(statsRef)
+            trainingService.remove(this.user.uid, id)
                 .then(() => {
                     delete this.exercisesList[id];
                     this.showMessage({

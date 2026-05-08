@@ -1,6 +1,6 @@
 <template>
     <div :class="{'container': !isPublicView || playOffStageCurrent !== 0, 'content': activeTournament && (!isPublicView || playOffStageCurrent !== 0)}">
-        <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!isPublicView || playOffStageCurrent !== 0">
+        <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)">
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
             <button v-if="!isPublicView" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
@@ -17,7 +17,7 @@
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
                     <Game :game="playOffBracket.thirdPlace" :is-third="true"
-                          :compact-view="activeTournament" :game-index="1" @save="saveResults"/>
+                          :active-tournament="tournament" :compact-view="isPublicView" :game-index="1" @save="saveResults"/>
                 </div>
                 <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
@@ -31,13 +31,14 @@
 
 <script>
 import Bracket from './Bracket';
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
 
 export default {
     name: 'PlayOff',
-    props: ['activeTournament', 'isPublicView'],
+    props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
     components: {Game, Bracket},
     data(){
@@ -52,9 +53,9 @@ export default {
         }
     },
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.activeTournament || this.tournaments[this.currentTournamentIndex]
+            return this.activeTournament || this.currentTournament
         },
         playOffStageCurrent() {
             return 'playOffStage' in this.tournament ? this.tournament.playOffStage : this.tournament.playOff[0].stage
@@ -75,7 +76,7 @@ export default {
     },
     methods: {
         shuffleArray,
-        ...mapMutations(['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
+        ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {
             this.scoreError = false;
             if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => isScoreError(game, this.tournament.preferences.maxScore))){

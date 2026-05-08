@@ -1,5 +1,6 @@
 <script>
-import {mapMutations} from "vuex";
+import {mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 import VueSelect from "vue3-select-component";
 import "vue3-select-component/dist/styles.css";
 import VueDatePicker from '@vuepic/vue-datepicker';
@@ -113,7 +114,7 @@ export default {
         }
     },
     methods: {
-        ...mapMutations(['showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         showPlayerStat() {
             this.showSinusoids = false;
             this.playerStatList = [];

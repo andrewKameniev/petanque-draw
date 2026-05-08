@@ -37,7 +37,8 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'AddTeam',
@@ -51,13 +52,13 @@ export default {
     },
     emits: ['add-team', 'change-draw-style'],
     computed: {
-        ...mapState(['tournaments', 'currentTournamentIndex']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.tournaments[this.currentTournamentIndex]
+            return this.currentTournament
         },
     },
     methods: {
-        ...mapMutations(['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
+        ...mapActions(useMainStore, ['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
         addTeam(title, rating, players = false){
             if(title !== null && title !== ''){
                 let teamExists = false;

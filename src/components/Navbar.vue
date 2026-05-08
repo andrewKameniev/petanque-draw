@@ -18,12 +18,14 @@
             </button>
         </div>
 
+        <div class="navbar-center is-hidden-touch" v-if="user">
+            <router-link class="navbar-nav-link" to="/">{{ $t('common.draw') }}</router-link>
+            <router-link class="navbar-nav-link" to="/stats">{{ $t('common.stat') }}</router-link>
+            <router-link class="navbar-nav-link" to="/training">{{ $t('common.training') }}</router-link>
+        </div>
+
         <div class="navbar-menu">
             <div class="navbar-start">
-                <a class="navbar-item is-hidden-desktop" @click="$emit('open-menu')">
-                    {{ $t('common.menu') }}
-                </a>
-
                 <div class="navbar-item has-dropdown is-hoverable" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
                     <a class="navbar-link navbar-link--custom">
                         {{ $t('common.activeTournaments') }}
@@ -116,6 +118,49 @@ export default {
 </script>
 
 <style scoped>
+.navbar-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.navbar-nav-link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0;
+    transition: color 0.2s;
+}
+
+.navbar-nav-link + .navbar-nav-link {
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.navbar-nav-link + .navbar-nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px;
+    width: 1px;
+    background: var(--color-border, #e0e0e0);
+}
+
+.navbar-nav-link:hover {
+    color: var(--color-primary);
+}
+
+.navbar-nav-link.router-link-exact-active {
+    color: var(--color-primary);
+}
+
 .menu-burger {
     display: none;
     align-items: center;
@@ -147,6 +192,8 @@ export default {
 
 .navbar-link--custom {
     padding-right: 1.5rem !important;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
 .navbar-link--custom::after {

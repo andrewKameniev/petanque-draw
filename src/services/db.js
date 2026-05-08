@@ -1,6 +1,5 @@
-import {get, getDatabase, ref, set, remove, update, onValue} from "firebase/database";
-
-const db = getDatabase();
+import {get, ref, set, remove, update, onValue} from "firebase/database";
+import {database as db} from "@/firebase";
 
 export const tournamentService = {
     getAll(uid) {

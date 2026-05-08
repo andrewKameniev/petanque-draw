@@ -30,11 +30,11 @@ export default {
         }
     },
     computed: {
-        ...mapState(['user']),
+        ...mapState(['user', 'currentTournamentIndex']),
         ...mapGetters({ tournament: 'currentTournament' }),
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-            const shortRef = `${this.user.uid}.${parseInt(this.tournaments[this.currentTournamentIndex].id).toString(36)}`;
+            const shortRef = `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
             return `${window.location.origin}${domain}tournament?ref=${shortRef}`
         },
     },

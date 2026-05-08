@@ -35,7 +35,8 @@ export default {
             ],
             chartOptions: {
                 chart: {
-                    id: 'vuechart-example'
+                    id: 'vuechart-example',
+                    background: '#fff'
                 },
                 dropShadow: {
                     enabled: true,
@@ -235,7 +236,7 @@ export default {
             <p>{{ $t('stat.all') }}: {{allPeriodStat.allPercent}}</p>
             <p>{{ $t('stat.points') }}: {{allPeriodStat.pointsPercent}}, ({{allPeriodStat.points}})</p>
             <p>{{ $t('stat.tirs') }}: {{allPeriodStat.tirsPercent}}, ({{allPeriodStat.tirs}})</p>
-            <div v-if="showSinusoids" class="has-background-white p-3 mt-3">
+            <div v-if="showSinusoids" class="has-background-white p-3 mt-3" style="border-radius: 8px; overflow: hidden">
                 <apexchart
                     type="line"
                     height="350"

@@ -14,7 +14,8 @@ export default {
             ],
             chartOptions: {
                 chart: {
-                    id: 'vuechart-example'
+                    id: 'vuechart-example',
+                    background: '#fff'
                 },
                 dropShadow: {
                     enabled: true,
@@ -37,12 +38,14 @@ export default {
 </script>
 
 <template>
-    <apexchart
-        type="line"
-        height="350"
-        :options="chartOptions"
-        :series="chartData"
-    />
+    <div style="border-radius: 8px; overflow: hidden">
+        <apexchart
+            type="line"
+            height="350"
+            :options="chartOptions"
+            :series="chartData"
+        />
+    </div>
 </template>
 
 <style scoped>

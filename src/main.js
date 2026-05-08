@@ -8,6 +8,18 @@ import Stats from "@/views/Stats.vue";
 import Training from "@/views/Training.vue";
 import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebase";
+
+let authReady = false;
+const authReadyPromise = new Promise(resolve => {
+    onAuthStateChanged(auth, (user) => {
+        store.commit('loginUser', user || false);
+        if (user) store.dispatch('getTournaments');
+        authReady = true;
+        resolve();
+    });
+});
 
 const app = createApp(App);
 const router = createRouter({
@@ -58,11 +70,10 @@ const router = createRouter({
     ]
 })
 
-router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !store.state.user) {
-        next('/');
-    } else {
-        next();
+router.beforeEach(async (to) => {
+    if (to.meta.requiresAuth) {
+        if (!authReady) await authReadyPromise;
+        if (!store.state.user) return '/';
     }
 });
 

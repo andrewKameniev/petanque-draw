@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="wrapper">
         <Navbar @open-menu="menuOpen = !menuOpen"/>
         <div class="container">
             <Menu :active="menuOpen"
@@ -63,14 +63,14 @@
             </div>
             <Message v-if="message.show"/>
             <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeExercise(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
-<!--            <Footer/>-->
         </div>
+        <Footer/>
     </div>
 </template>
 
 <script>
 
-// import Footer from "@/components/partials/Footer.vue";
+import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import {trainingService} from "@/services/db";
@@ -82,7 +82,7 @@ import TrainingAdd from "@/components/training/TrainingAdd.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 export default {
     name: 'Training',
-    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, /*Footer*/},
+    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, Footer},
     data() {
         return {
             resultsOpen: false,

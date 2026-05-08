@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="wrapper">
         <Navbar @open-menu="menuOpen = !menuOpen"/>
         <div class="container">
             <Menu :active="menuOpen"
@@ -185,14 +185,14 @@
                 </div>
             </div>
             <Message v-if="message.show"/>
-<!--            <Footer/>-->
         </div>
+        <Footer/>
     </div>
 </template>
 
 <script>
 
-// import Footer from "@/components/partials/Footer.vue";
+import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
 import Teaminfo from "@/components/stats/Teaminfo.vue";
@@ -206,7 +206,7 @@ import Loader from "@/components/Loader.vue";
 import StatTags from "@/components/stats/StatTags.vue";
 export default {
     name: 'Stats',
-    components: {StatTags, Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, /*Footer*/},
+    components: {StatTags, Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
     data() {
         return {
             isSaving: false,
@@ -492,30 +492,19 @@ export default {
 
 <style>
 .stat-container {
-    min-height: calc(100vh - 96px);
+    flex: 1;
 }
 
 @media screen and (max-width: 500px) {
     .stat-container {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
-        padding-bottom: 15vh;
-        min-height: calc(100vh - 60px);
     }
 
     .mobile-stat-container {
         flex: 1;
         display: flex;
         flex-direction: column;
-    }
-
-    .mobile-stat-container-header {
-        margin-bottom: auto;
-    }
-
-    .is-loading .mobile-stat-container-header {
-        margin-bottom: 0;
     }
 }
 

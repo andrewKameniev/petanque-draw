@@ -33,6 +33,8 @@ export default {
 
 <style scoped>
 .app-footer {
+    position: relative;
+    z-index: 1;
     padding: 0.75rem 1.5rem;
     background: var(--color-white);
 }

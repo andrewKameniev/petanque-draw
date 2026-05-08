@@ -10,98 +10,23 @@
                     <StatsArchive v-if="archiveOpen" @close="archiveOpen = false" :tags="tags"/>
                     <div v-else class="mobile-stat-container">
                         <div v-if="currentMan === null" class="mobile-stat-container">
-                            <div class="has-text-right mobile-stat-container-header">
-                                <button @click="archiveOpen = true" class="button is-info">{{ $t('stat.archive') }}</button>
-                            </div>
-                            <label class="label" for="gameName">{{ $t('stat.enterName') }}</label>
-                            <div class="field control">
-                                <input v-model="gameName" class="input" type="text" id="gameName" :placeholder="$t('stat.enterName')">
-                            </div>
-                            <div v-if="gameTags.length > 0" class="mb-2 is-size-7">
-                                {{ $t('stat.gameTags') }}: <strong v-for="(tag, index) in gameTags" :key="index">{{tag}}<span v-if="index !== gameTags.length - 1">, </span></strong>
-                            </div>
-                            <div v-if="tags" class="mb-2">
-                                <div class="label">{{ $t('stat.addTag') }}: </div>
-                                <div class="tags">
-                                    <button class="cursor-pointer tag is-white is-rounded" v-for="(tag, key) in tags" :key="key"
-                                            @click="addTagToGame(tag)" :class="{'is-hidden': gameTags.includes(tag)}">
-                                      {{tag}}
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mb-3" v-if="showTags">
-                                <StatTags :tags="tags" @addtag="addTag" @removetag="removeTag"/>
-                            </div>
-                            <div class="mb-3">
-                                <button class="button is-info is-small" @click="showTags = !showTags">{{showTags ? $t('stat.hideTags') : $t('stat.showTags')}} {{ $t('stat.tags') }}</button>
-                            </div>
-                            <div class="columns">
-                                <div class="column is-half">
-                                    <label class="label">{{ $t('stat.format') }}</label>
-                                    <div class="field">
-                                        <label class="radio" v-for="item in gameTypes" :key="item.id">
-                                            <input type="radio" name="gameType" :id="item.id" :value="item.value" v-model="gameType" @change="changePlayers">
-                                            {{ item.label }}
-                                        </label>
-                                    </div>
-                                    <label class="label">{{ $t('stat.mode') }}</label>
-                                    <div class="field">
-                                        <label class="radio">
-                                            <input type="radio" name="statMode" id="statModeClassic" :value="false" v-model="statMode">
-                                            {{ $t('stat.classic') }}
-                                        </label>
-                                        <label class="radio">
-                                            <input type="radio" name="statMode" id="statModeFast" :value="true" v-model="statMode">
-                                            {{ $t('stat.fast') }}
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="column is-half">
-                                    <label class="label">{{ $t('stat.system') }}</label>
-                                    <div class="field">
-                                        <label class="radio">
-                                            <input type="radio" name="statSystem" id="statSystemSimple" value="simple" v-model="statSystem">
-                                            {{ $t('stat.simple') }}
-                                        </label>
-                                        <label class="radio">
-                                            <input type="radio" name="statSystem" id="statSystemFrench" value="french" v-model="statSystem">
-                                            {{ $t('stat.french') }}
-                                        </label>
-                                    </div>
-                                    <label class="label">{{ $t('stat.scenario') }}</label>
-                                    <div class="field">
-                                        <label class="radio">
-                                            <input type="radio" name="statScenario" id="statScenarioNegative" :value="false" v-model="statScenario">
-                                            {{ $t('stat.negative') }}
-                                        </label>
-                                        <label class="radio">
-                                            <input type="radio" name="statScenario" id="statScenarioPositive" :value="true" v-model="statScenario">
-                                            {{ $t('stat.positive') }}
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="checkbox">
-                                    <input type="checkbox" id="distanceFirst" v-model="asCouch"/>
-                                    {{ $t('stat.asCoach') }}
-                                </label>
-                            </div>
-                            <div class="columns mb-3" v-if="team1.players?.length">
-                                <div class="column is-half">
-                                    <div class="label">{{ $t('stat.team') }} 1</div>
-                                    <div class="field control" v-for="(player, index) in team1.players" :key="index">
-                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="$t('stat.playerName') + ' ' + Number(index + 1)">
-                                    </div>
-                                </div>
-                                <div class="column is-half">
-                                    <div class="label">{{ $t('stat.team') }} 2</div>
-                                    <div class="field control" v-for="(player, index) in team2.players" :key="index">
-                                        <input v-model="player.name" class="input" type="text" id="team1player1" :placeholder="$t('stat.playerName') + ' ' + Number(index + 1)">
-                                    </div>
-                                </div>
-                            </div>
-                            <button @click="currentMan = 0" class="button is-success">{{ $t('stat.start') }}</button>
+                            <StatsSetup
+                                :tags="tags"
+                                :team1="team1"
+                                :team2="team2"
+                                :initialGameType="gameType"
+                                :initialStatMode="statMode"
+                                :initialStatScenario="statScenario"
+                                :initialStatSystem="statSystem"
+                                :initialAsCouch="asCouch"
+                                :initialGameName="gameName"
+                                :initialGameTags="gameTags"
+                                @start="onSetupStart"
+                                @openArchive="archiveOpen = true"
+                                @changeType="onChangeType"
+                                @addTag="addTag"
+                                @removeTag="removeTag"
+                            />
                         </div>
                         <div v-else-if="showResults" class="mobile-stat-container">
                             <div class="mobile-stat-container-header">
@@ -117,59 +42,28 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-else @touchstart="onTouchStart"
-                             @touchmove="onTouchMove"
-                             @touchend="onTouchEnd"
-                             class="mobile-stat-container"
-                        >
-                            <div class="mobile-stat-container-header">
-                                <div class="is-flex is-justify-content-space-between mb-3">
-                                    <div class="control">
-                                        <button @click="startNewGame" class="button is-danger">{{ $t('stat.newGame') }}</button>
-                                    </div>
-                                    <div class="control">
-                                        <button @click="finishGame" class="button is-info">
-                                            <Loader v-if="isSaving"/>
-                                            <span :class="{'opacity-0': isSaving}">{{ $t('stat.finishGame') }}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="is-flex is-justify-content-space-between">
-                                <div>{{ $t('stat.man') }} <strong>{{ currentMan + 1 }}</strong>/{{manCount}}</div>
-                                <div>
-                                    <strong>{{ $t('stat.score') }}</strong>
-                                    {{currentScore.team1}} : {{currentScore.team2}}
-                                </div>
-                            </div>
-                            <hr>
-                            <div>
-                                <div>{{ $t('stat.whatDistance') }}</div>
-                                <div class="field">
-                                    <label class="radio" v-for="dist in throwDistances" :key="dist">
-                                        <input type="radio" name="manDistance" :id="'manDistance' + dist" :value="dist" v-model="manDistance">
-                                        {{dist === 11 ? '>10m' : '~' + dist + 'm'}}
-                                    </label>
-                                </div>
-                            </div>
-                            <hr>
-                            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
-                                      @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                      @x2throw="doubleThrowResult" @next="currentMan++"
-                                      @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
-                            />
-                            <hr>
-                            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
-                                      @update-score="updateTeamScore" @removethrow="removeThrow" @addthrow="addThrow"
-                                      @x2throw="doubleThrowResult" @next="currentMan++"
-                                      @updatethrow="updateThrow" @changePlayer="changePlayerInTeam"
-                            />
-                            <div class="is-flex is-justify-content-space-between mt-3">
-                                <button class="button is-info" @click="currentMan--" v-if="currentMan >= 1">{{ $t('stat.prev') }}</button>
-                                <button class="button is-danger" v-if="currentMan !== 0" @click="removeMan">{{ $t('stat.removeMan') }}</button>
-                                <button class="button is-success" @click="currentMan++">{{ $t('stat.next') }}</button>
-                            </div>
-                        </div>
+                        <StatsTracking v-else
+                            :team1="team1"
+                            :team2="team2"
+                            :currentMan="currentMan"
+                            :currentScore="currentScore"
+                            :manCount="manCount"
+                            :statSystem="statSystem"
+                            :asCouch="asCouch"
+                            :isSaving="isSaving"
+                            @newGame="startNewGame"
+                            @finishGame="finishGame"
+                            @updateScore="updateTeamScore"
+                            @removeThrow="removeThrow"
+                            @addThrow="addThrow"
+                            @x2Throw="doubleThrowResult"
+                            @updateThrow="updateThrow"
+                            @changePlayer="changePlayerInTeam"
+                            @next="currentMan++"
+                            @prev="currentMan--"
+                            @removeMan="removeMan"
+                            @distanceChange="onDistanceChange"
+                        />
                     </div>
                 </div>
                 <div v-else class="is-size-3 p-3 has-text-centered">
@@ -195,32 +89,28 @@
 import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
-import Teaminfo from "@/components/stats/Teaminfo.vue";
 import {statsService} from "@/services/db";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
-import {gameTypes, throwDistances} from "@/helpers-stat.js"
+import StatsSetup from "@/components/stats/StatsSetup.vue";
+import StatsTracking from "@/components/stats/StatsTracking.vue";
+import {gameTypes} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
 import Loader from "@/components/Loader.vue";
-import StatTags from "@/components/stats/StatTags.vue";
 export default {
     name: 'Stats',
-    components: {StatTags, Loader, Message, StatResult, StatsArchive, Teaminfo, Menu, Navbar, Footer},
+    components: {Loader, Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer},
     data() {
         return {
             isSaving: false,
             tagsLoading: false,
-            showTags: false,
             tags: null,
             gameTags: [],
             archiveOpen: false,
             menuOpen: false,
             showResults: false,
-            startX: 0,
-            startY: 0,
-            swipeDirection: null,
             gameName: '',
             gameType: 1,
             statScenario: false,
@@ -235,7 +125,6 @@ export default {
             team2: {
                 score: []
             },
-            throwDistances,
             manDistance: null,
         }
     },
@@ -342,8 +231,22 @@ export default {
             currentPlayer.stat = Array(currentPlayer.isChanged + 1).fill([]);
             this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
         },
-        addTagToGame(tag) {
-            this.gameTags.push(tag)
+        onSetupStart({ gameName, gameType, statMode, statScenario, statSystem, asCouch, gameTags }) {
+            this.gameName = gameName;
+            this.gameType = gameType;
+            this.statMode = statMode;
+            this.statScenario = statScenario;
+            this.statSystem = statSystem;
+            this.asCouch = asCouch;
+            this.gameTags = gameTags;
+            this.currentMan = 0;
+        },
+        onChangeType(gameType) {
+            this.gameType = gameType;
+            this.changePlayers();
+        },
+        onDistanceChange(newValue) {
+            this.manDistance = newValue;
         },
         addTag(id, name) {
             this.tags[id] = name;
@@ -407,35 +310,6 @@ export default {
                 player.stat.splice(this.currentMan, 1);
             });
             this.currentMan--
-        },
-        onTouchStart(event) {
-            this.startX = event.touches[0].clientX;
-            this.startY = event.touches[0].clientY;
-        },
-        onTouchMove(event) {
-            event.preventDefault();
-        },
-        onTouchEnd(event) {
-            const endX = event.changedTouches[0].clientX;
-            const endY = event.changedTouches[0].clientY;
-
-            const deltaX = endX - this.startX;
-            const deltaY = endY - this.startY;
-
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                this.swipeDirection = deltaX > 0 ? "right" : "left";
-                if (Math.abs(endX - this.startX) > 50) {
-                    if (this.swipeDirection === 'right') {
-                        if (this.currentMan > 0) {
-                            this.currentMan--
-                        }
-                    } else {
-                        this.currentMan++
-                    }
-                }
-            } else {
-                this.swipeDirection = deltaY > 0 ? "down" : "up";
-            }
         },
         addPlayersStats(players) {
             players.forEach((player, index) => {

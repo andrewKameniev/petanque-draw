@@ -163,6 +163,7 @@ import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getTeamsRanking} from "@/helpers";
+import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
@@ -215,101 +216,12 @@ export default {
             }
         },
         startCadrage(playOffList) {
-            const cadrageGames = [];
-            for (let i = 0; i < playOffList.length / 2; i++) {
-                const game = {
-                    id: i + 1,
-                    stage: 'cadrage',
-                    team_1: playOffList[i].title,
-                    team_1_place: this.teamToPlayOff / 2 + i + 1,
-                    team_1_score: null,
-                    team_2: playOffList[playOffList.length - 1 - i].title,
-                    team_2_place: playOffList.length + this.teamToPlayOff / 2 - i,
-                    team_2_score: null,
-                };
-                cadrageGames.push(game)
-            }
+            const cadrageGames = buildCadrageGames(playOffList, this.teamToPlayOff);
             this.setCadrage(cadrageGames);
             this.activeTab = 'games';
         },
         startPlayOff(playOffList) {
-            let playOffScheme = [];
-            let stageValue = playOffList.length / 2;
-            for (let i = 0; i < playOffList.length / 2; i++) {
-                let game = {};
-                if (i % 2 === 0) {
-                    game = {
-                        id: i + 1,
-                        stage: stageValue,
-                        team_1: playOffList[i].title,
-                        team_1_place: i + 1,
-                        team_1_score: null,
-                        team_2: playOffList[playOffList.length - 1 - i].title,
-                        team_2_place: this.tournament.cadrage ? '' : playOffList.length - i,
-                        team_2_score: null,
-                    };
-                } else {
-                    game = {
-                        id: i + 1,
-                        stage: stageValue,
-                        team_1: playOffList[playOffList.length / 2 - i].title,
-                        team_1_place: playOffList.length / 2 + 1 - i,
-                        team_1_score: null,
-                        team_2: playOffList[playOffList.length / 2 - 1 + i].title,
-                        team_2_place: this.tournament.cadrage ? '' : playOffList.length / 2 + i,
-                        team_2_score: null,
-                    };
-                }
-
-                playOffScheme.push(game)
-            }
-            if (stageValue === 8) {
-              [playOffScheme[2], playOffScheme[4]] = [playOffScheme[4], playOffScheme[2]];
-              [playOffScheme[3], playOffScheme[5]] = [playOffScheme[5], playOffScheme[3]];
-            }
-            if (stageValue === 16) {
-                const newOrder = [0, 1, 8, 9, 13, 12, 5, 4, 15, 14, 7, 6, 2, 3, 10, 11];
-                playOffScheme = newOrder.map(index => playOffScheme[index]);
-            }
-            if (stageValue === 32) {
-                const newOrder = [0, 1, 16, 17, 8, 9, 24, 25, 29, 28, 13, 12, 21, 20, 5, 4, 31, 30, 15, 14, 23, 22, 7, 6, 2, 3, 18, 19, 10, 11, 26, 27];
-                playOffScheme = newOrder.map(index => playOffScheme[index]);
-            }
-            if (stageValue === 64) {
-                const newOrder = [
-                    0, 1, 32, 33, 8, 9, 40, 41,
-                    16, 17, 56, 57, 24, 25, 48, 49,
-                    4, 5, 36, 37, 12, 13, 60, 61,
-                    20, 21, 52, 53, 28, 29, 44, 45,
-                    2, 3, 34, 35, 10, 11, 42, 43,
-                    18, 19, 58, 59, 26, 27, 50, 51,
-                    6, 7, 38, 39, 14, 15, 62, 63,
-                    22, 23, 54, 55, 30, 31, 46, 47
-                ];
-                playOffScheme = newOrder.map(index => playOffScheme[index]);
-            }
-
-            if (stageValue === 128) {
-                const newOrder = [
-                    0, 1, 64, 65, 32, 33, 96, 97,
-                    8, 9, 72, 73, 40, 41, 104, 105,
-                    16, 17, 80, 81, 56, 57, 112, 113,
-                    24, 25, 88, 89, 48, 49, 120, 121,
-                    4, 5, 68, 69, 36, 37, 100, 101,
-                    12, 13, 76, 77, 60, 61, 108, 109,
-                    20, 21, 84, 85, 52, 53, 116, 117,
-                    28, 29, 92, 93, 44, 45, 124, 125,
-                    2, 3, 66, 67, 34, 35, 98, 99,
-                    10, 11, 74, 75, 42, 43, 106, 107,
-                    18, 19, 82, 83, 58, 59, 114, 115,
-                    26, 27, 90, 91, 50, 51, 122, 123,
-                    6, 7, 70, 71, 38, 39, 102, 103,
-                    14, 15, 78, 79, 62, 63, 110, 111,
-                    22, 23, 86, 87, 54, 55, 118, 119,
-                    30, 31, 94, 95, 46, 47, 126, 127
-                ];
-                playOffScheme = newOrder.map(index => playOffScheme[index]);
-            }
+            const playOffScheme = buildPlayOffScheme(playOffList, !!this.tournament.cadrage);
             this.setPlayOff(playOffScheme);
 
             this.activeTab = 'games';

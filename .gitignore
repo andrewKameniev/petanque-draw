@@ -1,4 +1,5 @@
 node_modules
 dist
 .claude
-.playwright-cli/
+.playwright-cli
+coverage/

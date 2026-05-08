@@ -164,8 +164,7 @@
 
 import Ranking from "@/components/partials/Ranking";
 import TeamsList from "@/components/partials/TeamsList";
-import {ref, onValue} from "firebase/database";
-import {database, initializeMessaging} from "@/firebase";
+import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -312,8 +311,7 @@ export default {
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
-                const dbRef = ref(database, `${this.userId}/tournaments/${this.tournamentId}`);
-                this._unsubscribe = onValue(dbRef, (snapshot) => {
+                this._unsubscribe = tournamentService.subscribe(this.userId, this.tournamentId, (snapshot) => {
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
                         if (this.tournament.cadrage?.length) {

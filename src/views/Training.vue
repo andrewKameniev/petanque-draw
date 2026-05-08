@@ -70,7 +70,7 @@
 // import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
-import {get, getDatabase, ref, remove} from "firebase/database";
+import {trainingService} from "@/services/db";
 import {mapMutations, mapState} from "vuex";
 import Message from "@/components/Message.vue";
 import TrainingItem from "@/components/training/TrainingItem.vue";
@@ -93,12 +93,9 @@ export default {
         }
     },
     mounted() {
-        const db = getDatabase();
-        const statsRef = ref(db, `${this.user.uid}/training/list`);
-
         this.isLoading = true;
 
-        get(statsRef)
+        trainingService.getAll(this.user.uid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.exercisesList = snapshot.val();
@@ -145,10 +142,7 @@ export default {
             this.exercisesList[date] = ex;
         },
         removeExercise(id) {
-            const db = getDatabase();
-            const statsRef = ref(db, `${this.user.uid}/training/list/${id}`);
-
-            remove(statsRef)
+            trainingService.remove(this.user.uid, id)
                 .then(() => {
                     delete this.exercisesList[id];
                     this.showMessage({

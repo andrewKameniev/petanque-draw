@@ -1,7 +1,6 @@
 import { createStore } from 'vuex';
 import {tournamentNames} from "@/helpers";
-import {get, getDatabase, ref, set, remove, update} from "firebase/database";
-import {database} from "@/firebase";
+import {tournamentService, savedService} from "@/services/db";
 import i18n from "@/i18n";
 const mutationsAfterUpdateDb = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 const newTournament = {
@@ -48,15 +47,13 @@ const store = createStore({
     },
     actions: {
         async getTournaments({state, commit}) {
-            const dbRef = ref(database, `${state.user.uid}/tournaments/`);
-            const snapshot = await get(dbRef);
+            const snapshot = await tournamentService.getAll(state.user.uid);
             if (snapshot.exists()) {
                 commit('setTournaments', snapshot.val());
             } else {
                 commit('setTournaments', {});
             }
-            const dbRefSaved = ref(database, `${state.user.uid}/saved/`);
-            const snapshotSaved = await get(dbRefSaved);
+            const snapshotSaved = await savedService.getAll(state.user.uid);
             if (snapshot.exists() && snapshotSaved.val() !== null) {
                 commit('setSavedTournaments', snapshotSaved.val());
             } else {
@@ -64,18 +61,14 @@ const store = createStore({
             }
         },
         async removeTournament({state, commit}) {
-            const db = getDatabase();
-            const dataRef = ref(db, `${state.user.uid}/tournaments/${state.currentTournamentIndex}`);
-            const tokensRef = ref(db, `tokens/${state.user.uid}/${state.currentTournamentIndex}`);
-
             try {
-                await remove(tokensRef);
+                await tournamentService.removeTokens(state.user.uid, state.currentTournamentIndex);
             } catch (error) {
                 console.error('Error deleting tokens:', error);
             }
 
             try {
-                await remove(dataRef);
+                await tournamentService.remove(state.user.uid, state.currentTournamentIndex);
                 delete state.tournaments[state.currentTournamentIndex];
                 if (Object.keys(state.tournaments).length >= 1) {
                     state.currentTournamentIndex = Object.keys(state.tournaments)[0];
@@ -89,9 +82,8 @@ const store = createStore({
             }
         },
         async addToSaved({state, commit}, tournament) {
-            const db = getDatabase();
             try {
-                await set(ref(db, `${state.user.uid}/saved/${tournament.id}`), tournament);
+                await savedService.save(state.user.uid, tournament.id, tournament);
                 state.savedTournaments[tournament.id] = tournament;
                 commit('showMessage', {title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentSavedList')});
             } catch (error) {
@@ -100,11 +92,8 @@ const store = createStore({
             }
         },
         async removeSavedTournament({state, commit}, id) {
-            const db = getDatabase();
-            const dataRef = ref(db, `${state.user.uid}/saved/${id}`);
-
             try {
-                await remove(dataRef);
+                await savedService.remove(state.user.uid, id);
                 delete state.savedTournaments[id];
                 commit('showMessage', {title: i18n.global.t('messages.removed'), text: i18n.global.t('messages.tournamentRemovedSaved')});
             } catch (error) {
@@ -259,13 +248,11 @@ const store = createStore({
 store.subscribe((mutation, state) => {
     if (mutationsAfterUpdateDb.includes(mutation.type)) {
         if (state.user && state.user.uid && state.currentTournamentIndex) {
-            const db = getDatabase();
-            update(ref(db, `${state.user.uid}/tournaments/`), {
-                [state.currentTournamentIndex]: state.tournaments[state.currentTournamentIndex]
-            }).catch(error => {
-                console.error('Error updating specific tournament:', error)
-                store.commit('showMessage', {title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
-            });
+            tournamentService.update(state.user.uid, state.currentTournamentIndex, state.tournaments[state.currentTournamentIndex])
+                .catch(error => {
+                    console.error('Error updating specific tournament:', error)
+                    store.commit('showMessage', {title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
+                });
         }
     }
 });

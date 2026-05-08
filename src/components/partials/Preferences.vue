@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapGetters, mapMutations, mapState} from "vuex";
 import Modal from "@/components/Modal";
 
 export default {
@@ -53,9 +53,7 @@ export default {
     emits: ['close-modal'],
     computed: {
         ...mapState(['tournaments', 'currentTournamentIndex']),
-        tournament() {
-            return this.tournaments[this.currentTournamentIndex]
-        },
+        ...mapGetters({ tournament: 'currentTournament' }),
     },
     methods: {
         ...mapMutations(['savePreferences']),

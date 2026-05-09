@@ -1,5 +1,5 @@
 <template>
-    <h2>{{ $t('teams.currentList') }}</h2>
+    <h2 class="teams-heading">{{ $t('teams.currentList') }}</h2>
     <div v-if="tournament.system === 'groups' && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
         <div v-for="(group, index) in tournament.groups" :key="index">
             <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
@@ -39,7 +39,9 @@
             <td class="is-hidden-mobile" v-else></td>
             <td class="td-100" v-if="tournament.useRating">{{team.rating}}</td>
             <td class="td-50" v-if="!previewTournament && (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))">
-                <span class="delete" @click="removeTeam(team.title)"></span>
+                <button class="team-remove-btn" @click="removeTeam(team.title)">
+                    <X :size="16"/>
+                </button>
             </td>
         </tr>
     </table>
@@ -49,9 +51,11 @@
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
+import {X} from "lucide-vue-next";
 
 export default {
     name: "TeamsList",
+    components: {X},
     props: ['previewTournament', 'activeRound'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
@@ -88,3 +92,28 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.teams-heading {
+    margin-bottom: 0.75rem;
+}
+
+.team-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.team-remove-btn:hover {
+    background: var(--color-error-bg, #fef2f2);
+    color: var(--color-error, #ef4444);
+}
+</style>

@@ -100,7 +100,22 @@
                     </select>
                 </div>
 
-                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                <div class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.technicalScore') }}</label>
+                    <div class="setup-card__row">
+                        <div class="setup-card__row-item">
+                            <span class="setup-card__hint">{{ $t('games.first') }}</span>
+                            <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalFirst" min="0">
+                        </div>
+                        <div class="setup-card__row-item">
+                            <span class="setup-card__hint">{{ $t('games.technical') }} 2</span>
+                            <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalSecond" min="0">
+                        </div>
+                    </div>
+                    <span class="setup-card__hint">{{ $t('modals.technicalScoreHint') }}</span>
+                </div>
+
+                <div class="setup-card__field">
                     <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
                     <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1">
                     <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
@@ -113,14 +128,30 @@
                 </div>
 
                 <div v-if="tournament.system === 'swiss'" class="setup-card__field">
-                    <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
-                    <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams">
-                        <option :value="0">—</option>
-                        <template v-for="value in teamToPlayOffValues" :key="value">
-                            <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
-                        </template>
-                    </select>
-                    <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+                    <label class="setup-card__checkbox">
+                        <input type="checkbox" v-model="setupPlayOff">
+                        {{ $t('setup.enablePlayOff') }}
+                    </label>
+                    <div v-if="setupPlayOff" class="setup-card__sub">
+                        <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
+                        <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams">
+                            <template v-for="value in teamToPlayOffValues" :key="value">
+                                <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
+                            </template>
+                        </select>
+                        <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+                        <label class="setup-card__checkbox setup-card__checkbox--sub">
+                            <input type="checkbox" v-model="withCadrage">
+                            {{ $t('ranking.withCadrage') }}
+                        </label>
+                    </div>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                    <label class="setup-card__checkbox">
+                        <input type="checkbox" v-model="playB">
+                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
+                    </label>
                 </div>
 
                 <button class="setup-card__start" @click="drawFirstRound">
@@ -194,7 +225,7 @@
                 <button v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="finishTournament">
                     {{ $t('teams.finishTournament') }}
                 </button>
-                <button class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
+                <button v-if="tournamentStarted" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
                     <IconSettings :size="16"/>
                     {{ $t('teams.preferences') }}
                 </button>
@@ -269,6 +300,7 @@ export default {
             loadingOnServer: false,
             showPreferences: false,
             showProtocol: false,
+            setupPlayOff: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
@@ -844,8 +876,6 @@ export default {
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.5rem;
-    max-width: 480px;
-    margin: 0 auto;
 }
 
 .setup-card__title {
@@ -919,6 +949,32 @@ export default {
     font-size: 0.72rem;
     color: var(--color-text-muted);
     margin-top: 0.25rem;
+}
+
+.setup-card__row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.setup-card__row-item {
+    flex: 1;
+}
+
+.setup-card__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.setup-card__checkbox--sub {
+    margin-top: 0.5rem;
+}
+
+.setup-card__sub {
+    margin-top: 0.5rem;
+    padding-left: 1.25rem;
 }
 
 .setup-card__start {

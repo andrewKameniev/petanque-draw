@@ -162,6 +162,7 @@ export default {
         setup: {
             readyToStart: 'Tournament setup',
             drawFirstRound: 'Draw first round',
+            enablePlayOff: 'Play-off after Swiss rounds',
         },
         common: {
             updated: 'has updated!',
@@ -717,6 +718,7 @@ export default {
         setup: {
             readyToStart: 'Налаштування турніру',
             drawFirstRound: 'Жеребкувати перший раунд',
+            enablePlayOff: 'Плей-офф після швейцарських раундів',
         },
         common: {
             updated: 'оновлено!',

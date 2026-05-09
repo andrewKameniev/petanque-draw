@@ -108,11 +108,11 @@
 }
 
 [data-theme="dark"] {
-    --color-primary: #a78bfa;
-    --color-primary-light: #c4b5fd;
+    --color-primary: #8b6fde;
+    --color-primary-light: #a78bfa;
     --color-primary-bg: #2d2340;
     --color-primary-bg-hover: #3a2d52;
-    --color-primary-shadow: rgba(167, 139, 250, 0.25);
+    --color-primary-shadow: rgba(139, 111, 222, 0.25);
     --color-highlight: rgba(52, 211, 153, 0.15);
     --color-white: #1e1e2e;
     --color-grey: #9ca3af;
@@ -122,8 +122,8 @@
     --color-border: #2f3543;
     --color-border-light: #262d3a;
     --color-bg-input: #1a1d28;
-    --color-success: #4ade80;
-    --color-success-hover: #22c55e;
+    --color-success: #34b86c;
+    --color-success-hover: #2a9d5c;
     --color-error: #fb7185;
     --color-error-hover: #f43f5e;
     --color-error-bg: #2d1b1e;
@@ -156,21 +156,21 @@
 
     --color-btn-dark: #4b5563;
     --color-btn-dark-hover: #6b7280;
-    --color-btn-green: #22c55e;
-    --color-btn-green-hover: #16a34a;
+    --color-btn-green: #2a9d5c;
+    --color-btn-green-hover: #228b4e;
     --color-btn-blue: #3b82f6;
     --color-btn-blue-hover: #2563eb;
 
-    --color-add-team-btn: #22c55e;
-    --color-add-team-btn-hover: #16a34a;
+    --color-add-team-btn: #2a9d5c;
+    --color-add-team-btn-hover: #228b4e;
 
     --color-badge-purple: #2a2040;
-    --color-badge-gold-bg: rgba(251, 191, 36, 0.18);
-    --color-badge-gold-border: #d4a017;
-    --color-badge-silver-bg: rgba(156, 163, 175, 0.15);
-    --color-badge-silver-border: #9ca3af;
-    --color-badge-bronze-bg: rgba(205, 127, 50, 0.15);
-    --color-badge-bronze-border: #cd7f32;
+    --color-badge-gold-bg: rgba(251, 191, 36, 0.35);
+    --color-badge-gold-border: #f5c518;
+    --color-badge-silver-bg: rgba(156, 163, 175, 0.30);
+    --color-badge-silver-border: #b0b8c4;
+    --color-badge-bronze-bg: rgba(205, 127, 50, 0.30);
+    --color-badge-bronze-border: #e0924a;
 
     --color-bracket-winner: rgba(74, 222, 128, 0.2);
     --color-bracket-winner-score: rgba(74, 222, 128, 0.3);
@@ -196,7 +196,7 @@
     --color-tab-inactive-text: #9ca3af;
     --color-tab-inactive-hover: #2c3044;
 
-    --color-ranking-primary-bg: rgba(167, 139, 250, 0.85);
+    --color-ranking-primary-bg: rgba(139, 111, 222, 0.85);
 
     --color-help-border: #2f3543;
     --color-loader-border: #6b7280;

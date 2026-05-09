@@ -54,14 +54,14 @@ export default {
     position: relative;
     width: 44px;
     height: 24px;
-    background: linear-gradient(135deg, #87ceeb, #ffd700);
+    background: var(--color-border);
     border-radius: 12px;
     transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
     overflow: hidden;
 }
 
 .theme-switch--dark .theme-switch__track {
-    background: linear-gradient(135deg, #1a1a3e, #2d2b55);
+    background: var(--color-primary);
 }
 
 .theme-switch__thumb {
@@ -75,13 +75,12 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .theme-switch--dark .theme-switch__thumb {
     transform: translateX(20px);
-    background: #2d2b55;
 }
 
 .theme-switch__icon {

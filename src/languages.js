@@ -219,6 +219,7 @@ export default {
             teamsLabel: 'teams',
             darkTheme: 'Dark theme',
             lightTheme: 'Light theme',
+            theme: 'Theme',
         },
         help: {
             title: 'Tournament Drawing App for Petanque',
@@ -781,6 +782,7 @@ export default {
             teamsLabel: 'команд',
             darkTheme: 'Темна тема',
             lightTheme: 'Світла тема',
+            theme: 'Тема',
         },
         help: {
             title: 'Програма для жеребкування турнірів з петанку',

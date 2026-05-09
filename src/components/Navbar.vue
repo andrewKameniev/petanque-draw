@@ -58,6 +58,7 @@
                                 {{ $t('common.archivedTournaments') }}
                             </router-link>
                             <div class="user-dropdown__theme-row">
+                                <span class="user-dropdown__theme-label">{{ $t('common.theme') }}</span>
                                 <ThemeSwitcher />
                             </div>
                             <a href="#" class="user-dropdown__item" @click.prevent="signOutUser">
@@ -355,10 +356,15 @@ export default {
 .user-dropdown__theme-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0.4rem 0.75rem;
+    justify-content: space-between;
+    padding: 0.55rem 0.75rem;
     border-top: 1px solid var(--color-border-light);
     margin-top: 0.2rem;
-    padding-top: 0.5rem;
+}
+
+.user-dropdown__theme-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
 }
 </style>

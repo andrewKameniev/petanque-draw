@@ -27,6 +27,16 @@ select:focus,
     box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
 }
 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
 input[type="radio"] {
     appearance: none;
     -webkit-appearance: none;
@@ -846,4 +856,16 @@ button.tag {
 [data-theme="dark"] .message-body {
     border-color: var(--color-border);
     color: var(--color-text);
+}
+
+[data-theme="dark"] .has-text-dark {
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .has-text-grey {
+    color: var(--color-text-muted) !important;
+}
+
+[data-theme="dark"] .has-text-grey-dark {
+    color: var(--color-text-secondary) !important;
 }

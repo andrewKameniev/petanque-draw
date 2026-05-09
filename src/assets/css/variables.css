@@ -165,12 +165,12 @@
     --color-add-team-btn-hover: #16a34a;
 
     --color-badge-purple: #2a2040;
-    --color-badge-gold-bg: rgba(251, 191, 36, 0.08);
-    --color-badge-gold-border: #b8860b;
-    --color-badge-silver-bg: rgba(156, 163, 175, 0.08);
-    --color-badge-silver-border: #6b7280;
-    --color-badge-bronze-bg: rgba(180, 110, 40, 0.08);
-    --color-badge-bronze-border: #a0522d;
+    --color-badge-gold-bg: rgba(251, 191, 36, 0.18);
+    --color-badge-gold-border: #d4a017;
+    --color-badge-silver-bg: rgba(156, 163, 175, 0.15);
+    --color-badge-silver-border: #9ca3af;
+    --color-badge-bronze-bg: rgba(205, 127, 50, 0.15);
+    --color-badge-bronze-border: #cd7f32;
 
     --color-bracket-winner: rgba(74, 222, 128, 0.12);
     --color-bracket-winner-score: rgba(74, 222, 128, 0.2);

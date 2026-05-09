@@ -116,4 +116,8 @@ export default {
     background: var(--color-error-bg, #fef2f2);
     color: var(--color-error, #ef4444);
 }
+
+.table tr:last-child td {
+    border-bottom: none;
+}
 </style>

@@ -7,6 +7,7 @@ import {getTeamsRanking} from "@/helpers";
 export default {
     name: "Cadrage",
     props: ['activeTournament', 'isPublicView'],
+    emits: ['startPlayOff'],
     components: {Game},
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),

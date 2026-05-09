@@ -88,6 +88,7 @@ export const useMainStore = defineStore('main', {
         saveLanesToTeams(games) {
             games.map(game => {
                 this.tournaments[this.currentTournamentIndex].teams.map(team => {
+                    if (!team.lanes) team.lanes = [];
                     if ((team.title === game.team_1) && game.lane != null) {
                         team.lanes.push(game.lane)
                     }

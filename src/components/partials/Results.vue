@@ -43,7 +43,8 @@
                                         <td v-if="hasGroupsColumn" class="group-cell-desktop"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
                                         <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
                                         <td class="has-text-centered is-narrow">
-                                            <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
+                                            <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                            <span v-else class="score-empty">– : –</span>
                                         </td>
                                         <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
                                     </tr>
@@ -214,6 +215,11 @@ export default {
     .group-cell-desktop {
         display: none;
     }
+}
+
+.score-empty {
+    color: var(--color-text-muted, #ccc);
+    font-weight: 400;
 }
 
 .btn-purple-outline {

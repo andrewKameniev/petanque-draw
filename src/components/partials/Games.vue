@@ -3,22 +3,19 @@
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
-            <div v-if="tournament.games?.length" class="draw-card">
-                <p v-if="tournament.system === 'swiss' && tournament.teams?.length" class="draw-card__hint">
-                    {{$t('games.playMaximum')}} <strong>{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
-                </p>
+            <div v-if="tournament.games?.length && showDrawLinks" class="draw-card">
                 <div class="draw-card__links">
                     <a v-if="!tournament.playOff && !tournament.roundIsActive
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
                        href="#" class="draw-card__link draw-card__link--draw" @click.prevent="drawRound">
                         {{ `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </a>
-                    <template v-if="((tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1)
-                        && !tournament.playOff && !tournament.roundIsActive
+                    <template v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound
+                        && !tournament.playOff
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)">
                         <span class="draw-card__or">{{ $t('common.or') }}</span>
                     </template>
-                    <a v-if="(tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1"
+                    <a v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound"
                        href="#" class="draw-card__link draw-card__link--restore" @click.prevent="restoreRoundGames">{{ $t('games.restoreRound') }}</a>
                 </div>
             </div>
@@ -29,7 +26,6 @@
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
                         <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
                     </button>
-                    <button v-if="allScoresFilled" class="games-toolbar__save" @click="saveResults" :disabled="saveDisabled">{{ $t('games.saveResults') }}</button>
                 </div>
                 <div class="games-list">
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
@@ -37,7 +33,7 @@
                           :team1-lanes="tournament.teams.find(team => team.title === game.team_1).lanes"
                           :team2-lanes="tournament.teams.find(team => team.title === game.team_2)?.lanes || null"
                           @save="saveResults"/>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
@@ -87,6 +83,14 @@ export default {
             const games = this.tournament.games?.[this.activeRound - 1];
             if (!games) return false;
             return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
+        },
+        showDrawLinks() {
+            if (!this.tournament.games?.length) return false;
+            const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
+                && (this.tournament.games.length < this.teamsCount)
+                && (this.tournament.system === 'swiss' ? (this.activeRound <= this.maxSwissRounds) : true);
+            const hasRestoreLink = this.tournament.games.length && !this.tournament.roundIsActive && !this.isRestoredRound;
+            return hasDrawLink || hasRestoreLink;
         }
     },
     methods: {
@@ -149,6 +153,7 @@ export default {
             }
             this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
             this.startRound();
+            this.isRestoredRound = false;
         },
         createGroups() {
             if (this.teamsInGroup < 3) {
@@ -167,6 +172,11 @@ export default {
                 return false
             }
 
+            this.tournament.games[this.activeRound - 1].forEach(game => {
+                game.team_1_score = Number(game.team_1_score);
+                game.team_2_score = Number(game.team_2_score);
+            });
+
             this.saveResultsForRound(this.activeRound - 1);
 
             if (this.isRestoredRound) {
@@ -181,7 +191,6 @@ export default {
                 for (let i = 0; i < this.tournament.games.length; i++) {
                     this.saveResultsForRound(i);
                 }
-                this.isRestoredRound = false;
             }
 
             this.endRound();
@@ -219,22 +228,7 @@ export default {
     flex-direction: column;
     align-items: center;
     gap: 0.6rem;
-    background: #fff;
-    border: 1px solid var(--color-border, #e5e7f0);
-    border-radius: 10px;
-    padding: 1.25rem 2rem;
-    margin: 0 auto 1rem;
-    max-width: 480px;
-}
-
-.draw-card__hint {
-    font-size: 0.9rem;
-    color: var(--color-text-muted, #888);
-    margin: 0;
-}
-
-.draw-card__hint strong {
-    color: var(--color-text-muted, #888);
+    padding: 0.5rem 0 1rem;
 }
 
 .draw-card__links {
@@ -300,29 +294,4 @@ export default {
     transform: rotate(180deg);
 }
 
-.games-toolbar__save {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 0.9rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border-radius: 6px;
-    border: 1px solid #22c55e;
-    background: #22c55e;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-}
-
-.games-toolbar__save:hover {
-    background: #16a34a;
-    border-color: #16a34a;
-}
-
-.games-toolbar__save:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 </style>

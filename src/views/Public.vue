@@ -471,6 +471,10 @@ export default {
     z-index: 1;
 }
 
+.wrapper :deep(.navbar) {
+    z-index: 10;
+}
+
 .playoff-public-wrapper .play-off-stage-wrapper {
     padding: 0;
 }

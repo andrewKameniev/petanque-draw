@@ -309,6 +309,10 @@ export default {
     z-index: 1;
 }
 
+.wrapper :deep(.navbar) {
+    z-index: 10;
+}
+
 .wrapper .navbar-item:hover {
     background: transparent;
 }

@@ -117,6 +117,11 @@ input[type="checkbox"]:focus {
     background-color: var(--color-body-bg);
 }
 
+[data-theme="dark"] .navbar-brand img,
+[data-theme="dark"] .login-card__logo img {
+    filter: brightness(0) invert(1);
+}
+
 .wrapper {
     display: flex;
     flex-direction: column;
@@ -754,7 +759,10 @@ button.tag {
 
 [data-theme="dark"] .select select,
 [data-theme="dark"] .input,
-[data-theme="dark"] .textarea {
+[data-theme="dark"] .textarea,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
     background-color: var(--color-bg-input);
     border-color: var(--color-border);
     color: var(--color-text);
@@ -762,8 +770,25 @@ button.tag {
 
 [data-theme="dark"] .select select:hover,
 [data-theme="dark"] .input:hover,
-[data-theme="dark"] .textarea:hover {
+[data-theme="dark"] .textarea:hover,
+[data-theme="dark"] input:hover,
+[data-theme="dark"] select:hover,
+[data-theme="dark"] textarea:hover {
     border-color: var(--color-border-medium);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--color-grey);
+}
+
+[data-theme="dark"] input:disabled,
+[data-theme="dark"] select:disabled,
+[data-theme="dark"] textarea:disabled {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+    opacity: 0.7;
 }
 
 [data-theme="dark"] .label {

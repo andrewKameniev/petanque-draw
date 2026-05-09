@@ -150,6 +150,7 @@ export default {
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-bg-input);
+    color: var(--color-text);
     outline: none;
     transition: border-color 0.2s;
 }

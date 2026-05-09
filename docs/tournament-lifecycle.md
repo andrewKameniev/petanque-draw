@@ -58,6 +58,7 @@ Draw round → Assign lanes → Enter scores → Save results → Repeat
 
 ### Restoring a Round
 Undo the last saved round. Use when you entered wrong scores after the next round was drawn.
+- Requires user confirmation via a danger-styled modal before proceeding
 - Can only restore ONCE between new draws (prevents Buchholz corruption)
 - Pops last entry from games[], opponents[], lanes[]
 - For groups: recalculates all results from scratch

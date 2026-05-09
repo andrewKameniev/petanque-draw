@@ -7,7 +7,7 @@
                 <div class="draw-card__links">
                     <a v-if="!tournament.playOff && !tournament.roundIsActive
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
-                       href="#" class="draw-card__link draw-card__link--draw" @click.prevent="drawRound">
+                       href="#" class="draw-card__link draw-card__link--draw" data-testid="link-draw-next-round" @click.prevent="drawRound">
                         {{ `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </a>
                     <template v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound
@@ -16,7 +16,7 @@
                         <span class="draw-card__or">{{ $t('common.or') }}</span>
                     </template>
                     <a v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound && !tournament.playOff"
-                       href="#" class="draw-card__link draw-card__link--restore" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
+                       href="#" class="draw-card__link draw-card__link--restore" data-testid="link-restore-round" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">

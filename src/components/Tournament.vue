@@ -25,7 +25,7 @@
             </Transition>
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
         </div>
-        <div class="text-center is-size-3 tournament-name-row">
+        <div class="text-center is-size-3 tournament-name-row" data-testid="tournament-name-row">
             <button class="pin-btn" :class="{'pin-btn--active': isPinned}" @click.stop="togglePin" :title="isPinned ? $t('common.unpin') : $t('common.pin')">
                 <IconPin :size="22" :fill="isPinned ? 'currentColor' : 'none'"/>
             </button>
@@ -85,7 +85,7 @@
 
                 <div v-if="tournament.system === 'groups'" class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.teamsInGroup') }}</label>
-                    <select class="setup-card__select" v-model.number="teamsInGroup">
+                    <select class="setup-card__select" data-testid="select-teams-in-group" v-model.number="teamsInGroup">
                         <template v-for="(team, index) in tournament.teams" :key="index">
                             <option v-if="index > 1">{{index + 1}}</option>
                         </template>
@@ -129,19 +129,19 @@
 
                 <div v-if="tournament.system === 'swiss'" class="setup-card__field">
                     <label class="setup-card__checkbox">
-                        <input type="checkbox" v-model="setupPlayOff">
+                        <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
                         {{ $t('setup.enablePlayOff') }}
                     </label>
                     <div v-if="setupPlayOff" class="setup-card__sub">
                         <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
-                        <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams">
+                        <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams" data-testid="select-playoff-teams">
                             <template v-for="value in teamToPlayOffValues" :key="value">
                                 <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
                             </template>
                         </select>
                         <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
                         <label class="setup-card__checkbox setup-card__checkbox--sub">
-                            <input type="checkbox" v-model="withCadrage">
+                            <input type="checkbox" v-model="withCadrage" data-testid="checkbox-cadrage">
                             {{ $t('ranking.withCadrage') }}
                         </label>
                     </div>
@@ -149,18 +149,18 @@
 
                 <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="setup-card__field">
                     <label class="setup-card__checkbox">
-                        <input type="checkbox" v-model="playB">
+                        <input type="checkbox" v-model="playB" data-testid="checkbox-play-b">
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
                     </label>
                 </div>
 
                 <div class="setup-card__actions">
-                    <button class="setup-card__start" @click="drawFirstRound">
+                    <button class="setup-card__start" data-testid="btn-draw-first-round" @click="drawFirstRound">
                         <Play :size="18"/>
                         {{ $t('setup.drawFirstRound') }}
                     </button>
                     <span class="setup-card__or">{{ $t('common.or') }}</span>
-                    <button class="setup-card__delete" @click="removeConfirmId = 1">
+                    <button class="setup-card__delete" data-testid="btn-delete-setup" @click="removeConfirmId = 1">
                         <Trash2 :size="16" class="is-hidden-mobile"/>
                         {{ $t('teams.removeTournament') }}
                     </button>
@@ -230,20 +230,20 @@
         </template>
         <div class="bottom-actions">
             <div class="bottom-actions__row">
-                <button v-if="tournament.roundIsActive" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
+                <button v-if="tournament.roundIsActive" data-testid="btn-save-results" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
                     {{ $t('games.saveResults') }}
                 </button>
-                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--finish" @click="setPlayOffList">
+                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="setPlayOffList">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
-                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
+                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-finish-tournament" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
                     {{ $t('teams.finishTournament') }}
                 </button>
-                <button v-if="tournament.playOff?.length && !tournament.tournamentIsFinished" class="bottom-actions__btn bottom-actions__btn--outline" @click="activeTab = 'games'; $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true))">
+                <button v-if="tournament.playOff?.length && !tournament.tournamentIsFinished" data-testid="btn-restore-round" class="bottom-actions__btn bottom-actions__btn--outline" @click="activeTab = 'games'; $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true))">
                     <Undo2 :size="16"/>
                     {{ $t('games.restoreRound') }}
                 </button>
-                <button v-if="tournamentStarted" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
+                <button v-if="tournamentStarted" data-testid="btn-preferences" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
                     <IconSettings :size="16"/>
                     {{ $t('teams.preferences') }}
                 </button>
@@ -266,7 +266,7 @@
                 <p class="confirm-finish__text">{{ $t('teams.finishTournamentConfirm') }}</p>
                 <div class="confirm-finish__actions">
                     <button class="confirm-finish__btn confirm-finish__btn--cancel" @click="showFinishConfirm = false">{{ $t('common.cancel') }}</button>
-                    <button class="confirm-finish__btn confirm-finish__btn--confirm" @click="showFinishConfirm = false; finishTournament()">{{ $t('teams.finishTournament') }}</button>
+                    <button class="confirm-finish__btn confirm-finish__btn--confirm" data-testid="btn-confirm-finish" @click="showFinishConfirm = false; finishTournament()">{{ $t('teams.finishTournament') }}</button>
                 </div>
             </div>
         </Modal>

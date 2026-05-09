@@ -26,7 +26,9 @@ const newTournament = {
         },
         maxScore: 13,
         playOffTeams: 8,
-        fieldsStart: 1
+        fieldsStart: 1,
+        withCadrage: false,
+        playB: false
     }
 }
 

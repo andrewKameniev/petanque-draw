@@ -1,10 +1,11 @@
 import {test, expect} from '@playwright/test';
 import {
-    ensureCleanTournament, addTeams, selectSystem, drawFirstRound,
-    playRound, drawNextRound, playMultipleRounds,
-    goToPlayOff, clickFinishTournament, deleteCurrentTournament,
-    enablePlayOff, enableCadrage, setPlayOffTeams,
-    fillCadrageScores, saveCadrageAndStartPlayOff, fillRandomScores, saveResults,
+    ensureCleanTournament, addTeams, importTeamsFromPortal, selectSystem,
+    drawFirstRound, playRound, playMultipleRounds, goToPlayOff, goToCadrage,
+    clickFinishTournament, deleteCurrentTournament, deleteAllTournaments,
+    enablePlayOff, enableCadrage, enablePlayB, setPlayOffTeams,
+    fillCadrageScores, saveCadrageAndStartPlayOff,
+    playEntirePlayoff, playPlayoffRound,
 } from './helpers';
 
 test.describe('Swiss System Tournaments', () => {
@@ -12,177 +13,178 @@ test.describe('Swiss System Tournaments', () => {
         await ensureCleanTournament(page);
     });
 
-    test('4 teams — full swiss, finish without playoff', async ({page}) => {
+    test('4 teams — supermele, 2 rounds, finish', async ({page}) => {
         await addTeams(page, 4);
         await selectSystem(page, 'supermele');
         await drawFirstRound(page);
-
-        await expect(page.locator('.game-row').first()).toBeVisible({timeout: 5000});
         await playRound(page);
-        await drawNextRound(page);
-        await playRound(page);
-
+        await playMultipleRounds(page, 1);
         await clickFinishTournament(page);
-        await expect(page.locator('text=/Tournament.*finished|Турнір.*завершено/i')).toBeVisible({timeout: 5000}).catch(() => {});
-
         await deleteCurrentTournament(page);
     });
 
-    test('8 teams — 3 rounds swiss, no playoff, finish', async ({page}) => {
+    test('8 teams — 3 rounds swiss, finish', async ({page}) => {
         await addTeams(page, 8);
-
         await drawFirstRound(page);
-        await expect(page.locator('.game-row').first()).toBeVisible({timeout: 5000});
-
         await playRound(page);
         await playMultipleRounds(page, 2);
-
         await clickFinishTournament(page);
-        await page.waitForTimeout(500);
-
         await deleteCurrentTournament(page);
     });
 
-    test('8 teams — swiss + playoff (top 4, no cadrage)', async ({page}) => {
+    test('8 teams — swiss + playoff (top 4) full bracket to winner', async ({page}) => {
         await addTeams(page, 8);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 4);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 2);
-
         await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        await expect(page.locator('[data-testid="playoff-stage-heading"]')).toBeVisible();
+        // 4 teams: semifinal (1/2) → final → finished
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('8 teams — swiss + cadrage + playoff (top 4)', async ({page}) => {
+    test('8 teams — swiss + cadrage + playoff (top 4) full bracket', async ({page}) => {
         await addTeams(page, 8);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 4);
         await enableCadrage(page);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 2);
-
-        await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const cadrageVisible = await page.locator('text=/Cadrage|Кадраж/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(cadrageVisible).toBeTruthy();
-
+        await goToCadrage(page);
         await fillCadrageScores(page);
         await saveCadrageAndStartPlayOff(page);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 5000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        await expect(page.locator('[data-testid="playoff-stage-heading"]')).toBeVisible();
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('16 teams — 4 rounds swiss + playoff (top 8)', async ({page}) => {
+    test('16 teams — swiss + playoff (top 8) full bracket to winner', async ({page}) => {
         await addTeams(page, 16);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 8);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 3);
-
         await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        // 8 teams: 1/4 → 1/2 → final → finished
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('16 teams — swiss + cadrage + playoff (top 8)', async ({page}) => {
+    test('16 teams — swiss + cadrage + playoff (top 8) full bracket', async ({page}) => {
         await addTeams(page, 16);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 8);
         await enableCadrage(page);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 3);
-
-        await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const cadrageVisible = await page.locator('text=/Cadrage|Кадраж/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(cadrageVisible).toBeTruthy();
-
+        await goToCadrage(page);
         await fillCadrageScores(page);
         await saveCadrageAndStartPlayOff(page);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 5000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('40 teams — 5 rounds swiss + playoff (top 16)', async ({page}) => {
-        test.setTimeout(120000);
+    test('40 teams — swiss + playoff (top 16) full bracket', async ({page}) => {
+        test.setTimeout(60000);
         await addTeams(page, 40);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 16);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 4);
-
         await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        // 16 teams: 1/8 → 1/4 → 1/2 → final → finished
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('40 teams — swiss + cadrage + playoff (top 16)', async ({page}) => {
-        test.setTimeout(120000);
+    test('40 teams — swiss + cadrage + playoff (top 16) full bracket', async ({page}) => {
+        test.setTimeout(60000);
         await addTeams(page, 40);
         await enablePlayOff(page);
         await setPlayOffTeams(page, 16);
         await enableCadrage(page);
-
         await drawFirstRound(page);
         await playRound(page);
         await playMultipleRounds(page, 4);
-
-        await goToPlayOff(page);
-        await page.waitForTimeout(500);
-
-        const cadrageVisible = await page.locator('text=/Cadrage|Кадраж/i').isVisible({timeout: 3000}).catch(() => false);
-        expect(cadrageVisible).toBeTruthy();
-
+        await goToCadrage(page);
         await fillCadrageScores(page);
         await saveCadrageAndStartPlayOff(page);
-
-        const playoffVisible = await page.locator('text=/PlayOff|Плей-оф/i').isVisible({timeout: 5000}).catch(() => false);
-        expect(playoffVisible).toBeTruthy();
-
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
         await deleteCurrentTournament(page);
     });
 
-    test('swiss round limit — cannot draw beyond N/2 rounds', async ({page}) => {
+    test('swiss round limit — cannot draw beyond ceil(log2(N)) rounds', async ({page}) => {
         await addTeams(page, 8);
         await drawFirstRound(page);
         await playRound(page);
-        await playMultipleRounds(page, 3);
-
-        const drawLink = page.locator('a', {hasText: /Draw 5|Жеребкувати 5/});
-        await expect(drawLink).not.toBeVisible({timeout: 2000});
-
+        await playMultipleRounds(page, 2);
+        await expect(page.locator('[data-testid="link-draw-next-round"]')).not.toBeVisible();
         await deleteCurrentTournament(page);
+    });
+
+    test('5 teams (odd) — swiss with bye, playoff top 4, full bracket', async ({page}) => {
+        await addTeams(page, 5);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 4);
+        await drawFirstRound(page);
+        // Odd teams → one game has "Technical" (bye)
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        await goToPlayOff(page);
+        await playEntirePlayoff(page);
+        await expect(page.locator('[data-testid="finished-banner"]')).toBeVisible();
+        await deleteCurrentTournament(page);
+    });
+
+    test('7 teams (odd) — swiss, 3 rounds, finish', async ({page}) => {
+        await addTeams(page, 7);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        await clickFinishTournament(page);
+        await deleteCurrentTournament(page);
+    });
+
+    test('8 teams — swiss + playoff + Group B creation', async ({page}) => {
+        await addTeams(page, 8);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 4);
+        await enablePlayB(page);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        await page.locator('[data-testid="btn-go-playoff"]').click();
+        await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+        await deleteAllTournaments(page);
+    });
+
+    test('16 teams — swiss + cadrage + playoff + Group B', async ({page}) => {
+        test.setTimeout(60000);
+        await addTeams(page, 16);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 8);
+        await enableCadrage(page);
+        await enablePlayB(page);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 3);
+        await goToCadrage(page);
+        await fillCadrageScores(page);
+        await page.locator('[data-testid="btn-save-cadrage"]').click();
+        await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+        await deleteAllTournaments(page);
     });
 });

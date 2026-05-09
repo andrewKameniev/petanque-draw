@@ -4,10 +4,10 @@
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
             <button v-if="!isPublicView && playOffStageCurrent !== 0" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
-        <div class="column play-off-stage-wrapper" v-if="playOffBracket">
+        <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
             <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')"/>
             <template v-else-if="playOffStageCurrent !== 0">
-                <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
+                <h2 class="text-center" data-testid="playoff-stage-heading">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
@@ -19,7 +19,7 @@
                 </div>
                 <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
-                    <button class="button btn-save-results" @click="saveResults"><Save :size="16" class="mr-1"/> {{ $t('games.saveResults') }}</button>
+                    <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveResults"><Save :size="16" class="mr-1"/> {{ $t('games.saveResults') }}</button>
                 </div>
             </template>
         </div>

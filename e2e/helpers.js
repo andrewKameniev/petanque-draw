@@ -1,248 +1,269 @@
 const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
 const TEST_PASSWORD = 'TestPass123!';
-const BASE_URL = 'http://localhost:5173';
 
-async function register(page) {
-    await page.goto('/#/');
-    const signUpLink = page.locator('a', {hasText: 'Sign up'});
-    if (await signUpLink.isVisible()) {
-        await signUpLink.click();
-    }
-    await page.fill('input[type="email"]', TEST_EMAIL);
-    await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-    await page.locator('input[placeholder="Confirm password"]').fill(TEST_PASSWORD);
-    await page.locator('button[type="submit"]', {hasText: 'Sign up'}).click();
-    await page.waitForSelector('.tournament-name-row', {timeout: 15000});
-}
+// --- Auth flows ---
 
 async function login(page) {
     await page.goto('/#/');
-    const emailInput = page.locator('input[type="email"]');
-    if (await emailInput.isVisible({timeout: 3000}).catch(() => false)) {
-        await emailInput.fill(TEST_EMAIL);
-        await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-        await page.locator('button[type="submit"]', {hasText: 'Sign in'}).click();
-        await page.waitForSelector('.tournament-name-row', {timeout: 15000});
-    }
+    const emailInput = page.locator('[data-testid="input-email"]');
+    if (!(await emailInput.isVisible().catch(() => false))) return;
+    await emailInput.fill(TEST_EMAIL);
+    await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
+    await page.locator('[data-testid="btn-submit"]').click();
+    await page.locator('[data-testid="tournament-name-row"]').waitFor({state: 'visible'});
 }
 
-async function ensureLoggedIn(page) {
+async function register(page) {
     await page.goto('/#/');
-    const hasTournament = await page.locator('.tournament-name-row').isVisible({timeout: 5000}).catch(() => false);
-    if (!hasTournament) {
-        await login(page);
-    }
+    const toggleLink = page.locator('[data-testid="link-toggle-auth"]');
+    if (await toggleLink.isVisible()) await toggleLink.click();
+    await page.locator('[data-testid="input-email"]').fill(TEST_EMAIL);
+    await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
+    await page.locator('[data-testid="input-password-confirm"]').fill(TEST_PASSWORD);
+    await page.locator('[data-testid="btn-submit"]').click();
+    await page.locator('[data-testid="tournament-name-row"]').waitFor({state: 'visible'});
 }
+
+// --- Tournament setup flows ---
 
 async function ensureCleanTournament(page) {
-    await ensureLoggedIn(page);
-
-    const teamInput = page.locator('input[placeholder*="Team title"], input[placeholder*="Назва"]');
-    const hasTabs = await page.locator('a', {hasText: /Current games|Поточні ігри/}).isVisible({timeout: 1000}).catch(() => false);
-    const hasTeamRows = await page.locator('table tr td').first().isVisible({timeout: 500}).catch(() => false);
-
-    if (!hasTabs && !hasTeamRows && await teamInput.isVisible({timeout: 1000}).catch(() => false)) {
-        return;
-    }
-
-    await deleteAllTournaments(page);
-    await page.waitForTimeout(500);
-
-    const ready = await teamInput.isVisible({timeout: 3000}).catch(() => false);
-    if (!ready) {
-        await page.goto('/#/');
-        await page.waitForTimeout(2000);
+    await login(page);
+    await dismissModals(page);
+    for (let i = 0; i < 5; i++) {
+        const started = await page.locator('[data-testid="btn-preferences"]').isVisible().catch(() => false);
+        const hasTeams = await page.locator('table tr td').first().isVisible().catch(() => false);
+        if (!started && !hasTeams) break;
+        await deleteCurrentTournament(page);
+        await page.waitForTimeout(300);
     }
 }
 
 async function addTeams(page, count) {
-    const names = generateTeamNames(count);
-    for (const name of names) {
-        await page.locator('input[placeholder*="Team title"], input[placeholder*="Назва"]').fill(name);
-        await page.locator('button', {hasText: /Add team|Додати/}).click();
-        await page.waitForTimeout(200);
+    const input = page.locator('[data-testid="input-team-title"]');
+    const btn = page.locator('[data-testid="btn-add-team"]');
+    for (let i = 1; i <= count; i++) {
+        await input.fill(`Team_${i}`);
+        await btn.click();
+        await page.waitForTimeout(100);
     }
-    return names;
 }
 
-function generateTeamNames(count) {
-    const names = [];
-    for (let i = 1; i <= count; i++) {
-        names.push(`Team_${i}`);
-    }
-    return names;
+async function importTeamsFromPortal(page, portalId) {
+    await page.locator('[data-testid="input-portal-id"]').fill(String(portalId));
+    await page.locator('[data-testid="btn-import-portal"]').click();
+    await page.locator('table tr td').first().waitFor({state: 'visible'});
 }
 
 async function selectSystem(page, system) {
     await page.locator(`input[type="radio"][value="${system}"]`).click();
 }
 
-async function drawFirstRound(page) {
-    await page.locator('button', {hasText: /Draw first round|Жеребкувати/}).click();
-    await page.locator('.game-row').first().waitFor({state: 'visible', timeout: 10000});
+async function enablePlayOff(page) {
+    const checkbox = page.locator('[data-testid="checkbox-playoff"]');
+    if (!(await checkbox.isChecked())) await checkbox.click();
+    await page.locator('[data-testid="select-playoff-teams"]').waitFor({state: 'visible'});
+    const cadrage = page.locator('[data-testid="checkbox-cadrage"]');
+    if (await cadrage.isChecked()) await cadrage.click();
 }
 
-async function fillRandomScores(page, maxScore = 13) {
-    const scoreInputs = page.locator('.game-row input[type="number"]:not([disabled])');
-    await scoreInputs.first().waitFor({state: 'visible', timeout: 10000});
-    const count = await scoreInputs.count();
-    for (let i = 0; i < count; i += 2) {
-        const score1 = Math.floor(Math.random() * (maxScore - 2)) + 2;
-        let score2;
-        do {
-            score2 = Math.floor(Math.random() * (maxScore - 1));
-        } while (score2 === score1);
-        await scoreInputs.nth(i).click();
-        await scoreInputs.nth(i).fill(String(score1));
-        await scoreInputs.nth(i + 1).click();
-        await scoreInputs.nth(i + 1).fill(String(score2));
-    }
-    await page.waitForTimeout(200);
+async function enableCadrage(page) {
+    const checkbox = page.locator('[data-testid="checkbox-cadrage"]');
+    if (!(await checkbox.isChecked())) await checkbox.click();
+}
+
+async function enablePlayB(page) {
+    const checkbox = page.locator('[data-testid="checkbox-play-b"]');
+    if (!(await checkbox.isChecked())) await checkbox.click();
+}
+
+async function setPlayOffTeams(page, count) {
+    await page.locator('[data-testid="select-playoff-teams"]').selectOption(String(count));
+}
+
+async function setTeamsInGroup(page, count) {
+    await page.locator('[data-testid="select-teams-in-group"]').selectOption(String(count));
+}
+
+// --- Game flows ---
+
+async function drawFirstRound(page) {
+    await page.locator('[data-testid="btn-draw-first-round"]').click();
+    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+}
+
+async function fillScores(page) {
+    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.evaluate(() => {
+        document.querySelectorAll('input[id^="team_"]').forEach((input) => {
+            input.value = 13;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+        document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
+            input.value = Math.floor(Math.random() * 13);
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+    });
 }
 
 async function saveResults(page) {
-    const saveBtn = page.locator('button:has-text("Save results"), button:has-text("Зберегти результати")').first();
-    await saveBtn.waitFor({state: 'visible', timeout: 5000});
-    await saveBtn.click();
-    await page.waitForTimeout(800);
-}
-
-async function drawNextRound(page) {
-    const drawLink = page.locator('.draw-card__link--draw');
-    await drawLink.waitFor({state: 'visible', timeout: 10000});
-    await drawLink.click();
-    await page.locator('.game-row input[type="number"]:not([disabled])').first().waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="btn-save-results"]').click();
+    await page.locator('[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"]').first().waitFor({state: 'visible'});
 }
 
 async function playRound(page) {
-    await fillRandomScores(page);
+    await fillScores(page);
     await saveResults(page);
 }
 
+async function drawNextRound(page) {
+    await page.locator('[data-testid="link-draw-next-round"]').click();
+    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+}
+
 async function playMultipleRounds(page, rounds) {
-    for (let i = 1; i < rounds; i++) {
+    for (let i = 0; i < rounds; i++) {
         await drawNextRound(page);
         await playRound(page);
     }
 }
 
+// --- Transition flows ---
+
 async function goToPlayOff(page) {
-    const goPlayOffBtn = page.locator('.bottom-actions__btn--finish', {hasText: /Go to play-off|Перейти до плей-оф/});
-    if (await goPlayOffBtn.isVisible({timeout: 2000}).catch(() => false)) {
-        await goPlayOffBtn.click();
-        await page.waitForTimeout(500);
+    await page.locator('[data-testid="btn-go-playoff"]').click();
+    await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+}
+
+async function goToCadrage(page) {
+    await page.locator('[data-testid="btn-go-playoff"]').click();
+    await page.locator('[data-testid="cadrage-heading"]').waitFor({state: 'visible'});
+}
+
+async function fillCadrageScores(page) {
+    await page.evaluate(() => {
+        document.querySelectorAll('input[id^="team_"]').forEach((input) => {
+            input.value = 13;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+        document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
+            input.value = Math.floor(Math.random() * 13);
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+    });
+}
+
+async function saveCadrageAndStartPlayOff(page) {
+    await page.locator('[data-testid="btn-save-cadrage"]').click();
+    await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+}
+
+async function fillPlayoffScores(page) {
+    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.evaluate(() => {
+        document.querySelectorAll('input[id^="team_"]').forEach((input) => {
+            input.value = 13;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+        document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
+            input.value = Math.floor(Math.random() * 13);
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+    });
+}
+
+async function savePlayoffResults(page) {
+    await page.locator('[data-testid="btn-save-playoff"]').click();
+}
+
+async function playPlayoffRound(page) {
+    await fillPlayoffScores(page);
+    await savePlayoffResults(page);
+}
+
+async function playEntirePlayoff(page) {
+    const heading = page.locator('[data-testid="playoff-stage-heading"]');
+    await heading.waitFor({state: 'visible'});
+    while (await heading.isVisible().catch(() => false)) {
+        await playPlayoffRound(page);
+        await page.waitForTimeout(300);
     }
+    await page.locator('[data-testid="finished-banner"]').waitFor({state: 'visible'});
 }
 
 async function clickFinishTournament(page) {
-    const finishBtn = page.locator('.bottom-actions__btn--outline', {hasText: /Finish tournament|Завершити турнір/});
-    await finishBtn.click();
-    await page.waitForTimeout(500);
+    await page.locator('[data-testid="btn-finish-tournament"]').click();
+    await page.locator('[data-testid="btn-confirm-finish"]').click();
+    await page.locator('[data-testid="finished-banner"]').waitFor({state: 'visible'});
 }
 
-async function deleteTournament(page) {
-    const prefsBtn = page.locator('button', {hasText: /Preferences|Налаштування/});
-    if (await prefsBtn.isVisible({timeout: 2000}).catch(() => false)) {
-        await prefsBtn.click();
-        await page.waitForTimeout(300);
-    }
-    const removeBtn = page.locator('button', {hasText: /Remove tournament|Видалити турнір/});
-    if (await removeBtn.isVisible({timeout: 2000}).catch(() => false)) {
-        await removeBtn.click();
-        await page.waitForTimeout(300);
-        const confirmBtn = page.locator('.confirm-remove__btn--danger');
-        await confirmBtn.waitFor({state: 'visible', timeout: 3000});
-        await confirmBtn.click();
-        await page.waitForTimeout(500);
+// --- Cleanup flows ---
+
+async function dismissModals(page) {
+    const modal = page.locator('.modal-background');
+    if (await modal.isVisible().catch(() => false)) {
+        await modal.click({force: true});
+        await page.waitForTimeout(200);
     }
 }
 
 async function deleteCurrentTournament(page) {
-    const dangerBtn = page.locator('.bottom-actions__btn--danger');
-    if (await dangerBtn.isVisible({timeout: 2000}).catch(() => false)) {
-        await dangerBtn.click();
+    await dismissModals(page);
+    const setupDelete = page.locator('[data-testid="btn-delete-setup"]');
+    if (await setupDelete.isVisible().catch(() => false)) {
+        await setupDelete.click();
+        await page.locator('[data-testid="btn-confirm-remove"]').click();
         await page.waitForTimeout(300);
-        const confirmBtn = page.locator('.confirm-remove__btn--danger');
-        const hasConfirm = await confirmBtn.isVisible({timeout: 2000}).catch(() => false);
-        if (hasConfirm) {
-            await confirmBtn.click();
-            await page.waitForTimeout(500);
-            return;
-        }
+        return;
     }
-    await deleteTournament(page);
+    const prefsBtn = page.locator('[data-testid="btn-preferences"]');
+    if (await prefsBtn.isVisible().catch(() => false)) {
+        await prefsBtn.click();
+        const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
+        await removeBtn.waitFor({state: 'visible'});
+        await removeBtn.click();
+        await page.locator('[data-testid="btn-confirm-remove"]').click();
+        await page.waitForTimeout(300);
+    }
 }
 
 async function deleteAllTournaments(page) {
-    for (let i = 0; i < 10; i++) {
-        const hasTournament = await page.locator('.tournament-name-row').isVisible({timeout: 2000}).catch(() => false);
-        if (!hasTournament) break;
+    for (let i = 0; i < 12; i++) {
+        const hasRow = await page.locator('[data-testid="tournament-name-row"]').isVisible().catch(() => false);
+        if (!hasRow) break;
         await deleteCurrentTournament(page);
-        await page.waitForTimeout(500);
     }
-}
-
-async function setPlayOffTeams(page, count) {
-    const select = page.locator('select').filter({has: page.locator(`option[value="${count}"]`)}).last();
-    await select.selectOption(String(count));
-}
-
-async function enablePlayOff(page) {
-    const checkbox = page.locator('label', {hasText: /Play-off after Swiss|Плей-оф після швейцарських/}).locator('input[type="checkbox"]');
-    if (!(await checkbox.isChecked())) {
-        await checkbox.click();
-    }
-}
-
-async function enableCadrage(page) {
-    const checkbox = page.locator('label', {hasText: /cadrage|кадраж/i}).locator('input[type="checkbox"]');
-    if (!(await checkbox.isChecked())) {
-        await checkbox.click();
-    }
-}
-
-async function fillCadrageScores(page) {
-    const scoreInputs = page.locator('input[type="number"]');
-    const count = await scoreInputs.count();
-    for (let i = 0; i < count; i += 2) {
-        const score1 = 13;
-        const score2 = Math.floor(Math.random() * 12);
-        await scoreInputs.nth(i).fill(String(score1));
-        await scoreInputs.nth(i + 1).fill(String(score2));
-    }
-}
-
-async function saveCadrageAndStartPlayOff(page) {
-    const saveBtn = page.locator('button', {hasText: /Save results|Зберегти результати/});
-    await saveBtn.click();
-    await page.waitForTimeout(1000);
 }
 
 export {
     TEST_EMAIL,
     TEST_PASSWORD,
-    BASE_URL,
     register,
     login,
-    ensureLoggedIn,
     ensureCleanTournament,
     addTeams,
-    generateTeamNames,
+    importTeamsFromPortal,
     selectSystem,
+    enablePlayOff,
+    enableCadrage,
+    enablePlayB,
+    setPlayOffTeams,
+    setTeamsInGroup,
     drawFirstRound,
-    fillRandomScores,
+    fillScores,
     saveResults,
     drawNextRound,
     playRound,
     playMultipleRounds,
     goToPlayOff,
-    clickFinishTournament,
-    deleteTournament,
-    deleteCurrentTournament,
-    deleteAllTournaments,
-    setPlayOffTeams,
-    enablePlayOff,
-    enableCadrage,
+    goToCadrage,
     fillCadrageScores,
     saveCadrageAndStartPlayOff,
+    fillPlayoffScores,
+    savePlayoffResults,
+    playPlayoffRound,
+    playEntirePlayoff,
+    clickFinishTournament,
+    dismissModals,
+    deleteCurrentTournament,
+    deleteAllTournaments,
 };

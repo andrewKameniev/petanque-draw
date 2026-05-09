@@ -35,7 +35,7 @@
                 </div>
             </div>
             <div class="prefs__footer">
-                <button class="prefs__btn prefs__btn--danger" @click="$emit('remove-tournament')">
+                <button class="prefs__btn prefs__btn--danger" data-testid="btn-remove-tournament" @click="$emit('remove-tournament')">
                     {{ $t('teams.removeTournament') }}
                 </button>
                 <div class="prefs__footer-right">

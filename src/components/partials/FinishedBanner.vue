@@ -1,5 +1,5 @@
 <template>
-    <div class="finished-banner">
+    <div class="finished-banner" data-testid="finished-banner">
         <Trophy :size="20" class="finished-banner__icon"/>
         <span class="finished-banner__text">{{ $t('games.tournamentFinished') }}</span>
         <span class="finished-banner__dot">&middot;</span>

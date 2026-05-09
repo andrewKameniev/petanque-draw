@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import {
-    ensureCleanTournament, addTeams, selectSystem, drawFirstRound,
-    playRound, drawNextRound, playMultipleRounds,
+    ensureCleanTournament, addTeams, selectSystem, setTeamsInGroup,
+    drawFirstRound, playRound, playMultipleRounds,
     clickFinishTournament, deleteCurrentTournament,
 } from './helpers';
 
@@ -10,65 +10,69 @@ test.describe('Groups (Round-Robin) System', () => {
         await ensureCleanTournament(page);
     });
 
-    test('8 teams — 2 groups of 4, full round-robin', async ({page}) => {
+    test('8 teams — 2 groups of 4, full round-robin (3 rounds)', async ({page}) => {
         await addTeams(page, 8);
         await selectSystem(page, 'groups');
-
-        const groupSelect = page.locator('.setup-card__select').last();
-        await groupSelect.selectOption('4');
-
+        await setTeamsInGroup(page, 4);
         await drawFirstRound(page);
-        await expect(page.locator('.game-row').first()).toBeVisible({timeout: 5000});
-
         await playRound(page);
         await playMultipleRounds(page, 2);
-
         await clickFinishTournament(page);
-        await page.waitForTimeout(500);
-
         await deleteCurrentTournament(page);
     });
 
-    test('16 teams — 4 groups of 4', async ({page}) => {
+    test('9 teams (odd) — 3 groups of 3, full round-robin with bye', async ({page}) => {
+        await addTeams(page, 9);
+        await selectSystem(page, 'groups');
+        await setTeamsInGroup(page, 3);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        await clickFinishTournament(page);
+        await deleteCurrentTournament(page);
+    });
+
+    test('16 teams — 4 groups of 4, full round-robin (3 rounds)', async ({page}) => {
         await addTeams(page, 16);
         await selectSystem(page, 'groups');
-
-        const groupSelect = page.locator('.setup-card__select').last();
-        await groupSelect.selectOption('4');
-
+        await setTeamsInGroup(page, 4);
         await drawFirstRound(page);
-        await expect(page.locator('.game-row').first()).toBeVisible({timeout: 5000});
-
         await playRound(page);
         await playMultipleRounds(page, 2);
-
         await clickFinishTournament(page);
-        await page.waitForTimeout(500);
-
         await deleteCurrentTournament(page);
     });
 
-    test('8 teams — 2 groups of 4, then playoff', async ({page}) => {
-        await addTeams(page, 8);
+    test('12 teams — 2 groups of 6, full round-robin (5 rounds)', async ({page}) => {
+        await addTeams(page, 12);
         await selectSystem(page, 'groups');
-
-        const groupSelect = page.locator('.setup-card__select').last();
-        await groupSelect.selectOption('4');
-
+        await setTeamsInGroup(page, 6);
         await drawFirstRound(page);
         await playRound(page);
-        await playMultipleRounds(page, 2);
+        await playMultipleRounds(page, 4);
+        await clickFinishTournament(page);
+        await deleteCurrentTournament(page);
+    });
 
-        const rankingTab = page.locator('a', {hasText: /Ranking|Рейтинг/});
-        await rankingTab.click();
-        await page.waitForTimeout(300);
+    test('7 teams (odd) — 1 group of 7, full round-robin with bye (7 rounds)', async ({page}) => {
+        await addTeams(page, 7);
+        await selectSystem(page, 'groups');
+        await setTeamsInGroup(page, 7);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 6);
+        await clickFinishTournament(page);
+        await deleteCurrentTournament(page);
+    });
 
-        const goBtn = page.locator('button', {hasText: /Go!|Вперед/});
-        if (await goBtn.isVisible({timeout: 2000}).catch(() => false)) {
-            await goBtn.click();
-            await page.waitForTimeout(500);
-        }
-
+    test('5 teams (odd) — 1 group of 5, full round-robin with bye (5 rounds)', async ({page}) => {
+        await addTeams(page, 5);
+        await selectSystem(page, 'groups');
+        await setTeamsInGroup(page, 5);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 4);
+        await clickFinishTournament(page);
         await deleteCurrentTournament(page);
     });
 });

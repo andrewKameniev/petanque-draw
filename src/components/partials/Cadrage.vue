@@ -41,12 +41,12 @@ export default {
 </script>
 
 <template>
-    <h2 class="text-center">{{ $t('games.cadrage') }}</h2>
+    <h2 class="text-center" data-testid="cadrage-heading">{{ $t('games.cadrage') }}</h2>
     <Game v-for="(game, ind) in tournament.cadrage" :key="ind" :active-tournament="tournament" :compact-view="isPublicView"
           :game="game" :game-index="ind" :fields-start="tournament.preferences.fieldsStart" :is-cadrage="true"
           @save="persistScores"/>
     <div class="text-center mt-5" v-if="!activeTournament">
-        <button class="button is-success" @click="saveResults">{{ $t('games.saveResults') }}</button>
+        <button class="button is-success" data-testid="btn-save-cadrage" @click="saveResults">{{ $t('games.saveResults') }}</button>
     </div>
 </template>
 

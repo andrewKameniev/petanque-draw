@@ -1,13 +1,13 @@
 <template>
     <div class="add-team-card">
         <div class="add-team-card__row" v-if="!importHidden">
-            <input v-model="tournamentId" @keydown.enter="importList" class="add-team-card__input" type="number" :placeholder="$t('teams.tournamentId')">
-            <button class="add-team-card__btn add-team-card__btn--import" @click="importList">{{ $t('teams.importPortal') }}</button>
+            <input v-model="tournamentId" @keydown.enter="importList" class="add-team-card__input" type="number" data-testid="input-portal-id" :placeholder="$t('teams.tournamentId')">
+            <button class="add-team-card__btn add-team-card__btn--import" data-testid="btn-import-portal" @click="importList">{{ $t('teams.importPortal') }}</button>
         </div>
         <div class="add-team-card__row">
-            <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--name" type="text" :placeholder="$t('teams.teamTitle')">
+            <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--name" type="text" data-testid="input-team-title" :placeholder="$t('teams.teamTitle')">
             <input v-if="tournament.useRating" v-model="teamRating" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--rating" type="number" :placeholder="$t('teams.rating')">
-            <button class="add-team-card__btn" @click="addTeam(teamTitle, teamRating)">{{ $t('teams.addTeam') }}</button>
+            <button class="add-team-card__btn" data-testid="btn-add-team" @click="addTeam(teamTitle, teamRating)">{{ $t('teams.addTeam') }}</button>
         </div>
         <div class="add-team-card__footer">
             <label class="add-team-card__checkbox">

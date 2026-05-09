@@ -17,7 +17,7 @@
             </div>
             <div class="confirm-remove__footer">
                 <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="$emit('close')">{{ $t('common.cancel') }}</button>
-                <button class="confirm-remove__btn confirm-remove__btn--danger" @click="$emit('remove'); $emit('close')">{{ $t('common.remove') }}</button>
+                <button class="confirm-remove__btn confirm-remove__btn--danger" data-testid="btn-confirm-remove" @click="$emit('remove'); $emit('close')">{{ $t('common.remove') }}</button>
             </div>
         </div>
     </Modal>

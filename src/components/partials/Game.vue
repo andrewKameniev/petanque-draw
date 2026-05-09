@@ -1,5 +1,5 @@
 <template>
-    <div class="game-row" :class="{compact: compactView, 'has-background-danger': gameHasError(game, maxScore)}">
+    <div class="game-row" data-testid="game-row" :class="{compact: compactView, 'has-background-danger': gameHasError(game, maxScore)}">
         <div class="text-right team-block" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
             <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
             <div v-if="team1Lanes && team1Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team1Lanes.map(l => l + 1).join(', ') }}</div>

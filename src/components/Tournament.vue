@@ -52,9 +52,9 @@
         </div>
         <!-- PRE-START: Setup flow -->
         <template v-if="!tournamentStarted">
-            <div class="setup-section">
+            <div class="setup-teams-card">
                 <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
-                         :import-hidden="false"/>
+                         :import-hidden="false" :show-restore="!tournament.teams?.length" @restore="restoreTeamsFromLocalStorage"/>
                 <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
                 <div v-else class="setup-empty">
                     {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
@@ -147,17 +147,24 @@
                     </div>
                 </div>
 
-                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="playB">
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
                     </label>
                 </div>
 
-                <button class="setup-card__start" @click="drawFirstRound">
-                    <Play :size="18"/>
-                    {{ $t('setup.drawFirstRound') }}
-                </button>
+                <div class="setup-card__actions">
+                    <button class="setup-card__start" @click="drawFirstRound">
+                        <Play :size="18"/>
+                        {{ $t('setup.drawFirstRound') }}
+                    </button>
+                    <span class="setup-card__or">{{ $t('common.or') }}</span>
+                    <button class="setup-card__delete" @click="removeConfirmId = 1">
+                        <Trash2 :size="16" class="is-hidden-mobile"/>
+                        {{ $t('teams.removeTournament') }}
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -171,6 +178,7 @@
                     </li>
                 </ul>
             </div>
+            <div class="tabs-content-area">
             <div class="content tabs-content" v-if="activeTab === 'teams'">
                 <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
                          :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
@@ -178,18 +186,16 @@
                 <div v-else class="mb-5 mt-5">
                     {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
                 </div>
-                <div class="control" v-if="!tournament.tournamentIsFinished">
-                    <button class="button is-success" @click="saveTournamentData">{{ $t('teams.saveTournamentData') }}</button>
-                </div>
             </div>
-            <Games v-if="activeTab === 'games'"
+            <Games ref="games" v-if="activeTab === 'games'"
                    :rankingTeams="rankingTeams"
                    :activeRound="activeRound" :teams-in-group="teamsInGroup"
                    @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"/>
             <Results v-if="activeTab === 'results'"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-                <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished">
+                <!-- TODO: still working on cadrage/group B transition
+                <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished && tournament.games?.length">
                     <div class="mt-5">
                         <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
                         <div class="is-flex is-align-items-center mb-2" v-if="tournament.system === 'swiss'">
@@ -218,29 +224,28 @@
                         </label>
                     </div>
                 </div>
+                -->
+            </div>
             </div>
         </template>
         <div class="bottom-actions">
             <div class="bottom-actions__row">
-                <button v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="finishTournament">
+                <button v-if="tournament.roundIsActive" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
+                    {{ $t('games.saveResults') }}
+                </button>
+                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--finish" @click="setPlayOffList">
+                    {{ $t('ranking.goPlayOff') }}
+                </button>
+                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
                     {{ $t('teams.finishTournament') }}
+                </button>
+                <button v-if="tournament.playOff?.length && !tournament.tournamentIsFinished" class="bottom-actions__btn bottom-actions__btn--outline" @click="activeTab = 'games'; $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true))">
+                    <Undo2 :size="16"/>
+                    {{ $t('games.restoreRound') }}
                 </button>
                 <button v-if="tournamentStarted" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
                     <IconSettings :size="16"/>
                     {{ $t('teams.preferences') }}
-                </button>
-                <button v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
-                    {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
-                </button>
-                <button class="bottom-actions__btn bottom-actions__btn--danger" @click="showProtocol = false; removeConfirmId = 1">
-                    <IconTrash :size="16"/>
-                    <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
-                </button>
-            </div>
-            <div class="bottom-actions__row">
-                <button class="bottom-actions__btn bottom-actions__btn--sky" @click="addTournament">
-                    <IconPlus :size="16"/>
-                    {{ $t('common.addTournament') }}
                 </button>
                 <span v-if="canSaveTournament || tournament.tournamentIsFinished" class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
                     <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
@@ -248,15 +253,24 @@
                         {{ $t('teams.saveTournament') }}
                     </button>
                 </span>
-                <button v-if="!tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="restoreTeamsFromLocalStorage">
-                    {{ $t('teams.restoreTeams') }}
+                <button v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
+                    {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
                 </button>
             </div>
         </div>
         <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
                         @close-modal="showSaveTournament = false"/>
-        <ConfirmRemoveModal v-if="removeConfirmId" :name="tournament.name" @close="removeConfirmId = null" @remove="removeTournament"/>
-        <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
+        <ConfirmRemoveModal v-if="removeConfirmId" :name="tournament.name" @close="removeConfirmId = null" @remove="removeTournament(); showPreferences = false"/>
+        <Modal v-if="showFinishConfirm" @close-modal="showFinishConfirm = false">
+            <div class="confirm-finish">
+                <p class="confirm-finish__text">{{ $t('teams.finishTournamentConfirm') }}</p>
+                <div class="confirm-finish__actions">
+                    <button class="confirm-finish__btn confirm-finish__btn--cancel" @click="showFinishConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-finish__btn confirm-finish__btn--confirm" @click="showFinishConfirm = false; finishTournament()">{{ $t('teams.finishTournament') }}</button>
+                </div>
+            </div>
+        </Modal>
+        <Preferences v-if="showPreferences" @close-modal="showPreferences = false" @remove-tournament="removeConfirmId = 1"/>
         <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
 </template>
@@ -271,13 +285,14 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
+import Modal from "@/components/Modal";
 import {getTeamsRanking, shuffleArray} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
-import {IconPin, IconPlus, IconSettings, IconArchive, IconTrash} from "@/components/icons";
-import {Play} from "lucide-vue-next";
+import {IconPin, IconSettings, IconArchive} from "@/components/icons";
+import {Play, Undo2, Trash2} from "lucide-vue-next";
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
@@ -300,15 +315,28 @@ export default {
             loadingOnServer: false,
             showPreferences: false,
             showProtocol: false,
+            showFinishConfirm: false,
             setupPlayOff: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
     created() {
-        this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
+        if (!this.tournament) return;
+        this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4;
+        if (this.tournament.preferences?.withCadrage) {
+            this.withCadrage = true;
+        }
+        if (this.tournament.preferences?.playB) {
+            this.playB = true;
+        }
+        if (this.tournament.tournamentIsFinished) {
+            this.activeTab = 'ranking';
+        } else if (this.tournament.games?.length) {
+            this.activeTab = 'games';
+        }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addTournament', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -349,9 +377,10 @@ export default {
             }, 1000);
         },
         setPlayOffList() {
+            const withCadrage = this.withCadrage || this.tournament.preferences?.withCadrage;
             let playOffList;
             if(this.tournament.system === 'swiss') {
-                if (this.withCadrage) {
+                if (withCadrage) {
                     playOffList = this.rankingTeams.slice(this.teamToPlayOff * 0.5, this.teamToPlayOff * 1.5);
                 } else {
                     playOffList = this.rankingTeams.slice(0, this.teamToPlayOff)
@@ -366,7 +395,7 @@ export default {
                     playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff)
                 }
             }
-            if (this.withCadrage) {
+            if (withCadrage) {
                 this.startCadrage(playOffList)
             } else {
                 this.startPlayOff(playOffList)
@@ -383,7 +412,8 @@ export default {
 
             this.activeTab = 'games';
 
-            if (this.playB) {
+            const playB = this.playB || this.tournament.preferences?.playB;
+            if (playB) {
                 const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
                     .map(team => ({ ...team }));
                 tournamentBTeams.forEach(team => {
@@ -395,7 +425,7 @@ export default {
                     team.opponents = ['placeholder'];
                     team.lanes = [];
                 })
-                this.addBTournament(tournamentBTeams);
+                this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
             }
         },
         restoreTeamsFromLocalStorage() {
@@ -449,6 +479,11 @@ export default {
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
+            if (this.setupPlayOff) {
+                this.tournament.preferences.withCadrage = this.withCadrage;
+                this.tournament.preferences.playB = this.playB;
+            }
+            this.playB = false;
             this.savePreferences();
             this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
             this.startRound();
@@ -491,6 +526,14 @@ export default {
                 this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1
                 : 1;
         },
+        allScoresFilled() {
+            const games = this.tournament.games?.[this.activeRound - 1];
+            if (!games) return false;
+            return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
+        },
+        hasPlayOffConfigured() {
+            return this.tournament.system === 'swiss' && this.tournament.preferences?.playOffTeams && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
+        },
         isPinned() {
             return this.pinnedState === this.currentTournamentIndex;
         },
@@ -506,15 +549,16 @@ export default {
     },
     components: {
         Play,
+        Undo2,
+        Trash2,
         IconPin,
-        IconPlus,
         IconSettings,
         IconArchive,
-        IconTrash,
         Protocol,
         Preferences,
         QrCode,
         ConfirmRemoveModal,
+        Modal,
         TeamsList,
         AddTeam,
         Games,
@@ -532,6 +576,7 @@ export default {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .inline-name-edit {
@@ -737,14 +782,43 @@ export default {
 }
 
 .bottom-actions__btn--outline {
-    background: transparent;
-    color: var(--color-text-secondary);
+    background: #4b5563;
+    color: #fff;
+    border-color: #4b5563;
 }
 
 .bottom-actions__btn--outline:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: var(--color-primary-bg);
+    background: #374151;
+    color: #fff;
+    border-color: #374151;
+}
+
+.bottom-actions__btn--save-results {
+    background: #1FA37A;
+    color: #fff;
+    border-color: #1FA37A;
+}
+
+.bottom-actions__btn--save-results:hover:not(:disabled) {
+    background: #178c68;
+    border-color: #178c68;
+}
+
+.bottom-actions__btn--save-results:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bottom-actions__btn--finish {
+    background: #60A5FA;
+    color: #fff;
+    border-color: #60A5FA;
+}
+
+.bottom-actions__btn--finish:hover {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
 }
 
 .bottom-actions__btn--primary {
@@ -764,26 +838,14 @@ export default {
 }
 
 .bottom-actions__btn--purple-outline {
-    background: var(--color-white);
-    color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
     border-color: var(--color-primary);
 }
 
 .bottom-actions__btn--purple-outline:hover {
-    background: var(--color-primary);
+    background: var(--color-primary-light, #5b3cc4);
     color: var(--color-white);
-}
-
-.bottom-actions__btn.bottom-actions__btn--sky {
-    background: #0EA5E9;
-    color: #fff !important;
-    border-color: #0EA5E9;
-}
-
-.bottom-actions__btn.bottom-actions__btn--sky:hover {
-    background: #0284C7;
-    border-color: #0284C7;
-    color: #fff !important;
 }
 
 .bottom-actions__btn--success {
@@ -813,14 +875,15 @@ export default {
 
 .bottom-actions__btn--danger {
     background: transparent;
-    color: var(--color-error);
-    border-color: var(--color-error);
+    color: #e07070;
+    border-color: #e07070;
 }
 
 .bottom-actions__btn--danger:hover {
-    background: var(--color-error);
-    color: var(--color-white);
+    background: #e07070;
+    color: #fff;
 }
+
 
 .pin-btn {
     display: inline-flex;
@@ -860,8 +923,20 @@ export default {
     margin-top: 0.25rem;
 }
 
-.setup-section {
+.setup-teams-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
+}
+
+.setup-teams-card :deep(.add-team-card) {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 0.75rem;
 }
 
 .setup-empty {
@@ -977,14 +1052,26 @@ export default {
     padding-left: 1.25rem;
 }
 
+.setup-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.setup-card__or {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #888);
+}
+
 .setup-card__start {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    width: 100%;
+    flex: 1;
     padding: 0.7rem 1rem;
-    margin-top: 1.25rem;
     font-size: 0.9rem;
     font-weight: 600;
     border: none;
@@ -997,6 +1084,80 @@ export default {
 
 .setup-card__start:hover {
     background: var(--color-success-hover);
+}
+
+.setup-card__delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--color-error, #ef4444);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-error, #ef4444);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.setup-card__delete:hover {
+    background: var(--color-error, #ef4444);
+    color: #fff;
+}
+
+.tabs-content-area {
+    min-height: 240px;
+}
+
+.confirm-finish {
+    padding: 0.5rem 0;
+}
+
+.confirm-finish__text {
+    font-size: 0.9rem;
+    color: var(--color-text, #1a1a1a);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.confirm-finish__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-finish__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-finish__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border, #e0e0e0);
+    color: var(--color-text-secondary, #555);
+}
+
+.confirm-finish__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: #f5f5f5;
+}
+
+.confirm-finish__btn--confirm {
+    background: #4b5563;
+    border-color: #4b5563;
+    color: white;
+}
+
+.confirm-finish__btn--confirm:hover {
+    background: #374151;
+    border-color: #374151;
 }
 </style>
 

@@ -1,8 +1,8 @@
 <template>
     <div class="content tabs-content">
-        <div v-if="tournament.games?.length || tournament.playOffBracket">
+        <div v-if="tournament.games?.length || hasPlayOffResults">
             <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
-                <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || tournament.playOffBracket)" class="round-tabs-row mb-4">
+                <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || hasPlayOffResults)" class="round-tabs-row mb-4">
                     <div class="round-tabs">
                         <button v-for="(round, index) in tournament.games" :key="index"
                                 class="button is-small mr-1 mb-1"
@@ -15,7 +15,7 @@
                                 @click="selectedRound = 'cadrage'">
                             {{ $t('games.cadrage') }}
                         </button>
-                        <button v-if="tournament.playOffBracket && !onlyQualifying" class="button is-small mr-1 mb-1"
+                        <button v-if="hasPlayOffResults && !onlyQualifying" class="button is-small mr-1 mb-1"
                                 :class="{'is-purple': selectedRound === 'playoff'}"
                                 @click="selectedRound = 'playoff'">
                             {{ $t('games.playOff') }}
@@ -26,7 +26,7 @@
                             {{ $t('results.all') }}
                         </button>
                     </div>
-                    <button v-if="tournament.playOffBracket && !isForProtocol" class="button is-small btn-purple-outline mb-1" @click="showBracket = true">
+                    <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1" @click="showBracket = true">
                         {{ $t('games.showBracket') }}
                     </button>
                 </div>
@@ -43,7 +43,8 @@
                                         <td v-if="hasGroupsColumn" class="group-cell-desktop"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
                                         <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
                                         <td class="has-text-centered is-narrow">
-                                            <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
+                                            <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                            <span v-else class="score-empty">-- : --</span>
                                         </td>
                                         <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
                                     </tr>
@@ -52,7 +53,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div v-if="tournament.playOffBracket && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" class="playoff-section">
+                <div v-if="hasPlayOffResults && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" class="playoff-section">
                     <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
                         <template v-if="stage.teams[0].team_1_score && stage.stageLabel !== 'cadrage'">
                             <div class="playoff-stage-label">
@@ -83,9 +84,10 @@
                             <tbody>
                                 <tr v-for="(game, index) in tournament.cadrage" :key="index">
                                     <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
-                                    <td class="has-text-centered is-narrow">
-                                        <strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong>
-                                    </td>
+                                        <td class="has-text-centered is-narrow">
+                                            <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                            <span v-else class="score-empty">-- : --</span>
+                                        </td>
                                     <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
                                 </tr>
                             </tbody>
@@ -120,7 +122,7 @@ export default {
     },
     created() {
         const t = this.previewTournament || this.currentTournament;
-        if (t?.playOffBracket) {
+        if (this.hasPlayOffResults) {
             this.selectedRound = 'playoff';
         } else if (t?.cadrage?.length) {
             this.selectedRound = 'cadrage';
@@ -132,6 +134,11 @@ export default {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
             return this.previewTournament || this.currentTournament
+        },
+        hasPlayOffResults() {
+            const bracket = this.tournament?.playOffBracket;
+            if (!bracket?.stages?.length) return false;
+            return bracket.stages.some(stage => stage.stageLabel !== 'cadrage' && stage.teams?.some(g => g.team_1_score != null));
         },
         groupsNames() {
             return tournamentNames
@@ -214,6 +221,11 @@ export default {
     .group-cell-desktop {
         display: none;
     }
+}
+
+.score-empty {
+    color: var(--color-text-muted, #ccc);
+    font-weight: 400;
 }
 
 .btn-purple-outline {

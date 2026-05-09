@@ -88,6 +88,7 @@ export const useMainStore = defineStore('main', {
         saveLanesToTeams(games) {
             games.map(game => {
                 this.tournaments[this.currentTournamentIndex].teams.map(team => {
+                    if (!team.lanes) team.lanes = [];
                     if ((team.title === game.team_1) && game.lane != null) {
                         team.lanes.push(game.lane)
                     }
@@ -269,9 +270,16 @@ export const useMainStore = defineStore('main', {
                     this.showMessage({title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
-        addBTournament(teams) {
+        addBTournament(teams, name, isGroupB) {
             newTournament.teams = teams;
             this.addTournament();
+            if (name) {
+                this.changeTournamentName(name);
+            }
+            if (isGroupB) {
+                this.tournaments[this.currentTournamentIndex].isGroupB = true;
+                this.syncToFirebase();
+            }
             newTournament.teams = [];
         },
         saveTournamentData() {

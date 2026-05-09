@@ -2,6 +2,7 @@
     <Modal @close-modal="$emit('close-modal')">
         <div class="prefs">
             <h2 class="prefs__title">{{ $t('modals.tournamentPreferences') }}</h2>
+            <div class="prefs__body">
             <div class="prefs__list">
                 <div class="prefs__item">
                     <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
@@ -34,8 +35,14 @@
                 </div>
             </div>
             <div class="prefs__footer">
-                <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
-                <button class="prefs__btn" @click="save">{{ $t('common.save') }}</button>
+                <button class="prefs__btn prefs__btn--danger" @click="$emit('remove-tournament')">
+                    {{ $t('teams.removeTournament') }}
+                </button>
+                <div class="prefs__footer-right">
+                    <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
+                    <button class="prefs__btn" @click="save">{{ $t('common.save') }}</button>
+                </div>
+            </div>
             </div>
         </div>
     </Modal>
@@ -49,7 +56,7 @@ import Modal from "@/components/Modal";
 export default {
     name: 'Preferences',
     components: {Modal},
-    emits: ['close-modal'],
+    emits: ['close-modal', 'remove-tournament'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
@@ -69,14 +76,20 @@ export default {
 
 <style scoped>
 .prefs {
-    padding: 0.25rem 0;
+    margin: -1.25rem -1.5rem;
 }
 
 .prefs__title {
     font-size: 1.2rem;
     font-weight: 700;
-    margin-bottom: 1.25rem;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border, #eee);
     color: var(--color-text, #1a1a1a);
+}
+
+.prefs__body {
+    padding: 1.25rem 1.5rem;
 }
 
 .prefs__list {
@@ -152,9 +165,14 @@ export default {
 
 .prefs__footer {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
     margin-top: 1.25rem;
+}
+
+.prefs__footer-right {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .prefs__btn {
@@ -182,5 +200,16 @@ export default {
 .prefs__btn--cancel:hover {
     background: #f5f5f5;
     border-color: var(--color-text-muted);
+}
+
+.prefs__btn--danger {
+    background: transparent;
+    border: 1px solid var(--color-error, #ef4444);
+    color: var(--color-error, #ef4444);
+}
+
+.prefs__btn--danger:hover {
+    background: var(--color-error, #ef4444);
+    color: #fff;
 }
 </style>

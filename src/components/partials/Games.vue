@@ -3,23 +3,20 @@
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
-            <div v-if="tournament.games?.length" class="draw-card">
-                <p v-if="tournament.system === 'swiss' && tournament.teams?.length" class="draw-card__hint">
-                    {{$t('games.playMaximum')}} <strong>{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
-                </p>
+            <div v-if="tournament.games?.length && showDrawLinks" class="draw-card">
                 <div class="draw-card__links">
                     <a v-if="!tournament.playOff && !tournament.roundIsActive
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
                        href="#" class="draw-card__link draw-card__link--draw" @click.prevent="drawRound">
                         {{ `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </a>
-                    <template v-if="((tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1)
-                        && !tournament.playOff && !tournament.roundIsActive
+                    <template v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound
+                        && !tournament.playOff
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)">
                         <span class="draw-card__or">{{ $t('common.or') }}</span>
                     </template>
-                    <a v-if="(tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1"
-                       href="#" class="draw-card__link draw-card__link--restore" @click.prevent="restoreRoundGames">{{ $t('games.restoreRound') }}</a>
+                    <a v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound && !tournament.playOff"
+                       href="#" class="draw-card__link draw-card__link--restore" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
@@ -29,7 +26,6 @@
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
                         <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
                     </button>
-                    <button v-if="allScoresFilled" class="games-toolbar__save" @click="saveResults" :disabled="saveDisabled">{{ $t('games.saveResults') }}</button>
                 </div>
                 <div class="games-list">
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
@@ -37,13 +33,38 @@
                           :team1-lanes="tournament.teams.find(team => team.title === game.team_1)?.lanes || null"
                           :team2-lanes="tournament.teams.find(team => team.title === game.team_2)?.lanes || null"
                           @save="saveResults"/>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
             </div>
+            <div v-else-if="tournament.tournamentIsFinished">
+                <FinishedBanner @openResults="$emit('openResults')"/>
+            </div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
         </div>
+        <Modal v-if="showRestoreConfirm" @close-modal="showRestoreConfirm = false">
+            <div class="confirm-remove">
+                <div class="confirm-remove__header">
+                    <div class="confirm-remove__header-left">
+                        <span class="confirm-remove__icon">
+                            <AlertTriangle :size="16"/>
+                        </span>
+                        <span class="confirm-remove__header-hint">{{ $t('games.restoreRound') }}</span>
+                    </div>
+                    <button class="confirm-remove__close" @click="showRestoreConfirm = false">
+                        <X :size="18"/>
+                    </button>
+                </div>
+                <div class="confirm-remove__body">
+                    <p class="confirm-remove__question">{{ $t('games.restoreRoundConfirm') }}</p>
+                </div>
+                <div class="confirm-remove__footer">
+                    <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="showRestoreConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-remove__btn confirm-remove__btn--danger" @click="showRestoreConfirm = false; restoreRoundGames()">{{ $t('games.restoreRound') }}</button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -56,18 +77,21 @@ import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
-import {ChevronDown} from "lucide-vue-next";
+import {ChevronDown, AlertTriangle, X} from "lucide-vue-next";
+import FinishedBanner from "@/components/partials/FinishedBanner.vue";
+import Modal from "@/components/Modal.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, ChevronDown},
+    components: {Cadrage, Game, PlayOff, ChevronDown, AlertTriangle, X, Modal, FinishedBanner},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
             saveDisabled: false,
             scoreError: false,
             isRestoredRound: false,
-            compactView: false
+            compactView: false,
+            showRestoreConfirm: false
         }
     },
     computed: {
@@ -81,12 +105,25 @@ export default {
                     this.tournament.groups[0].length - 1 : this.tournament.teams.length - 1;
         },
         maxSwissRounds() {
-            return Math.round(this.tournament.teams?.length / 2)
+            return Math.ceil(Math.log2(this.tournament.teams?.length))
         },
         allScoresFilled() {
             const games = this.tournament.games?.[this.activeRound - 1];
             if (!games) return false;
             return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
+        },
+        showDrawLinks() {
+            if (!this.tournament.games?.length) return false;
+            if (this.tournament.tournamentIsFinished) return false;
+            const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
+                && (this.tournament.games.length < this.teamsCount)
+                && (this.tournament.system === 'swiss' ? (this.activeRound <= this.maxSwissRounds) : true);
+            const hasRestoreLink = this.tournament.games.length && !this.tournament.roundIsActive && !this.isRestoredRound;
+            return hasDrawLink || hasRestoreLink;
+        },
+        canRestoreRound() {
+            return !!(this.tournament.playOff || (this.tournament.cadrage && this.tournament.cadrage.length))
+                && this.tournament.games?.length && !this.isRestoredRound;
         }
     },
     methods: {
@@ -149,6 +186,7 @@ export default {
             }
             this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
             this.startRound();
+            this.isRestoredRound = false;
         },
         createGroups() {
             if (this.teamsInGroup < 3) {
@@ -167,6 +205,11 @@ export default {
                 return false
             }
 
+            this.tournament.games[this.activeRound - 1].forEach(game => {
+                game.team_1_score = Number(game.team_1_score);
+                game.team_2_score = Number(game.team_2_score);
+            });
+
             this.saveResultsForRound(this.activeRound - 1);
 
             if (this.isRestoredRound) {
@@ -181,7 +224,6 @@ export default {
                 for (let i = 0; i < this.tournament.games.length; i++) {
                     this.saveResultsForRound(i);
                 }
-                this.isRestoredRound = false;
             }
 
             this.endRound();
@@ -189,6 +231,14 @@ export default {
         },
         restoreRoundGames(){
             this.isRestoredRound = true;
+            if (this.tournament.playOff || this.tournament.cadrage?.length) {
+                delete this.tournament.playOff;
+                delete this.tournament.playOffBracket;
+                delete this.tournament.playOffStage;
+                delete this.tournament.cadrage;
+                this.startRound();
+                return;
+            }
             if (this.tournament.roundIsActive) {
                 this.restoreRound();
                 if (this.tournament.system === 'groups') {
@@ -218,23 +268,10 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.6rem;
-    background: #fff;
-    border: 1px solid var(--color-border, #e5e7f0);
-    border-radius: 10px;
-    padding: 1.25rem 2rem;
-    margin: 0 auto 1rem;
-    max-width: 480px;
-}
-
-.draw-card__hint {
-    font-size: 0.9rem;
-    color: var(--color-text-muted, #888);
-    margin: 0;
-}
-
-.draw-card__hint strong {
-    color: var(--color-text-muted, #888);
+    padding: 0.5rem 0 1rem;
+    min-height: 240px;
 }
 
 .draw-card__links {
@@ -263,6 +300,7 @@ export default {
     font-size: 0.85rem;
     color: var(--color-text-muted, #888);
 }
+
 
 .games-toolbar {
     display: flex;
@@ -300,29 +338,108 @@ export default {
     transform: rotate(180deg);
 }
 
-.games-toolbar__save {
+.confirm-remove {
+    display: flex;
+    flex-direction: column;
+}
+
+.confirm-remove__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border, #e5e7f0);
+}
+
+.confirm-remove__header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirm-remove__icon {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 0.9rem;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-error-bg, #fef2f2);
+    color: var(--color-error, #ef4444);
+}
+
+.confirm-remove__header-hint {
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.confirm-remove__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.confirm-remove__close:hover {
+    background: #f5f5f5;
+    color: var(--color-text, #1a1a1a);
+}
+
+.confirm-remove__body {
+    padding: 0.5rem 0 1.25rem;
+}
+
+.confirm-remove__question {
+    font-size: 0.9rem;
+    color: var(--color-text, #1a1a1a);
+    line-height: 1.5;
+}
+
+.confirm-remove__footer {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-remove__btn {
+    padding: 0.5rem 1.25rem;
     font-size: 0.8rem;
     font-weight: 500;
     border-radius: 6px;
-    border: 1px solid #22c55e;
-    background: #22c55e;
-    color: #fff;
+    border: 1px solid;
     cursor: pointer;
     transition: all 0.15s;
-    white-space: nowrap;
 }
 
-.games-toolbar__save:hover {
-    background: #16a34a;
-    border-color: #16a34a;
+.confirm-remove__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border, #e0e0e0);
+    color: var(--color-text-secondary, #555);
 }
 
-.games-toolbar__save:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.confirm-remove__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: #f5f5f5;
 }
+
+.confirm-remove__btn--danger {
+    background: var(--color-error, #ef4444);
+    border-color: var(--color-error, #ef4444);
+    color: white;
+}
+
+.confirm-remove__btn--danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+
 </style>

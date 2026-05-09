@@ -92,7 +92,7 @@
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
                     </table>
@@ -131,7 +131,7 @@
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
                     </table>
@@ -211,7 +211,8 @@ export default {
             setTimeout(() => { this.resultsCopied = false; }, 2000);
         },
         getTeamPlayers(title) {
-            return this.tournament.teams && this.tournament.teams.find(item => item.title === title).players ? this.tournament.teams.find(item => item.title === title).players : ''
+            const team = this.tournament.teams?.find(item => item.title === title);
+            return team?.players || '';
         },
     },
     computed: {
@@ -333,5 +334,18 @@ export default {
 
 .place-bronze td:first-child {
     border-left: 3px solid #cd7f32;
+}
+
+.rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 10px;
+    background: #f0e6ff;
+    color: var(--color-primary);
 }
 </style>

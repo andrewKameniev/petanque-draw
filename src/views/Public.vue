@@ -471,6 +471,10 @@ export default {
     z-index: 1;
 }
 
+.wrapper :deep(.navbar) {
+    z-index: 10;
+}
+
 .playoff-public-wrapper .play-off-stage-wrapper {
     padding: 0;
 }
@@ -511,9 +515,9 @@ export default {
 .current-round-card {
     border: 2px solid var(--color-primary);
     border-radius: 8px;
-    padding: 1rem 50px;
-    width: fit-content;
+    padding: 1rem 1.5rem;
     min-width: 280px;
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -542,16 +546,10 @@ export default {
 .match-item {
     display: flex;
     align-items: center;
-    padding: 0.75rem 80px;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
     background: #f7f7f7;
     border: 1px solid #e8e8e8;
-}
-
-@media screen and (max-width: 768px) {
-    .match-item {
-        padding: 0.6rem 0.75rem;
-    }
 }
 
 .match-item:nth-child(odd) {
@@ -560,9 +558,12 @@ export default {
 
 .match-team {
     flex: 1 1 0;
+    min-width: 0;
     font-weight: 700;
     font-size: 0.9rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .match-team-right {

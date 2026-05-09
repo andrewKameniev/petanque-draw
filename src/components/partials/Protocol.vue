@@ -381,7 +381,7 @@ export default {
 
 <style>
 .protocol-container {
-    background: #fff;
+    background: var(--color-surface);
     padding: 1.5rem;
     border-radius: 8px;
     margin-top: 1rem;
@@ -392,10 +392,10 @@ export default {
 }
 
 .protocol-gate__card {
-    border: 1px solid var(--color-border, #e5e7f0);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
-    background: var(--color-bg-input, #f9fafb);
+    background: var(--color-bg-input);
 }
 
 .protocol-gate__badge {
@@ -407,15 +407,15 @@ export default {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    background: #f5a623;
-    color: #fff;
+    background: var(--color-warning);
+    color: var(--color-surface);
     border-radius: 4px;
     margin-bottom: 0.75rem;
 }
 
 .protocol-gate__desc {
     font-size: 0.85rem;
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
     line-height: 1.5;
     margin-bottom: 1rem;
 }
@@ -430,18 +430,18 @@ export default {
 .protocol-gate__price {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
 }
 
 .protocol-gate__card-number {
     font-size: 0.9rem;
     font-weight: 600;
     font-family: monospace;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border, #e5e7f0);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
     padding: 0.25rem 0.6rem;
     border-radius: 4px;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
 }
 
 .protocol-gate__copy {
@@ -453,31 +453,31 @@ export default {
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: color 0.15s, background 0.15s;
 }
 
 .protocol-gate__copy:hover {
-    background: var(--color-primary-bg, #f3eeff);
+    background: var(--color-primary-bg);
     color: var(--color-primary);
 }
 
 .protocol-gate__contact {
     font-size: 0.8rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
 }
 
 .protocol-gate__contact strong {
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
 }
 
 .protocol-gate__tips {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    border-top: 1px solid var(--color-border, #e5e7f0);
+    border-top: 1px solid var(--color-border);
     padding-top: 0.75rem;
 }
 
@@ -486,7 +486,7 @@ export default {
     align-items: flex-start;
     gap: 0.4rem;
     font-size: 0.78rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     line-height: 1.4;
 }
 
@@ -505,7 +505,7 @@ export default {
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
     margin-bottom: 0.3rem;
 }
 
@@ -513,9 +513,9 @@ export default {
     width: 100%;
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: var(--color-white, #fff);
+    background: var(--color-white);
     outline: none;
     transition: border-color 0.2s;
 }
@@ -530,9 +530,9 @@ export default {
     gap: 0.6rem;
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    border: 1px solid #f0ad4e;
-    background: #fef9ec;
-    color: #856404;
+    border: 1px solid var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
     font-size: 0.82rem;
     line-height: 1.5;
     margin-bottom: 1.25rem;
@@ -549,7 +549,7 @@ export default {
     gap: 0.75rem;
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--color-border, #e5e7f0);
+    border-top: 1px solid var(--color-border);
 }
 
 .protocol-actions__row {
@@ -575,7 +575,7 @@ export default {
 .protocol-actions__btn--primary {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-white, #fff);
+    color: var(--color-white);
 }
 
 .protocol-actions__btn--primary:hover {
@@ -584,30 +584,30 @@ export default {
 }
 
 .protocol-actions__btn--success {
-    background: var(--color-success, #10b981);
-    border-color: var(--color-success, #10b981);
-    color: var(--color-white, #fff);
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-white);
 }
 
 .protocol-actions__btn--success:hover {
-    background: var(--color-success-hover, #059669);
-    border-color: var(--color-success-hover, #059669);
+    background: var(--color-success-hover);
+    border-color: var(--color-success-hover);
 }
 
 .protocol-actions__btn--outline {
     background: transparent;
-    border-color: var(--color-border, #e0e0e0);
-    color: var(--color-text-secondary, #555);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
 }
 
 .protocol-actions__btn--outline:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    background: var(--color-primary-bg, #f3eeff);
+    background: var(--color-primary-bg);
 }
 
 #protocol {
-    color: #000;
+    color: var(--color-text);
     font-family: 'Times New Roman';
 }
 
@@ -619,7 +619,7 @@ export default {
 #protocol .content h4,
 #protocol table th,
 #protocol table td {
-    color: #000;
+    color: var(--color-text);
 }
 
 #protocol table td {

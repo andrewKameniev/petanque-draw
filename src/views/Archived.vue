@@ -289,7 +289,7 @@ export default {
 <style scoped>
 .wrapper {
     position: relative;
-    background: #f4f4f4;
+    background: var(--color-body-bg);
     min-height: 100vh;
 }
 
@@ -302,6 +302,10 @@ export default {
     opacity: 0.5;
     z-index: 0;
     pointer-events: none;
+}
+
+[data-theme="dark"] .wrapper::before {
+    opacity: 0.05;
 }
 
 .wrapper > * {

@@ -16,7 +16,202 @@
     --color-success: #10b981;
     --color-success-hover: #059669;
     --color-error: #ef4444;
+    --color-error-hover: #dc2626;
     --color-error-bg: #fef2f2;
     --color-dropdown-shadow: rgba(0, 0, 0, 0.12);
     --color-card-shadow: rgba(71, 26, 160, 0.08);
+
+    --color-body-bg: #f4f4f4;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f5f5f5;
+    --color-surface-alt: #f7f7f7;
+    --color-surface-semi: rgba(255, 255, 255, 0.5);
+    --color-input-bg: rgba(255, 255, 255, 0.5);
+    --color-table-bg: rgba(255, 255, 255, 0.5);
+    --color-game-row-odd: rgba(242, 239, 239, 0.44);
+    --color-game-row-border: #cccccc;
+    --color-navbar-link: #4a4a4a;
+    --color-lanes-played: #999999;
+    --color-modal-bg: #ffffff;
+    --color-overlay-bg: rgba(0, 0, 0, 0.5);
+    --color-border-medium: #dbdbdb;
+
+    --color-warning: #f5a623;
+    --color-warning-hover: #e6951e;
+    --color-warning-bg: #fef9ec;
+    --color-warning-text: #856404;
+    --color-warning-border: #f0ad4e;
+
+    --color-info: #0EA5E9;
+    --color-danger-light: #e07070;
+
+    --color-btn-dark: #4b5563;
+    --color-btn-dark-hover: #374151;
+    --color-btn-green: #1FA37A;
+    --color-btn-green-hover: #178c68;
+    --color-btn-blue: #60A5FA;
+    --color-btn-blue-hover: #3b82f6;
+
+    --color-add-team-btn: #22c55e;
+    --color-add-team-btn-hover: #16a34a;
+
+    --color-badge-purple: #f0e6ff;
+    --color-badge-gold-bg: rgba(255, 197, 0, 0.18);
+    --color-badge-gold-border: #f5c518;
+    --color-badge-silver-bg: rgba(192, 192, 192, 0.25);
+    --color-badge-silver-border: #aaa;
+    --color-badge-bronze-bg: rgba(205, 127, 50, 0.15);
+    --color-badge-bronze-border: #cd7f32;
+
+    --color-bracket-winner: rgba(16, 185, 129, 0.12);
+    --color-bracket-winner-score: rgba(16, 185, 129, 0.22);
+    --color-bracket-gold: rgba(255, 197, 0, 0.18);
+    --color-bracket-gold-score: rgba(255, 197, 0, 0.3);
+    --color-bracket-silver: rgba(192, 192, 192, 0.25);
+    --color-bracket-silver-score: rgba(192, 192, 192, 0.4);
+    --color-bracket-bronze: rgba(205, 127, 50, 0.15);
+    --color-bracket-bronze-score: rgba(205, 127, 50, 0.25);
+    --color-bracket-loser: rgba(255, 255, 255, 1);
+    --color-bracket-loser-score: rgba(0, 0, 0, 0.07);
+    --color-bracket-text: #333333;
+    --color-bracket-divider: #eeeeee;
+    --color-bracket-connector: #cccccc;
+    --color-bracket-badge: #aaaaaa;
+
+    --color-stat-green: #02C66F;
+    --color-stat-blue: #1990ff;
+    --color-stat-green-light: #7FC6A6;
+    --color-stat-checkbox: #000000;
+
+    --color-tab-inactive-bg: #f0f0f0;
+    --color-tab-inactive-text: #666666;
+    --color-tab-inactive-hover: #e0e0e0;
+
+    --color-ranking-primary-bg: rgba(71, 26, 160, 0.85);
+
+    --color-help-border: #dddddd;
+    --color-loader-border: #aaaaaa;
+    --color-message-bg: #f0f0f0;
+    --color-message-text: #333333;
+    --color-message-muted: #999999;
+    --color-message-border: #e0e0e0;
+
+    --color-qr-bg: #ffffff;
+    --color-qr-border: #eeeeee;
+    --color-qr-alt-bg: #f7f7f7;
+
+    --color-public-text-muted: #555555;
+    --color-public-separator: #eeeeee;
+    --color-public-surface: #f7f7f7;
+    --color-public-surface-border: #e8e8e8;
+    --color-public-surface-white: #ffffff;
+}
+
+[data-theme="dark"] {
+    --color-primary: #a78bfa;
+    --color-primary-light: #c4b5fd;
+    --color-primary-bg: #2d2340;
+    --color-primary-bg-hover: #3a2d52;
+    --color-primary-shadow: rgba(167, 139, 250, 0.25);
+    --color-highlight: rgba(52, 211, 153, 0.15);
+    --color-white: #1e1e2e;
+    --color-grey: #9ca3af;
+    --color-text: #e4e5ea;
+    --color-text-muted: #9ca3af;
+    --color-text-secondary: #d1d5db;
+    --color-border: #2f3543;
+    --color-border-light: #262d3a;
+    --color-bg-input: #1a1d28;
+    --color-success: #4ade80;
+    --color-success-hover: #22c55e;
+    --color-error: #fb7185;
+    --color-error-hover: #f43f5e;
+    --color-error-bg: #2d1b1e;
+    --color-dropdown-shadow: rgba(0, 0, 0, 0.5);
+    --color-card-shadow: rgba(0, 0, 0, 0.35);
+
+    --color-body-bg: #0f1117;
+    --color-surface: #181a24;
+    --color-surface-hover: #22253a;
+    --color-surface-alt: #1e2130;
+    --color-surface-semi: rgba(24, 26, 36, 0.8);
+    --color-input-bg: rgba(26, 29, 40, 0.9);
+    --color-table-bg: rgba(24, 26, 36, 0.7);
+    --color-game-row-odd: rgba(34, 37, 58, 0.4);
+    --color-game-row-border: #2f3543;
+    --color-navbar-link: #d1d5db;
+    --color-lanes-played: #6b7280;
+    --color-modal-bg: #181a24;
+    --color-overlay-bg: rgba(0, 0, 0, 0.75);
+    --color-border-medium: #3f4656;
+
+    --color-warning: #fbbf24;
+    --color-warning-hover: #f59e0b;
+    --color-warning-bg: #2d2a1a;
+    --color-warning-text: #fde68a;
+    --color-warning-border: #b45309;
+
+    --color-info: #38bdf8;
+    --color-danger-light: #fb7185;
+
+    --color-btn-dark: #4b5563;
+    --color-btn-dark-hover: #6b7280;
+    --color-btn-green: #22c55e;
+    --color-btn-green-hover: #16a34a;
+    --color-btn-blue: #3b82f6;
+    --color-btn-blue-hover: #2563eb;
+
+    --color-add-team-btn: #22c55e;
+    --color-add-team-btn-hover: #16a34a;
+
+    --color-badge-purple: #2a2040;
+    --color-badge-gold-bg: rgba(251, 191, 36, 0.08);
+    --color-badge-gold-border: #b8860b;
+    --color-badge-silver-bg: rgba(156, 163, 175, 0.08);
+    --color-badge-silver-border: #6b7280;
+    --color-badge-bronze-bg: rgba(180, 110, 40, 0.08);
+    --color-badge-bronze-border: #a0522d;
+
+    --color-bracket-winner: rgba(74, 222, 128, 0.12);
+    --color-bracket-winner-score: rgba(74, 222, 128, 0.2);
+    --color-bracket-gold: rgba(251, 191, 36, 0.12);
+    --color-bracket-gold-score: rgba(251, 191, 36, 0.2);
+    --color-bracket-silver: rgba(156, 163, 175, 0.12);
+    --color-bracket-silver-score: rgba(156, 163, 175, 0.25);
+    --color-bracket-bronze: rgba(205, 127, 50, 0.1);
+    --color-bracket-bronze-score: rgba(205, 127, 50, 0.18);
+    --color-bracket-loser: rgba(24, 26, 36, 1);
+    --color-bracket-loser-score: rgba(255, 255, 255, 0.04);
+    --color-bracket-text: #e4e5ea;
+    --color-bracket-divider: #2f3543;
+    --color-bracket-connector: #3f4656;
+    --color-bracket-badge: #6b7280;
+
+    --color-stat-green: #4ade80;
+    --color-stat-blue: #60a5fa;
+    --color-stat-green-light: #86efac;
+    --color-stat-checkbox: #e4e5ea;
+
+    --color-tab-inactive-bg: #22253a;
+    --color-tab-inactive-text: #9ca3af;
+    --color-tab-inactive-hover: #2c3044;
+
+    --color-ranking-primary-bg: rgba(167, 139, 250, 0.85);
+
+    --color-help-border: #2f3543;
+    --color-loader-border: #6b7280;
+    --color-message-bg: #1e2130;
+    --color-message-text: #e4e5ea;
+    --color-message-muted: #6b7280;
+    --color-message-border: #2f3543;
+
+    --color-qr-bg: #181a24;
+    --color-qr-border: #2f3543;
+    --color-qr-alt-bg: #1e2130;
+
+    --color-public-text-muted: #9ca3af;
+    --color-public-separator: #2f3543;
+    --color-public-surface: #1e2130;
+    --color-public-surface-border: #2f3543;
+    --color-public-surface-white: #181a24;
 }

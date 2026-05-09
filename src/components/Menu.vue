@@ -91,6 +91,10 @@
                             <svg v-if="$i18n.locale === 'ua'" class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="240" fill="#005BBB"/><rect y="240" width="640" height="240" fill="#FFD500"/></svg>
                             <svg v-else class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/><path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/><path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/></svg>
                         </a></li>
+                        <li class="sidebar__theme-item">
+                            <ThemeSwitcher />
+                            <span class="sidebar__theme-label">{{ theme === 'light' ? $t('common.darkTheme') : $t('common.lightTheme') }}</span>
+                        </li>
                         <li v-if="user"><a href="#" @click.prevent="signOutUser">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                             {{ $t('common.logoutUser') }}
@@ -117,9 +121,16 @@ import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "../helpers";
 import {signOut} from "firebase/auth";
 import {auth} from "@/firebase";
+import {useTheme} from "@/composables/useTheme";
+import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 
 export default {
     name: 'Menu',
+    components: {ThemeSwitcher},
+    setup() {
+        const { theme, toggleTheme } = useTheme();
+        return { theme, toggleTheme };
+    },
     data() {
         return {
             tournamentNames,
@@ -381,6 +392,19 @@ export default {
     box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
     margin-left: 0.4rem;
+}
+
+.sidebar__theme-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.5rem;
+}
+
+.sidebar__theme-label {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
 }
 
 /* Credit */

@@ -53,11 +53,11 @@ export default {
 }
 
 .lang-switcher:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--color-surface-hover);
 }
 
 .lang-label {
-    color: #4a4a4a;
+    color: var(--color-navbar-link);
     font-weight: 500;
 }
 

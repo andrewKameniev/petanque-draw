@@ -64,6 +64,7 @@
                         </div>
                     </div>
                 </div>
+                <ThemeSwitcher class="navbar-item"/>
                 <LanguageSwitcher class="navbar-item"/>
             </div>
         </div>
@@ -76,10 +77,11 @@ import {useMainStore} from "@/stores/main";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
+import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 
 export default {
     name: "Navbar",
-    components: {LanguageSwitcher},
+    components: {LanguageSwitcher, ThemeSwitcher},
     data() {
         return {
             userDropdownOpen: false,
@@ -227,7 +229,7 @@ export default {
     padding: 0 0 0 0.75rem !important;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #4a4a4a;
+    color: var(--color-navbar-link);
     display: flex;
     align-items: center;
     background: none;

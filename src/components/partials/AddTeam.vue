@@ -99,8 +99,8 @@ export default {
 
 <style scoped>
 .add-team-card {
-    background: #fff;
-    border: 1px solid var(--color-border, #e5e7f0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.25rem 1.5rem;
     display: flex;
@@ -117,16 +117,18 @@ export default {
 .add-team-card__input {
     flex: 1;
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-border, #e5e7f0);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 0.9rem;
     outline: none;
     transition: border-color 0.15s;
+    background: var(--color-bg-input);
+    color: var(--color-text);
 }
 
 .add-team-card__input:focus {
-    border-color: var(--color-primary, #7c3aed);
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-shadow);
 }
 
 .add-team-card__input--name {
@@ -139,9 +141,9 @@ export default {
 
 .add-team-card__btn {
     padding: 0.5rem 1rem;
-    border: 1px solid #22c55e;
-    background: #22c55e;
-    color: #fff;
+    border: 1px solid var(--color-add-team-btn);
+    background: var(--color-add-team-btn);
+    color: var(--color-surface);
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 500;
@@ -151,18 +153,18 @@ export default {
 }
 
 .add-team-card__btn:hover {
-    background: #16a34a;
-    border-color: #16a34a;
+    background: var(--color-add-team-btn-hover);
+    border-color: var(--color-add-team-btn-hover);
 }
 
 .add-team-card__btn--import {
-    background: var(--color-primary, #7c3aed);
-    border-color: var(--color-primary, #7c3aed);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 .add-team-card__btn--import:hover {
-    background: var(--color-primary-hover, #6d28d9);
-    border-color: var(--color-primary-hover, #6d28d9);
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
 }
 
 .add-team-card__footer {
@@ -177,7 +179,7 @@ export default {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.85rem;
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
     cursor: pointer;
 }
 
@@ -186,18 +188,18 @@ export default {
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
     font-weight: 500;
-    border: 1px solid var(--color-border, #e5e7f0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: transparent;
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
 }
 
 .add-team-card__restore:hover {
-    border-color: var(--color-primary, #7c3aed);
-    color: var(--color-primary, #7c3aed);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 @media (max-width: 768px) {

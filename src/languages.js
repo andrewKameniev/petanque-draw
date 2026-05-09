@@ -217,6 +217,8 @@ export default {
             timeLimit: 'Time limit',
             places: 'places',
             teamsLabel: 'teams',
+            darkTheme: 'Dark theme',
+            lightTheme: 'Light theme',
         },
         help: {
             title: 'Tournament Drawing App for Petanque',
@@ -777,6 +779,8 @@ export default {
             timeLimit: 'Обмеження часу',
             places: 'місця',
             teamsLabel: 'команд',
+            darkTheme: 'Темна тема',
+            lightTheme: 'Світла тема',
         },
         help: {
             title: 'Програма для жеребкування турнірів з петанку',

@@ -201,8 +201,8 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    background: #10B981;
-    color: #fff;
+    background: var(--color-success);
+    color: var(--color-surface);
     border: none;
     font-weight: 600;
     padding: 0.6rem 1.5rem;
@@ -210,15 +210,15 @@ export default {
 }
 
 .btn-save-results:hover {
-    background: #059669;
-    color: #fff;
+    background: var(--color-success-hover);
+    color: var(--color-surface);
 }
 
 .btn-save-results:focus,
 .btn-save-results.is-focused,
 .btn-save-results:active {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-shadow) !important;
     border-color: transparent;
 }
 </style>

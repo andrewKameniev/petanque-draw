@@ -182,7 +182,7 @@ export default {
     display: flex;
     align-items: center;
     padding: 0.5rem 0.75rem;
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
     border-radius: 6px;
     margin-bottom: 0.4rem;
 }
@@ -224,7 +224,7 @@ export default {
 }
 
 .score-empty {
-    color: var(--color-text-muted, #ccc);
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 

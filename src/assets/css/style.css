@@ -4,7 +4,9 @@ body {
     margin: 0;
     font-family: 'Manrope', sans-serif;
     font-size: 1em;
-    background-color: #f4f4f4;
+    background-color: var(--color-body-bg);
+    color: var(--color-text);
+    transition: background-color 0.3s, color 0.3s;
 }
 
 input:focus,
@@ -30,7 +32,7 @@ input[type="radio"] {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid var(--color-border, #d1d5db);
+    border: 2px solid var(--color-border);
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.15s;
@@ -63,7 +65,7 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid var(--color-border, #d1d5db);
+    border: 2px solid var(--color-border);
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.15s;
@@ -83,7 +85,7 @@ input[type="checkbox"]:checked::after {
     top: 1px;
     width: 5px;
     height: 9px;
-    border: solid #fff;
+    border: solid var(--color-surface);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -91,6 +93,18 @@ input[type="checkbox"]:checked::after {
 input[type="checkbox"]:focus {
     box-shadow: 0 0 0 2px var(--color-primary-shadow) !important;
     border-radius: 2px !important;
+}
+
+@media screen and (min-width: 575px){
+    body:not(.documentation) {
+        background: url("../img/bg-mountains.avif") center/cover;
+        background-attachment: fixed;
+    }
+}
+
+[data-theme="dark"] body:not(.documentation) {
+    background-image: none !important;
+    background-color: var(--color-body-bg);
 }
 
 .wrapper {
@@ -106,7 +120,8 @@ nav.navbar {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--color-white);
+    background: var(--color-surface);
+    transition: background-color 0.3s;
 }
 
 footer {
@@ -166,7 +181,7 @@ footer {
 
 .lanes-played {
     font-size: 0.7rem;
-    color: #999;
+    color: var(--color-lanes-played);
     margin-top: 2px;
 }
 
@@ -209,10 +224,12 @@ footer {
 }
 .input {
     font-size: 16px !important;
-    background-color: #ffffff80;
+    background-color: var(--color-input-bg);
+    color: var(--color-text);
 }
 .table {
-    background-color: #ffffff80;
+    background-color: var(--color-table-bg);
+    color: var(--color-text);
 }
 #table-list {
     counter-reset: teamlist;
@@ -245,7 +262,7 @@ footer {
 }
 
 .modal-content {
-    background: white;
+    background: var(--color-modal-bg);
     max-height: calc(100vh - 80px);
     border-radius: 16px;
     overflow: hidden;
@@ -258,7 +275,7 @@ footer {
 .button.is-purple {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-surface);
 }
 
 .tabs a:focus {
@@ -307,14 +324,14 @@ footer {
     }
 
     .game-row:nth-child(odd) {
-        background-color: #f2efef70;
+        background-color: var(--color-game-row-odd);
     }
 }
 
 @media all and (max-width: 768px) {
     .game-row {
         flex-direction: column;
-        border-bottom: solid 1px #ccc;
+        border-bottom: solid 1px var(--color-game-row-border);
         margin-bottom: 0;
         padding: 15px 0;
     }
@@ -363,10 +380,10 @@ footer {
         display: block;
     }
     .navbar-dropdown {
-        background-color: var(--color-white);
+        background-color: var(--color-surface);
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;
-        border-top: 2px solid #dbdbdb;
+        border-top: 2px solid var(--color-border-medium);
         box-shadow: 0 8px 8px rgba(10,10,10,.1);
         display: none;
         font-size: .875rem;
@@ -415,7 +432,7 @@ button.tag {
 .login-card {
     width: 100%;
     max-width: 380px;
-    background: var(--color-white);
+    background: var(--color-surface);
     border-radius: 1.25rem;
     box-shadow: 0 20px 60px var(--color-card-shadow), 0 1px 3px rgba(0, 0, 0, 0.04);
     padding: 2.5rem 2rem 2rem;
@@ -471,7 +488,7 @@ button.tag {
 
 .login-input:focus {
     border-color: var(--color-primary);
-    background: var(--color-white);
+    background: var(--color-surface);
     box-shadow: 0 0 0 3px var(--color-card-shadow);
 }
 
@@ -498,7 +515,7 @@ button.tag {
     margin-top: 0.5rem;
     font-size: 0.9rem;
     font-weight: 700;
-    color: var(--color-white);
+    color: var(--color-surface);
     background: var(--color-primary);
     border: none;
     border-radius: 0.625rem;
@@ -569,7 +586,7 @@ button.tag {
     gap: 0.5rem;
     padding: 0.7rem 1.5rem;
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-surface);
     font-weight: 700;
     font-size: 0.9rem;
     border-radius: 0.625rem;
@@ -584,7 +601,7 @@ button.tag {
     background: var(--color-primary-light);
     box-shadow: 0 4px 16px var(--color-primary-shadow);
     transform: translateY(-1px);
-    color: var(--color-white);
+    color: var(--color-surface);
 }
 
 .btn-login-primary--large {
@@ -629,4 +646,204 @@ button.tag {
 
 .vue-select .menu {
     z-index: 100;
+}
+
+/* Dark theme overrides for Bulma and global elements */
+[data-theme="dark"] .button {
+    background-color: var(--color-surface-alt);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .button:hover {
+    background-color: var(--color-surface-hover);
+    border-color: var(--color-border-medium);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .button.is-primary,
+[data-theme="dark"] .button.is-purple {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+[data-theme="dark"] .button.is-primary:hover,
+[data-theme="dark"] .button.is-purple:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .table {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .table th {
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .table td {
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .table tr:hover,
+[data-theme="dark"] .table.is-hoverable tbody tr:hover {
+    background-color: var(--color-surface-hover);
+}
+
+[data-theme="dark"] .table.is-striped tbody tr:nth-child(even) {
+    background-color: var(--color-surface-alt);
+}
+
+[data-theme="dark"] .tabs a {
+    color: var(--color-text-muted);
+    border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .tabs a:hover {
+    color: var(--color-text);
+    border-bottom-color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .tabs li.is-active a {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+[data-theme="dark"] .tabs ul {
+    border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .tag {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .tag.is-primary,
+[data-theme="dark"] .tag.is-link {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 2px 8px var(--color-card-shadow);
+}
+
+[data-theme="dark"] .card-header {
+    box-shadow: 0 1px 0 var(--color-border);
+}
+
+[data-theme="dark"] .card-header-title {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .select select,
+[data-theme="dark"] .input,
+[data-theme="dark"] .textarea {
+    background-color: var(--color-bg-input);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .select select:hover,
+[data-theme="dark"] .input:hover,
+[data-theme="dark"] .textarea:hover {
+    border-color: var(--color-border-medium);
+}
+
+[data-theme="dark"] .label {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .subtitle {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .box {
+    background-color: var(--color-surface);
+    box-shadow: 0 2px 8px var(--color-card-shadow);
+}
+
+[data-theme="dark"] .notification {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] strong {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] hr {
+    background-color: var(--color-border);
+}
+
+[data-theme="dark"] .content h1,
+[data-theme="dark"] .content h2,
+[data-theme="dark"] .content h3,
+[data-theme="dark"] .content h4,
+[data-theme="dark"] .content h5,
+[data-theme="dark"] .content h6 {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .table thead th {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .table tbody tr {
+    background-color: var(--color-surface);
+}
+
+[data-theme="dark"] .table tbody tr:nth-child(even) {
+    background-color: var(--color-surface-alt);
+}
+
+[data-theme="dark"] .navbar {
+    background-color: var(--color-surface);
+    box-shadow: 0 1px 0 var(--color-border);
+}
+
+[data-theme="dark"] .navbar-item,
+[data-theme="dark"] .navbar-link {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .footer {
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .modal-card-head,
+[data-theme="dark"] .modal-card-foot {
+    background-color: var(--color-surface-alt);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .modal-card-body {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .modal-card-title {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .progress {
+    background-color: var(--color-surface-alt);
+}
+
+[data-theme="dark"] .message {
+    background-color: var(--color-surface-alt);
+}
+
+[data-theme="dark"] .message-body {
+    border-color: var(--color-border);
+    color: var(--color-text);
 }

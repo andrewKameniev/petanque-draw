@@ -34,7 +34,7 @@
                 <div class="games-list">
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
-                          :team1-lanes="tournament.teams.find(team => team.title === game.team_1).lanes"
+                          :team1-lanes="tournament.teams.find(team => team.title === game.team_1)?.lanes || null"
                           :team2-lanes="tournament.teams.find(team => team.title === game.team_2)?.lanes || null"
                           @save="saveResults"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}

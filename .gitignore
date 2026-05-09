@@ -3,3 +3,5 @@ dist
 .claude
 .playwright-cli
 coverage/
+playwright-report/
+test-results/

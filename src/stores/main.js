@@ -102,7 +102,12 @@ export const useMainStore = defineStore('main', {
             if (!Object.keys(this.tournaments).length) {
                 this.addTournament();
             }
-            this.setActiveTournament(this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id)
+            const pinned = localStorage.getItem('petanqueDrawPinned');
+            if (pinned && this.tournaments[pinned]) {
+                this.setActiveTournament(pinned);
+            } else {
+                this.setActiveTournament(this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id)
+            }
         },
         setSavedTournaments(tournaments) {
             this.savedTournaments = tournaments;

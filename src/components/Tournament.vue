@@ -1,21 +1,53 @@
 <template>
     <div>
-        <div class="box" v-if="user">
-            <h2 class="is-size-5 mb-3">{{ $t('remote.remoteAvailabilities') }}:</h2>
-            <div class="buttons">
-                <button class="button is-light" @click="showQrCode = true">{{ $t('remote.showLinks') }}</button>
-                <button class="button is-warning" @click="showTypeMessage = !showTypeMessage">
-                    <span v-if="!showTypeMessage">{{ $t('remote.writeMessage') }}</span><span v-else>{{ $t('remote.hideMessage') }} </span>
+        <div class="remote-toolbar" v-if="user">
+            <div class="remote-toolbar__actions">
+                <button class="remote-toolbar__btn" @click="showQrCode = true">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <span class="is-hidden-mobile">{{ $t('remote.showLinks') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('remote.showLink') }}</span>
+                </button>
+                <button class="remote-toolbar__btn" :class="{'remote-toolbar__btn--active': showTypeMessage, 'remote-toolbar__btn--has-message': !showTypeMessage && tournament.tournamentMessage?.trim()}" @click="showTypeMessage = !showTypeMessage">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    {{ $t('remote.writeMessage') }}
+                    <svg class="remote-toolbar__chevron" :class="{'remote-toolbar__chevron--open': showTypeMessage}" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                 </button>
             </div>
             <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
-            <div class="field" v-if="showTypeMessage">
-                <textarea name="info" id="" cols="30" rows="5" v-model="tournament.tournamentMessage" class="textarea"></textarea>
-            </div>
+            <Transition name="slide">
+                <div class="remote-toolbar__message" v-if="showTypeMessage">
+                    <span v-if="messageSaved" class="message-saved-label">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        {{ $t('remote.messageSaved') }}
+                    </span>
+                    <textarea rows="3" v-model="tournament.tournamentMessage" class="remote-toolbar__textarea" :placeholder="$t('remote.writeMessage') + '...'" @input="onMessageInput"></textarea>
+                </div>
+            </Transition>
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
         </div>
-        <div class="text-center is-size-3">
-            <strong class="pointer" @click="changeNameModal = true"> {{ tournament.name }}</strong>
+        <div class="text-center is-size-3 tournament-name-row">
+            <button class="pin-btn" :class="{'pin-btn--active': isPinned}" @click.stop="togglePin" :title="isPinned ? $t('common.unpin') : $t('common.pin')">
+                <IconPin :size="22" :fill="isPinned ? 'currentColor' : 'none'"/>
+            </button>
+            <template v-if="editingName">
+                <div class="inline-name-edit-wrapper">
+                    <div class="inline-name-edit">
+                        <input ref="nameInput" class="inline-name-input" :class="{'inline-name-input--error': nameError}"
+                               v-model="editNameValue" @keyup.enter="saveName" @keyup.escape="cancelEditName"
+                               @input="nameError = false">
+                        <button class="inline-name-btn inline-name-btn--save" @click="saveName" :title="$t('common.change')">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                        <button class="inline-name-btn inline-name-btn--cancel" @click="cancelEditName" :title="$t('common.cancel')">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <span v-if="nameError" class="inline-name-error">{{ $t('modals.tournamentNameRequired') }}</span>
+                </div>
+            </template>
+            <template v-else>
+                <strong class="pointer" @click="startEditName"> {{ tournament.name }}</strong>
+            </template>
             <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
         <div v-if="!tournament.games?.length && !tournament.playOff">
@@ -116,36 +148,45 @@
                 </div>
             </div>
         </div>
-        <hr>
-        <div class="field is-grouped buttons">
-            <div class="control">
-                <button class="button is-danger" @click="showProtocol = false; removeConfirmId = 1">{{ $t('teams.removeTournament') }}</button>
+        <div class="bottom-actions">
+            <div class="bottom-actions__row">
+                <button v-if="!tournament.roundIsActive && !tournament.tournamentIsFinished && activeRound === 1 && activeTab !== 'games'" class="bottom-actions__btn bottom-actions__btn--success" @click="activeTab = 'games'">
+                    {{ $t('teams.startTournament') }}
+                </button>
+                <button v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="finishTournament">
+                    {{ $t('teams.finishTournament') }}
+                </button>
+                <button class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
+                    <IconSettings :size="16"/>
+                    {{ $t('teams.preferences') }}
+                </button>
+                <button v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
+                    {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
+                </button>
+                <button class="bottom-actions__btn bottom-actions__btn--danger" @click="showProtocol = false; removeConfirmId = 1">
+                    <IconTrash :size="16"/>
+                    <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+                </button>
             </div>
-            <div class="control">
-                <button class="button is-info" @click="showPreferences = true">{{ $t('teams.preferences') }}</button>
-            </div>
-            <div class="control" v-if="!tournament.teams?.length">
-                <button class="button is-info" @click="restoreTeamsFromLocalStorage">{{ $t('teams.restoreTeams') }}</button>
-            </div>
-            <div class="control" v-if="canSaveTournament || tournament.tournamentIsFinished">
-                <button class="button is-success" @click="showSaveTournament = true">{{ $t('teams.saveTournament') }}</button>
-            </div>
-            <div class="control" v-if="!tournament.roundIsActive && !tournament.tournamentIsFinished && activeRound === 1 && activeTab !== 'games'">
-                <button class="button is-info" @click="activeTab = 'games'">{{ $t('teams.startTournament') }}</button>
-            </div>
-            <div class="control" v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length">
-                <button class="button is-info" @click="finishTournament">{{ $t('teams.finishTournament') }}</button>
-            </div>
-            <div class="control" v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length">
-                <button class="button is-info" @click="showProtocol = !showProtocol">{{ showProtocol ?  $t('common.hide') : $t('common.show')}}
-                    {{ $t('teams.protocol') }}
+            <div class="bottom-actions__row">
+                <button class="bottom-actions__btn bottom-actions__btn--sky" @click="addTournament">
+                    <IconPlus :size="16"/>
+                    {{ $t('common.addTournament') }}
+                </button>
+                <span v-if="canSaveTournament || tournament.tournamentIsFinished" class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
+                    <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
+                        <IconArchive :size="16"/>
+                        {{ $t('teams.saveTournament') }}
+                    </button>
+                </span>
+                <button v-if="!tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="restoreTeamsFromLocalStorage">
+                    {{ $t('teams.restoreTeams') }}
                 </button>
             </div>
         </div>
         <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
                         @close-modal="showSaveTournament = false"/>
-        <ConfirmRemoveModal v-if="removeConfirmId" :title="$t('modals.sureRemove') + ' ' + tournament.name + '?'" @close="removeConfirmId = null" @remove="removeTournament"/>
-        <ChangeTournamentName v-if="changeNameModal" @close-modal="changeNameModal = false"/>
+        <ConfirmRemoveModal v-if="removeConfirmId" :name="tournament.name" @close="removeConfirmId = null" @remove="removeTournament"/>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false"/>
         <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
@@ -161,12 +202,12 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
-import ChangeTournamentName from "@/components/partials/ChangeTournamentName";
 import {getTeamsRanking} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
+import {IconPin, IconPlus, IconSettings, IconArchive, IconTrash} from "@/components/icons";
 
 export default {
     name: 'Tournament',
@@ -175,7 +216,11 @@ export default {
             activeTab: "teams",
             showSaveTournament: false,
             removeConfirmId: null,
-            changeNameModal: false,
+            editingName: false,
+            editNameValue: '',
+            nameError: false,
+            messageSaved: false,
+            messageTimeout: null,
             playB: false,
             withCadrage: false,
             teamsInGroup: null,
@@ -184,13 +229,53 @@ export default {
             loadingOnServer: false,
             showPreferences: false,
             showProtocol: false,
+            pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
     created() {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addTournament']),
+        startEditName() {
+            this.editNameValue = this.tournament.name;
+            this.editingName = true;
+            this.$nextTick(() => {
+                this.$refs.nameInput?.focus();
+                this.$refs.nameInput?.select();
+            });
+        },
+        saveName() {
+            if (this.editNameValue.trim()) {
+                this.changeTournamentName(this.editNameValue.trim());
+                this.editingName = false;
+                this.nameError = false;
+            } else {
+                this.nameError = true;
+            }
+        },
+        cancelEditName() {
+            this.editingName = false;
+        },
+        togglePin() {
+            if (this.isPinned) {
+                localStorage.removeItem('petanqueDrawPinned');
+                this.pinnedState = null;
+                this.showMessage({title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned')});
+            } else {
+                localStorage.setItem('petanqueDrawPinned', this.currentTournamentIndex);
+                this.pinnedState = this.currentTournamentIndex;
+                this.showMessage({title: this.$t('common.pin'), text: this.$t('messages.tournamentPinned')});
+            }
+        },
+        onMessageInput() {
+            this.messageSaved = false;
+            clearTimeout(this.messageTimeout);
+            this.messageTimeout = setTimeout(() => {
+                this.syncToFirebase();
+                this.messageSaved = true;
+            }, 1000);
+        },
         setPlayOffList() {
             let playOffList;
             if(this.tournament.system === 'swiss') {
@@ -250,20 +335,24 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'savedTournaments']),
         tournament() {
             return this.currentTournament
         },
         tabs() {
-            return [
+            const tabs = [
                 {
                     id: 'teams',
                     label: this.$t('teams.teams')
                 },
-                {
+            ];
+            if (this.tournament.games?.length || this.tournament.roundIsActive) {
+                tabs.push({
                     id: 'games',
                     label: this.$t('teams.games')
-                },
+                });
+            }
+            tabs.push(
                 {
                     id: 'results',
                     label: this.$t('teams.results')
@@ -272,7 +361,8 @@ export default {
                     id: 'ranking',
                     label: this.$t('teams.ranking')
                 }
-            ];
+            );
+            return tabs;
         },
         teamToPlayOffValues() {
             const values = [];
@@ -297,15 +387,25 @@ export default {
                 this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1
                 : 1;
         },
+        isPinned() {
+            return this.pinnedState === this.currentTournamentIndex;
+        },
+        isAlreadyArchived() {
+            return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);
+        },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
         }
     },
     components: {
+        IconPin,
+        IconPlus,
+        IconSettings,
+        IconArchive,
+        IconTrash,
         Protocol,
         Preferences,
         QrCode,
-        ChangeTournamentName,
         ConfirmRemoveModal,
         TeamsList,
         AddTeam,
@@ -317,4 +417,339 @@ export default {
 }
 
 </script>
+
+<style scoped>
+.tournament-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.inline-name-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.inline-name-input {
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: none;
+    border-bottom: 2px solid var(--color-primary);
+    background: transparent;
+    outline: none;
+    padding: 0.1rem 0.5rem;
+    text-align: center;
+    min-width: 0;
+    max-width: calc(100vw - 200px);
+    width: auto;
+    field-sizing: content;
+}
+
+.inline-name-input:focus {
+    border-bottom-color: var(--color-primary);
+}
+
+.inline-name-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.inline-name-btn:active {
+    transform: scale(0.9);
+}
+
+.inline-name-btn--save {
+    background: var(--color-primary);
+    color: white;
+}
+
+.inline-name-btn--save:hover {
+    background: var(--color-primary-light);
+}
+
+.inline-name-btn--cancel {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.inline-name-btn--cancel:hover {
+    background: #e0e0e0;
+}
+
+.remote-toolbar {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.remote-toolbar__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.remote-toolbar__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg-input);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.remote-toolbar__btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+}
+
+.remote-toolbar__btn--active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+}
+
+.remote-toolbar__btn--has-message {
+    color: var(--color-primary);
+}
+
+.remote-toolbar__message {
+    position: relative;
+    margin-top: 0.75rem;
+}
+
+.remote-toolbar__textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg-input);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.remote-toolbar__textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.remote-toolbar__chevron {
+    transition: transform 0.25s ease;
+    margin-left: 0.1rem;
+}
+
+.remote-toolbar__chevron--open {
+    transform: rotate(180deg);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+    opacity: 0;
+    max-height: 0;
+}
+
+.slide-enter-to,
+.slide-leave-from {
+    opacity: 1;
+    max-height: 200px;
+}
+
+.message-saved-label {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.bottom-actions__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.bottom-actions__tooltip-wrapper {
+    display: inline-flex;
+}
+
+.bottom-actions__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.bottom-actions__btn--outline {
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+
+.bottom-actions__btn--outline:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+}
+
+.bottom-actions__btn--primary {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+}
+
+.bottom-actions__btn--primary:hover:not(:disabled) {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+}
+
+.bottom-actions__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bottom-actions__btn--purple-outline {
+    background: var(--color-white);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.bottom-actions__btn--purple-outline:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.bottom-actions__btn.bottom-actions__btn--sky {
+    background: #0EA5E9;
+    color: #fff !important;
+    border-color: #0EA5E9;
+}
+
+.bottom-actions__btn.bottom-actions__btn--sky:hover {
+    background: #0284C7;
+    border-color: #0284C7;
+    color: #fff !important;
+}
+
+.bottom-actions__btn--success {
+    background: var(--color-success);
+    color: var(--color-white);
+    border-color: var(--color-success);
+}
+
+.bottom-actions__btn--success:hover {
+    background: var(--color-success-hover);
+    border-color: var(--color-success-hover);
+}
+
+.bottom-actions__btn--gold {
+    background: #f5a623;
+    color: #fff;
+    border-color: #f5a623;
+    min-width: 10rem;
+    justify-content: center;
+}
+
+.bottom-actions__btn--gold:hover {
+    background: #e6951e;
+    border-color: #e6951e;
+    color: #fff;
+}
+
+.bottom-actions__btn--danger {
+    background: transparent;
+    color: var(--color-error);
+    border-color: var(--color-error);
+}
+
+.bottom-actions__btn--danger:hover {
+    background: var(--color-error);
+    color: var(--color-white);
+}
+
+.pin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-grey);
+    padding: 0.2rem;
+    border-radius: 4px;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.pin-btn:hover {
+    color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.pin-btn--active {
+    color: var(--color-primary);
+}
+
+.inline-name-edit-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.inline-name-input--error {
+    border-bottom-color: var(--color-error, #ef4444);
+}
+
+.inline-name-error {
+    font-size: 0.75rem;
+    color: var(--color-error, #ef4444);
+    margin-top: 0.25rem;
+}
+</style>
 

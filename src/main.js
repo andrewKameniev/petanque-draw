@@ -6,6 +6,7 @@ import Public from "@/views/Public.vue";
 import Help from "@/components/Help.vue";
 import Stats from "@/views/Stats.vue";
 import Training from "@/views/Training.vue";
+import Archived from "@/views/Archived.vue";
 import Draw from "@/components/Draw.vue";
 import i18n from "@/i18n";
 import {useMainStore} from "@/stores/main";
@@ -57,6 +58,12 @@ const router = createRouter({
             path: '/training',
             name: 'Training',
             component: Training,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/archived',
+            name: 'Archived',
+            component: Archived,
             meta: { requiresAuth: true }
         }
     ]

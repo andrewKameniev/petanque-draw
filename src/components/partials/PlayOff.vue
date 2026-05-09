@@ -2,11 +2,14 @@
     <div :class="{'container': !isPublicView || playOffStageCurrent !== 0, 'content': activeTournament && (!isPublicView || playOffStageCurrent !== 0)}">
         <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)">
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
-            <button v-if="!isPublicView" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
+            <button v-if="!isPublicView && playOffStageCurrent !== 0" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
         <div class="column play-off-stage-wrapper" v-if="playOffBracket">
-            <div v-if="playOffStageCurrent === 0 && !isPublicView" class="has-text-centered is-size-4">
-                {{ $t('games.tournamentFinished') }}. <a href="#" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
+            <div v-if="playOffStageCurrent === 0 && !isPublicView" class="finished-banner">
+                <Trophy :size="20" class="finished-banner__icon"/>
+                <span class="finished-banner__text">{{ $t('games.tournamentFinished') }}</span>
+                <span class="finished-banner__dot">&middot;</span>
+                <a href="#" class="finished-banner__link" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
             </div>
             <template v-else-if="playOffStageCurrent !== 0">
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
@@ -35,12 +38,13 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
+import {Trophy} from "lucide-vue-next";
 
 export default {
     name: 'PlayOff',
     props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
-    components: {Game, Bracket},
+    components: {Game, Bracket, Trophy},
     data(){
         return {
             scoreError: false,
@@ -184,3 +188,39 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.finished-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+}
+
+.finished-banner__icon {
+    color: #f5a623;
+    flex-shrink: 0;
+}
+
+.finished-banner__text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+}
+
+.finished-banner__dot {
+    color: var(--color-text-muted, #999);
+}
+
+.finished-banner__link {
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.finished-banner__link:hover {
+    text-decoration: underline;
+}
+</style>

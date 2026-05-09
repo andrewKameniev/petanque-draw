@@ -88,8 +88,6 @@
                     <img src="@/assets/img/bg.jpg" srcset="@/assets/img/bg.avif, @/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
                 </div>
             </div>
-            <hr v-if="user">
-            <button v-if="user" class="button is-info" @click="addTournament">{{ $t('common.addTournament') }}</button>
             <Message v-if="message.show"/>
             <Menu :active="menuOpen"
                   @closeMenu="menuOpen = false"
@@ -139,7 +137,7 @@ export default {
         this.isLoading = false;
     },
     methods: {
-        ...mapActions(useMainStore, ['setActiveTournament', 'addTournament', 'loginUser', 'getTournaments', 'showMessage']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'getTournaments', 'showMessage']),
         openSavedTournament(index) {
             this.savedTournamentsActive = index;
             this.menuOpen = false;
@@ -249,4 +247,5 @@ export default {
     padding: 10px;
     border-radius: 0 0 5px 0;
 }
+
 </style>

@@ -1,16 +1,44 @@
 <template>
-    <div class="container">
-        <div class="mb-5" v-if="password !== 499">
-            <div class="mb-3">
-                <div class="notification is-warning">300 грн на карту <strong>5353 5423 2447 0856</strong> і пишете в телеграм <strong>@andrewkamenev</strong>. Якщо терміново, то дзвоните мені <strong>+38-095-180-44-18</strong>, але не факт, що так буде швидше:)</div>
-                <label for="protocolPassword">Пароль</label>
-                <input class="input" id="protocolPassword" type="number" v-model="password">
+    <div class="container protocol-container">
+        <div class="protocol-gate" v-if="password !== 499">
+            <div class="protocol-gate__card">
+                <div class="protocol-gate__badge">
+                    <Star :size="14"/>
+                    Платна опція
+                </div>
+                <p class="protocol-gate__desc">Ви отримуєте на 80% готовий протокол. Треба дописати тільки тренерів команд і трохи відформатувати текстовий документ.</p>
+                <div class="protocol-gate__payment">
+                    <span class="protocol-gate__price">300 грн</span>
+                    <span class="protocol-gate__card-number">5353 5423 2447 0856</span>
+                    <button class="protocol-gate__copy" @click="copyCard" :title="cardCopied ? 'Скопійовано!' : 'Скопіювати'">
+                        <Copy v-if="!cardCopied" :size="18"/>
+                        <Check v-else :size="18"/>
+                    </button>
+                </div>
+                <div class="protocol-gate__contact">
+                    Після оплати пишіть у Telegram <strong>@andrewkamenev</strong> або дзвоніть <a href="tel:+380951804418"><strong>+38-095-180-44-18</strong></a>
+                </div>
+                <div class="protocol-gate__tips">
+                    <div class="protocol-gate__tip">
+                        <Info :size="16"/>
+                        Ввести арбітрів можна тут же, або вже коли експортуєте у текстовий формат
+                    </div>
+                    <div class="protocol-gate__tip">
+                        <Info :size="16"/>
+                        Кнопка "Скопіювати протокол" і відредагувати у текстовому редакторі — найкращий варіант
+                    </div>
+                </div>
             </div>
-            <div class="notification is-warning is-size-4 has-text-grey-darker">Це вже платна опція. Ви отримуєте на 80% готовий протокол. Треба дописати тільки тренерів команд і трохи відформатувати текстовий документ. Ввести арбітрів можна тут же, або вже коли експортуєте у текстовий формат. </div>
-            <div class="notification is-warning is-size-4 has-text-grey-darker">Кнопка "Скопіювати протокол" і відредагувати у текстовому редакторі - найкращий варіант, як показала практика</div>
+            <div class="protocol-gate__password">
+                <label class="protocol-gate__label" for="protocolPassword">Пароль</label>
+                <input class="protocol-gate__input" id="protocolPassword" type="number" v-model="password" placeholder="Введіть пароль">
+            </div>
         </div>
         <div v-else>
-            <div class="notification is-warning">Протокол не є гарантовано вірним, може бути некоректна чи не вся інформація на порталі, может бути специфічний регламент, може не бути всіх даних по гравцям... Перевіряйте вручну, будь ласка!</div>
+            <div class="protocol-warning">
+                <AlertTriangle :size="18"/>
+                <span>Протокол не є гарантовано вірним, може бути некоректна чи не вся інформація на порталі, може бути специфічний регламент, може не бути всіх даних по гравцям. Перевіряйте вручну, будь ласка!</span>
+            </div>
             <div id="protocol" class="mb-3" >
                 <h2 class="text-center is-size-3 mb-2">
                     Підсумковий протокол <br>
@@ -151,23 +179,25 @@
                     </table>
                 </div>
             </div>
-            <div class="field is-grouped">
-                <div class="control">
-                    <button class="button is-success" @click="addArbitr">Додати суддю</button>
+            <div class="protocol-actions">
+                <div class="protocol-actions__row">
+                    <button class="protocol-actions__btn protocol-actions__btn--success" @click="addArbitr">
+                        <Plus :size="16"/> Додати суддю
+                    </button>
+                    <a href="https://docs.google.com/spreadsheets/d/1yXDjYCX3nISBCt8-S-vmvIU31rb4SmhtRsWc8PbQy7Q/edit?usp=sharing" target="_blank" class="protocol-actions__btn protocol-actions__btn--outline">
+                        <ExternalLink :size="16"/> Список суддів ФПУ
+                    </a>
                 </div>
-                <div class="control">
-                    <a href="https://docs.google.com/spreadsheets/d/1yXDjYCX3nISBCt8-S-vmvIU31rb4SmhtRsWc8PbQy7Q/edit?usp=sharing" target="_blank" class="button is-warning">Список суддів ФПУ</a>
-                </div>
-            </div>
-            <div class="field is-grouped">
-                <div class="control">
-                    <button class="button is-info" @click="$emit('close')">{{ $t('common.close') }}</button>
-                </div>
-                <div class="control">
-                    <button class="button is-info" @click="exportPdf">{{ $t('teams.exportPdf') }}</button>
-                </div>
-                <div class="control">
-                    <button class="button is-info" @click="copyProtocol">{{ $t('teams.copyProtocol') }}</button>
+                <div class="protocol-actions__row">
+                    <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
+                        {{ $t('common.close') }}
+                    </button>
+                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
+                        <FileDown :size="16"/> {{ $t('teams.exportPdf') }}
+                    </button>
+                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
+                        <Copy :size="16"/> {{ $t('teams.copyProtocol') }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -183,14 +213,16 @@ import html2pdf from "html2pdf.js";
 import playersNames from '../../data.json'
 import {mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
+import {Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown} from "lucide-vue-next";
 
 export default {
     name: 'Protocol',
-    components: {Ranking, Results},
+    components: {Ranking, Results, Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown},
     props: ['tournament', 'rankingTeams'],
     data() {
         return {
             password: null,
+            cardCopied: false,
             regions,
             titleCounts: {},
             mixedTeamCount: 1,
@@ -229,6 +261,12 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        copyCard() {
+            navigator.clipboard.writeText('5353542324470856');
+            this.cardCopied = true;
+            this.showMessage({title: 'Скопійовано', text: 'Номер картки скопійовано'});
+            setTimeout(() => { this.cardCopied = false; }, 2000);
+        },
         getAllTeams(groups) {
             let allTeams = [];
             groups.forEach(group => {
@@ -342,6 +380,232 @@ export default {
 </script>
 
 <style>
+.protocol-container {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.protocol-gate {
+    margin-bottom: 1.5rem;
+}
+
+.protocol-gate__card {
+    border: 1px solid var(--color-border, #e5e7f0);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-bg-input, #f9fafb);
+}
+
+.protocol-gate__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f5a623;
+    color: #fff;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+.protocol-gate__desc {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #374151);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.protocol-gate__payment {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.protocol-gate__price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text, #1a1a1a);
+}
+
+.protocol-gate__card-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: monospace;
+    background: var(--color-white, #fff);
+    border: 1px solid var(--color-border, #e5e7f0);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    color: var(--color-text, #1a1a1a);
+}
+
+.protocol-gate__copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+
+.protocol-gate__copy:hover {
+    background: var(--color-primary-bg, #f3eeff);
+    color: var(--color-primary);
+}
+
+.protocol-gate__contact {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 1rem;
+}
+
+.protocol-gate__contact strong {
+    color: var(--color-text-secondary, #374151);
+}
+
+.protocol-gate__tips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-top: 1px solid var(--color-border, #e5e7f0);
+    padding-top: 0.75rem;
+}
+
+.protocol-gate__tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--color-text-muted, #888);
+    line-height: 1.4;
+}
+
+.protocol-gate__tip svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--color-primary);
+}
+
+.protocol-gate__password {
+    margin-top: 1rem;
+    max-width: 240px;
+}
+
+.protocol-gate__label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+    margin-bottom: 0.3rem;
+}
+
+.protocol-gate__input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 6px;
+    background: var(--color-white, #fff);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.protocol-gate__input:focus {
+    border-color: var(--color-primary);
+}
+
+.protocol-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #f0ad4e;
+    background: #fef9ec;
+    color: #856404;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.protocol-warning svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.protocol-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #e5e7f0);
+}
+
+.protocol-actions__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.protocol-actions__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.protocol-actions__btn--primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white, #fff);
+}
+
+.protocol-actions__btn--primary:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+}
+
+.protocol-actions__btn--success {
+    background: var(--color-success, #10b981);
+    border-color: var(--color-success, #10b981);
+    color: var(--color-white, #fff);
+}
+
+.protocol-actions__btn--success:hover {
+    background: var(--color-success-hover, #059669);
+    border-color: var(--color-success-hover, #059669);
+}
+
+.protocol-actions__btn--outline {
+    background: transparent;
+    border-color: var(--color-border, #e0e0e0);
+    color: var(--color-text-secondary, #555);
+}
+
+.protocol-actions__btn--outline:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-bg, #f3eeff);
+}
+
 #protocol {
     color: #000;
     font-family: 'Times New Roman';

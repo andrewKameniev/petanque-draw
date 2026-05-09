@@ -26,18 +26,11 @@
                 <span class="badge badge-corner" :class="badgeClass">
                     {{ badgeLabel }}
                 </span>
-                <div class="tournament-info-row" v-if="tournamentMessageLines.length">
-                    <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournamentMessageLines[0] }}</span>
+                <div v-if="tournamentMessageLines.length" class="tournament-info-message">
+                    <span class="has-text-grey-dark">{{ $t('remote.organizerMessage') }}: </span>
+                    <span class="has-text-weight-semibold" v-for="(line, i) in tournamentMessageLines" :key="i">{{ line }}<br v-if="i < tournamentMessageLines.length - 1"></span>
                 </div>
-                <div class="tournament-info-row" v-if="tournamentMessageLines.length > 1">
-                    <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournamentMessageLines[1] }}</span>
-                </div>
-                <div class="tournament-info-row" v-for="(line, i) in tournamentMessageLines.slice(2)" :key="i">
-                    <span class="has-text-weight-semibold">{{ line }}</span>
-                </div>
-                <div class="tournament-info-row" v-if="!tournamentMessageLines.length">
+                <div class="tournament-info-row">
                     <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
                     <span class="has-text-weight-semibold">{{ systemDescription }}</span>
                 </div>
@@ -383,11 +376,16 @@ export default {
 }
 
 .tournament-info-message {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-    white-space: pre-wrap;
-    color: #4a4a4a;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #eee;
+    margin-right: -5.75rem;
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-message {
+        margin-right: 0;
+    }
 }
 
 .badge {

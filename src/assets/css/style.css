@@ -7,6 +7,24 @@ body {
     background-color: #f4f4f4;
 }
 
+input:focus,
+textarea:focus,
+select:focus,
+.input:focus,
+.textarea:focus,
+.select select:focus,
+.button:focus,
+.button.is-focused {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
+    outline: none;
+}
+
+.button:focus:not(:active),
+.button.is-focused:not(:active) {
+    box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
+}
+
 @media screen and (min-width: 575px){
     body:not(.documentation) {
         background: url("../img/bg-mountains.avif") center/cover;
@@ -26,7 +44,7 @@ body {
 nav.navbar {
     position: sticky;
     top: 0;
-    z-index: 40;
+    z-index: 100;
     background: var(--color-white);
 }
 
@@ -168,6 +186,8 @@ footer {
 .modal-content {
     background: white;
     max-height: calc(100vh - 80px);
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 .no-wrap {

@@ -5,16 +5,18 @@
             <div v-if="team1Lanes && team1Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team1Lanes.map(l => l + 1).join(', ') }}</div>
         </div>
         <span class="text-center score-block">
-            <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number"
+            <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number" min="0"
                    :disabled="game.team_2 === 'Technical'"
                    @keyup.enter="$emit('save')"
+                   @input="clampScore('team_1_score')"
                    v-if="!compactView">
             <span class="lane-block is-size-7">
                 {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ gameIndex + fieldsStart }}</span>
             </span>
             <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
-                   type="number" :disabled="game.team_2 === 'Technical'"
+                   type="number" min="0" :disabled="game.team_2 === 'Technical'"
                    @keyup.enter="$emit('save')"
+                   @input="clampScore('team_2_score')"
                    v-if="!compactView">
         </span>
         <div class="team-block" :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">
@@ -32,7 +34,18 @@ import {useMainStore} from "@/stores/main";
 export default {
     name: 'Game',
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird'],
-    methods: {...mapActions(useMainStore, ['updateGameScore']), gameHasError},
+    methods: {
+        ...mapActions(useMainStore, ['updateGameScore']),
+        gameHasError,
+        clampScore(field) {
+            const val = Number(this.currentGame[field]);
+            if (val < 0 || isNaN(val)) {
+                this.currentGame[field] = null;
+            } else if (this.maxScore && val > Number(this.maxScore)) {
+                this.currentGame[field] = Number(this.maxScore);
+            }
+        },
+    },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {

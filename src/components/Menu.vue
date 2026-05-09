@@ -53,6 +53,12 @@
                     <!-- Saved tournaments -->
                     <template v-if="$route.name !== 'Statistics' && Object.keys(savedTournaments).length">
                         <p class="sidebar__label">{{ $t('common.saved') }}</p>
+                        <ul class="sidebar__list">
+                            <li><router-link to="/archived" @click="$emit('closeMenu')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                {{ $t('common.archivedTournaments') }}
+                            </router-link></li>
+                        </ul>
                         <ul class="sidebar__list sidebar__list--scrollable">
                             <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
                                 <a href="#" @click.prevent="$emit('openSavedTournament', key)">

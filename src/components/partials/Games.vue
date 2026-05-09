@@ -3,27 +3,34 @@
         <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
-            <div v-if="tournament.system === 'swiss' && tournament.teams?.length" class="mb-2 has-text-danger">
-                {{$t('games.playMaximum')}} <strong class="has-text-danger">{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
-            </div>
-            <div class="field is-grouped">
-                <div class="control" v-if="tournament.games && ((tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1)">
-                    <button class="button is-danger" @click="restoreRoundGames">
-                        {{ $t('games.restoreRound') }}
-                    </button>
-                </div>
-                <div class="control" v-if="!tournament.playOff && !tournament.roundIsActive
-                && (tournament.games ? tournament.games.length < teamsCount : true) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds || !tournament.games && tournament.teams?.length && activeRound <= maxSwissRounds) : true)">
-                    <button class="button is-info" @click="drawRound">
-                        {{ activeRound === 1 ? `${$t('games.first')}` : `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
-                    </button>
+            <div v-if="tournament.games?.length" class="draw-card">
+                <p v-if="tournament.system === 'swiss' && tournament.teams?.length" class="draw-card__hint">
+                    {{$t('games.playMaximum')}} <strong>{{ maxSwissRounds }}</strong> {{$t('ranking.rounds')}}
+                </p>
+                <div class="draw-card__links">
+                    <a v-if="!tournament.playOff && !tournament.roundIsActive
+                        && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
+                       href="#" class="draw-card__link draw-card__link--draw" @click.prevent="drawRound">
+                        {{ `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
+                    </a>
+                    <template v-if="((tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1)
+                        && !tournament.playOff && !tournament.roundIsActive
+                        && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)">
+                        <span class="draw-card__or">{{ $t('common.or') }}</span>
+                    </template>
+                    <a v-if="(tournament.games.length && !tournament.roundIsActive) || tournament.games.length > 1"
+                       href="#" class="draw-card__link draw-card__link--restore" @click.prevent="restoreRoundGames">{{ $t('games.restoreRound') }}</a>
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
-                <button class="button is-info is-hidden-tablet" @click="compactView = !compactView">{{ $t('games.show') }}<span
-                    v-if="!compactView">&nbsp;{{ $t('games.compact') }}&nbsp;</span> <span v-if="compactView">&nbsp;{{ $t('games.full') }}&nbsp;</span> {{ $t('games.view') }}
-                </button>
                 <h2 class="text-center">{{ $t('common.round') }} {{ activeRound }}</h2>
+                <div class="games-toolbar">
+                    <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
+                        {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
+                        <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
+                    </button>
+                    <button v-if="allScoresFilled" class="games-toolbar__save" @click="saveResults" :disabled="saveDisabled">{{ $t('games.saveResults') }}</button>
+                </div>
                 <div class="games-list">
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
@@ -33,16 +40,9 @@
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}
                     </div>
                 </div>
-                <div class="text-center mt-3">
-                    <button class="button is-success" @click="saveResults" :disabled=saveDisabled>{{ $t('games.saveResults') }}</button>
-                </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
             </div>
-            <div v-else-if="(tournament.games && tournament.games.length === 0) || !tournament.teams" >{{ $t('games.noGames') }}</div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
-            <div v-else-if="tournament.teams?.length && activeRound < maxSwissRounds" class="mb-5 mt-5">
-                {{ $t('games.clickToDraw') }} <b>{{ activeRound === 1 ?  $t('games.first') : activeRound }}</b> {{ $t('common.round') }}
-            </div>
         </div>
     </div>
 </template>
@@ -56,10 +56,11 @@ import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
+import {ChevronDown} from "lucide-vue-next";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff},
+    components: {Cadrage, Game, PlayOff, ChevronDown},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -81,6 +82,11 @@ export default {
         },
         maxSwissRounds() {
             return Math.round(this.tournament.teams?.length / 2)
+        },
+        allScoresFilled() {
+            const games = this.tournament.games?.[this.activeRound - 1];
+            if (!games) return false;
+            return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
         }
     },
     methods: {
@@ -206,3 +212,117 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.draw-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    background: #fff;
+    border: 1px solid var(--color-border, #e5e7f0);
+    border-radius: 10px;
+    padding: 1.25rem 2rem;
+    margin: 0 auto 1rem;
+    max-width: 480px;
+}
+
+.draw-card__hint {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #888);
+    margin: 0;
+}
+
+.draw-card__hint strong {
+    color: var(--color-text-muted, #888);
+}
+
+.draw-card__links {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.draw-card__link {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.draw-card__link--draw {
+    color: #0EA5E9;
+}
+
+.draw-card__link--restore {
+    color: #e07070;
+}
+
+.draw-card__or {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.games-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.games-toolbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--color-white, #fff);
+    border: 1px solid var(--color-border, #e5e7f0);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #374151);
+    cursor: pointer;
+    padding: 0.5rem 0.9rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.games-toolbar__toggle:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.games-toolbar__arrow {
+    transition: transform 0.2s ease;
+}
+
+.games-toolbar__arrow--up {
+    transform: rotate(180deg);
+}
+
+.games-toolbar__save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid #22c55e;
+    background: #22c55e;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.games-toolbar__save:hover {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.games-toolbar__save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>

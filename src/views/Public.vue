@@ -23,28 +23,33 @@
                 <strong>{{ tournament.name }}</strong>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
-                <span class="badge badge-corner" :class="badgeClass">
-                    {{ badgeLabel }}
-                </span>
+                <div class="tournament-info-card__top">
+                    <img v-if="tournament.logoUrl" :src="tournament.logoUrl" alt="Tournament logo" class="tournament-info-card__logo">
+                    <div class="tournament-info-card__meta">
+                        <div class="tournament-info-row">
+                            <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
+                            <span class="has-text-weight-semibold">{{ systemDescription }}</span>
+                        </div>
+                        <div class="tournament-info-row" v-if="tournament.teams">
+                            <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
+                            <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
+                        </div>
+                        <div class="tournament-info-row" v-if="tournament.cadrage">
+                            <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
+                            <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
+                        </div>
+                        <div class="tournament-info-row" v-if="tournament.playOff">
+                            <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
+                            <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
+                        </div>
+                    </div>
+                    <span class="badge" :class="badgeClass">
+                        {{ badgeLabel }}
+                    </span>
+                </div>
                 <div v-if="tournamentMessageLines.length" class="tournament-info-message">
                     <span class="has-text-grey-dark">{{ $t('remote.organizerMessage') }}: </span>
                     <span class="has-text-weight-semibold" v-for="(line, i) in tournamentMessageLines" :key="i">{{ line }}<br v-if="i < tournamentMessageLines.length - 1"></span>
-                </div>
-                <div class="tournament-info-row">
-                    <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
-                    <span class="has-text-weight-semibold">{{ systemDescription }}</span>
-                </div>
-                <div class="tournament-info-row" v-if="tournament.teams">
-                    <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
-                </div>
-                <div class="tournament-info-row" v-if="tournament.cadrage">
-                    <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
-                    <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
-                </div>
-                <div class="tournament-info-row" v-if="tournament.playOff">
-                    <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
-                    <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
                 </div>
                 <div v-if="tournament.playOff" class="btn-bracket-group">
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
@@ -134,11 +139,6 @@ export default {
         }
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
-    },
-    beforeUnmount() {
-        if (this._unsubscribe) {
-            this._unsubscribe();
-        }
     },
     computed: {
         tabs() {
@@ -324,32 +324,51 @@ export default {
 }
 
 .tournament-info-card {
-    position: relative;
     border: 2px solid var(--color-primary);
     border-radius: 8px;
     padding: 1rem 1.25rem;
-    padding-right: 7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
 }
 
-@media screen and (max-width: 352px) {
-    .tournament-info-card {
-        padding-right: 1.25rem;
-        padding-top: 2.5rem;
-    }
+.tournament-info-card__top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.badge-corner {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+.tournament-info-card__logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.tournament-info-card__meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.tournament-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+}
+
+.tournament-info-message {
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--color-border);
+    line-height: 1.5;
+    word-break: break-word;
 }
 
 .btn-bracket-group {
-    position: absolute;
-    bottom: 0.75rem;
-    right: 0.75rem;
     display: flex;
-    gap: 0.25rem;
+    justify-content: flex-end;
 }
 
 .btn-bracket {
@@ -362,38 +381,15 @@ export default {
     color: var(--color-white);
 }
 
-@media screen and (max-width: 768px) {
-    .btn-bracket {
-        font-size: 1rem;
-    }
-}
-
-.tournament-info-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.2rem 0;
-}
-
-.tournament-info-message {
-    margin-bottom: 0.4rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid #eee;
-    margin-right: -5.75rem;
-}
-
-@media screen and (max-width: 352px) {
-    .tournament-info-message {
-        margin-right: 0;
-    }
-}
-
 .badge {
     display: inline-block;
     padding: 0.3rem 0.8rem;
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .badge-active {
@@ -409,6 +405,48 @@ export default {
 .badge-not-started {
     background: #f0ad4e;
     color: var(--color-white);
+}
+
+@media screen and (max-width: 480px) {
+    .tournament-info-card__top {
+        flex-wrap: wrap;
+    }
+
+    .tournament-info-card__logo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .tournament-info-card__meta {
+        flex: 1 1 calc(100% - 72px - 1rem);
+    }
+
+    .badge {
+        order: -1;
+        align-self: flex-end;
+        flex-basis: auto;
+    }
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-card__top {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tournament-info-card__logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    .tournament-info-card__meta {
+        width: 100%;
+    }
+
+    .badge {
+        order: 0;
+        align-self: center;
+    }
 }
 
 .btn-purple-outline {
@@ -445,9 +483,6 @@ export default {
 .wrapper .tabs li.is-active a {
     border-bottom: 3px solid var(--color-primary);
     color: var(--color-primary);
-}
-
-@media screen and (max-width: 768px) {
 }
 
 .wrapper {

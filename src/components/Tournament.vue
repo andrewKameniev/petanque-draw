@@ -7,6 +7,10 @@
                     <span class="is-hidden-mobile">{{ $t('remote.showLinks') }}</span>
                     <span class="is-hidden-tablet">{{ $t('remote.showLink') }}</span>
                 </button>
+                <button class="remote-toolbar__btn" :class="{'remote-toolbar__btn--has-message': tournament.logoUrl}" @click="showLogoUpload = true">
+                    <ImagePlus :size="18"/>
+                    <span class="is-hidden-mobile">{{ $t('remote.tournamentLogo') }}</span>
+                </button>
                 <button class="remote-toolbar__btn" :class="{'remote-toolbar__btn--active': showTypeMessage, 'remote-toolbar__btn--has-message': !showTypeMessage && tournament.tournamentMessage?.trim()}" @click="showTypeMessage = !showTypeMessage">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ $t('remote.writeMessage') }}
@@ -24,6 +28,7 @@
                 </div>
             </Transition>
             <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
+            <LogoUpload v-if="showLogoUpload" @close-modal="showLogoUpload = false"/>
         </div>
         <div class="text-center is-size-3 tournament-name-row">
             <button class="pin-btn" :class="{'pin-btn--active': isPinned}" @click.stop="togglePin" :title="isPinned ? $t('common.unpin') : $t('common.pin')">
@@ -292,7 +297,8 @@ import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ImagePlus} from "lucide-vue-next";
+import LogoUpload from "@/components/partials/LogoUpload.vue";
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
@@ -311,6 +317,7 @@ export default {
             withCadrage: false,
             teamsInGroup: null,
             showQrCode: false,
+            showLogoUpload: false,
             showTypeMessage: false,
             loadingOnServer: false,
             showPreferences: false,
@@ -551,12 +558,14 @@ export default {
         Play,
         Undo2,
         Trash2,
+        ImagePlus,
         IconPin,
         IconSettings,
         IconArchive,
         Protocol,
         Preferences,
         QrCode,
+        LogoUpload,
         ConfirmRemoveModal,
         Modal,
         TeamsList,

@@ -1,8 +1,8 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getMessaging, isSupported } from "firebase/messaging";
 import {getDatabase} from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
@@ -19,11 +19,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const database = getDatabase(app);
+const storage = getStorage(app);
+
 async function initializeMessaging() {
     if (await isSupported()) {
         return getMessaging(app);
     }    return null;
 }
 
-export {database, initializeMessaging, auth}
+export {database, storage, initializeMessaging, auth}
 

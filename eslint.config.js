@@ -28,6 +28,8 @@ export default [
                 URLSearchParams: 'readonly',
                 Range: 'readonly',
                 Notification: 'readonly',
+                URL: 'readonly',
+                atob: 'readonly',
                 process: 'readonly',
                 importScripts: 'readonly',
                 firebase: 'readonly',

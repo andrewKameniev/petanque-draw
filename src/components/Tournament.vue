@@ -50,109 +50,147 @@
             </template>
             <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
-        <div v-if="!tournament.games?.length && !tournament.playOff">
-            <div class="field" v-if="tournament.teams?.length > 2">
-                <label class="label" for="">{{ $t('teams.system') }}</label>
-                <div class="control">
-                    <label class="radio" v-if="tournament.teams?.length > 4">
-                        <input type="radio" name="system" id="swiss" value="swiss" v-model="tournament.system">
-                        {{ $t('teams.swiss') }}
-                    </label>
-                    <label class="radio">
-                        <input type="radio" name="system" id="groups" value="groups" v-model="tournament.system">
-                        {{ $t('teams.groups') }}
-                    </label>
-                    <label class="radio">
-                        <input type="radio" name="system" id="supermele" value="supermele" v-model="tournament.system">
-                        {{ $t('teams.supermele') }}
-                    </label>
+        <!-- PRE-START: Setup flow -->
+        <template v-if="!tournamentStarted">
+            <div class="setup-section">
+                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                         :import-hidden="false"/>
+                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
+                <div v-else class="setup-empty">
+                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
                 </div>
             </div>
-            <div class="field" v-if="tournament.system === 'groups'">
-                <label class="label">{{ $t('teams.teamsInGroup') }}</label>
-                <div class="control">
-                    <div class="select">
-                        <select v-model.number="teamsInGroup">
-                            <template v-for="(team, index) in tournament.teams" :key="index">
-                                <option v-if="index > 1">{{index + 1}}</option>
-                            </template>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="field" v-if="tournament.system === 'supermele'">
-                <label class="label">{{ $t('teams.playersInTeam') }}</label>
-                <div class="control">
-                    <div class="select">
-                        <select v-model.number="tournament.supermelePlayers">
-                            <option value="2" selected="selected">2</option>
-                            <option value="3">3</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="tabs">
-            <ul>
-                <li v-for="(tab, index) in tabs" :key="index"
-                    :class="{'is-active': tab.id === activeTab}">
-                    <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
-                </li>
-            </ul>
-        </div>
-        <div class="content tabs-content" v-if="activeTab === 'teams'">
-            <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
-                     :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
-            <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
-            <div v-else class="mb-5 mt-5">
-                {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
-            </div>
-            <div class="control" v-if="!tournament.tournamentIsFinished">
-                <button class="button is-success" @click="saveTournamentData">{{ $t('teams.saveTournamentData') }}</button>
-            </div>
-        </div>
-        <Games v-if="activeTab === 'games'"
-               :rankingTeams="rankingTeams"
-               :activeRound="activeRound" :teams-in-group="teamsInGroup"
-               @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"/>
-        <Results v-if="activeTab === 'results'"/>
-        <div class="content tabs-content" v-if="activeTab === 'ranking'">
-            <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-            <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished">
-                <div class="mt-5">
-                    <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
-                    <div class="is-flex is-align-items-center mb-2" v-if="tournament.system === 'swiss'">
-                        <label class="checkbox">
-                            <input type="checkbox" v-model="withCadrage">
-                            {{ $t('ranking.withCadrage') }}
+
+            <div v-if="tournament.teams?.length > 2" class="setup-card">
+                <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
+                <p class="setup-card__summary">{{ tournament.teams.length }} {{ $t('teams.teams').toLowerCase() }}</p>
+
+                <div class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('teams.system') }}</label>
+                    <div class="setup-card__radios">
+                        <label class="setup-card__radio" v-if="tournament.teams?.length > 4">
+                            <input type="radio" name="system" value="swiss" v-model="tournament.system">
+                            {{ $t('teams.swiss') }}
                         </label>
-                        <span v-if="withCadrage && teamToPlayOff" class="ml-3">{{teamToPlayOff / 2}} + {{teamToPlayOff}}</span>
-                    </div>
-                    <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}
-                        <div class="select ml-3">
-                            <select v-model.number="tournament.preferences.playOffTeams">
-                                <template v-for="value in teamToPlayOffValues" >
-                                    <option :value="value" :key="value"
-                                            v-if="tournament.teams.length >= value">{{value}}</option>
-                                </template>
-                            </select>
-                        </div>
-                        <button @click="setPlayOffList" class="button is-success ml-3">{{ $t('ranking.go') }}</button>
+                        <label class="setup-card__radio">
+                            <input type="radio" name="system" value="groups" v-model="tournament.system">
+                            {{ $t('teams.groups') }}
+                        </label>
+                        <label class="setup-card__radio">
+                            <input type="radio" name="system" value="supermele" v-model="tournament.system">
+                            {{ $t('teams.supermele') }}
+                        </label>
                     </div>
                 </div>
-                <div class="mt-5" v-if="tournament.system === 'swiss'">
-                    <label class="checkbox">
-                        <input type="checkbox" v-model="playB">
-                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>?
-                    </label>
+
+                <div v-if="tournament.system === 'groups'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('teams.teamsInGroup') }}</label>
+                    <select class="setup-card__select" v-model.number="teamsInGroup">
+                        <template v-for="(team, index) in tournament.teams" :key="index">
+                            <option v-if="index > 1">{{index + 1}}</option>
+                        </template>
+                    </select>
+                </div>
+
+                <div v-if="tournament.system === 'supermele'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
+                    <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
+                    <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1">
+                    <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
+                </div>
+
+                <div class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.fieldsStart') }}</label>
+                    <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1">
+                    <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
+                    <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams">
+                        <option :value="0">—</option>
+                        <template v-for="value in teamToPlayOffValues" :key="value">
+                            <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
+                        </template>
+                    </select>
+                    <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+                </div>
+
+                <button class="setup-card__start" @click="drawFirstRound">
+                    <Play :size="18"/>
+                    {{ $t('setup.drawFirstRound') }}
+                </button>
+            </div>
+        </template>
+
+        <!-- POST-START: Tabbed tournament view -->
+        <template v-else>
+            <div class="tabs">
+                <ul>
+                    <li v-for="(tab, index) in tabs" :key="index"
+                        :class="{'is-active': tab.id === activeTab}">
+                        <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="content tabs-content" v-if="activeTab === 'teams'">
+                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                         :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
+                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
+                <div v-else class="mb-5 mt-5">
+                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
+                </div>
+                <div class="control" v-if="!tournament.tournamentIsFinished">
+                    <button class="button is-success" @click="saveTournamentData">{{ $t('teams.saveTournamentData') }}</button>
                 </div>
             </div>
-        </div>
+            <Games v-if="activeTab === 'games'"
+                   :rankingTeams="rankingTeams"
+                   :activeRound="activeRound" :teams-in-group="teamsInGroup"
+                   @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"/>
+            <Results v-if="activeTab === 'results'"/>
+            <div class="content tabs-content" v-if="activeTab === 'ranking'">
+                <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished">
+                    <div class="mt-5">
+                        <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
+                        <div class="is-flex is-align-items-center mb-2" v-if="tournament.system === 'swiss'">
+                            <label class="checkbox">
+                                <input type="checkbox" v-model="withCadrage">
+                                {{ $t('ranking.withCadrage') }}
+                            </label>
+                            <span v-if="withCadrage && teamToPlayOff" class="ml-3">{{teamToPlayOff / 2}} + {{teamToPlayOff}}</span>
+                        </div>
+                        <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}
+                            <div class="select ml-3">
+                                <select v-model.number="tournament.preferences.playOffTeams">
+                                    <template v-for="value in teamToPlayOffValues" >
+                                        <option :value="value" :key="value"
+                                                v-if="tournament.teams.length >= value">{{value}}</option>
+                                    </template>
+                                </select>
+                            </div>
+                            <button @click="setPlayOffList" class="button is-success ml-3">{{ $t('ranking.go') }}</button>
+                        </div>
+                    </div>
+                    <div class="mt-5" v-if="tournament.system === 'swiss'">
+                        <label class="checkbox">
+                            <input type="checkbox" v-model="playB">
+                            {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>?
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </template>
         <div class="bottom-actions">
             <div class="bottom-actions__row">
-                <button v-if="!tournament.roundIsActive && !tournament.tournamentIsFinished && activeRound === 1 && activeTab !== 'games'" class="bottom-actions__btn bottom-actions__btn--success" @click="activeTab = 'games'">
-                    {{ $t('teams.startTournament') }}
-                </button>
                 <button v-if="!tournament.tournamentIsFinished && tournament.games?.length > 1 && !tournament.playOff?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="finishTournament">
                     {{ $t('teams.finishTournament') }}
                 </button>
@@ -202,12 +240,14 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
-import {getTeamsRanking} from "@/helpers";
+import {getTeamsRanking, shuffleArray} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import {IconPin, IconPlus, IconSettings, IconArchive, IconTrash} from "@/components/icons";
+import {Play} from "lucide-vue-next";
+import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
     name: 'Tournament',
@@ -236,7 +276,7 @@ export default {
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addTournament']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveTournamentData', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addTournament', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -332,6 +372,55 @@ export default {
             teams.forEach(item => {
                 this.addTeamToStore(item)
             })
+        },
+        drawFirstRound() {
+            if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
+                this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
+                return;
+            }
+            let round = [];
+            if (this.tournament.system === 'swiss') {
+                const result = drawSwissRound(this.tournament, this.rankingTeams, this.activeRound);
+                if (result.error) {
+                    this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
+                    return;
+                }
+                round = result.round;
+            } else if (this.tournament.system === 'groups') {
+                if (this.teamsInGroup < 3) {
+                    this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
+                    return;
+                }
+                const {groups, schemas} = createGroups(this.tournament, this.teamsInGroup);
+                this.tournament.groups = groups;
+                this.tournament.groupsScheme = schemas;
+                this.tournament.groups.forEach((group, index) => {
+                    const isTechnical = group.length % 2 !== 0;
+                    for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
+                        if (!isTechnical || (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
+                            round.push({
+                                group: index,
+                                team_1: group[this.tournament.groupsScheme[index].top[i]].title,
+                                team_1_score: null,
+                                team_2: group[this.tournament.groupsScheme[index].bottom[i]].title,
+                                team_2_score: null
+                            });
+                        }
+                    }
+                    this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1]);
+                    this.tournament.groupsScheme[index].top.unshift(this.tournament.groupsScheme[index].bottom[0]);
+                    this.tournament.groupsScheme[index].top.splice(this.tournament.groupsScheme[index].top.length - 1, 1);
+                    this.tournament.groupsScheme[index].top.splice(1, 1);
+                    this.tournament.groupsScheme[index].top.unshift(0);
+                    this.tournament.groupsScheme[index].bottom.splice(0, 1);
+                });
+            } else if (this.tournament.system === 'supermele') {
+                round = drawSupermeleRound(this.tournament, this.rankingTeams);
+            }
+            this.savePreferences();
+            this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
+            this.startRound();
+            this.activeTab = 'games';
         }
     },
     computed: {
@@ -340,29 +429,12 @@ export default {
             return this.currentTournament
         },
         tabs() {
-            const tabs = [
-                {
-                    id: 'teams',
-                    label: this.$t('teams.teams')
-                },
+            return [
+                { id: 'teams', label: this.$t('teams.teams') },
+                { id: 'games', label: this.$t('teams.games') },
+                { id: 'results', label: this.$t('teams.results') },
+                { id: 'ranking', label: this.$t('teams.ranking') },
             ];
-            if (this.tournament.games?.length || this.tournament.roundIsActive) {
-                tabs.push({
-                    id: 'games',
-                    label: this.$t('teams.games')
-                });
-            }
-            tabs.push(
-                {
-                    id: 'results',
-                    label: this.$t('teams.results')
-                },
-                {
-                    id: 'ranking',
-                    label: this.$t('teams.ranking')
-                }
-            );
-            return tabs;
         },
         teamToPlayOffValues() {
             const values = [];
@@ -393,11 +465,15 @@ export default {
         isAlreadyArchived() {
             return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);
         },
+        tournamentStarted() {
+            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage);
+        },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
         }
     },
     components: {
+        Play,
         IconPin,
         IconPlus,
         IconSettings,
@@ -750,6 +826,121 @@ export default {
     font-size: 0.75rem;
     color: var(--color-error, #ef4444);
     margin-top: 0.25rem;
+}
+
+.setup-section {
+    margin-bottom: 1.5rem;
+}
+
+.setup-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.setup-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.setup-card__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 0.25rem;
+}
+
+.setup-card__summary {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0 0 1.25rem;
+}
+
+.setup-card__field {
+    margin-bottom: 1rem;
+}
+
+.setup-card__label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.35rem;
+}
+
+.setup-card__radios {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.setup-card__radio {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.setup-card__select {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg-input);
+    outline: none;
+}
+
+.setup-card__select:focus {
+    border-color: var(--color-primary);
+}
+
+.setup-card__input {
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg-input);
+    outline: none;
+}
+
+.setup-card__input:focus {
+    border-color: var(--color-primary);
+}
+
+.setup-card__hint {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+}
+
+.setup-card__start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: var(--color-success);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.setup-card__start:hover {
+    background: var(--color-success-hover);
 }
 </style>
 

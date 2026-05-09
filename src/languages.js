@@ -159,6 +159,10 @@ export default {
             fieldsStartHint: 'First lane number (useful if your venue lanes start from a different number)',
             removeHint: 'This action cannot be undone',
         },
+        setup: {
+            readyToStart: 'Tournament setup',
+            drawFirstRound: 'Draw first round',
+        },
         common: {
             updated: 'has updated!',
             swissCalculator: 'Swiss system calculator',
@@ -709,6 +713,10 @@ export default {
             fieldsStart: 'З якого майданчика починати нумерацію?',
             fieldsStartHint: 'Перший номер майданчика (корисно, якщо нумерація на вашому місці починається з іншого числа)',
             removeHint: 'Цю дію неможливо скасувати',
+        },
+        setup: {
+            readyToStart: 'Налаштування турніру',
+            drawFirstRound: 'Жеребкувати перший раунд',
         },
         common: {
             updated: 'оновлено!',

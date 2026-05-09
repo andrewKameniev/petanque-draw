@@ -172,20 +172,20 @@
     --color-badge-bronze-bg: rgba(205, 127, 50, 0.15);
     --color-badge-bronze-border: #cd7f32;
 
-    --color-bracket-winner: rgba(74, 222, 128, 0.12);
-    --color-bracket-winner-score: rgba(74, 222, 128, 0.2);
-    --color-bracket-gold: rgba(251, 191, 36, 0.12);
-    --color-bracket-gold-score: rgba(251, 191, 36, 0.2);
-    --color-bracket-silver: rgba(156, 163, 175, 0.12);
-    --color-bracket-silver-score: rgba(156, 163, 175, 0.25);
-    --color-bracket-bronze: rgba(205, 127, 50, 0.1);
-    --color-bracket-bronze-score: rgba(205, 127, 50, 0.18);
-    --color-bracket-loser: rgba(24, 26, 36, 1);
-    --color-bracket-loser-score: rgba(255, 255, 255, 0.04);
+    --color-bracket-winner: rgba(74, 222, 128, 0.2);
+    --color-bracket-winner-score: rgba(74, 222, 128, 0.3);
+    --color-bracket-gold: rgba(251, 191, 36, 0.2);
+    --color-bracket-gold-score: rgba(251, 191, 36, 0.3);
+    --color-bracket-silver: rgba(156, 163, 175, 0.18);
+    --color-bracket-silver-score: rgba(156, 163, 175, 0.3);
+    --color-bracket-bronze: rgba(205, 127, 50, 0.18);
+    --color-bracket-bronze-score: rgba(205, 127, 50, 0.28);
+    --color-bracket-loser: #1e2130;
+    --color-bracket-loser-score: rgba(255, 255, 255, 0.06);
     --color-bracket-text: #e4e5ea;
-    --color-bracket-divider: #2f3543;
-    --color-bracket-connector: #3f4656;
-    --color-bracket-badge: #6b7280;
+    --color-bracket-divider: #3f4656;
+    --color-bracket-connector: #5b6478;
+    --color-bracket-badge: #9ca3af;
 
     --color-stat-green: #4ade80;
     --color-stat-blue: #60a5fa;

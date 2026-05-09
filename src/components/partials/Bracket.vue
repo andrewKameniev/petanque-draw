@@ -373,7 +373,7 @@ export default {
 }
 
 .game-box {
-    fill: var(--color-surface);
+    fill: var(--color-surface-alt);
     stroke: var(--bracket-connector);
     stroke-width: 1;
 }

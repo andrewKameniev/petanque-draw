@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, isSupported } from "firebase/messaging";
 import {getDatabase} from "firebase/database";
 import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
@@ -19,7 +18,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const database = getDatabase(app);
-const storage = getStorage(app);
 
 async function initializeMessaging() {
     if (await isSupported()) {
@@ -27,5 +25,5 @@ async function initializeMessaging() {
     }    return null;
 }
 
-export {database, storage, initializeMessaging, auth}
+export {database, initializeMessaging, auth}
 

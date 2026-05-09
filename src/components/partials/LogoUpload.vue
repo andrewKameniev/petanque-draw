@@ -5,7 +5,7 @@
 
             <div v-if="currentLogoUrl && !imageSource" class="logo-upload__current">
                 <img :src="currentLogoUrl" alt="Tournament logo" class="logo-upload__preview-img">
-                <button class="button is-small is-danger is-outlined mt-3" @click="removeLogo" :disabled="removing">
+                <button class="button is-small is-danger is-outlined mt-3" @click="removeLogo">
                     <Trash2 :size="14"/>
                     <span class="ml-1">{{ $t('remote.removeLogo') }}</span>
                 </button>
@@ -28,7 +28,7 @@
                 />
                 <div class="logo-upload__actions mt-3">
                     <button class="button is-small" @click="imageSource = null">{{ $t('common.cancel') }}</button>
-                    <button class="button is-small is-primary" @click="cropAndUpload" :disabled="uploading">
+                    <button class="button is-small is-primary" @click="cropAndSave" :disabled="uploading">
                         <Upload :size="14"/>
                         <span class="ml-1">{{ uploading ? $t('remote.uploading') : $t('remote.uploadLogo') }}</span>
                     </button>
@@ -42,13 +42,12 @@
 import { Cropper } from "vue-advanced-cropper";
 import "vue-advanced-cropper/dist/style.css";
 import Modal from "@/components/Modal.vue";
-import { logoService } from "@/services/storage";
 import { mapState, mapActions } from "pinia";
 import { useMainStore } from "@/stores/main";
 import { ImagePlus, Upload, Trash2 } from "lucide-vue-next";
 
 const MAX_SIZE = 2 * 1024 * 1024;
-const MAX_DIMENSION = 400;
+const MAX_DIMENSION = 300;
 
 export default {
     name: "LogoUpload",
@@ -58,11 +57,10 @@ export default {
         return {
             imageSource: null,
             uploading: false,
-            removing: false,
         };
     },
     computed: {
-        ...mapState(useMainStore, ["currentTournamentIndex", "user", "currentTournament"]),
+        ...mapState(useMainStore, ["currentTournament"]),
         currentLogoUrl() {
             return this.currentTournament?.logoUrl || null;
         },
@@ -96,18 +94,15 @@ export default {
             if (this.imageSource) URL.revokeObjectURL(this.imageSource);
             this.imageSource = URL.createObjectURL(file);
         },
-        async cropAndUpload() {
+        cropAndSave() {
             this.uploading = true;
             try {
                 const { canvas } = this.$refs.cropper.getResult();
                 const resized = this.resizeCanvas(canvas, MAX_DIMENSION);
-                const blob = await new Promise((resolve) =>
-                    resized.toBlob(resolve, "image/jpeg", 0.82)
-                );
-                const url = await logoService.upload(this.user.uid, this.currentTournamentIndex, blob);
-                this.currentTournament.logoUrl = url;
+                const dataUrl = resized.toDataURL("image/jpeg", 0.75);
+                this.currentTournament.logoUrl = dataUrl;
                 this.syncToFirebase();
-                this.$emit("uploaded", url);
+                this.$emit("uploaded", dataUrl);
                 this.close();
             } catch (err) {
                 console.error(err);
@@ -116,20 +111,11 @@ export default {
                 this.uploading = false;
             }
         },
-        async removeLogo() {
-            this.removing = true;
-            try {
-                await logoService.remove(this.user.uid, this.currentTournamentIndex);
-                this.currentTournament.logoUrl = null;
-                this.syncToFirebase();
-                this.$emit("uploaded", null);
-                this.close();
-            } catch (err) {
-                console.error(err);
-                this.showMessage({ title: this.$t("messages.error"), text: this.$t("remote.logoRemoveError"), type: "error" });
-            } finally {
-                this.removing = false;
-            }
+        removeLogo() {
+            this.currentTournament.logoUrl = null;
+            this.syncToFirebase();
+            this.$emit("uploaded", null);
+            this.close();
         },
         resizeCanvas(source, maxDim) {
             let { width, height } = source;

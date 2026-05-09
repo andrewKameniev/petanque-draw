@@ -188,6 +188,7 @@ export default {
 
 .navbar-nav-link.router-link-exact-active {
     color: var(--color-primary);
+    font-weight: bold;
 }
 
 .menu-burger {

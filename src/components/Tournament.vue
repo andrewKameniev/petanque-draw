@@ -147,17 +147,24 @@
                     </div>
                 </div>
 
-                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="playB">
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
                     </label>
                 </div>
 
-                <button class="setup-card__start" @click="drawFirstRound">
-                    <Play :size="18"/>
-                    {{ $t('setup.drawFirstRound') }}
-                </button>
+                <div class="setup-card__actions">
+                    <button class="setup-card__start" @click="drawFirstRound">
+                        <Play :size="18"/>
+                        {{ $t('setup.drawFirstRound') }}
+                    </button>
+                    <span class="setup-card__or">{{ $t('common.or') }}</span>
+                    <button class="setup-card__delete" @click="removeConfirmId = 1">
+                        <Trash2 :size="16" class="is-hidden-mobile"/>
+                        {{ $t('teams.removeTournament') }}
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -171,6 +178,7 @@
                     </li>
                 </ul>
             </div>
+            <div class="tabs-content-area">
             <div class="content tabs-content" v-if="activeTab === 'teams'">
                 <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
                          :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
@@ -186,6 +194,7 @@
             <Results v-if="activeTab === 'results'"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                <!-- TODO: still working on cadrage/group B transition
                 <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished && tournament.games?.length">
                     <div class="mt-5">
                         <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
@@ -215,6 +224,8 @@
                         </label>
                     </div>
                 </div>
+                -->
+            </div>
             </div>
         </template>
         <div class="bottom-actions">
@@ -225,8 +236,12 @@
                 <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--finish" @click="setPlayOffList">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
-                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="finishTournament">
+                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
                     {{ $t('teams.finishTournament') }}
+                </button>
+                <button v-if="tournament.playOff?.length && !tournament.tournamentIsFinished" class="bottom-actions__btn bottom-actions__btn--outline" @click="activeTab = 'games'; $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true))">
+                    <Undo2 :size="16"/>
+                    {{ $t('games.restoreRound') }}
                 </button>
                 <button v-if="tournamentStarted" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
                     <IconSettings :size="16"/>
@@ -241,14 +256,20 @@
                 <button v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
                     {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
                 </button>
-                <button v-if="!tournamentStarted && !tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
-                    {{ $t('teams.removeTournament') }}
-                </button>
             </div>
         </div>
         <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
                         @close-modal="showSaveTournament = false"/>
         <ConfirmRemoveModal v-if="removeConfirmId" :name="tournament.name" @close="removeConfirmId = null" @remove="removeTournament(); showPreferences = false"/>
+        <Modal v-if="showFinishConfirm" @close-modal="showFinishConfirm = false">
+            <div class="confirm-finish">
+                <p class="confirm-finish__text">{{ $t('teams.finishTournamentConfirm') }}</p>
+                <div class="confirm-finish__actions">
+                    <button class="confirm-finish__btn confirm-finish__btn--cancel" @click="showFinishConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-finish__btn confirm-finish__btn--confirm" @click="showFinishConfirm = false; finishTournament()">{{ $t('teams.finishTournament') }}</button>
+                </div>
+            </div>
+        </Modal>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false" @remove-tournament="removeConfirmId = 1"/>
         <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
@@ -264,13 +285,14 @@ import SaveTournament from "./partials/SaveTournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
+import Modal from "@/components/Modal";
 import {getTeamsRanking, shuffleArray} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play} from "lucide-vue-next";
+import {Play, Undo2, Trash2} from "lucide-vue-next";
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
@@ -293,6 +315,7 @@ export default {
             loadingOnServer: false,
             showPreferences: false,
             showProtocol: false,
+            showFinishConfirm: false,
             setupPlayOff: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
@@ -402,7 +425,7 @@ export default {
                     team.opponents = ['placeholder'];
                     team.lanes = [];
                 })
-                this.addBTournament(tournamentBTeams);
+                this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
             }
         },
         restoreTeamsFromLocalStorage() {
@@ -526,6 +549,8 @@ export default {
     },
     components: {
         Play,
+        Undo2,
+        Trash2,
         IconPin,
         IconSettings,
         IconArchive,
@@ -533,6 +558,7 @@ export default {
         Preferences,
         QrCode,
         ConfirmRemoveModal,
+        Modal,
         TeamsList,
         AddTeam,
         Games,
@@ -550,6 +576,7 @@ export default {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .inline-name-edit {
@@ -755,14 +782,15 @@ export default {
 }
 
 .bottom-actions__btn--outline {
-    background: transparent;
-    color: var(--color-text-secondary);
+    background: #4b5563;
+    color: #fff;
+    border-color: #4b5563;
 }
 
 .bottom-actions__btn--outline:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: var(--color-primary-bg);
+    background: #374151;
+    color: #fff;
+    border-color: #374151;
 }
 
 .bottom-actions__btn--save-results {
@@ -782,14 +810,15 @@ export default {
 }
 
 .bottom-actions__btn--finish {
-    background: transparent;
-    color: #1FA37A;
-    border-color: #1FA37A;
+    background: #60A5FA;
+    color: #fff;
+    border-color: #60A5FA;
 }
 
 .bottom-actions__btn--finish:hover {
-    background: #1FA37A;
+    background: #3b82f6;
     color: #fff;
+    border-color: #3b82f6;
 }
 
 .bottom-actions__btn--primary {
@@ -809,13 +838,13 @@ export default {
 }
 
 .bottom-actions__btn--purple-outline {
-    background: var(--color-white);
-    color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
     border-color: var(--color-primary);
 }
 
 .bottom-actions__btn--purple-outline:hover {
-    background: var(--color-primary);
+    background: var(--color-primary-light, #5b3cc4);
     color: var(--color-white);
 }
 
@@ -1023,14 +1052,26 @@ export default {
     padding-left: 1.25rem;
 }
 
+.setup-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.setup-card__or {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #888);
+}
+
 .setup-card__start {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    width: 100%;
+    flex: 1;
     padding: 0.7rem 1rem;
-    margin-top: 1.25rem;
     font-size: 0.9rem;
     font-weight: 600;
     border: none;
@@ -1043,6 +1084,80 @@ export default {
 
 .setup-card__start:hover {
     background: var(--color-success-hover);
+}
+
+.setup-card__delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--color-error, #ef4444);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-error, #ef4444);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.setup-card__delete:hover {
+    background: var(--color-error, #ef4444);
+    color: #fff;
+}
+
+.tabs-content-area {
+    min-height: 240px;
+}
+
+.confirm-finish {
+    padding: 0.5rem 0;
+}
+
+.confirm-finish__text {
+    font-size: 0.9rem;
+    color: var(--color-text, #1a1a1a);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.confirm-finish__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-finish__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-finish__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border, #e0e0e0);
+    color: var(--color-text-secondary, #555);
+}
+
+.confirm-finish__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: #f5f5f5;
+}
+
+.confirm-finish__btn--confirm {
+    background: #4b5563;
+    border-color: #4b5563;
+    color: white;
+}
+
+.confirm-finish__btn--confirm:hover {
+    background: #374151;
+    border-color: #374151;
 }
 </style>
 

@@ -270,9 +270,16 @@ export const useMainStore = defineStore('main', {
                     this.showMessage({title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
-        addBTournament(teams) {
+        addBTournament(teams, name, isGroupB) {
             newTournament.teams = teams;
             this.addTournament();
+            if (name) {
+                this.changeTournamentName(name);
+            }
+            if (isGroupB) {
+                this.tournaments[this.currentTournamentIndex].isGroupB = true;
+                this.syncToFirebase();
+            }
             newTournament.teams = [];
         },
         saveTournamentData() {

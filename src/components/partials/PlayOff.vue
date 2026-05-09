@@ -5,12 +5,7 @@
             <button v-if="!isPublicView && playOffStageCurrent !== 0" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
         </div>
         <div class="column play-off-stage-wrapper" v-if="playOffBracket">
-            <div v-if="playOffStageCurrent === 0 && !isPublicView" class="finished-banner">
-                <Trophy :size="20" class="finished-banner__icon"/>
-                <span class="finished-banner__text">{{ $t('games.tournamentFinished') }}</span>
-                <span class="finished-banner__dot">&middot;</span>
-                <a href="#" class="finished-banner__link" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
-            </div>
+            <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')"/>
             <template v-else-if="playOffStageCurrent !== 0">
                 <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
@@ -22,9 +17,9 @@
                     <Game :game="playOffBracket.thirdPlace" :is-third="true"
                           :active-tournament="tournament" :compact-view="isPublicView" :game-index="1" @save="saveResults"/>
                 </div>
-                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}</div>
+                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
-                    <button class="button is-success" @click="saveResults">{{ $t('games.saveResults') }}</button>
+                    <button class="button btn-save-results" @click="saveResults"><Save :size="16" class="mr-1"/> {{ $t('games.saveResults') }}</button>
                 </div>
             </template>
         </div>
@@ -38,13 +33,14 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
-import {Trophy} from "lucide-vue-next";
+import {Save} from "lucide-vue-next";
+import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 
 export default {
     name: 'PlayOff',
     props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
-    components: {Game, Bracket, Trophy},
+    components: {Game, Bracket, Save, FinishedBanner},
     data(){
         return {
             scoreError: false,
@@ -190,37 +186,29 @@ export default {
 </script>
 
 <style scoped>
-.finished-banner {
-    display: flex;
+
+.btn-save-results {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 0;
-}
-
-.finished-banner__icon {
-    color: #f5a623;
-    flex-shrink: 0;
-}
-
-.finished-banner__text {
-    font-size: 1.25rem;
+    gap: 0.25rem;
+    background: #10B981;
+    color: #fff;
+    border: none;
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
 }
 
-.finished-banner__dot {
-    color: var(--color-text-muted, #999);
+.btn-save-results:hover {
+    background: #059669;
+    color: #fff;
 }
 
-.finished-banner__link {
-    font-size: 1.25rem;
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.finished-banner__link:hover {
-    text-decoration: underline;
+.btn-save-results:focus,
+.btn-save-results.is-focused,
+.btn-save-results:active {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4) !important;
+    border-color: transparent;
 }
 </style>

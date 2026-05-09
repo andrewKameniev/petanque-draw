@@ -14,7 +14,7 @@
                                 v-if="index < team.players.length - 1">, </span></span>)
                         </div>
                     </td>
-                    <td class="td-100" v-if="tournament.useRating">{{ team.rating }}</td>
+                    <td class="td-100" v-if="tournament.useRating"><span class="rating-badge"><Zap :size="12" fill="currentColor"/>{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span></td>
                 </tr>
             </table>
         </div>
@@ -37,7 +37,7 @@
                 <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i">{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"></span>
             </td>
             <td class="is-hidden-mobile" v-else></td>
-            <td class="td-100" v-if="tournament.useRating">{{team.rating}}</td>
+            <td class="td-100" v-if="tournament.useRating"><span class="rating-badge"><Zap :size="12" fill="currentColor"/>{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span></td>
             <td class="td-50" v-if="!previewTournament && (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))">
                 <button class="team-remove-btn" @click="removeTeam(team.title)">
                     <X :size="16"/>
@@ -51,11 +51,11 @@
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
-import {X} from "lucide-vue-next";
+import {X, Zap} from "lucide-vue-next";
 
 export default {
     name: "TeamsList",
-    components: {X},
+    components: {X, Zap},
     props: ['previewTournament', 'activeRound'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
@@ -119,5 +119,19 @@ export default {
 
 .table tr:last-child td {
     border-bottom: none;
+}
+
+.rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 28px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 10px;
+    background: #f0e6ff;
+    color: var(--color-primary);
 }
 </style>

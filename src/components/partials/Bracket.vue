@@ -223,7 +223,7 @@ export default {
         svgHeight() {
             const base = this.headerHeight + this.padding * 2 + this.firstStageHeight;
             if (this.bracket.thirdPlace && this.thirdPlaceGame) {
-                return this.thirdPlaceGame.y + this.boxHeight + this.padding;
+                return Math.max(base, this.thirdPlaceGame.y + this.boxHeight + this.padding);
             }
             return base;
         },

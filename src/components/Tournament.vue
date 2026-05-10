@@ -48,7 +48,7 @@
             <template v-else>
                 <strong class="pointer" @click="startEditName"> {{ tournament.name }}</strong>
             </template>
-            <span class="is-size-5 is-capitalized">({{tournament.system}})</span>
+            <span v-if="tournamentStarted" class="is-size-5 is-capitalized">({{tournament.system}})</span>
         </div>
         <!-- PRE-START: Setup flow -->
         <template v-if="!tournamentStarted">
@@ -108,6 +108,7 @@
                             <input type="checkbox" v-model="withCadrage" data-testid="checkbox-cadrage">
                             {{ $t('ranking.withCadrage') }}
                         </label>
+                        <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.cadrageHint') }}</span>
                     </div>
                 </div>
 
@@ -295,6 +296,7 @@
                         <input type="checkbox" v-model="withCadrage" data-testid="confirm-cadrage">
                         {{ $t('ranking.withCadrage') }}
                     </label>
+                    <span class="confirm-playoff__hint">{{ $t('ranking.cadrageHint') }}</span>
                     <span v-if="withCadrage && teamToPlayOff" class="confirm-playoff__hint">{{ teamToPlayOff / 2 }} + {{ teamToPlayOff }} {{ $t('teams.teams').toLowerCase() }}</span>
                 </div>
 
@@ -995,6 +997,7 @@ export default {
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .setup-card__title {
@@ -1068,6 +1071,10 @@ export default {
     font-size: 0.72rem;
     color: var(--color-text-muted);
     margin-top: 0.25rem;
+}
+
+.setup-card__hint--sub {
+    margin-left: 1.5rem;
 }
 
 .setup-card__row {

@@ -101,15 +101,11 @@ function getTournamentRanking(tournament, rankingTeams){
 
         if (tournament.games?.length > 0){
             if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
-                const hasCadrage = tournament.playOffBracket.stages[0].stageLabel === 'cadrage';
-                const firstStageTeamsCount = tournament.playOffBracket.stages[0].teamsCount;
                 const remainingTeams = rankingTeams.filter(team => !teamsInRanking.includes(team.title));
                 const rangeStart = teamsInRanking.length + 1;
-                const rangeEnd = rangeStart + remainingTeams.length - 1;
-                const rangePlace = remainingTeams.length > 1 && hasCadrage ? rangeStart + '-' + rangeEnd : null;
                 remainingTeams.forEach((team, index) => {
                     const teamPlace = {
-                        place: rangePlace || (firstStageTeamsCount + index + 1),
+                        place: rangeStart + index,
                         title: team.title,
                         players: team.players
                     }

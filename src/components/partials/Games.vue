@@ -127,7 +127,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket']),
         gameHasError,
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
@@ -232,6 +232,30 @@ export default {
         restoreRoundGames(){
             this.isRestoredRound = true;
             if (this.tournament.playOff || this.tournament.cadrage?.length) {
+                const bracket = this.tournament.playOffBracket;
+                const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
+                const firstPlayoffStageLabel = bracket?.stages?.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
+
+                if (bracket && currentStage && currentStage < firstPlayoffStageLabel) {
+                    const previousStage = currentStage * 2;
+                    const restoredBracket = JSON.parse(JSON.stringify(bracket));
+                    const currentIndex = restoredBracket.stages.findIndex(s => s.stageLabel === currentStage);
+                    if (currentIndex !== -1) {
+                        restoredBracket.stages[currentIndex].teams.forEach(game => {
+                            game.team_1 = null;
+                            game.team_2 = null;
+                            game.team_1_score = null;
+                            game.team_2_score = null;
+                        });
+                    }
+                    if (currentStage === 1 && restoredBracket.thirdPlace) {
+                        restoredBracket.thirdPlace = {};
+                    }
+                    this.setPlayOffBracket(restoredBracket);
+                    this.setPlayOffStage(previousStage);
+                    return;
+                }
+
                 delete this.tournament.playOff;
                 delete this.tournament.playOffBracket;
                 delete this.tournament.playOffStage;

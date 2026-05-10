@@ -51,7 +51,8 @@
                 </div>
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
-            <div v-if="tournament.games && tournament.roundIsActive" class="current-round-card mt-3 mb-3">
+            <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
+            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
                 <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
                 <div class="match-list">
                     <div class="match-item"
@@ -99,11 +100,12 @@ import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Results, Ranking},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking},
     data() {
         return {
             isLoading: false,

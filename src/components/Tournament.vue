@@ -52,16 +52,7 @@
         </div>
         <!-- PRE-START: Setup flow -->
         <template v-if="!tournamentStarted">
-            <div class="setup-teams-card">
-                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
-                         :import-hidden="false" :show-restore="!tournament.teams?.length" @restore="restoreTeamsFromLocalStorage"/>
-                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
-                <div v-else class="setup-empty">
-                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
-                </div>
-            </div>
-
-            <div v-if="tournament.teams?.length > 2" class="setup-card">
+            <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
                 <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
                 <p class="setup-card__summary">{{ tournament.teams.length }} {{ $t('teams.teams').toLowerCase() }}</p>
 
@@ -100,33 +91,6 @@
                     </select>
                 </div>
 
-                <div class="setup-card__field">
-                    <label class="setup-card__label">{{ $t('modals.technicalScore') }}</label>
-                    <div class="setup-card__row">
-                        <div class="setup-card__row-item">
-                            <span class="setup-card__hint">{{ $t('games.first') }}</span>
-                            <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalFirst" min="0">
-                        </div>
-                        <div class="setup-card__row-item">
-                            <span class="setup-card__hint">{{ $t('games.technical') }} 2</span>
-                            <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalSecond" min="0">
-                        </div>
-                    </div>
-                    <span class="setup-card__hint">{{ $t('modals.technicalScoreHint') }}</span>
-                </div>
-
-                <div class="setup-card__field">
-                    <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
-                    <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1">
-                    <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
-                </div>
-
-                <div class="setup-card__field">
-                    <label class="setup-card__label">{{ $t('modals.fieldsStart') }}</label>
-                    <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1">
-                    <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
-                </div>
-
                 <div v-if="tournament.system === 'swiss'" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
@@ -154,6 +118,40 @@
                     </label>
                 </div>
 
+                <button class="setup-card__collapse-toggle" @click="showAdvancedSettings = !showAdvancedSettings">
+                    <ChevronDown :size="16" class="setup-card__collapse-icon" :class="{'setup-card__collapse-icon--open': showAdvancedSettings}"/>
+                    {{ $t('setup.additionalSettings') }}
+                </button>
+
+                <div v-if="showAdvancedSettings" class="setup-card__collapse-content">
+                    <div class="setup-card__field">
+                        <label class="setup-card__label">{{ $t('modals.technicalScore') }}</label>
+                        <div class="setup-card__row">
+                            <div class="setup-card__row-item">
+                                <span class="setup-card__hint">{{ $t('games.first') }}</span>
+                                <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalFirst" min="0">
+                            </div>
+                            <div class="setup-card__row-item">
+                                <span class="setup-card__hint">{{ $t('games.technical') }} 2</span>
+                                <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalSecond" min="0">
+                            </div>
+                        </div>
+                        <span class="setup-card__hint">{{ $t('modals.technicalScoreHint') }}</span>
+                    </div>
+
+                    <div class="setup-card__field">
+                        <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
+                        <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1">
+                        <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
+                    </div>
+
+                    <div class="setup-card__field">
+                        <label class="setup-card__label">{{ $t('modals.fieldsStart') }}</label>
+                        <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1">
+                        <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
+                    </div>
+                </div>
+
                 <div class="setup-card__actions">
                     <button class="setup-card__start" data-testid="btn-draw-first-round" @click="drawFirstRound">
                         <Play :size="18"/>
@@ -164,6 +162,15 @@
                         <Trash2 :size="16" class="is-hidden-mobile"/>
                         {{ $t('teams.removeTournament') }}
                     </button>
+                </div>
+            </div>
+
+            <div class="setup-teams-card">
+                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                         :import-hidden="false" :show-restore="!tournament.teams?.length" @restore="restoreTeamsFromLocalStorage"/>
+                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
+                <div v-else class="setup-empty">
+                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
                 </div>
             </div>
         </template>
@@ -233,7 +240,7 @@
                 <button v-if="tournament.roundIsActive" data-testid="btn-save-results" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
                     {{ $t('games.saveResults') }}
                 </button>
-                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="setPlayOffList">
+                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="showPlayoffConfirm = true">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
                 <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-finish-tournament" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
@@ -270,6 +277,40 @@
                 </div>
             </div>
         </Modal>
+        <Modal v-if="showPlayoffConfirm" @close-modal="showPlayoffConfirm = false">
+            <div class="confirm-playoff" data-testid="playoff-confirm-modal">
+                <h3 class="confirm-playoff__title">{{ $t('ranking.goPlayOff') }}</h3>
+
+                <div class="confirm-playoff__field">
+                    <label class="confirm-playoff__label">{{ $t('ranking.chooseNumberTeams') }}</label>
+                    <select class="confirm-playoff__select" data-testid="confirm-playoff-teams" v-model.number="tournament.preferences.playOffTeams">
+                        <template v-for="value in teamToPlayOffValues" :key="value">
+                            <option :value="value" v-if="tournament.teams.length >= value">{{ value }}</option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="confirm-playoff__field">
+                    <label class="confirm-playoff__checkbox">
+                        <input type="checkbox" v-model="withCadrage" data-testid="confirm-cadrage">
+                        {{ $t('ranking.withCadrage') }}
+                    </label>
+                    <span v-if="withCadrage && teamToPlayOff" class="confirm-playoff__hint">{{ teamToPlayOff / 2 }} + {{ teamToPlayOff }} {{ $t('teams.teams').toLowerCase() }}</span>
+                </div>
+
+                <div v-if="!tournament.isGroupB" class="confirm-playoff__field">
+                    <label class="confirm-playoff__checkbox">
+                        <input type="checkbox" v-model="playB" data-testid="confirm-play-b">
+                        {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
+                    </label>
+                </div>
+
+                <div class="confirm-playoff__actions">
+                    <button class="confirm-playoff__btn confirm-playoff__btn--cancel" @click="showPlayoffConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-playoff__btn confirm-playoff__btn--confirm" data-testid="btn-confirm-playoff" @click="showPlayoffConfirm = false; setPlayOffList()">{{ $t('ranking.go') }}</button>
+                </div>
+            </div>
+        </Modal>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false" @remove-tournament="removeConfirmId = 1"/>
         <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
     </div>
@@ -292,7 +333,7 @@ import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ChevronDown} from "lucide-vue-next";
 import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
@@ -317,6 +358,8 @@ export default {
             showProtocol: false,
             showFinishConfirm: false,
             setupPlayOff: false,
+            showAdvancedSettings: false,
+            showPlayoffConfirm: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
@@ -377,7 +420,7 @@ export default {
             }, 1000);
         },
         setPlayOffList() {
-            const withCadrage = this.withCadrage || this.tournament.preferences?.withCadrage;
+            const withCadrage = this.withCadrage;
             let playOffList;
             if(this.tournament.system === 'swiss') {
                 if (withCadrage) {
@@ -412,7 +455,7 @@ export default {
 
             this.activeTab = 'games';
 
-            const playB = this.playB || this.tournament.preferences?.playB;
+            const playB = this.playB;
             if (playB) {
                 const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
                     .map(team => ({ ...team }));
@@ -564,7 +607,8 @@ export default {
         Games,
         Results,
         Ranking,
-        SaveTournament
+        SaveTournament,
+        ChevronDown
     }
 }
 
@@ -1107,6 +1151,36 @@ export default {
     color: #fff;
 }
 
+.setup-card__collapse-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-muted, #888);
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: color 0.15s;
+}
+
+.setup-card__collapse-toggle:hover {
+    color: var(--color-primary);
+}
+
+.setup-card__collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+.setup-card__collapse-icon--open {
+    transform: rotate(180deg);
+}
+
+.setup-card__collapse-content {
+    padding-top: 0.25rem;
+}
+
 .tabs-content-area {
     min-height: 240px;
 }
@@ -1158,6 +1232,94 @@ export default {
 .confirm-finish__btn--confirm:hover {
     background: #374151;
     border-color: #374151;
+}
+
+.confirm-playoff {
+    padding: 0.5rem 0;
+}
+
+.confirm-playoff__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.confirm-playoff__field {
+    margin-bottom: 0.75rem;
+}
+
+.confirm-playoff__label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+    color: var(--color-text-secondary, #555);
+}
+
+.confirm-playoff__select {
+    display: block;
+    width: 100%;
+    max-width: 120px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 6px;
+    background: var(--color-bg-input, #fff);
+}
+
+.confirm-playoff__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.confirm-playoff__hint {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-top: 0.25rem;
+    margin-left: 1.5rem;
+}
+
+.confirm-playoff__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+.confirm-playoff__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-playoff__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border, #e0e0e0);
+    color: var(--color-text-secondary, #555);
+}
+
+.confirm-playoff__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: #f5f5f5;
+}
+
+.confirm-playoff__btn--confirm {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.confirm-playoff__btn--confirm:hover {
+    background: var(--color-primary-light, #5b21b6);
+    border-color: var(--color-primary-light, #5b21b6);
 }
 </style>
 

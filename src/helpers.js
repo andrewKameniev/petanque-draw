@@ -78,11 +78,38 @@ function getTournamentRanking(tournament, rankingTeams){
             }
         }
 
+        const cadrageStage = tournament.playOffBracket.stages.find(s => s.stageLabel === 'cadrage');
+        if (cadrageStage) {
+            const cadrageGamesPlayed = cadrageStage.teams.some(g => g.team_1_score != null);
+            if (cadrageGamesPlayed) {
+                const cadrageRangeStart = teamsInRanking.length + 1;
+                const cadrageRangeEnd = cadrageRangeStart + cadrageStage.teams.length - 1;
+                const cadragePlace = cadrageRangeStart + '-' + cadrageRangeEnd;
+                cadrageStage.teams.forEach(game => {
+                    const loser = game.team_1_score > game.team_2_score ? game.team_2 : game.team_1;
+                    if (!teamsInRanking.includes(loser)) {
+                        tournamentRanking.push({
+                            place: cadragePlace,
+                            title: loser,
+                            players: tournament.teams.find(team => team.title === loser)?.players || []
+                        });
+                        teamsInRanking.push(loser);
+                    }
+                });
+            }
+        }
+
         if (tournament.games?.length > 0){
             if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
-                rankingTeams.slice(tournament.playOffBracket.stages[0].teamsCount, rankingTeams.length).forEach((team,index) =>{
+                const hasCadrage = tournament.playOffBracket.stages[0].stageLabel === 'cadrage';
+                const firstStageTeamsCount = tournament.playOffBracket.stages[0].teamsCount;
+                const remainingTeams = rankingTeams.filter(team => !teamsInRanking.includes(team.title));
+                const rangeStart = teamsInRanking.length + 1;
+                const rangeEnd = rangeStart + remainingTeams.length - 1;
+                const rangePlace = remainingTeams.length > 1 && hasCadrage ? rangeStart + '-' + rangeEnd : null;
+                remainingTeams.forEach((team, index) => {
                     const teamPlace = {
-                        place: tournament.playOffBracket.stages[0].teamsCount + index + 1,
+                        place: rangePlace || (firstStageTeamsCount + index + 1),
                         title: team.title,
                         players: team.players
                     }

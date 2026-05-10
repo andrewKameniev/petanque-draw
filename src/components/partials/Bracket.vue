@@ -360,12 +360,12 @@ export default {
     background: white;
     border-radius: 8px;
     max-width: 95vw;
-    overflow-x: auto;
+    max-height: 90vh;
+    overflow: auto;
 }
 
 .bracket-container {
     padding: 10px 10px 20px;
-    overflow-x: auto;
 }
 
 .bracket-svg {

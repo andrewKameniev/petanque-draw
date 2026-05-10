@@ -167,6 +167,8 @@ test.describe('Swiss System Tournaments', () => {
         await playRound(page);
         await playMultipleRounds(page, 2);
         await page.locator('[data-testid="btn-go-playoff"]').click();
+        await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+        await page.locator('[data-testid="btn-confirm-playoff"]').click();
         await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
         await deleteAllTournaments(page);
     });
@@ -184,6 +186,65 @@ test.describe('Swiss System Tournaments', () => {
         await goToCadrage(page);
         await fillCadrageScores(page);
         await page.locator('[data-testid="btn-save-cadrage"]').click();
+        await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+        await deleteAllTournaments(page);
+    });
+
+    test('playoff confirm — disable cadrage at confirmation', async ({page}) => {
+        await addTeams(page, 8);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 4);
+        await enableCadrage(page);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        // cadrage was enabled during setup, but disable it at confirmation
+        await goToPlayOff(page, {cadrage: false});
+        await expect(page.locator('[data-testid="playoff-stage-heading"]')).toBeVisible();
+        await deleteCurrentTournament(page);
+    });
+
+    test('playoff confirm — enable cadrage at confirmation', async ({page}) => {
+        await addTeams(page, 8);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 4);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        // cadrage was NOT enabled during setup, but enable at confirmation
+        await page.locator('[data-testid="btn-go-playoff"]').click();
+        await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+        await page.locator('[data-testid="confirm-cadrage"]').click();
+        await page.locator('[data-testid="btn-confirm-playoff"]').click();
+        await page.locator('[data-testid="cadrage-heading"]').waitFor({state: 'visible'});
+        await deleteCurrentTournament(page);
+    });
+
+    test('playoff confirm — change team count at confirmation', async ({page}) => {
+        await addTeams(page, 16);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 8);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 3);
+        // configured for 8, change to 4 at confirmation
+        await goToPlayOff(page, {playOffTeams: 4});
+        await expect(page.locator('[data-testid="playoff-stage-heading"]')).toBeVisible();
+        // 4 teams = semifinal (1/2), should show 2 games
+        const games = page.locator('[data-testid="game-row"]');
+        await expect(games).toHaveCount(2);
+        await deleteCurrentTournament(page);
+    });
+
+    test('playoff confirm — enable Group B at confirmation', async ({page}) => {
+        await addTeams(page, 8);
+        await enablePlayOff(page);
+        await setPlayOffTeams(page, 4);
+        await drawFirstRound(page);
+        await playRound(page);
+        await playMultipleRounds(page, 2);
+        // Group B was NOT enabled during setup, enable at confirmation
+        await goToPlayOff(page, {playB: true});
         await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
         await deleteAllTournaments(page);
     });

@@ -129,13 +129,34 @@ async function playMultipleRounds(page, rounds) {
 
 // --- Transition flows ---
 
-async function goToPlayOff(page) {
+async function goToPlayOff(page, {playOffTeams, cadrage, playB} = {}) {
     await page.locator('[data-testid="btn-go-playoff"]').click();
+    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+    if (playOffTeams) {
+        await page.locator('[data-testid="confirm-playoff-teams"]').selectOption(String(playOffTeams));
+    }
+    if (cadrage === true) {
+        const cb = page.locator('[data-testid="confirm-cadrage"]');
+        if (!(await cb.isChecked())) await cb.click();
+    } else if (cadrage === false) {
+        const cb = page.locator('[data-testid="confirm-cadrage"]');
+        if (await cb.isChecked()) await cb.click();
+    }
+    if (playB === true) {
+        const cb = page.locator('[data-testid="confirm-play-b"]');
+        if (!(await cb.isChecked())) await cb.click();
+    } else if (playB === false) {
+        const cb = page.locator('[data-testid="confirm-play-b"]');
+        if (await cb.isChecked()) await cb.click();
+    }
+    await page.locator('[data-testid="btn-confirm-playoff"]').click();
     await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
 }
 
 async function goToCadrage(page) {
     await page.locator('[data-testid="btn-go-playoff"]').click();
+    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="btn-confirm-playoff"]').click();
     await page.locator('[data-testid="cadrage-heading"]').waitFor({state: 'visible'});
 }
 

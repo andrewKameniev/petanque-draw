@@ -199,6 +199,17 @@ export default {
             resultsCopied: false,
         }
     },
+    mounted() {
+        this._onClickOutside = (e) => {
+            if (this.activeTooltip && !e.target.closest('.has-tooltip')) {
+                this.activeTooltip = null;
+            }
+        };
+        document.addEventListener('click', this._onClickOutside);
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this._onClickOutside);
+    },
     methods: {
         getGameResultInGroup: getGameResultInGroup,
         copyResults() {

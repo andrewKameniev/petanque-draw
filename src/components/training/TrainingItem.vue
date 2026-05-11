@@ -235,10 +235,10 @@ export default {
             </div>
             <div class="is-flex">
                 <button @click="currentDistance--" class="button is-info" v-if="currentDistance > 0">
-                    {{$t('stat.prev')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+                    {{ data.distanceFirst ? $t('training.prevAttempt') : $t('training.prevDistance') }}
                 </button>
                 <button @click="nextAttempt()" class="ml-auto button is-success" v-if="currentDistance < (data.distanceFirst ? data.length - 1 : data.distances.length - 1)">
-                    {{$t('stat.next')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+                    {{ data.distanceFirst ? $t('training.nextAttempt') : $t('training.nextDistance') }}
                 </button>
             </div>
         </div>

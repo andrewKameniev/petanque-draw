@@ -42,7 +42,7 @@ export default {
 }
 .checkbox-wrapper-44 .toggleButton input + span {
     display: block;
-    border: 3px solid var(--color-error);
+    border: 3px solid var(--color-stat-checkbox);
     border-radius: 50%;
     position: relative;
     width: 32px;
@@ -75,7 +75,7 @@ export default {
     content: "";
     width: 3px;
     height: 16px;
-    background: var(--color-error);
+    background: var(--color-stat-checkbox);
     position: absolute;
     left: 50%;
     top: 50%;

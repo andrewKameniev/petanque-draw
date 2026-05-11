@@ -1,5 +1,9 @@
 @import './variables.css';
 
+html {
+    background-color: var(--color-body-bg);
+}
+
 body {
     margin: 0;
     font-family: 'Manrope', sans-serif;

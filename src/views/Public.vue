@@ -11,11 +11,7 @@
         <div v-if="tournament" class="container">
             <div class="is-flex is-justify-content-space-between">
                 <router-link class="navbar-item" to="/">
-                    <picture>
-                        <source srcset="../assets/img/logo.webp" type="image/webp">
-                        <source srcset="../assets/img/logo.png" type="image/jpeg">
-                        <img src="../assets/img/logo.png" alt="logo">
-                    </picture>
+                    <img src="../assets/img/logo.webp" alt="logo">
                 </router-link>
                 <LanguageSwitcher/>
             </div>
@@ -85,7 +81,7 @@
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
-                <img src="@/assets/img/girl.webp" alt="In the petanque land"><br>
+                <img src="@/assets/img/girl.avif" alt="In the petanque land"><br>
             </div>
         </div>
         <Footer/>

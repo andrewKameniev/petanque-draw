@@ -94,6 +94,18 @@ export default {
             showRestoreConfirm: false
         }
     },
+    mounted() {
+        this._onEnter = (e) => {
+            if (e.key === 'Enter' && e.target.closest('.game-row input[type="number"]')) {
+                e.preventDefault();
+                this.handleGlobalSave();
+            }
+        };
+        document.addEventListener('keydown', this._onEnter);
+    },
+    beforeUnmount() {
+        document.removeEventListener('keydown', this._onEnter);
+    },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),
         tournament() {
@@ -129,6 +141,10 @@ export default {
     methods: {
         ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'syncToFirebase']),
         gameHasError,
+        handleGlobalSave() {
+            const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
+            if (btn) btn.click();
+        },
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
             const reshuffled = assignLanes(shuffleArray([...currentRound]), this.tournament);

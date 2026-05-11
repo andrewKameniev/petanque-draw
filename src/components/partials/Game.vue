@@ -7,7 +7,6 @@
         <span class="text-center score-block">
             <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number" min="0"
                    :disabled="game.team_2 === 'Technical'"
-                   @keyup.enter="$emit('save')"
                    @input="clampScore('team_1_score')"
                    v-if="!compactView">
             <span class="lane-block is-size-7">
@@ -15,7 +14,6 @@
             </span>
             <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
                    type="number" min="0" :disabled="game.team_2 === 'Technical'"
-                   @keyup.enter="$emit('save')"
                    @input="clampScore('team_2_score')"
                    v-if="!compactView">
         </span>

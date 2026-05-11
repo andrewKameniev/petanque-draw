@@ -11,6 +11,7 @@
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
+                      :lane-number="currentStageLaneOrder[ind]"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
@@ -72,6 +73,13 @@ export default {
             } else {
                 return '0'
             }
+        },
+        currentStageLaneOrder() {
+            const stage = this.playOffBracket?.stages?.[this.currentPlayOffBracketIndex];
+            if (stage?.laneOrder) {
+                return stage.laneOrder;
+            }
+            return Array.from({length: stage?.teams?.length || 0}, (_, k) => k);
         }
     },
     methods: {
@@ -137,10 +145,12 @@ export default {
                         teams.push(game)
                     }
                 }
+                const laneOrder = this.shuffleArray(Array.from({length: teams.length}, (_, k) => k));
                 const stage = {
                     teamsCount: teamsCount,
                     stageLabel: stageLabel,
                     teams: teams,
+                    laneOrder: laneOrder,
                 }
                 brackets.stages.push(stage)
             }

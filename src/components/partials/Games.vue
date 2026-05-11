@@ -127,7 +127,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'syncToFirebase']),
         gameHasError,
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
@@ -256,6 +256,13 @@ export default {
                     return;
                 }
 
+                if (this.tournament.cadrage?.length) {
+                    delete this.tournament.playOff;
+                    delete this.tournament.playOffBracket;
+                    delete this.tournament.playOffStage;
+                    this.syncToFirebase();
+                    return;
+                }
                 delete this.tournament.playOff;
                 delete this.tournament.playOffBracket;
                 delete this.tournament.playOffStage;

@@ -11,7 +11,7 @@
                    @input="clampScore('team_1_score')"
                    v-if="!compactView">
             <span class="lane-block is-size-7">
-                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ gameIndex + fieldsStart }}</span>
+                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ displayLane }}</span>
             </span>
             <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
                    type="number" min="0" :disabled="game.team_2 === 'Technical'"
@@ -33,7 +33,7 @@ import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'Game',
-    props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird'],
+    props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
     methods: {
         ...mapActions(useMainStore, ['updateGameScore']),
         gameHasError,
@@ -63,6 +63,12 @@ export default {
             } else {
                 return this.tournament.games[this.activeRound][this.gameIndex]
             }
+        },
+        displayLane() {
+            if (this.laneNumber != null) {
+                return this.laneNumber + this.fieldsStart;
+            }
+            return this.gameIndex + this.fieldsStart;
         },
         maxScore() {
             return this.tournament.preferences.maxScore

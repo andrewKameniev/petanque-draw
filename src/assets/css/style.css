@@ -93,13 +93,6 @@ input[type="checkbox"]:focus {
     border-radius: 2px !important;
 }
 
-@media screen and (min-width: 575px){
-    body:not(.documentation) {
-        background: url("../img/bg-mountains.avif") center/cover;
-        background-attachment: fixed;
-    }
-}
-
 .wrapper {
     display: flex;
     flex-direction: column;

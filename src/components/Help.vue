@@ -2,11 +2,7 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item" href="/">
-                <picture>
-                    <source srcset="../assets/img/logo.webp" type="image/webp">
-                    <source srcset="../assets/img/logo.png" type="image/jpeg">
-                    <img src="../assets/img/logo.png" alt="logo">
-                </picture>
+                <img src="../assets/img/logo.webp" alt="logo">
             </a>
             <LanguageSwitcher/>
         </div>

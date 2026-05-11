@@ -2,11 +2,7 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <router-link class="navbar-item" to="/">
-                <picture>
-                    <source srcset="../assets/img/logo.webp" type="image/webp">
-                    <source srcset="../assets/img/logo.png" type="image/jpeg">
-                    <img src="../assets/img/logo.png" alt="logo">
-                </picture>
+                <img src="../assets/img/logo.webp" alt="logo">
             </router-link>
 
             <button class="menu-burger" @click="$emit('open-menu')" aria-label="menu" aria-expanded="false">

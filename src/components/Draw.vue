@@ -18,10 +18,7 @@
                     <!-- Forgot password form -->
                     <div class="login-card" v-if="forgotShow">
                         <div class="login-card__logo">
-                            <picture>
-                                <source srcset="@/assets/img/logo.webp" type="image/webp">
-                                <img src="@/assets/img/logo.png" alt="Petanque Draw">
-                            </picture>
+                            <img src="@/assets/img/logo.webp" alt="Petanque Draw">
                         </div>
                         <h2 class="login-card__title">{{ $t('login.forgot') }}</h2>
                         <p class="login-card__subtitle">{{ $t('login.forgotHint') }}</p>
@@ -43,10 +40,7 @@
                     <!-- Login / Register form -->
                     <div class="login-card" v-else>
                         <div class="login-card__logo">
-                            <picture>
-                                <source srcset="@/assets/img/logo.webp" type="image/webp">
-                                <img src="@/assets/img/logo.png" alt="Petanque Draw">
-                            </picture>
+                            <img src="@/assets/img/logo.webp" alt="Petanque Draw">
                         </div>
                         <h2 class="login-card__title">
                             {{ registerShow ? $t('login.registerTitle') : $t('login.loginTitle') }}
@@ -85,7 +79,7 @@
                     </div>
                 </div>
                 <div class="column is-one-third is-hidden-touch" v-if="user">
-                    <img src="@/assets/img/bg.jpg" srcset="@/assets/img/bg.avif, @/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
+                    <img src="@/assets/img/bg.avif" alt="Petanque in Alps" class="image">
                 </div>
             </div>
             <Message v-if="message.show"/>

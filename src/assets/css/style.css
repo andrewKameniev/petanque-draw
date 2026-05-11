@@ -46,7 +46,7 @@ input[type="radio"] {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid var(--color-border);
+    border: 2px solid var(--color-border-medium);
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.15s;
@@ -79,7 +79,7 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid var(--color-border);
+    border: 2px solid var(--color-border-medium);
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.15s;

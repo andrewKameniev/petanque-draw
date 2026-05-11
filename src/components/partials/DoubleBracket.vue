@@ -1,5 +1,5 @@
 <template>
-    <div class="modal is-active">
+    <div class="modal is-active" style="z-index: 10000;">
         <div class="modal-background" @click.self="$emit('close-modal')"></div>
         <div class="modal-content bracket-modal">
             <div class="bracket-container" ref="container">

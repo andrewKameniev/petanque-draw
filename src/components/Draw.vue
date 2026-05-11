@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <div class="column is-one-third is-hidden-touch" v-if="user">
-                    <img src="@/assets/img/bg.webp" alt="Petanque in Alps" class="image">
+                    <img src="@/assets/img/bg.avif" alt="Petanque in Alps" class="image">
                 </div>
             </div>
             <Message v-if="message.show"/>

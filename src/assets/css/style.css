@@ -799,6 +799,16 @@ button.tag {
     color: var(--color-text);
 }
 
+[data-theme="dark"] .radio,
+[data-theme="dark"] .checkbox {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .radio:hover,
+[data-theme="dark"] .checkbox:hover {
+    color: var(--color-primary-light);
+}
+
 [data-theme="dark"] .title,
 [data-theme="dark"] .subtitle {
     color: var(--color-text);

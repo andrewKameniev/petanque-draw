@@ -59,7 +59,9 @@
             </template>
         </div>
 
-        <DoubleBracket v-if="showBracket" :bracket="bracket" @close-modal="showBracket = false"/>
+        <Teleport to="body">
+            <DoubleBracket v-if="showBracket" :bracket="bracket" @close-modal="showBracket = false"/>
+        </Teleport>
     </div>
 </template>
 

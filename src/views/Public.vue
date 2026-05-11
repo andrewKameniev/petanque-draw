@@ -47,7 +47,7 @@
                     <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
                 </div>
                 <div v-if="tournament.playOff" class="btn-bracket-group">
-                    <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
+                    <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
@@ -85,7 +85,7 @@
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
-                <img src="@/assets/img/girl.jpg" alt="In the petanque land"><br>
+                <img src="@/assets/img/girl.webp" alt="In the petanque land"><br>
             </div>
         </div>
         <Footer/>
@@ -103,9 +103,10 @@ import PlayOff from "@/components/partials/PlayOff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
+import {GitFork} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
     data() {
         return {
             isLoading: false,
@@ -461,7 +462,7 @@ export default {
     content: "";
     position: fixed;
     inset: 0;
-    background: url("@/assets/img/bg-petanque.avif") repeat;
+    background: url("@/assets/img/bg-petanque.webp") repeat;
     background-size: 800px;
     opacity: 0.5;
     z-index: 0;

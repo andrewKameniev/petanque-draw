@@ -96,15 +96,28 @@ export default {
     },
     mounted() {
         this._onEnter = (e) => {
-            if (e.key === 'Enter' && e.target.type === 'number' && e.target.closest('.game-row')) {
+            if (e.key === 'Enter' && !!document.querySelector('#tab-games.is-active')) {
                 e.preventDefault();
                 this.handleGlobalSave();
             }
         };
+        this._onTab = (e) => {
+            if (e.key === 'Tab' && !!document.querySelector('#tab-games.is-active')) {
+                const inputs = Array.from(document.querySelectorAll('.game-row input[type="number"]'));
+                if (!inputs.length) return;
+                const currentIndex = inputs.indexOf(e.target);
+                e.preventDefault();
+                const nextIndex = currentIndex === -1 ? 0 : e.shiftKey ? (currentIndex - 1 + inputs.length) % inputs.length : (currentIndex + 1) % inputs.length;
+                inputs[nextIndex].focus();
+                inputs[nextIndex].select();
+            }
+        };
         document.addEventListener('keydown', this._onEnter);
+        document.addEventListener('keydown', this._onTab);
     },
     beforeUnmount() {
         document.removeEventListener('keydown', this._onEnter);
+        document.removeEventListener('keydown', this._onTab);
     },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),

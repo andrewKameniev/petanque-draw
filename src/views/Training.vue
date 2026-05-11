@@ -176,4 +176,8 @@ export default {
     cursor: pointer;
 }
 
+[data-theme="dark"] .exercise-item {
+    border: 1px solid var(--color-primary);
+}
+
 </style>

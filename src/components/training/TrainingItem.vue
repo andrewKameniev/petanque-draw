@@ -250,7 +250,7 @@ export default {
 .gost-throw {
     width: 32px;
     height: 32px;
-    border: solid 1px;
+    border: solid 1px var(--color-border-medium);
     border-radius: 7px;
     cursor: pointer;
 }
@@ -267,7 +267,7 @@ export default {
     border-top: 0;
 }
 .training-item-cell {
-    border: solid 1px #fff;
+    border: solid 1px var(--color-border-medium);
     padding: 0.5rem;
 }
 

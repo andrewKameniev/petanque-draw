@@ -141,7 +141,7 @@ export default {
 .gost-throw {
     width: 79px;
     height: 32px;
-    border: solid 1px;
+    border: solid 1px var(--color-border-medium);
     border-radius: 7px;
     cursor: pointer;
 }

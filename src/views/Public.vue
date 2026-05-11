@@ -462,7 +462,7 @@ export default {
     content: "";
     position: fixed;
     inset: 0;
-    background: url("@/assets/img/bg-petanque.webp") repeat;
+    background: url("@/assets/img/bg-petanque.avif") repeat;
     background-size: 800px;
     opacity: 0.5;
     z-index: 0;

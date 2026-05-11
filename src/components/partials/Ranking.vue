@@ -268,7 +268,7 @@ export default {
 
 .btn-purple-outline:hover {
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .btn-purple-outline:focus {
@@ -303,7 +303,7 @@ export default {
     left: 50%;
     transform: translateX(-50%);
     background: var(--color-ranking-primary-bg);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     padding: 0.4rem 0.75rem;
     border-radius: 6px;
     font-size: 0.75rem;

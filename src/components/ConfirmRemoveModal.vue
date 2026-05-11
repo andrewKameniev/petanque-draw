@@ -135,7 +135,7 @@ export default {
 .confirm-remove__btn--danger {
     background: var(--color-error);
     border-color: var(--color-error);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .confirm-remove__btn--danger:hover {

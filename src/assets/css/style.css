@@ -290,7 +290,7 @@ footer {
 .button.is-purple {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .tabs a:focus {
@@ -530,7 +530,7 @@ button.tag {
     margin-top: 0.5rem;
     font-size: 0.9rem;
     font-weight: 700;
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     background: var(--color-primary);
     border: none;
     border-radius: 0.625rem;
@@ -601,7 +601,7 @@ button.tag {
     gap: 0.5rem;
     padding: 0.7rem 1.5rem;
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     font-weight: 700;
     font-size: 0.9rem;
     border-radius: 0.625rem;
@@ -616,7 +616,7 @@ button.tag {
     background: var(--color-primary-light);
     box-shadow: 0 4px 16px var(--color-primary-shadow);
     transform: translateY(-1px);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .btn-login-primary--large {
@@ -680,7 +680,7 @@ button.tag {
 [data-theme="dark"] .button.is-purple {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 [data-theme="dark"] .button.is-primary:hover,
@@ -700,7 +700,7 @@ button.tag {
 }
 
 [data-theme="dark"] .table td {
-    border-color: var(--color-border);
+    border-color: var(--color-border-light);
     color: var(--color-text);
 }
 
@@ -740,7 +740,7 @@ button.tag {
 [data-theme="dark"] .tag.is-primary,
 [data-theme="dark"] .tag.is-link {
     background-color: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 [data-theme="dark"] .card {
@@ -803,6 +803,7 @@ button.tag {
 [data-theme="dark"] .box {
     background-color: var(--color-surface);
     box-shadow: 0 2px 8px var(--color-card-shadow);
+    color: var(--color-text);
 }
 
 [data-theme="dark"] .notification {

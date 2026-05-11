@@ -236,6 +236,6 @@ export default {
 
 .btn-purple-outline:hover {
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
 }
 </style>

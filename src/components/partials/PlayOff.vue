@@ -202,7 +202,7 @@ export default {
     align-items: center;
     gap: 0.25rem;
     background: var(--color-success);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border: none;
     font-weight: 600;
     padding: 0.6rem 1.5rem;
@@ -211,7 +211,7 @@ export default {
 
 .btn-save-results:hover {
     background: var(--color-success-hover);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .btn-save-results:focus,

@@ -102,7 +102,7 @@ export default {
 }
 
 .theme-switch__moon {
-    color: #e2e8f0;
+    color: #7c3aed;
     opacity: 0;
     transform: rotate(-90deg) scale(0.5);
 }

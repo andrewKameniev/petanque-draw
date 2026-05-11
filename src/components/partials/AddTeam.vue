@@ -143,7 +143,7 @@ export default {
     padding: 0.5rem 1rem;
     border: 1px solid var(--color-add-team-btn);
     background: var(--color-add-team-btn);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 500;

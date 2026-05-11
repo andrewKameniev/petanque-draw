@@ -337,14 +337,21 @@ export default {
 
 .draw-card__links {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.5rem;
     flex-wrap: nowrap;
     white-space: nowrap;
 }
 
+@media screen and (max-width: 768px) {
+    .draw-card__links {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
+
 .draw-card__link {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 600;
     text-decoration: underline;
 }
@@ -358,7 +365,7 @@ export default {
 }
 
 .draw-card__or {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: var(--color-text-muted);
 }
 
@@ -494,7 +501,7 @@ export default {
 .confirm-remove__btn--danger {
     background: var(--color-error);
     border-color: var(--color-error);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .confirm-remove__btn--danger:hover {

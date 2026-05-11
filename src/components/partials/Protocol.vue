@@ -408,7 +408,7 @@ export default {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     background: var(--color-warning);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-radius: 4px;
     margin-bottom: 0.75rem;
 }
@@ -575,7 +575,7 @@ export default {
 .protocol-actions__btn--primary {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
 }
 
 .protocol-actions__btn--primary:hover {
@@ -586,7 +586,7 @@ export default {
 .protocol-actions__btn--success {
     background: var(--color-success);
     border-color: var(--color-success);
-    color: var(--color-white);
+    color: var(--color-btn-text);
 }
 
 .protocol-actions__btn--success:hover {

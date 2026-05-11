@@ -669,7 +669,7 @@ export default {
 
 .inline-name-btn--save {
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .inline-name-btn--save:hover {
@@ -830,19 +830,19 @@ export default {
 
 .bottom-actions__btn--outline {
     background: var(--color-btn-dark);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-btn-dark);
 }
 
 .bottom-actions__btn--outline:hover {
     background: var(--color-btn-dark-hover);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-btn-dark-hover);
 }
 
 .bottom-actions__btn--save-results {
     background: var(--color-btn-green);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-btn-green);
 }
 
@@ -858,19 +858,19 @@ export default {
 
 .bottom-actions__btn--finish {
     background: var(--color-btn-blue);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-btn-blue);
 }
 
 .bottom-actions__btn--finish:hover {
     background: var(--color-btn-blue-hover);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-btn-blue-hover);
 }
 
 .bottom-actions__btn--primary {
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-primary);
 }
 
@@ -886,18 +886,18 @@ export default {
 
 .bottom-actions__btn--purple-outline {
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-primary);
 }
 
 .bottom-actions__btn--purple-outline:hover {
     background: var(--color-primary-light);
-    color: var(--color-white);
+    color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--success {
     background: var(--color-success);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-success);
 }
 
@@ -908,7 +908,7 @@ export default {
 
 .bottom-actions__btn--gold {
     background: var(--color-warning);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     border-color: var(--color-warning);
     min-width: 10rem;
     justify-content: center;
@@ -917,7 +917,7 @@ export default {
 .bottom-actions__btn--gold:hover {
     background: var(--color-warning-hover);
     border-color: var(--color-warning-hover);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--danger {
@@ -928,7 +928,7 @@ export default {
 
 .bottom-actions__btn--danger:hover {
     background: var(--color-danger-light);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 
@@ -1129,7 +1129,7 @@ export default {
     border: none;
     border-radius: 8px;
     background: var(--color-success);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     cursor: pointer;
     transition: background 0.15s;
 }
@@ -1156,7 +1156,7 @@ export default {
 
 .setup-card__delete:hover {
     background: var(--color-error);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .setup-card__collapse-toggle {
@@ -1234,7 +1234,7 @@ export default {
 .confirm-finish__btn--confirm {
     background: var(--color-btn-dark);
     border-color: var(--color-btn-dark);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .confirm-finish__btn--confirm:hover {

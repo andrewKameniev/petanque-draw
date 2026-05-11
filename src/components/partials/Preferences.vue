@@ -183,7 +183,7 @@ export default {
     border-radius: 6px;
     border: none;
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
     cursor: pointer;
     transition: background 0.15s;
 }
@@ -211,6 +211,6 @@ export default {
 
 .prefs__btn--danger:hover {
     background: var(--color-error);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 </style>

@@ -114,7 +114,7 @@ export default {
 
 .qr-modal__btn:hover {
     background: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-btn-text);
 }
 
 .qr-modal__btn--copied {

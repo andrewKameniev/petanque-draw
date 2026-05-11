@@ -181,6 +181,7 @@
             <div class="tabs">
                 <ul>
                     <li v-for="(tab, index) in tabs" :key="index"
+                        :id="'tab-' + tab.id"
                         :class="{'is-active': tab.id === activeTab}">
                         <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
                     </li>

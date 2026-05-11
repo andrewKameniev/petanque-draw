@@ -96,7 +96,7 @@ export default {
     },
     mounted() {
         this._onEnter = (e) => {
-            if (e.key === 'Enter' && e.target.closest('.game-row input[type="number"]')) {
+            if (e.key === 'Enter' && e.target.type === 'number' && e.target.closest('.game-row')) {
                 e.preventDefault();
                 this.handleGlobalSave();
             }
@@ -143,6 +143,7 @@ export default {
         gameHasError,
         handleGlobalSave() {
             const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
+            console.warn('123', btn);
             if (btn) btn.click();
         },
         shuffleLanes() {

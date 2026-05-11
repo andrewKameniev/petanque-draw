@@ -35,24 +35,26 @@ export default {
     display: block;
     transform-origin: 50% 50%;
     transform-style: preserve-3d;
-    transition: transform 0.14s ease;
+    transition: transform 0.05s ease;
 }
 .checkbox-wrapper-44 .toggleButton:active {
     transform: rotateX(30deg);
 }
 .checkbox-wrapper-44 .toggleButton input + span {
     display: block;
-    border: 3px solid var(--color-stat-checkbox);
-    opacity: 0.3;
+    border: 3px solid var(--color-error);
     border-radius: 50%;
     position: relative;
     width: 32px;
     height: 32px;
 }
+.checkbox-wrapper-44 .toggleButton input:checked + span {
+    border-color: var(--color-success);
+}
 .checkbox-wrapper-44 .toggleButton input + span svg {
     fill: none;
     stroke-width: 3.6;
-    stroke: var(--color-stat-checkbox);
+    stroke: var(--color-success);
     stroke-linecap: round;
     stroke-linejoin: round;
     width: 32px;
@@ -66,14 +68,14 @@ export default {
     z-index: 1;
     stroke-dashoffset: 124.6;
     stroke-dasharray: 0 162.6 133 29.6;
-    transition: all 0.4s ease 0s;
+    transition: all 0.13s ease 0s;
 }
 .checkbox-wrapper-44 .toggleButton input + span:before,
 .checkbox-wrapper-44 .toggleButton input + span:after {
     content: "";
     width: 3px;
     height: 16px;
-    background: var(--color-stat-checkbox);
+    background: var(--color-error);
     position: absolute;
     left: 50%;
     top: 50%;
@@ -82,50 +84,27 @@ export default {
 .checkbox-wrapper-44 .toggleButton input + span:before {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    -webkit-animation: bounceInBefore-44 0.3s linear forwards 0.3s;
-    animation: bounceInBefore-44 0.3s linear forwards 0.3s;
+    animation: bounceInBefore-44 0.1s linear forwards 0.1s;
 }
 .checkbox-wrapper-44 .toggleButton input + span:after {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    -webkit-animation: bounceInAfter-44 0.3s linear forwards 0.3s;
-    animation: bounceInAfter-44 0.3s linear forwards 0.3s;
+    animation: bounceInAfter-44 0.1s linear forwards 0.1s;
 }
 .checkbox-wrapper-44 .toggleButton input:checked + span svg {
     stroke-dashoffset: 162.6;
     stroke-dasharray: 0 162.6 28 134.6;
-    transition: all 0.4s ease 0.2s;
+    transition: all 0.13s ease 0.07s;
 }
 .checkbox-wrapper-44 .toggleButton input:checked + span:before {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    -webkit-animation: bounceInBeforeDont-44 0.3s linear forwards 0s;
-    animation: bounceInBeforeDont-44 0.3s linear forwards 0s;
+    animation: bounceInBeforeDont-44 0.1s linear forwards 0s;
 }
 .checkbox-wrapper-44 .toggleButton input:checked + span:after {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    -webkit-animation: bounceInAfterDont-44 0.3s linear forwards 0s;
-    animation: bounceInAfterDont-44 0.3s linear forwards 0s;
-}
-
-@-webkit-keyframes bounceInBefore-44 {
-    0% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-    50% {
-        opacity: 0.9;
-        transform: scale(1.1) translate(-50%, -50%) rotate(45deg);
-    }
-    80% {
-        opacity: 1;
-        transform: scale(0.89) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
+    animation: bounceInAfterDont-44 0.1s linear forwards 0s;
 }
 
 @keyframes bounceInBefore-44 {
@@ -146,24 +125,6 @@ export default {
         transform: scale(1) translate(-50%, -50%) rotate(45deg);
     }
 }
-@-webkit-keyframes bounceInAfter-44 {
-    0% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    }
-    50% {
-        opacity: 0.9;
-        transform: scale(1.1) translate(-50%, -50%) rotate(-45deg);
-    }
-    80% {
-        opacity: 1;
-        transform: scale(0.89) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-}
 @keyframes bounceInAfter-44 {
     0% {
         opacity: 0;
@@ -182,16 +143,6 @@ export default {
         transform: scale(1) translate(-50%, -50%) rotate(-45deg);
     }
 }
-@-webkit-keyframes bounceInBeforeDont-44 {
-    0% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-}
 @keyframes bounceInBeforeDont-44 {
     0% {
         opacity: 1;
@@ -200,16 +151,6 @@ export default {
     100% {
         opacity: 0;
         transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-}
-@-webkit-keyframes bounceInAfterDont-44 {
-    0% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
     }
 }
 @keyframes bounceInAfterDont-44 {

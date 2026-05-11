@@ -259,7 +259,7 @@ export default {
     display: flex;
     flex-direction: column;
     padding: 0.5rem;
-    background: rgba(255,255,255,0.2);
+    background: var(--color-surface-semi);
     border-radius: 0.25rem;
 }
 

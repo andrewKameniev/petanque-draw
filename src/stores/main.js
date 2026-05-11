@@ -26,7 +26,9 @@ const newTournament = {
         },
         maxScore: 13,
         playOffTeams: 8,
-        fieldsStart: 1
+        fieldsStart: 1,
+        withCadrage: false,
+        playB: false
     }
 }
 
@@ -88,6 +90,7 @@ export const useMainStore = defineStore('main', {
         saveLanesToTeams(games) {
             games.map(game => {
                 this.tournaments[this.currentTournamentIndex].teams.map(team => {
+                    if (!team.lanes) team.lanes = [];
                     if ((team.title === game.team_1) && game.lane != null) {
                         team.lanes.push(game.lane)
                     }
@@ -102,7 +105,12 @@ export const useMainStore = defineStore('main', {
             if (!Object.keys(this.tournaments).length) {
                 this.addTournament();
             }
-            this.setActiveTournament(this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id)
+            const pinned = localStorage.getItem('petanqueDrawPinned');
+            if (pinned && this.tournaments[pinned]) {
+                this.setActiveTournament(pinned);
+            } else {
+                this.setActiveTournament(this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id)
+            }
         },
         setSavedTournaments(tournaments) {
             this.savedTournaments = tournaments;
@@ -264,9 +272,16 @@ export const useMainStore = defineStore('main', {
                     this.showMessage({title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
-        addBTournament(teams) {
+        addBTournament(teams, name, isGroupB) {
             newTournament.teams = teams;
             this.addTournament();
+            if (name) {
+                this.changeTournamentName(name);
+            }
+            if (isGroupB) {
+                this.tournaments[this.currentTournamentIndex].isGroupB = true;
+                this.syncToFirebase();
+            }
             newTournament.teams = [];
         },
         saveTournamentData() {

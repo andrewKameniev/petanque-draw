@@ -311,4 +311,58 @@ describe('getTournamentRanking', () => {
         expect(result[3].place).toBe('4');
         expect(result[3].title).toBe('D');
     });
+
+    it('cadrage losers get shared range place, remaining teams get individual places', () => {
+        const teams = [
+            makeTeam('T1', 4), makeTeam('T2', 4), makeTeam('T3', 3), makeTeam('T4', 3),
+            makeTeam('T5', 2), makeTeam('T6', 2), makeTeam('T7', 1), makeTeam('T8', 1),
+            makeTeam('T9', 0), makeTeam('T10', 0),
+        ];
+        const tournament = {
+            system: 'swiss',
+            teams,
+            games: [[]],
+            playOffBracket: {
+                stages: [
+                    // cadrage: 4 teams (2 games), losers are T4 and T6
+                    { stageLabel: 'cadrage', teamsCount: 4, teams: [
+                        { team_1: 'T3', team_2: 'T4', team_1_score: 13, team_2_score: 5, team_1_place: 3, team_2_place: 4 },
+                        { team_1: 'T5', team_2: 'T6', team_1_score: 13, team_2_score: 7, team_1_place: 5, team_2_place: 6 },
+                    ]},
+                    // 1/2 final: T1 vs T3, T2 vs T5
+                    { stageLabel: 2, teamsCount: 4, teams: [
+                        { team_1: 'T1', team_2: 'T3', team_1_score: 13, team_2_score: 5 },
+                        { team_1: 'T2', team_2: 'T5', team_1_score: 13, team_2_score: 3 },
+                    ]},
+                    // final: T1 vs T2
+                    { stageLabel: 1, teamsCount: 4, teams: [
+                        { team_1: 'T1', team_2: 'T2', team_1_score: 13, team_2_score: 7 },
+                    ]},
+                ],
+                thirdPlace: { team_1: 'T3', team_2: 'T5', team_1_score: 13, team_2_score: 8 }
+            }
+        };
+        const rankingTeams = [teams[0], teams[1], teams[2], teams[3], teams[4], teams[5], teams[6], teams[7], teams[8], teams[9]];
+        const result = getTournamentRanking(tournament, rankingTeams);
+
+        // 1st-4th from playoff
+        expect(result[0]).toMatchObject({ place: '1', title: 'T1' });
+        expect(result[1]).toMatchObject({ place: '2', title: 'T2' });
+        expect(result[2]).toMatchObject({ place: '3', title: 'T3' });
+        expect(result[3]).toMatchObject({ place: '4', title: 'T5' });
+
+        // Cadrage losers get shared range
+        const cadrageLosers = result.filter(r => r.title === 'T4' || r.title === 'T6');
+        expect(cadrageLosers).toHaveLength(2);
+        expect(cadrageLosers[0].place).toBe('5-6');
+        expect(cadrageLosers[1].place).toBe('5-6');
+
+        // Remaining teams get individual sequential places
+        const remaining = result.filter(r => ['T7', 'T8', 'T9', 'T10'].includes(r.title));
+        expect(remaining).toHaveLength(4);
+        expect(remaining[0].place).toBe(7);
+        expect(remaining[1].place).toBe(8);
+        expect(remaining[2].place).toBe(9);
+        expect(remaining[3].place).toBe(10);
+    });
 });

@@ -21,6 +21,10 @@
                 <nav class="sidebar__nav">
                     <p class="sidebar__label">{{ $t('common.useful') }}</p>
                     <ul class="sidebar__list">
+                        <li v-if="user"><a href="#" @click.prevent="addNewTournament">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                            {{ $t('common.addTournament') }}
+                        </a></li>
                         <li><router-link to="/" @click="$emit('closeMenu')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             {{ $t('common.draw') }}
@@ -53,6 +57,12 @@
                     <!-- Saved tournaments -->
                     <template v-if="$route.name !== 'Statistics' && Object.keys(savedTournaments).length">
                         <p class="sidebar__label">{{ $t('common.saved') }}</p>
+                        <ul class="sidebar__list">
+                            <li><router-link to="/archived" @click="$emit('closeMenu')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                {{ $t('common.archivedTournaments') }}
+                            </router-link></li>
+                        </ul>
                         <ul class="sidebar__list sidebar__list--scrollable">
                             <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
                                 <a href="#" @click.prevent="$emit('openSavedTournament', key)">
@@ -126,10 +136,20 @@ export default {
     },
     computed: mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
     methods: {
-        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
         chooseTournament(index) {
             this.setActiveTournament(index);
-            this.$emit('closeMenu')
+            this.$emit('closeMenu');
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
+        },
+        addNewTournament() {
+            this.addTournament();
+            this.$emit('closeMenu');
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
         },
         toggleLang() {
             const newLang = this.$i18n.locale === 'ua' ? 'en' : 'ua';

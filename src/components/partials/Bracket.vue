@@ -223,7 +223,7 @@ export default {
         svgHeight() {
             const base = this.headerHeight + this.padding * 2 + this.firstStageHeight;
             if (this.bracket.thirdPlace && this.thirdPlaceGame) {
-                return this.thirdPlaceGame.y + this.boxHeight + this.padding;
+                return Math.max(base, this.thirdPlaceGame.y + this.boxHeight + this.padding);
             }
             return base;
         },
@@ -360,12 +360,12 @@ export default {
     background: white;
     border-radius: 8px;
     max-width: 95vw;
-    overflow-x: auto;
+    max-height: 90vh;
+    overflow: auto;
 }
 
 .bracket-container {
     padding: 10px 10px 20px;
-    overflow-x: auto;
 }
 
 .bracket-svg {

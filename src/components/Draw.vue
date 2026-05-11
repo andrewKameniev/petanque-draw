@@ -54,20 +54,20 @@
                         <form @submit.prevent="loginOrRegister">
                             <div class="login-field">
                                 <input type="email" class="login-input" :class="{'login-input--error': isEmailError}"
-                                       :placeholder="$t('login.emailPlaceholder')" v-model="email">
-                                <p v-if="isEmailError" class="login-error">{{ isEmailError }}</p>
+                                       data-testid="input-email" :placeholder="$t('login.emailPlaceholder')" v-model="email">
+                                <p v-if="isEmailError" class="login-error" data-testid="login-error">{{ isEmailError }}</p>
                             </div>
                             <div class="login-field">
                                 <input type="password" class="login-input" :class="{'login-input--error': isPasswordError}"
-                                       :placeholder="$t('login.passwordPlaceholder')" autocomplete="off" v-model="password">
-                                <p v-if="isPasswordError" class="login-error">{{ isPasswordError }}</p>
+                                       data-testid="input-password" :placeholder="$t('login.passwordPlaceholder')" autocomplete="off" v-model="password">
+                                <p v-if="isPasswordError" class="login-error" data-testid="login-error">{{ isPasswordError }}</p>
                             </div>
                             <div class="login-field" v-if="registerShow">
                                 <input type="password" class="login-input" :class="{'login-input--error': isConfirmError}"
-                                       :placeholder="$t('login.confirmPlaceholder')" autocomplete="off" v-model="passwordConfirm">
-                                <p v-if="isConfirmError" class="login-error">{{ isConfirmError }}</p>
+                                       data-testid="input-password-confirm" :placeholder="$t('login.confirmPlaceholder')" autocomplete="off" v-model="passwordConfirm">
+                                <p v-if="isConfirmError" class="login-error" data-testid="login-error">{{ isConfirmError }}</p>
                             </div>
-                            <button type="submit" class="login-btn">
+                            <button type="submit" class="login-btn" data-testid="btn-submit">
                                 {{ registerShow ? $t('login.register') : $t('login.loginBtn') }}
                             </button>
                         </form>
@@ -78,7 +78,7 @@
                         </div>
                         <div class="login-card__footer">
                             <span class="login-card__footer-text">{{ registerShow ? $t('login.hasAccount') : $t('login.noAccount') }}</span>
-                            <a href="#" @click.prevent="registerShow = !registerShow; resetErrors()" class="login-link login-link--bold">
+                            <a href="#" @click.prevent="registerShow = !registerShow; resetErrors()" class="login-link login-link--bold" data-testid="link-toggle-auth">
                                 {{ registerShow ? $t('login.loginBtn') : $t('login.register') }}
                             </a>
                         </div>
@@ -88,8 +88,6 @@
                     <img src="@/assets/img/bg.jpg" srcset="@/assets/img/bg.avif, @/assets/img/bg.jpg" alt="Petanque in Alps" class="image">
                 </div>
             </div>
-            <hr v-if="user">
-            <button v-if="user" class="button is-info" @click="addTournament">{{ $t('common.addTournament') }}</button>
             <Message v-if="message.show"/>
             <Menu :active="menuOpen"
                   @closeMenu="menuOpen = false"
@@ -139,7 +137,7 @@ export default {
         this.isLoading = false;
     },
     methods: {
-        ...mapActions(useMainStore, ['setActiveTournament', 'addTournament', 'loginUser', 'getTournaments', 'showMessage']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'getTournaments', 'showMessage']),
         openSavedTournament(index) {
             this.savedTournamentsActive = index;
             this.menuOpen = false;
@@ -249,4 +247,5 @@ export default {
     padding: 10px;
     border-radius: 0 0 5px 0;
 }
+
 </style>

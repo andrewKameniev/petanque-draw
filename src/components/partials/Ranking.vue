@@ -13,11 +13,16 @@
             </button>
         </div>
         <div v-if="tournament.tournamentIsFinished && !isSwissOnly" class="mb-5">
-            <div v-if="!isForProtocol" class="is-flex is-justify-content-space-between is-align-content-center">
+            <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button btn-purple-outline" @click="copyResults">
-                    <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
-                    <svg class="is-hidden-tablet copy-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
+                    <template v-if="resultsCopied">
+                        <Check :size="18"/>
+                    </template>
+                    <template v-else>
+                        <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+                        <Copy class="is-hidden-tablet" :size="20"/>
+                    </template>
                 </button>
             </div>
             <div v-if="!isForProtocol" class="table-container">
@@ -36,11 +41,7 @@
                         <td>{{ team.title }}</td>
                         <td>
                             <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : (team.title && getTeamPlayers(team.title).length)">
-                                <span class="has-text-dark" v-for="(player, index) in showInSaved ? team.players : (team.title && getTeamPlayers(team.title))"
-                                      :key="index">
-                                        {{ player.name }} {{ player.surname || '' }}
-                                    <span v-if="team.title && index < getTeamPlayers(team.title).length - 1">, </span>
-                                  </span>
+                                <span class="has-text-dark" v-for="(player, index) in (showInSaved ? team.players : getTeamPlayers(team.title))" :key="index">{{ player.name }} {{ player.surname || '' }}<span v-if="index < (showInSaved ? team.players : getTeamPlayers(team.title)).length - 1">, </span></span>
                             </div>
                         </td>
                     </tr>
@@ -91,7 +92,7 @@
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
                     </table>
@@ -130,7 +131,7 @@
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
                             <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center">{{ team.rating }}</td>
+                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
                     </table>
@@ -183,17 +184,31 @@
 
 <script>
 import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
+import {Copy, Check} from "lucide-vue-next";
 
 export default {
     name: 'Ranking',
+    components: {Copy, Check},
     props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
         return {
             playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null,
             activeTooltip: null,
-            rankingSubtab: 'result'
+            rankingSubtab: 'result',
+            resultsCopied: false,
         }
+    },
+    mounted() {
+        this._onClickOutside = (e) => {
+            if (this.activeTooltip && !e.target.closest('.has-tooltip')) {
+                this.activeTooltip = null;
+            }
+        };
+        document.addEventListener('click', this._onClickOutside);
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this._onClickOutside);
     },
     methods: {
         getGameResultInGroup: getGameResultInGroup,
@@ -203,9 +218,12 @@ export default {
                 content += item.place + ' ' + item.title + '\n'
             })
             copyContent(content)
+            this.resultsCopied = true;
+            setTimeout(() => { this.resultsCopied = false; }, 2000);
         },
         getTeamPlayers(title) {
-            return this.tournament.teams && this.tournament.teams.find(item => item.title === title).players ? this.tournament.teams.find(item => item.title === title).players : ''
+            const team = this.tournament.teams?.find(item => item.title === title);
+            return team?.players || '';
         },
     },
     computed: {
@@ -230,14 +248,47 @@ export default {
 </script>
 
 <style scoped>
+.ranking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.btn-purple-outline {
+    background: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    border-radius: 6px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-purple-outline:hover {
+    background: var(--color-primary);
+    color: var(--color-white, #fff);
+}
+
+.btn-purple-outline:focus {
+    box-shadow: none;
+    outline: none;
+}
+
 @media screen and (max-width: 768px) {
     .btn-purple-outline {
         border: none;
         padding: 0.5rem;
-        border-radius: 6px;
         width: 36px;
         height: 36px;
     }
+}
+
+.btn-purple-outline--copied {
+    color: var(--color-text-muted, #888) !important;
+    border-color: var(--color-border, #e0e0e0) !important;
+    background: transparent !important;
 }
 
 .has-tooltip {
@@ -294,5 +345,18 @@ export default {
 
 .place-bronze td:first-child {
     border-left: 3px solid #cd7f32;
+}
+
+.rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 10px;
+    background: #f0e6ff;
+    color: var(--color-primary);
 }
 </style>

@@ -26,18 +26,11 @@
                 <span class="badge badge-corner" :class="badgeClass">
                     {{ badgeLabel }}
                 </span>
-                <div class="tournament-info-row" v-if="tournamentMessageLines.length">
-                    <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournamentMessageLines[0] }}</span>
+                <div v-if="tournamentMessageLines.length" class="tournament-info-message">
+                    <span class="has-text-grey-dark">{{ $t('remote.organizerMessage') }}: </span>
+                    <span class="has-text-weight-semibold" v-for="(line, i) in tournamentMessageLines" :key="i">{{ line }}<br v-if="i < tournamentMessageLines.length - 1"></span>
                 </div>
-                <div class="tournament-info-row" v-if="tournamentMessageLines.length > 1">
-                    <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournamentMessageLines[1] }}</span>
-                </div>
-                <div class="tournament-info-row" v-for="(line, i) in tournamentMessageLines.slice(2)" :key="i">
-                    <span class="has-text-weight-semibold">{{ line }}</span>
-                </div>
-                <div class="tournament-info-row" v-if="!tournamentMessageLines.length">
+                <div class="tournament-info-row">
                     <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
                     <span class="has-text-weight-semibold">{{ systemDescription }}</span>
                 </div>
@@ -54,11 +47,12 @@
                     <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
                 </div>
                 <div v-if="tournament.playOff" class="btn-bracket-group">
-                    <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
+                    <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
-            <div v-if="tournament.games && tournament.roundIsActive" class="current-round-card mt-3 mb-3">
+            <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
+            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
                 <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
                 <div class="match-list">
                     <div class="match-item"
@@ -91,7 +85,7 @@
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
-                <img src="@/assets/img/girl.jpg" alt="In the petanque land"><br>
+                <img src="@/assets/img/girl.webp" alt="In the petanque land"><br>
             </div>
         </div>
         <Footer/>
@@ -106,11 +100,13 @@ import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
+import {GitFork} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, TeamsList, Results, Ranking},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
     data() {
         return {
             isLoading: false,
@@ -383,11 +379,16 @@ export default {
 }
 
 .tournament-info-message {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-    white-space: pre-wrap;
-    color: #4a4a4a;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #eee;
+    margin-right: -5.75rem;
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-message {
+        margin-right: 0;
+    }
 }
 
 .badge {
@@ -473,6 +474,10 @@ export default {
     z-index: 1;
 }
 
+.wrapper :deep(.navbar) {
+    z-index: 10;
+}
+
 .playoff-public-wrapper .play-off-stage-wrapper {
     padding: 0;
 }
@@ -513,9 +518,9 @@ export default {
 .current-round-card {
     border: 2px solid var(--color-primary);
     border-radius: 8px;
-    padding: 1rem 50px;
-    width: fit-content;
+    padding: 1rem 1.5rem;
     min-width: 280px;
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -544,16 +549,10 @@ export default {
 .match-item {
     display: flex;
     align-items: center;
-    padding: 0.75rem 80px;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
     background: #f7f7f7;
     border: 1px solid #e8e8e8;
-}
-
-@media screen and (max-width: 768px) {
-    .match-item {
-        padding: 0.6rem 0.75rem;
-    }
 }
 
 .match-item:nth-child(odd) {
@@ -562,9 +561,12 @@ export default {
 
 .match-team {
     flex: 1 1 0;
+    min-width: 0;
     font-weight: 700;
     font-size: 0.9rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .match-team-right {

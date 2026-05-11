@@ -7,6 +7,92 @@ body {
     background-color: #f4f4f4;
 }
 
+input:focus,
+textarea:focus,
+select:focus,
+.input:focus,
+.textarea:focus,
+.select select:focus,
+.button:focus,
+.button.is-focused {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
+    outline: none;
+}
+
+.button:focus:not(:active),
+.button.is-focused:not(:active) {
+    box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
+}
+
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border, #d1d5db);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    flex-shrink: 0;
+}
+
+input[type="radio"]:checked {
+    border-color: var(--color-primary);
+}
+
+input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-primary);
+}
+
+input[type="radio"]:focus {
+    box-shadow: 0 0 0 2px var(--color-primary-shadow) !important;
+    border-radius: 50% !important;
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border, #d1d5db);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    flex-shrink: 0;
+}
+
+input[type="checkbox"]:checked {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 3.5px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 2px var(--color-primary-shadow) !important;
+    border-radius: 2px !important;
+}
+
 @media screen and (min-width: 575px){
     body:not(.documentation) {
         background: url("../img/bg-mountains.avif") center/cover;
@@ -26,7 +112,7 @@ body {
 nav.navbar {
     position: sticky;
     top: 0;
-    z-index: 40;
+    z-index: 100;
     background: var(--color-white);
 }
 
@@ -80,9 +166,9 @@ footer {
     align-items: center;
 }
 
-.game-row > div {
-    flex: 0 0 100%;
-    margin-top: 10px;
+.game-row > div.team-block {
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .lanes-played {
@@ -168,6 +254,8 @@ footer {
 .modal-content {
     background: white;
     max-height: calc(100vh - 80px);
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 .no-wrap {

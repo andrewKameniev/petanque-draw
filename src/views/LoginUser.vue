@@ -122,14 +122,8 @@ export default {
 
 <style>
 .login-container {
-    background: url("../assets/img/login-mobile.jpg") center/cover;
     min-height: 100vh;
     padding: 1em;
-}
-@media screen and (min-width: 501px) {
-    .login-container {
-        background-image: url("../assets/img/login-desktop.jpg");
-    }
 }
 .login-form  {
     width: 500px;

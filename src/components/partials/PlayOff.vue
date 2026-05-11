@@ -2,26 +2,25 @@
     <div :class="{'container': !isPublicView || playOffStageCurrent !== 0, 'content': activeTournament && (!isPublicView || playOffStageCurrent !== 0)}">
         <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)">
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
-            <button v-if="!isPublicView" class="button btn-purple-outline" @click="showBracket = true">{{ $t('games.showBracket') }}</button>
+            <button v-if="!isPublicView && playOffStageCurrent !== 0" class="button btn-purple-outline" @click="showBracket = true"><GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
         </div>
-        <div class="column play-off-stage-wrapper" v-if="playOffBracket">
-            <div v-if="playOffStageCurrent === 0 && !isPublicView" class="has-text-centered is-size-4">
-                {{ $t('games.tournamentFinished') }}. <a href="#" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
-            </div>
+        <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
+            <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')"/>
             <template v-else-if="playOffStageCurrent !== 0">
-                <h2 class="text-center">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
+                <h2 class="text-center" data-testid="playoff-stage-heading">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
+                      :lane-number="currentStageLaneOrder[ind]"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
                     <Game :game="playOffBracket.thirdPlace" :is-third="true"
                           :active-tournament="tournament" :compact-view="isPublicView" :game-index="1" @save="saveResults"/>
                 </div>
-                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5">{{ $t('games.resultsError') }}</div>
+                <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>
                 <div class="text-center mt-5" v-if="!activeTournament">
-                    <button class="button is-success" @click="saveResults">{{ $t('games.saveResults') }}</button>
+                    <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveResults"><Save :size="16" class="mr-1"/> {{ $t('games.saveResults') }}</button>
                 </div>
             </template>
         </div>
@@ -35,12 +34,14 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
+import {Save, GitFork} from "lucide-vue-next";
+import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 
 export default {
     name: 'PlayOff',
     props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
-    components: {Game, Bracket},
+    components: {Game, Bracket, Save, GitFork, FinishedBanner},
     data(){
         return {
             scoreError: false,
@@ -72,6 +73,13 @@ export default {
             } else {
                 return '0'
             }
+        },
+        currentStageLaneOrder() {
+            const stage = this.playOffBracket?.stages?.[this.currentPlayOffBracketIndex];
+            if (stage?.laneOrder) {
+                return stage.laneOrder;
+            }
+            return Array.from({length: stage?.teams?.length || 0}, (_, k) => k);
         }
     },
     methods: {
@@ -137,10 +145,12 @@ export default {
                         teams.push(game)
                     }
                 }
+                const laneOrder = this.shuffleArray(Array.from({length: teams.length}, (_, k) => k));
                 const stage = {
                     teamsCount: teamsCount,
                     stageLabel: stageLabel,
                     teams: teams,
+                    laneOrder: laneOrder,
                 }
                 brackets.stages.push(stage)
             }
@@ -184,3 +194,31 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+
+.btn-save-results {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #10B981;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+}
+
+.btn-save-results:hover {
+    background: #059669;
+    color: #fff;
+}
+
+.btn-save-results:focus,
+.btn-save-results.is-focused,
+.btn-save-results:active {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4) !important;
+    border-color: transparent;
+}
+</style>

@@ -26,15 +26,15 @@
 
         <div class="navbar-menu">
             <div class="navbar-start">
-                <div class="navbar-item has-dropdown is-hoverable" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
+                <div class="tournaments-dropdown" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'" @click="tournamentsOpen = !tournamentsOpen" v-click-outside="closeTournaments">
                     <a class="navbar-link navbar-link--custom">
                         {{ $t('common.activeTournaments') }}
-                        <svg class="navbar-link__chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="navbar-link__chevron" :class="{'navbar-link__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </a>
-                    <div class="navbar-dropdown">
-                        <a class="navbar-item" :class="{'is-active': item.id === currentTournamentIndex}"
+                    <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
+                        <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': item.id === currentTournamentIndex}"
                            v-for="item in tournaments" :key="item.id"
-                           @click.prevent="setActiveTournament(item.id)">
+                           @click.stop="chooseTournament(item.id)">
                             {{ item.name }}
                         </a>
                     </div>
@@ -53,6 +53,14 @@
                             </svg>
                         </button>
                         <div class="user-dropdown__menu" v-if="userDropdownOpen">
+                            <a href="#" class="user-dropdown__item" @click.prevent="addNewTournament">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                {{ $t('common.addTournament') }}
+                            </a>
+                            <router-link class="user-dropdown__item" to="/archived" @click="userDropdownOpen = false">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                {{ $t('common.archivedTournaments') }}
+                            </router-link>
                             <a href="#" class="user-dropdown__item" @click.prevent="signOutUser">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 {{ $t('common.logoutUser') }}
@@ -79,6 +87,7 @@ export default {
     data() {
         return {
             userDropdownOpen: false,
+            tournamentsOpen: false,
         }
     },
     directives: {
@@ -101,9 +110,26 @@ export default {
         },
     },
     methods: {
-        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser']),
+        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
         closeDropdown() {
             this.userDropdownOpen = false;
+        },
+        closeTournaments() {
+            this.tournamentsOpen = false;
+        },
+        chooseTournament(id) {
+            this.setActiveTournament(id);
+            this.tournamentsOpen = false;
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
+        },
+        addNewTournament() {
+            this.addTournament();
+            this.userDropdownOpen = false;
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
         },
         signOutUser() {
             signOut(auth)
@@ -162,6 +188,7 @@ export default {
 
 .navbar-nav-link.router-link-exact-active {
     color: var(--color-primary);
+    font-weight: bold;
 }
 
 .menu-burger {
@@ -193,10 +220,22 @@ export default {
     }
 }
 
+.tournaments-dropdown {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
 .navbar-link--custom {
-    padding-right: 1.5rem !important;
+    padding: 0 0 0 0.75rem !important;
     font-size: 0.85rem;
     font-weight: 500;
+    color: #4a4a4a;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
 }
 
 .navbar-link--custom::after {
@@ -210,8 +249,43 @@ export default {
     transition: transform 0.25s;
 }
 
-.has-dropdown:hover .navbar-link__chevron {
+.navbar-link__chevron--open {
     transform: rotate(180deg);
+}
+
+.tournaments-dropdown__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: var(--color-white);
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px var(--color-dropdown-shadow), 0 2px 4px rgba(0, 0, 0, 0.04);
+    min-width: 200px;
+    padding: 0.35rem;
+    z-index: 9999;
+    animation: dropdown-in 0.15s ease;
+}
+
+.tournaments-dropdown__item {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-radius: 0.35rem;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.tournaments-dropdown__item:hover {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.tournaments-dropdown__item--active {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-weight: 600;
 }
 
 .user-dropdown {
@@ -249,7 +323,8 @@ export default {
     transition: background 0.15s;
 }
 
-.user-dropdown__item:hover {
+.user-dropdown__item:hover,
+.user-dropdown__item.router-link-exact-active {
     background: var(--color-primary-bg);
     color: var(--color-primary);
 }

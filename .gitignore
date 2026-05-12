@@ -2,6 +2,7 @@ node_modules
 dist
 .claude
 .playwright-cli
+.DS_Store
 coverage/
 playwright-report/
 test-results/

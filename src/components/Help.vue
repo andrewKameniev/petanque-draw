@@ -74,7 +74,7 @@ export default {
 </script>
 <style scoped>
 .image {
-    border: solid 1px #ddd;
+    border: solid 1px var(--color-help-border);
     border-radius: 10px;
 }
 </style>

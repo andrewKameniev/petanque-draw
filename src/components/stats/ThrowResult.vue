@@ -141,7 +141,7 @@ export default {
 .gost-throw {
     width: 79px;
     height: 32px;
-    border: solid 1px;
+    border: solid 1px var(--color-border-medium);
     border-radius: 7px;
     cursor: pointer;
 }
@@ -155,11 +155,12 @@ export default {
 .custom-menu {
     position: absolute;
     right: 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-medium);
+    box-shadow: 0 4px 6px var(--color-card-shadow);
     z-index: 1000;
     width: 150px;
+    border-radius: 6px;
 }
 
 .custom-menu ul {
@@ -171,10 +172,11 @@ export default {
 .custom-menu li {
     padding: 8px 16px;
     cursor: pointer;
+    color: var(--color-text);
 }
 
 .custom-menu li:hover {
-    background-color: #eee;
+    background-color: var(--color-surface-hover);
 }
 
 .checkbox-wrapper-10 .tgl {

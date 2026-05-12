@@ -57,6 +57,10 @@
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                 {{ $t('common.archivedTournaments') }}
                             </router-link>
+                            <div class="user-dropdown__theme-row">
+                                <span class="user-dropdown__theme-label">{{ $t('common.theme') }}</span>
+                                <ThemeSwitcher />
+                            </div>
                             <a href="#" class="user-dropdown__item" @click.prevent="signOutUser">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 {{ $t('common.logoutUser') }}
@@ -76,10 +80,11 @@ import {useMainStore} from "@/stores/main";
 import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
+import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 
 export default {
     name: "Navbar",
-    components: {LanguageSwitcher},
+    components: {LanguageSwitcher, ThemeSwitcher},
     data() {
         return {
             userDropdownOpen: false,
@@ -227,7 +232,7 @@ export default {
     padding: 0 0 0 0.75rem !important;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #4a4a4a;
+    color: var(--color-navbar-link);
     display: flex;
     align-items: center;
     background: none;
@@ -346,5 +351,20 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.user-dropdown__theme-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.75rem;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: 0.2rem;
+}
+
+.user-dropdown__theme-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
 }
 </style>

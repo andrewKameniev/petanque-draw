@@ -106,14 +106,14 @@ export default {
     border-radius: 50%;
     border: none;
     background: transparent;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .team-remove-btn:hover {
-    background: var(--color-error-bg, #fef2f2);
-    color: var(--color-error, #ef4444);
+    background: var(--color-error-bg);
+    color: var(--color-error);
 }
 
 .table tr:last-child td {
@@ -130,7 +130,7 @@ export default {
     font-size: 0.8rem;
     font-weight: 700;
     border-radius: 10px;
-    background: #f0e6ff;
+    background: var(--color-badge-purple);
     color: var(--color-primary);
 }
 </style>

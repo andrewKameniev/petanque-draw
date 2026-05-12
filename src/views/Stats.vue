@@ -384,7 +384,7 @@ export default {
 }
 
 .player-info {
-    background: #ffffff8a;
+    background: var(--color-surface-semi);
     padding: 5px;
     border-radius: 5px;
 }

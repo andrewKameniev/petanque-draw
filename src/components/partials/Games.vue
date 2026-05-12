@@ -337,29 +337,36 @@ export default {
 
 .draw-card__links {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.5rem;
     flex-wrap: nowrap;
     white-space: nowrap;
 }
 
+@media screen and (max-width: 768px) {
+    .draw-card__links {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
+
 .draw-card__link {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 600;
     text-decoration: underline;
 }
 
 .draw-card__link--draw {
-    color: #0EA5E9;
+    color: var(--color-info);
 }
 
 .draw-card__link--restore {
-    color: #e07070;
+    color: var(--color-danger-light);
 }
 
 .draw-card__or {
-    font-size: 0.85rem;
-    color: var(--color-text-muted, #888);
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
 }
 
 
@@ -374,12 +381,12 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border, #e5e7f0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
     cursor: pointer;
     padding: 0.5rem 0.9rem;
     transition: all 0.15s;
@@ -410,7 +417,7 @@ export default {
     justify-content: space-between;
     padding-bottom: 0.75rem;
     margin-bottom: 0.75rem;
-    border-bottom: 1px solid var(--color-border, #e5e7f0);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .confirm-remove__header-left {
@@ -426,8 +433,8 @@ export default {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--color-error-bg, #fef2f2);
-    color: var(--color-error, #ef4444);
+    background: var(--color-error-bg);
+    color: var(--color-error);
 }
 
 .confirm-remove__header-hint {
@@ -444,14 +451,14 @@ export default {
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
 
 .confirm-remove__close:hover {
-    background: #f5f5f5;
-    color: var(--color-text, #1a1a1a);
+    background: var(--color-surface-hover);
+    color: var(--color-text);
 }
 
 .confirm-remove__body {
@@ -460,7 +467,7 @@ export default {
 
 .confirm-remove__question {
     font-size: 0.9rem;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
     line-height: 1.5;
 }
 
@@ -482,24 +489,24 @@ export default {
 
 .confirm-remove__btn--cancel {
     background: transparent;
-    border-color: var(--color-border, #e0e0e0);
-    color: var(--color-text-secondary, #555);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
 }
 
 .confirm-remove__btn--cancel:hover {
     border-color: var(--color-text-muted);
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
 }
 
 .confirm-remove__btn--danger {
-    background: var(--color-error, #ef4444);
-    border-color: var(--color-error, #ef4444);
-    color: white;
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-btn-text);
 }
 
 .confirm-remove__btn--danger:hover {
-    background: #dc2626;
-    border-color: #dc2626;
+    background: var(--color-error-hover);
+    border-color: var(--color-error-hover);
 }
 
 

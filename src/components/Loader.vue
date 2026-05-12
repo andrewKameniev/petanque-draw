@@ -23,7 +23,7 @@ export default {
 
 @media screen and (max-width: 500px){
     .loader.dark {
-        border-color: #aaa;
+        border-color: var(--color-loader-border);
     }
 }
 

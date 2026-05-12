@@ -669,7 +669,7 @@ export default {
 
 .inline-name-btn--save {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-btn-text);
 }
 
 .inline-name-btn--save:hover {
@@ -677,12 +677,12 @@ export default {
 }
 
 .inline-name-btn--cancel {
-    background: #f0f0f0;
-    color: #666;
+    background: var(--color-tab-inactive-bg);
+    color: var(--color-tab-inactive-text);
 }
 
 .inline-name-btn--cancel:hover {
-    background: #e0e0e0;
+    background: var(--color-tab-inactive-hover);
 }
 
 .remote-toolbar {
@@ -829,26 +829,26 @@ export default {
 }
 
 .bottom-actions__btn--outline {
-    background: #4b5563;
-    color: #fff;
-    border-color: #4b5563;
+    background: var(--color-btn-dark);
+    color: var(--color-btn-text);
+    border-color: var(--color-btn-dark);
 }
 
 .bottom-actions__btn--outline:hover {
-    background: #374151;
-    color: #fff;
-    border-color: #374151;
+    background: var(--color-btn-dark-hover);
+    color: var(--color-btn-text);
+    border-color: var(--color-btn-dark-hover);
 }
 
 .bottom-actions__btn--save-results {
-    background: #1FA37A;
-    color: #fff;
-    border-color: #1FA37A;
+    background: var(--color-btn-green);
+    color: var(--color-btn-text);
+    border-color: var(--color-btn-green);
 }
 
 .bottom-actions__btn--save-results:hover:not(:disabled) {
-    background: #178c68;
-    border-color: #178c68;
+    background: var(--color-btn-green-hover);
+    border-color: var(--color-btn-green-hover);
 }
 
 .bottom-actions__btn--save-results:disabled {
@@ -857,20 +857,20 @@ export default {
 }
 
 .bottom-actions__btn--finish {
-    background: #60A5FA;
-    color: #fff;
-    border-color: #60A5FA;
+    background: var(--color-btn-blue);
+    color: var(--color-btn-text);
+    border-color: var(--color-btn-blue);
 }
 
 .bottom-actions__btn--finish:hover {
-    background: #3b82f6;
-    color: #fff;
-    border-color: #3b82f6;
+    background: var(--color-btn-blue-hover);
+    color: var(--color-btn-text);
+    border-color: var(--color-btn-blue-hover);
 }
 
 .bottom-actions__btn--primary {
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-primary);
 }
 
@@ -886,18 +886,18 @@ export default {
 
 .bottom-actions__btn--purple-outline {
     background: var(--color-primary);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-primary);
 }
 
 .bottom-actions__btn--purple-outline:hover {
-    background: var(--color-primary-light, #5b3cc4);
-    color: var(--color-white);
+    background: var(--color-primary-light);
+    color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--success {
     background: var(--color-success);
-    color: var(--color-white);
+    color: var(--color-btn-text);
     border-color: var(--color-success);
 }
 
@@ -907,28 +907,28 @@ export default {
 }
 
 .bottom-actions__btn--gold {
-    background: #f5a623;
-    color: #fff;
-    border-color: #f5a623;
+    background: var(--color-warning);
+    color: var(--color-btn-text);
+    border-color: var(--color-warning);
     min-width: 10rem;
     justify-content: center;
 }
 
 .bottom-actions__btn--gold:hover {
-    background: #e6951e;
-    border-color: #e6951e;
-    color: #fff;
+    background: var(--color-warning-hover);
+    border-color: var(--color-warning-hover);
+    color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--danger {
     background: transparent;
-    color: #e07070;
-    border-color: #e07070;
+    color: var(--color-danger-light);
+    border-color: var(--color-danger-light);
 }
 
 .bottom-actions__btn--danger:hover {
-    background: #e07070;
-    color: #fff;
+    background: var(--color-danger-light);
+    color: var(--color-btn-text);
 }
 
 
@@ -961,17 +961,17 @@ export default {
 }
 
 .inline-name-input--error {
-    border-bottom-color: var(--color-error, #ef4444);
+    border-bottom-color: var(--color-error);
 }
 
 .inline-name-error {
     font-size: 0.75rem;
-    color: var(--color-error, #ef4444);
+    color: var(--color-error);
     margin-top: 0.25rem;
 }
 
 .setup-teams-card {
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.25rem 1.5rem;
@@ -994,7 +994,7 @@ export default {
 }
 
 .setup-card {
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.5rem;
@@ -1114,7 +1114,7 @@ export default {
 .setup-card__or {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
 }
 
 .setup-card__start {
@@ -1129,7 +1129,7 @@ export default {
     border: none;
     border-radius: 8px;
     background: var(--color-success);
-    color: #fff;
+    color: var(--color-btn-text);
     cursor: pointer;
     transition: background 0.15s;
 }
@@ -1146,17 +1146,17 @@ export default {
     padding: 0.7rem 1rem;
     font-size: 0.85rem;
     font-weight: 500;
-    border: 1px solid var(--color-error, #ef4444);
+    border: 1px solid var(--color-error);
     border-radius: 8px;
     background: transparent;
-    color: var(--color-error, #ef4444);
+    color: var(--color-error);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .setup-card__delete:hover {
-    background: var(--color-error, #ef4444);
-    color: #fff;
+    background: var(--color-error);
+    color: var(--color-btn-text);
 }
 
 .setup-card__collapse-toggle {
@@ -1199,7 +1199,7 @@ export default {
 
 .confirm-finish__text {
     font-size: 0.9rem;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
     line-height: 1.5;
     margin-bottom: 1.25rem;
 }
@@ -1222,24 +1222,24 @@ export default {
 
 .confirm-finish__btn--cancel {
     background: transparent;
-    border-color: var(--color-border, #e0e0e0);
-    color: var(--color-text-secondary, #555);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
 }
 
 .confirm-finish__btn--cancel:hover {
     border-color: var(--color-text-muted);
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
 }
 
 .confirm-finish__btn--confirm {
-    background: #4b5563;
-    border-color: #4b5563;
-    color: white;
+    background: var(--color-btn-dark);
+    border-color: var(--color-btn-dark);
+    color: var(--color-btn-text);
 }
 
 .confirm-finish__btn--confirm:hover {
-    background: #374151;
-    border-color: #374151;
+    background: var(--color-btn-dark-hover);
+    border-color: var(--color-btn-dark-hover);
 }
 
 .confirm-playoff {

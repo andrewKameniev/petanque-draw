@@ -71,18 +71,18 @@ export default {
 .qr-modal__code {
     display: inline-block;
     padding: 1rem;
-    background: #fff;
+    background: var(--color-qr-bg);
     border-radius: 12px;
-    border: 1px solid #eee;
+    border: 1px solid var(--color-qr-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .qr-modal__link-box {
     margin-top: 1rem;
     padding: 0.6rem 1rem;
-    background: #f7f7f7;
+    background: var(--color-qr-alt-bg);
     border-radius: 8px;
-    border: 1px solid #eee;
+    border: 1px solid var(--color-qr-border);
 }
 
 .qr-modal__link {
@@ -101,7 +101,7 @@ export default {
 }
 
 .qr-modal__btn {
-    background: #fff;
+    background: var(--color-surface);
     color: var(--color-primary);
     border: 2px solid var(--color-primary);
     border-radius: 8px;
@@ -114,17 +114,17 @@ export default {
 
 .qr-modal__btn:hover {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .qr-modal__btn--copied {
-    border-color: var(--color-success, #10b981) !important;
-    color: var(--color-success, #10b981) !important;
+    border-color: var(--color-success) !important;
+    color: var(--color-success) !important;
 }
 
 .qr-modal__btn--copied:hover {
-    background: var(--color-success, #10b981);
-    border-color: var(--color-success, #10b981);
-    color: #fff !important;
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-surface) !important;
 }
 </style>

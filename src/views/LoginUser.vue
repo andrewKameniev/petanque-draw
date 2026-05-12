@@ -125,12 +125,21 @@ export default {
     min-height: 100vh;
     padding: 1em;
 }
+@media screen and (min-width: 501px) {
+    .login-container {
+        background-image: url("../assets/img/login-desktop.jpg");
+    }
+}
+[data-theme="dark"] .login-container {
+    background-image: none;
+    background-color: var(--color-body-bg);
+}
 .login-form  {
     width: 500px;
     max-width: 100%;
     border-radius: 0.5rem;
-    background-color: #fff;
-    box-shadow: 0 0 30px 2px rgba(0,0,0,0.1);
+    background-color: var(--color-surface);
+    box-shadow: 0 0 30px 2px var(--color-dropdown-shadow);
 }
 
 .back-link {

@@ -109,6 +109,18 @@
                             {{ $t('ranking.withCadrage') }}
                         </label>
                         <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.cadrageHint') }}</span>
+                        <label class="setup-card__checkbox setup-card__checkbox--sub">
+                            <input type="checkbox" v-model="doubleElimination" data-testid="checkbox-double-elim">
+                            {{ $t('ranking.doubleElimination') }}
+                        </label>
+                        <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.doubleEliminationHint') }}</span>
+                        <template v-if="doubleElimination">
+                            <label class="setup-card__checkbox setup-card__checkbox--sub">
+                                <input type="checkbox" v-model="doubleElimAlt" data-testid="checkbox-double-elim-alt">
+                                {{ $t('ranking.doubleEliminationAlt') }}
+                            </label>
+                            <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.doubleEliminationAltHint') }}</span>
+                        </template>
                     </div>
                 </div>
 
@@ -301,6 +313,29 @@
                     <span v-if="withCadrage && teamToPlayOff" class="confirm-playoff__hint">{{ teamToPlayOff / 2 }} + {{ teamToPlayOff }} {{ $t('teams.teams').toLowerCase() }}</span>
                 </div>
 
+                <div class="confirm-playoff__field">
+                    <label class="confirm-playoff__checkbox">
+                        <input type="checkbox" v-model="doubleElimination" data-testid="confirm-double-elim">
+                        {{ $t('ranking.doubleElimination') }}
+                    </label>
+                    <span class="confirm-playoff__hint">{{ $t('ranking.doubleEliminationHint') }}</span>
+                    <template v-if="doubleElimination">
+                        <label class="confirm-playoff__checkbox" style="margin-top: 0.5rem;">
+                            <input type="checkbox" v-model="doubleElimAlt" data-testid="confirm-double-elim-alt">
+                            {{ $t('ranking.doubleEliminationAlt') }}
+                        </label>
+                        <span class="confirm-playoff__hint">{{ $t('ranking.doubleEliminationAltHint') }}</span>
+                        <div v-if="doubleElimAlt" style="margin-top: 0.5rem;">
+                            <label class="confirm-playoff__label">{{ $t('ranking.loserBracketTeams') }}</label>
+                            <select class="confirm-playoff__select" data-testid="confirm-lb-teams" v-model.number="loserBracketTeams">
+                                <template v-for="value in loserBracketTeamValues" :key="value">
+                                    <option :value="value">{{ value }}</option>
+                                </template>
+                            </select>
+                        </div>
+                    </template>
+                </div>
+
                 <div v-if="!tournament.isGroupB" class="confirm-playoff__field">
                     <label class="confirm-playoff__checkbox">
                         <input type="checkbox" v-model="playB" data-testid="confirm-play-b">
@@ -332,6 +367,7 @@ import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import Modal from "@/components/Modal";
 import {getTeamsRanking, shuffleArray} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
+import {buildDoubleEliminationBracket} from "@/services/doubleElimination";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
@@ -353,6 +389,9 @@ export default {
             messageTimeout: null,
             playB: false,
             withCadrage: false,
+            doubleElimination: false,
+            doubleElimAlt: false,
+            loserBracketTeams: 4,
             teamsInGroup: null,
             showQrCode: false,
             showTypeMessage: false,
@@ -375,6 +414,9 @@ export default {
         if (this.tournament.preferences?.playB) {
             this.playB = true;
         }
+        if (this.tournament.preferences?.doubleElimination) {
+            this.doubleElimination = true;
+        }
         if (this.tournament.tournamentIsFinished) {
             this.activeTab = 'ranking';
         } else if (this.tournament.games?.length) {
@@ -382,7 +424,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setPlayOffBracket', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -441,7 +483,10 @@ export default {
                     playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff)
                 }
             }
-            if (withCadrage) {
+            if (this.doubleElimination) {
+                this.tournament.preferences.doubleElimination = true;
+                this.startDoubleElimination(playOffList);
+            } else if (withCadrage) {
                 this.startCadrage(playOffList)
             } else {
                 this.startPlayOff(playOffList)
@@ -473,6 +518,20 @@ export default {
                 })
                 this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
             }
+        },
+        startDoubleElimination(playOffList) {
+            let wbTeams, lbTeams = [];
+            if (this.doubleElimAlt) {
+                const wbCount = this.teamToPlayOff - this.loserBracketTeams;
+                wbTeams = playOffList.slice(0, wbCount);
+                lbTeams = playOffList.slice(wbCount);
+            } else {
+                wbTeams = playOffList;
+            }
+            const bracket = buildDoubleEliminationBracket(wbTeams, lbTeams);
+            this.setPlayOffBracket(bracket);
+            this.setPlayOff(bracket.winnerStages[0].teams);
+            this.activeTab = 'games';
         },
         restoreTeamsFromLocalStorage() {
             const teams = JSON.parse(localStorage.getItem('petanqueDrawTeamsRestore'));
@@ -528,6 +587,7 @@ export default {
             if (this.setupPlayOff) {
                 this.tournament.preferences.withCadrage = this.withCadrage;
                 this.tournament.preferences.playB = this.playB;
+                this.tournament.preferences.doubleElimination = this.doubleElimination;
             }
             this.playB = false;
             this.savePreferences();
@@ -578,7 +638,11 @@ export default {
             return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
         },
         hasPlayOffConfigured() {
-            return this.tournament.system === 'swiss' && this.tournament.preferences?.playOffTeams && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
+            if (this.tournament.system !== 'swiss' || !this.tournament.preferences?.playOffTeams) return false;
+            if (this.tournament.preferences.doubleElimination) {
+                return this.tournament.preferences.playOffTeams <= this.tournament.teams?.length;
+            }
+            return this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
         },
         isPinned() {
             return this.pinnedState === this.currentTournamentIndex;
@@ -591,6 +655,14 @@ export default {
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
+        },
+        loserBracketTeamValues() {
+            const values = [];
+            const maxLb = this.teamToPlayOff / 2;
+            for (let i = 2; i <= maxLb; i *= 2) {
+                values.push(i);
+            }
+            return values;
         }
     },
     components: {

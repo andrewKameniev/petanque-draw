@@ -51,15 +51,18 @@ export default {
         },
         currentGame() {
             if (this.isThird) {
-                return this.tournament.playOffBracket.thirdPlace
+                return this.tournament.playOffBracket?.thirdPlace || this.game
             }
             else if (this.isCadrage) {
-                return this.tournament.cadrage[this.gameIndex]
+                return this.tournament.cadrage?.[this.gameIndex] || this.game
             }
             else if (this.isPlayoff) {
-                return this.tournament.playOffBracket.stages[this.activeRound].teams[this.gameIndex]
+                if (this.tournament.playOffBracket?.type === 'double') {
+                    return this.game;
+                }
+                return this.tournament.playOffBracket?.stages?.[this.activeRound]?.teams?.[this.gameIndex] || this.game
             } else {
-                return this.tournament.games[this.activeRound][this.gameIndex]
+                return this.tournament.games?.[this.activeRound]?.[this.gameIndex] || this.game
             }
         },
         displayLane() {

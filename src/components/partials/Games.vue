@@ -1,6 +1,7 @@
 <template>
     <div class="content tabs-content">
-        <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
+        <DoubleElimPlayOff v-if="tournament.playOff && tournament.playOffBracket?.type === 'double'" @openResults="$emit('openResults')"/>
+        <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
             <div v-if="tournament.games?.length && showDrawLinks" class="draw-card">
@@ -71,6 +72,7 @@
 <script>
 
 import PlayOff from './PlayOff';
+import DoubleElimPlayOff from './DoubleElimPlayOff.vue';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
@@ -83,7 +85,7 @@ import Modal from "@/components/Modal.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, ChevronDown, AlertTriangle, X, Modal, FinishedBanner},
+    components: {Cadrage, Game, PlayOff, DoubleElimPlayOff, ChevronDown, AlertTriangle, X, Modal, FinishedBanner},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -155,7 +157,7 @@ export default {
         ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'syncToFirebase']),
         gameHasError,
         handleGlobalSave() {
-            const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
+            const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"], [data-testid="btn-save-double-elim"]');
             console.warn('123', btn);
             if (btn) btn.click();
         },
@@ -263,6 +265,15 @@ export default {
             this.isRestoredRound = true;
             if (this.tournament.playOff || this.tournament.cadrage?.length) {
                 const bracket = this.tournament.playOffBracket;
+
+                if (bracket?.type === 'double') {
+                    delete this.tournament.playOff;
+                    delete this.tournament.playOffBracket;
+                    delete this.tournament.playOffStage;
+                    this.startRound();
+                    return;
+                }
+
                 const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
                 const firstPlayoffStageLabel = bracket?.stages?.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
 

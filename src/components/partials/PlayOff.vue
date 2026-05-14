@@ -295,22 +295,27 @@ export default {
     align-items: center;
     gap: 2px;
     width: 40px;
-    height: 32px;
+    height: 24px;
     justify-content: center;
     border: none;
-    border-radius: 6px;
-    background: var(--color-text-muted, #6b7280);
+    border-radius: 12px;
+    background: var(--color-border, #d1d5db);
     color: white;
     cursor: pointer;
     transition: background 0.15s;
 }
 
+.playoff-search-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
 .playoff-search-btn:hover {
-    background: var(--color-text-secondary, #4b5563);
+    background: var(--color-text-muted, #6b7280);
 }
 
 .playoff-search-btn--active {
-    background: var(--color-primary);
+    background: var(--color-text-muted, #6b7280);
 }
 
 .playoff-search-popover {

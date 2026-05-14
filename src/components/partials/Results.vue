@@ -26,8 +26,9 @@
                             {{ $t('results.all') }}
                         </button>
                     </div>
-                    <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1" @click="showBracket = true">
-                        {{ $t('games.showBracket') }}
+                    <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1 btn-bracket" @click="showBracket = true">
+                        <GitBranch :size="16" class="btn-bracket__icon"/>
+                        <span class="btn-bracket__label">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
@@ -109,10 +110,11 @@ import {mapState} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 import Bracket from "@/components/partials/Bracket";
+import {GitBranch} from "lucide-vue-next";
 
 export default {
     name: 'Results',
-    components: {Bracket},
+    components: {Bracket, GitBranch},
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
     data() {
         return {
@@ -254,5 +256,17 @@ export default {
 .btn-purple-outline:hover {
     background: var(--color-primary);
     color: var(--color-btn-text);
+}
+
+.btn-bracket {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+@media screen and (max-width: 768px) {
+    .btn-bracket__label {
+        display: none;
+    }
 }
 </style>

@@ -337,6 +337,10 @@ export default {
 </script>
 
 <style scoped>
+.modal {
+    z-index: 10000;
+}
+
 .bracket-close {
     top: 6px !important;
 }

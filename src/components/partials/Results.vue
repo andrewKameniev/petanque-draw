@@ -202,6 +202,10 @@ export default {
     padding: 0 0.75rem;
 }
 
+.round-group-cell {
+    vertical-align: middle;
+}
+
 .round-badge {
     display: inline-flex;
     align-items: center;

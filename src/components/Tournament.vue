@@ -533,7 +533,7 @@ export default {
             return this.tournament.system === 'swiss' && this.tournament.preferences?.playOffTeams && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
         },
         isPinned() {
-            return this.pinnedState === this.currentTournamentIndex;
+            return String(this.pinnedState) === String(this.currentTournamentIndex);
         },
         isAlreadyArchived() {
             return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);

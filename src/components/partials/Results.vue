@@ -27,7 +27,7 @@
                         </button>
                     </div>
                     <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1 btn-bracket" @click="showBracket = true">
-                        <GitFork :size="14" class="is-hidden-tablet" style="transform: rotate(90deg)"/>
+                        <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/>
                         <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>

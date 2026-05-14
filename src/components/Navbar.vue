@@ -24,13 +24,14 @@
             <div class="navbar-start">
                 <div class="tournaments-dropdown" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'" @click="tournamentsOpen = !tournamentsOpen" v-click-outside="closeTournaments">
                     <a class="navbar-link navbar-link--custom">
-                        {{ $t('common.activeTournaments') }}
+                        <span class="navbar-link__current">{{ tournament?.name || $t('common.activeTournaments') }}</span>
                         <svg class="navbar-link__chevron" :class="{'navbar-link__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </a>
                     <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
                         <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': item.id === currentTournamentIndex}"
                            v-for="item in tournaments" :key="item.id"
                            @click.stop="chooseTournament(item.id)">
+                            <span class="tournaments-dropdown__item-pin" v-if="pinnedId === item.id">&#9679;</span>
                             {{ item.name }}
                         </a>
                     </div>
@@ -108,6 +109,9 @@ export default {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
         tournament() {
             return this.currentTournament
+        },
+        pinnedId() {
+            return localStorage.getItem('petanqueDrawPinned');
         },
     },
     methods: {
@@ -287,6 +291,20 @@ export default {
     background: var(--color-primary-bg);
     color: var(--color-primary);
     font-weight: 600;
+}
+
+.tournaments-dropdown__item-pin {
+    color: var(--color-primary);
+    font-size: 0.5rem;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+.navbar-link__current {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-dropdown {

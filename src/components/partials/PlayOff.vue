@@ -16,6 +16,15 @@
                         </button>
                         <div v-if="showSearch" class="playoff-search-popover">
                             <input ref="searchInput" v-model="searchQuery" class="playoff-search-input" :placeholder="$t('teams.searchTeam')" @keydown.escape="showSearch = false" @keydown.enter="applySearch"/>
+                            <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
+                                <li v-for="club in filteredClubs" :key="'club-'+club"
+                                    class="playoff-search-item playoff-search-item--club"
+                                    :class="{'playoff-search-item--active': highlightedTeam === club}"
+                                    @click="selectTeam(club)">
+                                    <Building2 :size="12"/>
+                                    {{ club }}
+                                </li>
+                            </ul>
                             <ul class="playoff-search-list">
                                 <li v-for="team in filteredTeams" :key="team"
                                     class="playoff-search-item"
@@ -23,7 +32,7 @@
                                     @click="selectTeam(team)">
                                     {{ team }}
                                 </li>
-                                <li v-if="!filteredTeams.length" class="playoff-search-empty">{{ $t('teams.noResults') }}</li>
+                                <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">{{ $t('teams.noResults') }}</li>
                             </ul>
                         </div>
                     </div>
@@ -55,14 +64,14 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
-import {Save, GitFork, Search, UserRound} from "lucide-vue-next";
+import {Save, GitFork, Search, UserRound, Building2} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 
 export default {
     name: 'PlayOff',
     props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
-    components: {Game, Bracket, Save, GitFork, Search, UserRound, FinishedBanner},
+    components: {Game, Bracket, Save, GitFork, Search, UserRound, Building2, FinishedBanner},
     data(){
         return {
             scoreError: false,
@@ -144,6 +153,16 @@ export default {
                 });
             });
             return [...teams].sort();
+        },
+        allClubs() {
+            const clubs = new Set();
+            Object.values(this.teamClubMap).forEach(c => { if (c) clubs.add(c); });
+            return [...clubs].sort();
+        },
+        filteredClubs() {
+            if (!this.searchQuery.trim()) return this.allClubs;
+            const q = this.searchQuery.toLowerCase();
+            return this.allClubs.filter(c => c.toLowerCase().includes(q));
         },
         filteredTeams() {
             if (!this.searchQuery.trim()) return this.allParticipants;
@@ -430,6 +449,19 @@ export default {
 .playoff-search-item--active {
     background: var(--color-primary);
     color: white;
+}
+
+.playoff-search-clubs {
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.2rem;
+}
+
+.playoff-search-item--club {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
 }
 
 .playoff-search-empty {

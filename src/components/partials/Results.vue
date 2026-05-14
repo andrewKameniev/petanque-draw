@@ -27,8 +27,8 @@
                         </button>
                     </div>
                     <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1 btn-bracket" @click="showBracket = true">
-                        <GitBranch :size="14" class="btn-bracket__icon is-hidden-tablet"/>
-                        <span class="btn-bracket__label is-hidden-mobile">{{ $t('games.showBracket') }}</span>
+                        <GitFork :size="14" class="is-hidden-tablet" style="transform: rotate(90deg)"/>
+                        <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
@@ -110,11 +110,11 @@ import {mapState} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 import Bracket from "@/components/partials/Bracket";
-import {GitBranch} from "lucide-vue-next";
+import {GitFork} from "lucide-vue-next";
 
 export default {
     name: 'Results',
-    components: {Bracket, GitBranch},
+    components: {Bracket, GitFork},
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
     data() {
         return {

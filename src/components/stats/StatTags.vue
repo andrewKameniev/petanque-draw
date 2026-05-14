@@ -12,7 +12,7 @@
                 </div>
             </div>
         </div>
-        <div class="tags" v-if="Object.keys(tags).length > 0">
+        <div class="tags" v-if="tags && Object.keys(tags).length > 0">
             <span class="tag is-rounded is-white" v-for="(tag, key) in tags" :key="key">
               {{ tag }}
               <button class="delete is-small" @click="removeTag(key)"></button>

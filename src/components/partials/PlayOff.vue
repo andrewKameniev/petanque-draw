@@ -314,6 +314,13 @@ export default {
     background: var(--color-text-muted, #6b7280);
 }
 
+.playoff-search-btn:focus,
+.playoff-search-btn:active {
+    outline: none;
+    box-shadow: none;
+    background: var(--color-text-muted, #6b7280);
+}
+
 .playoff-search-btn--active {
     background: var(--color-text-muted, #6b7280);
 }

@@ -6,30 +6,32 @@ import i18n from "@/i18n";
 
 const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 
-const newTournament = {
-    name: 'Tournament A',
-    games: [],
-    gamesCopy: [],
-    teams: [],
-    system: 'swiss',
-    roundIsActive: false,
-    useRating: false,
-    playoff: false,
-    isCadrage: false,
-    supermelePlayers: 2,
-    tournamentIsFinished: false,
-    tournamentMessage: '',
-    preferences: {
-        technical: {
-            technicalFirst: 13,
-            technicalSecond: 7
+function createTournament(overrides = {}) {
+    return {
+        name: 'Tournament A',
+        games: [],
+        teams: [],
+        system: 'swiss',
+        roundIsActive: false,
+        useRating: false,
+        playoff: false,
+        isCadrage: false,
+        supermelePlayers: 2,
+        tournamentIsFinished: false,
+        tournamentMessage: '',
+        preferences: {
+            technical: {
+                technicalFirst: 13,
+                technicalSecond: 7
+            },
+            maxScore: 13,
+            playOffTeams: 8,
+            fieldsStart: 1,
+            withCadrage: false,
+            playB: false
         },
-        maxScore: 13,
-        playOffTeams: 8,
-        fieldsStart: 1,
-        withCadrage: false,
-        playB: false
-    }
+        ...overrides
+    };
 }
 
 export const useMainStore = defineStore('main', {
@@ -47,19 +49,32 @@ export const useMainStore = defineStore('main', {
         user: false
     }),
     getters: {
-        currentTournament: (state) => state.tournaments[state.currentTournamentIndex]
+        currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
+        allScoresFilled() {
+            const tournament = this.currentTournament;
+            if (!tournament) return false;
+            const activeRound = tournament.games?.length
+                ? (tournament.roundIsActive ? tournament.games.length : tournament.games.length + 1)
+                : 1;
+            const games = tournament.games?.[activeRound - 1];
+            if (!games) return false;
+            return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
+        }
     },
     actions: {
         syncToFirebase() {
-            if (this.user && this.user.uid && this.currentTournamentIndex) {
-                const db = getDatabase();
-                update(ref(db, `${this.user.uid}/tournaments/`), {
-                    [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex]
-                }).catch(error => {
-                    console.error('Error updating specific tournament:', error)
-                    this.showMessage({title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
-                });
-            }
+            clearTimeout(this._syncTimeout);
+            this._syncTimeout = setTimeout(() => {
+                if (this.user && this.user.uid && this.currentTournamentIndex) {
+                    const db = getDatabase();
+                    update(ref(db, `${this.user.uid}/tournaments/`), {
+                        [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex]
+                    }).catch(error => {
+                        console.error('Error updating specific tournament:', error)
+                        this.showMessage({title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
+                    });
+                }
+            }, 300);
         },
         async getTournaments() {
             const dbRef = ref(database, `${this.user.uid}/tournaments/`);
@@ -183,10 +198,6 @@ export const useMainStore = defineStore('main', {
                 this.tournaments[this.currentTournamentIndex].games = []
             }
             this.tournaments[this.currentTournamentIndex].games.push(round);
-            if (!this.tournaments[this.currentTournamentIndex].gamesCopy) {
-                this.tournaments[this.currentTournamentIndex].gamesCopy = []
-            }
-            this.tournaments[this.currentTournamentIndex].gamesCopy.push(round);
             this.tournaments[this.currentTournamentIndex].roundIsActive = true;
             this.saveLanesToTeams(round);
             this.syncToFirebase();
@@ -236,15 +247,14 @@ export const useMainStore = defineStore('main', {
         hideMessage() {
             this.message.show = false
         },
-        addTournament() {
+        addTournament(overrides = {}) {
             if (Object.keys(this.tournaments).length >= 10) {
                 this.showMessage({title: i18n.global.t('messages.notAvailable'), text: i18n.global.t('messages.maxTournaments'), type: 'error'});
                 return false
             }
             const tournamentId = Date.now();
-            newTournament.id = tournamentId;
-            newTournament.createdAt = new Date().toISOString();
-            this.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
+            const tournament = createTournament({id: tournamentId, createdAt: new Date().toISOString(), ...overrides});
+            this.tournaments[tournament.id] = tournament;
             this.currentTournamentIndex = tournamentId;
             this.changeTournamentName(`Tournament ${tournamentNames[Object.keys(this.tournaments).length - 1]}`);
         },
@@ -273,8 +283,7 @@ export const useMainStore = defineStore('main', {
                 });
         },
         addBTournament(teams, name, isGroupB) {
-            newTournament.teams = teams;
-            this.addTournament();
+            this.addTournament({teams: [...teams]});
             if (name) {
                 this.changeTournamentName(name);
             }
@@ -282,7 +291,6 @@ export const useMainStore = defineStore('main', {
                 this.tournaments[this.currentTournamentIndex].isGroupB = true;
                 this.syncToFirebase();
             }
-            newTournament.teams = [];
         },
         saveTournamentData() {
             this.showMessage({title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentDataSaved')});

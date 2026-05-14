@@ -134,11 +134,6 @@ export default {
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
     },
-    beforeUnmount() {
-        if (this._unsubscribe) {
-            this._unsubscribe();
-        }
-    },
     computed: {
         tabs() {
             return [

@@ -7,11 +7,11 @@ import StatResult from "@/components/stats/StatResult.vue";
 import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 import Loader from "@/components/Loader";
-import {ArrowLeft, BarChart3, Trash2, Tag, X} from "lucide-vue-next";
+import {BarChart3, Trash2, Tag, X} from "lucide-vue-next";
 export default {
     name: "StatsArchive",
     props: ['tags'],
-    components: {Loader, ConfirmRemoveModal, StatsAnalysis, StatResult, ArrowLeft, BarChart3, Trash2, Tag, X},
+    components: {Loader, ConfirmRemoveModal, StatsAnalysis, StatResult, BarChart3, Trash2, Tag, X},
     data() {
         return {
             isLoading: false,
@@ -123,10 +123,6 @@ export default {
         <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
 
         <div class="archive__header">
-            <button class="archive__btn archive__btn--back" @click="$emit('close')">
-                <ArrowLeft :size="16"/>
-                {{$t('stat.back')}}
-            </button>
             <button class="archive__btn archive__btn--analysis" @click="showStatAnalysis = !showStatAnalysis">
                 <BarChart3 :size="16"/>
                 {{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}
@@ -305,6 +301,7 @@ export default {
 
 .archive__filter-tag:hover {
     border-color: var(--color-primary);
+    background: var(--color-primary-bg);
     color: var(--color-primary);
 }
 
@@ -312,6 +309,11 @@ export default {
     background: var(--color-primary);
     color: var(--color-btn-text);
     border-color: var(--color-primary);
+}
+
+.archive__filter-tag--active:hover {
+    background: var(--color-primary-light);
+    color: var(--color-btn-text);
 }
 
 .archive__filter-clear {

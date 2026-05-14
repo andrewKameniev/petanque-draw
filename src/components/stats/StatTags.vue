@@ -1,21 +1,13 @@
 <template>
-    <div v-if="tags">
-        <div class="columns">
-            <div class="column is-half">
-                <div class="field control">
-                    <input v-model="tagName" class="input is-small" type="text" id="tagName" placeholder="Tag name" @keyup.enter="addTag">
-                </div>
-            </div>
-            <div class="column">
-                <div class="field control">
-                    <button class="button is-success is-small" @click="addTag">Add</button>
-                </div>
-            </div>
+    <div class="stat-tags">
+        <div class="stat-tags__form">
+            <input v-model="tagName" class="stat-tags__input" type="text" id="tagName" :placeholder="$t('stat.tagName')" @keyup.enter="addTag">
+            <button class="stat-tags__add-btn" @click="addTag">{{ $t('stat.addTag') }}</button>
         </div>
-        <div class="tags" v-if="Object.keys(tags).length > 0">
-            <span class="tag is-rounded is-white" v-for="(tag, key) in tags" :key="key">
+        <div class="stat-tags__list" v-if="tags && Object.keys(tags).length > 0">
+            <span class="stat-tags__chip" v-for="(tag, key) in tags" :key="key">
               {{ tag }}
-              <button class="delete is-small" @click="removeTag(key)"></button>
+              <button class="stat-tags__remove" @click="removeTag(key)"><X :size="10"/></button>
             </span>
         </div>
     </div>
@@ -24,9 +16,11 @@
 import {statsService} from "@/services/db";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
+import {X} from "lucide-vue-next";
 
 export default {
     name: "StatTags",
+    components: {X},
     props: ['tags'],
     data() {
         return {
@@ -70,6 +64,81 @@ export default {
     }
 }
 </script>
-<style>
+<style scoped>
+.stat-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
 
+.stat-tags__form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.stat-tags__input {
+    flex: 1;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-input);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.stat-tags__input:focus {
+    border-color: var(--color-primary);
+}
+
+.stat-tags__add-btn {
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    border: none;
+    background: var(--color-success);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.stat-tags__add-btn:hover {
+    background: var(--color-success-hover);
+}
+
+.stat-tags__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.stat-tags__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.stat-tags__remove {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+.stat-tags__remove:hover {
+    opacity: 1;
+}
 </style>

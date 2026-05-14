@@ -36,8 +36,8 @@
                             <template v-for="(round, index) in tournament.games" :key="index">
                                 <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
                                     <tr v-for="(game, i) in round" :key="i">
-                                        <td class="is-narrow round-group-cell">
-                                            <small class="has-text-grey">R{{index + 1}}</small>
+                                        <td v-if="selectedRound === -1 || isForProtocol" class="is-narrow round-group-cell">
+                                            <small class="round-badge">R{{index + 1}}</small>
                                             <small v-if="hasGroupsColumn" class="group-label">{{ groupsNames[game.group] }}</small>
                                         </td>
                                         <td v-if="hasGroupsColumn" class="group-cell-desktop"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
@@ -200,6 +200,19 @@ export default {
     text-align: center;
     min-width: 70px;
     padding: 0 0.75rem;
+}
+
+.round-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 4px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-muted);
 }
 
 .group-label {

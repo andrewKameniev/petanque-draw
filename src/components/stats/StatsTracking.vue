@@ -36,15 +36,15 @@
         </div>
         <hr>
         <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
-                  @update-score="$emit('updateScore', $event)" @removethrow="$emit('removeThrow', $event)" @addthrow="$emit('addThrow', $event)"
-                  @x2throw="$emit('x2Throw', $event)" @next="$emit('next')"
-                  @updatethrow="$emit('updateThrow', $event)" @changePlayer="$emit('changePlayer', $event)"
+                  @update-score="(...args) => $emit('updateScore', ...args)" @removethrow="(...args) => $emit('removeThrow', ...args)" @addthrow="(...args) => $emit('addThrow', ...args)"
+                  @x2throw="(...args) => $emit('x2Throw', ...args)" @next="$emit('next')"
+                  @updatethrow="(...args) => $emit('updateThrow', ...args)" @changePlayer="(...args) => $emit('changePlayer', ...args)"
         />
         <hr>
         <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
-                  @update-score="$emit('updateScore', $event)" @removethrow="$emit('removeThrow', $event)" @addthrow="$emit('addThrow', $event)"
-                  @x2throw="$emit('x2Throw', $event)" @next="$emit('next')"
-                  @updatethrow="$emit('updateThrow', $event)" @changePlayer="$emit('changePlayer', $event)"
+                  @update-score="(...args) => $emit('updateScore', ...args)" @removethrow="(...args) => $emit('removeThrow', ...args)" @addthrow="(...args) => $emit('addThrow', ...args)"
+                  @x2throw="(...args) => $emit('x2Throw', ...args)" @next="$emit('next')"
+                  @updatethrow="(...args) => $emit('updateThrow', ...args)" @changePlayer="(...args) => $emit('changePlayer', ...args)"
         />
         <div class="is-flex is-justify-content-space-between mt-3">
             <button class="button is-info" @click="$emit('prev')" v-if="currentMan >= 1">{{ $t('stat.prev') }}</button>

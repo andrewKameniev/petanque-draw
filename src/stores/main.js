@@ -9,7 +9,6 @@ const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTo
 const newTournament = {
     name: 'Tournament A',
     games: [],
-    gamesCopy: [],
     teams: [],
     system: 'swiss',
     roundIsActive: false,
@@ -183,10 +182,6 @@ export const useMainStore = defineStore('main', {
                 this.tournaments[this.currentTournamentIndex].games = []
             }
             this.tournaments[this.currentTournamentIndex].games.push(round);
-            if (!this.tournaments[this.currentTournamentIndex].gamesCopy) {
-                this.tournaments[this.currentTournamentIndex].gamesCopy = []
-            }
-            this.tournaments[this.currentTournamentIndex].gamesCopy.push(round);
             this.tournaments[this.currentTournamentIndex].roundIsActive = true;
             this.saveLanesToTeams(round);
             this.syncToFirebase();

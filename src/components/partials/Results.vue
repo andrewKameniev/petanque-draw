@@ -27,7 +27,7 @@
                         </button>
                     </div>
                     <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1 btn-bracket" @click="showBracket = true">
-                        <GitBranch :size="16" class="btn-bracket__icon"/>
+                        <GitBranch :size="14" class="btn-bracket__icon"/>
                         <span class="btn-bracket__label">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
@@ -268,5 +268,13 @@ export default {
     .btn-bracket__label {
         display: none;
     }
+
+    .btn-bracket {
+        padding: 0 0.5rem;
+    }
+}
+
+.btn-bracket__icon {
+    flex-shrink: 0;
 }
 </style>

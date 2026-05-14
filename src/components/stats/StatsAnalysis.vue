@@ -5,7 +5,7 @@ import VueSelect from "vue3-select-component";
 import "vue3-select-component/dist/styles.css";
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
-import {calculatePlayerStat, getDate} from "@/helpers-stat";
+import {calculatePlayerStat, getDate, extractPlayers} from "@/helpers-stat";
 import VueApexCharts from 'vue3-apexcharts';
 import {gameTypes, throwDistances} from "@/helpers-stat.js"
 import {X} from "lucide-vue-next";
@@ -99,15 +99,7 @@ export default {
             };
         },
         playersList() {
-            if (!this.stats) return [];
-            const names = new Set();
-
-            Object.values(this.stats).forEach(game => {
-                game.team1.players.forEach(p => { if (p?.name?.trim()) names.add(p.name.trim()); });
-                game.team2.players.forEach(p => { if (p?.name?.trim()) names.add(p.name.trim()); });
-            });
-
-            return [...names].sort().map(name => ({ label: name, value: name }));
+            return extractPlayers(this.stats).map(name => ({ label: name, value: name }));
         }
     },
     methods: {

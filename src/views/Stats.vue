@@ -161,7 +161,7 @@ import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsSetup from "@/components/stats/StatsSetup.vue";
 import StatsTracking from "@/components/stats/StatsTracking.vue";
-import {gameTypes} from "@/helpers-stat.js"
+import {gameTypes, validateScore} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
 import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft} from "lucide-vue-next";
 
@@ -426,18 +426,12 @@ export default {
             team.players[playerIndex].stat[manIndex][throwIndex][type] = value
         },
         updateTeamScore(team, newScore, manIndex) {
-            const maxPerMan = this.gameType === 1 ? 3 : 6;
-            let score = Math.max(0, Math.min(newScore || 0, maxPerMan));
-
-            // Only one team can score per man
             const otherTeam = team === this.team1 ? this.team2 : this.team1;
+            const score = validateScore(this.gameType, team.score, manIndex, newScore);
+
             if (score > 0) {
                 otherTeam.score[manIndex] = 0;
             }
-
-            // Cap so total never exceeds 13
-            const prevTotal = (team === this.team1 ? this.team1 : this.team2).score.reduce((a, b, i) => a + (i === manIndex ? 0 : b), 0);
-            score = Math.min(score, 13 - prevTotal);
 
             team.score[manIndex] = score;
         },

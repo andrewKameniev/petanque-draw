@@ -30,6 +30,8 @@ export default {
             copyProtocol: 'Copy protocol',
             exportPdf: 'Export to PDF',
             restoreTeams: 'Restore last teams',
+            searchTeam: 'Search participant...',
+            noResults: 'Not found',
         },
         games: {
             technical: 'Technical',
@@ -613,6 +615,8 @@ export default {
             copyProtocol: 'Скопіювати протокол',
             exportPdf: 'Експортувати в PDF',
             restoreTeams: 'Відновити останні команди',
+            searchTeam: 'Шукати учасника...',
+            noResults: 'Не знайдено',
         },
         remote: {
             remoteAvailabilities: 'Можливості для віддаленого керування',

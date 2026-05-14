@@ -7,11 +7,32 @@
         <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
             <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')"/>
             <template v-else-if="playOffStageCurrent && playOffStageCurrent !== 0 && currentPlayOffBracketIndex >= 0 && playOffBracket.stages?.[currentPlayOffBracketIndex]">
-                <h2 class="text-center" data-testid="playoff-stage-heading">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
+                <div class="playoff-stage-header">
+                    <h2 class="text-center playoff-stage-title" data-testid="playoff-stage-heading">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
+                    <div class="playoff-search-wrapper">
+                        <button class="playoff-search-btn" @click="showSearch = !showSearch" :class="{'playoff-search-btn--active': highlightedTeam}">
+                            <Search :size="16"/>
+                            <UserRound :size="16"/>
+                        </button>
+                        <div v-if="showSearch" class="playoff-search-popover">
+                            <input ref="searchInput" v-model="searchQuery" class="playoff-search-input" :placeholder="$t('teams.searchTeam')" @keydown.escape="showSearch = false"/>
+                            <ul class="playoff-search-list">
+                                <li v-for="team in filteredTeams" :key="team"
+                                    class="playoff-search-item"
+                                    :class="{'playoff-search-item--active': highlightedTeam === team}"
+                                    @click="selectTeam(team)">
+                                    {{ team }}
+                                </li>
+                                <li v-if="!filteredTeams.length" class="playoff-search-empty">{{ $t('teams.noResults') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
                       :lane-number="currentStageLaneOrder[ind]"
+                      :class="{'game--highlighted': highlightedTeam && (game.team_1 === highlightedTeam || game.team_2 === highlightedTeam)}"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
@@ -34,18 +55,26 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
 import Game from "@/components/partials/Game.vue";
-import {Save, GitFork} from "lucide-vue-next";
+import {Save, GitFork, Search, UserRound} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 
 export default {
     name: 'PlayOff',
     props: ['activeTournament', 'isPublicView', 'hideHeader'],
     emits: ['openResults'],
-    components: {Game, Bracket, Save, GitFork, FinishedBanner},
+    components: {Game, Bracket, Save, GitFork, Search, UserRound, FinishedBanner},
     data(){
         return {
             scoreError: false,
             showBracket: false,
+            showSearch: false,
+            searchQuery: '',
+            highlightedTeam: null,
+        }
+    },
+    watch: {
+        showSearch(val) {
+            if (val) this.$nextTick(() => this.$refs.searchInput?.focus());
         }
     },
     mounted() {
@@ -81,10 +110,30 @@ export default {
                 return stage.laneOrder;
             }
             return Array.from({length: stage?.teams?.length || 0}, (_, k) => k);
+        },
+        allParticipants() {
+            const teams = new Set();
+            this.playOffBracket?.stages?.forEach(stage => {
+                stage.teams?.forEach(game => {
+                    if (game.team_1) teams.add(game.team_1);
+                    if (game.team_2) teams.add(game.team_2);
+                });
+            });
+            return [...teams].sort();
+        },
+        filteredTeams() {
+            if (!this.searchQuery.trim()) return this.allParticipants;
+            const q = this.searchQuery.toLowerCase();
+            return this.allParticipants.filter(t => t.toLowerCase().includes(q));
         }
     },
     methods: {
         shuffleArray,
+        selectTeam(team) {
+            this.highlightedTeam = this.highlightedTeam === team ? null : team;
+            this.showSearch = false;
+            this.searchQuery = '';
+        },
         ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {
             this.scoreError = false;
@@ -221,5 +270,110 @@ export default {
     outline: none;
     box-shadow: 0 0 0 3px var(--color-primary-shadow) !important;
     border-color: transparent;
+}
+
+.playoff-stage-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.playoff-stage-title {
+    margin: 0 !important;
+}
+
+.playoff-search-wrapper {
+    position: relative;
+}
+
+.playoff-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    width: 40px;
+    height: 32px;
+    justify-content: center;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-text-muted, #6b7280);
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.playoff-search-btn:hover {
+    background: var(--color-text-secondary, #4b5563);
+}
+
+.playoff-search-btn--active {
+    background: var(--color-primary);
+}
+
+.playoff-search-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    width: 260px;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 100;
+    padding: 0.5rem;
+}
+
+.playoff-search-input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    outline: none;
+    background: var(--color-surface, #fff);
+    color: var(--color-text, #1a1a1a);
+}
+
+.playoff-search-input:focus {
+    border-color: var(--color-primary);
+}
+
+.playoff-search-list {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.playoff-search-item {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.playoff-search-item:hover {
+    background: var(--color-surface-hover, #f3f4f6);
+}
+
+.playoff-search-item--active {
+    background: var(--color-primary);
+    color: white;
+}
+
+.playoff-search-empty {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #9ca3af);
+}
+
+.game--highlighted {
+    outline: 2px solid var(--color-primary);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px var(--color-primary-shadow, rgba(124, 58, 237, 0.15));
 }
 </style>

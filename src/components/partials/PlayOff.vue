@@ -273,19 +273,21 @@ export default {
 }
 
 .playoff-stage-header {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
     margin-bottom: 1rem;
+}
+
+.playoff-search-wrapper {
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 .playoff-stage-title {
     margin: 0 !important;
-}
-
-.playoff-search-wrapper {
-    position: relative;
 }
 
 .playoff-search-btn {

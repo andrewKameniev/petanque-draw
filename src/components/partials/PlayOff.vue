@@ -304,6 +304,9 @@ export default {
     color: white;
     cursor: pointer;
     transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .playoff-search-btn svg {
@@ -316,9 +319,11 @@ export default {
 }
 
 .playoff-search-btn:focus,
+.playoff-search-btn:focus-visible,
 .playoff-search-btn:active {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
     background: var(--color-text-muted, #6b7280);
 }
 

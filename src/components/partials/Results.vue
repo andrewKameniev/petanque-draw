@@ -27,8 +27,8 @@
                         </button>
                     </div>
                     <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1 btn-bracket" @click="showBracket = true">
-                        <GitBranch :size="14" class="btn-bracket__icon"/>
-                        <span class="btn-bracket__label">{{ $t('games.showBracket') }}</span>
+                        <GitBranch :size="14" class="btn-bracket__icon is-hidden-tablet"/>
+                        <span class="btn-bracket__label is-hidden-mobile">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
@@ -264,17 +264,4 @@ export default {
     gap: 0.35rem;
 }
 
-@media screen and (max-width: 768px) {
-    .btn-bracket__label {
-        display: none;
-    }
-
-    .btn-bracket {
-        padding: 0 0.5rem;
-    }
-}
-
-.btn-bracket__icon {
-    flex-shrink: 0;
-}
 </style>

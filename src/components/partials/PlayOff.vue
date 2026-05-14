@@ -6,7 +6,7 @@
         </div>
         <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
             <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')"/>
-            <template v-else-if="playOffStageCurrent !== 0">
+            <template v-else-if="playOffStageCurrent !== 0 && playOffStageCurrent !== null && currentPlayOffBracketIndex >= 0">
                 <h2 class="text-center" data-testid="playoff-stage-heading">{{playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')}}</h2>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
                       :active-tournament="tournament"
@@ -49,7 +49,7 @@ export default {
         }
     },
     mounted() {
-        if(!this.tournament.playOffBracket){
+        if(!this.tournament.playOffBracket && this.tournament.playOff?.length){
             this.getPlayOffBracket();
         }
     },
@@ -59,7 +59,8 @@ export default {
             return this.activeTournament || this.currentTournament
         },
         playOffStageCurrent() {
-            return 'playOffStage' in this.tournament ? this.tournament.playOffStage : this.tournament.playOff[0].stage
+            if ('playOffStage' in this.tournament) return this.tournament.playOffStage
+            return this.tournament.playOff?.[0]?.stage ?? null
         },
         playOffBracket() {
             return this.tournament.playOffBracket ? this.tournament.playOffBracket : null
@@ -68,10 +69,10 @@ export default {
             return Math.log(this.tournament.playOff.length * 2) / Math.log(2);
         },
         currentPlayOffBracketIndex(){
-            if(this.tournament.playOffBracket){
+            if(this.tournament.playOffBracket?.stages){
                 return this.tournament.playOffBracket.stages.findIndex(item => item.stageLabel === this.playOffStageCurrent)
             } else {
-                return '0'
+                return 0
             }
         },
         currentStageLaneOrder() {

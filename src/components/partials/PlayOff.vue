@@ -74,8 +74,24 @@ export default {
     },
     watch: {
         showSearch(val) {
-            if (val) this.$nextTick(() => this.$refs.searchInput?.focus());
+            if (val) {
+                this.$nextTick(() => this.$refs.searchInput?.focus());
+                document.addEventListener('click', this._onClickOutside);
+            } else {
+                document.removeEventListener('click', this._onClickOutside);
+            }
         }
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this._onClickOutside);
+    },
+    created() {
+        this._onClickOutside = (e) => {
+            const wrapper = this.$el?.querySelector('.playoff-search-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                this.showSearch = false;
+            }
+        };
     },
     mounted() {
         if(!this.tournament.playOffBracket && this.tournament.playOff?.length){
@@ -300,7 +316,7 @@ export default {
     justify-content: center;
     border: none;
     border-radius: 12px;
-    background: var(--color-border, #d1d5db);
+    background: var(--color-text-muted, #9ca3af);
     color: white;
     cursor: pointer;
     transition: background 0.15s;

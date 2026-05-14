@@ -106,6 +106,7 @@ import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "
 export default {
     components: {Modal, ThrowResult},
     props: ['team', 'currentMan', 'iterator', 'showThrow', 'system', 'isCouch'],
+    emits: ['update-score', 'removethrow', 'addthrow', 'x2throw', 'updatethrow', 'next', 'changePlayer'],
     data() {
         return {
             changePlayerModalOpen: false,

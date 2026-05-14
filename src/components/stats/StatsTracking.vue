@@ -36,15 +36,15 @@
         </div>
         <hr>
         <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
-                  @update-score="(...args) => $emit('updateScore', ...args)" @removethrow="(...args) => $emit('removeThrow', ...args)" @addthrow="(...args) => $emit('addThrow', ...args)"
-                  @x2throw="(...args) => $emit('x2Throw', ...args)" @next="$emit('next')"
-                  @updatethrow="(...args) => $emit('updateThrow', ...args)" @changePlayer="(...args) => $emit('changePlayer', ...args)"
+                  @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
+                  @x2throw="onX2Throw" @next="$emit('next')"
+                  @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer"
         />
         <hr>
         <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
-                  @update-score="(...args) => $emit('updateScore', ...args)" @removethrow="(...args) => $emit('removeThrow', ...args)" @addthrow="(...args) => $emit('addThrow', ...args)"
-                  @x2throw="(...args) => $emit('x2Throw', ...args)" @next="$emit('next')"
-                  @updatethrow="(...args) => $emit('updateThrow', ...args)" @changePlayer="(...args) => $emit('changePlayer', ...args)"
+                  @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
+                  @x2throw="onX2Throw" @next="$emit('next')"
+                  @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer"
         />
         <div class="is-flex is-justify-content-space-between mt-3">
             <button class="button is-info" @click="$emit('prev')" v-if="currentMan >= 1">{{ $t('stat.prev') }}</button>
@@ -79,6 +79,24 @@ export default {
         }
     },
     methods: {
+        onUpdateScore(team, score, manIndex) {
+            this.$emit('updateScore', team, score, manIndex);
+        },
+        onRemoveThrow(team, playerIndex, manIndex, throwIndex) {
+            this.$emit('removeThrow', team, playerIndex, manIndex, throwIndex);
+        },
+        onAddThrow(team, playerIndex, manIndex, throwIndex) {
+            this.$emit('addThrow', team, playerIndex, manIndex, throwIndex);
+        },
+        onX2Throw(team, playerIndex, manIndex, throwIndex, value) {
+            this.$emit('x2Throw', team, playerIndex, manIndex, throwIndex, value);
+        },
+        onUpdateThrow(team, playerIndex, manIndex, throwIndex, type, value) {
+            this.$emit('updateThrow', team, playerIndex, manIndex, throwIndex, type, value);
+        },
+        onChangePlayer(iterator, playerIndex, playerName) {
+            this.$emit('changePlayer', iterator, playerIndex, playerName);
+        },
         onTouchStart(event) {
             this.startX = event.touches[0].clientX;
             this.startY = event.touches[0].clientY;

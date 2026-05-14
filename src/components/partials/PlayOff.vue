@@ -1,6 +1,6 @@
 <template>
     <div v-if="tournament" :class="{'container': !isPublicView || playOffStageCurrent !== 0, 'content': activeTournament && (!isPublicView || playOffStageCurrent !== 0)}">
-        <div class="is-flex is-justify-content-space-between is-align-content-center" v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)">
+        <div class="is-flex is-justify-content-space-between is-align-items-center" v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)">
             <h2 v-if="playOffStageCurrent !== 0">{{ $t('games.playOff') }}</h2>
             <button v-if="!isPublicView && playOffStageCurrent !== 0" class="button btn-purple-outline" @click="showBracket = true"><GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
         </div>

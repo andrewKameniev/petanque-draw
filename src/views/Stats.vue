@@ -296,6 +296,7 @@ export default {
                 team1: {...this.team1},
                 team2: {...this.team2},
                 currentMan: this.currentMan,
+                manDistance: this.manDistance,
                 tags: this.gameTags,
             };
             this.persistGames();
@@ -311,6 +312,7 @@ export default {
             this.team1 = {...game.team1};
             this.team2 = {...game.team2};
             this.currentMan = game.currentMan;
+            this.manDistance = game.manDistance || null;
             this.gameTags = game.tags || [];
             this.activeGameIndex = index;
         },
@@ -332,6 +334,7 @@ export default {
             this.statSystem = statSystem;
             this.asCouch = asCouch;
             this.gameTags = gameTags;
+            this.manDistance = null;
             this.currentMan = 0;
 
             // Save as new active game

@@ -93,6 +93,10 @@ export default {
     watch: {
         localManDistance(newValue) {
             this.$emit('distanceChange', newValue);
+        },
+        currentMan() {
+            const throws = this.team1.players?.[0]?.stat?.[this.currentMan];
+            this.localManDistance = throws?.[0]?.distance || null;
         }
     },
     methods: {

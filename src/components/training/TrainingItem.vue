@@ -235,10 +235,10 @@ export default {
             </div>
             <div class="is-flex">
                 <button @click="currentDistance--" class="button is-info" v-if="currentDistance > 0">
-                    {{$t('stat.prev')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+                    {{ data.distanceFirst ? $t('training.prevAttempt') : $t('training.prevDistance') }}
                 </button>
                 <button @click="nextAttempt()" class="ml-auto button is-success" v-if="currentDistance < (data.distanceFirst ? data.length - 1 : data.distances.length - 1)">
-                    {{$t('stat.next')}} {{ data.distanceFirst ? $t('training.attempt') : $t('training.distance')}}
+                    {{ data.distanceFirst ? $t('training.nextAttempt') : $t('training.nextDistance') }}
                 </button>
             </div>
         </div>
@@ -250,7 +250,7 @@ export default {
 .gost-throw {
     width: 32px;
     height: 32px;
-    border: solid 1px;
+    border: solid 1px var(--color-border-medium);
     border-radius: 7px;
     cursor: pointer;
 }
@@ -259,7 +259,7 @@ export default {
     display: flex;
     flex-direction: column;
     padding: 0.5rem;
-    background: rgba(255,255,255,0.2);
+    background: var(--color-surface-semi);
     border-radius: 0.25rem;
 }
 
@@ -267,7 +267,7 @@ export default {
     border-top: 0;
 }
 .training-item-cell {
-    border: solid 1px #fff;
+    border: solid 1px var(--color-border-medium);
     padding: 0.5rem;
 }
 

@@ -372,7 +372,7 @@ export default {
 .tournament-info-message {
     margin-bottom: 0.4rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-public-separator);
     margin-right: -5.75rem;
 }
 
@@ -401,7 +401,7 @@ export default {
 }
 
 .badge-not-started {
-    background: #f0ad4e;
+    background: var(--color-warning-border);
     color: var(--color-white);
 }
 
@@ -446,7 +446,7 @@ export default {
 
 .wrapper {
     position: relative;
-    background: #f4f4f4;
+    background: var(--color-body-bg);
 }
 
 .wrapper::before {
@@ -458,6 +458,10 @@ export default {
     opacity: 0.5;
     z-index: 0;
     pointer-events: none;
+}
+
+[data-theme="dark"] .wrapper::before {
+    opacity: 0.05;
 }
 
 .wrapper > * {
@@ -483,7 +487,7 @@ export default {
 .playoff-public-wrapper h3 {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #555;
+    color: var(--color-public-text-muted);
     margin-top: 1rem;
     margin-bottom: 0.5rem;
 }
@@ -542,12 +546,12 @@ export default {
     align-items: center;
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    background: #f7f7f7;
-    border: 1px solid #e8e8e8;
+    background: var(--color-public-surface);
+    border: 1px solid var(--color-public-surface-border);
 }
 
 .match-item:nth-child(odd) {
-    background: #ffffff;
+    background: var(--color-public-surface-white);
 }
 
 .match-team {

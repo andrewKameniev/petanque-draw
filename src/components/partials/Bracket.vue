@@ -342,22 +342,22 @@ export default {
 }
 
 .bracket-modal {
-    --bracket-winner: rgba(16, 185, 129, 0.12);
-    --bracket-winner-score: rgba(16, 185, 129, 0.22);
-    --bracket-gold: rgba(255, 197, 0, 0.18);
-    --bracket-gold-score: rgba(255, 197, 0, 0.3);
-    --bracket-silver: rgba(192, 192, 192, 0.25);
-    --bracket-silver-score: rgba(192, 192, 192, 0.4);
-    --bracket-bronze: rgba(205, 127, 50, 0.15);
-    --bracket-bronze-score: rgba(205, 127, 50, 0.25);
-    --bracket-loser: rgba(255, 255, 255, 1);
-    --bracket-loser-score: rgba(0, 0, 0, 0.07);
-    --bracket-text: #333;
-    --bracket-divider: #eee;
-    --bracket-connector: #ccc;
-    --bracket-badge: #aaa;
+    --bracket-winner: var(--color-bracket-winner);
+    --bracket-winner-score: var(--color-bracket-winner-score);
+    --bracket-gold: var(--color-bracket-gold);
+    --bracket-gold-score: var(--color-bracket-gold-score);
+    --bracket-silver: var(--color-bracket-silver);
+    --bracket-silver-score: var(--color-bracket-silver-score);
+    --bracket-bronze: var(--color-bracket-bronze);
+    --bracket-bronze-score: var(--color-bracket-bronze-score);
+    --bracket-loser: var(--color-bracket-loser);
+    --bracket-loser-score: var(--color-bracket-loser-score);
+    --bracket-text: var(--color-bracket-text);
+    --bracket-divider: var(--color-bracket-divider);
+    --bracket-connector: var(--color-bracket-connector);
+    --bracket-badge: var(--color-bracket-badge);
 
-    background: white;
+    background: var(--color-surface);
     border-radius: 8px;
     max-width: 95vw;
     max-height: 90vh;
@@ -373,7 +373,7 @@ export default {
 }
 
 .game-box {
-    fill: #fff;
+    fill: var(--color-surface-alt);
     stroke: var(--bracket-connector);
     stroke-width: 1;
 }
@@ -405,7 +405,7 @@ export default {
 
 .place-text {
     font-size: 9px;
-    fill: #fff;
+    fill: var(--color-surface);
     text-anchor: middle;
     dominant-baseline: central;
 }

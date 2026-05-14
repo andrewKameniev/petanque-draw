@@ -84,8 +84,8 @@ export default {
     font-weight: 700;
     margin: 0;
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--color-border, #eee);
-    color: var(--color-text, #1a1a1a);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
 }
 
 .prefs__body {
@@ -100,7 +100,7 @@ export default {
 
 .prefs__item {
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border, #eee);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .prefs__item:last-child {
@@ -112,14 +112,14 @@ export default {
     display: block;
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
     margin-bottom: 0.4rem;
 }
 
 .prefs__hint {
     display: block;
     font-size: 0.75rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     line-height: 1.3;
     margin-top: 0.3rem;
 }
@@ -138,7 +138,7 @@ export default {
 
 .prefs__input-label {
     font-size: 0.7rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
@@ -147,9 +147,10 @@ export default {
     width: 100%;
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: var(--color-bg-input, #fafafa);
+    background: var(--color-bg-input);
+    color: var(--color-text);
     outline: none;
     transition: border-color 0.2s;
 }
@@ -182,7 +183,7 @@ export default {
     border-radius: 6px;
     border: none;
     background: var(--color-primary);
-    color: white;
+    color: var(--color-btn-text);
     cursor: pointer;
     transition: background 0.15s;
 }
@@ -193,23 +194,23 @@ export default {
 
 .prefs__btn--cancel {
     background: transparent;
-    border: 1px solid var(--color-border, #e0e0e0);
-    color: var(--color-text-secondary, #555);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
 }
 
 .prefs__btn--cancel:hover {
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
     border-color: var(--color-text-muted);
 }
 
 .prefs__btn--danger {
     background: transparent;
-    border: 1px solid var(--color-error, #ef4444);
-    color: var(--color-error, #ef4444);
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
 }
 
 .prefs__btn--danger:hover {
-    background: var(--color-error, #ef4444);
-    color: #fff;
+    background: var(--color-error);
+    color: var(--color-btn-text);
 }
 </style>

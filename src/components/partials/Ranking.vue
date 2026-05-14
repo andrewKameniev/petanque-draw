@@ -268,7 +268,7 @@ export default {
 
 .btn-purple-outline:hover {
     background: var(--color-primary);
-    color: var(--color-white, #fff);
+    color: var(--color-btn-text);
 }
 
 .btn-purple-outline:focus {
@@ -286,8 +286,8 @@ export default {
 }
 
 .btn-purple-outline--copied {
-    color: var(--color-text-muted, #888) !important;
-    border-color: var(--color-border, #e0e0e0) !important;
+    color: var(--color-text-muted) !important;
+    border-color: var(--color-border) !important;
     background: transparent !important;
 }
 
@@ -302,8 +302,8 @@ export default {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(71, 26, 160, 0.85);
-    color: var(--color-white);
+    background: var(--color-ranking-primary-bg);
+    color: var(--color-btn-text);
     padding: 0.4rem 0.75rem;
     border-radius: 6px;
     font-size: 0.75rem;
@@ -324,27 +324,27 @@ export default {
 }
 
 .place-gold td {
-    background: rgba(255, 197, 0, 0.18) !important;
+    background: var(--color-badge-gold-bg) !important;
 }
 
 .place-gold td:first-child {
-    border-left: 3px solid #f5c518;
+    border-left: 3px solid var(--color-badge-gold-border);
 }
 
 .place-silver td {
-    background: rgba(192, 192, 192, 0.25) !important;
+    background: var(--color-badge-silver-bg) !important;
 }
 
 .place-silver td:first-child {
-    border-left: 3px solid #aaa;
+    border-left: 3px solid var(--color-badge-silver-border);
 }
 
 .place-bronze td {
-    background: rgba(205, 127, 50, 0.15) !important;
+    background: var(--color-badge-bronze-bg) !important;
 }
 
 .place-bronze td:first-child {
-    border-left: 3px solid #cd7f32;
+    border-left: 3px solid var(--color-badge-bronze-border);
 }
 
 .rating-badge {
@@ -356,7 +356,7 @@ export default {
     font-size: 0.75rem;
     font-weight: 700;
     border-radius: 10px;
-    background: #f0e6ff;
+    background: var(--color-badge-purple);
     color: var(--color-primary);
 }
 </style>

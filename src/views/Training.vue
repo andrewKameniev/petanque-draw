@@ -171,9 +171,13 @@ export default {
 <style>
 
 .exercise-item {
-    background: rgba(255,255,255,0.5);
+    background: var(--color-surface-semi);
     border-radius: 0.5rem;
     cursor: pointer;
+}
+
+[data-theme="dark"] .exercise-item {
+    border: 1px solid var(--color-primary);
 }
 
 </style>

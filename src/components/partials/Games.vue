@@ -295,29 +295,36 @@ export default {
 
 .draw-card__links {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.5rem;
     flex-wrap: nowrap;
     white-space: nowrap;
 }
 
+@media screen and (max-width: 768px) {
+    .draw-card__links {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
+
 .draw-card__link {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 600;
     text-decoration: underline;
 }
 
 .draw-card__link--draw {
-    color: #0EA5E9;
+    color: var(--color-info);
 }
 
 .draw-card__link--restore {
-    color: #e07070;
+    color: var(--color-danger-light);
 }
 
 .draw-card__or {
-    font-size: 0.85rem;
-    color: var(--color-text-muted, #888);
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
 }
 
 
@@ -332,12 +339,12 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border, #e5e7f0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--color-text-secondary, #374151);
+    color: var(--color-text-secondary);
     cursor: pointer;
     padding: 0.5rem 0.9rem;
     transition: all 0.15s;

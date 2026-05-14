@@ -27,18 +27,18 @@ export default {
 }
 
 .finished-banner__icon {
-    color: #f5a623;
+    color: var(--color-warning);
     flex-shrink: 0;
 }
 
 .finished-banner__text {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
 }
 
 .finished-banner__dot {
-    color: var(--color-text-muted, #999);
+    color: var(--color-text-muted);
 }
 
 .finished-banner__link {

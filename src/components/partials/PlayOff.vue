@@ -15,11 +15,11 @@
                             <UserRound :size="16"/>
                         </button>
                         <div v-if="showSearch" class="playoff-search-popover">
-                            <input ref="searchInput" v-model="searchQuery" class="playoff-search-input" :placeholder="$t('teams.searchTeam')" @keydown.escape="showSearch = false"/>
+                            <input ref="searchInput" v-model="searchQuery" class="playoff-search-input" :placeholder="$t('teams.searchTeam')" @keydown.escape="showSearch = false" @keydown.enter="applySearch"/>
                             <ul class="playoff-search-list">
                                 <li v-for="team in filteredTeams" :key="team"
                                     class="playoff-search-item"
-                                    :class="{'playoff-search-item--active': highlightedTeam === team}"
+                                    :class="{'playoff-search-item--active': isTeamHighlighted(team)}"
                                     @click="selectTeam(team)">
                                     {{ team }}
                                 </li>
@@ -32,7 +32,7 @@
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
                       :lane-number="currentStageLaneOrder[ind]"
-                      :class="{'game--highlighted': highlightedTeam && (game.team_1 === highlightedTeam || game.team_2 === highlightedTeam)}"
+                      :class="{'game--highlighted': isGameHighlighted(game)}"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
@@ -149,6 +149,23 @@ export default {
             this.highlightedTeam = this.highlightedTeam === team ? null : team;
             this.showSearch = false;
             this.searchQuery = '';
+        },
+        applySearch() {
+            if (this.searchQuery.trim()) {
+                this.highlightedTeam = this.searchQuery.trim();
+                this.showSearch = false;
+            }
+        },
+        isTeamHighlighted(team) {
+            if (!this.highlightedTeam) return false;
+            const q = this.highlightedTeam.toLowerCase();
+            return team.toLowerCase().includes(q);
+        },
+        isGameHighlighted(game) {
+            if (!this.highlightedTeam) return false;
+            const q = this.highlightedTeam.toLowerCase();
+            return (game.team_1 && game.team_1.toLowerCase().includes(q)) ||
+                   (game.team_2 && game.team_2.toLowerCase().includes(q));
         },
         ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {

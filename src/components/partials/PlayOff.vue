@@ -127,6 +127,14 @@ export default {
             }
             return Array.from({length: stage?.teams?.length || 0}, (_, k) => k);
         },
+        teamClubMap() {
+            const map = {};
+            this.tournament.teams?.forEach(t => {
+                const club = t.players?.[0]?.club;
+                if (club) map[t.title] = club;
+            });
+            return map;
+        },
         allParticipants() {
             const teams = new Set();
             this.playOffBracket?.stages?.forEach(stage => {
@@ -140,7 +148,10 @@ export default {
         filteredTeams() {
             if (!this.searchQuery.trim()) return this.allParticipants;
             const q = this.searchQuery.toLowerCase();
-            return this.allParticipants.filter(t => t.toLowerCase().includes(q));
+            return this.allParticipants.filter(t =>
+                t.toLowerCase().includes(q) ||
+                (this.teamClubMap[t] && this.teamClubMap[t].toLowerCase().includes(q))
+            );
         }
     },
     methods: {
@@ -156,16 +167,19 @@ export default {
                 this.showSearch = false;
             }
         },
+        teamMatchesQuery(team, q) {
+            if (!team) return false;
+            return team.toLowerCase().includes(q) ||
+                   (this.teamClubMap[team] && this.teamClubMap[team].toLowerCase().includes(q));
+        },
         isTeamHighlighted(team) {
             if (!this.highlightedTeam) return false;
-            const q = this.highlightedTeam.toLowerCase();
-            return team.toLowerCase().includes(q);
+            return this.teamMatchesQuery(team, this.highlightedTeam.toLowerCase());
         },
         isGameHighlighted(game) {
             if (!this.highlightedTeam) return false;
             const q = this.highlightedTeam.toLowerCase();
-            return (game.team_1 && game.team_1.toLowerCase().includes(q)) ||
-                   (game.team_2 && game.team_2.toLowerCase().includes(q));
+            return this.teamMatchesQuery(game.team_1, q) || this.teamMatchesQuery(game.team_2, q);
         },
         ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {

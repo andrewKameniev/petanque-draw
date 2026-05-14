@@ -217,8 +217,8 @@
                         <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}
                             <div class="select ml-3">
                                 <select v-model.number="tournament.preferences.playOffTeams">
-                                    <template v-for="value in teamToPlayOffValues" >
-                                        <option :value="value" :key="value"
+                                    <template v-for="value in teamToPlayOffValues" :key="value">
+                                        <option :value="value"
                                                 v-if="tournament.teams.length >= value">{{value}}</option>
                                     </template>
                                 </select>

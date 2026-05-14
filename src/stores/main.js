@@ -6,29 +6,32 @@ import i18n from "@/i18n";
 
 const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 
-const newTournament = {
-    name: 'Tournament A',
-    games: [],
-    teams: [],
-    system: 'swiss',
-    roundIsActive: false,
-    useRating: false,
-    playoff: false,
-    isCadrage: false,
-    supermelePlayers: 2,
-    tournamentIsFinished: false,
-    tournamentMessage: '',
-    preferences: {
-        technical: {
-            technicalFirst: 13,
-            technicalSecond: 7
+function createTournament(overrides = {}) {
+    return {
+        name: 'Tournament A',
+        games: [],
+        teams: [],
+        system: 'swiss',
+        roundIsActive: false,
+        useRating: false,
+        playoff: false,
+        isCadrage: false,
+        supermelePlayers: 2,
+        tournamentIsFinished: false,
+        tournamentMessage: '',
+        preferences: {
+            technical: {
+                technicalFirst: 13,
+                technicalSecond: 7
+            },
+            maxScore: 13,
+            playOffTeams: 8,
+            fieldsStart: 1,
+            withCadrage: false,
+            playB: false
         },
-        maxScore: 13,
-        playOffTeams: 8,
-        fieldsStart: 1,
-        withCadrage: false,
-        playB: false
-    }
+        ...overrides
+    };
 }
 
 export const useMainStore = defineStore('main', {
@@ -244,15 +247,14 @@ export const useMainStore = defineStore('main', {
         hideMessage() {
             this.message.show = false
         },
-        addTournament() {
+        addTournament(overrides = {}) {
             if (Object.keys(this.tournaments).length >= 10) {
                 this.showMessage({title: i18n.global.t('messages.notAvailable'), text: i18n.global.t('messages.maxTournaments'), type: 'error'});
                 return false
             }
             const tournamentId = Date.now();
-            newTournament.id = tournamentId;
-            newTournament.createdAt = new Date().toISOString();
-            this.tournaments[newTournament.id] = JSON.parse(JSON.stringify(newTournament));
+            const tournament = createTournament({id: tournamentId, createdAt: new Date().toISOString(), ...overrides});
+            this.tournaments[tournament.id] = tournament;
             this.currentTournamentIndex = tournamentId;
             this.changeTournamentName(`Tournament ${tournamentNames[Object.keys(this.tournaments).length - 1]}`);
         },
@@ -281,8 +283,7 @@ export const useMainStore = defineStore('main', {
                 });
         },
         addBTournament(teams, name, isGroupB) {
-            newTournament.teams = teams;
-            this.addTournament();
+            this.addTournament({teams: [...teams]});
             if (name) {
                 this.changeTournamentName(name);
             }
@@ -290,7 +291,6 @@ export const useMainStore = defineStore('main', {
                 this.tournaments[this.currentTournamentIndex].isGroupB = true;
                 this.syncToFirebase();
             }
-            newTournament.teams = [];
         },
         saveTournamentData() {
             this.showMessage({title: i18n.global.t('messages.saved'), text: i18n.global.t('messages.tournamentDataSaved')});

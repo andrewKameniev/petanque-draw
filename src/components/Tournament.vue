@@ -3,21 +3,21 @@
         <div class="remote-toolbar" v-if="user">
             <div class="remote-toolbar__actions">
                 <button class="remote-toolbar__btn" @click="showQrCode = true">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <Link :size="18"/>
                     <span class="is-hidden-mobile">{{ $t('remote.showLinks') }}</span>
                     <span class="is-hidden-tablet">{{ $t('remote.showLink') }}</span>
                 </button>
                 <button class="remote-toolbar__btn" :class="{'remote-toolbar__btn--active': showTypeMessage, 'remote-toolbar__btn--has-message': !showTypeMessage && tournament.tournamentMessage?.trim()}" @click="showTypeMessage = !showTypeMessage">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <MessageCircle :size="18"/>
                     {{ $t('remote.writeMessage') }}
-                    <svg class="remote-toolbar__chevron" :class="{'remote-toolbar__chevron--open': showTypeMessage}" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    <ChevronDown :size="14" class="remote-toolbar__chevron" :class="{'remote-toolbar__chevron--open': showTypeMessage}"/>
                 </button>
             </div>
             <progress class="progress is-small is-info" max="100" v-if="loadingOnServer">15%</progress>
             <Transition name="slide">
                 <div class="remote-toolbar__message" v-if="showTypeMessage">
                     <span v-if="messageSaved" class="message-saved-label">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <Check :size="14"/>
                         {{ $t('remote.messageSaved') }}
                     </span>
                     <textarea rows="3" v-model="tournament.tournamentMessage" class="remote-toolbar__textarea" :placeholder="$t('remote.writeMessage') + '...'" @input="onMessageInput"></textarea>
@@ -36,10 +36,10 @@
                                v-model="editNameValue" @keyup.enter="saveName" @keyup.escape="cancelEditName"
                                @input="nameError = false">
                         <button class="inline-name-btn inline-name-btn--save" @click="saveName" :title="$t('common.change')">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <Check :size="18"/>
                         </button>
                         <button class="inline-name-btn inline-name-btn--cancel" @click="cancelEditName" :title="$t('common.cancel')">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <X :size="18"/>
                         </button>
                     </div>
                     <span v-if="nameError" class="inline-name-error">{{ $t('modals.tournamentNameRequired') }}</span>
@@ -217,8 +217,8 @@
                         <div class="is-flex is-align-items-center">{{ $t('ranking.chooseNumberTeams') }}
                             <div class="select ml-3">
                                 <select v-model.number="tournament.preferences.playOffTeams">
-                                    <template v-for="value in teamToPlayOffValues" >
-                                        <option :value="value" :key="value"
+                                    <template v-for="value in teamToPlayOffValues" :key="value">
+                                        <option :value="value"
                                                 v-if="tournament.teams.length >= value">{{value}}</option>
                                     </template>
                                 </select>
@@ -336,8 +336,8 @@ import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2, ChevronDown} from "lucide-vue-next";
-import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups} from '@/services/draw';
+import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X} from "lucide-vue-next";
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups} from '@/services/draw';
 
 export default {
     name: 'Tournament',
@@ -502,26 +502,7 @@ export default {
                 const {groups, schemas} = createGroups(this.tournament, this.teamsInGroup);
                 this.tournament.groups = groups;
                 this.tournament.groupsScheme = schemas;
-                this.tournament.groups.forEach((group, index) => {
-                    const isTechnical = group.length % 2 !== 0;
-                    for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
-                        if (!isTechnical || (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
-                            round.push({
-                                group: index,
-                                team_1: group[this.tournament.groupsScheme[index].top[i]].title,
-                                team_1_score: null,
-                                team_2: group[this.tournament.groupsScheme[index].bottom[i]].title,
-                                team_2_score: null
-                            });
-                        }
-                    }
-                    this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1]);
-                    this.tournament.groupsScheme[index].top.unshift(this.tournament.groupsScheme[index].bottom[0]);
-                    this.tournament.groupsScheme[index].top.splice(this.tournament.groupsScheme[index].top.length - 1, 1);
-                    this.tournament.groupsScheme[index].top.splice(1, 1);
-                    this.tournament.groupsScheme[index].top.unshift(0);
-                    this.tournament.groupsScheme[index].bottom.splice(0, 1);
-                });
+                round = drawGroupsRound(this.tournament);
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
@@ -537,7 +518,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'savedTournaments']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'savedTournaments', 'allScoresFilled']),
         tournament() {
             return this.currentTournament
         },
@@ -571,11 +552,6 @@ export default {
             return this.tournament.games && this.tournament.games.length ?
                 this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1
                 : 1;
-        },
-        allScoresFilled() {
-            const games = this.tournament.games?.[this.activeRound - 1];
-            if (!games) return false;
-            return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
         },
         hasPlayOffConfigured() {
             return this.tournament.system === 'swiss' && this.tournament.preferences?.playOffTeams && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
@@ -611,7 +587,11 @@ export default {
         Results,
         Ranking,
         SaveTournament,
-        ChevronDown
+        ChevronDown,
+        Link,
+        MessageCircle,
+        Check,
+        X
     }
 }
 

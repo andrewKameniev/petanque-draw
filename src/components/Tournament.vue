@@ -242,7 +242,7 @@
                 <button v-if="tournament.roundIsActive" data-testid="btn-save-results" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
                     {{ $t('games.saveResults') }}
                 </button>
-                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="showPlayoffConfirm = true">
+                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="openPlayoffConfirm">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
                 <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-finish-tournament" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
@@ -421,6 +421,11 @@ export default {
                 this.syncToFirebase();
                 this.messageSaved = true;
             }, 1000);
+        },
+        openPlayoffConfirm() {
+            if (this.tournament.preferences?.playB) this.playB = true;
+            if (this.tournament.preferences?.withCadrage) this.withCadrage = true;
+            this.showPlayoffConfirm = true;
         },
         setPlayOffList() {
             const withCadrage = this.withCadrage;

@@ -1,3 +1,4 @@
+import {expect} from '@playwright/test';
 const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
 const TEST_PASSWORD = 'TestPass123!';
 
@@ -150,7 +151,11 @@ async function goToPlayOff(page, {playOffTeams, cadrage, playB} = {}) {
         if (await cb.isChecked()) await cb.click();
     }
     await page.locator('[data-testid="btn-confirm-playoff"]').click();
-    await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+    if (playB) {
+        await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+    } else {
+        await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+    }
 }
 
 async function goToCadrage(page) {

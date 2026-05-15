@@ -139,15 +139,21 @@ export default {
 
 <style scoped>
 .gost-throw {
-    width: 79px;
+    width: 84px;
     height: 32px;
-    border: solid 1px var(--color-border-medium);
-    border-radius: 7px;
+    border: 1.5px dashed var(--color-border-medium);
+    border-radius: 8px;
     cursor: pointer;
+    background: var(--color-bg-input);
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.gost-throw:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
 }
 
 .longpress-area {
-    width: 100%;
     position: relative;
     user-select: none;
 }
@@ -155,12 +161,14 @@ export default {
 .custom-menu {
     position: absolute;
     right: 0;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border-medium);
-    box-shadow: 0 4px 6px var(--color-card-shadow);
+    top: calc(100% + 4px);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px var(--color-dropdown-shadow);
     z-index: 1000;
-    width: 150px;
-    border-radius: 6px;
+    min-width: 140px;
+    border-radius: 8px;
+    padding: 0.25rem;
 }
 
 .custom-menu ul {
@@ -170,13 +178,17 @@ export default {
 }
 
 .custom-menu li {
-    padding: 8px 16px;
+    padding: 0.5rem 0.75rem;
     cursor: pointer;
     color: var(--color-text);
+    font-size: 0.8rem;
+    border-radius: 6px;
+    transition: background 0.15s;
 }
 
 .custom-menu li:hover {
-    background-color: var(--color-surface-hover);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
 }
 
 .checkbox-wrapper-10 .tgl {
@@ -199,20 +211,12 @@ export default {
 .checkbox-wrapper-10 .tgl + .tgl-btn {
     outline: 0;
     display: block;
-    font-size: 0.8em;
-    width: 32px;
-    height: 32px;
+    font-size: 0.75em;
+    width: 44px;
+    height: 28px;
     position: relative;
     cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
-}
-@media screen and (min-width: 501px) {
-    .checkbox-wrapper-10 .tgl + .tgl-btn {
-        width: 42px;
-    }
 }
 .checkbox-wrapper-10 .tgl + .tgl-btn:after,
 .checkbox-wrapper-10 .tgl + .tgl-btn:before {
@@ -245,22 +249,21 @@ export default {
     width: 100%;
     text-align: center;
     position: absolute;
-    line-height: 32px;
+    line-height: 28px;
     font-weight: bold;
     color: #fff;
     top: 0;
     left: 0;
-    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 .checkbox-wrapper-10 .tgl-flip + .tgl-btn:after {
     content: attr(data-tg-on);
-    background: #02C66F;
+    background: var(--color-stat-green);
     transform: rotateY(-180deg);
 }
 .checkbox-wrapper-10 .tgl-flip + .tgl-btn:before {
-    background: #1990ff;
+    background: var(--color-stat-blue);
     content: attr(data-tg-off);
 }
 .checkbox-wrapper-10 .tgl-flip + .tgl-btn:active:before {
@@ -272,7 +275,7 @@ export default {
 .checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:after {
     transform: rotateY(0);
     left: 0;
-    background: #7FC6A6;
+    background: var(--color-stat-green-light);
 }
 .checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:active:after {
     transform: rotateY(20deg);

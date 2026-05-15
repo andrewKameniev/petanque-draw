@@ -42,7 +42,7 @@ export default {
 }
 .checkbox-wrapper-44 .toggleButton input + span {
     display: block;
-    border: 3px solid var(--color-stat-checkbox);
+    border: 2px solid var(--color-text);
     border-radius: 50%;
     position: relative;
     width: 32px;
@@ -61,10 +61,10 @@ export default {
     height: 32px;
     display: block;
     position: absolute;
-    left: -3px;
-    top: -3px;
-    right: -3px;
-    bottom: -3px;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
     z-index: 1;
     stroke-dashoffset: 124.6;
     stroke-dasharray: 0 162.6 133 29.6;
@@ -74,22 +74,20 @@ export default {
 .checkbox-wrapper-44 .toggleButton input + span:after {
     content: "";
     width: 3px;
-    height: 16px;
-    background: var(--color-stat-checkbox);
+    height: 14px;
+    background: var(--color-error);
     position: absolute;
     left: 50%;
     top: 50%;
     border-radius: 5px;
 }
 .checkbox-wrapper-44 .toggleButton input + span:before {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    animation: bounceInBefore-44 0.1s linear forwards 0.1s;
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%) rotate(45deg);
 }
 .checkbox-wrapper-44 .toggleButton input + span:after {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    animation: bounceInAfter-44 0.1s linear forwards 0.1s;
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%) rotate(-45deg);
 }
 .checkbox-wrapper-44 .toggleButton input:checked + span svg {
     stroke-dashoffset: 162.6;
@@ -99,68 +97,10 @@ export default {
 .checkbox-wrapper-44 .toggleButton input:checked + span:before {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    animation: bounceInBeforeDont-44 0.1s linear forwards 0s;
 }
 .checkbox-wrapper-44 .toggleButton input:checked + span:after {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    animation: bounceInAfterDont-44 0.1s linear forwards 0s;
 }
 
-@keyframes bounceInBefore-44 {
-    0% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-    50% {
-        opacity: 0.9;
-        transform: scale(1.1) translate(-50%, -50%) rotate(45deg);
-    }
-    80% {
-        opacity: 1;
-        transform: scale(0.89) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
-}
-@keyframes bounceInAfter-44 {
-    0% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    }
-    50% {
-        opacity: 0.9;
-        transform: scale(1.1) translate(-50%, -50%) rotate(-45deg);
-    }
-    80% {
-        opacity: 1;
-        transform: scale(0.89) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-}
-@keyframes bounceInBeforeDont-44 {
-    0% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-}
-@keyframes bounceInAfterDont-44 {
-    0% {
-        opacity: 1;
-        transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    }
-}
 </style>

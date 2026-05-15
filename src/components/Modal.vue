@@ -19,3 +19,9 @@ export default {
     emits: ['close-modal'],
 }
 </script>
+
+<style scoped>
+.modal {
+    z-index: 10000;
+}
+</style>

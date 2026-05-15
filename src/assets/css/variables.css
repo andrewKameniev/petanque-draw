@@ -80,7 +80,7 @@
     --color-bracket-badge: #aaaaaa;
 
     --color-stat-green: #02C66F;
-    --color-stat-blue: #1990ff;
+    --color-stat-blue: #e6a817;
     --color-stat-green-light: #7FC6A6;
     --color-stat-checkbox: #000000;
 
@@ -174,8 +174,8 @@
     --color-badge-bronze-bg: rgba(205, 127, 50, 0.30);
     --color-badge-bronze-border: #e0924a;
 
-    --color-bracket-winner: rgba(74, 222, 128, 0.2);
-    --color-bracket-winner-score: rgba(74, 222, 128, 0.3);
+    --color-bracket-winner: rgba(168, 85, 247, 0.2);
+    --color-bracket-winner-score: rgba(168, 85, 247, 0.3);
     --color-bracket-gold: rgba(251, 191, 36, 0.2);
     --color-bracket-gold-score: rgba(251, 191, 36, 0.3);
     --color-bracket-silver: rgba(156, 163, 175, 0.18);
@@ -190,7 +190,7 @@
     --color-bracket-badge: #9ca3af;
 
     --color-stat-green: #4ade80;
-    --color-stat-blue: #60a5fa;
+    --color-stat-blue: #f0b429;
     --color-stat-green-light: #86efac;
     --color-stat-checkbox: #e4e5ea;
 

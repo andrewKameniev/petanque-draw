@@ -1,4 +1,5 @@
 <template>
+    <Teleport to="body">
     <div class="modal is-active">
         <div class="modal-background" @click.self="$emit('close-modal')"></div>
         <div class="modal-content bracket-modal">
@@ -167,6 +168,7 @@
         </div>
         <button class="modal-close is-large bracket-close" aria-label="close" @click="$emit('close-modal')"></button>
     </div>
+    </Teleport>
 </template>
 
 <script>
@@ -337,6 +339,10 @@ export default {
 </script>
 
 <style scoped>
+.modal {
+    z-index: 10000;
+}
+
 .bracket-close {
     top: 6px !important;
 }

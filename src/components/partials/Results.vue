@@ -27,7 +27,8 @@
                         </button>
                     </div>
                     <button v-if="hasPlayOffResults && !isForProtocol" class="button is-small btn-purple-outline mb-1" @click="showBracket = true">
-                        {{ $t('games.showBracket') }}
+                        <GitFork :size="16" :stroke-width="2" style="transform: rotate(90deg); margin-right: 0.3rem; min-width: 16px;"/>
+                        <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
@@ -36,8 +37,8 @@
                             <template v-for="(round, index) in tournament.games" :key="index">
                                 <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
                                     <tr v-for="(game, i) in round" :key="i">
-                                        <td class="is-narrow round-group-cell">
-                                            <small class="has-text-grey">R{{index + 1}}</small>
+                                        <td v-if="selectedRound === -1 || isForProtocol" class="is-narrow round-group-cell">
+                                            <small class="round-badge">R{{index + 1}}</small>
                                             <small v-if="hasGroupsColumn" class="group-label">{{ groupsNames[game.group] }}</small>
                                         </td>
                                         <td v-if="hasGroupsColumn" class="group-cell-desktop"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
@@ -109,10 +110,11 @@ import {mapState} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 import Bracket from "@/components/partials/Bracket";
+import {GitFork} from "lucide-vue-next";
 
 export default {
     name: 'Results',
-    components: {Bracket},
+    components: {Bracket, GitFork},
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles'],
     data() {
         return {
@@ -202,6 +204,23 @@ export default {
     padding: 0 0.75rem;
 }
 
+.round-group-cell {
+    vertical-align: middle;
+}
+
+.round-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 4px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-muted);
+}
+
 .group-label {
     display: none;
 }
@@ -238,4 +257,11 @@ export default {
     background: var(--color-primary);
     color: var(--color-btn-text);
 }
+
+.btn-bracket {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
 </style>

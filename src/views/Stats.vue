@@ -2,47 +2,12 @@
     <div class="wrapper">
         <Navbar @open-menu="menuOpen = !menuOpen"/>
         <div class="container">
-            <Menu :active="menuOpen"
-                  @closeMenu="menuOpen = false"
-            />
+            <Menu :active="menuOpen" @closeMenu="menuOpen = false"/>
             <div class="stat-container">
-                <div v-if="user" class="mobile-stat-container">
-                    <StatsArchive v-if="archiveOpen" @close="archiveOpen = false" :tags="tags"/>
-                    <div v-else class="mobile-stat-container">
-                        <div v-if="currentMan === null" class="mobile-stat-container">
-                            <StatsSetup
-                                :tags="tags"
-                                :team1="team1"
-                                :team2="team2"
-                                :initialGameType="gameType"
-                                :initialStatMode="statMode"
-                                :initialStatScenario="statScenario"
-                                :initialStatSystem="statSystem"
-                                :initialAsCouch="asCouch"
-                                :initialGameName="gameName"
-                                :initialGameTags="gameTags"
-                                @start="onSetupStart"
-                                @openArchive="archiveOpen = true"
-                                @changeType="onChangeType"
-                                @addTag="addTag"
-                                @removeTag="removeTag"
-                            />
-                        </div>
-                        <div v-else-if="showResults" class="mobile-stat-container">
-                            <div class="mobile-stat-container-header">
-                                <button @click="startNewGame" class="button is-info">{{ $t('stat.newGame') }}</button>
-                            </div>
-                            <h2 class="my-3 is-size-4">{{ gameName }}</h2>
-                            <div class="columns is-desktop">
-                                <div class="column is-half-desktop">
-                                    <StatResult :label="$t('stat.team1Label')" :team="team1" :system="statSystem"/>
-                                </div>
-                                <div class="column is-half-desktop">
-                                    <StatResult :label="$t('stat.team2Label')" :team="team2" :system="statSystem"/>
-                                </div>
-                            </div>
-                        </div>
-                        <StatsTracking v-else
+                <div v-if="user" class="stats-page">
+                    <!-- Active game tracking view -->
+                    <div v-if="activeGameIndex !== null && !showResults" class="stats-page__game">
+                        <StatsTracking
                             :team1="team1"
                             :team2="team2"
                             :currentMan="currentMan"
@@ -51,6 +16,7 @@
                             :statSystem="statSystem"
                             :asCouch="asCouch"
                             :isSaving="isSaving"
+                            :gameName="gameName"
                             @newGame="startNewGame"
                             @finishGame="finishGame"
                             @updateScore="updateTeamScore"
@@ -63,10 +29,110 @@
                             @prev="currentMan--"
                             @removeMan="removeMan"
                             @distanceChange="onDistanceChange"
+                            @minimize="minimizeGame"
                         />
                     </div>
+
+                    <!-- Results view after finishing -->
+                    <div v-else-if="showResults && finishedGame" class="stats-page__results">
+                        <div class="stats-page__results-header">
+                            <button @click="showResults = false; currentTab = 'active'" class="stats-btn stats-btn--ghost">
+                                <ArrowLeft :size="16"/> {{ $t('stat.back') }}
+                            </button>
+                            <button @click="startNewGame" class="stats-btn stats-btn--primary">
+                                <Plus :size="16"/> {{ $t('stat.newGame') }}
+                            </button>
+                        </div>
+                        <h2 class="stats-page__results-title">{{ finishedGame.name }}</h2>
+                        <div class="stats-page__results-grid">
+                            <StatResult :label="$t('stat.team1Label')" :team="finishedGame.team1" :system="finishedGame.system"/>
+                            <StatResult :label="$t('stat.team2Label')" :team="finishedGame.team2" :system="finishedGame.system"/>
+                        </div>
+                    </div>
+
+                    <!-- Main tabbed view -->
+                    <div v-else class="stats-page__main">
+                        <div class="stats-tabs">
+                            <button class="stats-tabs__btn"
+                                    :class="{'stats-tabs__btn--active': currentTab === 'active'}"
+                                    @click="currentTab = 'active'">
+                                <Play :size="15"/>
+                                {{ $t('stat.activeGames') }}
+                                <span class="stats-tabs__badge" v-if="savedGames.length">{{ savedGames.length }}</span>
+                            </button>
+                            <button class="stats-tabs__btn"
+                                    :class="{'stats-tabs__btn--active': currentTab === 'new'}"
+                                    @click="currentTab = 'new'">
+                                <Plus :size="15"/>
+                                {{ $t('stat.newGameTab') }}
+                            </button>
+                            <button class="stats-tabs__btn"
+                                    :class="{'stats-tabs__btn--active': currentTab === 'history'}"
+                                    @click="currentTab = 'history'">
+                                <Archive :size="15"/>
+                                {{ $t('stat.history') }}
+                            </button>
+                        </div>
+
+                        <div class="stats-tabs__content">
+                            <!-- Active Games Tab -->
+                            <div v-if="currentTab === 'active'" class="stats-active">
+                                <div v-if="savedGames.length === 0" class="stats-active__empty">
+                                    <CircleOff :size="32" class="stats-active__empty-icon"/>
+                                    <span>{{ $t('stat.noActiveGames') }}</span>
+                                </div>
+                                <div v-else class="stats-active__list">
+                                    <div class="stats-active__card" v-for="(game, index) in savedGames" :key="index">
+                                        <div class="stats-active__card-info">
+                                            <span class="stats-active__card-name">{{ game.name || 'Game ' + (index + 1) }}</span>
+                                            <span class="stats-active__card-meta">
+                                                {{ $t('stat.round') }} {{ game.currentMan + 1 }} &middot;
+                                                {{ game.team1.score.reduce((a, b) => a + b, 0) }} : {{ game.team2.score.reduce((a, b) => a + b, 0) }}
+                                            </span>
+                                        </div>
+                                        <div class="stats-active__card-actions">
+                                            <button class="stats-btn stats-btn--sm stats-btn--primary" @click="loadGame(index)">
+                                                <Play :size="14"/> {{ $t('stat.continueGame') }}
+                                            </button>
+                                            <button v-if="confirmDeleteIndex === index" class="stats-btn stats-btn--sm stats-btn--danger-confirm" @click="deleteGame(index)">
+                                                {{ $t('stat.deleteGame') }}?
+                                            </button>
+                                            <button v-else class="stats-btn stats-btn--sm stats-btn--danger" @click="confirmDeleteIndex = index">
+                                                <Trash2 :size="14"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- New Game Tab -->
+                            <div v-if="currentTab === 'new'">
+                                <StatsSetup
+                                    :tags="tags"
+                                    :team1="team1"
+                                    :team2="team2"
+                                    :initialGameType="gameType"
+                                    :initialStatMode="statMode"
+                                    :initialStatScenario="statScenario"
+                                    :initialStatSystem="statSystem"
+                                    :initialAsCouch="asCouch"
+                                    :initialGameName="gameName"
+                                    :initialGameTags="gameTags"
+                                    @start="onSetupStart"
+                                    @changeType="onChangeType"
+                                    @addTag="addTag"
+                                    @removeTag="removeTag"
+                                />
+                            </div>
+
+                            <!-- History Tab -->
+                            <div v-if="currentTab === 'history'">
+                                <StatsArchive :tags="tags"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div v-else class="is-size-3 p-3 has-text-centered">
+                <div v-else class="stats-page__login">
                     {{ $t('stat.onlyLogin') }}
                     <div class="mt-5">
                         <router-link to="/" class="btn-login-primary btn-login-primary--large">
@@ -85,7 +151,6 @@
 </template>
 
 <script>
-
 import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
@@ -96,21 +161,24 @@ import StatsArchive from "@/components/stats/StatsArchive.vue";
 import StatResult from "@/components/stats/StatResult.vue";
 import StatsSetup from "@/components/stats/StatsSetup.vue";
 import StatsTracking from "@/components/stats/StatsTracking.vue";
-import {gameTypes} from "@/helpers-stat.js"
+import {gameTypes, validateScore} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
-import Loader from "@/components/Loader.vue";
+import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft} from "lucide-vue-next";
+
 export default {
     name: 'Stats',
-    components: {Loader, Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer},
+    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft},
     data() {
         return {
             isSaving: false,
             tagsLoading: false,
             tags: null,
             gameTags: [],
-            archiveOpen: false,
             menuOpen: false,
             showResults: false,
+            finishedGame: null,
+            currentTab: 'active',
+            activeGameIndex: null,
             gameName: '',
             gameType: 1,
             statScenario: false,
@@ -119,18 +187,20 @@ export default {
             statSystem: 'simple',
             currentMan: null,
             gameTypes,
-            team1: {
-                score: []
-            },
-            team2: {
-                score: []
-            },
+            team1: { score: [] },
+            team2: { score: [] },
             manDistance: null,
+            savedGames: [],
+            confirmDeleteIndex: null,
         }
     },
     mounted() {
-        this.getLocalData();
+        this.loadSavedGames();
         this.getTags();
+        this.changePlayers();
+        if (this.savedGames.length === 0) {
+            this.currentTab = 'new';
+        }
     },
     computed: {
         ...mapState(useMainStore, ['user', 'message']),
@@ -141,7 +211,7 @@ export default {
             }
         },
         manCount() {
-            return this.team1.players[0].stat.length
+            return this.team1.players?.[0]?.stat?.length || 0;
         },
         throwInfo() {
             return {
@@ -161,75 +231,100 @@ export default {
             }
         },
         manDistance(newValue) {
-            this.team1.players.forEach(player => player.stat[this.currentMan].forEach(item => {
-                item.distance = newValue
-            }));
-            this.team2.players.forEach(player => player.stat[this.currentMan].forEach(item => {
-                item.distance = newValue
-            }))
+            if (this.team1.players) {
+                this.team1.players.forEach(player => player.stat[this.currentMan]?.forEach(item => {
+                    item.distance = newValue
+                }));
+            }
+            if (this.team2.players) {
+                this.team2.players.forEach(player => player.stat[this.currentMan]?.forEach(item => {
+                    item.distance = newValue
+                }));
+            }
         }
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        loadSavedGames() {
+            const raw = localStorage.getItem('statGames');
+            this.savedGames = raw ? JSON.parse(raw) : [];
+
+            // Migrate old single-game localStorage to new format
+            const oldGame = localStorage.getItem('statGame');
+            if (oldGame) {
+                const gameData = JSON.parse(oldGame);
+                this.savedGames.push({
+                    name: gameData.name || '',
+                    type: gameData.type,
+                    system: gameData.system,
+                    scenario: gameData.scenario,
+                    mode: gameData.mode,
+                    asCouch: gameData.asCouch,
+                    team1: gameData.team1,
+                    team2: gameData.team2,
+                    currentMan: gameData.team1.players[0].stat.length - 1,
+                    tags: [],
+                });
+                this.persistGames();
+                localStorage.removeItem('statGame');
+            }
+        },
+        persistGames() {
+            localStorage.setItem('statGames', JSON.stringify(this.savedGames));
+        },
         getTags() {
             this.tagsLoading = true;
-
             statsService.getTags(this.user.uid)
                 .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        this.tags = snapshot.val();
-                    } else {
-                        this.tags = null;
-                    }
+                    this.tags = snapshot.exists() ? snapshot.val() : null;
                 })
                 .catch((error) => {
-                    console.error('Error loading statistics:', error);
+                    console.error('Error loading tags:', error);
                     this.tags = null;
-                    this.showMessage({
-                        title: this.$t('messages.error'),
-                        text: this.$t('messages.failedLoadTags'),
-                        type: 'error',
-                    });
                 })
-                .finally(() => {
-                    this.tagsLoading = false;
-                });
+                .finally(() => { this.tagsLoading = false; });
         },
-        saveLocalData() {
-            const data = {
+        saveCurrentGame() {
+            if (this.activeGameIndex === null || !this.team1.players?.length) return;
+            this.savedGames[this.activeGameIndex] = {
+                name: this.gameName,
                 type: this.gameType,
                 system: this.statSystem,
-                name: this.gameName,
                 scenario: this.statScenario,
-                asCouch: this.asCouch,
                 mode: this.statMode,
+                asCouch: this.asCouch,
                 team1: {...this.team1},
-                team2: {...this.team2}
-            }
-            localStorage.setItem('statGame', JSON.stringify(data))
+                team2: {...this.team2},
+                currentMan: this.currentMan,
+                manDistance: this.manDistance,
+                tags: this.gameTags,
+            };
+            this.persistGames();
         },
-        getLocalData(){
-            if (localStorage.getItem('statGame')) {
-                const gameData = JSON.parse(localStorage.getItem('statGame'));
-                this.gameType = gameData.type;
-                this.statMode = gameData.mode;
-                this.statScenario = gameData.scenario;
-                this.statSystem = gameData.system;
-                this.gameName = gameData.name;
-                this.team1 = {...gameData.team1};
-                this.team2 = {...gameData.team2};
-                this.currentMan = this.manCount - 1;
-            } else {
-                this.changePlayers();
-            }
+        loadGame(index) {
+            const game = this.savedGames[index];
+            this.gameName = game.name;
+            this.gameType = game.type;
+            this.statSystem = game.system;
+            this.statScenario = game.scenario;
+            this.statMode = game.mode;
+            this.asCouch = game.asCouch;
+            this.team1 = {...game.team1};
+            this.team2 = {...game.team2};
+            this.currentMan = game.currentMan;
+            this.manDistance = game.manDistance || null;
+            this.gameTags = game.tags || [];
+            this.activeGameIndex = index;
         },
-        changePlayerInTeam(teamIndex, playerIndex, playerName) {
-            this.addPlayer(this['team' + teamIndex], playerName);
-            const currentPlayer = this['team' + teamIndex].players[this['team' + teamIndex].players.length - 1];
-            this.addPlayerStats(currentPlayer);
-            currentPlayer.isChanged = this.currentMan;
-            currentPlayer.stat = Array(currentPlayer.isChanged + 1).fill([]);
-            this['team' + teamIndex].players[playerIndex].wasChanged = this.currentMan;
+        deleteGame(index) {
+            this.confirmDeleteIndex = null;
+            this.savedGames.splice(index, 1);
+            this.persistGames();
+        },
+        minimizeGame() {
+            this.saveCurrentGame();
+            this.activeGameIndex = null;
+            this.currentTab = 'active';
         },
         onSetupStart({ gameName, gameType, statMode, statScenario, statSystem, asCouch, gameTags }) {
             this.gameName = gameName;
@@ -239,7 +334,24 @@ export default {
             this.statSystem = statSystem;
             this.asCouch = asCouch;
             this.gameTags = gameTags;
+            this.manDistance = null;
             this.currentMan = 0;
+
+            // Save as new active game
+            this.savedGames.push({
+                name: gameName,
+                type: gameType,
+                system: statSystem,
+                scenario: statScenario,
+                mode: statMode,
+                asCouch,
+                team1: {...this.team1},
+                team2: {...this.team2},
+                currentMan: 0,
+                tags: gameTags,
+            });
+            this.persistGames();
+            this.activeGameIndex = this.savedGames.length - 1;
         },
         onChangeType(gameType) {
             this.gameType = gameType;
@@ -249,43 +361,60 @@ export default {
             this.manDistance = newValue;
         },
         addTag(id, name) {
+            if (!this.tags) this.tags = {};
             this.tags[id] = name;
         },
         removeTag(id) {
-            delete this.tags[id]
+            delete this.tags[id];
         },
         finishGame() {
+            this.finishedGame = {
+                name: this.gameName,
+                system: this.statSystem,
+                team1: JSON.parse(JSON.stringify(this.team1)),
+                team2: JSON.parse(JSON.stringify(this.team2))
+            };
             this.showResults = true;
             let statResult = {
                 date: Date.now(),
                 system: this.statSystem,
                 tags: this.gameTags,
                 name: this.gameName,
-                team1: this.team1,
-                team2: this.team2
+                team1: this.finishedGame.team1,
+                team2: this.finishedGame.team2
             }
             this.isSaving = true;
             statsService.save(this.user.uid, statResult.date, statResult).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
-                localStorage.removeItem('statGame');
+                if (this.activeGameIndex !== null) {
+                    this.savedGames.splice(this.activeGameIndex, 1);
+                    this.persistGames();
+                }
+                this.activeGameIndex = null;
                 this.isSaving = false;
+                this.resetGameState();
             }).catch((error) => {
                 console.error('Error save:', error);
                 this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
+                this.isSaving = false;
             });
         },
-        startNewGame() {
-            this.showResults = false;
+        resetGameState() {
             this.currentMan = null;
             this.gameName = '';
             this.gameTags = [];
-            this.team1 = {
-                score: []
-            };
-            this.team2 = {
-                score: []
-            };
+            this.team1 = { score: [] };
+            this.team2 = { score: [] };
             this.changePlayers();
+        },
+        startNewGame() {
+            this.showResults = false;
+            this.activeGameIndex = null;
+            this.resetGameState();
+            this.currentTab = 'new';
+        },
+        changePlayerInTeam(teamIndex, playerIndex, playerName) {
+            this['team' + teamIndex].players[playerIndex].name = playerName;
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
             team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)
@@ -300,7 +429,14 @@ export default {
             team.players[playerIndex].stat[manIndex][throwIndex][type] = value
         },
         updateTeamScore(team, newScore, manIndex) {
-            team.score[manIndex] = newScore || 0;
+            const otherTeam = team === this.team1 ? this.team2 : this.team1;
+            const score = validateScore(this.gameType, team.score, manIndex, newScore);
+
+            if (score > 0) {
+                otherTeam.score[manIndex] = 0;
+            }
+
+            team.score[manIndex] = score;
         },
         removeMan() {
             this.team1.players.forEach(player => {
@@ -318,7 +454,6 @@ export default {
                 } else {
                     this.throwInfo.type = 'p'
                 }
-
                 this.addPlayerStats(player);
             });
         },
@@ -327,7 +462,6 @@ export default {
                 JSON.parse(JSON.stringify(this.throwInfo)),
                 JSON.parse(JSON.stringify(this.throwInfo)),
             ];
-
             if (this.gameType === 1 || this.gameType === 2) {
                 statEntry.push(JSON.parse(JSON.stringify(this.throwInfo)));
             }
@@ -339,10 +473,8 @@ export default {
             if (this.team1.players[0].stat.length <= this.currentMan) {
                 this.addPlayersStats(this.team1.players);
                 this.addPlayersStats(this.team2.players);
-                if(this.currentMan) {
-                    this.saveLocalData();
-                } else {
-                    localStorage.removeItem('statGame');
+                if (this.currentMan) {
+                    this.saveCurrentGame();
                 }
             }
         },
@@ -355,15 +487,268 @@ export default {
             }
         },
         addPlayer(team, name = '') {
-            const playerInfo = {
-                name: name,
-                stat: []
-            }
+            const playerInfo = { name: name, stat: [] };
             team.players.push({ ...JSON.parse(JSON.stringify(playerInfo)) });
         }
     },
 }
 </script>
+
+<style scoped>
+.stats-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-page__login {
+    font-size: 1.2rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.stats-page__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+.stats-page__game {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-page__results {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stats-page__results-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-page__results-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.stats-page__results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+    .stats-page__results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tabs */
+.stats-tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.3rem;
+}
+
+.stats-tabs__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.stats-tabs__btn:hover {
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+}
+
+.stats-tabs__btn--active {
+    background: var(--color-primary);
+    color: var(--color-btn-text);
+}
+
+.stats-tabs__btn--active:hover {
+    background: var(--color-primary-light);
+    color: var(--color-btn-text);
+}
+
+.stats-tabs__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--color-error);
+    color: #fff;
+    padding: 0 4px;
+}
+
+.stats-tabs__btn--active .stats-tabs__badge {
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.stats-tabs__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Active games */
+.stats-active__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.stats-active__empty-icon {
+    opacity: 0.4;
+}
+
+.stats-active__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stats-active__card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    transition: box-shadow 0.15s;
+}
+
+.stats-active__card:hover {
+    box-shadow: 0 2px 8px var(--color-card-shadow);
+}
+
+.stats-active__card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.stats-active__card-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.stats-active__card-meta {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.stats-active__card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Shared button styles */
+.stats-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.stats-btn--sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.stats-btn--primary {
+    background: var(--color-primary);
+    color: var(--color-btn-text);
+}
+
+.stats-btn--primary:hover {
+    background: var(--color-primary-light);
+}
+
+.stats-btn--secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.stats-btn--secondary:hover {
+    background: var(--color-surface-hover);
+}
+
+.stats-btn--ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+.stats-btn--ghost:hover {
+    color: var(--color-primary);
+}
+
+.stats-btn--danger {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+.stats-btn--danger:hover {
+    background: var(--color-error);
+    color: #fff;
+}
+
+.stats-btn--danger-confirm {
+    background: var(--color-error);
+    color: #fff;
+    animation: pulse-danger 0.3s ease;
+}
+
+@keyframes pulse-danger {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
 
 <style>
 .stat-container {
@@ -383,28 +768,24 @@ export default {
     }
 }
 
-.player-info {
-    background: var(--color-surface-semi);
-    padding: 5px;
-    border-radius: 5px;
-}
 .throw-result-container {
     line-height: 0;
 }
+
 .throw-result {
     display: inline-block;
     margin-right: 3px;
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: red;
+    background: var(--color-error);
 }
 
 .throw-result.-success {
-    background: green;
+    background: var(--color-success);
 }
 
 .throw-result.-carro {
-    background: dodgerblue;
+    background: var(--color-stat-blue);
 }
 </style>

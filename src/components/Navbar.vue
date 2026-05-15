@@ -24,13 +24,14 @@
             <div class="navbar-start">
                 <div class="tournaments-dropdown" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'" @click="tournamentsOpen = !tournamentsOpen" v-click-outside="closeTournaments">
                     <a class="navbar-link navbar-link--custom">
-                        {{ $t('common.activeTournaments') }}
+                        <span class="navbar-link__current">{{ $t('common.activeTournaments') }}</span>
                         <svg class="navbar-link__chevron" :class="{'navbar-link__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </a>
                     <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
-                        <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': item.id === currentTournamentIndex}"
+                        <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': String(item.id) === String(currentTournamentIndex)}"
                            v-for="item in tournaments" :key="item.id"
                            @click.stop="chooseTournament(item.id)">
+                            <Pin v-if="String(pinnedId) === String(item.id)" :size="12" class="tournaments-dropdown__item-pin"/>
                             {{ item.name }}
                         </a>
                     </div>
@@ -81,10 +82,11 @@ import { signOut } from "firebase/auth";
 import {auth} from "@/firebase";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
+import {Pin} from "lucide-vue-next";
 
 export default {
     name: "Navbar",
-    components: {LanguageSwitcher, ThemeSwitcher},
+    components: {LanguageSwitcher, ThemeSwitcher, Pin},
     data() {
         return {
             userDropdownOpen: false,
@@ -108,6 +110,9 @@ export default {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
         tournament() {
             return this.currentTournament
+        },
+        pinnedId() {
+            return localStorage.getItem('petanqueDrawPinned');
         },
     },
     methods: {
@@ -268,7 +273,9 @@ export default {
 }
 
 .tournaments-dropdown__item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     padding: 0.55rem 0.75rem;
     font-size: 0.8rem;
     font-weight: 500;
@@ -287,6 +294,18 @@ export default {
     background: var(--color-primary-bg);
     color: var(--color-primary);
     font-weight: 600;
+}
+
+.tournaments-dropdown__item-pin {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.navbar-link__current {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-dropdown {

@@ -304,3 +304,30 @@ export const gameTypes = [
 ]
 
 export const throwDistances = [6,7,8,9,10,11]
+
+export function validateScore(gameType, teamScores, manIndex, newScore) {
+    const maxPerMan = gameType === 1 ? 3 : 6;
+    let score = Math.max(0, Math.min(newScore || 0, maxPerMan));
+
+    const prevTotal = teamScores.reduce((a, b, i) => a + (i === manIndex ? 0 : b), 0);
+    score = Math.min(score, 13 - prevTotal);
+
+    return score;
+}
+
+export function validateGameStart(gameName, players) {
+    if (!gameName.trim()) return false;
+    return players.every(p => p.name && p.name.trim());
+}
+
+export function extractPlayers(stats) {
+    if (!stats) return [];
+    const names = new Set();
+
+    Object.values(stats).forEach(game => {
+        if (game.team1?.players) game.team1.players.forEach(p => { if (p?.name?.trim()) names.add(p.name.trim()); });
+        if (game.team2?.players) game.team2.players.forEach(p => { if (p?.name?.trim()) names.add(p.name.trim()); });
+    });
+
+    return [...names].sort();
+}

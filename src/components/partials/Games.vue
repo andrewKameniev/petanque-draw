@@ -30,8 +30,8 @@
                 <div class="games-list">
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
-                          :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
-                          :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
+                          :team1-lanes="tournament.teams.find(team => team.title === game.team_1)?.lanes || null"
+                          :team2-lanes="tournament.teams.find(team => team.title === game.team_2)?.lanes || null"
                           @save="saveResults"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -43,12 +43,28 @@
             </div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
         </div>
-        <ConfirmRemoveModal v-if="showRestoreConfirm"
-            :hint="$t('games.restoreRound')"
-            :message="$t('games.restoreRoundConfirm')"
-            :confirm-label="$t('games.restoreRound')"
-            @confirm="restoreRoundGames()"
-            @close="showRestoreConfirm = false"/>
+        <Modal v-if="showRestoreConfirm" @close-modal="showRestoreConfirm = false">
+            <div class="confirm-remove">
+                <div class="confirm-remove__header">
+                    <div class="confirm-remove__header-left">
+                        <span class="confirm-remove__icon">
+                            <AlertTriangle :size="16"/>
+                        </span>
+                        <span class="confirm-remove__header-hint">{{ $t('games.restoreRound') }}</span>
+                    </div>
+                    <button class="confirm-remove__close" @click="showRestoreConfirm = false">
+                        <X :size="18"/>
+                    </button>
+                </div>
+                <div class="confirm-remove__body">
+                    <p class="confirm-remove__question">{{ $t('games.restoreRoundConfirm') }}</p>
+                </div>
+                <div class="confirm-remove__footer">
+                    <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="showRestoreConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-remove__btn confirm-remove__btn--danger" @click="showRestoreConfirm = false; restoreRoundGames()">{{ $t('games.restoreRound') }}</button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -58,16 +74,16 @@ import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
+import {drawSwissRound, drawSupermeleRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
-import {ChevronDown} from "lucide-vue-next";
+import {ChevronDown, AlertTriangle, X} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
-import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
+import Modal from "@/components/Modal.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, ChevronDown, ConfirmRemoveModal, FinishedBanner},
+    components: {Cadrage, Game, PlayOff, ChevronDown, AlertTriangle, X, Modal, FinishedBanner},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -104,7 +120,7 @@ export default {
         document.removeEventListener('keydown', this._onTab);
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament', 'allScoresFilled']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament']),
         tournament() {
             return this.currentTournament
         },
@@ -116,10 +132,10 @@ export default {
         maxSwissRounds() {
             return Math.ceil(Math.log2(this.tournament.teams?.length))
         },
-        teamsByTitle() {
-            const map = {};
-            this.tournament.teams?.forEach(t => { map[t.title] = t; });
-            return map;
+        allScoresFilled() {
+            const games = this.tournament.games?.[this.activeRound - 1];
+            if (!games) return false;
+            return games.every(g => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '');
         },
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
@@ -140,6 +156,7 @@ export default {
         gameHasError,
         handleGlobalSave() {
             const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
+            console.warn('123', btn);
             if (btn) btn.click();
         },
         shuffleLanes() {
@@ -167,7 +184,32 @@ export default {
                     this.createGroups();
                 }
                 if (this.tournament.groups) {
-                    round = drawGroupsRound(this.tournament);
+                    let game;
+                    this.tournament.groups.forEach((group, index) => {
+                        const isTechnical = group.length % 2 !== 0;
+                        if (this.tournament.games?.length > (isTechnical ? group.length : group.length - 1)) {
+                            return;
+                        }
+                        for (let i = 0; i < this.tournament.groupsScheme[index].top.length; i++) {
+                            if (!isTechnical || isTechnical
+                                && (this.tournament.groupsScheme[index].top[i] !== group.length && this.tournament.groupsScheme[index].bottom[i] !== group.length)) {
+                                game = {
+                                    group: index,
+                                    team_1: group[this.tournament.groupsScheme[index].top[i]].title,
+                                    team_1_score: null,
+                                    team_2: group[this.tournament.groupsScheme[index].bottom[i]].title,
+                                    team_2_score: null
+                                };
+                                round.push(game);
+                            }
+                        }
+                        this.tournament.groupsScheme[index].bottom.push(this.tournament.groupsScheme[index].top[this.tournament.groupsScheme[index].top.length - 1]);
+                        this.tournament.groupsScheme[index].top.unshift(this.tournament.groupsScheme[index].bottom[0]);
+                        this.tournament.groupsScheme[index].top.splice(this.tournament.groupsScheme[index].top.length - 1, 1);
+                        this.tournament.groupsScheme[index].top.splice(1, 1);
+                        this.tournament.groupsScheme[index].top.unshift(0);
+                        this.tournament.groupsScheme[index].bottom.splice(0, 1);
+                    });
                 }
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
@@ -362,6 +404,109 @@ export default {
 
 .games-toolbar__arrow--up {
     transform: rotate(180deg);
+}
+
+.confirm-remove {
+    display: flex;
+    flex-direction: column;
+}
+
+.confirm-remove__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.confirm-remove__header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirm-remove__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+.confirm-remove__header-hint {
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.confirm-remove__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.confirm-remove__close:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.confirm-remove__body {
+    padding: 0.5rem 0 1.25rem;
+}
+
+.confirm-remove__question {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.confirm-remove__footer {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-remove__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-remove__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.confirm-remove__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+}
+
+.confirm-remove__btn--danger {
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-btn-text);
+}
+
+.confirm-remove__btn--danger:hover {
+    background: var(--color-error-hover);
+    border-color: var(--color-error-hover);
 }
 
 

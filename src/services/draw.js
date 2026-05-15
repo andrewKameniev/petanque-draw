@@ -385,34 +385,6 @@ export function createGroups(tournament, teamsInGroup) {
     return {groups, schemas};
 }
 
-export function drawGroupsRound(tournament) {
-    const round = [];
-    tournament.groups.forEach((group, index) => {
-        const isTechnical = group.length % 2 !== 0;
-        if (tournament.games?.length > (isTechnical ? group.length : group.length - 1)) {
-            return;
-        }
-        for (let i = 0; i < tournament.groupsScheme[index].top.length; i++) {
-            if (!isTechnical || (tournament.groupsScheme[index].top[i] !== group.length && tournament.groupsScheme[index].bottom[i] !== group.length)) {
-                round.push({
-                    group: index,
-                    team_1: group[tournament.groupsScheme[index].top[i]].title,
-                    team_1_score: null,
-                    team_2: group[tournament.groupsScheme[index].bottom[i]].title,
-                    team_2_score: null
-                });
-            }
-        }
-        tournament.groupsScheme[index].bottom.push(tournament.groupsScheme[index].top[tournament.groupsScheme[index].top.length - 1]);
-        tournament.groupsScheme[index].top.unshift(tournament.groupsScheme[index].bottom[0]);
-        tournament.groupsScheme[index].top.splice(tournament.groupsScheme[index].top.length - 1, 1);
-        tournament.groupsScheme[index].top.splice(1, 1);
-        tournament.groupsScheme[index].top.unshift(0);
-        tournament.groupsScheme[index].bottom.splice(0, 1);
-    });
-    return round;
-}
-
 export function saveResultsForRound(tournament, round) {
     if (tournament.games.length <= 2) {
         tournament.teams.forEach(team => {

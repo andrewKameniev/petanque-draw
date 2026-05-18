@@ -41,6 +41,18 @@
             <div v-else-if="tournament.tournamentIsFinished">
                 <FinishedBanner @openResults="$emit('openResults')"/>
             </div>
+            <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system === 'groups'" class="draw-card">
+                <div class="draw-card__links">
+                    <a href="#" class="draw-card__link draw-card__link--draw" data-testid="link-play-next-circle" @click.prevent="playNextCircle">
+                        {{ $t('games.playNextCircle') }}
+                    </a>
+                    <span class="draw-card__or">{{ $t('common.or') }}</span>
+                    <a href="#" class="draw-card__link draw-card__link--restore" data-testid="link-restore-round-circle" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
+                </div>
+                <div v-if="tournament.roundRobinCircle > 1" class="draw-card__circle-info">
+                    {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle || 1 }}
+                </div>
+            </div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
         </div>
         <ConfirmRemoveModal v-if="showRestoreConfirm"
@@ -58,7 +70,7 @@ import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound} from '@/services/draw'
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import {ChevronDown} from "lucide-vue-next";
@@ -109,9 +121,15 @@ export default {
             return this.currentTournament
         },
         teamsCount() {
-            return this.tournament.system === 'swiss' ? this.tournament.teams.length - 1 :
-                this.tournament.groups ? this.tournament.groups[0].length % 2 !== 0 ? this.tournament.groups[0].length :
-                    this.tournament.groups[0].length - 1 : this.tournament.teams.length - 1;
+            if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
+            if (this.tournament.groups) {
+                const roundsPerCircle = this.tournament.groups[0].length % 2 !== 0
+                    ? this.tournament.groups[0].length
+                    : this.tournament.groups[0].length - 1;
+                const circles = this.tournament.roundRobinCircle || 1;
+                return roundsPerCircle * circles;
+            }
+            return this.tournament.teams.length - 1;
         },
         maxSwissRounds() {
             return Math.ceil(Math.log2(this.tournament.teams?.length))
@@ -124,6 +142,7 @@ export default {
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
             if (this.tournament.tournamentIsFinished) return false;
+            if (this.tournament.system === 'groups' && this.tournament.games.length >= this.teamsCount && !this.tournament.roundIsActive) return false;
             const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
                 && (this.tournament.games.length < this.teamsCount)
                 && (this.tournament.system === 'swiss' ? (this.activeRound <= this.maxSwissRounds) : true);
@@ -275,6 +294,13 @@ export default {
                 this.startRound();
             }
         },
+        playNextCircle() {
+            this.tournament.roundRobinCircle = (this.tournament.roundRobinCircle || 1) + 1;
+            this.tournament.groupsScheme = resetGroupsScheme(this.tournament);
+            const round = drawGroupsRound(this.tournament);
+            this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
+            this.startRound();
+        },
         saveResultsForRound(round) {
             saveResultsForRound(this.tournament, round);
         },
@@ -327,6 +353,10 @@ export default {
     color: var(--color-text-muted);
 }
 
+.draw-card__circle-info {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
 
 .games-toolbar {
     display: flex;

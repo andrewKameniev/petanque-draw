@@ -138,6 +138,7 @@
                 </div>
             </div>
             <div v-else-if="tournament.groups">
+                <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff && tournament.roundRobinCircle > 1" class="has-text-grey is-size-7 mb-2">{{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle }}</div>
                 <div v-for="(group, index) in rankingTeams" :key="index">
                     <h4 v-if="tournament.groups && tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
                     <div class="table-container mb-5">

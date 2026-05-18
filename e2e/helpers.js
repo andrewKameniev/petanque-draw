@@ -108,7 +108,7 @@ async function fillScores(page) {
 
 async function saveResults(page) {
     await page.locator('[data-testid="btn-save-results"]').click();
-    await page.locator('[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"], [data-testid="link-play-next-circle"]').first().waitFor({state: 'visible'});
 }
 
 async function playRound(page) {
@@ -126,6 +126,11 @@ async function playMultipleRounds(page, rounds) {
         await drawNextRound(page);
         await playRound(page);
     }
+}
+
+async function playNextCircle(page) {
+    await page.locator('[data-testid="link-play-next-circle"]').click();
+    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
 }
 
 // --- Transition flows ---
@@ -280,6 +285,7 @@ export {
     drawNextRound,
     playRound,
     playMultipleRounds,
+    playNextCircle,
     goToPlayOff,
     goToCadrage,
     fillCadrageScores,

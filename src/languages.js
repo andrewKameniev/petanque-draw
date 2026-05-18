@@ -66,6 +66,8 @@ export default {
             chooseSystem: 'Choose tournament system',
             chooseSystemText: 'Prohibited to play swiss system with less then 8 teams',
             playMaximum: 'You can play maximum ',
+            playNextCircle: 'Play next circle',
+            circlesPlayed: 'Circles played',
         },
         results: {
             title: 'Every round results',
@@ -664,6 +666,8 @@ export default {
             chooseSystem: 'Виберіть систему розіграшу',
             chooseSystemText: 'Забороняється грати турнір по швейцарській системі при кількості команд менше 8',
             playMaximum: 'Ви можете зіграти максимум',
+            playNextCircle: 'Зіграти наступне коло',
+            circlesPlayed: 'Зіграно кіл',
         },
         results: {
             title: 'Результати кожного раунду',

@@ -326,6 +326,28 @@ export function assignLanes(games, tournament) {
     return scheduledMatches.sort((a, b) => a.lane - b.lane);
 }
 
+export function resetGroupsScheme(tournament) {
+    const schemas = [];
+    tournament.groups.forEach(group => {
+        let groupIndexes = [];
+        group.forEach((_, index) => {
+            groupIndexes.push(index);
+        });
+        if (group.length % 2 !== 0) {
+            groupIndexes.push(group.length);
+        }
+        const scheme = {top: [], bottom: []};
+        for (let i = 0; i < groupIndexes.length / 2; i++) {
+            scheme.top.push(i);
+        }
+        for (let i = groupIndexes.length - 1; i >= groupIndexes.length / 2; i--) {
+            scheme.bottom.push(i);
+        }
+        schemas.push(scheme);
+    });
+    return schemas;
+}
+
 export function createGroups(tournament, teamsInGroup) {
     const groupsQuantity = Math.round(tournament.teams.length / teamsInGroup);
     let groups = [];
@@ -389,7 +411,9 @@ export function drawGroupsRound(tournament) {
     const round = [];
     tournament.groups.forEach((group, index) => {
         const isTechnical = group.length % 2 !== 0;
-        if (tournament.games?.length > (isTechnical ? group.length : group.length - 1)) {
+        const roundsPerCircle = isTechnical ? group.length : group.length - 1;
+        const circles = tournament.roundRobinCircle || 1;
+        if (tournament.games?.length >= roundsPerCircle * circles) {
             return;
         }
         for (let i = 0; i < tournament.groupsScheme[index].top.length; i++) {

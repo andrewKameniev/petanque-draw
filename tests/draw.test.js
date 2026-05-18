@@ -7,6 +7,8 @@ import {
     drawSupermeleRound,
     assignLanes,
     createGroups,
+    drawGroupsRound,
+    resetGroupsScheme,
     saveResultsForRound
 } from '@/services/draw';
 
@@ -521,5 +523,132 @@ describe('saveResultsForRound', () => {
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].opponents).not.toContain('placeholder');
+    });
+});
+
+describe('resetGroupsScheme', () => {
+    it('generates correct rotation scheme for even-sized group', () => {
+        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`));
+        const tournament = makeTournament(teams, {system: 'groups'});
+        const {groups} = createGroups(tournament, 4);
+        tournament.groups = groups;
+        const schemas = resetGroupsScheme(tournament);
+        expect(schemas).toHaveLength(1);
+        expect(schemas[0].top.length).toBe(schemas[0].bottom.length);
+        expect(schemas[0].top.length).toBe(2);
+    });
+
+    it('generates correct rotation scheme for odd-sized group', () => {
+        const teams = Array.from({length: 5}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
+        const {groups} = createGroups(tournament, 5);
+        tournament.groups = groups;
+        const schemas = resetGroupsScheme(tournament);
+        expect(schemas).toHaveLength(1);
+        expect(schemas[0].top.length + schemas[0].bottom.length).toBe(6);
+    });
+
+    it('resets scheme back to initial state after rotation', () => {
+        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
+        const {groups, schemas} = createGroups(tournament, 4);
+        tournament.groups = groups;
+        tournament.groupsScheme = schemas;
+        const initialTop = [...schemas[0].top];
+        const initialBottom = [...schemas[0].bottom];
+        drawGroupsRound(tournament);
+        tournament.games = [[]];
+        expect(tournament.groupsScheme[0].top).not.toEqual(initialTop);
+        const resetSchemas = resetGroupsScheme(tournament);
+        expect(resetSchemas[0].top).toEqual(initialTop);
+        expect(resetSchemas[0].bottom).toEqual(initialBottom);
+    });
+});
+
+describe('drawGroupsRound - multi-circle', () => {
+    it('generates a round when roundRobinCircle allows it', () => {
+        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
+        const {groups, schemas} = createGroups(tournament, 4);
+        tournament.groups = groups;
+        tournament.groupsScheme = schemas;
+
+        const round1 = drawGroupsRound(tournament);
+        expect(round1.length).toBe(2);
+        tournament.games = [round1];
+
+        const round2 = drawGroupsRound(tournament);
+        expect(round2.length).toBe(2);
+        tournament.games.push(round2);
+
+        const round3 = drawGroupsRound(tournament);
+        expect(round3.length).toBe(2);
+        tournament.games.push(round3);
+
+        // Circle 1 complete (3 rounds for 4 teams). Without new circle, no more rounds.
+        const round4 = drawGroupsRound(tournament);
+        expect(round4.length).toBe(0);
+    });
+
+    it('allows new round after incrementing roundRobinCircle', () => {
+        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
+        const {groups, schemas} = createGroups(tournament, 4);
+        tournament.groups = groups;
+        tournament.groupsScheme = schemas;
+
+        // Play all 3 rounds of circle 1
+        for (let i = 0; i < 3; i++) {
+            const round = drawGroupsRound(tournament);
+            tournament.games = tournament.games || [];
+            tournament.games.push(round);
+        }
+        expect(tournament.games.length).toBe(3);
+
+        // Start circle 2
+        tournament.roundRobinCircle = 2;
+        tournament.groupsScheme = resetGroupsScheme(tournament);
+        const newRound = drawGroupsRound(tournament);
+        expect(newRound.length).toBe(2);
+    });
+
+    it('accumulates results across multiple circles', () => {
+        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
+        const {groups, schemas} = createGroups(tournament, 4);
+        tournament.groups = groups;
+        tournament.groupsScheme = schemas;
+        tournament.games = [];
+
+        // Circle 1: play 3 rounds
+        for (let i = 0; i < 3; i++) {
+            const round = drawGroupsRound(tournament);
+            round.forEach(g => {
+                g.team_1_score = 13;
+                g.team_2_score = 7;
+            });
+            tournament.games.push(round);
+            saveResultsForRound(tournament, tournament.games.length - 1);
+        }
+
+        const winsAfterCircle1 = tournament.teams.map(t => t.wins);
+        const totalWins1 = winsAfterCircle1.reduce((a, b) => a + b, 0);
+        expect(totalWins1).toBe(6); // 3 rounds × 2 games per round, team_1 always wins
+
+        // Circle 2
+        tournament.roundRobinCircle = 2;
+        tournament.groupsScheme = resetGroupsScheme(tournament);
+        for (let i = 0; i < 3; i++) {
+            const round = drawGroupsRound(tournament);
+            round.forEach(g => {
+                g.team_1_score = 13;
+                g.team_2_score = 7;
+            });
+            tournament.games.push(round);
+            saveResultsForRound(tournament, tournament.games.length - 1);
+        }
+
+        const totalWins2 = tournament.teams.reduce((a, t) => a + t.wins, 0);
+        expect(totalWins2).toBe(12); // 6 rounds total × 2 games per round, team_1 always wins
     });
 });

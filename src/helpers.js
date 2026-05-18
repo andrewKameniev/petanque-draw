@@ -4,22 +4,27 @@ function getGameResultInGroup(where, team1, team2, difference) {
     if (team1 === team2) {
         return '-'
     }
-    let game;
+    let totalScore1 = 0;
+    let totalScore2 = 0;
+    let found = false;
     where.forEach(round => {
         round.forEach(gameInRound => {
-            if (gameInRound.team_1 + gameInRound.team_2 === team1 + team2
-                || gameInRound.team_2 + gameInRound.team_1 === team1 + team2) {
-                game = gameInRound
+            if (gameInRound.team_1 + gameInRound.team_2 === team1 + team2) {
+                totalScore1 += gameInRound.team_1_score || 0;
+                totalScore2 += gameInRound.team_2_score || 0;
+                found = true;
+            } else if (gameInRound.team_2 + gameInRound.team_1 === team1 + team2) {
+                totalScore1 += gameInRound.team_2_score || 0;
+                totalScore2 += gameInRound.team_1_score || 0;
+                found = true;
             }
         })
     })
-    if (game) {
+    if (found) {
         if (difference) {
-            return team1 === game.team_1 ? (game.team_1_score - game.team_2_score) || 0
-                : (game.team_2_score - game.team_1_score) || 0
+            return (totalScore1 - totalScore2) || 0
         } else {
-            return team1 === game.team_1 ? `${game.team_1_score || 0} : ${game.team_2_score || 0}`
-                : `${game.team_2_score || 0} : ${game.team_1_score || 0}`
+            return `${totalScore1} : ${totalScore2}`
         }
     }
 }

@@ -164,7 +164,7 @@
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
-                                    class="no-wrap">
+                                    class="no-wrap group-cell">
                                     {{ getGameResultInGroup(tournament.games, team.title, opponent.title) }}
                                 </td>
                                 <td align="center">{{ team.wins }}</td>
@@ -359,5 +359,9 @@ export default {
     border-radius: 10px;
     background: var(--color-badge-purple);
     color: var(--color-primary);
+}
+
+.group-cell {
+    white-space: pre-line;
 }
 </style>

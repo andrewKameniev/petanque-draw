@@ -198,24 +198,24 @@ describe('getGameResultInGroup', () => {
         expect(getGameResultInGroup(tiedGames, 'X', 'Y', true)).toBe(0);
     });
 
-    it('accumulates scores across multiple games (multi-circle)', () => {
+    it('shows each game separately across multiple circles', () => {
         const multiCircleGames = [
             [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 }],
             [{ team_1: 'A', team_2: 'B', team_1_score: 9, team_2_score: 8 }],
         ];
-        expect(getGameResultInGroup(multiCircleGames, 'A', 'B', false)).toBe('22 : 15');
-        expect(getGameResultInGroup(multiCircleGames, 'B', 'A', false)).toBe('15 : 22');
+        expect(getGameResultInGroup(multiCircleGames, 'A', 'B', false)).toBe('13 : 7\n9 : 8');
+        expect(getGameResultInGroup(multiCircleGames, 'B', 'A', false)).toBe('7 : 13\n8 : 9');
         expect(getGameResultInGroup(multiCircleGames, 'A', 'B', true)).toBe(7);
         expect(getGameResultInGroup(multiCircleGames, 'B', 'A', true)).toBe(-7);
     });
 
-    it('accumulates when team sides are swapped across circles', () => {
+    it('shows each game when team sides are swapped across circles', () => {
         const swappedGames = [
             [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 }],
             [{ team_1: 'B', team_2: 'A', team_1_score: 10, team_2_score: 8 }],
         ];
-        expect(getGameResultInGroup(swappedGames, 'A', 'B', false)).toBe('21 : 17');
-        expect(getGameResultInGroup(swappedGames, 'B', 'A', false)).toBe('17 : 21');
+        expect(getGameResultInGroup(swappedGames, 'A', 'B', false)).toBe('13 : 7\n8 : 10');
+        expect(getGameResultInGroup(swappedGames, 'B', 'A', false)).toBe('7 : 13\n10 : 8');
     });
 });
 

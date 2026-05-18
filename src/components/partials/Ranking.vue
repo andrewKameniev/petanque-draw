@@ -164,8 +164,14 @@
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
-                                    class="no-wrap">
-                                    {{ getGameResultInGroup(tournament.games, team.title, opponent.title) }}
+                                    class="no-wrap group-cell">
+                                    <template v-if="team.title === opponent.title">-</template>
+                                    <template v-else>
+                                        <div v-for="(result, ri) in getGameResults(team.title, opponent.title)" :key="ri"
+                                             :class="{'group-cell--win': result.diff > 0, 'group-cell--lose': result.diff < 0}">
+                                            {{ result.text }}
+                                        </div>
+                                    </template>
                                 </td>
                                 <td align="center">{{ team.wins }}</td>
                                 <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
@@ -213,6 +219,19 @@ export default {
     },
     methods: {
         getGameResultInGroup: getGameResultInGroup,
+        getGameResults(team, opponent) {
+            const results = [];
+            this.tournament.games.forEach(round => {
+                round.forEach(game => {
+                    if (game.team_1 + game.team_2 === team + opponent) {
+                        results.push({ text: `${game.team_1_score || 0} : ${game.team_2_score || 0}`, diff: (game.team_1_score || 0) - (game.team_2_score || 0) });
+                    } else if (game.team_2 + game.team_1 === team + opponent) {
+                        results.push({ text: `${game.team_2_score || 0} : ${game.team_1_score || 0}`, diff: (game.team_2_score || 0) - (game.team_1_score || 0) });
+                    }
+                });
+            });
+            return results;
+        },
         copyResults() {
             let content = ''
             this.tournamentRanking.forEach(item => {
@@ -359,5 +378,19 @@ export default {
     border-radius: 10px;
     background: var(--color-badge-purple);
     color: var(--color-primary);
+}
+
+.group-cell {
+    white-space: pre-line;
+}
+
+.group-cell--win {
+    color: #3a7d44;
+    font-weight: 600;
+}
+
+.group-cell--lose {
+    color: #b04040;
+    font-weight: 600;
 }
 </style>

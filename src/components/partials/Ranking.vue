@@ -15,15 +15,22 @@
         <div v-if="tournament.tournamentIsFinished && !isSwissOnly" class="mb-5">
             <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
-                    <template v-if="resultsCopied">
-                        <Check :size="18"/>
-                    </template>
-                    <template v-else>
-                        <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
-                        <Copy class="is-hidden-tablet" :size="20"/>
-                    </template>
-                </button>
+                <div class="ranking-header__actions">
+                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="importResults">
+                        <Import :size="18"/>
+                        <span class="is-hidden-mobile">{{ $t('ranking.importResults') }}</span>
+                    </button>
+                    <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
+                        <template v-if="resultsCopied">
+                            <Check :size="18"/>
+                        </template>
+                        <template v-else>
+                            <Copy :size="18" class="is-hidden-mobile"/>
+                            <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+                            <Copy class="is-hidden-tablet" :size="20"/>
+                        </template>
+                    </button>
+                </div>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
@@ -191,11 +198,14 @@
 
 <script>
 import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
-import {Copy, Check} from "lucide-vue-next";
+import {Copy, Check, Import} from "lucide-vue-next";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
+import {tournamentOrgsService} from "@/services/db";
 
 export default {
     name: 'Ranking',
-    components: {Copy, Check},
+    components: {Copy, Check, Import},
     props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
@@ -204,20 +214,26 @@ export default {
             activeTooltip: null,
             rankingSubtab: 'result',
             resultsCopied: false,
+            isTournamentOrg: false,
         }
     },
-    mounted() {
+    async mounted() {
         this._onClickOutside = (e) => {
             if (this.activeTooltip && !e.target.closest('.has-tooltip')) {
                 this.activeTooltip = null;
             }
         };
         document.addEventListener('click', this._onClickOutside);
+        if (this.user?.email) {
+            const snapshot = await tournamentOrgsService.check(this.user.email);
+            this.isTournamentOrg = snapshot.exists();
+        }
     },
     beforeUnmount() {
         document.removeEventListener('click', this._onClickOutside);
     },
     methods: {
+        ...mapActions(useMainStore, ['showMessage']),
         getGameResultInGroup: getGameResultInGroup,
         getGameResults(team, opponent) {
             const results = [];
@@ -231,6 +247,56 @@ export default {
                 });
             });
             return results;
+        },
+        async importResults() {
+            const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
+            if (!token) {
+                this.showMessage({title: this.$t('messages.error'), text: 'API token not configured', type: 'error'});
+                return;
+            }
+
+            const teams = this.tournamentRanking
+                .filter(item => {
+                    const team = this.tournament.teams?.find(t => t.title === item.title);
+                    return team?.portalTeamId;
+                })
+                .map(item => {
+                    const team = this.tournament.teams.find(t => t.title === item.title);
+                    const place = String(item.place);
+                    const entry = {
+                        team_id: team.portalTeamId,
+                        place_min: parseInt(place.split('-')[0]),
+                    };
+                    if (place.includes('-')) {
+                        entry.place_max = parseInt(place.split('-')[1]);
+                    }
+                    return entry;
+                });
+
+            try {
+                const response = await fetch('http://portal.petanque.org.ua/api/tournament/results/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token,
+                    },
+                    body: JSON.stringify({
+                        tournament_id: Number(this.tournament.portalIdTournament),
+                        teams,
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.showMessage({title: this.$t('messages.success'), text: `Updated ${data.updated_teams?.length || 0} teams`});
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    this.showMessage({title: this.$t('messages.error'), text: error.error || `Error ${response.status}`, type: 'error'});
+                }
+            } catch (e) {
+                console.error('Import results failed:', e);
+                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+            }
         },
         copyResults() {
             let content = ''
@@ -247,6 +313,7 @@ export default {
         },
     },
     computed: {
+        ...mapState(useMainStore, ['user']),
         groupsNames() {
             return tournamentNames
         },
@@ -273,6 +340,12 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
+}
+
+.ranking-header__actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .btn-purple-outline {

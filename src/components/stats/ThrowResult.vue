@@ -181,7 +181,7 @@ export default {
     padding: 0.5rem 0.75rem;
     cursor: pointer;
     color: var(--color-text);
-    font-size: 0.8rem;
+    font-size: 1rem;
     border-radius: 6px;
     transition: background 0.15s;
 }
@@ -211,7 +211,7 @@ export default {
 .checkbox-wrapper-10 .tgl + .tgl-btn {
     outline: 0;
     display: block;
-    font-size: 0.75em;
+    font-size: 1em;
     width: 44px;
     height: 28px;
     position: relative;

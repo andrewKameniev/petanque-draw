@@ -229,7 +229,7 @@ export default {
     gap: 0.35rem;
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -272,7 +272,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -290,7 +290,7 @@ export default {
 .archive__filter-tag {
     padding: 0.3rem 0.7rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     background: var(--color-surface);
@@ -322,7 +322,7 @@ export default {
     gap: 0.2rem;
     padding: 0.3rem 0.6rem;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 1rem;
     border: none;
     background: var(--color-error-bg);
     color: var(--color-error);
@@ -363,13 +363,13 @@ export default {
 }
 
 .archive__game-name {
-    font-size: 0.95rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--color-text);
 }
 
 .archive__game-date {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -379,7 +379,7 @@ export default {
 }
 
 .archive__game-tag-badge {
-    font-size: 0.7rem;
+    font-size: 1rem;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
     background: var(--color-primary-bg);
@@ -424,7 +424,7 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    font-size: 0.75rem;
+    font-size: 1rem;
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
     background: var(--color-primary-bg);
@@ -454,12 +454,12 @@ export default {
 }
 
 .archive__game-tags-add-label {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
 .archive__game-tag-add-btn {
-    font-size: 0.75rem;
+    font-size: 1rem;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
     border: 1px dashed var(--color-border);
@@ -498,7 +498,7 @@ export default {
 }
 
 .archive__empty-text {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 </style>

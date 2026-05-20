@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { isScoreError, shuffleArray } from '@/helpers';
 
 describe('Bug #1: Restore from first playoff stage should restore cadrage', () => {

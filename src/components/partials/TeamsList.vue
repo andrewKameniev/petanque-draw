@@ -19,7 +19,7 @@
         </div>
     </div>
     <table v-else id="table-list" class="table is-fullwidth">
-        <tr v-for="(team, teamIndex) in sortedTeams" :key="team.title">
+        <tr v-for="team in sortedTeams" :key="team.title">
             <td>{{team.title}}
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                     (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}
@@ -127,7 +127,7 @@ export default {
     gap: 0.25rem;
     min-width: 28px;
     padding: 0.2rem 0.6rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 700;
     border-radius: 10px;
     background: var(--color-badge-purple);

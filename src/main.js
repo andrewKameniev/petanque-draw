@@ -2,12 +2,12 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import {createRouter, createWebHashHistory} from 'vue-router';
-import Public from "@/views/Public.vue";
-import Help from "@/components/Help.vue";
-import Stats from "@/views/Stats.vue";
-import Training from "@/views/Training.vue";
-import Archived from "@/views/Archived.vue";
-import Draw from "@/components/Draw.vue";
+const Public = () => import("@/views/Public.vue");
+const Help = () => import("@/components/Help.vue");
+const Stats = () => import("@/views/Stats.vue");
+const Training = () => import("@/views/Training.vue");
+const Archived = () => import("@/views/Archived.vue");
+const Draw = () => import("@/components/Draw.vue");
 import i18n from "@/i18n";
 import {useMainStore} from "@/stores/main";
 import { onAuthStateChanged } from "firebase/auth";

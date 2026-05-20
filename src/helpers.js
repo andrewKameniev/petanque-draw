@@ -147,6 +147,22 @@ function getTournamentRanking(tournament, rankingTeams){
                 }
                 tournamentRanking.push(teamPlace)
             })
+        } else if (tournament.system === 'groups' && rankingTeams?.length > 1) {
+            const groupsCount = rankingTeams.length;
+            const maxTeams = Math.max(...rankingTeams.map(g => g.length));
+            for (let i = 0; i < maxTeams; i++) {
+                rankingTeams.forEach(group => {
+                    if (group[i]) {
+                        const placeStart = i * groupsCount + 1;
+                        const placeEnd = placeStart + groupsCount - 1;
+                        tournamentRanking.push({
+                            place: placeStart === placeEnd ? placeStart : `${placeStart}-${placeEnd}`,
+                            title: group[i].title,
+                            players: group[i].players
+                        });
+                    }
+                });
+            }
         }
     }
 

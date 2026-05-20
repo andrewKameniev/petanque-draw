@@ -84,7 +84,7 @@ export default {
     border-radius: 8px;
     background: var(--color-bg-input);
     color: var(--color-text);
-    font-size: 0.85rem;
+    font-size: 1rem;
     outline: none;
     transition: border-color 0.15s;
 }
@@ -99,7 +99,7 @@ export default {
     border: none;
     background: var(--color-success);
     color: #fff;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
@@ -123,7 +123,7 @@ export default {
     border-radius: 12px;
     background: var(--color-primary-bg);
     color: var(--color-primary);
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
 }
 

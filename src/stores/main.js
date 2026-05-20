@@ -4,6 +4,7 @@ import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
 import i18n from "@/i18n";
 
+// eslint-disable-next-line no-unused-vars
 const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 
 function createTournament(overrides = {}) {

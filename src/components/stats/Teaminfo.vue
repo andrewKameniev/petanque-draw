@@ -166,7 +166,7 @@ export default {
 }
 
 .team-card__stat-badge {
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 500;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
@@ -191,7 +191,7 @@ export default {
 }
 
 .team-card__score-label {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
     color: var(--color-text-muted);
     white-space: nowrap;
 }
@@ -260,14 +260,14 @@ export default {
 }
 
 .team-card__player-name {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     display: block;
 }
 
 .team-card__player-stat {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -285,7 +285,7 @@ export default {
 }
 
 .team-card__modal-label {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
 }
@@ -295,7 +295,7 @@ export default {
     border-radius: 8px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-input);
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--color-text);
     outline: none;
 }
@@ -311,7 +311,7 @@ export default {
     border: none;
     background: var(--color-primary);
     color: var(--color-btn-text);
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     align-self: flex-start;

@@ -14,7 +14,7 @@
             </button>
         </div>
 
-        <div class="navbar-center is-hidden-touch" v-if="user">
+        <div class="navbar-center" v-if="user">
             <router-link class="navbar-nav-link" to="/">{{ $t('common.draw') }}</router-link>
             <router-link class="navbar-nav-link" to="/stats">{{ $t('common.stat') }}</router-link>
             <router-link class="navbar-nav-link" to="/training">{{ $t('common.training') }}</router-link>
@@ -164,7 +164,7 @@ export default {
 }
 
 .navbar-nav-link {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-muted);
     text-decoration: none;
@@ -220,9 +220,17 @@ export default {
     opacity: 0.7;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1199px) {
     .menu-burger {
         display: flex;
+    }
+
+    .navbar-center {
+        display: none;
+    }
+
+    .navbar-menu {
+        display: none !important;
     }
 }
 
@@ -235,7 +243,7 @@ export default {
 
 .navbar-link--custom {
     padding: 0 0 0 0.75rem !important;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-navbar-link);
     display: flex;
@@ -266,7 +274,7 @@ export default {
     background: var(--color-white);
     border-radius: 0.5rem;
     box-shadow: 0 8px 24px var(--color-dropdown-shadow), 0 2px 4px rgba(0, 0, 0, 0.04);
-    min-width: 200px;
+    min-width: 300px;
     padding: 0.35rem;
     z-index: 9999;
     animation: dropdown-in 0.15s ease;
@@ -277,7 +285,7 @@ export default {
     align-items: center;
     gap: 0.35rem;
     padding: 0.55rem 0.75rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: 0.35rem;
@@ -335,7 +343,7 @@ export default {
     align-items: center;
     gap: 0.5rem;
     padding: 0.55rem 0.75rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: 0.35rem;
@@ -382,7 +390,7 @@ export default {
 }
 
 .user-dropdown__theme-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-secondary);
 }

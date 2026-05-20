@@ -1,4 +1,5 @@
 {
+    "ignoreFiles": ["src/assets/css/bulma.min.css"],
     "extends": ["stylelint-config-standard"],
     "plugins": ["@stylistic/stylelint-plugin"],
     "overrides": [

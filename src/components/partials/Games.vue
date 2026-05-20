@@ -349,12 +349,12 @@ export default {
 }
 
 .draw-card__or {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
 .draw-card__circle-info {
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -372,7 +372,7 @@ export default {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-secondary);
     cursor: pointer;

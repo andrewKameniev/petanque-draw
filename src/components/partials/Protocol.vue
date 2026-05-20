@@ -209,7 +209,6 @@
 import Results from "@/components/partials/Results";
 import {getTournamentRanking, regions} from "@/helpers";
 import Ranking from "@/components/partials/Ranking";
-import html2pdf from "html2pdf.js";
 import playersNames from '../../data.json'
 import {mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
@@ -343,14 +342,15 @@ export default {
 
             selection.removeAllRanges();
         },
-        exportPdf() {
+        async exportPdf() {
+            const { default: html2pdf } = await import("html2pdf.js");
             html2pdf(document.getElementById("protocol"), {
                 margin: 1,
                 filename: "generated-pdf.pdf",
             });
         },
         setTeamTitle(team, players) {
-            let title = '';
+            let title;
             if (players?.length > 1) {
                 const firstPlayerClubName = this.regions[players[0].club_id];
                 if (firstPlayerClubName){
@@ -403,7 +403,7 @@ export default {
     align-items: center;
     gap: 0.3rem;
     padding: 0.25rem 0.7rem;
-    font-size: 0.72rem;
+    font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -414,7 +414,7 @@ export default {
 }
 
 .protocol-gate__desc {
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--color-text-secondary);
     line-height: 1.5;
     margin-bottom: 1rem;
@@ -434,7 +434,7 @@ export default {
 }
 
 .protocol-gate__card-number {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     font-family: monospace;
     background: var(--color-white);
@@ -464,7 +464,7 @@ export default {
 }
 
 .protocol-gate__contact {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin-bottom: 1rem;
 }
@@ -485,7 +485,7 @@ export default {
     display: flex;
     align-items: flex-start;
     gap: 0.4rem;
-    font-size: 0.78rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     line-height: 1.4;
 }
@@ -503,7 +503,7 @@ export default {
 
 .protocol-gate__label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 0.3rem;
@@ -512,7 +512,7 @@ export default {
 .protocol-gate__input {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-white);
@@ -533,7 +533,7 @@ export default {
     border: 1px solid var(--color-warning-border);
     background: var(--color-warning-bg);
     color: var(--color-warning-text);
-    font-size: 0.82rem;
+    font-size: 1rem;
     line-height: 1.5;
     margin-bottom: 1.25rem;
 }
@@ -563,7 +563,7 @@ export default {
     align-items: center;
     gap: 0.35rem;
     padding: 0.5rem 0.9rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: 1px solid;

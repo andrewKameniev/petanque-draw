@@ -224,7 +224,7 @@ export default {
 }
 
 .stat-result__label {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -241,7 +241,7 @@ export default {
     text-align: center;
     padding: 1.5rem 0;
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .stat-result__section {
@@ -249,7 +249,7 @@ export default {
 }
 
 .stat-result__section-title {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -267,14 +267,14 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.6;
 }
 
 .stat-result__stat-label {
     color: var(--color-text-muted);
     min-width: 50px;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .stat-result__stat-value {
@@ -292,13 +292,13 @@ export default {
 }
 
 .stat-result__stat-important {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin-left: auto;
 }
 
 .stat-result__stat-extra {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -309,7 +309,7 @@ export default {
 .stat-result__table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 1rem;
     text-align: center;
 }
 
@@ -317,7 +317,7 @@ export default {
     font-weight: 500;
     color: var(--color-text-muted);
     padding: 0.35rem 0.5rem;
-    font-size: 0.75rem;
+    font-size: 1rem;
     border-bottom: 1px solid var(--color-border-light);
 }
 
@@ -332,7 +332,7 @@ export default {
 
 .stat-result__table-label {
     text-align: left;
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     font-weight: 500;
 }
@@ -356,7 +356,7 @@ export default {
 }
 
 .stat-result__player-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 0.4rem;
@@ -376,14 +376,14 @@ export default {
 }
 
 .stat-result__series-label {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin-right: 4px;
     min-width: 45px;
 }
 
 .stat-result__important-label {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     text-align: right;
     text-transform: capitalize;

@@ -6,13 +6,13 @@ import "vue3-select-component/dist/styles.css";
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import {calculatePlayerStat, getDate, extractPlayers} from "@/helpers-stat";
-import VueApexCharts from 'vue3-apexcharts';
+import {defineAsyncComponent} from 'vue';
 import {gameTypes, throwDistances} from "@/helpers-stat.js"
 import {X} from "lucide-vue-next";
 
 export default {
     name: "StatsAnalysis",
-    components: {VueSelect, VueDatePicker, apexchart: VueApexCharts, X},
+    components: {VueSelect, VueDatePicker, apexchart: defineAsyncComponent(() => import('vue3-apexcharts')), X},
     props: ['stats', 'tags'],
     data() {
         return {
@@ -310,7 +310,7 @@ export default {
 }
 
 .analysis__label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -340,7 +340,7 @@ export default {
 }
 
 .analysis__filter-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     min-width: 70px;
@@ -356,7 +356,7 @@ export default {
 .analysis__pill {
     padding: 0.3rem 0.7rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     background: var(--color-surface);
@@ -388,7 +388,7 @@ export default {
     gap: 0.2rem;
     padding: 0.3rem 0.6rem;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 1rem;
     border: none;
     background: var(--color-error-bg);
     color: var(--color-error);
@@ -409,7 +409,7 @@ export default {
 }
 
 .analysis__toggle-label {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text);
 }
@@ -433,7 +433,7 @@ export default {
 }
 
 .analysis__player-games {
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -468,7 +468,7 @@ export default {
 }
 
 .analysis__stat-label {
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -482,7 +482,7 @@ export default {
 }
 
 .analysis__stat-detail {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -502,7 +502,7 @@ export default {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -511,7 +511,7 @@ export default {
     --vs-border: 1px solid var(--color-border);
     --vs-border-radius: 8px;
     --vs-background-color: var(--color-bg-input);
-    --vs-font-size: 0.85rem;
+    --vs-font-size: 1rem;
     --vs-text-color: var(--color-text);
     --vs-placeholder-color: var(--color-text-muted);
     --vs-outline-width: 2px;
@@ -531,7 +531,7 @@ export default {
     border-radius: 8px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-input);
-    font-size: 0.85rem;
+    font-size: 1rem;
     height: 38px;
 }
 

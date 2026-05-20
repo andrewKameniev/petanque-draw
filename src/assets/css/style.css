@@ -267,7 +267,7 @@ footer {
 }
 
 .lanes-played {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: var(--color-lanes-played);
     margin-top: 2px;
 }
@@ -285,7 +285,7 @@ footer {
 }
 
 .title sup {
-    font-size: 0.3em;
+    font-size: 1em;
 }
 
 .text-center {
@@ -368,6 +368,21 @@ footer {
 .tabs a:focus {
     outline: none;
     box-shadow: none;
+}
+
+.tabs li.is-active a {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-primary);
+    font-weight: 700;
+}
+
+.tabs a:hover {
+    color: var(--color-primary);
+    border-bottom: none;
+}
+
+.is-size-7 {
+    font-size: 1rem !important;
 }
 
 .round-tabs {
@@ -473,7 +488,7 @@ footer {
         border-top: 2px solid var(--color-border-medium);
         box-shadow: 0 8px 8px rgba(10,10,10,.1);
         display: none;
-        font-size: .875rem;
+        font-size: 1rem;
         left: 0;
         min-width: 100%;
         position: absolute;
@@ -545,7 +560,7 @@ button.tag {
 }
 
 .login-card__subtitle {
-    font-size: 0.8rem;
+    font-size: 1rem;
     text-align: center;
     color: var(--color-text-muted);
     margin-bottom: 1.5rem;
@@ -560,7 +575,7 @@ button.tag {
 .login-input {
     width: 100%;
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     border: 1.5px solid var(--color-border);
     border-radius: 0.625rem;
     background: var(--color-bg-input);
@@ -589,7 +604,7 @@ button.tag {
 }
 
 .login-error {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-error);
     margin-top: 0.35rem;
     padding-left: 0.25rem;
@@ -600,7 +615,7 @@ button.tag {
     width: 100%;
     padding: 0.75rem;
     margin-top: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--color-btn-text);
     background: var(--color-primary);
@@ -675,7 +690,7 @@ button.tag {
     background: var(--color-primary);
     color: var(--color-btn-text);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     border-radius: 0.625rem;
     border: none;
     box-shadow: 0 2px 8px var(--color-primary-shadow);
@@ -705,7 +720,7 @@ button.tag {
     background: var(--color-primary-bg);
     border: 1px solid var(--color-border);
     border-radius: 2rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-primary);
     cursor: pointer;

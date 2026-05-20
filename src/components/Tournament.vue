@@ -151,6 +151,47 @@
                         <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1">
                         <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
                     </div>
+
+                    <div class="setup-card__field">
+                        <label class="setup-card__checkbox">
+                            <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled">
+                            {{ $t('modals.timeLimit') }}
+                        </label>
+                        <span class="setup-card__hint">{{ $t('modals.timeLimitHint') }}</span>
+                        <div v-if="tournament.preferences.timeLimitEnabled" class="setup-card__nested">
+                            <div class="setup-card__row mt-2">
+                                <div class="setup-card__row-item">
+                                    <span class="setup-card__hint">{{ $t('modals.timeLimitSwiss') }}</span>
+                                    <select class="setup-card__input" v-model.number="tournament.preferences.timeLimit">
+                                        <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    </select>
+                                </div>
+                                <div class="setup-card__row-item">
+                                    <span class="setup-card__hint">{{ $t('modals.timeLimitPlayoff') }}</span>
+                                    <select class="setup-card__input" v-model.number="tournament.preferences.playoffTimeLimit">
+                                        <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label class="setup-card__checkbox mt-2">
+                                <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale">
+                                {{ $t('modals.noTimeLimitFinale') }}
+                            </label>
+                            <div class="mt-2">
+                                <label class="setup-card__checkbox">
+                                    <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled">
+                                    {{ $t('modals.cochonettes') }}
+                                </label>
+                                <div v-if="tournament.preferences.cochonettesEnabled" class="setup-card__row mt-2">
+                                    <select class="setup-card__input" v-model.number="tournament.preferences.cochonettes">
+                                        <option :value="1">1</option>
+                                        <option :value="2">2</option>
+                                    </select>
+                                </div>
+                                <span class="setup-card__hint">{{ $t('modals.cochonettesHint') }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="setup-card__actions">
@@ -534,6 +575,11 @@ export default {
                 { id: 'results', label: this.$t('teams.results') },
                 { id: 'ranking', label: this.$t('teams.ranking') },
             ];
+        },
+        timeLimitOptions() {
+            const options = [];
+            for (let i = 20; i <= 120; i += 5) options.push(i);
+            return options;
         },
         teamToPlayOffValues() {
             const values = [];
@@ -1172,6 +1218,12 @@ export default {
 
 .setup-card__collapse-content {
     padding-top: 0.25rem;
+}
+
+.setup-card__nested {
+    margin-top: 0.5rem;
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--color-border);
 }
 
 .tabs-content-area {

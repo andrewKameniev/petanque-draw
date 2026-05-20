@@ -41,10 +41,10 @@
 
                     <!-- Active tournaments -->
                     <template v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
-                        <a href="#" class="sidebar__expandable" @click.prevent="tournamentsOpen = !tournamentsOpen">
+                        <p class="sidebar__label sidebar__label--toggle" @click="tournamentsOpen = !tournamentsOpen">
                             <span>{{ $t('common.activeTournaments') }}</span>
                             <svg class="sidebar__chevron" :class="{'sidebar__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </a>
+                        </p>
                         <ul class="sidebar__list sidebar__list--collapsible" :class="{'sidebar__list--expanded': tournamentsOpen}">
                             <li v-for="(item, index) in tournaments" :key="index">
                                 <a href="#" :class="{'sidebar__link--active': index === currentTournamentIndex}" @click.prevent="chooseTournament(index)">
@@ -56,14 +56,15 @@
 
                     <!-- Saved tournaments -->
                     <template v-if="$route.name !== 'Statistics' && Object.keys(savedTournaments).length">
-                        <p class="sidebar__label">{{ $t('common.saved') }}</p>
-                        <ul class="sidebar__list">
+                        <p class="sidebar__label sidebar__label--toggle" @click="savedOpen = !savedOpen">
+                            <span>{{ $t('common.saved') }}</span>
+                            <svg class="sidebar__chevron" :class="{'sidebar__chevron--open': savedOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </p>
+                        <ul class="sidebar__list sidebar__list--collapsible" :class="{'sidebar__list--expanded': savedOpen}">
                             <li><router-link to="/archived" @click="$emit('closeMenu')">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                 {{ $t('common.archivedTournaments') }}
                             </router-link></li>
-                        </ul>
-                        <ul class="sidebar__list sidebar__list--scrollable">
                             <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
                                 <a href="#" @click.prevent="$emit('openSavedTournament', key)">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
@@ -92,7 +93,7 @@
                             <svg v-else class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/><path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/><path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/></svg>
                         </a></li>
                         <li class="sidebar__theme-item">
-                            <span class="sidebar__theme-label">{{ $t('common.theme') }}</span>
+                            <span class="sidebar__theme-label"><Paintbrush :size="20" class="sidebar__theme-icon"/> {{ $t('common.theme') }}</span>
                             <ThemeSwitcher />
                         </li>
                         <li v-if="user"><a href="#" @click.prevent="signOutUser">
@@ -123,10 +124,11 @@ import {signOut} from "firebase/auth";
 import {auth} from "@/firebase";
 import {useTheme} from "@/composables/useTheme";
 import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
+import {Paintbrush} from "lucide-vue-next";
 
 export default {
     name: 'Menu',
-    components: {ThemeSwitcher},
+    components: {ThemeSwitcher, Paintbrush},
     setup() {
         const { theme, toggleTheme } = useTheme();
         return { theme, toggleTheme };
@@ -135,6 +137,7 @@ export default {
         return {
             tournamentNames,
             tournamentsOpen: false,
+            savedOpen: false,
         }
     },
     props: ['active'],
@@ -282,7 +285,14 @@ export default {
     letter-spacing: 0.05em;
     color: var(--color-text-muted);
     padding: 1.25rem 1.5rem 0.5rem;
-    margin: 0;
+    margin: 0.5rem 0 0;
+}
+
+.sidebar__label--toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
 }
 
 .sidebar__list {
@@ -378,6 +388,7 @@ export default {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
+    padding-left: 1rem;
 }
 
 .sidebar__list--collapsible.sidebar__list--expanded {
@@ -402,9 +413,17 @@ export default {
 }
 
 .sidebar__theme-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     font-size: 1.25rem;
     font-weight: 500;
     color: var(--color-text-secondary);
+}
+
+.sidebar__theme-icon {
+    opacity: 0.7;
+    flex-shrink: 0;
 }
 
 /* Credit */

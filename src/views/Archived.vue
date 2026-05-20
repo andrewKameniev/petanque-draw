@@ -52,6 +52,10 @@
                         <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
                         <span class="has-text-weight-semibold">{{ activeTournament.teams.length }}</span>
                     </div>
+                    <div class="tournament-info-row" v-if="tournamentExtrasLine">
+                        <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
+                        <span class="has-text-weight-semibold">{{ tournamentExtrasLine }}</span>
+                    </div>
                     <div class="tournament-info-row" v-if="activeTournament.cadrage">
                         <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
                         <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
@@ -241,6 +245,29 @@ export default {
         playOffTeamsCount() {
             if (!this.activeTournament?.playOff?.length) return 0;
             return this.activeTournament.playOff.length * 2;
+        },
+        isInPlayoff() {
+            return !!this.activeTournament?.playOff || !!this.activeTournament?.cadrage;
+        },
+        isFinale() {
+            const po = this.activeTournament?.playOff;
+            if (!po?.length) return false;
+            return po[po.length - 1].teams?.length === 1;
+        },
+        tournamentExtrasLine() {
+            const prefs = this.activeTournament?.preferences;
+            if (!prefs?.timeLimitEnabled) return '';
+            const parts = [];
+            const time = this.isInPlayoff ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
+            if (prefs.noTimeLimitFinale && this.isFinale) {
+                parts.push(this.$t('modals.noTimeLimitFinale'));
+            } else {
+                parts.push(`${time} ${this.$t('modals.min')}`);
+            }
+            if (prefs.cochonettesEnabled && prefs.cochonettes) {
+                parts.push(`+ ${prefs.cochonettes} ${prefs.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`);
+            }
+            return parts.join(' ');
         }
     },
     methods: {

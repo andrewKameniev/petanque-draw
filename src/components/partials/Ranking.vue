@@ -16,9 +16,9 @@
             <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
                 <div class="ranking-header__actions">
-                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="importResults">
-                        <Import :size="18"/>
-                        <span class="is-hidden-mobile">{{ $t('ranking.importResults') }}</span>
+                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="showExportConfirm = true">
+                        <Upload :size="18"/>
+                        <span class="is-hidden-mobile">{{ $t('ranking.exportResults') }}</span>
                     </button>
                     <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
                         <template v-if="resultsCopied">
@@ -192,20 +192,30 @@
         <div v-else-if="!isResultOnly && !isSwissOnly">
             {{ $t('ranking.noRanking') }}
         </div>
+        <Modal v-if="showExportConfirm" @close-modal="showExportConfirm = false">
+            <div class="confirm-export">
+                <p class="confirm-export__text">{{ $t('ranking.exportConfirm') }}</p>
+                <div class="confirm-export__actions">
+                    <button class="confirm-export__btn confirm-export__btn--cancel" @click="showExportConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-export__btn confirm-export__btn--confirm" @click="showExportConfirm = false; exportResults()">{{ $t('ranking.exportResults') }}</button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
 
 <script>
 import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
-import {Copy, Check, Import} from "lucide-vue-next";
+import {Copy, Check, Upload} from "lucide-vue-next";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentOrgsService} from "@/services/db";
+import Modal from "@/components/Modal";
 
 export default {
     name: 'Ranking',
-    components: {Copy, Check, Import},
+    components: {Copy, Check, Upload, Modal},
     props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
@@ -215,6 +225,7 @@ export default {
             rankingSubtab: 'result',
             resultsCopied: false,
             isTournamentOrg: false,
+            showExportConfirm: false,
         }
     },
     async mounted() {
@@ -248,7 +259,7 @@ export default {
             });
             return results;
         },
-        async importResults() {
+        async exportResults() {
             const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
             if (!token) {
                 this.showMessage({title: this.$t('messages.error'), text: 'API token not configured', type: 'error'});
@@ -476,5 +487,54 @@ export default {
 .group-cell--lose {
     color: #b04040;
     font-weight: 600;
+}
+
+.confirm-export {
+    padding: 0.5rem 0;
+}
+
+.confirm-export__text {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.confirm-export__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-export__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-export__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.confirm-export__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+}
+
+.confirm-export__btn--confirm {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-btn-text);
+}
+
+.confirm-export__btn--confirm:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
 }
 </style>

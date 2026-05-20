@@ -11,11 +11,11 @@ export default {
 <template>
     <footer class="app-footer">
         <div class="app-footer__desktop">
-            <div class="app-footer__line">
+            <div v-if="user" class="app-footer__line">
                 <div class="app-footer__links">
                     <router-link to="/">{{ $t('common.draw') }}</router-link>
-                    <router-link :to="user ? '/stats' : '/'">{{ $t('common.stat') }}</router-link>
-                    <router-link :to="user ? '/training' : '/'">{{ $t('common.training') }}</router-link>
+                    <router-link to="/stats">{{ $t('common.stat') }}</router-link>
+                    <router-link to="/training">{{ $t('common.training') }}</router-link>
                 </div>
             </div>
             <div class="app-footer__line">

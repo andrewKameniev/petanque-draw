@@ -178,9 +178,15 @@ input[type="checkbox"]:focus {
 }
 
 @media screen and (min-width: 575px){
-    body:not(.documentation) {
-        background: url("../img/bg-mountains.avif") center/cover;
-        background-attachment: fixed;
+    body:not(.documentation)::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: url("@/assets/img/bg-petanque.avif") repeat;
+        background-size: 800px;
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
     }
 }
 

@@ -289,7 +289,7 @@ export default {
 <style scoped>
 .wrapper {
     position: relative;
-    background: var(--color-body-bg);
+    background: transparent;
     min-height: 100vh;
 }
 

@@ -255,26 +255,37 @@ export default {
                 return;
             }
 
+            let portalTeams;
+            try {
+                const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournament.portalIdTournament}?format=json`);
+                if (!res.ok) throw new Error(`Portal responded ${res.status}`);
+                const data = await res.json();
+                portalTeams = data.teams;
+            } catch (e) {
+                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+                return;
+            }
+
             const teams = this.tournamentRanking
-                .filter(item => {
-                    const team = this.tournament.teams?.find(t => t.title === item.title);
-                    return team?.portalTeamId;
-                })
                 .map(item => {
-                    const team = this.tournament.teams.find(t => t.title === item.title);
+                    const localTeam = this.tournament.teams?.find(t => t.title === item.title);
+                    const portalTeamId = localTeam?.portalTeamId
+                        || portalTeams.find(pt => pt.name === item.title)?.id;
+                    if (!portalTeamId) return null;
                     const place = String(item.place);
                     const entry = {
-                        team_id: team.portalTeamId,
+                        team_id: portalTeamId,
                         place_min: parseInt(place.split('-')[0]),
                     };
                     if (place.includes('-')) {
                         entry.place_max = parseInt(place.split('-')[1]);
                     }
                     return entry;
-                });
+                })
+                .filter(Boolean);
 
             try {
-                const response = await fetch('http://portal.petanque.org.ua/api/tournament/results/', {
+                const response = await fetch('https://portal.petanque.org.ua/api/tournament/results/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

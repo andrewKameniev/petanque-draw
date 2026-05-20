@@ -31,6 +31,8 @@ export default [
                 process: 'readonly',
                 importScripts: 'readonly',
                 firebase: 'readonly',
+                Event: 'readonly',
+                atob: 'readonly',
             }
         },
         rules: {

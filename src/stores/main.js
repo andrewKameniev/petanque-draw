@@ -4,7 +4,6 @@ import {get, getDatabase, ref, set, remove, update} from "firebase/database";
 import {database} from "@/firebase";
 import i18n from "@/i18n";
 
-const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
 
 function createTournament(overrides = {}) {
     return {

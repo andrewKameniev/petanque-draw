@@ -1,11 +1,11 @@
 import {test, expect} from '@playwright/test';
 import {
-    ensureCleanTournament, addTeams, importTeamsFromPortal, selectSystem,
+    ensureCleanTournament, addTeams, selectSystem,
     drawFirstRound, playRound, playMultipleRounds, goToPlayOff, goToCadrage,
     clickFinishTournament, deleteCurrentTournament, deleteAllTournaments,
     enablePlayOff, enableCadrage, enablePlayB, setPlayOffTeams,
     fillCadrageScores, saveCadrageAndStartPlayOff,
-    playEntirePlayoff, playPlayoffRound,
+    playEntirePlayoff,
 } from './helpers';
 
 test.describe('Swiss System Tournaments', () => {

@@ -77,7 +77,7 @@ export default {
                         this.$router.push('/');
                     })
                     .catch(error => {
-                        console.log(error.code);
+                        console.error(error.code);
                         this.handleFirebaseErrors(error.code);
                     });
             } else {
@@ -87,7 +87,7 @@ export default {
                         this.$router.push('/');
                     })
                     .catch(error => {
-                        console.log(error.code);
+                        console.error(error.code);
                         this.handleFirebaseErrors(error.code);
                     });
             }
@@ -97,7 +97,7 @@ export default {
             this.isPasswordError = false;
         },
         handleFirebaseErrors(error) {
-            console.log(error);
+            console.error(error);
             switch (error) {
                 case 'auth/missing-email':
                     this.isEmailError = this.$t('messages.missingEmail')

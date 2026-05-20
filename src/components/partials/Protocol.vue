@@ -350,7 +350,7 @@ export default {
             });
         },
         setTeamTitle(team, players) {
-            let title = '';
+            let title;
             if (players?.length > 1) {
                 const firstPlayerClubName = this.regions[players[0].club_id];
                 if (firstPlayerClubName){

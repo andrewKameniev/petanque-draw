@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 import {
-    login, ensureCleanTournament, addTeams, selectSystem, drawFirstRound, playRound,
+    login, ensureCleanTournament, addTeams, drawFirstRound, playRound,
     deleteCurrentTournament, dismissModals,
 } from './helpers';
 

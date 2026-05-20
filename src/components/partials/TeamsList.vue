@@ -19,7 +19,7 @@
         </div>
     </div>
     <table v-else id="table-list" class="table is-fullwidth">
-        <tr v-for="(team, teamIndex) in sortedTeams" :key="team.title">
+        <tr v-for="team in sortedTeams" :key="team.title">
             <td>{{team.title}}
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                     (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}

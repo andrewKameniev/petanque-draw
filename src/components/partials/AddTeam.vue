@@ -120,7 +120,7 @@ export default {
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     outline: none;
     transition: border-color 0.15s;
     background: var(--color-bg-input);
@@ -146,7 +146,7 @@ export default {
     background: var(--color-add-team-btn);
     color: var(--color-btn-text);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
@@ -179,7 +179,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--color-text-secondary);
     cursor: pointer;
 }
@@ -187,7 +187,7 @@ export default {
 
 .add-team-card__restore {
     padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     border-radius: 6px;

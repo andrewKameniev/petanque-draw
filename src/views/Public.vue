@@ -386,7 +386,7 @@ export default {
     display: inline-block;
     padding: 0.3rem 0.8rem;
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
 }
 
@@ -485,7 +485,7 @@ export default {
 }
 
 .playoff-public-wrapper h3 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-public-text-muted);
     margin-top: 1rem;
@@ -558,7 +558,7 @@ export default {
     flex: 1 1 0;
     min-width: 0;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -583,7 +583,7 @@ export default {
     border-radius: 50%;
     background: var(--color-primary);
     color: var(--color-white);
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 700;
 }
 </style>

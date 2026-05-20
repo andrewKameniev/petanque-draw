@@ -110,7 +110,7 @@ export default {
 
 .prefs__label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 0.4rem;
@@ -118,7 +118,7 @@ export default {
 
 .prefs__hint {
     display: block;
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     line-height: 1.3;
     margin-top: 0.3rem;
@@ -137,7 +137,7 @@ export default {
 }
 
 .prefs__input-label {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -146,7 +146,7 @@ export default {
 .prefs__input {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-bg-input);
@@ -178,7 +178,7 @@ export default {
 
 .prefs__btn {
     padding: 0.55rem 1.5rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: none;

@@ -188,7 +188,7 @@ export default {
 }
 
 .setup__label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -200,7 +200,7 @@ export default {
     border-radius: 8px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-input);
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--color-text);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -224,7 +224,7 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.75rem;
+    font-size: 1rem;
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
     background: var(--color-primary-bg);
@@ -264,7 +264,7 @@ export default {
     background: none;
     border: none;
     color: var(--color-text-muted);
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     padding: 0;
@@ -302,7 +302,7 @@ export default {
 .setup__pill {
     padding: 0.3rem 0.7rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     background: var(--color-surface);
@@ -336,7 +336,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text);
     cursor: pointer;
@@ -363,7 +363,7 @@ export default {
     gap: 0.4rem;
     padding: 0.7rem 2rem;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 700;
     border: none;
     background: var(--color-success);
@@ -385,7 +385,7 @@ export default {
 }
 
 .setup__error {
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--color-error);
     font-weight: 500;
 }

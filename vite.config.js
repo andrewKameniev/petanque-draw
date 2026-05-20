@@ -60,7 +60,7 @@ export default defineConfig(({ mode }) => ({
   },
   base: mode === 'production' ? '/petanque-draw/' : '/',
   optimizeDeps: {
-    include: ['html2pdf.js', 'qrcode.vue']
+    include: ['qrcode.vue']
   },
   build: {
     sourcemap: true

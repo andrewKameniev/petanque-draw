@@ -102,7 +102,8 @@ import Tournament from "./Tournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main"
 import Navbar from "./Navbar";
-import Help from "./Help";
+import {defineAsyncComponent} from 'vue';
+const Help = defineAsyncComponent(() => import("./Help"));
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/firebase";
 import Footer from "@/components/partials/Footer.vue";

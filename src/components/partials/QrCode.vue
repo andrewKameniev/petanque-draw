@@ -86,7 +86,7 @@ export default {
 }
 
 .qr-modal__link {
-    font-size: 0.85rem;
+    font-size: 1rem;
     word-break: break-all;
     color: var(--color-primary);
     text-decoration: none;

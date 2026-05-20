@@ -421,7 +421,7 @@ export default {
     color: var(--color-btn-text);
     padding: 0.4rem 0.75rem;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: normal;
     white-space: nowrap;
     z-index: 10;
@@ -468,7 +468,7 @@ export default {
     justify-content: center;
     min-width: 28px;
     padding: 0.15rem 0.5rem;
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 700;
     border-radius: 10px;
     background: var(--color-badge-purple);
@@ -482,11 +482,13 @@ export default {
 .group-cell--win {
     color: #3a7d44;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .group-cell--lose {
     color: #b04040;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .confirm-export {
@@ -494,7 +496,7 @@ export default {
 }
 
 .confirm-export__text {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--color-text);
     line-height: 1.5;
     margin-bottom: 1.25rem;
@@ -508,7 +510,7 @@ export default {
 
 .confirm-export__btn {
     padding: 0.5rem 1.25rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: 1px solid;

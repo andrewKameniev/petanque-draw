@@ -23,7 +23,7 @@ export default {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 0;
+    padding: 7rem 0;
 }
 
 .finished-banner__icon {

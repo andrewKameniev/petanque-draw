@@ -68,7 +68,7 @@ export default {
 }
 
 .confirm-remove__header-hint {
-    font-size: 0.82rem;
+    font-size: 1rem;
     font-weight: 500;
 }
 
@@ -96,7 +96,7 @@ export default {
 }
 
 .confirm-remove__question {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--color-text);
     line-height: 1.5;
 }
@@ -113,7 +113,7 @@ export default {
 
 .confirm-remove__btn {
     padding: 0.5rem 1.25rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: 1px solid;

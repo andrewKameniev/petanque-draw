@@ -127,7 +127,7 @@ export default {
     gap: 0.25rem;
     min-width: 28px;
     padding: 0.2rem 0.6rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 700;
     border-radius: 10px;
     background: var(--color-badge-purple);

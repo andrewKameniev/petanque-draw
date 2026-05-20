@@ -379,7 +379,7 @@ export default {
 .tournament-selector__option {
     display: block;
     padding: 0.75rem 1rem;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: 0.5rem;

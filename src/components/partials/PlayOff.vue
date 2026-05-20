@@ -351,6 +351,7 @@ export default {
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 100;
 }
 
 .playoff-stage-title {
@@ -416,7 +417,7 @@ export default {
     padding: 0.4rem 0.6rem;
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     outline: none;
     background: var(--color-surface, #fff);
     color: var(--color-text, #1a1a1a);
@@ -436,7 +437,7 @@ export default {
 
 .playoff-search-item {
     padding: 0.35rem 0.6rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.1s;
@@ -466,7 +467,7 @@ export default {
 
 .playoff-search-empty {
     padding: 0.5rem 0.6rem;
-    font-size: 0.82rem;
+    font-size: 1rem;
     color: var(--color-text-muted, #9ca3af);
 }
 

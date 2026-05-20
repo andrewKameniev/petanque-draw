@@ -1,9 +1,9 @@
 <script>
-import VueApexCharts from 'vue3-apexcharts';
+import {defineAsyncComponent} from 'vue';
 export default {
     name: "TrainingResultGraph",
     props: ['graphData'],
-    components: {apexchart: VueApexCharts},
+    components: {apexchart: defineAsyncComponent(() => import('vue3-apexcharts'))},
     data() {
         return {
             chartData: [

@@ -189,7 +189,7 @@ export default {
 }
 
 .tracking__status-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-muted);
 }
@@ -201,7 +201,7 @@ export default {
 }
 
 .tracking__status-dim {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 400;
     color: var(--color-text-muted);
 }
@@ -214,7 +214,7 @@ export default {
 }
 
 .tracking__distance-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
 }
@@ -228,7 +228,7 @@ export default {
 .tracking__pill {
     padding: 0.3rem 0.65rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     background: var(--color-surface);
@@ -275,7 +275,7 @@ export default {
     gap: 0.3rem;
     padding: 0.5rem 0.9rem;
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     cursor: pointer;

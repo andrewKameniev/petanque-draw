@@ -689,7 +689,7 @@ export default {
     align-items: center;
     gap: 0.4rem;
     padding: 0.45rem 0.85rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
     border-radius: 6px;
@@ -724,7 +724,7 @@ export default {
     width: 100%;
     min-height: 100px;
     padding: 0.6rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-bg-input);
@@ -771,7 +771,7 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-primary);
     background: var(--color-primary-bg);
@@ -804,7 +804,7 @@ export default {
     align-items: center;
     gap: 0.35rem;
     padding: 0.5rem 0.9rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: 1px solid var(--color-border);
@@ -950,7 +950,7 @@ export default {
 }
 
 .inline-name-error {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--color-error);
     margin-top: 0.25rem;
 }
@@ -975,7 +975,7 @@ export default {
     text-align: center;
     padding: 2rem 1rem;
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .setup-card {
@@ -994,7 +994,7 @@ export default {
 }
 
 .setup-card__summary {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin: 0 0 1.25rem;
 }
@@ -1005,7 +1005,7 @@ export default {
 
 .setup-card__label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 0.35rem;
@@ -1021,13 +1021,13 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     cursor: pointer;
 }
 
 .setup-card__select {
     padding: 0.45rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-bg-input);
@@ -1041,7 +1041,7 @@ export default {
 .setup-card__input {
     width: 100%;
     padding: 0.45rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-bg-input);
@@ -1054,7 +1054,7 @@ export default {
 
 .setup-card__hint {
     display: block;
-    font-size: 0.72rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin-top: 0.25rem;
 }
@@ -1076,7 +1076,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     cursor: pointer;
 }
 
@@ -1109,7 +1109,7 @@ export default {
     gap: 0.4rem;
     flex: 1;
     padding: 0.7rem 1rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     border-radius: 8px;
@@ -1129,7 +1129,7 @@ export default {
     justify-content: center;
     gap: 0.3rem;
     padding: 0.7rem 1rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid var(--color-error);
     border-radius: 8px;
@@ -1150,7 +1150,7 @@ export default {
     gap: 0.35rem;
     background: none;
     border: none;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-muted, #888);
     cursor: pointer;
@@ -1183,7 +1183,7 @@ export default {
 }
 
 .confirm-finish__text {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--color-text);
     line-height: 1.5;
     margin-bottom: 1.25rem;
@@ -1197,7 +1197,7 @@ export default {
 
 .confirm-finish__btn {
     padding: 0.5rem 1.25rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 6px;
     border: 1px solid;
@@ -1243,7 +1243,7 @@ export default {
 
 .confirm-playoff__label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     margin-bottom: 0.35rem;
     color: var(--color-text-secondary, #555);
@@ -1254,7 +1254,7 @@ export default {
     width: 100%;
     max-width: 120px;
     padding: 0.4rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     border: 1px solid var(--color-border, #e0e0e0);
     border-radius: 6px;
     background: var(--color-bg-input, #fff);
@@ -1264,13 +1264,13 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     cursor: pointer;
 }
 
 .confirm-playoff__hint {
     display: block;
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted, #888);
     margin-top: 0.25rem;
     margin-left: 1.5rem;
@@ -1285,7 +1285,7 @@ export default {
 
 .confirm-playoff__btn {
     padding: 0.5rem 1.25rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     border-radius: 6px;
     border: 1px solid;

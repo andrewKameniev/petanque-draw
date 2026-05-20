@@ -214,7 +214,7 @@ export default {
     justify-content: center;
     min-width: 28px;
     padding: 2px 6px;
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 600;
     border-radius: 4px;
     background: var(--color-surface-hover);

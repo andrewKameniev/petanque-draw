@@ -27,15 +27,19 @@
 
 <script>
 
+import {defineAsyncComponent} from 'vue';
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
-import DocsDraw from "@/components/docs/DocsDraw.vue";
-import DocsStat from "@/components/docs/DocsStat.vue";
-import DocsTraining from "@/components/docs/DocsTraining.vue";
 
 export default {
     name: 'Help',
-    components: {DocsDraw, DocsStat, DocsTraining, Footer, LanguageSwitcher},
+    components: {
+        DocsDraw: defineAsyncComponent(() => import("@/components/docs/DocsDraw.vue")),
+        DocsStat: defineAsyncComponent(() => import("@/components/docs/DocsStat.vue")),
+        DocsTraining: defineAsyncComponent(() => import("@/components/docs/DocsTraining.vue")),
+        Footer,
+        LanguageSwitcher
+    },
     data() {
         return {
             activeTab: 1

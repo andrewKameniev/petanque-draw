@@ -56,7 +56,7 @@ export default {
     color: var(--color-text-muted);
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.75rem;
+    font-size: 1rem;
     padding: 0 0.6rem;
     border-right: 1px solid var(--color-border);
     line-height: 1;
@@ -81,7 +81,7 @@ export default {
 
 .app-footer__credit {
     color: var(--color-text-muted);
-    font-size: 0.8rem;
+    font-size: 1rem;
     margin: 0;
     white-space: nowrap;
     align-self: flex-end;

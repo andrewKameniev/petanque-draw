@@ -568,7 +568,7 @@ export default {
     gap: 0.4rem;
     padding: 0.6rem 1rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     background: transparent;
@@ -599,7 +599,7 @@ export default {
     min-width: 18px;
     height: 18px;
     border-radius: 9px;
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 700;
     background: var(--color-error);
     color: #fff;
@@ -629,7 +629,7 @@ export default {
     border: 1px solid var(--color-border);
     border-radius: 10px;
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .stats-active__empty-icon {
@@ -664,13 +664,13 @@ export default {
 }
 
 .stats-active__card-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
 }
 
 .stats-active__card-meta {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
 }
 
@@ -687,7 +687,7 @@ export default {
     gap: 0.35rem;
     padding: 0.55rem 1rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -696,7 +696,7 @@ export default {
 
 .stats-btn--sm {
     padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .stats-btn--primary {

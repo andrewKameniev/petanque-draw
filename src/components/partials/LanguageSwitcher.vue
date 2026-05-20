@@ -47,7 +47,7 @@ export default {
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     border-radius: 6px;
     transition: background-color 0.2s;
 }

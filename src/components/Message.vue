@@ -75,14 +75,14 @@ export default {
 }
 
 .toast__title {
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin: 0 0 0.15rem;
 }
 
 .toast__text {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
     margin: 0;
     line-height: 1.4;

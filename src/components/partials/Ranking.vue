@@ -15,15 +15,22 @@
         <div v-if="tournament.tournamentIsFinished && !isSwissOnly" class="mb-5">
             <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
-                <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
-                    <template v-if="resultsCopied">
-                        <Check :size="18"/>
-                    </template>
-                    <template v-else>
-                        <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
-                        <Copy class="is-hidden-tablet" :size="20"/>
-                    </template>
-                </button>
+                <div class="ranking-header__actions">
+                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="showExportConfirm = true">
+                        <Upload :size="18"/>
+                        <span class="is-hidden-mobile">{{ $t('ranking.exportResults') }}</span>
+                    </button>
+                    <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
+                        <template v-if="resultsCopied">
+                            <Check :size="18"/>
+                        </template>
+                        <template v-else>
+                            <Copy :size="18" class="is-hidden-mobile"/>
+                            <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+                            <Copy class="is-hidden-tablet" :size="20"/>
+                        </template>
+                    </button>
+                </div>
             </div>
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
@@ -185,17 +192,30 @@
         <div v-else-if="!isResultOnly && !isSwissOnly">
             {{ $t('ranking.noRanking') }}
         </div>
+        <Modal v-if="showExportConfirm" @close-modal="showExportConfirm = false">
+            <div class="confirm-export">
+                <p class="confirm-export__text">{{ $t('ranking.exportConfirm') }}</p>
+                <div class="confirm-export__actions">
+                    <button class="confirm-export__btn confirm-export__btn--cancel" @click="showExportConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="confirm-export__btn confirm-export__btn--confirm" @click="showExportConfirm = false; exportResults()">{{ $t('ranking.exportResults') }}</button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
 
 <script>
 import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
-import {Copy, Check} from "lucide-vue-next";
+import {Copy, Check, Upload} from "lucide-vue-next";
+import {mapState, mapActions} from "pinia";
+import {useMainStore} from "@/stores/main";
+import {tournamentOrgsService} from "@/services/db";
+import Modal from "@/components/Modal";
 
 export default {
     name: 'Ranking',
-    components: {Copy, Check},
+    components: {Copy, Check, Upload, Modal},
     props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
     emits: ['is-playoff'],
     data() {
@@ -204,20 +224,27 @@ export default {
             activeTooltip: null,
             rankingSubtab: 'result',
             resultsCopied: false,
+            isTournamentOrg: false,
+            showExportConfirm: false,
         }
     },
-    mounted() {
+    async mounted() {
         this._onClickOutside = (e) => {
             if (this.activeTooltip && !e.target.closest('.has-tooltip')) {
                 this.activeTooltip = null;
             }
         };
         document.addEventListener('click', this._onClickOutside);
+        if (this.user?.email) {
+            const snapshot = await tournamentOrgsService.check(this.user.email);
+            this.isTournamentOrg = snapshot.exists();
+        }
     },
     beforeUnmount() {
         document.removeEventListener('click', this._onClickOutside);
     },
     methods: {
+        ...mapActions(useMainStore, ['showMessage']),
         getGameResultInGroup: getGameResultInGroup,
         getGameResults(team, opponent) {
             const results = [];
@@ -231,6 +258,67 @@ export default {
                 });
             });
             return results;
+        },
+        async exportResults() {
+            const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
+            if (!token) {
+                this.showMessage({title: this.$t('messages.error'), text: 'API token not configured', type: 'error'});
+                return;
+            }
+
+            let portalTeams;
+            try {
+                const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournament.portalIdTournament}?format=json`);
+                if (!res.ok) throw new Error(`Portal responded ${res.status}`);
+                const data = await res.json();
+                portalTeams = data.teams;
+            } catch (e) {
+                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+                return;
+            }
+
+            const teams = this.tournamentRanking
+                .map(item => {
+                    const localTeam = this.tournament.teams?.find(t => t.title === item.title);
+                    const portalTeamId = localTeam?.portalTeamId
+                        || portalTeams.find(pt => pt.name === item.title)?.id;
+                    if (!portalTeamId) return null;
+                    const place = String(item.place);
+                    const entry = {
+                        team_id: portalTeamId,
+                        place_min: parseInt(place.split('-')[0]),
+                    };
+                    if (place.includes('-')) {
+                        entry.place_max = parseInt(place.split('-')[1]);
+                    }
+                    return entry;
+                })
+                .filter(Boolean);
+
+            try {
+                const response = await fetch('https://portal.petanque.org.ua/api/tournament/results/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token,
+                    },
+                    body: JSON.stringify({
+                        tournament_id: Number(this.tournament.portalIdTournament),
+                        teams,
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.showMessage({title: this.$t('messages.success'), text: `Updated ${data.updated_teams?.length || 0} teams`});
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    this.showMessage({title: this.$t('messages.error'), text: error.error || `Error ${response.status}`, type: 'error'});
+                }
+            } catch (e) {
+                console.error('Import results failed:', e);
+                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+            }
         },
         copyResults() {
             let content = ''
@@ -247,6 +335,7 @@ export default {
         },
     },
     computed: {
+        ...mapState(useMainStore, ['user']),
         groupsNames() {
             return tournamentNames
         },
@@ -273,6 +362,12 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
+}
+
+.ranking-header__actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .btn-purple-outline {
@@ -392,5 +487,54 @@ export default {
 .group-cell--lose {
     color: #b04040;
     font-weight: 600;
+}
+
+.confirm-export {
+    padding: 0.5rem 0;
+}
+
+.confirm-export__text {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.confirm-export__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-export__btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-export__btn--cancel {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.confirm-export__btn--cancel:hover {
+    border-color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+}
+
+.confirm-export__btn--confirm {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-btn-text);
+}
+
+.confirm-export__btn--confirm:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
 }
 </style>

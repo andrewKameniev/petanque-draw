@@ -59,6 +59,13 @@ export const statsService = {
     },
 };
 
+export const tournamentOrgsService = {
+    check(email) {
+        const key = email.replace(/\./g, ',');
+        return get(ref(db, `tournamentOrgs/${key}`));
+    },
+};
+
 export const trainingService = {
     getAll(uid) {
         return get(ref(db, `${uid}/training/list`));

@@ -42,7 +42,7 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
-        addTeam(title, rating, players = false){
+        addTeam(title, rating, players = false, portalTeamId = null){
             if(title !== null && title !== ''){
                 let teamExists = false;
                 if (!this.tournament.teams) {
@@ -58,6 +58,7 @@ export default {
                         title: title.trim(),
                         rating: rating,
                         players: players,
+                        portalTeamId: portalTeamId,
                         wins: 0,
                         buhgolts: 0,
                         smallBuhgolts: 0,
@@ -84,7 +85,7 @@ export default {
                 let importedList = await response.json();
 
                 importedList.teams.forEach(team => {
-                    this.addTeam(team.name, +team.power, team.players);
+                    this.addTeam(team.name, +team.power, team.players, team.id);
                 } )
                 this.setTournamentInfoFromPortal(importedList.tournament);
                 this.setTournamentIdFromPortal(this.tournamentId);

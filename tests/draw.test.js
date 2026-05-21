@@ -419,6 +419,237 @@ describe('createGroups', () => {
             expect(schemas[idx].top.length + schemas[idx].bottom.length).toBe(oddGroup.length + 1);
         }
     });
+
+    it('uses random distribution when useRating is false', () => {
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { useRating: false });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(2);
+        expect(groups[0].length + groups[1].length).toBe(8);
+    });
+});
+
+describe('createGroups - seeded method', () => {
+    it('distributes teams into pots and assigns one per pot to each group', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(3);
+        groups.forEach(group => {
+            expect(group).toHaveLength(4);
+        });
+    });
+
+    it('ensures top-rated teams are separated across groups', () => {
+        const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(4);
+
+        const topTeamTitles = teams.slice(0, 4).map(t => t.title);
+        const groupsWithTopTeams = groups.filter(g => g.some(t => topTeamTitles.includes(t.title)));
+        expect(groupsWithTopTeams.length).toBe(4);
+    });
+
+    it('all teams are assigned exactly once', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        const allTeams = groups.flat().map(t => t.title);
+        expect(allTeams).toHaveLength(12);
+        expect(new Set(allTeams).size).toBe(12);
+    });
+
+    it('defaults to seeded when groupDrawMethod is not set', () => {
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(2);
+        expect(groups[0].length + groups[1].length).toBe(8);
+    });
+});
+
+describe('createGroups - snake method', () => {
+    it('distributes teams in snake pattern', () => {
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(2);
+
+        // Snake for 8 teams, 2 groups: A gets 1,4,5,8 and B gets 2,3,6,7
+        const groupATitles = groups[0].map(t => t.title);
+        const groupBTitles = groups[1].map(t => t.title);
+
+        expect(groupATitles).toContain('T1'); // rank 1 → A
+        expect(groupBTitles).toContain('T2'); // rank 2 → B
+        expect(groupBTitles).toContain('T3'); // rank 3 → B (snake back)
+        expect(groupATitles).toContain('T4'); // rank 4 → A (snake back)
+    });
+
+    it('creates balanced groups by total rating', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(3);
+
+        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
+        expect(maxDiff).toBeLessThanOrEqual(20);
+    });
+
+    it('all teams are assigned exactly once', () => {
+        const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        const allTeams = groups.flat().map(t => t.title);
+        expect(allTeams).toHaveLength(16);
+        expect(new Set(allTeams).size).toBe(16);
+    });
+
+    it('handles uneven group sizes', () => {
+        const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 5);
+        expect(groups).toHaveLength(2);
+        const allTeams = groups.flat().map(t => t.title);
+        expect(new Set(allTeams).size).toBe(10);
+    });
+
+    it('produces deterministic results (no randomness)', () => {
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
+        const tournament1 = makeTournament(JSON.parse(JSON.stringify(teams)), {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const tournament2 = makeTournament(JSON.parse(JSON.stringify(teams)), {
+            useRating: true,
+            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups: groups1 } = createGroups(tournament1, 4);
+        const { groups: groups2 } = createGroups(tournament2, 4);
+
+        groups1.forEach((group, i) => {
+            const titles1 = group.map(t => t.title).sort();
+            const titles2 = groups2[i].map(t => t.title).sort();
+            expect(titles1).toEqual(titles2);
+        });
+    });
+});
+
+describe('createGroups - balanced_random method', () => {
+    it('creates groups with minimized rating difference', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(3);
+
+        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
+        expect(maxDiff).toBeLessThanOrEqual(40);
+    });
+
+    it('all teams are assigned exactly once', () => {
+        const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        const allTeams = groups.flat().map(t => t.title);
+        expect(allTeams).toHaveLength(16);
+        expect(new Set(allTeams).size).toBe(16);
+    });
+
+    it('distributes teams evenly across groups', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        groups.forEach(group => {
+            expect(group).toHaveLength(4);
+        });
+    });
+
+    it('produces more balanced groups than pure random', () => {
+        const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
+
+        // With 1000 iterations and 16 teams, balanced_random should achieve tight balance
+        // Total rating = 160+150+...+10 = 1360, ideal per group = 340
+        expect(maxDiff).toBeLessThan(60);
+    });
+
+    it('handles small number of teams', () => {
+        const teams = Array.from({ length: 6 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 60 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 3);
+        expect(groups).toHaveLength(2);
+        expect(groups[0].length + groups[1].length).toBe(6);
+    });
+
+    it('handles teams with equal ratings', () => {
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 50));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups } = createGroups(tournament, 4);
+        expect(groups).toHaveLength(2);
+        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        expect(groupTotals[0]).toBe(groupTotals[1]);
+    });
+
+    it('generates valid schemas for round-robin', () => {
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
+        const tournament = makeTournament(teams, {
+            useRating: true,
+            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+        });
+        const { groups, schemas } = createGroups(tournament, 4);
+        expect(schemas).toHaveLength(groups.length);
+        schemas.forEach((scheme, i) => {
+            expect(scheme.top.length).toBe(scheme.bottom.length);
+            expect(scheme.top.length).toBe(Math.ceil(groups[i].length / 2));
+        });
+    });
 });
 
 describe('saveResultsForRound', () => {

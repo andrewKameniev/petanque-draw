@@ -17,6 +17,12 @@
 export default {
     name: 'Modal',
     emits: ['close-modal'],
+    mounted() {
+        document.documentElement.classList.add('is-clipped');
+    },
+    beforeUnmount() {
+        document.documentElement.classList.remove('is-clipped');
+    }
 }
 </script>
 

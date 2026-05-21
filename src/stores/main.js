@@ -29,7 +29,13 @@ function createTournament(overrides = {}) {
             playOffTeams: 8,
             fieldsStart: 1,
             withCadrage: false,
-            playB: false
+            playB: false,
+            timeLimitEnabled: false,
+            timeLimit: 45,
+            playoffTimeLimit: 30,
+            noTimeLimitFinale: false,
+            cochonettesEnabled: true,
+            cochonettes: 1
         },
         ...overrides
     };

@@ -34,6 +34,10 @@
                     <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
                     <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
                 </div>
+                <div class="tournament-info-row" v-if="tournamentExtrasLine">
+                    <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
+                    <span class="has-text-weight-semibold">{{ tournamentExtrasLine }}</span>
+                </div>
                 <div class="tournament-info-row" v-if="tournament.cadrage">
                     <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
                     <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
@@ -214,6 +218,29 @@ export default {
         playOffTeamsCount() {
             if (!this.tournament?.playOff?.length) return 0;
             return this.tournament.playOff.length * 2;
+        },
+        isInPlayoff() {
+            return !!this.tournament?.playOff || !!this.tournament?.cadrage;
+        },
+        tournamentExtrasLine() {
+            const prefs = this.tournament?.preferences;
+            if (!prefs?.timeLimitEnabled) return '';
+            const parts = [];
+            const time = this.isInPlayoff ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
+            if (prefs.noTimeLimitFinale && this.isInPlayoff && this.isFinale) {
+                parts.push(this.$t('modals.noTimeLimitFinale'));
+            } else {
+                parts.push(`${time} ${this.$t('modals.min')}`);
+            }
+            if (prefs.cochonettesEnabled && prefs.cochonettes) {
+                parts.push(`+ ${prefs.cochonettes} ${prefs.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`);
+            }
+            return parts.join(' ');
+        },
+        isFinale() {
+            const po = this.tournament?.playOff;
+            if (!po?.length) return false;
+            return po[po.length - 1].teams?.length === 1;
         }
     },
     methods: {

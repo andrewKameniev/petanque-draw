@@ -3,35 +3,72 @@
         <div class="prefs">
             <h2 class="prefs__title">{{ $t('modals.tournamentPreferences') }}</h2>
             <div class="prefs__body">
-            <div class="prefs__list">
-                <div class="prefs__item">
-                    <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
-                    <div class="prefs__inputs prefs__inputs--double">
-                        <div class="prefs__input-group">
-                            <span class="prefs__input-label">{{ $t('games.first') }}</span>
-                            <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number">
+                <div class="prefs__list">
+                    <div class="prefs__item">
+                        <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
+                        <div class="prefs__inputs prefs__inputs--double">
+                            <div class="prefs__input-group">
+                                <span class="prefs__input-label">{{ $t('games.first') }}</span>
+                                <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number">
+                            </div>
+                            <div class="prefs__input-group">
+                                <span class="prefs__input-label">{{ $t('games.technical') }} 2</span>
+                                <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number">
+                            </div>
                         </div>
-                        <div class="prefs__input-group">
-                            <span class="prefs__input-label">{{ $t('games.technical') }} 2</span>
-                            <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number">
+                        <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
+                    </div>
+                    <div class="prefs__item">
+                        <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
+                        <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number">
+                        <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
+                    </div>
+                    <div class="prefs__item">
+                        <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
+                        <input class="prefs__input" :class="{'prefs__input--disabled': tournament.playOff}" v-model="tournament.preferences.playOffTeams" type="number" :disabled="!!tournament.playOff">
+                        <span class="prefs__hint">{{ tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint') }}</span>
+                    </div>
+                    <div class="prefs__item">
+                        <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
+                        <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number">
+                        <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
+                    </div>
+                    <div class="prefs__item">
+                        <label class="prefs__label">
+                            <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem;">
+                            {{ $t('modals.timeLimit') }}
+                        </label>
+                        <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
+                        <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__nested">
+                            <div class="prefs__inputs prefs__inputs--double">
+                                <div class="prefs__input-group">
+                                    <span class="prefs__input-label">{{ $t('modals.timeLimitSwiss') }}</span>
+                                    <select class="prefs__input" v-model.number="tournament.preferences.timeLimit">
+                                        <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    </select>
+                                </div>
+                                <div class="prefs__input-group">
+                                    <span class="prefs__input-label">{{ $t('modals.timeLimitPlayoff') }}</span>
+                                    <select class="prefs__input" v-model.number="tournament.preferences.playoffTimeLimit">
+                                        <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label class="prefs__label prefs__label--sub">
+                                <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" style="margin-right: 0.5rem;">
+                                {{ $t('modals.noTimeLimitFinale') }}
+                            </label>
+                            <label class="prefs__label prefs__label--sub">
+                                <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem;">
+                                {{ $t('modals.cochonettes') }}
+                            </label>
+                            <select v-if="tournament.preferences.cochonettesEnabled" class="prefs__input" v-model.number="tournament.preferences.cochonettes">
+                                <option :value="1">1</option>
+                                <option :value="2">2</option>
+                            </select>
+                            <span class="prefs__hint">{{ $t('modals.cochonettesHint') }}</span>
                         </div>
                     </div>
-                    <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
-                </div>
-                <div class="prefs__item">
-                    <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
-                    <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number">
-                    <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
-                </div>
-                <div class="prefs__item">
-                    <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
-                    <input class="prefs__input" :class="{'prefs__input--disabled': tournament.playOff}" v-model="tournament.preferences.playOffTeams" type="number" :disabled="!!tournament.playOff">
-                    <span class="prefs__hint">{{ tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint') }}</span>
-                </div>
-                <div class="prefs__item">
-                    <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
-                    <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number">
-                    <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
                 </div>
             </div>
             <div class="prefs__footer">
@@ -42,7 +79,6 @@
                     <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
                     <button class="prefs__btn" @click="save">{{ $t('common.save') }}</button>
                 </div>
-            </div>
             </div>
         </div>
     </Modal>
@@ -62,6 +98,11 @@ export default {
         tournament() {
             return this.currentTournament
         },
+        timeLimitOptions() {
+            const options = [];
+            for (let i = 20; i <= 120; i += 5) options.push(i);
+            return options;
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['savePreferences', 'showMessage']),
@@ -77,6 +118,9 @@ export default {
 <style scoped>
 .prefs {
     margin: -1.25rem -1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 120px);
 }
 
 .prefs__title {
@@ -86,10 +130,14 @@ export default {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text);
+    flex-shrink: 0;
 }
 
 .prefs__body {
     padding: 1.25rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .prefs__list {
@@ -122,6 +170,22 @@ export default {
     color: var(--color-text-muted);
     line-height: 1.3;
     margin-top: 0.3rem;
+}
+
+.prefs__nested {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--color-border);
+}
+
+.prefs__label--sub {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .prefs__inputs--double {
@@ -168,7 +232,9 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
 }
 
 .prefs__footer-right {

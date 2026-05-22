@@ -35,7 +35,8 @@ function createTournament(overrides = {}) {
             playoffTimeLimit: 30,
             noTimeLimitFinale: false,
             cochonettesEnabled: true,
-            cochonettes: 1
+            cochonettes: 1,
+            groupDrawMethod: 'seeded'
         },
         ...overrides
     };

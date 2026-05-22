@@ -348,15 +348,8 @@ export function resetGroupsScheme(tournament) {
     return schemas;
 }
 
-export function createGroups(tournament, teamsInGroup) {
-    const groupsQuantity = Math.round(tournament.teams.length / teamsInGroup);
-    let groups = [];
-    for (let i = 1; i <= groupsQuantity; i++) {
-        groups.push([]);
-    }
-    let teamsToDraw = JSON.parse(JSON.stringify([...tournament.teams].sort((a, b) => b.rating - a.rating)));
-
-    if (tournament.useRating && groupsQuantity === 2 && teamsToDraw.length < 33) {
+function createGroupsSeeded(tournament, teamsToDraw, groups, groupsQuantity) {
+    if (groupsQuantity === 2 && teamsToDraw.length < 33) {
         const indexesScheme = {
             0: [1, 32, 16, 17, 9, 24, 8, 25, 5, 28, 12, 21, 13, 20, 4, 29],
             1: [3, 30, 14, 19, 11, 22, 6, 27, 7, 26, 10, 23, 15, 18, 2, 31]
@@ -370,10 +363,90 @@ export function createGroups(tournament, teamsInGroup) {
             });
         });
     } else {
+        const teamsPerPot = groupsQuantity;
+        const pots = [];
+        for (let i = 0; i < teamsToDraw.length; i += teamsPerPot) {
+            pots.push(teamsToDraw.slice(i, i + teamsPerPot));
+        }
+        pots.forEach(pot => {
+            const shuffled = [...pot].sort(() => Math.random() - 0.5);
+            shuffled.forEach((team, i) => {
+                const groupIdx = i % groupsQuantity;
+                const teamIndexInList = tournament.teams.findIndex(t => t.title === team.title);
+                if (teamIndexInList !== -1) {
+                    groups[groupIdx].push(tournament.teams[teamIndexInList]);
+                }
+            });
+        });
+    }
+}
+
+function createGroupsSnake(tournament, teamsToDraw, groups, groupsQuantity) {
+    let direction = 1;
+    let groupIdx = 0;
+    for (let i = 0; i < teamsToDraw.length; i++) {
+        const teamIndexInList = tournament.teams.findIndex(t => t.title === teamsToDraw[i].title);
+        if (teamIndexInList !== -1) {
+            groups[groupIdx].push(tournament.teams[teamIndexInList]);
+        }
+        if (direction === 1 && groupIdx === groupsQuantity - 1) {
+            direction = -1;
+        } else if (direction === -1 && groupIdx === 0) {
+            direction = 1;
+        } else {
+            groupIdx += direction;
+        }
+    }
+}
+
+function createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuantity) {
+    const iterations = 1000;
+    let bestGroups = null;
+    let bestDiff = Infinity;
+
+    for (let iter = 0; iter < iterations; iter++) {
+        const shuffled = [...teamsToDraw].sort(() => Math.random() - 0.5);
+        const candidate = [];
+        for (let i = 0; i < groupsQuantity; i++) candidate.push([]);
+
+        shuffled.forEach((team, i) => {
+            candidate[i % groupsQuantity].push(team);
+        });
+
+        const totals = candidate.map(g => g.reduce((sum, t) => sum + (t.rating || 0), 0));
+        const diff = Math.max(...totals) - Math.min(...totals);
+
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            bestGroups = candidate;
+        }
+    }
+
+    bestGroups.forEach((group, gIdx) => {
+        group.forEach(team => {
+            const teamIndexInList = tournament.teams.findIndex(t => t.title === team.title);
+            if (teamIndexInList !== -1) {
+                groups[gIdx].push(tournament.teams[teamIndexInList]);
+            }
+        });
+    });
+}
+
+export function createGroups(tournament, teamsInGroup) {
+    const groupsQuantity = Math.round(tournament.teams.length / teamsInGroup);
+    let groups = [];
+    for (let i = 1; i <= groupsQuantity; i++) {
+        groups.push([]);
+    }
+    let teamsToDraw = JSON.parse(JSON.stringify([...tournament.teams].sort((a, b) => b.rating - a.rating)));
+
+    const drawMethod = tournament.useRating ? (tournament.preferences?.groupDrawMethod || 'seeded') : null;
+
+    if (!tournament.useRating) {
         while (teamsToDraw.length >= 1) {
             for (let j = 0; j < teamsToDraw.length; j++) {
                 for (let i = 0; i < groupsQuantity; i++) {
-                    const teamIndex = tournament.useRating ? 0 : getRandomWithOneExclusion(teamsToDraw.length);
+                    const teamIndex = getRandomWithOneExclusion(teamsToDraw.length);
                     if (teamIndex !== -1 && teamsToDraw.length >= 1) {
                         const teamIndexInList = tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title);
                         groups[i].push(tournament.teams[teamIndexInList]);
@@ -382,6 +455,12 @@ export function createGroups(tournament, teamsInGroup) {
                 }
             }
         }
+    } else if (drawMethod === 'snake') {
+        createGroupsSnake(tournament, teamsToDraw, groups, groupsQuantity);
+    } else if (drawMethod === 'balanced_random') {
+        createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuantity);
+    } else {
+        createGroupsSeeded(tournament, teamsToDraw, groups, groupsQuantity);
     }
 
     const schemas = [];

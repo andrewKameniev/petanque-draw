@@ -81,6 +81,7 @@
                             <option v-if="index > 1">{{index + 1}}</option>
                         </template>
                     </select>
+                    <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod"/>
                 </div>
 
                 <div v-if="tournament.system === 'supermele'" class="setup-card__field">
@@ -376,6 +377,7 @@ import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
+import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
 import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X} from "lucide-vue-next";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups} from '@/services/draw';
@@ -410,6 +412,9 @@ export default {
     created() {
         if (!this.tournament) return;
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4;
+        if (this.tournament.preferences && !this.tournament.preferences.groupDrawMethod) {
+            this.tournament.preferences.groupDrawMethod = 'seeded';
+        }
         if (this.tournament.preferences?.withCadrage) {
             this.withCadrage = true;
         }
@@ -613,6 +618,9 @@ export default {
         isAlreadyArchived() {
             return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);
         },
+        hasTeamRatings() {
+            return this.tournament.useRating && this.tournament.teams?.some(t => t.rating > 0);
+        },
         tournamentStarted() {
             return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage);
         },
@@ -628,6 +636,7 @@ export default {
         IconSettings,
         IconArchive,
         Protocol,
+        GroupDrawMethod,
         Preferences,
         QrCode,
         ConfirmRemoveModal,

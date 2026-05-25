@@ -15,8 +15,9 @@
                 </router-link>
                 <LanguageSwitcher/>
             </div>
-            <div class="text-center is-size-3">
+            <div class="text-center is-size-3 tournament-title-wrapper">
                 <strong>{{ tournament.name }}</strong>
+                <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
                 <span class="badge badge-corner" :class="badgeClass">
@@ -52,16 +53,21 @@
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
+            <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
+                <span>{{ highlightedTeam }}</span>
+                <X :size="14"/>
+            </div>
             <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
-                <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
+                <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
                 <div class="match-list">
                     <div class="match-item"
+                         :class="{'match-item--highlighted': isTeamHighlighted(game)}"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="match-team match-team-right">{{ game.team_1 }}</span>
+                        <span class="match-team match-team-right" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_1)}">{{ game.team_1 }}</span>
                         <span class="match-vs">
                             <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
                         </span>
-                        <span class="match-team">{{ game.team_2 }}</span>
+                        <span class="match-team" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_2)}">{{ game.team_2 }}</span>
                     </div>
                 </div>
             </div>
@@ -74,12 +80,12 @@
                 </ul>
             </div>
             <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <TeamsList :previewTournament="tournament"/>
+                <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             </div>
-            <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
+            <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                         :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             </div>
         </div>
         <div v-else class="p-5">
@@ -103,16 +109,18 @@ import PlayOff from "@/components/partials/PlayOff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
-import {GitFork} from "lucide-vue-next";
+import {GitFork, X} from "lucide-vue-next";
+import TeamSearch from "@/components/partials/TeamSearch.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch},
     data() {
         return {
             isLoading: false,
             tournament: null,
             activeTab: "ranking",
             notificationsEnabled: false,
+            highlightedTeam: null,
         }
     },
     mounted() {
@@ -241,9 +249,32 @@ export default {
             const po = this.tournament?.playOff;
             if (!po?.length) return false;
             return po[po.length - 1].teams?.length === 1;
+        },
+        teamNames() {
+            if (!this.tournament?.teams) return [];
+            return this.tournament.teams.map(t => t.title);
+        },
+        teamClubMap() {
+            if (!this.tournament?.teams) return {};
+            const map = {};
+            this.tournament.teams.forEach(t => {
+                if (t.players?.length && t.players[0].club) {
+                    map[t.title] = t.players[0].club;
+                }
+            });
+            return map;
         }
     },
     methods: {
+        isTeamNameHighlighted(teamName) {
+            if (!this.highlightedTeam) return false;
+            if (this.highlightedTeam === teamName) return true;
+            return this.teamClubMap[teamName] === this.highlightedTeam;
+        },
+        isTeamHighlighted(game) {
+            if (!this.highlightedTeam) return false;
+            return this.isTeamNameHighlighted(game.team_1) || this.isTeamNameHighlighted(game.team_2);
+        },
         parseRef() {
             const refParam = this.$route.query.ref;
             if (refParam.includes('.')) {
@@ -342,6 +373,30 @@ export default {
     50% {
         transform: translateX(-31px)
     }
+}
+
+.tournament-title-wrapper {
+    position: relative;
+    padding-right: 50px;
+}
+
+.search-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0.5rem auto;
+    transition: opacity 0.15s;
+}
+
+.search-filter-chip:hover {
+    opacity: 0.85;
 }
 
 .tournament-info-card {
@@ -589,6 +644,15 @@ export default {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.15s;
+}
+
+.match-team--highlighted {
+    color: var(--color-primary);
+}
+
+.match-item--highlighted {
+    background: var(--color-highlight) !important;
 }
 
 .match-team-right {

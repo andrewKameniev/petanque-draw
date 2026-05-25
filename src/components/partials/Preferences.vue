@@ -73,7 +73,8 @@
             </div>
             <div class="prefs__footer">
                 <button class="prefs__btn prefs__btn--danger" data-testid="btn-remove-tournament" @click="$emit('remove-tournament')">
-                    {{ $t('teams.removeTournament') }}
+                    <Trash2 :size="16"/>
+                    <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
                 </button>
                 <div class="prefs__footer-right">
                     <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
@@ -88,10 +89,11 @@
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import Modal from "@/components/Modal";
+import {Trash2} from "lucide-vue-next";
 
 export default {
     name: 'Preferences',
-    components: {Modal},
+    components: {Modal, Trash2},
     emits: ['close-modal', 'remove-tournament'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),

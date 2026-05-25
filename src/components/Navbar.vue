@@ -200,6 +200,7 @@ export default {
 .menu-burger {
     display: none;
     align-items: center;
+    align-self: center;
     justify-content: center;
     width: 36px;
     height: 36px;

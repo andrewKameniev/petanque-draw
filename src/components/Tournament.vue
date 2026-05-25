@@ -202,8 +202,8 @@
                     </button>
                     <span class="setup-card__or">{{ $t('common.or') }}</span>
                     <button class="setup-card__delete" data-testid="btn-delete-setup" @click="removeConfirmId = 1">
-                        <Trash2 :size="16" class="is-hidden-mobile"/>
-                        {{ $t('teams.removeTournament') }}
+                        <Trash2 :size="16"/>
+                        <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
                     </button>
                 </div>
             </div>

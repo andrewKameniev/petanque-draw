@@ -3,7 +3,7 @@
         <div v-for="(group, index) in tournament.groups" :key="index">
             <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
             <table class="table">
-                <tr v-for="(team, teamIndex) in group" :key="team.title">
+                <tr v-for="(team, teamIndex) in group" :key="team.title" :class="{'search-highlight': isTeamHighlighted(team.title)}">
                     <td style="width: 30px">{{teamIndex + 1}}.</td>
                     <td>{{ team.title }}
                         <div class="is-size-7" v-if="team.players && team.players.length > 1">
@@ -19,7 +19,7 @@
         </div>
     </div>
     <table v-else id="table-list" class="table is-fullwidth">
-        <tr v-for="team in sortedTeams" :key="team.title">
+        <tr v-for="team in sortedTeams" :key="team.title" :class="{'search-highlight': isTeamHighlighted(team.title)}">
             <td>{{team.title}}
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                     (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}
@@ -55,7 +55,7 @@ import {X, Zap} from "lucide-vue-next";
 export default {
     name: "TeamsList",
     components: {X, Zap},
-    props: ['previewTournament', 'activeRound'],
+    props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
@@ -74,6 +74,11 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['removeTeam']),
+        isTeamHighlighted(title) {
+            if (!this.highlightedTeam) return false;
+            if (this.highlightedTeam === title) return true;
+            return this.teamClubMap && this.teamClubMap[title] === this.highlightedTeam;
+        },
         getTeamClub(team) {
             if (team.players && team.players.length && team.players[0].club) {
                 return team.players[0].club;
@@ -132,5 +137,13 @@ export default {
     border-radius: 10px;
     background: var(--color-badge-purple);
     color: var(--color-primary);
+}
+
+.search-highlight td {
+    background: var(--color-primary-light, rgba(139, 92, 246, 0.12)) !important;
+}
+
+.search-highlight td:first-child {
+    border-left: 3px solid var(--color-primary);
 }
 </style>

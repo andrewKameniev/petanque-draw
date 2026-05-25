@@ -92,7 +92,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'playoff-highlight': index < tournament.preferences?.playOffTeams, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
+                            :class="{'playoff-highlight': index < tournament.preferences?.playOffTeams, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -132,7 +132,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2}">
+                            :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
                             <td>{{ team.title }}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -167,7 +167,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2}">
+                                :class="{'playoff-highlight': tournament.playOff && index < playOffTeamsPerGroup, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
@@ -216,7 +216,7 @@ import Modal from "@/components/Modal";
 export default {
     name: 'Ranking',
     components: {Copy, Check, Upload, Modal},
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'highlightedTeam', 'teamClubMap'],
     emits: ['is-playoff'],
     data() {
         return {
@@ -245,6 +245,11 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        isTeamHighlighted(title) {
+            if (!this.highlightedTeam) return false;
+            if (this.highlightedTeam === title) return true;
+            return this.teamClubMap && this.teamClubMap[title] === this.highlightedTeam;
+        },
         getGameResultInGroup: getGameResultInGroup,
         getGameResults(team, opponent) {
             const results = [];
@@ -436,6 +441,14 @@ export default {
 
 .playoff-highlight td {
     background: var(--color-highlight) !important;
+}
+
+.search-highlight td {
+    background: var(--color-primary-light, rgba(139, 92, 246, 0.12)) !important;
+}
+
+.search-highlight td:first-child {
+    border-left: 3px solid var(--color-primary);
 }
 
 .place-gold td {

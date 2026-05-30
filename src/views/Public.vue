@@ -58,7 +58,10 @@
                 <X :size="14"/>
             </div>
             <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
-                <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
+                <div class="round-header">
+                    <span>{{ $t('common.round') }} {{ activeRound }}</span>
+                    <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
+                </div>
                 <div class="match-list">
                     <div class="match-item"
                          :class="{'match-item--highlighted': isTeamHighlighted(game)}"
@@ -91,7 +94,7 @@
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
-                <img src="@/assets/img/girl.avif" alt="In the petanque land"><br>
+                <img v-if="girlImage" :src="girlImage" alt="In the petanque land"><br>
             </div>
         </div>
         <Footer/>
@@ -121,6 +124,7 @@ export default {
             activeTab: "ranking",
             notificationsEnabled: false,
             highlightedTeam: null,
+            girlImage: null,
         }
     },
     mounted() {
@@ -145,6 +149,13 @@ export default {
         }
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
+    },
+    watch: {
+        isLoading(val) {
+            if (!val && !this.tournament) {
+                import('@/assets/img/girl.avif').then(m => { this.girlImage = m.default; });
+            }
+        }
     },
     computed: {
         tabs() {
@@ -208,11 +219,20 @@ export default {
             let desc;
             if (this.tournament.games?.length) {
                 const n = this.tournament.games.length;
-                desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                const total = this.tournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc = n + '/' + total + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                } else {
+                    desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                }
             } else {
                 desc = this.$t('teams.' + this.tournament.system);
+                const total = this.tournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
+                }
             }
-            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffTeams < this.tournament.teams?.length) {
+            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffEnabled) {
                 desc += ' + ' + this.$t('games.playOff').toLowerCase();
             }
             return desc;
@@ -234,8 +254,8 @@ export default {
             const prefs = this.tournament?.preferences;
             if (!prefs?.timeLimitEnabled) return '';
             const parts = [];
-            const time = this.isInPlayoff ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
-            if (prefs.noTimeLimitFinale && this.isInPlayoff && this.isFinale) {
+            const time = (prefs.playOffEnabled && this.isInPlayoff) ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
+            if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
                 parts.push(this.$t('modals.noTimeLimitFinale'));
             } else {
                 parts.push(`${time} ${this.$t('modals.min')}`);
@@ -377,7 +397,6 @@ export default {
 
 .tournament-title-wrapper {
     position: relative;
-    padding-right: 50px;
 }
 
 .search-filter-chip {
@@ -610,11 +629,19 @@ export default {
 }
 
 .round-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--color-primary);
-    text-align: center;
     margin-bottom: 0.75rem;
+    position: relative;
+}
+
+.round-header :deep(.team-search) {
+    position: absolute;
+    right: 0;
 }
 
 .match-list {
@@ -652,7 +679,7 @@ export default {
 }
 
 .match-item--highlighted {
-    background: var(--color-highlight) !important;
+    background: var(--color-primary-bg) !important;
 }
 
 .match-team-right {

@@ -24,14 +24,30 @@
                         <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
                     </div>
                     <div class="prefs__item">
-                        <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
-                        <input class="prefs__input" :class="{'prefs__input--disabled': tournament.playOff}" v-model="tournament.preferences.playOffTeams" type="number" :disabled="!!tournament.playOff">
-                        <span class="prefs__hint">{{ tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint') }}</span>
+                        <label class="prefs__label">
+                            <input type="checkbox" v-model="tournament.preferences.playOffEnabled" :disabled="!!tournament.playOff" style="margin-right: 0.5rem;">
+                            {{ $t('setup.enablePlayOff') }}
+                        </label>
+                        <div v-if="tournament.preferences.playOffEnabled" class="prefs__nested">
+                            <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
+                            <input class="prefs__input" :class="{'prefs__input--disabled': tournament.playOff}" v-model="tournament.preferences.playOffTeams" type="number" :disabled="!!tournament.playOff">
+                            <span class="prefs__hint">{{ tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint') }}</span>
+                        </div>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
                         <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number">
                         <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
+                    </div>
+                    <div class="prefs__item" v-if="tournament.system === 'swiss'">
+                        <label class="prefs__label">{{ $t('modals.swissRoundsCount') }}</label>
+                        <input class="prefs__input" v-model.number="tournament.preferences.swissRoundsCount" type="number" min="1">
+                        <span class="prefs__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
+                    </div>
+                    <div class="prefs__item" v-if="tournament.system === 'swiss'">
+                        <label class="prefs__label">{{ $t('modals.prizePlaces') }}</label>
+                        <input class="prefs__input" v-model.number="tournament.preferences.prizePlaces" type="number" min="1">
+                        <span class="prefs__hint">{{ $t('modals.prizePlacesHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
@@ -40,21 +56,21 @@
                         </label>
                         <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
                         <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__nested">
-                            <div class="prefs__inputs prefs__inputs--double">
+                            <div class="prefs__inputs" :class="{'prefs__inputs--double': tournament.preferences.playOffEnabled}">
                                 <div class="prefs__input-group">
-                                    <span class="prefs__input-label">{{ $t('modals.timeLimitSwiss') }}</span>
+                                    <span class="prefs__input-label">{{ tournament.preferences.playOffEnabled ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit') }}</span>
                                     <select class="prefs__input" v-model.number="tournament.preferences.timeLimit">
                                         <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
                                     </select>
                                 </div>
-                                <div class="prefs__input-group">
+                                <div v-if="tournament.preferences.playOffEnabled" class="prefs__input-group">
                                     <span class="prefs__input-label">{{ $t('modals.timeLimitPlayoff') }}</span>
                                     <select class="prefs__input" v-model.number="tournament.preferences.playoffTimeLimit">
                                         <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
                                     </select>
                                 </div>
                             </div>
-                            <label class="prefs__label prefs__label--sub">
+                            <label v-if="tournament.preferences.playOffEnabled" class="prefs__label prefs__label--sub">
                                 <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" style="margin-right: 0.5rem;">
                                 {{ $t('modals.noTimeLimitFinale') }}
                             </label>

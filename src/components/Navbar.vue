@@ -28,6 +28,10 @@
                         <svg class="navbar-link__chevron" :class="{'navbar-link__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </a>
                     <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
+                        <a class="tournaments-dropdown__item tournaments-dropdown__item--new" @click.stop="addNewTournamentFromDropdown">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            {{ $t('common.addTournament') }}
+                        </a>
                         <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': String(item.id) === String(currentTournamentIndex)}"
                            v-for="item in tournaments" :key="item.id"
                            @click.stop="chooseTournament(item.id)">
@@ -133,6 +137,13 @@ export default {
         addNewTournament() {
             this.addTournament();
             this.userDropdownOpen = false;
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
+        },
+        addNewTournamentFromDropdown() {
+            this.addTournament();
+            this.tournamentsOpen = false;
             if (this.$route.path !== '/') {
                 this.$router.push('/');
             }
@@ -303,6 +314,12 @@ export default {
     background: var(--color-primary-bg);
     color: var(--color-primary);
     font-weight: 600;
+}
+
+.tournaments-dropdown__item--new {
+    color: var(--color-primary);
+    border-bottom: 1px solid var(--color-border-light);
+    margin-bottom: 0.2rem;
 }
 
 .tournaments-dropdown__item-pin {

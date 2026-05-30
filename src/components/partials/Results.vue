@@ -280,7 +280,7 @@ export default {
 }
 
 .search-highlight td {
-    background: var(--color-primary-light, rgba(139, 92, 246, 0.12)) !important;
+    background: var(--color-primary-bg) !important;
 }
 
 .search-highlight td:first-child {

@@ -92,7 +92,7 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'playoff-highlight': index < tournament.preferences?.playOffTeams, 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
+                            :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                             <td align="center">{{ team.wins }}</td>
@@ -245,6 +245,12 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        isPrizeHighlighted(index) {
+            const prefs = this.tournament.preferences;
+            if ((prefs?.playOffEnabled || this.tournament.playOff) && index < prefs?.playOffTeams) return true;
+            if (!prefs?.playOffEnabled && !this.tournament.playOff && prefs?.prizePlaces && index < prefs.prizePlaces) return true;
+            return false;
+        },
         isTeamHighlighted(title) {
             if (!this.highlightedTeam) return false;
             if (this.highlightedTeam === title) return true;
@@ -444,7 +450,7 @@ export default {
 }
 
 .search-highlight td {
-    background: var(--color-primary-light, rgba(139, 92, 246, 0.12)) !important;
+    background: var(--color-primary-bg) !important;
 }
 
 .search-highlight td:first-child {

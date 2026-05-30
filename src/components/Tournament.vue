@@ -92,7 +92,7 @@
                     </select>
                 </div>
 
-                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                <div v-if="tournament.system === 'swiss' || tournament.system === 'groups'" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
                         {{ $t('setup.enablePlayOff') }}
@@ -118,6 +118,18 @@
                         <input type="checkbox" v-model="playB" data-testid="checkbox-play-b">
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
                     </label>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.swissRoundsCount') }}</label>
+                    <input class="setup-card__input" type="number" v-model.number="tournament.preferences.swissRoundsCount" min="1">
+                    <span class="setup-card__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+                    <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
+                    <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1">
+                    <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
                 </div>
 
                 <button class="setup-card__collapse-toggle" @click="showAdvancedSettings = !showAdvancedSettings">
@@ -162,19 +174,19 @@
                         <div v-if="tournament.preferences.timeLimitEnabled" class="setup-card__nested">
                             <div class="setup-card__row mt-2">
                                 <div class="setup-card__row-item">
-                                    <span class="setup-card__hint">{{ $t('modals.timeLimitSwiss') }}</span>
+                                    <span class="setup-card__hint">{{ setupPlayOff ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit') }}</span>
                                     <select class="setup-card__input" v-model.number="tournament.preferences.timeLimit">
                                         <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
                                     </select>
                                 </div>
-                                <div class="setup-card__row-item">
+                                <div v-if="setupPlayOff" class="setup-card__row-item">
                                     <span class="setup-card__hint">{{ $t('modals.timeLimitPlayoff') }}</span>
                                     <select class="setup-card__input" v-model.number="tournament.preferences.playoffTimeLimit">
                                         <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
                                     </select>
                                 </div>
                             </div>
-                            <label class="setup-card__checkbox mt-2">
+                            <label v-if="setupPlayOff" class="setup-card__checkbox mt-2">
                                 <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale">
                                 {{ $t('modals.noTimeLimitFinale') }}
                             </label>
@@ -334,7 +346,7 @@
                     </select>
                 </div>
 
-                <div class="confirm-playoff__field">
+                <div v-if="tournament.system === 'swiss'" class="confirm-playoff__field">
                     <label class="confirm-playoff__checkbox">
                         <input type="checkbox" v-model="withCadrage" data-testid="confirm-cadrage">
                         {{ $t('ranking.withCadrage') }}
@@ -343,7 +355,7 @@
                     <span v-if="withCadrage && teamToPlayOff" class="confirm-playoff__hint">{{ teamToPlayOff / 2 }} + {{ teamToPlayOff }} {{ $t('teams.teams').toLowerCase() }}</span>
                 </div>
 
-                <div v-if="!tournament.isGroupB" class="confirm-playoff__field">
+                <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="confirm-playoff__field">
                     <label class="confirm-playoff__checkbox">
                         <input type="checkbox" v-model="playB" data-testid="confirm-play-b">
                         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
@@ -558,8 +570,11 @@ export default {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
             if (this.setupPlayOff) {
+                this.tournament.preferences.playOffEnabled = true;
                 this.tournament.preferences.withCadrage = this.withCadrage;
                 this.tournament.preferences.playB = this.playB;
+            } else {
+                this.tournament.preferences.playOffEnabled = false;
             }
             this.playB = false;
             this.savePreferences();
@@ -610,7 +625,7 @@ export default {
                 : 1;
         },
         hasPlayOffConfigured() {
-            return this.tournament.system === 'swiss' && this.tournament.preferences?.playOffTeams && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
+            return (this.tournament.system === 'swiss' || this.tournament.system === 'groups') && this.tournament.preferences?.playOffEnabled && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
         },
         isPinned() {
             return String(this.pinnedState) === String(this.currentTournamentIndex);

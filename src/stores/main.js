@@ -27,6 +27,7 @@ function createTournament(overrides = {}) {
             },
             maxScore: 13,
             playOffTeams: 8,
+            playOffEnabled: false,
             fieldsStart: 1,
             withCadrage: false,
             playB: false,
@@ -36,7 +37,9 @@ function createTournament(overrides = {}) {
             noTimeLimitFinale: false,
             cochonettesEnabled: true,
             cochonettes: 1,
-            groupDrawMethod: 'seeded'
+            groupDrawMethod: 'seeded',
+            swissRoundsCount: null,
+            prizePlaces: null,
         },
         ...overrides
     };

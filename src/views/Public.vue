@@ -17,7 +17,6 @@
             </div>
             <div class="text-center is-size-3 tournament-title-wrapper">
                 <strong>{{ tournament.name }}</strong>
-                <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
                 <span class="badge badge-corner" :class="badgeClass">

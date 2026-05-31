@@ -15,7 +15,7 @@
                 </router-link>
                 <LanguageSwitcher/>
             </div>
-            <div class="text-center is-size-3">
+            <div class="text-center is-size-3 tournament-title-wrapper">
                 <strong>{{ tournament.name }}</strong>
             </div>
             <div class="tournament-info-card mt-3 mb-3">
@@ -52,16 +52,24 @@
             </div>
             <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
+            <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
+                <span>{{ highlightedTeam }}</span>
+                <X :size="14"/>
+            </div>
             <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
-                <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
+                <div class="round-header">
+                    <span>{{ $t('common.round') }} {{ activeRound }}</span>
+                    <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
+                </div>
                 <div class="match-list">
                     <div class="match-item"
+                         :class="{'match-item--highlighted': isTeamHighlighted(game)}"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="match-team match-team-right">{{ game.team_1 }}</span>
+                        <span class="match-team match-team-right" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_1)}">{{ game.team_1 }}</span>
                         <span class="match-vs">
                             <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
                         </span>
-                        <span class="match-team">{{ game.team_2 }}</span>
+                        <span class="match-team" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_2)}">{{ game.team_2 }}</span>
                     </div>
                 </div>
             </div>
@@ -74,18 +82,18 @@
                 </ul>
             </div>
             <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <TeamsList :previewTournament="tournament"/>
+                <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             </div>
-            <Results v-if="activeTab === 'results'" :previewTournament="tournament"/>
+            <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                         :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
             </div>
         </div>
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
             <div class="text-center mt-5">
-                <img src="@/assets/img/girl.avif" alt="In the petanque land"><br>
+                <img v-if="girlImage" :src="girlImage" alt="In the petanque land"><br>
             </div>
         </div>
         <Footer/>
@@ -103,16 +111,19 @@ import PlayOff from "@/components/partials/PlayOff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
-import {GitFork} from "lucide-vue-next";
+import {GitFork, X} from "lucide-vue-next";
+import TeamSearch from "@/components/partials/TeamSearch.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch},
     data() {
         return {
             isLoading: false,
             tournament: null,
             activeTab: "ranking",
             notificationsEnabled: false,
+            highlightedTeam: null,
+            girlImage: null,
         }
     },
     mounted() {
@@ -137,6 +148,13 @@ export default {
         }
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
+    },
+    watch: {
+        isLoading(val) {
+            if (!val && !this.tournament) {
+                import('@/assets/img/girl.avif').then(m => { this.girlImage = m.default; });
+            }
+        }
     },
     computed: {
         tabs() {
@@ -200,11 +218,20 @@ export default {
             let desc;
             if (this.tournament.games?.length) {
                 const n = this.tournament.games.length;
-                desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                const total = this.tournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc = n + '/' + total + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                } else {
+                    desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                }
             } else {
                 desc = this.$t('teams.' + this.tournament.system);
+                const total = this.tournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
+                }
             }
-            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffTeams < this.tournament.teams?.length) {
+            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffEnabled) {
                 desc += ' + ' + this.$t('games.playOff').toLowerCase();
             }
             return desc;
@@ -226,8 +253,8 @@ export default {
             const prefs = this.tournament?.preferences;
             if (!prefs?.timeLimitEnabled) return '';
             const parts = [];
-            const time = this.isInPlayoff ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
-            if (prefs.noTimeLimitFinale && this.isInPlayoff && this.isFinale) {
+            const time = (prefs.playOffEnabled && this.isInPlayoff) ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
+            if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
                 parts.push(this.$t('modals.noTimeLimitFinale'));
             } else {
                 parts.push(`${time} ${this.$t('modals.min')}`);
@@ -241,9 +268,32 @@ export default {
             const po = this.tournament?.playOff;
             if (!po?.length) return false;
             return po[po.length - 1].teams?.length === 1;
+        },
+        teamNames() {
+            if (!this.tournament?.teams) return [];
+            return this.tournament.teams.map(t => t.title);
+        },
+        teamClubMap() {
+            if (!this.tournament?.teams) return {};
+            const map = {};
+            this.tournament.teams.forEach(t => {
+                if (t.players?.length && t.players[0].club) {
+                    map[t.title] = t.players[0].club;
+                }
+            });
+            return map;
         }
     },
     methods: {
+        isTeamNameHighlighted(teamName) {
+            if (!this.highlightedTeam) return false;
+            if (this.highlightedTeam === teamName) return true;
+            return this.teamClubMap[teamName] === this.highlightedTeam;
+        },
+        isTeamHighlighted(game) {
+            if (!this.highlightedTeam) return false;
+            return this.isTeamNameHighlighted(game.team_1) || this.isTeamNameHighlighted(game.team_2);
+        },
         parseRef() {
             const refParam = this.$route.query.ref;
             if (refParam.includes('.')) {
@@ -342,6 +392,29 @@ export default {
     50% {
         transform: translateX(-31px)
     }
+}
+
+.tournament-title-wrapper {
+    position: relative;
+}
+
+.search-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0.5rem auto;
+    transition: opacity 0.15s;
+}
+
+.search-filter-chip:hover {
+    opacity: 0.85;
 }
 
 .tournament-info-card {
@@ -555,11 +628,19 @@ export default {
 }
 
 .round-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--color-primary);
-    text-align: center;
     margin-bottom: 0.75rem;
+    position: relative;
+}
+
+.round-header :deep(.team-search) {
+    position: absolute;
+    right: 0;
 }
 
 .match-list {
@@ -589,6 +670,15 @@ export default {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.15s;
+}
+
+.match-team--highlighted {
+    color: var(--color-primary);
+}
+
+.match-item--highlighted {
+    background: var(--color-primary-bg) !important;
 }
 
 .match-team-right {

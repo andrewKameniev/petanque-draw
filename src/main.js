@@ -8,7 +8,7 @@ const Stats = () => import("@/views/Stats.vue");
 const Training = () => import("@/views/Training.vue");
 const Archived = () => import("@/views/Archived.vue");
 const Draw = () => import("@/components/Draw.vue");
-import i18n from "@/i18n";
+import i18n, {loadLocaleModule} from "@/i18n";
 import {useMainStore} from "@/stores/main";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase";
@@ -84,12 +84,20 @@ onAuthStateChanged(auth, async (user) => {
     if (user) await store.getTournaments();
 });
 
+const routeLocaleMap = {
+    Statistics: 'stat',
+    Documentation: 'help',
+    Training: 'training',
+};
+
 router.beforeEach(async (to) => {
     if (to.meta.requiresAuth) {
         await authReadyPromise;
         const store = useMainStore();
         if (!store.user) return '/';
     }
+    const module = routeLocaleMap[to.name];
+    if (module) await loadLocaleModule(module);
 });
 
 authReadyPromise.then(() => app.mount('#app'));

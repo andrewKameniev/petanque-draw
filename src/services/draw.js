@@ -519,7 +519,7 @@ export function drawGroupsRound(tournament) {
 export function saveResultsForRound(tournament, round) {
     if (tournament.games.length <= 2) {
         tournament.teams.forEach(team => {
-            team.opponents = team.opponents.filter(item => item !== 'placeholder');
+            team.opponents = (team.opponents || []).filter(item => item !== 'placeholder');
         });
     }
     if (tournament.system === 'supermele') {
@@ -527,6 +527,7 @@ export function saveResultsForRound(tournament, round) {
             game.team_1_players.forEach(player => {
                 const playerIndex = tournament.teams.findIndex(item => item.title === player);
                 if (playerIndex !== -1) {
+                    if (!tournament.teams[playerIndex].opponents) tournament.teams[playerIndex].opponents = [];
                     const partners = game.team_1_players.filter(item => item !== player);
                     partners.forEach(item => tournament.teams[playerIndex].opponents.push(item));
                     tournament.teams[playerIndex].pointsPlus += game.team_1_score;
@@ -539,6 +540,7 @@ export function saveResultsForRound(tournament, round) {
             game.team_2_players.forEach(player => {
                 const playerIndex = tournament.teams.findIndex(item => item.title === player);
                 if (playerIndex !== -1) {
+                    if (!tournament.teams[playerIndex].opponents) tournament.teams[playerIndex].opponents = [];
                     const partners = game.team_2_players.filter(item => item !== player);
                     partners.forEach(item => tournament.teams[playerIndex].opponents.push(item));
                     tournament.teams[playerIndex].pointsPlus += game.team_2_score;
@@ -553,12 +555,14 @@ export function saveResultsForRound(tournament, round) {
         tournament.games[round].forEach(game => {
             const firstTeamIndex = tournament.teams.findIndex(item => item.title === game.team_1);
             if (firstTeamIndex !== -1) {
+                if (!tournament.teams[firstTeamIndex].opponents) tournament.teams[firstTeamIndex].opponents = [];
                 tournament.teams[firstTeamIndex].opponents.push(game.team_2);
                 tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
                 tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
             }
             const secondTeamIndex = tournament.teams.findIndex(item => item.title === game.team_2);
             if (secondTeamIndex !== -1) {
+                if (!tournament.teams[secondTeamIndex].opponents) tournament.teams[secondTeamIndex].opponents = [];
                 tournament.teams[secondTeamIndex].opponents.push(game.team_1);
                 tournament.teams[secondTeamIndex].pointsPlus += game.team_2_score;
                 tournament.teams[secondTeamIndex].pointsMinus += game.team_1_score;

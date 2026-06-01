@@ -151,7 +151,7 @@ export default {
             return tournamentNames
         },
         hasGroupsColumn() {
-            return this.tournament.system === 'groups' && this.tournament?.groups?.length > 1
+            return (this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament?.groups?.length > 1
         },
         colCount() {
             return this.hasGroupsColumn ? 5 : 4

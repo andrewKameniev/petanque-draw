@@ -105,7 +105,7 @@ function getTournamentRanking(tournament, rankingTeams){
         }
 
         if (tournament.games?.length > 0){
-            if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams.length === 1)) {
+            if(tournament.system === 'swiss' || ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams.length === 1)) {
                 const remainingTeams = rankingTeams.filter(team => !teamsInRanking.includes(team.title));
                 const rangeStart = teamsInRanking.length + 1;
                 remainingTeams.forEach((team, index) => {
@@ -137,7 +137,7 @@ function getTournamentRanking(tournament, rankingTeams){
             }
         }
     } else {
-        if(tournament.system === 'swiss' || (tournament.system === 'groups' && rankingTeams?.length === 1)) {
+        if(tournament.system === 'swiss' || ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams?.length === 1)) {
             const rankingTeamsList = tournament.system === 'swiss' ? rankingTeams : rankingTeams[0];
             rankingTeamsList.forEach((team,index) =>{
                 const teamPlace = {
@@ -147,7 +147,7 @@ function getTournamentRanking(tournament, rankingTeams){
                 }
                 tournamentRanking.push(teamPlace)
             })
-        } else if (tournament.system === 'groups' && rankingTeams?.length > 1) {
+        } else if ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams?.length > 1) {
             const groupsCount = rankingTeams.length;
             const maxTeams = Math.max(...rankingTeams.map(g => g.length));
             for (let i = 0; i < maxTeams; i++) {
@@ -198,7 +198,21 @@ function sortTeamsForSupermele(teamsToSort) {
 }
 function getTeamsRanking(tournament, activeRound) {
     if (tournament.teams) {
-        if (tournament.system === 'groups' && activeRound > 1) {
+        if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
+            let sortedGroups = [];
+            tournament.groups.forEach(group => {
+                group.forEach(team => {
+                    const teamInfo = tournament.teams.find(item => item.title === team.title);
+                    team.wins = teamInfo.wins;
+                    team.opponents = teamInfo.opponents;
+                    team.pointsPlus = teamInfo.pointsPlus;
+                    team.pointsMinus = teamInfo.pointsMinus;
+                });
+                let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+                sortedGroups.push(groupRanking);
+            });
+            return sortedGroups;
+        } else if (tournament.system === 'groups' && activeRound > 1) {
             let sortedGroups = [];
 
             tournament.groups.forEach(group => {

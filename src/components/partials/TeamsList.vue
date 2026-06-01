@@ -1,7 +1,7 @@
 <template>
-    <div v-if="tournament.system === 'groups' && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
+    <div v-if="(tournament.system === 'groups' || tournament.system === 'poules') && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
         <div v-for="(group, index) in tournament.groups" :key="index">
-            <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[index] }}</h4>
+            <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}</h4>
             <table class="table">
                 <tr v-for="(team, teamIndex) in group" :key="team.title" :class="{'search-highlight': isTeamHighlighted(team.title)}">
                     <td style="width: 30px">{{teamIndex + 1}}.</td>

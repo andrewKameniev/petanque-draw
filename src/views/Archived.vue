@@ -212,7 +212,7 @@ export default {
         },
         rankingTeams() {
             if (!this.activeTournament?.teams || !this.activeTournament?.games) return [];
-            if (this.activeTournament.system === 'groups' && !this.activeTournament.groups) return [];
+            if ((this.activeTournament.system === 'groups' || this.activeTournament.system === 'poules') && !this.activeTournament.groups) return [];
             return getTeamsRanking(this.activeTournament, this.activeRound);
         },
         tournamentMessageLines() {

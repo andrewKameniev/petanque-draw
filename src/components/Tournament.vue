@@ -67,6 +67,10 @@
                             <input type="radio" name="system" value="groups" v-model="tournament.system">
                             {{ $t('teams.groups') }}
                         </label>
+                        <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
+                            <input type="radio" name="system" value="poules" v-model="tournament.system">
+                            {{ $t('teams.poules') }}
+                        </label>
                         <label class="setup-card__radio">
                             <input type="radio" name="system" value="supermele" v-model="tournament.system">
                             {{ $t('teams.supermele') }}
@@ -84,6 +88,10 @@
                     <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod"/>
                 </div>
 
+                <div v-if="tournament.system === 'poules'" class="setup-card__field">
+                    <span class="setup-card__hint">{{ tournament.teams.length / 4 }} poules × 4 {{ $t('teams.teams').toLowerCase() }} → {{ tournament.teams.length / 2 }} {{ $t('games.playOff').toLowerCase() }}</span>
+                </div>
+
                 <div v-if="tournament.system === 'supermele'" class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
                     <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
@@ -92,7 +100,7 @@
                     </select>
                 </div>
 
-                <div v-if="tournament.system === 'swiss' || tournament.system === 'groups'" class="setup-card__field">
+                <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
                         {{ $t('setup.enablePlayOff') }}
@@ -392,7 +400,7 @@ import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
 import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X} from "lucide-vue-next";
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups} from '@/services/draw';
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, createPoules, drawPoulesRound} from '@/services/draw';
 
 export default {
     name: 'Tournament',
@@ -566,10 +574,18 @@ export default {
                 this.tournament.groups = groups;
                 this.tournament.groupsScheme = schemas;
                 round = drawGroupsRound(this.tournament);
+            } else if (this.tournament.system === 'poules') {
+                const {groups} = createPoules(this.tournament);
+                this.tournament.groups = groups;
+                this.tournament.poulesRound = 1;
+                round = drawPoulesRound(this.tournament);
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
-            if (this.setupPlayOff) {
+            if (this.tournament.system === 'poules') {
+                this.tournament.preferences.playOffEnabled = true;
+                this.tournament.preferences.playOffTeams = this.tournament.teams.length / 2;
+            } else if (this.setupPlayOff) {
                 this.tournament.preferences.playOffEnabled = true;
                 this.tournament.preferences.withCadrage = this.withCadrage;
                 this.tournament.preferences.playB = this.playB;
@@ -625,6 +641,7 @@ export default {
                 : 1;
         },
         hasPlayOffConfigured() {
+            if (this.tournament.system === 'poules') return false;
             return (this.tournament.system === 'swiss' || this.tournament.system === 'groups') && this.tournament.preferences?.playOffEnabled && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
         },
         isPinned() {

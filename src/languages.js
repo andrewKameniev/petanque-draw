@@ -5,6 +5,7 @@ export default {
             "swiss": "Swiss",
             "groups": "Groups (Round)",
             "supermele": "Supermele",
+            "poules": "Poules (Barrage)",
             "teams": "Teams",
             "games": "Current games",
             "results": "Results",
@@ -67,7 +68,13 @@ export default {
             "chooseSystemText": "Prohibited to play swiss system with less then 8 teams",
             "playMaximum": "You can play maximum ",
             "playNextCircle": "Play next circle",
-            "circlesPlayed": "Circles played"
+            "circlesPlayed": "Circles played",
+            "poulesRound1": "Round 1",
+            "poulesRound2": "Winners vs Winners / Losers vs Losers",
+            "poulesRound3": "Barrage",
+            "poulesQualified": "Qualified",
+            "poulesEliminated": "Eliminated",
+            "poulesBarrage": "Barrage"
         },
         "results": {
             "title": "Every round results",
@@ -327,6 +334,7 @@ export default {
             "swiss": "Швейцарка",
             "groups": "Групи (Кругова)",
             "supermele": "Супермеле",
+            "poules": "Пулі (Бараж)",
             "teams": "Команди",
             "games": "Поточні ігри",
             "results": "Результати",
@@ -402,7 +410,13 @@ export default {
             "chooseSystemText": "Забороняється грати турнір по швейцарській системі при кількості команд менше 8",
             "playMaximum": "Ви можете зіграти максимум",
             "playNextCircle": "Зіграти наступне коло",
-            "circlesPlayed": "Зіграно кіл"
+            "circlesPlayed": "Зіграно кіл",
+            "poulesRound1": "Раунд 1",
+            "poulesRound2": "Переможці проти переможців / Програвші проти програвших",
+            "poulesRound3": "Бараж",
+            "poulesQualified": "Кваліфіковані",
+            "poulesEliminated": "Вибули",
+            "poulesBarrage": "Бараж"
         },
         "results": {
             "title": "Результати кожного раунду",

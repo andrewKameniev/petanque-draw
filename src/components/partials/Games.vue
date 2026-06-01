@@ -20,7 +20,10 @@
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
-                <h2 class="text-center">{{ $t('common.round') }} {{ activeRound }}</h2>
+                <h2 class="text-center">
+                    <template v-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
+                    <template v-else>{{ $t('common.round') }} {{ activeRound }}</template>
+                </h2>
                 <div class="games-toolbar">
                     <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
@@ -53,7 +56,7 @@
                     {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle || 1 }}
                 </div>
             </div>
-            <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
+            <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'">{{ $t('games.quantityError') }}</div>
         </div>
         <ConfirmRemoveModal v-if="showRestoreConfirm"
             :hint="$t('games.restoreRound')"
@@ -70,7 +73,7 @@ import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme} from '@/services/draw'
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import {ChevronDown} from "lucide-vue-next";
@@ -139,9 +142,16 @@ export default {
             this.tournament.teams?.forEach(t => { map[t.title] = t; });
             return map;
         },
+        poulesRoundLabel() {
+            const round = this.tournament.poulesRound || 1;
+            if (round === 1) return this.$t('games.poulesRound1');
+            if (round === 2) return this.$t('games.poulesRound2');
+            return this.$t('games.poulesRound3');
+        },
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
             if (this.tournament.tournamentIsFinished) return false;
+            if (this.tournament.system === 'poules') return false;
             if (this.tournament.system === 'groups' && this.tournament.games.length >= this.teamsCount && !this.tournament.roundIsActive) return false;
             const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
                 && (this.tournament.games.length < this.teamsCount)
@@ -188,6 +198,9 @@ export default {
                 if (this.tournament.groups) {
                     round = drawGroupsRound(this.tournament);
                 }
+            } else if (this.tournament.system === 'poules') {
+                this.tournament.poulesRound = (this.tournament.poulesRound || 0) + 1;
+                round = drawPoulesRound(this.tournament);
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
@@ -234,6 +247,20 @@ export default {
             }
 
             this.endRound();
+
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound < 3) {
+                this.drawRound();
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound === 3) {
+                const qualified = getPoulesQualifiedTeams(this.tournament);
+                this.$emit('startPlayOff', qualified);
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
             this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')})
         },
         restoreRoundGames(){
@@ -274,12 +301,28 @@ export default {
                 delete this.tournament.playOffBracket;
                 delete this.tournament.playOffStage;
                 delete this.tournament.cadrage;
+                if (this.tournament.system === 'poules') {
+                    this.tournament.poulesRound = 3;
+                }
                 this.startRound();
                 return;
             }
             if (this.tournament.roundIsActive) {
                 this.restoreRound();
-                if (this.tournament.system === 'groups') {
+                if (this.tournament.system === 'poules') {
+                    if (this.tournament.poulesRound > 1) {
+                        this.tournament.poulesRound--;
+                    }
+                    this.tournament.teams.forEach(team => {
+                        team.opponents = [];
+                        team.pointsPlus = 0;
+                        team.pointsMinus = 0;
+                        team.wins = 0;
+                    });
+                    for (let i = 0; i < this.tournament.games.length; i++) {
+                        this.saveResultsForRound(i);
+                    }
+                } else if (this.tournament.system === 'groups') {
                     this.tournament.teams.forEach(team => {
                         team.opponents = ['placeholder'];
                         team.pointsPlus = 0;

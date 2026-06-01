@@ -516,6 +516,158 @@ export function drawGroupsRound(tournament) {
     return round;
 }
 
+export function createPoules(tournament) {
+    const teamsCount = tournament.teams.length;
+    const groupsQuantity = teamsCount / 4;
+    const groups = [];
+    for (let i = 0; i < groupsQuantity; i++) {
+        groups.push([]);
+    }
+
+    const teamsSorted = [...tournament.teams].sort((a, b) => b.rating - a.rating);
+
+    // Seeding pattern: snake distribution
+    // Pot 1 (seeds 1..N/4) go to groups 0,1,2,...
+    // Pot 2 (seeds N/4+1..N/2) go to groups ...,2,1,0 (reversed)
+    // Pot 3 reversed again, etc.
+    let direction = 1;
+    let groupIdx = 0;
+    for (let i = 0; i < teamsCount; i++) {
+        const teamIndexInList = tournament.teams.findIndex(t => t.title === teamsSorted[i].title);
+        groups[groupIdx].push(tournament.teams[teamIndexInList]);
+
+        if (direction === 1 && groupIdx === groupsQuantity - 1) {
+            direction = -1;
+        } else if (direction === -1 && groupIdx === 0) {
+            direction = 1;
+        } else {
+            groupIdx += direction;
+        }
+    }
+
+    return {groups};
+}
+
+export function drawPoulesRound(tournament) {
+    const round = [];
+    const poulesRound = tournament.poulesRound || 1;
+
+    tournament.groups.forEach((group, groupIndex) => {
+        if (poulesRound === 1) {
+            // Round 1: A vs C, B vs D (seeds within group: index 0=A, 1=B, 2=C, 3=D)
+            round.push({
+                group: groupIndex,
+                team_1: group[0].title,
+                team_1_score: null,
+                team_2: group[2].title,
+                team_2_score: null
+            });
+            round.push({
+                group: groupIndex,
+                team_1: group[1].title,
+                team_1_score: null,
+                team_2: group[3].title,
+                team_2_score: null
+            });
+        } else if (poulesRound === 2) {
+            // Round 2: winners play winners, losers play losers
+            const r1Games = tournament.games[tournament.games.length - 1].filter(g => g.group === groupIndex);
+            const game1 = r1Games[0];
+            const game2 = r1Games[1];
+
+            const winner1 = game1.team_1_score > game1.team_2_score ? game1.team_1 : game1.team_2;
+            const loser1 = game1.team_1_score > game1.team_2_score ? game1.team_2 : game1.team_1;
+            const winner2 = game2.team_1_score > game2.team_2_score ? game2.team_1 : game2.team_2;
+            const loser2 = game2.team_1_score > game2.team_2_score ? game2.team_2 : game2.team_1;
+
+            round.push({
+                group: groupIndex,
+                team_1: winner1,
+                team_1_score: null,
+                team_2: winner2,
+                team_2_score: null
+            });
+            round.push({
+                group: groupIndex,
+                team_1: loser1,
+                team_1_score: null,
+                team_2: loser2,
+                team_2_score: null
+            });
+        } else if (poulesRound === 3) {
+            // Round 3 (barrage): two teams with exactly 1 win play each other
+            const teamWins = {};
+            group.forEach(t => { teamWins[t.title] = 0; });
+
+            tournament.games.forEach(roundGames => {
+                roundGames.filter(g => g.group === groupIndex).forEach(game => {
+                    if (game.team_1_score > game.team_2_score) {
+                        teamWins[game.team_1]++;
+                    } else if (game.team_2_score > game.team_1_score) {
+                        teamWins[game.team_2]++;
+                    }
+                });
+            });
+
+            const oneWinTeams = Object.entries(teamWins)
+                .filter(([, wins]) => wins === 1)
+                .map(([title]) => title);
+
+            if (oneWinTeams.length === 2) {
+                round.push({
+                    group: groupIndex,
+                    team_1: oneWinTeams[0],
+                    team_1_score: null,
+                    team_2: oneWinTeams[1],
+                    team_2_score: null
+                });
+            }
+        }
+    });
+    return round;
+}
+
+export function getPoulesQualifiedTeams(tournament) {
+    const groupQualified = [];
+    tournament.groups.forEach((group, groupIndex) => {
+        const teamWins = {};
+        const teamPoints = {};
+        group.forEach(t => {
+            teamWins[t.title] = 0;
+            teamPoints[t.title] = 0;
+        });
+
+        tournament.games.forEach(roundGames => {
+            roundGames.filter(g => g.group === groupIndex).forEach(game => {
+                if (game.team_1_score > game.team_2_score) {
+                    teamWins[game.team_1]++;
+                } else if (game.team_2_score > game.team_1_score) {
+                    teamWins[game.team_2]++;
+                }
+                teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
+                teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
+            });
+        });
+
+        const qualifiedFromGroup = Object.entries(teamWins)
+            .filter(([, wins]) => wins === 2)
+            .sort((a, b) => b[1] - a[1] || (teamPoints[b[0]] || 0) - (teamPoints[a[0]] || 0))
+            .map(([title]) => tournament.teams.find(t => t.title === title));
+
+        groupQualified.push(qualifiedFromGroup);
+    });
+
+    // Interleave: all group winners first, then all runners-up
+    const qualified = [];
+    const maxPerGroup = Math.max(...groupQualified.map(g => g.length));
+    for (let i = 0; i < maxPerGroup; i++) {
+        groupQualified.forEach(group => {
+            if (group[i]) qualified.push(group[i]);
+        });
+    }
+    return qualified;
+}
+
 export function saveResultsForRound(tournament, round) {
     if (tournament.games.length <= 2) {
         tournament.teams.forEach(team => {

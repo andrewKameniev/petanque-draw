@@ -47,7 +47,7 @@
                                 :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
                                 :y="game.y + boxHeight / 4 + 4"
                                 class="team-name" :class="{'team-winner': isWinner(game.data, 1)}"
-                            >{{ truncName(game.data.team_1, game.data.team_1_place || game.data.team_2_place) || $t('games.someone') }}</text>
+                            >{{ truncName(game.data.team_1, game.data.team_1_place || game.data.team_2_place) || (game.data.isBye ? $t('games.exempt') : $t('games.someone')) }}</text>
                             <!-- Team 1 score -->
                             <path
                                 v-if="teamBg(game.data, 1, stage.stageLabel)"
@@ -76,7 +76,7 @@
                                 :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
                                 :y="game.y + boxHeight * 3 / 4 + 4"
                                 class="team-name" :class="{'team-winner': isWinner(game.data, 2)}"
-                            >{{ truncName(game.data.team_2, game.data.team_1_place || game.data.team_2_place) || $t('games.lucky') }}</text>
+                            >{{ truncName(game.data.team_2, game.data.team_1_place || game.data.team_2_place) || (game.data.isBye ? $t('games.exempt') : $t('games.lucky')) }}</text>
                             <!-- Team 2 score -->
                             <path
                                 v-if="teamBg(game.data, 2, stage.stageLabel)"
@@ -230,13 +230,14 @@ export default {
             return base;
         },
         thirdPlaceGame() {
-            if (!this.bracket.thirdPlace) return null;
+            const tp = this.bracket.thirdPlace;
+            if (!tp || (!tp.team_1 && !tp.team_2)) return null;
             const finalStage = this.stages[this.stages.length - 1];
             const finalGame = finalStage.games[0];
             return {
                 x: finalStage.x,
                 y: finalGame.y + this.boxHeight + this.rowGap + 170,
-                data: this.bracket.thirdPlace
+                data: tp
             };
         },
         connectorPaths() {

@@ -74,7 +74,8 @@ export default {
             "poulesRound3": "Barrage",
             "poulesQualified": "Qualified",
             "poulesEliminated": "Eliminated",
-            "poulesBarrage": "Barrage"
+            "poulesBarrage": "Barrage",
+            "exempt": "Exempt"
         },
         "results": {
             "title": "Every round results",
@@ -416,7 +417,8 @@ export default {
             "poulesRound3": "Бараж",
             "poulesQualified": "Кваліфіковані",
             "poulesEliminated": "Вибули",
-            "poulesBarrage": "Бараж"
+            "poulesBarrage": "Бараж",
+            "exempt": "Звільнений"
         },
         "results": {
             "title": "Результати кожного раунду",

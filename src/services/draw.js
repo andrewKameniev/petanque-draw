@@ -665,6 +665,13 @@ export function getPoulesQualifiedTeams(tournament) {
             if (group[i]) qualified.push(group[i]);
         });
     }
+
+    // Pad to next power of 2 with bye placeholders for proper bracket generation
+    const nextPow2 = Math.pow(2, Math.ceil(Math.log2(qualified.length)));
+    while (qualified.length < nextPow2) {
+        qualified.push({ title: null, isBye: true });
+    }
+
     return qualified;
 }
 

@@ -584,7 +584,8 @@ export default {
             }
             if (this.tournament.system === 'poules') {
                 this.tournament.preferences.playOffEnabled = true;
-                this.tournament.preferences.playOffTeams = this.tournament.teams.length / 2;
+                const qualifiedCount = this.tournament.teams.length / 2;
+                this.tournament.preferences.playOffTeams = Math.pow(2, Math.ceil(Math.log2(qualifiedCount)));
             } else if (this.setupPlayOff) {
                 this.tournament.preferences.playOffEnabled = true;
                 this.tournament.preferences.withCadrage = this.withCadrage;

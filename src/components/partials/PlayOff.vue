@@ -38,12 +38,13 @@
                     </div>
                 </div>
                 <Game v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams" :key="ind"
+                      v-show="!game.isBye"
                       :active-tournament="tournament"
                       :game="game" :game-index="ind" :is-playoff="true"
                       :lane-number="currentStageLaneOrder[ind]"
                       :class="{'game--highlighted': isGameHighlighted(game)}"
                       :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
-                <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1">
+                <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1 && playOffBracket.thirdPlace && (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
                     <Game :game="playOffBracket.thirdPlace" :is-third="true"
                           :active-tournament="tournament" :compact-view="isPublicView" :game-index="1" @save="saveResults"/>
@@ -120,7 +121,7 @@ export default {
             return this.tournament.playOffBracket ? this.tournament.playOffBracket : null
         },
         stagesCount(){
-            return Math.log(this.tournament.playOff.length * 2) / Math.log(2);
+            return Math.round(Math.log(this.tournament.playOff.length * 2) / Math.log(2));
         },
         currentPlayOffBracketIndex(){
             if(this.tournament.playOffBracket?.stages){
@@ -203,7 +204,8 @@ export default {
         ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
         saveResults() {
             this.scoreError = false;
-            if(this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.some(game => isScoreError(game, this.tournament.preferences.maxScore))){
+            const realGames = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.filter(game => !game.isBye);
+            if(realGames.some(game => isScoreError(game, this.tournament.preferences.maxScore))){
                 this.scoreError = true;
                 return false
             }
@@ -213,6 +215,7 @@ export default {
             } else {
                 let bracket = JSON.parse(JSON.stringify(this.playOffBracket));
                 bracket.stages[this.currentPlayOffBracketIndex].teams.forEach((game, index) => {
+                    if (game.isBye) return;
                     if(index % 2 === 0){
                         bracket.stages[this.currentPlayOffBracketIndex + 1].teams[index / 2].team_1 = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2
                         if(bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4){ //third place
@@ -270,6 +273,27 @@ export default {
                 }
                 brackets.stages.push(stage)
             }
+
+            // Auto-advance bye games: move real team to next stage
+            if (brackets.stages.length > 1) {
+                const firstStage = brackets.stages[0];
+                firstStage.teams.forEach((game, index) => {
+                    if (game.isBye) {
+                        const realTeam = game.team_1 || game.team_2;
+                        const nextStageIndex = 1;
+                        const nextGameIndex = Math.floor(index / 2);
+                        const nextGame = brackets.stages[nextStageIndex].teams[nextGameIndex];
+                        if (nextGame) {
+                            if (index % 2 === 0) {
+                                nextGame.team_1 = realTeam;
+                            } else {
+                                nextGame.team_2 = realTeam;
+                            }
+                        }
+                    }
+                });
+            }
+
             if(this.tournament.cadrage){
                 const seeding = this.getTournamentSeeding(this.tournament.cadrage.length);
                 const sortedCadrage = this.tournament.cadrage.sort((a,b) => (a.team_2_place - b.team_2_place));

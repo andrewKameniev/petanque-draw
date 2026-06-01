@@ -30,7 +30,19 @@
                         <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
                     </button>
                 </div>
-                <div class="games-list">
+                <div class="games-list" v-if="tournament.system === 'poules'">
+                    <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
+                        <h4 class="poules-group__title">Poule {{ groupNames[gIdx] }}</h4>
+                        <Game v-for="(game, index) in group" :key="index"
+                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
+                              :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
+                              :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
+                              @save="saveResults"/>
+                    </div>
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    </div>
+                </div>
+                <div class="games-list" v-else>
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
                           :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
@@ -72,7 +84,7 @@
 import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
+import {gameHasError, isScoreError, shuffleArray, tournamentNames} from '@/helpers'
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
@@ -147,6 +159,22 @@ export default {
             if (round === 1) return this.$t('games.poulesRound1');
             if (round === 2) return this.$t('games.poulesRound2');
             return this.$t('games.poulesRound3');
+        },
+        groupNames() {
+            return tournamentNames;
+        },
+        currentRoundGames() {
+            return this.tournament.games?.[this.activeRound - 1] || [];
+        },
+        poulesGroupedGames() {
+            const games = this.currentRoundGames;
+            const grouped = {};
+            games.forEach(game => {
+                const g = game.group ?? 0;
+                if (!grouped[g]) grouped[g] = [];
+                grouped[g].push(game);
+            });
+            return Object.keys(grouped).sort((a, b) => a - b).map(k => grouped[k]);
         },
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
@@ -437,5 +465,16 @@ export default {
     transform: rotate(180deg);
 }
 
+.poules-group {
+    margin-bottom: 1.5rem;
+}
+
+.poules-group__title {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+}
 
 </style>

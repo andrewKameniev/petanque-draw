@@ -12,6 +12,7 @@
                                            {{ player.surname }}<span
                                 v-if="index < team.players.length - 1">, </span></span>)
                         </div>
+                        <div class="is-size-7 has-text-grey" v-if="getTeamClub(team)">{{ getTeamClub(team) }}</div>
                     </td>
                     <td class="td-100" v-if="tournament.useRating"><span class="rating-badge"><Zap :size="12" fill="currentColor"/>{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span></td>
                 </tr>

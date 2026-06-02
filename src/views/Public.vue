@@ -217,12 +217,16 @@ export default {
             }
             let desc;
             if (this.tournament.games?.length) {
-                const n = this.tournament.games.length;
+                const barrage = this.tournament.barrage;
+                const swissRounds = barrage ? barrage.startIndex : this.tournament.games.length;
                 const total = this.tournament.preferences?.swissRoundsCount;
                 if (total) {
-                    desc = n + '/' + total + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                    desc = swissRounds + '/' + total + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
                 } else {
-                    desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                    desc = swissRounds + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
+                }
+                if (barrage) {
+                    desc += ' + ' + this.$t('games.poulesBarrage').toLowerCase();
                 }
             } else {
                 desc = this.$t('teams.' + this.tournament.system);

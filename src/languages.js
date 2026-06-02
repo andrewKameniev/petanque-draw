@@ -221,7 +221,7 @@ export default {
             "drawMethodBalancedBest1": "Maximum balance while keeping randomness",
             "drawMethodBalancedBest2": "Avoiding \"group of death\" situations",
             "drawMethodBalancedBest3": "Making groups feel fair by total strength",
-            "poulesInfo": "groups × 4 teams → playoff teams",
+            "poulesInfo": "groups × 4 teams → {count} playoff teams",
             "poulesHint": "Poules work best when the total number of teams is divisible by 4"
         },
         "common": {
@@ -558,7 +558,7 @@ export default {
             "drawMethodBalancedBest1": "Максимальний баланс зі збереженням випадковості",
             "drawMethodBalancedBest2": "Уникнення \"групи смерті\"",
             "drawMethodBalancedBest3": "Справедливі групи за сумарною силою",
-            "poulesInfo": "груп × 4 учасники → учасників плей-офф",
+            "poulesInfo": "груп × 4 учасники → {count} учасників плей-офф",
             "poulesHint": "Пулі працюють найкраще, коли загальна кількість учасників ділиться на 4"
         },
         "common": {

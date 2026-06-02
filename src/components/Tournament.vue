@@ -89,7 +89,7 @@
                 </div>
 
                 <div v-if="tournament.system === 'poules'" class="setup-card__field">
-                    <span class="setup-card__hint">{{ Math.floor(tournament.teams.length / 4) }} {{ $t('setup.poulesInfo') }}</span>
+                    <span class="setup-card__hint">{{ Math.floor(tournament.teams.length / 4) }} {{ $t('setup.poulesInfo', { count: poulesPlayoffCount }) }}</span>
                     <span v-if="tournament.teams.length % 4 !== 0" class="setup-card__hint setup-card__hint--warn">{{ $t('setup.poulesHint') }}</span>
                 </div>
 
@@ -772,6 +772,11 @@ export default {
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
+        },
+        poulesPlayoffCount() {
+            const groups = Math.floor(this.tournament.teams?.length / 4) || 0;
+            const estimated = groups * 2;
+            return Math.pow(2, Math.ceil(Math.log2(estimated || 1)));
         },
         barrageTeamValues() {
             const values = [];

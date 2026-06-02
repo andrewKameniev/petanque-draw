@@ -10,7 +10,7 @@
                     <div class="mobile-stat-container">
                         <div class="has-text-right mobile-stat-container-header">
                             <div class="is-flex is-justify-content-space-between mb-3">
-                                <button v-if="!exerciseInProcess && !resultsOpen" @click="addExerciseOpen = !addExerciseOpen" class="button is-info">
+                                <button v-if="!exerciseInProcess && !resultsOpen" @click="addExerciseOpen = !addExerciseOpen" class="button btn-primary">
                                     <span v-if="addExerciseOpen">{{ $t('training.toList') }}</span>
                                     <span v-else>{{ $t('training.addEx') }}</span>
                                 </button>
@@ -31,10 +31,10 @@
                                         <div class="is-flex is-align-items-center">
                                             <div class="field is-grouped">
                                                 <div class="control">
-                                                    <button class="button is-success" @click="start(key)">{{ $t('training.startTraining') }}</button>
+                                                    <button class="button btn-primary" @click="start(key)">{{ $t('training.startTraining') }}</button>
                                                 </div>
                                                 <div class="control">
-                                                    <button class="button is-info" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
+                                                    <button class="button btn-primary-outline" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
                                                 </div>
                                             </div>
                                             <button class="ml-auto delete" @click.stop="confirmRemoveId = key"></button>
@@ -103,10 +103,6 @@ export default {
             .then((snapshot) => {
                 if (snapshot.exists()) {
                     this.exercisesList = snapshot.val();
-                    this.showMessage({
-                        title: this.$t('messages.awesome'),
-                        text: this.$t('messages.exercisesLoaded'),
-                    });
                 } else {
                     this.statsList = null;
                     this.showMessage({
@@ -173,11 +169,29 @@ export default {
 .exercise-item {
     background: var(--color-surface-semi);
     border-radius: 0.5rem;
+    border: 2px solid var(--color-primary);
     cursor: pointer;
 }
 
-[data-theme="dark"] .exercise-item {
-    border: 1px solid var(--color-primary);
+.btn-primary {
+    background: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: var(--color-white) !important;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-primary-outline {
+    background: transparent !important;
+    border: 2px solid var(--color-primary) !important;
+    color: var(--color-primary) !important;
+}
+
+.btn-primary-outline:hover {
+    background: var(--color-primary) !important;
+    color: var(--color-white) !important;
 }
 
 </style>

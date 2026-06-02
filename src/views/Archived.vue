@@ -537,3 +537,111 @@ export default {
     color: var(--color-white);
 }
 </style>
+
+<style>
+.tournament-info-card {
+    position: relative;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    padding-right: 7rem;
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-card {
+        padding-right: 1.25rem;
+        padding-top: 2.5rem;
+    }
+}
+
+.badge-corner {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.badge-finished {
+    background: var(--color-grey);
+    color: var(--color-white);
+}
+
+.badge-not-started {
+    background: var(--color-warning-border);
+    color: var(--color-white);
+}
+
+.tournament-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+}
+
+.btn-bracket-group {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-bracket {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+}
+
+.btn-bracket:hover {
+    color: var(--color-white);
+}
+
+.playoff-public-wrapper .play-off-stage-wrapper {
+    padding: 0;
+}
+
+.playoff-public-wrapper h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-public-text-muted);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper .game-row.compact {
+    background: var(--color-white);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    gap: 0.75rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.playoff-public-wrapper .game-row.compact .score-block {
+    flex: 0 0 auto;
+    min-width: 60px;
+    padding: 0 0.5rem;
+}
+</style>

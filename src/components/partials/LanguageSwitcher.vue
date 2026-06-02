@@ -144,7 +144,6 @@ export default {
     width: 1.5rem;
     height: 1.1rem;
     border-radius: 2px;
-    box-shadow: 0 0 1px rgba(0,0,0,0.3);
 }
 
 .lang-dropdown {
@@ -183,6 +182,5 @@ export default {
     width: 1.2rem;
     height: 0.9rem;
     border-radius: 2px;
-    box-shadow: 0 0 1px rgba(0,0,0,0.3);
 }
 </style>

@@ -406,7 +406,6 @@ export default {
     width: 1.4rem;
     height: 1rem;
     border-radius: 2px;
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
     margin-left: 0.4rem;
 }

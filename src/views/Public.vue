@@ -31,8 +31,8 @@
                     <span class="has-text-weight-semibold">{{ systemDescription }}</span>
                 </div>
                 <div class="tournament-info-row" v-if="tournament.teams">
-                    <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
+                    <span class="has-text-grey-dark">{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span>
+                    <span class="has-text-weight-semibold">{{ tournament.system === 'tir' ? (tournament.tirParticipants || tournament.teams).length : tournament.teams.length }}</span>
                 </div>
                 <div class="tournament-info-row" v-if="tournamentExtrasLine">
                     <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
@@ -73,22 +73,28 @@
                     </div>
                 </div>
             </div>
-            <div class="tabs">
-                <ul>
-                    <li v-for="(tab, index) in tabs" :key="index"
-                        :class="{'is-active': tab.id === activeTab}">
-                        <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            </div>
-            <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            </div>
+            <!-- TIR: single view, no tabs -->
+            <TirPublicView v-if="tournament.system === 'tir'" :tournament="tournament" class="mt-3"/>
+
+            <!-- Other systems: tabs -->
+            <template v-else>
+                <div class="tabs">
+                    <ul>
+                        <li v-for="(tab, index) in tabs" :key="index"
+                            :class="{'is-active': tab.id === activeTab}">
+                            <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="content tabs-content" v-if="activeTab === 'teams'">
+                    <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                </div>
+                <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                <div class="content tabs-content" v-if="activeTab === 'ranking'">
+                    <Ranking :tournament="tournament"
+                             :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                </div>
+            </template>
         </div>
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
@@ -113,9 +119,10 @@ import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 import {GitFork, X} from "lucide-vue-next";
 import TeamSearch from "@/components/partials/TeamSearch.vue";
+import TirPublicView from "@/components/tir/TirPublicView.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView},
     data() {
         return {
             isLoading: false,
@@ -199,7 +206,7 @@ export default {
             return !!this.tournament?.tournamentIsFinished;
         },
         isStarted() {
-            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length;
+            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length || !!this.tournament?.tirStarted;
         },
         badgeClass() {
             if (this.isFinished) return 'badge-finished';
@@ -400,6 +407,7 @@ export default {
 
 .tournament-title-wrapper {
     position: relative;
+    font-size: 1.5rem !important;
 }
 
 .search-filter-chip {

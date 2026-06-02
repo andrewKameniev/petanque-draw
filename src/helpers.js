@@ -307,6 +307,8 @@ function getTeamsRanking(tournament, activeRound) {
             return sortedGroups;
         } else if (tournament.system === 'supermele') {
             return sortTeamsForSupermele(tournament.teams)
+        } else if (tournament.system === 'tir') {
+            return tournament.teams || [];
         } else if (tournament.system === 'swiss') {
             return sortTeams(tournament.teams);
         }

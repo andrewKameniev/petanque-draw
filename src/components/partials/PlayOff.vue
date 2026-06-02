@@ -64,6 +64,7 @@ import Bracket from './Bracket';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {isScoreError, shuffleArray} from "@/helpers";
+import {assignPlayoffLanes} from "@/services/results";
 import Game from "@/components/partials/Game.vue";
 import {Save, GitFork, Search, UserRound, Building2} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
@@ -264,12 +265,10 @@ export default {
                         teams.push(game)
                     }
                 }
-                const laneOrder = this.shuffleArray(Array.from({length: teams.length}, (_, k) => k));
                 const stage = {
                     teamsCount: teamsCount,
                     stageLabel: stageLabel,
                     teams: teams,
-                    laneOrder: laneOrder,
                 }
                 brackets.stages.push(stage)
             }
@@ -293,6 +292,9 @@ export default {
                     }
                 });
             }
+
+            // Assign sequential lane numbers skipping bye games
+            assignPlayoffLanes(brackets.stages);
 
             if(this.tournament.cadrage){
                 const seeding = this.getTournamentSeeding(this.tournament.cadrage.length);

@@ -8,7 +8,7 @@
                                 class="button is-small mr-1 mb-1"
                                 :class="{'is-purple': selectedRound === index}"
                                 @click="selectedRound = index">
-                            R{{ index + 1 }}
+                            {{ getRoundLabel(index) }}
                         </button>
                         <button v-if="tournament.cadrage?.length" class="button is-small mr-1 mb-1"
                                 :class="{'is-purple': selectedRound === 'cadrage'}"
@@ -34,14 +34,16 @@
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
                     <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
                         <tbody>
-                            <template v-for="(round, index) in tournament.games" :key="index">
+                            <template v-for="(round, index) in sortedGames" :key="index">
                                 <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
                                     <tr v-for="(game, i) in round" :key="i" :class="{'search-highlight': isGameHighlighted(game)}">
                                         <td v-if="selectedRound === -1 || isForProtocol" class="is-narrow round-group-cell">
-                                            <small class="round-badge">R{{index + 1}}</small>
-                                            <small v-if="hasGroupsColumn" class="group-label">{{ groupsNames[game.group] }}</small>
+                                            <small class="round-badge">{{ getRoundLabel(index) }}</small>
+                                            <small v-if="hasGroupsColumn && game.group != null" class="group-label">{{ groupsNames[game.group] }}</small>
                                         </td>
-                                        <td v-if="hasGroupsColumn" class="group-cell-desktop"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</td>
+                                        <td v-if="hasGroupsColumn" class="group-cell-desktop">
+                                            <template v-if="game.group != null"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</template>
+                                        </td>
                                         <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
                                         <td class="has-text-centered is-narrow">
                                             <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
@@ -109,6 +111,7 @@
 import {mapState} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
+import {getDefaultSelectedRound, hasPlayOffResults as checkPlayOffResults, sortGamesByGroup} from "@/services/results";
 import Bracket from "@/components/partials/Bracket";
 import {GitFork} from "lucide-vue-next";
 
@@ -124,18 +127,7 @@ export default {
     },
     created() {
         const t = this.previewTournament || this.currentTournament;
-        if (this.hasPlayOffResults) {
-            this.selectedRound = 'playoff';
-        } else if (t?.cadrage?.length) {
-            this.selectedRound = 'cadrage';
-        } else if (t?.games?.length) {
-            const lastIndex = t.games.length - 1;
-            if (t.roundIsActive && lastIndex > 0) {
-                this.selectedRound = lastIndex - 1;
-            } else {
-                this.selectedRound = lastIndex;
-            }
-        }
+        this.selectedRound = getDefaultSelectedRound(t);
     },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
@@ -143,21 +135,31 @@ export default {
             return this.previewTournament || this.currentTournament
         },
         hasPlayOffResults() {
-            const bracket = this.tournament?.playOffBracket;
-            if (!bracket?.stages?.length) return false;
-            return bracket.stages.some(stage => stage.stageLabel !== 'cadrage' && stage.teams?.some(g => g.team_1_score != null));
+            return checkPlayOffResults(this.tournament);
         },
         groupsNames() {
             return tournamentNames
         },
         hasGroupsColumn() {
-            return (this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament?.groups?.length > 1
+            if (this.tournament.barrage && this.tournament.barrage.groups?.length > 1) return true;
+            if ((this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament?.groups?.length > 1) return true;
+            return false;
+        },
+        sortedGames() {
+            return sortGamesByGroup(this.tournament.games, this.hasGroupsColumn);
         },
         colCount() {
             return this.hasGroupsColumn ? 5 : 4
         }
     },
     methods: {
+        getRoundLabel(index) {
+            const barrage = this.tournament.barrage;
+            if (barrage && index >= barrage.startIndex) {
+                return `B${index - barrage.startIndex + 1}`;
+            }
+            return `R${index + 1}`;
+        },
         isTeamHighlighted(name) {
             if (!this.highlightedTeam) return false;
             if (this.highlightedTeam === name) return true;

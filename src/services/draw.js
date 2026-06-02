@@ -650,7 +650,7 @@ export function getPoulesQualifiedTeams(tournament) {
         });
 
         const qualifiedFromGroup = Object.entries(teamWins)
-            .filter(([, wins]) => wins === 2)
+            .filter(([, wins]) => wins >= 2)
             .sort((a, b) => b[1] - a[1] || (teamPoints[b[0]] || 0) - (teamPoints[a[0]] || 0))
             .map(([title]) => tournament.teams.find(t => t.title === title));
 

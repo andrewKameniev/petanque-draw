@@ -5,7 +5,7 @@ import {database} from "@/firebase";
 import i18n from "@/i18n";
 
 // eslint-disable-next-line no-unused-vars
-const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'];
+const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore', 'setBarrage', 'setBarrageGames'];
 
 function createTournament(overrides = {}) {
     return {
@@ -30,6 +30,8 @@ function createTournament(overrides = {}) {
             playOffEnabled: false,
             fieldsStart: 1,
             withCadrage: false,
+            withBarrage: false,
+            barrageTeams: 8,
             playB: false,
             timeLimitEnabled: false,
             timeLimit: 45,
@@ -225,6 +227,14 @@ export const useMainStore = defineStore('main', {
         setCadrage(games) {
             this.tournaments[this.currentTournamentIndex].cadrage = games;
             this.tournaments[this.currentTournamentIndex].isCadrage = true;
+            this.syncToFirebase();
+        },
+        setBarrage(barrage) {
+            this.tournaments[this.currentTournamentIndex].barrage = barrage;
+            this.syncToFirebase();
+        },
+        setBarrageGames(games) {
+            this.tournaments[this.currentTournamentIndex].games = games;
             this.syncToFirebase();
         },
         saveCadrageScores() {

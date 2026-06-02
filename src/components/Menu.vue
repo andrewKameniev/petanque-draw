@@ -29,11 +29,11 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             {{ $t('common.draw') }}
                         </router-link></li>
-                        <li><router-link to="stats" @click="$emit('closeMenu')">
+                        <li><router-link to="/stats" @click="$emit('closeMenu')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             {{ $t('common.stat') }}
                         </router-link></li>
-                        <li><router-link to="training" @click="$emit('closeMenu')">
+                        <li><router-link to="/training" @click="$emit('closeMenu')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             {{ $t('common.training') }}
                         </router-link></li>
@@ -77,7 +77,7 @@
                     <!-- Info -->
                     <p class="sidebar__label">{{ $t('common.info') }}</p>
                     <ul class="sidebar__list sidebar__list--plain">
-                        <li><router-link to="doc" @click="$emit('closeMenu')">{{ $t('common.howUse') }}</router-link></li>
+                        <li><router-link to="/doc" @click="$emit('closeMenu')">{{ $t('common.howUse') }}</router-link></li>
                         <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
                         <li><a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a></li>
                         <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>

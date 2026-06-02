@@ -4,25 +4,23 @@
         <Menu :active="menuOpen" @closeMenu="menuOpen = false"/>
         <div class="container">
 
-            <div v-if="activeKey && savedTournaments[activeKey]" class="archived-header">
-                <div class="tournament-selector" @click="selectorOpen = !selectorOpen" v-click-outside="closeSelector">
-                    <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
-                    <svg class="tournament-selector__arrow" :class="{'tournament-selector__arrow--open': selectorOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                    <div class="tournament-selector__dropdown" v-if="selectorOpen">
-                        <a href="#" class="tournament-selector__option"
-                           :class="{'tournament-selector__option--active': key === activeKey}"
-                           v-for="[key, item] in tournamentEntries" :key="key"
-                           @click.prevent.stop="selectTournament(key)">
-                            {{ item.name }}
-                        </a>
-                    </div>
-                </div>
-                <button class="button btn-remove-archived" @click="removeTournament">
+            <div v-if="activeKey && savedTournaments[activeKey]" class="tournament-selector" @click="selectorOpen = !selectorOpen" v-click-outside="closeSelector">
+                <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
+                <svg class="tournament-selector__arrow" :class="{'tournament-selector__arrow--open': selectorOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+                <button class="button btn-remove-archived" @click.stop="removeTournament">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     {{ $t('common.remove') }}
                 </button>
+                <div class="tournament-selector__dropdown" v-if="selectorOpen">
+                    <a href="#" class="tournament-selector__option"
+                       :class="{'tournament-selector__option--active': key === activeKey}"
+                       v-for="[key, item] in tournamentEntries" :key="key"
+                       @click.prevent.stop="selectTournament(key)">
+                        {{ item.name }}
+                    </a>
+                </div>
             </div>
 
             <div v-if="!activeKey && !isLoading" class="empty-state">
@@ -515,13 +513,6 @@ export default {
     color: var(--color-white);
 }
 
-.archived-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
 .btn-remove-archived {
     display: inline-flex;
     align-items: center;
@@ -530,6 +521,7 @@ export default {
     color: var(--color-danger, #e74c3c);
     border-color: var(--color-danger, #e74c3c);
     background: transparent;
+    margin-left: 0.5rem;
 }
 
 .btn-remove-archived:hover {

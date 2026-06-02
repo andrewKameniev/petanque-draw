@@ -88,9 +88,7 @@
                     <ul class="sidebar__list">
                         <li><a href="#" @click.prevent="toggleLang">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                            {{ $i18n.locale === 'ua' ? 'Українська' : 'English' }}
-                            <svg v-if="$i18n.locale === 'ua'" class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="240" fill="#005BBB"/><rect y="240" width="640" height="240" fill="#FFD500"/></svg>
-                            <svg v-else class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/><path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/><path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/></svg>
+                            {{ {ua: 'Українська', en: 'English', fr: 'Français', es: 'Español'}[$i18n.locale] }}
                         </a></li>
                         <li class="sidebar__theme-item">
                             <span class="sidebar__theme-label"><Paintbrush :size="20" class="sidebar__theme-icon"/> {{ $t('common.theme') }}</span>
@@ -166,7 +164,9 @@ export default {
             }
         },
         toggleLang() {
-            const newLang = this.$i18n.locale === 'ua' ? 'en' : 'ua';
+            const locales = ['ua', 'en', 'fr', 'es'];
+            const currentIndex = locales.indexOf(this.$i18n.locale);
+            const newLang = locales[(currentIndex + 1) % locales.length];
             this.$i18n.locale = newLang;
             localStorage.setItem('petanqueDrawLang', newLang);
         },

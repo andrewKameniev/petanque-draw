@@ -33,6 +33,33 @@ total score > carreau count (tiebreaker)
 
 Default view: Scoring (admin) / Playoff if available, else Participants (public).
 
+## 2-Round Qualification System
+
+Optional mode selected before tournament start (`tirConfig.rounds: 2`).
+
+### Flow
+1. **Round 1**: All players compete (scores in `participant.scores`)
+2. **After R1**: Top 4 qualify directly to quarterfinals; places 5-16 advance to Round 2
+3. **Round 2**: 12 players repeat all exercises (scores in `participant.scores2`)
+4. **Qualification**: Top 4 from R2 by combined score (R1 + R2) join the 4 direct qualifiers
+5. **Playoff**: 8 seeded players → QF → SF → Final + 3rd place
+
+### Data Model
+```javascript
+tournament.tirConfig.rounds = 2       // 1 or 2 (chosen before start)
+tournament.tirRound = 1 | 2           // active round being scored
+tournament.tirR2Participants = [id1, id2, ...]  // IDs of players in R2
+
+participant.scores = {...}            // Round 1 scores (never overwritten)
+participant.scores2 = {...}           // Round 2 scores (same shape as scores)
+```
+
+### Table View (2-round mode)
+Columns: `# | Player | R1 | R2 | 1/4 | 1/2 | Final | Place`
+- Direct qualifiers: green highlight
+- R2 participants: orange highlight  
+- Eliminated: dimmed text
+
 ## Playoff
 
 When enough participants have completed scoring, the organizer can start a playoff bracket (2, 4, 8, 16, 32, or 64 players).
@@ -86,9 +113,24 @@ tournament.tirPlayoff = {
 }
 ```
 
+## Public Playoff View
+
+The public playoff view shows:
+- Timeline with progress dots (green for completed rounds, orange for final)
+- Match cards with grid layout: `[player A] [scoreA] vs [scoreB] [player B]`
+- Winners highlighted in green, long names ellipsized, scores never truncated
+- Final match card with orange border accent
+- Winner celebration block (green card with trophy icon) — shown only when tournament is finished
+- CTA button "Go to final table" — switches to the table tab
+
+The old bottom top-4 places list has been removed from the playoff view. Final standings are accessed via the table tab.
+
+Clicking a match card opens `TirPlayoffComparison` — a detailed side-by-side view of both players' scores per atelier and distance.
+
 ## Components
 - `TirModule.vue` — Admin: all tabs (participants, scoring, table, playoff)
 - `TirPublicView.vue` — Public: participants, table, playoff (read-only)
-- `TirPlayoffMatch.vue` — Shared: match scoring grid (supports `readOnly` prop for public view)
+- `TirPlayoffComparison.vue` — Public: read-only match comparison (replaces TirPlayoffMatch in public view)
+- `TirPlayoffMatch.vue` — Admin: match scoring grid
 - `TirParticipantView.vue` — Per-participant scoring grid
 - `TirAtelierView.vue` — Per-atelier scoring (all participants for one station)

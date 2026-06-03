@@ -398,7 +398,22 @@ export default {
         "selectWinner": "Обрати переможця",
         "enterScores": "Ввести результати",
         "backToBracket": "Назад до сітки",
+        "totalScore": "Всього",
         "playoffStarted": "Плей-офф розпочато",
-        "round": "Раунд"
+        "round": "Раунд",
+        "tournamentWinner": "Переможець турніру",
+        "goToFinalTable": "Перейти до підсумкової таблиці",
+        "twoRoundSystem": "Система з 2 раундами кваліфікації",
+        "twoRoundHint": "Топ-4 йдуть у чвертьфінал напряму. Місця 5-16 грають 2-й раунд.",
+        "juniorTournament": "Юніорський турнір (без 9м)",
+        "startRound2": "Почати раунд 2",
+        "round2Hint": "Топ-4 кваліфікувалися напряму. Решта гравців змагатимуться у раунді 2.",
+        "round1Score": "Р1",
+        "round2Score": "Р2",
+        "combinedScore": "Сума",
+        "directQualifier": "Напряму",
+        "round2Qualifier": "Через Р2",
+        "eliminated": "Вибув",
+        "place": "Місце"
     }
 }

@@ -2,15 +2,15 @@
     <div class="tir-module">
         <!-- Navigation tabs — same as admin -->
         <div class="tir-nav">
-            <button class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'participants'}" @click="view = 'participants'; expanded = null">
+            <button class="tir-nav__btn" :class="{'tir-nav__btn--active tir-nav__btn--participants': view === 'participants'}" @click="view = 'participants'; expanded = null">
                 <Users :size="18"/>
                 <span>{{ $t('tir.participants') }}</span>
             </button>
-            <button class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'table'}" @click="view = 'table'">
+            <button class="tir-nav__btn" :class="{'tir-nav__btn--active tir-nav__btn--table': view === 'table'}" @click="view = 'table'">
                 <TableProperties :size="18"/>
                 <span>{{ $t('tir.table') }}</span>
             </button>
-            <button v-if="tournament.tirPlayoff" class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'playoff'}" @click="view = 'playoff'">
+            <button v-if="tournament.tirPlayoff" class="tir-nav__btn" :class="{'tir-nav__btn--active tir-nav__btn--playoff': view === 'playoff'}" @click="view = 'playoff'">
                 <Trophy :size="18"/>
                 <span>{{ $t('games.playOff') }}</span>
             </button>
@@ -96,78 +96,119 @@
 
         <!-- Table view — qualification ranking -->
         <div v-if="view === 'table'" class="tir-table">
-            <table v-if="rankedParticipants.length" class="tir-table__content">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>{{ $t('tir.participant') }}</th>
-                        <th>{{ $t('ranking.points') }}</th>
-                        <th>{{ $t('tir.throws') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(participant, index) in rankedParticipants" :key="participant.id || index" :class="{'tir-table__row--qualified': isQualified(participant)}">
-                        <td>{{ index + 1 }}</td>
-                        <td>{{ participant.name }}</td>
-                        <td><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</td>
-                        <td>{{ getThrows(participant) }} / {{ totalThrows }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div v-if="rankedParticipants.length" class="tir-table__scroll">
+                <table class="tir-table__content">
+                    <thead>
+                        <tr v-if="isTwoRoundSystem">
+                            <th class="tir-table__sticky-col">#</th>
+                            <th class="tir-table__sticky-col tir-table__sticky-col--name">{{ $t('tir.participant') }}</th>
+                            <th>{{ $t('tir.round1Score') }}</th>
+                            <th v-if="currentRound >= 2">{{ $t('tir.round2Score') }}</th>
+                            <th v-if="currentRound >= 2">{{ $t('tir.combinedScore') }}</th>
+                            <th v-if="tournament.tirPlayoff">{{ $t('tir.quarterfinal') }}</th>
+                            <th v-if="tournament.tirPlayoff">{{ $t('tir.semifinal') }}</th>
+                            <th v-if="tournament.tirPlayoff">{{ $t('games.final') }}</th>
+                            <th>{{ $t('tir.place') }}</th>
+                        </tr>
+                        <tr v-else>
+                            <th>#</th>
+                            <th>{{ $t('tir.participant') }}</th>
+                            <th>{{ $t('ranking.points') }}</th>
+                            <th>{{ $t('tir.throws') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody v-if="isTwoRoundSystem">
+                        <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
+                            <td class="tir-table__sticky-col">{{ index + 1 }}</td>
+                            <td class="tir-table__sticky-col tir-table__sticky-col--name">{{ row.name }}</td>
+                            <td>{{ row.r1 }}</td>
+                            <td v-if="currentRound >= 2">{{ row.r2 }}</td>
+                            <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
+                            <td v-if="tournament.tirPlayoff">{{ row.qf }}</td>
+                            <td v-if="tournament.tirPlayoff">{{ row.sf }}</td>
+                            <td v-if="tournament.tirPlayoff">{{ row.final }}</td>
+                            <td>{{ row.place }}</td>
+                        </tr>
+                    </tbody>
+                    <tbody v-else>
+                        <tr v-for="(participant, index) in rankedParticipants" :key="participant.id || index" :class="{'tir-table__row--qualified': isQualified(participant)}">
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ participant.name }}</td>
+                            <td><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</td>
+                            <td>{{ getThrows(participant) }} / {{ totalThrows }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <div v-else class="tir-table__empty">{{ $t('tir.noParticipants') }}</div>
         </div>
 
         <!-- Playoff view -->
         <div v-if="view === 'playoff' && tournament.tirPlayoff" class="tir-playoff">
-            <!-- Match scoring detail (read-only) -->
-            <TirPlayoffMatch v-if="activePlayoffMatch"
+            <!-- Match comparison detail -->
+            <TirPlayoffComparison v-if="activePlayoffMatch"
                 :match="activePlayoffMatch"
                 :ateliers="atelierObjects"
                 :distances="distances"
                 :roundLabel="activePlayoffMatchLabel"
-                :readOnly="true"
                 @back="activePlayoffMatchKey = null"/>
 
             <!-- Bracket view -->
             <template v-else>
-                <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
-                    <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
-                        <span v-if="round.matches.length > 1" class="tir-playoff__lane">{{ mIdx + 1 }}</span>
-                        <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player1}">
-                            <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
-                            <span class="tir-playoff__player-score" v-if="match.score1 !== null">{{ match.score1 }}</span>
+                <div class="tir-playoff__timeline">
+                    <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
+                        <div class="tir-playoff__progress">
+                            <span class="tir-playoff__progress-dot" :class="{'tir-playoff__progress-dot--complete': round.matches.every(m => isMatchComplete(m)), 'tir-playoff__progress-dot--final': round.isFinal}"></span>
+                            <span v-if="rIdx < playoffDisplayRounds.length - 1" class="tir-playoff__progress-line"></span>
                         </div>
-                        <div class="tir-playoff__vs">vs</div>
-                        <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player2}">
-                            <span class="tir-playoff__player-name">{{ match.player2 || '—' }}</span>
-                            <span class="tir-playoff__player-score" v-if="match.score2 !== null">{{ match.score2 }}</span>
+                        <div class="tir-playoff__round-content">
+                            <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
+                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--final': round.isFinal}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
+                                <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
+                                <div class="tir-playoff__match-row">
+                                    <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">{{ match.player1 || $t('tir.matchPending') }}</span>
+                                    <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player1}">{{ match.score1 !== null ? match.score1 : '—' }}</span>
+                                    <span class="tir-playoff__vs">vs</span>
+                                    <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player2}">{{ match.score2 !== null ? match.score2 : '—' }}</span>
+                                    <span class="tir-playoff__player-name tir-playoff__player-name--right" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2}">{{ match.player2 || $t('tir.matchPending') }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Final places -->
-                <div v-if="finalPlaces.length" class="tir-playoff__places">
-                    <div v-for="(place, idx) in finalPlaces" :key="idx" class="tir-playoff__place">
-                        <span class="tir-playoff__place-pos">{{ place.pos }}</span>
-                        <span class="tir-playoff__place-name">{{ place.name }}</span>
+                <!-- Winner block -->
+                <div v-if="champion" class="tir-playoff__winner">
+                    <div class="tir-playoff__winner-icon">
+                        <Trophy :size="28" color="#fff"/>
+                    </div>
+                    <div class="tir-playoff__winner-info">
+                        <span class="tir-playoff__winner-label">{{ $t('tir.tournamentWinner') }}</span>
+                        <span class="tir-playoff__winner-name">{{ champion }}</span>
                     </div>
                 </div>
+
+                <!-- CTA to final table -->
+                <button class="tir-playoff__cta" @click="goToTable">
+                    <TableProperties :size="18"/>
+                    <span>{{ $t('tir.goToFinalTable') }}</span>
+                    <ChevronRight :size="18"/>
+                </button>
             </template>
         </div>
     </div>
 </template>
 
 <script>
-import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, Check} from "lucide-vue-next";
-import TirPlayoffMatch from "./TirPlayoffMatch.vue";
+import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check} from "lucide-vue-next";
+import TirPlayoffComparison from "./TirPlayoffComparison.vue";
 
 const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
 const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
 
 export default {
     name: 'TirPublicView',
-    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, Check, TirPlayoffMatch},
+    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check, TirPlayoffComparison},
     props: {
         tournament: {type: Object, required: true}
     },
@@ -191,6 +232,12 @@ export default {
         }
     },
     computed: {
+        isTwoRoundSystem() {
+            return this.tournament.tirConfig?.rounds === 2;
+        },
+        currentRound() {
+            return this.tournament.tirRound || 1;
+        },
         isJunior() {
             return !!this.tournament.tirConfig?.junior;
         },
@@ -259,49 +306,99 @@ export default {
                 });
             }
 
+            let laneCounter = rounds.reduce((sum, r) => sum + r.matches.length, 0);
+
             if (playoff.thirdPlace) {
+                laneCounter++;
                 rounds.push({
                     title: this.$t('tir.thirdPlaceMatch'),
                     matches: [playoff.thirdPlace],
                     key: 'third:0',
-                    isFinal: false
+                    isFinal: false,
+                    laneStart: laneCounter
                 });
             }
 
             if (playoff.final) {
+                laneCounter++;
                 rounds.push({
                     title: this.$t('games.final'),
                     matches: [playoff.final],
                     key: 'final:0',
-                    isFinal: true
+                    isFinal: true,
+                    laneStart: laneCounter
                 });
             }
 
             return rounds;
         },
-        finalPlaces() {
+        champion() {
             const playoff = this.tournament.tirPlayoff;
-            if (!playoff || !this.tournament.tournamentIsFinished) return [];
-            const places = [];
+            if (!playoff || !this.tournament.tournamentIsFinished) return null;
             const finalMatch = playoff.final;
-            if (finalMatch) {
-                const winner = this.getMatchWinner(finalMatch);
-                const loser = winner === finalMatch.player1 ? finalMatch.player2 : finalMatch.player1;
-                if (winner) {
-                    places.push({pos: '1', name: winner});
-                    places.push({pos: '2', name: loser});
+            if (!finalMatch) return null;
+            return this.getMatchWinner(finalMatch);
+        },
+        r1RankedParticipants() {
+            return [...this.participants].sort((a, b) =>
+                this.getTotal(a, 'scores') !== undefined ?
+                    this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores') :
+                    this.getTotal(b) - this.getTotal(a)
+            );
+        },
+        publicTableRows() {
+            if (!this.isTwoRoundSystem) return [];
+            const playoff = this.tournament.tirPlayoff;
+            const r2Ids = this.tournament.tirR2Participants || [];
+            const r1Ranked = [...this.participants].sort((a, b) =>
+                this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores')
+            );
+            const directIds = r1Ranked.slice(0, 4).map(p => p.id);
+
+            const allPlayers = r1Ranked.map(p => {
+                const isDirect = directIds.includes(p.id);
+                const isR2 = r2Ids.includes(p.id);
+                const r1Score = this.getScoreForKey(p, 'scores');
+                const r2Score = isR2 ? this.getScoreForKey(p, 'scores2') : null;
+                const combined = isR2 ? r1Score + r2Score : r1Score;
+
+                let place = '';
+                let rowClass = '';
+                if (isDirect) {
+                    rowClass = 'tir-table__row--direct';
+                    place = this.$t('tir.directQualifier');
+                } else if (isR2) {
+                    rowClass = 'tir-table__row--r2';
+                } else {
+                    rowClass = 'tir-table__row--eliminated';
+                    place = this.$t('tir.eliminated');
                 }
+
+                const matchScores = this.getPlayoffMatchScores(p.name, playoff);
+
+                return {
+                    id: p.id,
+                    name: p.name,
+                    r1: `${r1Score}/${this.maxTotal}`,
+                    r2: isDirect ? '—' : (r2Score !== null ? `${r2Score}/${this.maxTotal}` : ''),
+                    combined: isR2 ? `${combined}/${this.maxTotal * 2}` : (isDirect ? `${r1Score}/${this.maxTotal}` : ''),
+                    qf: matchScores.qf,
+                    sf: matchScores.sf,
+                    final: matchScores.final,
+                    place,
+                    rowClass,
+                    combinedNum: combined
+                };
+            });
+
+            if (this.currentRound >= 2 && r2Ids.length) {
+                const directRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--direct');
+                const r2Rows = allPlayers.filter(r => r.rowClass === 'tir-table__row--r2')
+                    .sort((a, b) => b.combinedNum - a.combinedNum);
+                const eliminatedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--eliminated');
+                return [...directRows, ...r2Rows, ...eliminatedRows];
             }
-            const thirdMatch = playoff.thirdPlace;
-            if (thirdMatch) {
-                const winner = this.getMatchWinner(thirdMatch);
-                const loser = winner === thirdMatch.player1 ? thirdMatch.player2 : thirdMatch.player1;
-                if (winner) {
-                    places.push({pos: '3', name: winner});
-                    places.push({pos: '4', name: loser});
-                }
-            }
-            return places;
+            return allPlayers;
         }
     },
     methods: {
@@ -374,6 +471,43 @@ export default {
             if (matchCount === 16) return this.$t('tir.sixteenthFinal');
             return this.$t('tir.round') + ' ' + matchCount;
         },
+        getScoreForKey(participant, key) {
+            if (!participant[key]) return 0;
+            let total = 0;
+            Object.values(participant[key]).forEach(atelier => {
+                if (atelier && typeof atelier === 'object') {
+                    Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+                }
+            });
+            return total;
+        },
+        getPlayoffMatchScores(playerName, playoff) {
+            const result = {qf: '', sf: '', final: ''};
+            if (!playoff) return result;
+            const maxScore = this.maxTotal;
+            if (playoff.rounds) {
+                playoff.rounds.forEach(round => {
+                    round.matches.forEach(m => {
+                        if (m.player1 === playerName || m.player2 === playerName) {
+                            const score = m.player1 === playerName ? m.score1 : m.score2;
+                            if (score !== null) {
+                                if (round.matches.length >= 4) result.qf = `${score}/${maxScore}`;
+                                else if (round.matches.length === 2) result.sf = `${score}/${maxScore}`;
+                            }
+                        }
+                    });
+                });
+            }
+            if (playoff.final && (playoff.final.player1 === playerName || playoff.final.player2 === playerName)) {
+                const score = playoff.final.player1 === playerName ? playoff.final.score1 : playoff.final.score2;
+                if (score !== null) result.final = `${score}/${maxScore}`;
+            }
+            if (playoff.thirdPlace && (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)) {
+                const score = playoff.thirdPlace.player1 === playerName ? playoff.thirdPlace.score1 : playoff.thirdPlace.score2;
+                if (score !== null) result.final = `${score}/${maxScore}`;
+            }
+            return result;
+        },
         openPlayoffMatch(match, label, roundKey, mIdx) {
             if (!match.player1 || !match.player2) return;
             const [type, rIdx] = roundKey.split(':');
@@ -383,6 +517,9 @@ export default {
                 this.activePlayoffMatchKey = type + ':0';
             }
             this.activePlayoffMatchLabel = label;
+        },
+        goToTable() {
+            this.view = 'table';
         }
     }
 }
@@ -421,6 +558,18 @@ export default {
 }
 
 .tir-nav__btn--active {
+    color: var(--primary-color, #f5a623);
+}
+
+.tir-nav__btn--participants.tir-nav__btn--active {
+    color: #1f2233;
+}
+
+.tir-nav__btn--table.tir-nav__btn--active {
+    color: #4CAF50;
+}
+
+.tir-nav__btn--playoff.tir-nav__btn--active {
     color: var(--primary-color, #f5a623);
 }
 
@@ -589,6 +738,34 @@ export default {
     background: var(--color-highlight, rgba(16, 185, 129, 0.12));
 }
 
+.tir-table__row--direct td {
+    background: rgba(76, 175, 80, 0.08);
+}
+
+.tir-table__row--r2 td {
+    background: rgba(245, 166, 35, 0.08);
+}
+
+.tir-table__row--eliminated td {
+    color: var(--text-secondary, #888);
+}
+
+.tir-table__scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tir-table__sticky-col {
+    position: sticky;
+    left: 0;
+    background: var(--card-bg, #fff);
+    z-index: 1;
+}
+
+.tir-table__sticky-col--name {
+    left: 32px;
+}
+
 .tir-table__empty {
     text-align: center;
     padding: 40px;
@@ -602,15 +779,54 @@ export default {
     gap: 16px;
 }
 
-.tir-playoff__round {
-    border: 1px solid var(--color-border, #e0e0e0);
-    border-radius: 10px;
-    padding: 14px;
+.tir-playoff__timeline {
+    display: flex;
+    flex-direction: column;
 }
 
-.tir-playoff__round--final {
-    border-color: var(--primary-color, #f5a623);
-    background: rgba(245, 166, 35, 0.03);
+.tir-playoff__round {
+    display: flex;
+    gap: 14px;
+}
+
+.tir-playoff__progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+    min-width: 20px;
+}
+
+.tir-playoff__progress-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #d0d0d0;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.tir-playoff__progress-dot--complete {
+    border-color: #43A047;
+    background: #43A047;
+}
+
+.tir-playoff__progress-dot--final {
+    border-color: #F5A623;
+    background: #F5A623;
+}
+
+.tir-playoff__progress-line {
+    width: 2px;
+    flex: 1;
+    background: #e0e0e0;
+    margin: 4px 0;
+}
+
+.tir-playoff__round-content {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 16px;
 }
 
 .tir-playoff__round-title {
@@ -622,14 +838,12 @@ export default {
 }
 
 .tir-playoff__match {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--color-border, #f0f0f0);
-    border-radius: 8px;
-    margin-bottom: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 14px;
+    margin-bottom: 8px;
     cursor: pointer;
+    background: #fff;
     transition: background 0.15s, border-color 0.15s;
 }
 
@@ -641,88 +855,151 @@ export default {
 .tir-playoff__match:last-child { margin-bottom: 0; }
 
 .tir-playoff__match--complete {
-    background: rgba(76, 175, 80, 0.04);
-    border-color: rgba(76, 175, 80, 0.3);
+    border-color: rgba(67, 160, 71, 0.35);
+    background: #FCFFFC;
 }
 
-.tir-playoff__match--pending { opacity: 0.5; cursor: default; }
-.tir-playoff__match--pending:hover { background: transparent; border-color: var(--color-border, #f0f0f0); }
-
-.tir-playoff__lane {
-    min-width: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-secondary, #999);
-    text-align: center;
+.tir-playoff__match--final {
+    border-color: #F5A623;
+    background: #fff;
 }
 
-.tir-playoff__player {
-    flex: 1;
-    display: flex;
+.tir-playoff__match--pending {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.tir-playoff__match--pending:hover {
+    background: #fff;
+    border-color: var(--color-border, #e0e0e0);
+}
+
+.tir-playoff__match-num {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    min-width: 0;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #f2f3f5;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary, #777);
+    margin-bottom: 8px;
 }
 
-.tir-playoff__player--winner .tir-playoff__player-name {
-    font-weight: 700;
-    color: #4caf50;
+.tir-playoff__match-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
 }
 
 .tir-playoff__player-name {
-    flex: 1;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1F2233;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
-.tir-playoff__player-score {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-color, #333);
-    min-width: 24px;
+.tir-playoff__player-name--right {
     text-align: right;
 }
 
+.tir-playoff__player-name--winner {
+    color: #43A047;
+    font-weight: 700;
+}
+
+.tir-playoff__score {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F2233;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.tir-playoff__score--winner {
+    color: #1F2233;
+}
+
 .tir-playoff__vs {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary, #999);
-    min-width: 20px;
+    min-width: 24px;
     text-align: center;
 }
 
-.tir-playoff__places {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.tir-playoff__place {
+/* Winner block */
+.tir-playoff__winner {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--bg-secondary, #f9f9f9);
-    border-radius: 8px;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 16px;
+    background: #EAF7EC;
+    border: 1px solid rgba(67, 160, 71, 0.22);
 }
 
-.tir-playoff__place-pos {
-    width: 24px;
-    height: 24px;
+.tir-playoff__winner-icon {
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    background: var(--primary-color, #f5a623);
-    color: #fff;
+    background: #43A047;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 12px;
+    flex-shrink: 0;
 }
 
-.tir-playoff__place-name {
-    font-weight: 600;
-    font-size: 1rem;
+.tir-playoff__winner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tir-playoff__winner-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #43A047;
+}
+
+.tir-playoff__winner-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1F2233;
+}
+
+/* CTA */
+.tir-playoff__cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 0 18px;
+    border: 1px solid rgba(67, 160, 71, 0.45);
+    border-radius: 14px;
+    background: #fff;
+    color: #1F2233;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: 100%;
+}
+
+.tir-playoff__cta:hover {
+    background: #f9fff9;
+}
+
+.tir-playoff__cta > :last-child {
+    margin-left: auto;
+    color: #43A047;
 }
 </style>

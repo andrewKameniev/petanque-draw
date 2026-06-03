@@ -105,6 +105,18 @@
                     </select>
                 </div>
 
+                <div v-if="tournament.system === 'tir'" class="setup-card__field">
+                    <label class="setup-card__checkbox">
+                        <input type="checkbox" v-model="tirTwoRounds">
+                        {{ $t('tir.twoRoundSystem') }}
+                    </label>
+                    <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
+                    <label class="setup-card__checkbox">
+                        <input type="checkbox" v-model="tirJunior">
+                        {{ $t('tir.juniorTournament') }}
+                    </label>
+                </div>
+
                 <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
@@ -473,6 +485,8 @@ export default {
             setupPlayOff: false,
             showAdvancedSettings: false,
             showPlayoffConfirm: false,
+            tirTwoRounds: false,
+            tirJunior: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
@@ -686,8 +700,9 @@ export default {
                     }));
                 }
                 if (!this.tournament.tirConfig) {
-                    this.tournament.tirConfig = {junior: false};
+                    this.tournament.tirConfig = {junior: this.tirJunior, rounds: this.tirTwoRounds ? 2 : 1};
                 }
+                this.tournament.tirRound = 1;
                 if (!this.tournament.games) this.tournament.games = [];
                 this.tournament.games.push([]);
                 this.syncToFirebase();
@@ -803,7 +818,7 @@ export default {
             return this.tournament.useRating && this.tournament.teams?.some(t => t.rating > 0);
         },
         tournamentStarted() {
-            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted);
+            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted || this.tournament.tournamentIsFinished);
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;

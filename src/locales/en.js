@@ -398,7 +398,22 @@ export default {
         "selectWinner": "Select winner",
         "enterScores": "Enter scores",
         "backToBracket": "Back to bracket",
+        "totalScore": "Total",
         "playoffStarted": "Playoff started",
-        "round": "Round"
+        "round": "Round",
+        "tournamentWinner": "Tournament winner",
+        "goToFinalTable": "Go to final table",
+        "twoRoundSystem": "2-round qualification system",
+        "twoRoundHint": "Top 4 go to quarterfinals directly. Places 5-16 play a 2nd round.",
+        "juniorTournament": "Junior tournament (no 9m)",
+        "startRound2": "Start Round 2",
+        "round2Hint": "Top 4 qualified directly. Remaining players will compete in Round 2.",
+        "round1Score": "R1",
+        "round2Score": "R2",
+        "combinedScore": "Total",
+        "directQualifier": "Direct",
+        "round2Qualifier": "Via R2",
+        "eliminated": "Eliminated",
+        "place": "Place"
     }
 }

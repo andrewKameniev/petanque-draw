@@ -43,7 +43,7 @@
                       :game="game" :game-index="ind" :is-playoff="true"
                       :lane-number="currentStageLaneOrder[ind]"
                       :class="{'game--highlighted': isGameHighlighted(game)}"
-                      :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults"/>
+                      :active-round="currentPlayOffBracketIndex" :compact-view="isPublicView" @save="saveResults" @swapLane="swapPlayoffLane"/>
                 <div v-if="playOffStageCurrent === 1 && tournament.playOff.length > 1 && playOffBracket.thirdPlace && (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)">
                     <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
                     <Game :game="playOffBracket.thirdPlace" :is-third="true"
@@ -202,7 +202,20 @@ export default {
             const q = this.highlightedTeam.toLowerCase();
             return this.teamMatchesQuery(game.team_1, q) || this.teamMatchesQuery(game.team_2, q);
         },
-        ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage']),
+        ...mapActions(useMainStore, ['finishTournament', 'setPlayOffBracket', 'setPlayOffStage', 'syncToFirebase']),
+        swapPlayoffLane({ fromIndex, targetLane }) {
+            const fieldsStart = this.tournament.preferences.fieldsStart;
+            const laneOrder = [...this.currentStageLaneOrder];
+            const fromLane = laneOrder[fromIndex];
+            const targetLaneInternal = targetLane - fieldsStart;
+            const targetIndex = laneOrder.indexOf(targetLaneInternal);
+            if (targetIndex === -1 || targetIndex === fromIndex) return;
+            laneOrder[fromIndex] = laneOrder[targetIndex];
+            laneOrder[targetIndex] = fromLane;
+            const bracket = JSON.parse(JSON.stringify(this.playOffBracket));
+            bracket.stages[this.currentPlayOffBracketIndex].laneOrder = laneOrder;
+            this.setPlayOffBracket(bracket);
+        },
         saveResults() {
             this.scoreError = false;
             const realGames = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.filter(game => !game.isBye);

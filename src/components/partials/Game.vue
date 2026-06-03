@@ -9,8 +9,17 @@
                    :disabled="game.team_2 === 'Technical'"
                    @input="clampScore('team_1_score')"
                    v-if="!compactView">
-            <span class="lane-block is-size-7">
-                {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ displayLane }}</span>
+            <span class="lane-block is-size-7" :class="{'lane-block--clickable': canSwapLane}" @click="startSwap">
+                <template v-if="swapMode">
+                    <input ref="swapInput" class="swap-lane-input" type="number" min="1"
+                           v-model.number="swapTarget"
+                           @keydown.enter.stop="confirmSwap"
+                           @keydown.escape="cancelSwap"
+                           @blur="cancelSwap">
+                </template>
+                <template v-else>
+                    {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ displayLane }}</span>
+                </template>
             </span>
             <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
                    type="number" min="0" :disabled="game.team_2 === 'Technical'"
@@ -32,6 +41,13 @@ import {useMainStore} from "@/stores/main";
 export default {
     name: 'Game',
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
+    emits: ['save', 'swapLane'],
+    data() {
+        return {
+            swapMode: false,
+            swapTarget: null,
+        }
+    },
     methods: {
         ...mapActions(useMainStore, ['updateGameScore']),
         gameHasError,
@@ -43,11 +59,36 @@ export default {
                 this.currentGame[field] = Number(this.maxScore);
             }
         },
+        startSwap() {
+            if (!this.canSwapLane) return;
+            this.swapMode = true;
+            this.swapTarget = this.displayLane;
+            this.$nextTick(() => {
+                this.$refs.swapInput?.focus();
+                this.$refs.swapInput?.select();
+            });
+        },
+        confirmSwap() {
+            this._confirmed = true;
+            if (this.swapTarget && this.swapTarget !== this.displayLane) {
+                this.$emit('swapLane', { fromIndex: this.gameIndex, targetLane: this.swapTarget });
+            }
+            this.swapMode = false;
+        },
+        cancelSwap() {
+            setTimeout(() => {
+                if (!this._confirmed) this.swapMode = false;
+                this._confirmed = false;
+            }, 100);
+        },
     },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
             return this.activeTournament || this.currentTournament
+        },
+        canSwapLane() {
+            return !this.compactView && !this.isThird && this.game.team_2 !== 'Technical';
         },
         currentGame() {
             if (this.isThird) {

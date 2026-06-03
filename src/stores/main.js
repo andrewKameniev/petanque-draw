@@ -5,7 +5,7 @@ import {database} from "@/firebase";
 import i18n from "@/i18n";
 
 // eslint-disable-next-line no-unused-vars
-const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore', 'setBarrage', 'setBarrageGames'];
+const actionsRequiringSync = ['savePreferences', 'saveTournamentData', 'finishTournament', 'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket', 'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound', 'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore', 'swapLanesStore', 'setBarrage', 'setBarrageGames'];
 
 function createTournament(overrides = {}) {
     return {
@@ -111,6 +111,20 @@ export const useMainStore = defineStore('main', {
         shuffleLanesStore(games) {
             this.tournaments[this.currentTournamentIndex].games[this.tournaments[this.currentTournamentIndex].games.length - 1] = games;
             this.tournaments[this.currentTournamentIndex].teams.forEach(team => team.lanes.pop())
+            this.saveLanesToTeams(games);
+            this.syncToFirebase();
+        },
+        swapLanesStore({ roundIndex, indexA, indexB }) {
+            const games = this.tournaments[this.currentTournamentIndex].games[roundIndex];
+            const temp = games[indexA];
+            games[indexA] = games[indexB];
+            games[indexB] = temp;
+            const tempLane = games[indexA].lane;
+            games[indexA].lane = games[indexB].lane;
+            games[indexB].lane = tempLane;
+            this.tournaments[this.currentTournamentIndex].teams.forEach(team => {
+                if (team.lanes) team.lanes.pop();
+            });
             this.saveLanesToTeams(games);
             this.syncToFirebase();
         },

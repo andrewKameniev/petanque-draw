@@ -278,6 +278,24 @@ footer {
     margin-top: 2px;
 }
 
+.swap-lane-input {
+    width: 42px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: 1px solid var(--color-primary, #485fc7);
+    border-radius: 4px;
+    padding: 2px;
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.swap-lane-input::-webkit-outer-spin-button,
+.swap-lane-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .td-50 {
     width: 50px;
 }
@@ -429,6 +447,17 @@ footer {
         display: flex;
         flex-direction: column;
         line-height: 1;
+    }
+
+    .lane-block--clickable {
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 2px 4px;
+        transition: background-color 0.15s;
+    }
+
+    .lane-block--clickable:hover {
+        background-color: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
     }
 
     .game-row:nth-child(odd) {

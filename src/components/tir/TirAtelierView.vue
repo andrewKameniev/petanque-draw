@@ -70,20 +70,33 @@
         </div>
 
         <!-- Finish button -->
-        <button class="tir-aview__finish" @click="$emit('finish')" v-if="allComplete">
+        <button class="tir-aview__finish" @click="showFinishConfirm = true">
             {{ $t('tir.finishAtelier') }}
         </button>
+
+        <!-- Confirm modal -->
+        <Modal v-if="showFinishConfirm" @close-modal="showFinishConfirm = false">
+            <div class="tir-aview__confirm">
+                <h4 class="tir-aview__confirm-title">{{ $t('tir.finishAtelier') }}</h4>
+                <p class="tir-aview__confirm-text">{{ $t('tir.finishAtelierConfirm') }}</p>
+                <div class="tir-aview__confirm-actions">
+                    <button class="tir-aview__confirm-btn tir-aview__confirm-btn--cancel" @click="showFinishConfirm = false">{{ $t('common.cancel') }}</button>
+                    <button class="tir-aview__confirm-btn tir-aview__confirm-btn--confirm" @click="confirmFinish">{{ $t('common.confirm') }}</button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
 <script>
 import {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon} from "lucide-vue-next";
+import Modal from "@/components/Modal";
 
 const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
 
 export default {
     name: 'TirAtelierView',
-    components: {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon},
+    components: {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal},
     props: {
         atelierIndex: {type: Number, required: true},
         atelier: {type: Object, required: true},
@@ -93,7 +106,8 @@ export default {
     emits: ['back', 'update', 'finish'],
     data() {
         return {
-            expandedId: null
+            expandedId: null,
+            showFinishConfirm: false
         }
     },
     computed: {
@@ -141,6 +155,20 @@ export default {
                 participant.scores[this.atelierIndex][distance] = type;
             }
             this.$emit('update');
+        },
+        confirmFinish() {
+            this.participants.forEach(p => {
+                if (!p.scores) p.scores = {};
+                if (!p.scores[this.atelierIndex]) p.scores[this.atelierIndex] = {};
+                this.distances.forEach(distance => {
+                    if (!p.scores[this.atelierIndex][distance]) {
+                        p.scores[this.atelierIndex][distance] = 'manque';
+                    }
+                });
+            });
+            this.showFinishConfirm = false;
+            this.$emit('update');
+            this.$emit('finish');
         }
     }
 }
@@ -286,6 +314,42 @@ export default {
     font-weight: 600;
     font-size: 15px;
     cursor: pointer;
+}
+
+.tir-aview__confirm-title {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+.tir-aview__confirm-text {
+    font-size: 14px;
+    color: var(--text-color, #333);
+    margin-bottom: 16px;
+}
+
+.tir-aview__confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.tir-aview__confirm-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.tir-aview__confirm-btn--cancel {
+    background: var(--bg-secondary, #f0f0f0);
+    color: var(--text-color, #333);
+}
+
+.tir-aview__confirm-btn--confirm {
+    background: #e53935;
+    color: #fff;
 }
 
 /* Grid styles */

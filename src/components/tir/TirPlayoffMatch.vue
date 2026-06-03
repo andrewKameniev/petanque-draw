@@ -27,7 +27,7 @@
         </div>
 
         <!-- Tie breaker -->
-        <div v-if="isTied && bothComplete" class="tir-pmatch__tie">
+        <div v-if="isTied && bothComplete && !readOnly" class="tir-pmatch__tie">
             <p>{{ $t('tir.matchTied') }}</p>
             <div class="tir-pmatch__tie-buttons">
                 <button class="tir-pmatch__tie-btn" :class="{'tir-pmatch__tie-btn--selected': match.tieWinner === 1}" @click="selectTieWinner(1)">
@@ -78,16 +78,16 @@
                 </div>
                 <div v-for="distance in distances" :key="distance" class="tir-pmatch__grid-row">
                     <div class="tir-pmatch__grid-distance">{{ distance }}m</div>
-                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--carreau': getScore(activePlayer, activeAtelier, distance) === 'carreau'}" @click="setScore(activePlayer, activeAtelier, distance, 'carreau')">
+                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--carreau': getScore(activePlayer, activeAtelier, distance) === 'carreau', 'tir-pmatch__grid-cell--readonly': readOnly}" @click="!readOnly && setScore(activePlayer, activeAtelier, distance, 'carreau')">
                         <CheckIcon v-if="getScore(activePlayer, activeAtelier, distance) === 'carreau'" :size="14"/>
                     </div>
-                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--reussi': getScore(activePlayer, activeAtelier, distance) === 'reussi'}" @click="setScore(activePlayer, activeAtelier, distance, 'reussi')">
+                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--reussi': getScore(activePlayer, activeAtelier, distance) === 'reussi', 'tir-pmatch__grid-cell--readonly': readOnly}" @click="!readOnly && setScore(activePlayer, activeAtelier, distance, 'reussi')">
                         <CheckIcon v-if="getScore(activePlayer, activeAtelier, distance) === 'reussi'" :size="14"/>
                     </div>
-                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--touche': getScore(activePlayer, activeAtelier, distance) === 'touche'}" @click="setScore(activePlayer, activeAtelier, distance, 'touche')">
+                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--touche': getScore(activePlayer, activeAtelier, distance) === 'touche', 'tir-pmatch__grid-cell--readonly': readOnly}" @click="!readOnly && setScore(activePlayer, activeAtelier, distance, 'touche')">
                         <CheckIcon v-if="getScore(activePlayer, activeAtelier, distance) === 'touche'" :size="14"/>
                     </div>
-                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--manque': getScore(activePlayer, activeAtelier, distance) === 'manque'}" @click="setScore(activePlayer, activeAtelier, distance, 'manque')">
+                    <div class="tir-pmatch__grid-cell" :class="{'tir-pmatch__grid-cell--manque': getScore(activePlayer, activeAtelier, distance) === 'manque', 'tir-pmatch__grid-cell--readonly': readOnly}" @click="!readOnly && setScore(activePlayer, activeAtelier, distance, 'manque')">
                         <CheckIcon v-if="getScore(activePlayer, activeAtelier, distance) === 'manque'" :size="14"/>
                     </div>
                 </div>
@@ -122,13 +122,28 @@ export default {
         match: {type: Object, required: true},
         ateliers: {type: Array, required: true},
         distances: {type: Array, required: true},
-        roundLabel: {type: String, default: ''}
+        roundLabel: {type: String, default: ''},
+        readOnly: {type: Boolean, default: false}
     },
     emits: ['back', 'update'],
     data() {
         return {
             activePlayer: 1,
             activeAtelier: 0
+        }
+    },
+    created() {
+        this.goToFirstIncomplete();
+    },
+    watch: {
+        match: {
+            deep: true,
+            handler() {
+                if (!this.readOnly) return;
+                if (this.isAtelierComplete(this.activePlayer, this.activeAtelier)) {
+                    this.advanceToNext();
+                }
+            }
         }
     },
     computed: {
@@ -202,6 +217,8 @@ export default {
                     setTimeout(() => {
                         if (atelierIdx < 4) {
                             this.activeAtelier = atelierIdx + 1;
+                        } else {
+                            this.advanceAfterLastAtelier(playerNum);
                         }
                     }, 300);
                 }
@@ -210,6 +227,42 @@ export default {
             this.$emit('update');
             if (this.matchComplete) {
                 setTimeout(() => { this.$emit('back'); }, 500);
+            }
+        },
+        advanceAfterLastAtelier(completedPlayerNum) {
+            const otherPlayer = completedPlayerNum === 1 ? 2 : 1;
+            const otherThrows = this.getPlayerThrows(otherPlayer);
+            if (otherThrows < this.totalThrows) {
+                this.activePlayer = otherPlayer;
+                this.activeAtelier = this.getFirstIncompleteAtelier(otherPlayer);
+            }
+        },
+        getFirstIncompleteAtelier(playerNum) {
+            for (let i = 0; i < 5; i++) {
+                if (!this.isAtelierComplete(playerNum, i)) return i;
+            }
+            return 0;
+        },
+        goToFirstIncomplete() {
+            const p1Throws = this.getPlayerThrows(1);
+            const p2Throws = this.getPlayerThrows(2);
+            if (p1Throws < this.totalThrows) {
+                this.activePlayer = 1;
+                this.activeAtelier = this.getFirstIncompleteAtelier(1);
+            } else if (p2Throws < this.totalThrows) {
+                this.activePlayer = 2;
+                this.activeAtelier = this.getFirstIncompleteAtelier(2);
+            }
+        },
+        advanceToNext() {
+            if (this.getPlayerThrows(this.activePlayer) < this.totalThrows) {
+                this.activeAtelier = this.getFirstIncompleteAtelier(this.activePlayer);
+            } else {
+                const otherPlayer = this.activePlayer === 1 ? 2 : 1;
+                if (this.getPlayerThrows(otherPlayer) < this.totalThrows) {
+                    this.activePlayer = otherPlayer;
+                    this.activeAtelier = this.getFirstIncompleteAtelier(otherPlayer);
+                }
             }
         },
         getAtelierTotal(playerNum, atelierIdx) {
@@ -551,6 +604,8 @@ export default {
 .tir-pmatch__grid-cell--reussi { background: #2196F3; border-color: #2196F3; color: #fff; }
 .tir-pmatch__grid-cell--touche { background: #f5a623; border-color: #f5a623; color: #fff; }
 .tir-pmatch__grid-cell--manque { background: #9e9e9e; border-color: #9e9e9e; color: #fff; }
+.tir-pmatch__grid-cell--readonly { cursor: default; }
+.tir-pmatch__grid-cell--readonly:hover { border-color: var(--border-color, #e0e0e0); }
 
 .tir-pmatch__atelier-total {
     text-align: right;

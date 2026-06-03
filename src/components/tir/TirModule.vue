@@ -35,17 +35,6 @@
                         <div class="tir-participant-card__info">
                             <div class="tir-participant-card__name">{{ participant.name }}</div>
                             <div class="tir-participant-card__city" v-if="participant.city">{{ participant.city }}</div>
-                            <div class="tir-participant-card__progress">
-                                <div class="tir-participant-card__progress-bar">
-                                    <div class="tir-participant-card__progress-fill" :style="{width: getProgressPercent(participant) + '%'}"></div>
-                                </div>
-                                <span class="tir-participant-card__progress-text">{{ getThrowsCompleted(participant) }} / {{ totalThrows }} {{ $t('tir.throws') }}</span>
-                                <span class="tir-participant-card__progress-pct">{{ getProgressPercent(participant) }}%</span>
-                            </div>
-                        </div>
-                        <div class="tir-participant-card__score">
-                            <span class="tir-participant-card__score-value">{{ getParticipantTotal(participant) }}</span>
-                            <span class="tir-participant-card__score-max">/{{ maxTotalScore }}</span>
                         </div>
                     </div>
                 </div>
@@ -53,29 +42,25 @@
 
             <!-- Lane swap modal -->
             <Modal v-if="swapParticipant" @close-modal="swapParticipant = null">
-                <template #header>{{ $t('games.lane') }} {{ getParticipantLane(swapParticipant) }} — {{ swapParticipant.name }}</template>
-                <template #body>
-                    <div class="tir-add-form">
-                        <input class="tir-add-form__input" type="number" min="1" :max="tirParticipants.length" v-model.number="swapTarget" :placeholder="$t('games.lane')" @keyup.enter="confirmLaneSwap"/>
-                        <button class="tir-add-form__btn" @click="confirmLaneSwap" :disabled="!swapTarget">
-                            {{ $t('games.shuffleLanes') }}
-                        </button>
-                    </div>
-                </template>
+                <h4 class="tir-add-form__title">{{ $t('games.lane') }} {{ getParticipantLane(swapParticipant) }} — {{ swapParticipant.name }}</h4>
+                <div class="tir-add-form">
+                    <input class="tir-add-form__input" type="number" min="1" :max="tirParticipants.length" v-model.number="swapTarget" :placeholder="$t('games.lane')" @keyup.enter="confirmLaneSwap"/>
+                    <button class="tir-add-form__btn" @click="confirmLaneSwap" :disabled="!swapTarget">
+                        {{ $t('games.shuffleLanes') }}
+                    </button>
+                </div>
             </Modal>
 
             <!-- Add participant modal -->
             <Modal v-if="showAddParticipant" @close-modal="showAddParticipant = false">
-                <template #header>{{ $t('tir.addParticipant') }}</template>
-                <template #body>
-                    <div class="tir-add-form">
-                        <input class="tir-add-form__input" v-model="newParticipant.name" :placeholder="$t('tir.participantName')" @keyup.enter="addParticipant"/>
-                        <input class="tir-add-form__input" v-model="newParticipant.city" :placeholder="$t('tir.city')"/>
-                        <button class="tir-add-form__btn" @click="addParticipant" :disabled="!newParticipant.name.trim()">
-                            {{ $t('teams.addTeam') }}
-                        </button>
-                    </div>
-                </template>
+                <h4 class="tir-add-form__title">{{ $t('tir.addParticipant') }}</h4>
+                <div class="tir-add-form">
+                    <input class="tir-add-form__input" v-model="newParticipant.name" :placeholder="$t('tir.participantName')" @keyup.enter="addParticipant"/>
+                    <input class="tir-add-form__input" v-model="newParticipant.city" :placeholder="$t('tir.city')"/>
+                    <button class="tir-add-form__btn" @click="addParticipant" :disabled="!newParticipant.name.trim()">
+                        {{ $t('teams.addTeam') }}
+                    </button>
+                </div>
             </Modal>
         </div>
 
@@ -95,13 +80,24 @@
                 <div v-if="!activeParticipant" class="tir-scoring__select">
                     <div v-for="(participant, index) in rankedParticipants" :key="participant.id" class="tir-scoring__participant-row" @click="activeParticipant = participant">
                         <span class="tir-scoring__participant-rank">{{ index + 1 }}</span>
-                        <span class="tir-scoring__participant-name">{{ participant.name }}</span>
-                        <span class="tir-scoring__participant-score">{{ getParticipantTotal(participant) }}/{{ maxTotalScore }}</span>
-                        <span class="tir-scoring__participant-status" :class="getStatusClass(participant)">
-                            <CheckCircle v-if="isParticipantComplete(participant)" :size="16"/>
-                            <AlertCircle v-else-if="getThrowsCompleted(participant) > 0" :size="16"/>
-                            <Circle v-else :size="16"/>
-                        </span>
+                        <div class="tir-scoring__participant-info">
+                            <div class="tir-scoring__participant-name">{{ participant.name }}</div>
+                            <div class="tir-scoring__progress-bar">
+                                <div class="tir-scoring__progress-fill" :style="{width: getProgressPercent(participant) + '%'}"></div>
+                            </div>
+                            <div class="tir-scoring__progress-meta">
+                                <span class="tir-scoring__progress-text">{{ getThrowsCompleted(participant) }} / {{ totalThrows }} {{ $t('tir.throws') }}</span>
+                                <span class="tir-scoring__progress-pct">{{ getProgressPercent(participant) }}%</span>
+                            </div>
+                        </div>
+                        <div class="tir-scoring__participant-right">
+                            <span class="tir-scoring__participant-score"><strong>{{ getParticipantTotal(participant) }}</strong><span class="tir-scoring__score-max">/{{ maxTotalScore }}</span></span>
+                            <span class="tir-scoring__participant-status" :class="getStatusClass(participant)">
+                                <CheckCircle v-if="isParticipantComplete(participant)" :size="16"/>
+                                <AlertCircle v-else-if="getThrowsCompleted(participant) > 0" :size="16"/>
+                                <Circle v-else :size="16"/>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <TirParticipantView v-else
@@ -255,7 +251,7 @@ export default {
     emits: ['finish'],
     data() {
         return {
-            view: 'participants',
+            view: 'scoring',
             scoringMode: 'participant',
             activeParticipant: null,
             activeAtelier: null,
@@ -267,6 +263,11 @@ export default {
             activePlayoffMatchLabel: '',
             swapParticipant: null,
             swapTarget: null
+        }
+    },
+    created() {
+        if (this.currentTournament?.tirPlayoff) {
+            this.view = 'playoff';
         }
     },
     watch: {
@@ -849,14 +850,67 @@ export default {
     color: var(--text-secondary, #666);
 }
 
-.tir-scoring__participant-name {
+.tir-scoring__participant-info {
     flex: 1;
-    font-weight: 500;
+    min-width: 0;
+}
+
+.tir-scoring__participant-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.tir-scoring__progress-bar {
+    height: 4px;
+    background: var(--border-color, #e0e0e0);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+.tir-scoring__progress-fill {
+    height: 100%;
+    background: var(--primary-color, #f5a623);
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
+.tir-scoring__progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3px;
+}
+
+.tir-scoring__progress-text {
+    font-size: 11px;
+    color: var(--text-secondary, #888);
+}
+
+.tir-scoring__progress-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary, #888);
+}
+
+.tir-scoring__participant-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
 }
 
 .tir-scoring__participant-score {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-color, #333);
+    line-height: 1;
+}
+
+.tir-scoring__score-max {
     font-size: 13px;
-    color: var(--text-secondary, #666);
+    font-weight: 400;
+    color: var(--text-secondary, #888);
 }
 
 .tir-scoring__participant-status {
@@ -953,13 +1007,8 @@ export default {
     white-space: nowrap;
 }
 
-.tir-table__row--qualified {
-    background: rgba(76, 175, 80, 0.05);
-}
-
-.tir-table__row--qualified td:first-child {
-    font-weight: 700;
-    color: #4caf50;
+.tir-table__row--qualified td {
+    background: var(--color-highlight, rgba(16, 185, 129, 0.12));
 }
 
 .tir-table__empty {
@@ -1059,6 +1108,11 @@ export default {
 }
 
 /* Add form */
+.tir-add-form__title {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
 .tir-add-form {
     display: flex;
     flex-direction: column;

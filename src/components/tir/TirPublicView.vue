@@ -119,42 +119,55 @@
 
         <!-- Playoff view -->
         <div v-if="view === 'playoff' && tournament.tirPlayoff" class="tir-playoff">
-            <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
-                <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2}">
-                    <span v-if="round.matches.length > 1" class="tir-playoff__lane">{{ mIdx + 1 }}</span>
-                    <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player1}">
-                        <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
-                        <span class="tir-playoff__player-score" v-if="match.score1 !== null">{{ match.score1 }}</span>
-                    </div>
-                    <div class="tir-playoff__vs">vs</div>
-                    <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player2}">
-                        <span class="tir-playoff__player-name">{{ match.player2 || '—' }}</span>
-                        <span class="tir-playoff__player-score" v-if="match.score2 !== null">{{ match.score2 }}</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Match scoring detail (read-only) -->
+            <TirPlayoffMatch v-if="activePlayoffMatch"
+                :match="activePlayoffMatch"
+                :ateliers="atelierObjects"
+                :distances="distances"
+                :roundLabel="activePlayoffMatchLabel"
+                :readOnly="true"
+                @back="activePlayoffMatchKey = null"/>
 
-            <!-- Final places -->
-            <div v-if="finalPlaces.length" class="tir-playoff__places">
-                <div v-for="(place, idx) in finalPlaces" :key="idx" class="tir-playoff__place">
-                    <span class="tir-playoff__place-pos">{{ place.pos }}</span>
-                    <span class="tir-playoff__place-name">{{ place.name }}</span>
+            <!-- Bracket view -->
+            <template v-else>
+                <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
+                    <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
+                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
+                        <span v-if="round.matches.length > 1" class="tir-playoff__lane">{{ mIdx + 1 }}</span>
+                        <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player1}">
+                            <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
+                            <span class="tir-playoff__player-score" v-if="match.score1 !== null">{{ match.score1 }}</span>
+                        </div>
+                        <div class="tir-playoff__vs">vs</div>
+                        <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player2}">
+                            <span class="tir-playoff__player-name">{{ match.player2 || '—' }}</span>
+                            <span class="tir-playoff__player-score" v-if="match.score2 !== null">{{ match.score2 }}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Final places -->
+                <div v-if="finalPlaces.length" class="tir-playoff__places">
+                    <div v-for="(place, idx) in finalPlaces" :key="idx" class="tir-playoff__place">
+                        <span class="tir-playoff__place-pos">{{ place.pos }}</span>
+                        <span class="tir-playoff__place-name">{{ place.name }}</span>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
 import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, Check} from "lucide-vue-next";
+import TirPlayoffMatch from "./TirPlayoffMatch.vue";
 
 const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
 const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
 
 export default {
     name: 'TirPublicView',
-    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, Check},
+    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, Check, TirPlayoffMatch},
     props: {
         tournament: {type: Object, required: true}
     },
@@ -162,15 +175,19 @@ export default {
         return {
             view: 'participants',
             expanded: null,
-            activeAtelier: 0
+            activeAtelier: 0,
+            activePlayoffMatchKey: null,
+            activePlayoffMatchLabel: ''
+        }
+    },
+    created() {
+        if (this.tournament.tirPlayoff) {
+            this.view = 'playoff';
         }
     },
     watch: {
-        'tournament.tirPlayoff': {
-            immediate: true,
-            handler(val) {
-                if (val && this.view === 'participants') this.view = 'playoff';
-            }
+        'tournament.tirPlayoff'(val, oldVal) {
+            if (val && !oldVal) this.view = 'playoff';
         }
     },
     computed: {
@@ -191,6 +208,25 @@ export default {
         },
         atelierNames() {
             return ATELIER_KEYS.map(k => this.$t(`tir.${k}`));
+        },
+        atelierObjects() {
+            return ATELIER_KEYS.map(key => ({
+                name: this.$t(`tir.${key}`),
+                description: this.$t(`tir.${key}Desc`)
+            }));
+        },
+        activePlayoffMatch() {
+            if (!this.activePlayoffMatchKey) return null;
+            const playoff = this.tournament.tirPlayoff;
+            if (!playoff) return null;
+            const [type, idx] = this.activePlayoffMatchKey.split(':');
+            if (type === 'round') {
+                const [rIdx, mIdx] = idx.split('-').map(Number);
+                return playoff.rounds?.[rIdx]?.matches?.[mIdx] || null;
+            }
+            if (type === 'third') return playoff.thirdPlace || null;
+            if (type === 'final') return playoff.final || null;
+            return null;
         },
         participants() {
             return this.tournament.tirParticipants || [];
@@ -217,6 +253,7 @@ export default {
                     rounds.push({
                         title: this.getRoundTitle(round.matches.length, playoffSize),
                         matches: round.matches,
+                        key: `round:${rIdx}`,
                         isFinal: false
                     });
                 });
@@ -226,6 +263,7 @@ export default {
                 rounds.push({
                     title: this.$t('tir.thirdPlaceMatch'),
                     matches: [playoff.thirdPlace],
+                    key: 'third:0',
                     isFinal: false
                 });
             }
@@ -234,6 +272,7 @@ export default {
                 rounds.push({
                     title: this.$t('games.final'),
                     matches: [playoff.final],
+                    key: 'final:0',
                     isFinal: true
                 });
             }
@@ -334,6 +373,16 @@ export default {
             if (matchCount === 8) return this.$t('tir.eighthFinal');
             if (matchCount === 16) return this.$t('tir.sixteenthFinal');
             return this.$t('tir.round') + ' ' + matchCount;
+        },
+        openPlayoffMatch(match, label, roundKey, mIdx) {
+            if (!match.player1 || !match.player2) return;
+            const [type, rIdx] = roundKey.split(':');
+            if (type === 'round') {
+                this.activePlayoffMatchKey = `round:${rIdx}-${mIdx}`;
+            } else {
+                this.activePlayoffMatchKey = type + ':0';
+            }
+            this.activePlayoffMatchLabel = label;
         }
     }
 }
@@ -536,13 +585,8 @@ export default {
     white-space: nowrap;
 }
 
-.tir-table__row--qualified {
-    background: rgba(76, 175, 80, 0.05);
-}
-
-.tir-table__row--qualified td:first-child {
-    font-weight: 700;
-    color: #4caf50;
+.tir-table__row--qualified td {
+    background: var(--color-highlight, rgba(16, 185, 129, 0.12));
 }
 
 .tir-table__empty {
@@ -585,6 +629,13 @@ export default {
     border: 1px solid var(--color-border, #f0f0f0);
     border-radius: 8px;
     margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.tir-playoff__match:hover {
+    background: var(--bg-secondary, #f9f9f9);
+    border-color: var(--primary-color, #f5a623);
 }
 
 .tir-playoff__match:last-child { margin-bottom: 0; }
@@ -594,7 +645,8 @@ export default {
     border-color: rgba(76, 175, 80, 0.3);
 }
 
-.tir-playoff__match--pending { opacity: 0.5; }
+.tir-playoff__match--pending { opacity: 0.5; cursor: default; }
+.tir-playoff__match--pending:hover { background: transparent; border-color: var(--color-border, #f0f0f0); }
 
 .tir-playoff__lane {
     min-width: 20px;

@@ -20,14 +20,42 @@
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
-                <h2 class="text-center">{{ $t('common.round') }} {{ activeRound }}</h2>
+                <h2 class="text-center">
+                    <template v-if="tournament.barrage">{{ barrageRoundLabel }}</template>
+                    <template v-else-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
+                    <template v-else>{{ $t('common.round') }} {{ activeRound }}</template>
+                </h2>
                 <div class="games-toolbar">
                     <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
                         <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
                     </button>
                 </div>
-                <div class="games-list">
+                <div class="games-list" v-if="tournament.barrage">
+                    <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
+                        <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
+                        <Game v-for="(game, index) in group" :key="index"
+                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
+                              :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
+                              :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
+                              @save="saveResults"/>
+                    </div>
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    </div>
+                </div>
+                <div class="games-list" v-else-if="tournament.system === 'poules'">
+                    <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
+                        <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
+                        <Game v-for="(game, index) in group" :key="index"
+                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
+                              :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
+                              :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
+                              @save="saveResults"/>
+                    </div>
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    </div>
+                </div>
+                <div class="games-list" v-else>
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
                           :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
@@ -53,7 +81,7 @@
                     {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle || 1 }}
                 </div>
             </div>
-            <div v-else-if="tournament.games && tournament.games.length >= teamsCount">{{ $t('games.quantityError') }}</div>
+            <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'">{{ $t('games.quantityError') }}</div>
         </div>
         <ConfirmRemoveModal v-if="showRestoreConfirm"
             :hint="$t('games.restoreRound')"
@@ -69,8 +97,8 @@
 import PlayOff from './PlayOff';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {gameHasError, isScoreError, shuffleArray} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme} from '@/services/draw'
+import {gameHasError, isScoreError, shuffleArray, tournamentNames} from '@/helpers'
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import {ChevronDown} from "lucide-vue-next";
@@ -139,9 +167,37 @@ export default {
             this.tournament.teams?.forEach(t => { map[t.title] = t; });
             return map;
         },
+        poulesRoundLabel() {
+            const round = this.tournament.poulesRound || 1;
+            if (round === 1) return this.$t('games.poulesRound1');
+            if (round === 2) return this.$t('games.poulesRound2');
+            return this.$t('games.poulesRound3');
+        },
+        barrageRoundLabel() {
+            const round = this.tournament.barrage?.barrageRound || 1;
+            return `B${round}`;
+        },
+        groupNames() {
+            return tournamentNames;
+        },
+        currentRoundGames() {
+            return this.tournament.games?.[this.activeRound - 1] || [];
+        },
+        poulesGroupedGames() {
+            const games = this.currentRoundGames;
+            const grouped = {};
+            games.forEach(game => {
+                const g = game.group ?? 0;
+                if (!grouped[g]) grouped[g] = [];
+                grouped[g].push(game);
+            });
+            return Object.keys(grouped).sort((a, b) => a - b).map(k => grouped[k]);
+        },
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
             if (this.tournament.tournamentIsFinished) return false;
+            if (this.tournament.system === 'poules') return false;
+            if (this.tournament.barrage) return false;
             if (this.tournament.system === 'groups' && this.tournament.games.length >= this.teamsCount && !this.tournament.roundIsActive) return false;
             const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
                 && (this.tournament.games.length < this.teamsCount)
@@ -155,7 +211,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'syncToFirebase']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase']),
         gameHasError,
         handleGlobalSave() {
             const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
@@ -188,6 +244,9 @@ export default {
                 if (this.tournament.groups) {
                     round = drawGroupsRound(this.tournament);
                 }
+            } else if (this.tournament.system === 'poules') {
+                this.tournament.poulesRound = (this.tournament.poulesRound || 0) + 1;
+                round = drawPoulesRound(this.tournament);
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
@@ -217,9 +276,11 @@ export default {
                 game.team_2_score = Number(game.team_2_score);
             });
 
-            this.saveResultsForRound(this.activeRound - 1);
+            if (!this.tournament.barrage) {
+                this.saveResultsForRound(this.activeRound - 1);
+            }
 
-            if (this.isRestoredRound) {
+            if (this.isRestoredRound && !this.tournament.barrage) {
                 this.tournament.teams.forEach(team => {
                     team.wins = 0;
                     team.opponents = [];
@@ -234,6 +295,33 @@ export default {
             }
 
             this.endRound();
+
+            if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
+                this.drawBarrageRound();
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
+            if (this.tournament.barrage && this.tournament.barrage.barrageRound === 3) {
+                const qualified = this.getBarrageQualifiedTeams();
+                this.$emit('startPlayOff', qualified);
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound < 3) {
+                this.drawRound();
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound === 3) {
+                const qualified = getPoulesQualifiedTeams(this.tournament);
+                this.$emit('startPlayOff', qualified);
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+
             this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')})
         },
         restoreRoundGames(){
@@ -274,12 +362,41 @@ export default {
                 delete this.tournament.playOffBracket;
                 delete this.tournament.playOffStage;
                 delete this.tournament.cadrage;
+                if (this.tournament.system === 'poules') {
+                    this.tournament.poulesRound = 3;
+                }
+                if (this.tournament.barrage) {
+                    this.tournament.barrage.barrageRound = 3;
+                }
                 this.startRound();
                 return;
             }
             if (this.tournament.roundIsActive) {
                 this.restoreRound();
-                if (this.tournament.system === 'groups') {
+                if (this.tournament.barrage) {
+                    const barrage = this.tournament.barrage;
+                    if (barrage.barrageRound > 1) {
+                        barrage.barrageRound--;
+                        this.setBarrage(barrage);
+                    } else {
+                        // Restoring the first barrage round means removing barrage entirely
+                        delete this.tournament.barrage;
+                        this.syncToFirebase();
+                    }
+                } else if (this.tournament.system === 'poules') {
+                    if (this.tournament.poulesRound > 1) {
+                        this.tournament.poulesRound--;
+                    }
+                    this.tournament.teams.forEach(team => {
+                        team.opponents = [];
+                        team.pointsPlus = 0;
+                        team.pointsMinus = 0;
+                        team.wins = 0;
+                    });
+                    for (let i = 0; i < this.tournament.games.length; i++) {
+                        this.saveResultsForRound(i);
+                    }
+                } else if (this.tournament.system === 'groups') {
                     this.tournament.teams.forEach(team => {
                         team.opponents = ['placeholder'];
                         team.pointsPlus = 0;
@@ -300,6 +417,130 @@ export default {
             const round = drawGroupsRound(this.tournament);
             this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
             this.startRound();
+        },
+        drawBarrageRound() {
+            const barrage = this.tournament.barrage;
+            const nextRound = barrage.barrageRound + 1;
+            const groups = barrage.groups;
+            const round = [];
+
+            // Get barrage games only (from startIndex onwards)
+            const barrageGames = this.tournament.games.slice(barrage.startIndex);
+
+            if (nextRound === 2) {
+                // Round 2: winners play winners, losers play losers
+                groups.forEach((group, groupIndex) => {
+                    const r1Games = barrageGames[0].filter(g => g.group === groupIndex);
+                    const game1 = r1Games[0];
+                    const game2 = r1Games[1];
+
+                    const winner1 = game1.team_1_score > game1.team_2_score ? game1.team_1 : game1.team_2;
+                    const loser1 = game1.team_1_score > game1.team_2_score ? game1.team_2 : game1.team_1;
+                    const winner2 = game2.team_1_score > game2.team_2_score ? game2.team_1 : game2.team_2;
+                    const loser2 = game2.team_1_score > game2.team_2_score ? game2.team_2 : game2.team_1;
+
+                    round.push({
+                        group: groupIndex,
+                        team_1: winner1,
+                        team_1_score: null,
+                        team_2: winner2,
+                        team_2_score: null
+                    });
+                    round.push({
+                        group: groupIndex,
+                        team_1: loser1,
+                        team_1_score: null,
+                        team_2: loser2,
+                        team_2_score: null
+                    });
+                });
+            } else if (nextRound === 3) {
+                // Round 3 (barrage): two teams with exactly 1 win play each other
+                groups.forEach((group, groupIndex) => {
+                    const teamWins = {};
+                    group.forEach(t => { teamWins[t.title] = 0; });
+
+                    barrageGames.forEach(roundGames => {
+                        roundGames.filter(g => g.group === groupIndex).forEach(game => {
+                            if (game.team_1_score > game.team_2_score) {
+                                teamWins[game.team_1]++;
+                            } else if (game.team_2_score > game.team_1_score) {
+                                teamWins[game.team_2]++;
+                            }
+                        });
+                    });
+
+                    const oneWinTeams = Object.entries(teamWins)
+                        .filter(([, wins]) => wins === 1)
+                        .map(([title]) => title);
+
+                    if (oneWinTeams.length === 2) {
+                        round.push({
+                            group: groupIndex,
+                            team_1: oneWinTeams[0],
+                            team_1_score: null,
+                            team_2: oneWinTeams[1],
+                            team_2_score: null
+                        });
+                    }
+                });
+            }
+
+            barrage.barrageRound = nextRound;
+            this.setBarrage(barrage);
+            this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
+            this.startRound();
+        },
+        getBarrageQualifiedTeams() {
+            const barrage = this.tournament.barrage;
+            const groups = barrage.groups;
+            const barrageGames = this.tournament.games.slice(barrage.startIndex);
+
+            const groupQualified = [];
+            groups.forEach((group, groupIndex) => {
+                const teamWins = {};
+                const teamPoints = {};
+                group.forEach(t => {
+                    teamWins[t.title] = 0;
+                    teamPoints[t.title] = 0;
+                });
+
+                barrageGames.forEach(roundGames => {
+                    roundGames.filter(g => g.group === groupIndex).forEach(game => {
+                        if (game.team_1_score > game.team_2_score) {
+                            teamWins[game.team_1]++;
+                        } else if (game.team_2_score > game.team_1_score) {
+                            teamWins[game.team_2]++;
+                        }
+                        teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
+                        teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
+                    });
+                });
+
+                const qualifiedFromGroup = Object.entries(teamWins)
+                    .filter(([, wins]) => wins >= 2)
+                    .sort((a, b) => b[1] - a[1] || (teamPoints[b[0]] || 0) - (teamPoints[a[0]] || 0))
+                    .map(([title]) => this.tournament.teams.find(t => t.title === title));
+
+                groupQualified.push(qualifiedFromGroup);
+            });
+
+            // Interleave: all group winners first, then all runners-up
+            const qualified = [];
+            const maxPerGroup = Math.max(...groupQualified.map(g => g.length));
+            for (let i = 0; i < maxPerGroup; i++) {
+                groupQualified.forEach(group => {
+                    if (group[i]) qualified.push(group[i]);
+                });
+            }
+
+            // Pad to next power of 2 with bye placeholders for proper bracket generation
+            const nextPow2 = Math.pow(2, Math.ceil(Math.log2(qualified.length)));
+            while (qualified.length < nextPow2) {
+                qualified.push({ title: null, isBye: true });
+            }
+
+            return qualified;
         },
         saveResultsForRound(round) {
             saveResultsForRound(this.tournament, round);
@@ -394,5 +635,29 @@ export default {
     transform: rotate(180deg);
 }
 
+.poules-group {
+    margin-bottom: 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.poules-group :deep(.game-row) {
+    background: transparent;
+}
+
+.poules-group :deep(.game-row:nth-child(even)) {
+    background: var(--color-surface-hover);
+    border-radius: 8px;
+}
+
+.poules-group__title {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+}
 
 </style>

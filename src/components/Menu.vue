@@ -29,11 +29,11 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             {{ $t('common.draw') }}
                         </router-link></li>
-                        <li><router-link to="stats" @click="$emit('closeMenu')">
+                        <li><router-link to="/stats" @click="$emit('closeMenu')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             {{ $t('common.stat') }}
                         </router-link></li>
-                        <li><router-link to="training" @click="$emit('closeMenu')">
+                        <li><router-link to="/training" @click="$emit('closeMenu')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             {{ $t('common.training') }}
                         </router-link></li>
@@ -77,7 +77,7 @@
                     <!-- Info -->
                     <p class="sidebar__label">{{ $t('common.info') }}</p>
                     <ul class="sidebar__list sidebar__list--plain">
-                        <li><router-link to="doc" @click="$emit('closeMenu')">{{ $t('common.howUse') }}</router-link></li>
+                        <li><router-link to="/doc" @click="$emit('closeMenu')">{{ $t('common.howUse') }}</router-link></li>
                         <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
                         <li><a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a></li>
                         <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
@@ -88,9 +88,13 @@
                     <ul class="sidebar__list">
                         <li><a href="#" @click.prevent="toggleLang">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                            {{ $i18n.locale === 'ua' ? 'Українська' : 'English' }}
-                            <svg v-if="$i18n.locale === 'ua'" class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="240" fill="#005BBB"/><rect y="240" width="640" height="240" fill="#FFD500"/></svg>
-                            <svg v-else class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/><path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/><path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/></svg>
+                            {{ {ua: 'Українська', en: 'English', fr: 'Français', es: 'Español'}[$i18n.locale] }}
+                            <svg class="sidebar__flag" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg">
+                                <template v-if="$i18n.locale === 'ua'"><rect width="640" height="240" fill="#005BBB"/><rect y="240" width="640" height="240" fill="#FFD500"/></template>
+                                <template v-else-if="$i18n.locale === 'en'"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/><path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/><path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/></template>
+                                <template v-else-if="$i18n.locale === 'fr'"><rect width="213" height="480" fill="#002395"/><rect x="213" width="214" height="480" fill="#FFF"/><rect x="427" width="213" height="480" fill="#ED2939"/></template>
+                                <template v-else-if="$i18n.locale === 'es'"><rect width="640" height="480" fill="#AA151B"/><rect y="120" width="640" height="240" fill="#F1BF00"/></template>
+                            </svg>
                         </a></li>
                         <li class="sidebar__theme-item">
                             <span class="sidebar__theme-label"><Paintbrush :size="20" class="sidebar__theme-icon"/> {{ $t('common.theme') }}</span>
@@ -166,7 +170,9 @@ export default {
             }
         },
         toggleLang() {
-            const newLang = this.$i18n.locale === 'ua' ? 'en' : 'ua';
+            const locales = ['ua', 'en', 'fr', 'es'];
+            const currentIndex = locales.indexOf(this.$i18n.locale);
+            const newLang = locales[(currentIndex + 1) % locales.length];
             this.$i18n.locale = newLang;
             localStorage.setItem('petanqueDrawLang', newLang);
         },
@@ -400,7 +406,6 @@ export default {
     width: 1.4rem;
     height: 1rem;
     border-radius: 2px;
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
     margin-left: 0.4rem;
 }

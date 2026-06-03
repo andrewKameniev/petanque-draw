@@ -39,26 +39,32 @@ export function buildPlayOffScheme(playOffList, hasCadrage) {
     for (let i = 0; i < playOffList.length / 2; i++) {
         let game;
         if (i % 2 === 0) {
+            const t1 = playOffList[i];
+            const t2 = playOffList[playOffList.length - 1 - i];
             game = {
                 id: i + 1,
                 stage: stageValue,
-                team_1: playOffList[i].title,
-                team_1_place: i + 1,
+                team_1: t1.title,
+                team_1_place: t1.isBye ? '' : i + 1,
                 team_1_score: null,
-                team_2: playOffList[playOffList.length - 1 - i].title,
-                team_2_place: hasCadrage ? '' : playOffList.length - i,
+                team_2: t2.title,
+                team_2_place: t2.isBye ? '' : (hasCadrage ? '' : playOffList.length - i),
                 team_2_score: null,
+                isBye: !!(t1.isBye || t2.isBye),
             };
         } else {
+            const t1 = playOffList[playOffList.length / 2 - i];
+            const t2 = playOffList[playOffList.length / 2 - 1 + i];
             game = {
                 id: i + 1,
                 stage: stageValue,
-                team_1: playOffList[playOffList.length / 2 - i].title,
-                team_1_place: playOffList.length / 2 + 1 - i,
+                team_1: t1.title,
+                team_1_place: t1.isBye ? '' : playOffList.length / 2 + 1 - i,
                 team_1_score: null,
-                team_2: playOffList[playOffList.length / 2 - 1 + i].title,
-                team_2_place: hasCadrage ? '' : playOffList.length / 2 + i,
+                team_2: t2.title,
+                team_2_place: t2.isBye ? '' : (hasCadrage ? '' : playOffList.length / 2 + i),
                 team_2_score: null,
+                isBye: !!(t1.isBye || t2.isBye),
             };
         }
         playOffScheme.push(game);

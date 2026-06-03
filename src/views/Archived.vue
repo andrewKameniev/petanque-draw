@@ -9,6 +9,10 @@
                 <svg class="tournament-selector__arrow" :class="{'tournament-selector__arrow--open': selectorOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
+                <button class="button btn-remove-archived" @click.stop="removeTournament">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    {{ $t('common.remove') }}
+                </button>
                 <div class="tournament-selector__dropdown" v-if="selectorOpen">
                     <a href="#" class="tournament-selector__option"
                        :class="{'tournament-selector__option--active': key === activeKey}"
@@ -33,18 +37,7 @@
                     <span class="badge badge-corner" :class="badgeClass">
                         {{ badgeLabel }}
                     </span>
-                    <div class="tournament-info-row" v-if="tournamentMessageLines.length">
-                        <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
-                        <span class="has-text-weight-semibold">{{ tournamentMessageLines[0] }}</span>
-                    </div>
-                    <div class="tournament-info-row" v-if="tournamentMessageLines.length > 1">
-                        <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
-                        <span class="has-text-weight-semibold">{{ tournamentMessageLines[1] }}</span>
-                    </div>
-                    <div class="tournament-info-row" v-for="(line, i) in tournamentMessageLines.slice(2)" :key="i">
-                        <span class="has-text-weight-semibold">{{ line }}</span>
-                    </div>
-                    <div class="tournament-info-row" v-if="!tournamentMessageLines.length">
+                    <div class="tournament-info-row">
                         <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
                         <span class="has-text-weight-semibold">{{ systemDescription }}</span>
                     </div>
@@ -65,12 +58,13 @@
                         <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
                     </div>
                     <div v-if="activeTournament.playOff" class="btn-bracket-group">
-                        <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">{{ $t('games.showBracket') }}</button>
+                        <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                     </div>
                 </div>
                 <PlayOff v-if="activeTournament.playOff" ref="playOff" :active-tournament="activeTournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
-                <div v-if="activeTournament.games && activeTournament.roundIsActive" class="current-round-card mt-3 mb-3">
-                    <div class="round-header">{{ activeRound }} {{ $t('common.round') }}</div>
+                <Cadrage v-else-if="activeTournament.cadrage" :active-tournament="activeTournament" :is-public-view="true" class="playoff-public-wrapper"/>
+                <div v-if="activeTournament.games && activeTournament.roundIsActive && !activeTournament.cadrage && !activeTournament.playOff" class="current-round-card mt-3 mb-3">
+                    <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
                     <div class="match-list">
                         <div class="match-item"
                              v-for="(game, index) in activeTournament.games[activeRound - 1]" :key="index">
@@ -110,17 +104,19 @@ import Ranking from "@/components/partials/Ranking";
 import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import Cadrage from "@/components/partials/Cadrage.vue";
 import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
 import Menu from "@/components/Menu.vue";
-import {mapState} from "pinia";
+import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getTeamsRanking} from "@/helpers";
 import {tournamentService} from "@/services/db";
+import {GitFork} from "lucide-vue-next";
 
 export default {
     name: 'Archived',
-    components: {Footer, Navbar, Menu, PlayOff, TeamsList, Results, Ranking},
+    components: {Footer, Navbar, Menu, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
     data() {
         return {
             activeTab: "ranking",
@@ -212,7 +208,7 @@ export default {
         },
         rankingTeams() {
             if (!this.activeTournament?.teams || !this.activeTournament?.games) return [];
-            if (this.activeTournament.system === 'groups' && !this.activeTournament.groups) return [];
+            if ((this.activeTournament.system === 'groups' || this.activeTournament.system === 'poules') && !this.activeTournament.groups) return [];
             return getTeamsRanking(this.activeTournament, this.activeRound);
         },
         tournamentMessageLines() {
@@ -226,12 +222,25 @@ export default {
             }
             let desc;
             if (this.activeTournament.games?.length) {
-                const n = this.activeTournament.games.length;
-                desc = n + ' ' + this.pluralizeRounds(n) + ' ' + this.$t('ranking.swiss');
+                const barrage = this.activeTournament.barrage;
+                const swissRounds = barrage ? barrage.startIndex : this.activeTournament.games.length;
+                const total = this.activeTournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc = swissRounds + '/' + total + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
+                } else {
+                    desc = swissRounds + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
+                }
+                if (barrage) {
+                    desc += ' + ' + this.$t('games.poulesBarrage').toLowerCase();
+                }
             } else {
                 desc = this.$t('teams.' + this.activeTournament.system);
+                const total = this.activeTournament.preferences?.swissRoundsCount;
+                if (total) {
+                    desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
+                }
             }
-            if (this.activeTournament.playOff || this.activeTournament.playoff || this.activeTournament.preferences?.playOffTeams < this.activeTournament.teams?.length) {
+            if (this.activeTournament.playOff || this.activeTournament.playoff || this.activeTournament.preferences?.playOffEnabled) {
                 desc += ' + ' + this.$t('games.playOff').toLowerCase();
             }
             return desc;
@@ -258,8 +267,8 @@ export default {
             const prefs = this.activeTournament?.preferences;
             if (!prefs?.timeLimitEnabled) return '';
             const parts = [];
-            const time = this.isInPlayoff ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
-            if (prefs.noTimeLimitFinale && this.isFinale) {
+            const time = (prefs.playOffEnabled && this.isInPlayoff) ? (prefs.playoffTimeLimit || prefs.timeLimit) : prefs.timeLimit;
+            if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
                 parts.push(this.$t('modals.noTimeLimitFinale'));
             } else {
                 parts.push(`${time} ${this.$t('modals.min')}`);
@@ -271,6 +280,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useMainStore, ['removeSavedTournament']),
         selectTournament(key) {
             this.activeKey = key;
             this.selectorOpen = false;
@@ -278,6 +288,13 @@ export default {
         },
         closeSelector() {
             this.selectorOpen = false;
+        },
+        removeTournament() {
+            if (!confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')) return;
+            this.removeSavedTournament(this.activeKey);
+            const remaining = this.tournamentKeys.filter(k => k !== this.activeKey);
+            this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
+            this.tournament = null;
         },
         subscribeTournament(key) {
             if (this._unsubscribe) {
@@ -494,5 +511,129 @@ export default {
 .empty-state__btn:hover {
     opacity: 0.9;
     color: var(--color-white);
+}
+
+.btn-remove-archived {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: var(--color-danger, #e74c3c);
+    border-color: var(--color-danger, #e74c3c);
+    background: transparent;
+    margin-left: 0.5rem;
+}
+
+.btn-remove-archived:hover {
+    background: var(--color-danger, #e74c3c);
+    color: var(--color-white);
+}
+</style>
+
+<style>
+.tournament-info-card {
+    position: relative;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    padding-right: 7rem;
+}
+
+@media screen and (max-width: 352px) {
+    .tournament-info-card {
+        padding-right: 1.25rem;
+        padding-top: 2.5rem;
+    }
+}
+
+.badge-corner {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.badge-finished {
+    background: var(--color-grey);
+    color: var(--color-white);
+}
+
+.badge-not-started {
+    background: var(--color-warning-border);
+    color: var(--color-white);
+}
+
+.tournament-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+}
+
+.btn-bracket-group {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-bracket {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+}
+
+.btn-bracket:hover {
+    color: var(--color-white);
+}
+
+.playoff-public-wrapper .play-off-stage-wrapper {
+    padding: 0;
+}
+
+.playoff-public-wrapper h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-public-text-muted);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.playoff-public-wrapper .game-row.compact {
+    background: var(--color-white);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    gap: 0.75rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.playoff-public-wrapper .game-row.compact .score-block {
+    flex: 0 0 auto;
+    min-width: 60px;
+    padding: 0 0.5rem;
 }
 </style>

@@ -67,6 +67,10 @@
                             <input type="radio" name="system" value="groups" v-model="tournament.system">
                             {{ $t('teams.groups') }}
                         </label>
+                        <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
+                            <input type="radio" name="system" value="poules" v-model="tournament.system">
+                            {{ $t('teams.poules') }}
+                        </label>
                         <label class="setup-card__radio">
                             <input type="radio" name="system" value="supermele" v-model="tournament.system">
                             {{ $t('teams.supermele') }}
@@ -84,6 +88,11 @@
                     <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod"/>
                 </div>
 
+                <div v-if="tournament.system === 'poules'" class="setup-card__field">
+                    <span class="setup-card__hint">{{ Math.floor(tournament.teams.length / 4) }} {{ $t('setup.poulesInfo', { count: poulesPlayoffCount }) }}</span>
+                    <span v-if="tournament.teams.length % 4 !== 0" class="setup-card__hint setup-card__hint--warn">{{ $t('setup.poulesHint') }}</span>
+                </div>
+
                 <div v-if="tournament.system === 'supermele'" class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
                     <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
@@ -92,24 +101,41 @@
                     </select>
                 </div>
 
-                <div v-if="tournament.system === 'swiss' || tournament.system === 'groups'" class="setup-card__field">
+                <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
                     <label class="setup-card__checkbox">
                         <input type="checkbox" v-model="setupPlayOff" data-testid="checkbox-playoff">
                         {{ $t('setup.enablePlayOff') }}
                     </label>
                     <div v-if="setupPlayOff" class="setup-card__sub">
-                        <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
-                        <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams" data-testid="select-playoff-teams">
-                            <template v-for="value in teamToPlayOffValues" :key="value">
-                                <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
-                            </template>
-                        </select>
-                        <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+                        <div v-if="!withBarrage">
+                            <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
+                            <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams" data-testid="select-playoff-teams">
+                                <template v-for="value in teamToPlayOffValues" :key="value">
+                                    <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
+                                </template>
+                            </select>
+                            <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+                        </div>
                         <label class="setup-card__checkbox setup-card__checkbox--sub">
                             <input type="checkbox" v-model="withCadrage" data-testid="checkbox-cadrage">
                             {{ $t('ranking.withCadrage') }}
                         </label>
                         <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.cadrageHint') }}</span>
+                        <label v-if="tournament.system === 'swiss'" class="setup-card__checkbox setup-card__checkbox--sub mt-2">
+                            <input type="checkbox" v-model="withBarrage" data-testid="checkbox-barrage">
+                            {{ $t('ranking.withBarrage') }}
+                        </label>
+                        <span v-if="tournament.system === 'swiss'" class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.barrageHint') }}</span>
+                        <div v-if="withBarrage && tournament.system === 'swiss'" class="setup-card__sub">
+                            <label class="setup-card__label">{{ $t('ranking.barrageTeams') }}</label>
+                            <select class="setup-card__select" v-model.number="tournament.preferences.barrageTeams" data-testid="select-barrage-teams">
+                                <template v-for="value in barrageTeamValues" :key="value">
+                                    <option :value="value">{{ value }}</option>
+                                </template>
+                            </select>
+                            <span class="setup-card__hint">{{ $t('ranking.barrageTeamsHint') }}</span>
+                            <span class="setup-card__hint">{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -337,8 +363,8 @@
             <div class="confirm-playoff" data-testid="playoff-confirm-modal">
                 <h3 class="confirm-playoff__title">{{ $t('ranking.goPlayOff') }}</h3>
 
-                <div class="confirm-playoff__field">
-                    <label class="confirm-playoff__label">{{ $t('ranking.chooseNumberTeams') }}</label>
+                <div v-if="!withBarrage" class="confirm-playoff__field">
+                    <label class="confirm-playoff__label">{{ $t('modals.playOffTeams') }}</label>
                     <select class="confirm-playoff__select" data-testid="confirm-playoff-teams" v-model.number="tournament.preferences.playOffTeams">
                         <template v-for="value in teamToPlayOffValues" :key="value">
                             <option :value="value" v-if="tournament.teams.length >= value">{{ value }}</option>
@@ -353,6 +379,24 @@
                     </label>
                     <span class="confirm-playoff__hint">{{ $t('ranking.cadrageHint') }}</span>
                     <span v-if="withCadrage && teamToPlayOff" class="confirm-playoff__hint">{{ teamToPlayOff / 2 }} + {{ teamToPlayOff }} {{ $t('teams.teams').toLowerCase() }}</span>
+                </div>
+
+                <div v-if="tournament.system === 'swiss'" class="confirm-playoff__field">
+                    <label class="confirm-playoff__checkbox">
+                        <input type="checkbox" v-model="withBarrage" data-testid="confirm-barrage">
+                        {{ $t('ranking.withBarrage') }}
+                    </label>
+                    <span class="confirm-playoff__hint">{{ $t('ranking.barrageHint') }}</span>
+                    <div v-if="withBarrage" class="mt-2">
+                        <label class="confirm-playoff__label">{{ $t('ranking.barrageTeams') }}</label>
+                        <select class="confirm-playoff__select" v-model.number="tournament.preferences.barrageTeams" data-testid="confirm-barrage-teams">
+                            <template v-for="value in barrageTeamValues" :key="value">
+                                <option :value="value">{{ value }}</option>
+                            </template>
+                        </select>
+                        <span class="confirm-playoff__hint">{{ $t('ranking.barrageTeamsHint') }}</span>
+                        <span class="confirm-playoff__hint">{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span>
+                    </div>
                 </div>
 
                 <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="confirm-playoff__field">
@@ -392,7 +436,7 @@ import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
 import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X} from "lucide-vue-next";
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups} from '@/services/draw';
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, createPoules, drawPoulesRound} from '@/services/draw';
 
 export default {
     name: 'Tournament',
@@ -408,6 +452,7 @@ export default {
             messageTimeout: null,
             playB: false,
             withCadrage: false,
+            withBarrage: false,
             teamsInGroup: null,
             showQrCode: false,
             showTypeMessage: false,
@@ -421,6 +466,14 @@ export default {
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
+    watch: {
+        withCadrage(val) {
+            if (val) this.withBarrage = false;
+        },
+        withBarrage(val) {
+            if (val) this.withCadrage = false;
+        }
+    },
     created() {
         if (!this.tournament) return;
         this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4;
@@ -429,6 +482,9 @@ export default {
         }
         if (this.tournament.preferences?.withCadrage) {
             this.withCadrage = true;
+        }
+        if (this.tournament.preferences?.withBarrage) {
+            this.withBarrage = true;
         }
         if (this.tournament.preferences?.playB) {
             this.playB = true;
@@ -440,7 +496,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -483,13 +539,20 @@ export default {
         openPlayoffConfirm() {
             if (this.tournament.preferences?.playB) this.playB = true;
             if (this.tournament.preferences?.withCadrage) this.withCadrage = true;
+            if (this.tournament.preferences?.withBarrage) this.withBarrage = true;
             this.showPlayoffConfirm = true;
         },
         setPlayOffList() {
             const withCadrage = this.withCadrage;
+            const withBarrage = this.withBarrage;
             let playOffList;
             if(this.tournament.system === 'swiss') {
-                if (withCadrage) {
+                if (withBarrage) {
+                    const barrageCount = this.tournament.preferences.barrageTeams || 8;
+                    playOffList = this.rankingTeams.slice(0, barrageCount);
+                    this.startBarrage(playOffList);
+                    return;
+                } else if (withCadrage) {
                     playOffList = this.rankingTeams.slice(this.teamToPlayOff * 0.5, this.teamToPlayOff * 1.5);
                 } else {
                     playOffList = this.rankingTeams.slice(0, this.teamToPlayOff)
@@ -513,6 +576,63 @@ export default {
         startCadrage(playOffList) {
             const cadrageGames = buildCadrageGames(playOffList, this.teamToPlayOff);
             this.setCadrage(cadrageGames);
+            this.activeTab = 'games';
+        },
+        startBarrage(teamsList) {
+            // Create groups of 4 from the top teams
+            const teamsCount = teamsList.length;
+            const groupsQuantity = teamsCount / 4;
+            const groups = [];
+            for (let i = 0; i < groupsQuantity; i++) {
+                groups.push([]);
+            }
+
+            // Snake distribution (same as createPoules)
+            let direction = 1;
+            let groupIdx = 0;
+            for (let i = 0; i < teamsCount; i++) {
+                groups[groupIdx].push(teamsList[i]);
+                if (direction === 1 && groupIdx === groupsQuantity - 1) {
+                    direction = -1;
+                } else if (direction === -1 && groupIdx === 0) {
+                    direction = 1;
+                } else {
+                    groupIdx += direction;
+                }
+            }
+
+            const startIndex = this.tournament.games ? this.tournament.games.length : 0;
+
+            // Set up barrage data
+            const barrage = {
+                groups,
+                barrageRound: 1,
+                startIndex
+            };
+            this.setBarrage(barrage);
+
+            // Draw first barrage round using poules round 1 logic
+            const round = [];
+            groups.forEach((group, groupIndex) => {
+                // Round 1: A vs C, B vs D
+                round.push({
+                    group: groupIndex,
+                    team_1: group[0].title,
+                    team_1_score: null,
+                    team_2: group[2].title,
+                    team_2_score: null
+                });
+                round.push({
+                    group: groupIndex,
+                    team_1: group[1].title,
+                    team_1_score: null,
+                    team_2: group[3].title,
+                    team_2_score: null
+                });
+            });
+
+            this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
+            this.startRound();
             this.activeTab = 'games';
         },
         startPlayOff(playOffList) {
@@ -566,12 +686,22 @@ export default {
                 this.tournament.groups = groups;
                 this.tournament.groupsScheme = schemas;
                 round = drawGroupsRound(this.tournament);
+            } else if (this.tournament.system === 'poules') {
+                const {groups} = createPoules(this.tournament);
+                this.tournament.groups = groups;
+                this.tournament.poulesRound = 1;
+                round = drawPoulesRound(this.tournament);
             } else if (this.tournament.system === 'supermele') {
                 round = drawSupermeleRound(this.tournament, this.rankingTeams);
             }
-            if (this.setupPlayOff) {
+            if (this.tournament.system === 'poules') {
+                this.tournament.preferences.playOffEnabled = true;
+                const qualifiedCount = this.tournament.teams.length / 2;
+                this.tournament.preferences.playOffTeams = Math.pow(2, Math.ceil(Math.log2(qualifiedCount)));
+            } else if (this.setupPlayOff) {
                 this.tournament.preferences.playOffEnabled = true;
                 this.tournament.preferences.withCadrage = this.withCadrage;
+                this.tournament.preferences.withBarrage = this.withBarrage;
                 this.tournament.preferences.playB = this.playB;
             } else {
                 this.tournament.preferences.playOffEnabled = false;
@@ -625,6 +755,7 @@ export default {
                 : 1;
         },
         hasPlayOffConfigured() {
+            if (this.tournament.system === 'poules') return false;
             return (this.tournament.system === 'swiss' || this.tournament.system === 'groups') && this.tournament.preferences?.playOffEnabled && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
         },
         isPinned() {
@@ -641,6 +772,25 @@ export default {
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
+        },
+        poulesPlayoffCount() {
+            const groups = Math.floor(this.tournament.teams?.length / 4) || 0;
+            const estimated = groups * 2;
+            return Math.pow(2, Math.ceil(Math.log2(estimated || 1)));
+        },
+        barrageTeamValues() {
+            const values = [];
+            const maxTeams = this.tournament.teams?.length || 0;
+            for (let i = 4; i <= maxTeams; i *= 2) {
+                values.push(i);
+            }
+            return values;
+        },
+        barrageToPlayoffCount() {
+            const barrageTeams = this.tournament.preferences?.barrageTeams || 8;
+            const groups = barrageTeams / 4;
+            const estimated = groups * 2;
+            return Math.pow(2, Math.ceil(Math.log2(estimated)));
         }
     },
     components: {
@@ -1304,13 +1454,20 @@ export default {
 }
 
 .confirm-playoff {
-    padding: 0.5rem 0;
+    margin: -1.25rem;
+    padding: 1.25rem;
 }
 
 .confirm-playoff__title {
     font-size: 1.1rem;
     font-weight: 700;
+    padding-bottom: 1rem;
     margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
 }
 
 .confirm-playoff__field {
@@ -1356,7 +1513,11 @@ export default {
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
-    margin-top: 1.25rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding: 1rem 1.25rem 0;
 }
 
 .confirm-playoff__btn {

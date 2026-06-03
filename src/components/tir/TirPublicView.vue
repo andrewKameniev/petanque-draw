@@ -122,7 +122,7 @@
             <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
                 <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
                 <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2}">
-                    <span class="tir-playoff__lane">{{ mIdx + 1 }}</span>
+                    <span v-if="round.matches.length > 1" class="tir-playoff__lane">{{ mIdx + 1 }}</span>
                     <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': getMatchWinner(match) === match.player1}">
                         <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
                         <span class="tir-playoff__player-score" v-if="match.score1 !== null">{{ match.score1 }}</span>

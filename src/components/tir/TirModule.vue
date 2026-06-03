@@ -202,8 +202,8 @@
             <template v-else>
                 <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
                     <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': match.complete, 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title)">
-                        <span class="tir-playoff__lane">{{ mIdx + 1 }}</span>
+                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': match.complete || (match.score1 != null && match.score2 != null && match.score1 !== match.score2), 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title)">
+                        <span v-if="round.matches.length > 1" class="tir-playoff__lane">{{ mIdx + 1 }}</span>
                         <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': match.winner === match.player1}">
                             <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
                             <span class="tir-playoff__player-score" v-if="match.score1 !== null">{{ match.score1 }}</span>

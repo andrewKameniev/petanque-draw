@@ -31,8 +31,8 @@
                     <span class="has-text-weight-semibold">{{ systemDescription }}</span>
                 </div>
                 <div class="tournament-info-row" v-if="tournament.teams">
-                    <span class="has-text-grey-dark">{{ $t('common.teamsCount') }}:</span>
-                    <span class="has-text-weight-semibold">{{ tournament.teams.length }}</span>
+                    <span class="has-text-grey-dark">{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span>
+                    <span class="has-text-weight-semibold">{{ tournament.system === 'tir' ? (tournament.tirParticipants || tournament.teams).length : tournament.teams.length }}</span>
                 </div>
                 <div class="tournament-info-row" v-if="tournamentExtrasLine">
                     <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
@@ -50,13 +50,13 @@
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
-            <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
+            <PlayOff v-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
             <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
                 <span>{{ highlightedTeam }}</span>
                 <X :size="14"/>
             </div>
-            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
+            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff && tournament.system !== 'tir'" class="current-round-card mt-3 mb-3">
                 <div class="round-header">
                     <span>{{ $t('common.round') }} {{ activeRound }}</span>
                     <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
@@ -73,22 +73,28 @@
                     </div>
                 </div>
             </div>
-            <div class="tabs">
-                <ul>
-                    <li v-for="(tab, index) in tabs" :key="index"
-                        :class="{'is-active': tab.id === activeTab}">
-                        <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            </div>
-            <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <Ranking :tournament="tournament"
-                         :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-            </div>
+            <!-- TIR: single view, no tabs -->
+            <TirPublicView v-if="tournament.system === 'tir'" :tournament="tournament" class="mt-3"/>
+
+            <!-- Other systems: tabs -->
+            <template v-else>
+                <div class="tabs">
+                    <ul>
+                        <li v-for="(tab, index) in tabs" :key="index"
+                            :class="{'is-active': tab.id === activeTab}">
+                            <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="content tabs-content" v-if="activeTab === 'teams'">
+                    <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                </div>
+                <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                <div class="content tabs-content" v-if="activeTab === 'ranking'">
+                    <Ranking :tournament="tournament"
+                             :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                </div>
+            </template>
         </div>
         <div v-else class="p-5">
             <h2 class="is-size-3 text-center">{{ $t('messages.tournamentNotActive') }}</h2>
@@ -113,9 +119,10 @@ import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 import {GitFork, X} from "lucide-vue-next";
 import TeamSearch from "@/components/partials/TeamSearch.vue";
+import TirPublicView from "@/components/tir/TirPublicView.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch},
+    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView},
     data() {
         return {
             isLoading: false,
@@ -199,7 +206,7 @@ export default {
             return !!this.tournament?.tournamentIsFinished;
         },
         isStarted() {
-            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length;
+            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length || !!this.tournament?.tirStarted;
         },
         badgeClass() {
             if (this.isFinished) return 'badge-finished';
@@ -400,6 +407,7 @@ export default {
 
 .tournament-title-wrapper {
     position: relative;
+    font-size: 1.5rem !important;
 }
 
 .search-filter-chip {

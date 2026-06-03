@@ -197,6 +197,7 @@ export default {
             if (!this.tournament.games?.length) return false;
             if (this.tournament.tournamentIsFinished) return false;
             if (this.tournament.system === 'poules') return false;
+            if (this.tournament.system === 'tir') return false;
             if (this.tournament.barrage) return false;
             if (this.tournament.system === 'groups' && this.tournament.games.length >= this.teamsCount && !this.tournament.roundIsActive) return false;
             const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive

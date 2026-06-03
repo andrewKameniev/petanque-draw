@@ -6,7 +6,7 @@
 {
   id: 1716299000000,            // Timestamp-based unique ID
   name: "Tournament A",
-  system: "swiss",              // "swiss" | "groups" | "supermele"
+  system: "swiss",              // "swiss" | "groups" | "supermele" | "poules" | "tir"
   createdAt: "2024-05-21T...",
 
   // Teams
@@ -51,6 +51,12 @@
     withCadrage: false,         // Enable cadrage round
     playB: false                // Create Tournament B for non-playoff teams
   },
+
+  // TIR (precision shooting)
+  tirConfig: { junior: false },
+  tirStarted: false,
+  tirParticipants: [TirParticipant, ...],
+  tirPlayoff: TirPlayoff | null,
 
   // Portal integration
   portalIdTournament: null      // UFP portal tournament ID (admin only)
@@ -184,6 +190,49 @@ tokens/
   }
 ```
 
+## TIR Participant Object
+
+```javascript
+{
+  id: 1716299000000,            // Timestamp ID
+  name: "Player Name",
+  city: "Club/City",            // Optional club name
+  scores: {
+    0: { 6: "carreau", 7: "reussi", 8: "manque", 9: "touche" },
+    1: { ... },                 // atelier index → { distance → result }
+  },
+  lane: 1                       // Assigned lane number
+}
+```
+
+## TIR Playoff Object
+
+```javascript
+{
+  size: 4,                      // Bracket size (power of 2)
+  qualified: ["Name", ...],     // Names of qualified players
+  rounds: [{ matches: [TirMatch, ...] }],
+  thirdPlace: TirMatch | null,
+  final: TirMatch | null
+}
+```
+
+## TIR Match Object
+
+```javascript
+{
+  player1: "Name", player2: "Name",
+  scores1: { 0: {6: "carreau", ...}, ... },  // player 1 scores
+  scores2: { ... },                           // player 2 scores
+  score1: 45, score2: 38,                     // totals
+  complete: false,
+  winner: null, loser: null,
+  tieWinner: null                             // 1 | 2 if tied
+}
+```
+
+---
+
 ## Pinia Store State
 
 ```javascript
@@ -199,14 +248,6 @@ tokens/
 
 ## Sync Pattern
 
-Specific store actions trigger automatic Firebase sync:
-```javascript
-actionsRequiringSync = [
-  'savePreferences', 'saveTournamentData', 'finishTournament',
-  'changeTournamentName', 'setPlayOffStage', 'setPlayOffBracket',
-  'setPlayOff', 'setCadrage', 'saveCadrageScores', 'restoreRound',
-  'addRoundToGames', 'endRound', 'startRound', 'shuffleLanesStore'
-]
-```
+The store provides a `syncToFirebase()` action. Components call it after mutating tournament data. It writes the entire current tournament object to Firebase via `update()`.
 
-Each syncs the entire current tournament object to Firebase via `update()`.
+For TIR module, scoring components call `this.$emit('update')` which bubbles up to `TirModule.vue` where `onScoreUpdate()` calls `syncToFirebase()`.

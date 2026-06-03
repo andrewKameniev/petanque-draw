@@ -54,7 +54,7 @@
         <template v-if="!tournamentStarted">
             <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
                 <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
-                <p class="setup-card__summary">{{ tournament.teams.length }} {{ $t('teams.teams').toLowerCase() }}</p>
+                <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? $t('tir.participants').toLowerCase() : $t('teams.teams').toLowerCase() }}</p>
 
                 <div class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.system') }}</label>
@@ -74,6 +74,10 @@
                         <label class="setup-card__radio">
                             <input type="radio" name="system" value="supermele" v-model="tournament.system">
                             {{ $t('teams.supermele') }}
+                        </label>
+                        <label class="setup-card__radio">
+                            <input type="radio" name="system" value="tir" v-model="tournament.system">
+                            {{ $t('teams.tir') }}
                         </label>
                     </div>
                 </div>
@@ -158,12 +162,12 @@
                     <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
                 </div>
 
-                <button class="setup-card__collapse-toggle" @click="showAdvancedSettings = !showAdvancedSettings">
+                <button v-if="tournament.system !== 'tir'" class="setup-card__collapse-toggle" @click="showAdvancedSettings = !showAdvancedSettings">
                     <ChevronDown :size="16" class="setup-card__collapse-icon" :class="{'setup-card__collapse-icon--open': showAdvancedSettings}"/>
                     {{ $t('setup.additionalSettings') }}
                 </button>
 
-                <div v-if="showAdvancedSettings" class="setup-card__collapse-content">
+                <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
                     <div class="setup-card__field">
                         <label class="setup-card__label">{{ $t('modals.technicalScore') }}</label>
                         <div class="setup-card__row">
@@ -256,6 +260,11 @@
             </div>
         </template>
 
+        <!-- POST-START: Tir module (no tabs) -->
+        <template v-else-if="tournament.system === 'tir'">
+            <TirModule @finish="showFinishConfirm = true"/>
+        </template>
+
         <!-- POST-START: Tabbed tournament view -->
         <template v-else>
             <div class="tabs">
@@ -269,7 +278,7 @@
             </div>
             <div class="tabs-content-area">
             <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                <AddTeam v-if="(tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) && !tournament.tirStarted"
                          :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
                 <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
                 <div v-else class="mb-5 mt-5">
@@ -317,7 +326,7 @@
             </div>
             </div>
         </template>
-        <div class="bottom-actions">
+        <div class="bottom-actions" v-if="tournament.system !== 'tir'">
             <div class="bottom-actions__row">
                 <button v-if="tournament.roundIsActive" data-testid="btn-save-results" class="bottom-actions__btn bottom-actions__btn--save-results" :disabled="!allScoresFilled" :title="!allScoresFilled ? $t('games.enterAllScores') : ''" @click="$refs.games?.saveResults()">
                     {{ $t('games.saveResults') }}
@@ -437,6 +446,7 @@ import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
 import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X} from "lucide-vue-next";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, createPoules, drawPoulesRound} from '@/services/draw';
+import TirModule from "@/components/tir/TirModule.vue";
 
 export default {
     name: 'Tournament',
@@ -491,7 +501,7 @@ export default {
         }
         if (this.tournament.tournamentIsFinished) {
             this.activeTab = 'ranking';
-        } else if (this.tournament.games?.length) {
+        } else if (this.tournament.games?.length || this.tournament.tirStarted) {
             this.activeTab = 'games';
         }
     },
@@ -665,6 +675,25 @@ export default {
             })
         },
         drawFirstRound() {
+            if (this.tournament.system === 'tir') {
+                this.tournament.tirStarted = true;
+                if (!this.tournament.tirParticipants) {
+                    this.tournament.tirParticipants = this.tournament.teams.map(t => ({
+                        id: Date.now() + Math.random(),
+                        name: t.title,
+                        city: '',
+                        scores: {}
+                    }));
+                }
+                if (!this.tournament.tirConfig) {
+                    this.tournament.tirConfig = {junior: false};
+                }
+                if (!this.tournament.games) this.tournament.games = [];
+                this.tournament.games.push([]);
+                this.syncToFirebase();
+                this.activeTab = 'games';
+                return;
+            }
             if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
                 this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
                 return;
@@ -719,6 +748,12 @@ export default {
             return this.currentTournament
         },
         tabs() {
+            if (this.tournament.system === 'tir') {
+                return [
+                    { id: 'teams', label: this.$t('teams.teams') },
+                    { id: 'games', label: this.$t('teams.games') },
+                ];
+            }
             return [
                 { id: 'teams', label: this.$t('teams.teams') },
                 { id: 'games', label: this.$t('teams.games') },
@@ -768,7 +803,7 @@ export default {
             return this.tournament.useRating && this.tournament.teams?.some(t => t.rating > 0);
         },
         tournamentStarted() {
-            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage);
+            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted);
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
@@ -812,6 +847,7 @@ export default {
         Results,
         Ranking,
         SaveTournament,
+        TirModule,
         ChevronDown,
         Link,
         MessageCircle,
@@ -1344,7 +1380,7 @@ export default {
 }
 
 .setup-card__delete {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
@@ -1357,6 +1393,11 @@ export default {
     color: var(--color-error);
     cursor: pointer;
     transition: all 0.15s;
+    outline: none;
+}
+
+.setup-card__delete:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-error);
 }
 
 .setup-card__delete:hover {

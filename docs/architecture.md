@@ -3,14 +3,15 @@
 ## Tech Stack
 
 - **Framework**: Vue 3 (Options API)
-- **State**: Vuex 4
+- **State**: Pinia
 - **Router**: Vue Router 5 (hash mode)
 - **Backend**: Firebase Realtime Database (no custom server)
 - **Auth**: Firebase Authentication (email/password)
 - **Notifications**: Firebase Cloud Messaging (FCM)
-- **CSS**: Bulma + custom styles
+- **CSS**: Bulma + custom styles + CSS variables for theming
 - **Build**: Vite 8
-- **i18n**: vue-i18n 11 (English + Ukrainian)
+- **i18n**: vue-i18n 11 (English, Ukrainian, French, Spanish)
+- **Icons**: lucide-vue-next
 - **Charts**: ApexCharts 5 (vue3-apexcharts)
 - **PDF**: html2pdf.js
 - **Linting**: ESLint 9 + Prettier + Stylelint
@@ -22,13 +23,19 @@
 src/
 ├── main.js              # App entry, router + i18n setup
 ├── App.vue              # Root (just router-view)
-├── store.js             # Vuex store (tournaments state + Firebase sync)
+├── stores/main.js       # Pinia store (tournaments state + Firebase sync)
 ├── firebase.js          # Firebase init (auth, db, messaging)
 ├── helpers.js           # Tournament logic (ranking, sorting, draw utils)
 ├── helpers-stat.js      # Statistics calculation (French/Simple systems)
-├── languages.js         # i18n translations (en/ua)
 ├── i18n.js              # Shared vue-i18n instance
-├── data.json            # Ukrainian Petanque Federation player names
+├── locales/             # Translation files
+│   ├── en.js
+│   ├── ua.js
+│   ├── fr.js
+│   └── es.js
+├── services/
+│   ├── db.js            # Firebase CRUD services
+│   └── results.js       # Tournament result calculation
 ├── views/
 │   ├── LoginUser.vue    # Auth page (login/register)
 │   ├── Public.vue       # Public tournament viewer (shared link)
@@ -40,10 +47,7 @@ src/
 │   ├── Navbar.vue       # Top navigation
 │   ├── Menu.vue         # Side menu
 │   ├── Message.vue      # Toast notifications
-│   ├── Modal.vue        # Generic modal
-│   ├── Help.vue         # Documentation/help modal
-│   ├── Loader.vue       # Loading spinner
-│   ├── ConfirmRemoveModal.vue
+│   ├── Modal.vue        # Generic modal (default slot only)
 │   ├── partials/        # Tournament sub-components
 │   │   ├── Games.vue        # Draw algorithm + round management
 │   │   ├── Game.vue         # Single game score input
@@ -55,46 +59,42 @@ src/
 │   │   ├── AddTeam.vue      # Team registration + portal import
 │   │   ├── TeamsList.vue    # Team list display
 │   │   ├── Preferences.vue  # Tournament settings modal
-│   │   ├── Protocol.vue     # Tournament protocol export
-│   │   ├── QrCode.vue       # QR code for sharing
-│   │   ├── SaveTournament.vue
-│   │   ├── SavedTournamentModal.vue
-│   │   ├── ChangeTournamentName.vue
-│   │   ├── Footer.vue
-│   │   └── LanguageSwitcher.vue
+│   │   └── ...
+│   ├── tir/             # TIR (precision shooting) module
+│   │   ├── TirModule.vue         # Admin: tabs + all views
+│   │   ├── TirPublicView.vue     # Public: read-only tournament view
+│   │   ├── TirPlayoffMatch.vue   # Shared: match scoring (readOnly prop)
+│   │   ├── TirParticipantView.vue # Per-participant scoring
+│   │   └── TirAtelierView.vue    # Per-atelier scoring (all participants)
 │   ├── stats/           # Statistics sub-components
-│   │   ├── Teaminfo.vue      # Per-team stat tracking UI
-│   │   ├── StatResult.vue    # Game result summary
-│   │   ├── StatsArchive.vue  # Past games list
-│   │   ├── StatsAnalysis.vue # Player analysis with charts
-│   │   ├── StatCheckbox.vue  # Throw result toggle
-│   │   ├── StatTags.vue      # Tag management
-│   │   └── ThrowResult.vue   # Individual throw display
-│   ├── training/        # Training sub-components
-│   │   ├── TrainingAdd.vue        # Create exercise
-│   │   ├── TrainingItem.vue       # Execute exercise
-│   │   ├── TrainingResult.vue     # View exercise results
-│   │   └── TrainingResultGraph.vue
-│   └── docs/            # In-app documentation images
+│   └── training/        # Training sub-components
 └── assets/
-    ├── css/             # Bulma + custom CSS
-    └── img/             # Backgrounds, logos, doc screenshots
+    ├── css/             # Bulma + custom CSS + variables.css
+    └── img/             # Backgrounds, logos
 ```
 
 ## Data Flow
 
 1. User authenticates via Firebase Auth
-2. On login, Vuex dispatches `getTournaments` which reads from Firebase RTDB at `/{uid}/tournaments/`
-3. All mutations listed in `mutationsAfterUpdateDb` trigger a `store.subscribe` callback that writes back to Firebase
-4. Public viewers read tournament data directly from Firebase using the shared link query params (`?user={uid}&tournament={id}`)
+2. On login, Pinia store dispatches `getTournaments` which reads from Firebase RTDB at `/{uid}/tournaments/`
+3. Store actions that modify tournament data call `syncToFirebase()` which writes the current tournament back to Firebase
+4. Public viewers subscribe to tournament data using Firebase `onValue` for real-time updates
+
+## Component Reuse Pattern
+
+Shared components accept a `readOnly` prop to disable interaction while reusing the same rendering logic. Example: `TirPlayoffMatch` is used in both admin (scoring) and public (viewing) contexts.
+
+When the same UI is needed on admin and public pages, extract it into a shared component rather than reimplementing inline.
 
 ## Routing
 
 | Path | Component | Purpose |
 |------|-----------|---------|
-| `/` | Draw | Main tournament management |
-| `/show` | Public | Public tournament viewer |
+| `/` | Draw | Main tournament management (auth-gated) |
+| `/tournament` | Public | Public tournament viewer (query: `ref=`) |
+| `/show` | redirect | Legacy redirect → `/tournament` |
 | `/login-user` | LoginUser | Authentication |
-| `/doc` | Help | Documentation |
+| `/doc` | Help | Documentation / help |
 | `/stats` | Stats | Game statistics |
 | `/training` | Training | Training exercises |
+| `/archived` | Archived | Archived tournaments (auth-gated) |

@@ -50,13 +50,13 @@
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
-            <PlayOff v-if="tournament.playOff" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
+            <PlayOff v-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
             <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
                 <span>{{ highlightedTeam }}</span>
                 <X :size="14"/>
             </div>
-            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff" class="current-round-card mt-3 mb-3">
+            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff && tournament.system !== 'tir'" class="current-round-card mt-3 mb-3">
                 <div class="round-header">
                     <span>{{ $t('common.round') }} {{ activeRound }}</span>
                     <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>

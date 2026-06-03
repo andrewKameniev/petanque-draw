@@ -125,13 +125,22 @@ export default {
         participant: {type: Object, required: true},
         ateliers: {type: Array, required: true},
         distances: {type: Array, required: true},
-        scoresKey: {type: String, default: 'scores'}
+        scoresKey: {type: String, default: 'scores'},
+        readOnly: {type: Boolean, default: false}
     },
     emits: ['back', 'update', 'next'],
     data() {
         return {
             activeAtelierIndex: 0,
             lastSaved: null
+        }
+    },
+    created() {
+        this.goToFirstIncomplete();
+    },
+    watch: {
+        participant() {
+            this.goToFirstIncomplete();
         }
     },
     computed: {
@@ -170,6 +179,10 @@ export default {
         }
     },
     methods: {
+        goToFirstIncomplete() {
+            const first = this.ateliers.findIndex((_, idx) => !this.isAtelierComplete(idx));
+            this.activeAtelierIndex = first !== -1 ? first : 0;
+        },
         getAtelierScore(atelierIndex) {
             const scores = this.participant[this.scoresKey]?.[atelierIndex];
             if (!scores) return 0;
@@ -184,6 +197,7 @@ export default {
             return this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance] || null;
         },
         setScore(distance, type) {
+            if (this.readOnly) return;
             if (!this.participant[this.scoresKey]) {
                 this.participant[this.scoresKey] = {};
             }
@@ -203,7 +217,7 @@ export default {
                         if (this.activeAtelierIndex < this.ateliers.length - 1) {
                             this.activeAtelierIndex++;
                         } else if (this.throwsCompleted >= this.totalThrows) {
-                            this.$emit('next');
+                            this.$emit('back');
                         }
                     }, 300);
                 }

@@ -30,4 +30,8 @@ export default {
 .modal {
     z-index: 10000;
 }
+
+.modal-content {
+    max-width: calc(100vw - 20px);
+}
 </style>

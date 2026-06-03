@@ -31,19 +31,19 @@
         <div class="tir-compare__legend">
             <span class="tir-compare__legend-item">
                 <span class="tir-compare__legend-dot tir-compare__legend-dot--carreau"></span>
-                {{ $t('tir.carreau') }} (5 р)
+                {{ $t('tir.carreau') }} (5)
             </span>
             <span class="tir-compare__legend-item">
                 <span class="tir-compare__legend-dot tir-compare__legend-dot--reussi"></span>
-                {{ $t('tir.reussi') }} (3 р)
+                {{ $t('tir.reussi') }} (3)
             </span>
             <span class="tir-compare__legend-item">
                 <span class="tir-compare__legend-dot tir-compare__legend-dot--touche"></span>
-                {{ $t('tir.touche') }} (1 р)
+                {{ $t('tir.touche') }} (1)
             </span>
             <span class="tir-compare__legend-item">
                 <span class="tir-compare__legend-dot tir-compare__legend-dot--manque"></span>
-                {{ $t('tir.manque') }} (0 р)
+                {{ $t('tir.manque') }} (0)
             </span>
         </div>
 
@@ -193,6 +193,7 @@ export default {
 
 <style scoped>
 .tir-compare {
+    width: 100%;
     max-width: 760px;
     margin: 0 auto;
 }
@@ -233,7 +234,8 @@ export default {
 }
 
 .tir-compare__player-card {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     padding: 14px 12px;
     border: 2px solid var(--border-color, #e0e0e0);
     border-radius: 12px;
@@ -373,10 +375,9 @@ export default {
 }
 
 .tir-compare__row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-evenly;
 }
 
 .tir-compare__circles {
@@ -478,6 +479,28 @@ export default {
 }
 
 /* Responsive adjustments */
+@media (max-width: 768px) {
+    .tir-compare__atelier {
+        padding: 12px 6px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 8px;
+    }
+
+
+    .tir-compare__circles {
+        gap: 8px;
+    }
+
+    .tir-compare__circles--left {
+        justify-content: center;
+    }
+
+    .tir-compare__circles--right {
+        justify-content: center;
+    }
+}
+
 @media (max-width: 380px) {
     .tir-compare__circle {
         width: 18px;
@@ -485,7 +508,7 @@ export default {
     }
 
     .tir-compare__circles {
-        gap: 6px;
+        gap: 4px;
     }
 
     .tir-compare__player-total-val {

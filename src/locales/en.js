@@ -403,6 +403,7 @@ export default {
         "round": "Round",
         "tournamentWinner": "Tournament winner",
         "goToFinalTable": "Go to final table",
+        "twoRoundsShort": "2 rounds",
         "twoRoundSystem": "2-round qualification system",
         "twoRoundHint": "Top 4 go to quarterfinals directly. Places 5-16 play a 2nd round.",
         "juniorTournament": "Junior tournament (no 9m)",
@@ -413,6 +414,9 @@ export default {
         "combinedScore": "Total",
         "directQualifier": "Direct",
         "round2Qualifier": "Via R2",
+        "switchToR1Hint": "Tap R2 to view the first round",
+        "switchToR2Hint": "Tap R1 to return to the current round",
+        "goToRound2": "→ Round 2",
         "eliminated": "Eliminated",
         "place": "Place"
     }

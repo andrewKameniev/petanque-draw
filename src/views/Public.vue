@@ -7,7 +7,7 @@
             <span></span>
         </div>
     </div>
-    <div v-else class="wrapper">
+    <div v-else class="wrapper" :class="{'wrapper--tir': tournament?.system === 'tir'}">
         <div v-if="tournament" class="container">
             <div class="is-flex is-justify-content-space-between">
                 <router-link class="navbar-item" to="/">
@@ -219,6 +219,17 @@ export default {
             return this.$t('common.active');
         },
         systemDescription() {
+            if (this.tournament.system === 'tir') {
+                let desc = this.$t('teams.tir');
+                if (this.tournament.tirConfig?.rounds === 2) {
+                    desc += ', ' + this.$t('tir.twoRoundsShort');
+                }
+                const qualifiedCount = this.tournament.tirPlayoff?.size || (this.tournament.tirConfig?.rounds === 2 ? 8 : null);
+                if (qualifiedCount) {
+                    desc += ', ' + qualifiedCount + ' → ' + this.$t('games.playOff').toLowerCase();
+                }
+                return desc;
+            }
             if (this.tournament.system !== 'swiss') {
                 return this.$t('teams.' + this.tournament.system);
             }
@@ -574,6 +585,14 @@ export default {
 
 [data-theme="dark"] .wrapper::before {
     opacity: 0.05;
+}
+
+.wrapper--tir {
+    background: #fff;
+}
+
+.wrapper--tir::before {
+    display: none;
 }
 
 .wrapper > * {

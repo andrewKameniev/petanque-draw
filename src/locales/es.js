@@ -403,6 +403,7 @@ export default {
         "round": "Ronda",
         "tournamentWinner": "Ganador del torneo",
         "goToFinalTable": "Ir a la tabla final",
+        "twoRoundsShort": "2 rondas",
         "twoRoundSystem": "Sistema de clasificación de 2 rondas",
         "twoRoundHint": "Los 4 primeros van a cuartos directamente. Puestos 5-16 juegan ronda 2.",
         "juniorTournament": "Torneo júnior (sin 9m)",
@@ -413,6 +414,9 @@ export default {
         "combinedScore": "Total",
         "directQualifier": "Directo",
         "round2Qualifier": "Vía R2",
+        "switchToR1Hint": "Pulse R2 para ver la primera ronda",
+        "switchToR2Hint": "Pulse R1 para volver a la ronda actual",
+        "goToRound2": "→ Ronda 2",
         "eliminated": "Eliminado",
         "place": "Puesto"
     }

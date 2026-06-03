@@ -1,23 +1,23 @@
 <template>
     <div class="tir-module">
         <div class="tir-nav">
-            <button class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'participants'}" @click="view = 'participants'">
+            <button class="tir-nav__btn tir-nav__btn--participants" :class="{'tir-nav__btn--active': view === 'participants'}" @click="view = 'participants'">
                 <Users :size="18"/>
                 <span>{{ $t('tir.participants') }}</span>
             </button>
-            <button class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'scoring'}" @click="view = 'scoring'">
+            <button class="tir-nav__btn tir-nav__btn--scoring" :class="{'tir-nav__btn--active': view === 'scoring'}" @click="view = 'scoring'">
                 <Grid3x3 :size="18"/>
                 <span>{{ $t('tir.scoring') }}</span>
             </button>
-            <button class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'table'}" @click="view = 'table'">
+            <button class="tir-nav__btn tir-nav__btn--table" :class="{'tir-nav__btn--active': view === 'table'}" @click="view = 'table'">
                 <TableProperties :size="18"/>
                 <span>{{ $t('tir.table') }}</span>
             </button>
-            <button v-if="tournament.tirPlayoff" class="tir-nav__btn" :class="{'tir-nav__btn--active': view === 'playoff'}" @click="view = 'playoff'">
+            <button v-if="tournament.tirPlayoff" class="tir-nav__btn tir-nav__btn--playoff" :class="{'tir-nav__btn--active': view === 'playoff'}" @click="view = 'playoff'">
                 <Trophy :size="18"/>
                 <span>{{ $t('games.playOff') }}</span>
             </button>
-            <span v-if="isTwoRoundSystem" class="tir-nav__round-badge">R{{ currentRound }}</span>
+            <span v-if="isTwoRoundSystem && !tournament.tirPlayoff" class="tir-nav__round-badge">R{{ currentRound }}</span>
         </div>
 
         <!-- Participants list -->
@@ -106,6 +106,7 @@
                     :ateliers="tirAteliers"
                     :distances="tirDistances"
                     :scoresKey="activeScoresKey"
+                    :readOnly="!!tournament.tirPlayoff"
                     @back="activeParticipant = null"
                     @update="onScoreUpdate"
                     @next="goToNextParticipant"/>
@@ -129,17 +130,25 @@
                     :participants="activeScoringParticipantsAlphabetic"
                     :distances="tirDistances"
                     :scoresKey="activeScoresKey"
+                    :readOnly="!!tournament.tirPlayoff"
                     @back="activeAtelier = null"
                     @update="onScoreUpdate"
                     @finish="finishAtelier"/>
             </template>
+
+            <!-- 2-round: transition to R2 (bottom of scoring) -->
+            <div v-if="canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null" class="tir-table__actions">
+                <p class="tir-table__hint">{{ $t('tir.round2Hint') }}</p>
+                <div class="tir-table__actions-row">
+                    <button class="tir-table__playoff-btn" @click="startRound2">
+                        {{ $t('tir.startRound2') }}
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Results table -->
         <div v-if="view === 'table'" class="tir-table">
-            <div class="tir-table__header">
-                <h3>{{ $t('tir.resultsTable') }}</h3>
-            </div>
             <div v-if="tirParticipants.length" class="tir-table__scroll">
                 <table class="tir-table__content">
                     <thead>
@@ -149,9 +158,9 @@
                             <th>{{ $t('tir.round1Score') }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.round2Score') }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.combinedScore') }}</th>
-                            <th v-if="tournament.tirPlayoff">{{ $t('tir.quarterfinal') }}</th>
-                            <th v-if="tournament.tirPlayoff">{{ $t('tir.semifinal') }}</th>
-                            <th v-if="tournament.tirPlayoff">{{ $t('games.final') }}</th>
+                            <th v-if="playoffHasQf">1/4</th>
+                            <th v-if="playoffHasSf">1/2</th>
+                            <th v-if="playoffHasFinal">{{ $t('games.final') }}</th>
                             <th>{{ $t('tir.place') }}</th>
                         </tr>
                         <tr v-else>
@@ -168,9 +177,9 @@
                             <td>{{ row.r1 }}</td>
                             <td v-if="currentRound >= 2">{{ row.r2 }}</td>
                             <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
-                            <td v-if="tournament.tirPlayoff">{{ row.qf }}</td>
-                            <td v-if="tournament.tirPlayoff">{{ row.sf }}</td>
-                            <td v-if="tournament.tirPlayoff">{{ row.final }}</td>
+                            <td v-if="playoffHasQf">{{ row.qf }}</td>
+                            <td v-if="playoffHasSf">{{ row.sf }}</td>
+                            <td v-if="playoffHasFinal">{{ row.final }}</td>
                             <td>{{ row.place }}</td>
                         </tr>
                     </tbody>
@@ -421,6 +430,24 @@ export default {
             const completedCount = this.tirParticipants.filter(p => this.isParticipantComplete(p)).length;
             return completedCount >= 2;
         },
+        playoffHasQf() {
+            const playoff = this.tournament.tirPlayoff;
+            if (!playoff?.rounds?.[0]) return false;
+            return playoff.rounds[0].matches.some(m => m.score1 != null);
+        },
+        playoffHasSf() {
+            const playoff = this.tournament.tirPlayoff;
+            if (!playoff?.rounds) return false;
+            const sfRound = playoff.rounds.find(r => r.matches.length === 2);
+            return sfRound?.matches.some(m => m.score1 != null) || false;
+        },
+        playoffHasFinal() {
+            const playoff = this.tournament.tirPlayoff;
+            if (!playoff?.rounds) return false;
+            const finalRound = playoff.rounds.find(r => r.matches.length === 1);
+            if (finalRound?.matches[0]?.score1 != null) return true;
+            return playoff.final?.score1 != null || playoff.thirdPlace?.score1 != null || false;
+        },
         qualifyOptions() {
             const completedCount = this.tirParticipants.filter(p => this.isParticipantComplete(p)).length;
             const opts = [];
@@ -434,6 +461,8 @@ export default {
             const playoff = this.tournament.tirPlayoff;
             const directIds = this.directQualifiers.map(p => p.id);
             const r2Ids = this.round2ParticipantIds;
+
+            const r2CandidateIds = this.r1RankedParticipants.slice(4, 16).map(p => p.id);
 
             const allPlayers = this.r1RankedParticipants.map(p => {
                 const isDirect = directIds.includes(p.id);
@@ -449,6 +478,9 @@ export default {
                     place = this.$t('tir.directQualifier');
                 } else if (isR2) {
                     rowClass = 'tir-table__row--r2';
+                } else if (this.isTwoRoundSystem && this.currentRound === 1 && r2CandidateIds.includes(p.id)) {
+                    rowClass = 'tir-table__row--r2';
+                    place = this.$t('tir.goToRound2');
                 } else {
                     rowClass = 'tir-table__row--eliminated';
                     place = this.$t('tir.eliminated');
@@ -459,9 +491,9 @@ export default {
                 return {
                     id: p.id,
                     name: p.name,
-                    r1: `${r1Score}/${this.maxTotalScore}`,
-                    r2: isDirect ? '—' : (r2Score !== null ? `${r2Score}/${this.maxTotalScore}` : ''),
-                    combined: isR2 ? `${combined}/${this.maxTotalScore * 2}` : (isDirect ? `${r1Score}/${this.maxTotalScore}` : ''),
+                    r1: r1Score,
+                    r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
+                    combined: isR2 ? combined : (isDirect ? r1Score : ''),
                     qf: matchScores.qf,
                     sf: matchScores.sf,
                     final: matchScores.final,
@@ -566,9 +598,10 @@ export default {
                     round.matches.forEach(m => {
                         if (m.player1 === playerName || m.player2 === playerName) {
                             const score = m.player1 === playerName ? m.score1 : m.score2;
-                            if (score !== null) {
-                                if (round.matches.length >= 4) result.qf = `${score}/${this.maxTotalScore}`;
-                                else if (round.matches.length === 2) result.sf = `${score}/${this.maxTotalScore}`;
+                            if (score != null) {
+                                if (round.matches.length >= 4) result.qf = score;
+                                else if (round.matches.length === 2) result.sf = score;
+                                else if (round.matches.length === 1) result.final = score;
                             }
                         }
                     });
@@ -576,11 +609,11 @@ export default {
             }
             if (playoff.final && (playoff.final.player1 === playerName || playoff.final.player2 === playerName)) {
                 const score = playoff.final.player1 === playerName ? playoff.final.score1 : playoff.final.score2;
-                if (score !== null) result.final = `${score}/${this.maxTotalScore}`;
+                if (score != null) result.final = score;
             }
             if (playoff.thirdPlace && (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)) {
                 const score = playoff.thirdPlace.player1 === playerName ? playoff.thirdPlace.score1 : playoff.thirdPlace.score2;
-                if (score !== null) result.final = `${score}/${this.maxTotalScore}`;
+                if (score != null) result.final = score;
             }
             return result;
         },
@@ -856,7 +889,27 @@ export default {
     color: var(--primary-color, #f5a623);
 }
 
+.tir-nav__btn--participants.tir-nav__btn--active {
+    color: #be185d;
+}
+
+.tir-nav__btn--scoring.tir-nav__btn--active {
+    color: var(--color-primary, #471aa0);
+}
+
+.tir-nav__btn--table.tir-nav__btn--active {
+    color: #4CAF50;
+}
+
+.tir-nav__btn--playoff.tir-nav__btn--active {
+    color: var(--primary-color, #f5a623);
+}
+
 .tir-nav__round-badge {
+    position: relative;
+    right: 0px;
+    top: -4px;
+    align-self: baseline;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -864,9 +917,8 @@ export default {
     font-size: 11px;
     font-weight: 700;
     border-radius: 6px;
-    background: var(--primary-color, #f5a623);
+    background: var(--color-primary, #471aa0);
     color: #fff;
-    align-self: center;
     margin-right: 6px;
 }
 
@@ -1262,12 +1314,31 @@ export default {
 .tir-table__sticky-col {
     position: sticky;
     left: 0;
-    background: var(--card-bg, #fff);
-    z-index: 1;
+    z-index: 2;
 }
 
 .tir-table__sticky-col--name {
     left: 32px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tir-table__content tr th.tir-table__sticky-col,
+.tir-table__content tr td.tir-table__sticky-col {
+    background: var(--card-bg, #fff);
+}
+
+.tir-table__row--direct td.tir-table__sticky-col {
+    background: #f0faf1;
+}
+
+.tir-table__row--r2 td.tir-table__sticky-col {
+    background: #fef9f0;
+}
+
+.tir-table__row--eliminated td.tir-table__sticky-col {
+    background: var(--card-bg, #fff);
 }
 
 .tir-table__hint {

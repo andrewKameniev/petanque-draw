@@ -54,7 +54,7 @@
         <template v-if="!tournamentStarted">
             <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
                 <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
-                <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? $t('tir.participants').toLowerCase() : $t('teams.teams').toLowerCase() }}</p>
+                <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? pluralizeParticipants(tournament.teams.length) : $t('teams.teams').toLowerCase() }}</p>
 
                 <div class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.system') }}</label>
@@ -111,10 +111,11 @@
                         {{ $t('tir.twoRoundSystem') }}
                     </label>
                     <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
-                    <label class="setup-card__checkbox">
+                    <label class="setup-card__checkbox" style="margin-top: 0.75rem">
                         <input type="checkbox" v-model="tirJunior">
                         {{ $t('tir.juniorTournament') }}
                     </label>
+                    <span class="setup-card__hint">{{ $t('tir.juniorHint') }}</span>
                 </div>
 
                 <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
@@ -540,6 +541,19 @@ export default {
         },
         cancelEditName() {
             this.editingName = false;
+        },
+        pluralizeParticipants(n) {
+            const locale = this.$i18n.locale;
+            if (locale === 'ua') {
+                const mod10 = n % 10;
+                const mod100 = n % 100;
+                if (mod10 === 1 && mod100 !== 11) return 'учасник';
+                if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'учасники';
+                return 'учасників';
+            }
+            if (locale === 'fr') return n === 1 ? 'participant' : 'participants';
+            if (locale === 'es') return n === 1 ? 'participante' : 'participantes';
+            return n === 1 ? 'participant' : 'participants';
         },
         togglePin() {
             if (this.isPinned) {

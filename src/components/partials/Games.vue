@@ -38,7 +38,7 @@
                               :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
                               :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
                               :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                              @save="saveResults"/>
+                              @save="saveResults" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -50,7 +50,7 @@
                               :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
                               :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
                               :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                              @save="saveResults"/>
+                              @save="saveResults" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -60,7 +60,7 @@
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
                           :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
                           :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                          @save="saveResults"/>
+                          @save="saveResults" @swapLane="swapLane"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
                 </div>
@@ -212,7 +212,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase']),
         gameHasError,
         handleGlobalSave() {
             const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
@@ -222,6 +222,13 @@ export default {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
             const reshuffled = assignLanes(shuffleArray([...currentRound]), this.tournament);
             this.shuffleLanesStore(reshuffled);
+        },
+        swapLane({ fromIndex, targetLane }) {
+            const fieldsStart = this.tournament.preferences.fieldsStart;
+            const targetIndex = targetLane - fieldsStart;
+            const games = this.tournament.games[this.activeRound - 1];
+            if (targetIndex < 0 || targetIndex >= games.length || targetIndex === fromIndex) return;
+            this.swapLanesStore({ roundIndex: this.activeRound - 1, indexA: fromIndex, indexB: targetIndex });
         },
         drawRound() {
             if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {

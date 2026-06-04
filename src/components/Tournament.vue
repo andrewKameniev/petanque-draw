@@ -54,7 +54,7 @@
         <template v-if="!tournamentStarted">
             <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
                 <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
-                <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? $t('tir.participants').toLowerCase() : $t('teams.teams').toLowerCase() }}</p>
+                <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? pluralizeParticipants(tournament.teams.length) : $t('teams.teams').toLowerCase() }}</p>
 
                 <div class="setup-card__field">
                     <label class="setup-card__label">{{ $t('teams.system') }}</label>
@@ -103,6 +103,19 @@
                         <option value="2">2</option>
                         <option value="3">3</option>
                     </select>
+                </div>
+
+                <div v-if="tournament.system === 'tir'" class="setup-card__field">
+                    <label class="setup-card__checkbox">
+                        <input type="checkbox" v-model="tirTwoRounds">
+                        {{ $t('tir.twoRoundSystem') }}
+                    </label>
+                    <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
+                    <label class="setup-card__checkbox" style="margin-top: 0.75rem">
+                        <input type="checkbox" v-model="tirJunior">
+                        {{ $t('tir.juniorTournament') }}
+                    </label>
+                    <span class="setup-card__hint">{{ $t('tir.juniorHint') }}</span>
                 </div>
 
                 <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
@@ -473,6 +486,8 @@ export default {
             setupPlayOff: false,
             showAdvancedSettings: false,
             showPlayoffConfirm: false,
+            tirTwoRounds: false,
+            tirJunior: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
         }
     },
@@ -526,6 +541,19 @@ export default {
         },
         cancelEditName() {
             this.editingName = false;
+        },
+        pluralizeParticipants(n) {
+            const locale = this.$i18n.locale;
+            if (locale === 'ua') {
+                const mod10 = n % 10;
+                const mod100 = n % 100;
+                if (mod10 === 1 && mod100 !== 11) return 'учасник';
+                if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'учасники';
+                return 'учасників';
+            }
+            if (locale === 'fr') return n === 1 ? 'participant' : 'participants';
+            if (locale === 'es') return n === 1 ? 'participante' : 'participantes';
+            return n === 1 ? 'participant' : 'participants';
         },
         togglePin() {
             if (this.isPinned) {
@@ -686,8 +714,9 @@ export default {
                     }));
                 }
                 if (!this.tournament.tirConfig) {
-                    this.tournament.tirConfig = {junior: false};
+                    this.tournament.tirConfig = {junior: this.tirJunior, rounds: this.tirTwoRounds ? 2 : 1};
                 }
+                this.tournament.tirRound = 1;
                 if (!this.tournament.games) this.tournament.games = [];
                 this.tournament.games.push([]);
                 this.syncToFirebase();
@@ -803,7 +832,7 @@ export default {
             return this.tournament.useRating && this.tournament.teams?.some(t => t.rating > 0);
         },
         tournamentStarted() {
-            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted);
+            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted || this.tournament.tournamentIsFinished);
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;

@@ -70,7 +70,7 @@
         </div>
 
         <!-- Finish button -->
-        <button class="tir-aview__finish" @click="showFinishConfirm = true">
+        <button v-if="!readOnly" class="tir-aview__finish" @click="showFinishConfirm = true">
             {{ $t('tir.finishAtelier') }}
         </button>
 
@@ -101,7 +101,9 @@ export default {
         atelierIndex: {type: Number, required: true},
         atelier: {type: Object, required: true},
         participants: {type: Array, required: true},
-        distances: {type: Array, required: true}
+        distances: {type: Array, required: true},
+        scoresKey: {type: String, default: 'scores'},
+        readOnly: {type: Boolean, default: false}
     },
     emits: ['back', 'update', 'finish'],
     data() {
@@ -126,12 +128,12 @@ export default {
             this.expandedId = this.expandedId === id ? null : id;
         },
         getAtelierScore(participant) {
-            const scores = participant.scores?.[this.atelierIndex];
+            const scores = participant[this.scoresKey]?.[this.atelierIndex];
             if (!scores) return 0;
             return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
         },
         getAtelierThrows(participant) {
-            const scores = participant.scores?.[this.atelierIndex];
+            const scores = participant[this.scoresKey]?.[this.atelierIndex];
             if (!scores) return 0;
             return Object.keys(scores).length;
         },
@@ -139,30 +141,31 @@ export default {
             return this.getAtelierThrows(participant) >= this.distances.length;
         },
         getDistanceValue(participant, distance) {
-            return participant.scores?.[this.atelierIndex]?.[distance] || null;
+            return participant[this.scoresKey]?.[this.atelierIndex]?.[distance] || null;
         },
         setScore(participant, distance, type) {
-            if (!participant.scores) {
-                participant.scores = {};
+            if (this.readOnly) return;
+            if (!participant[this.scoresKey]) {
+                participant[this.scoresKey] = {};
             }
-            if (!participant.scores[this.atelierIndex]) {
-                participant.scores[this.atelierIndex] = {};
+            if (!participant[this.scoresKey][this.atelierIndex]) {
+                participant[this.scoresKey][this.atelierIndex] = {};
             }
-            const current = participant.scores[this.atelierIndex][distance];
+            const current = participant[this.scoresKey][this.atelierIndex][distance];
             if (current === type) {
-                delete participant.scores[this.atelierIndex][distance];
+                delete participant[this.scoresKey][this.atelierIndex][distance];
             } else {
-                participant.scores[this.atelierIndex][distance] = type;
+                participant[this.scoresKey][this.atelierIndex][distance] = type;
             }
             this.$emit('update');
         },
         confirmFinish() {
             this.participants.forEach(p => {
-                if (!p.scores) p.scores = {};
-                if (!p.scores[this.atelierIndex]) p.scores[this.atelierIndex] = {};
+                if (!p[this.scoresKey]) p[this.scoresKey] = {};
+                if (!p[this.scoresKey][this.atelierIndex]) p[this.scoresKey][this.atelierIndex] = {};
                 this.distances.forEach(distance => {
-                    if (!p.scores[this.atelierIndex][distance]) {
-                        p.scores[this.atelierIndex][distance] = 'manque';
+                    if (!p[this.scoresKey][this.atelierIndex][distance]) {
+                        p[this.scoresKey][this.atelierIndex][distance] = 'manque';
                     }
                 });
             });
@@ -317,14 +320,18 @@ export default {
 }
 
 .tir-aview__confirm-title {
-    margin: 0 0 12px;
+    margin: 0 -1.25rem;
+    padding: 0 1.25rem 12px;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 14px;
     font-size: 16px;
+    font-weight: 500;
 }
 
 .tir-aview__confirm-text {
     font-size: 14px;
     color: var(--text-color, #333);
-    margin-bottom: 16px;
+    margin: 0 4px 16px;
 }
 
 .tir-aview__confirm-actions {

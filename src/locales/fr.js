@@ -398,7 +398,26 @@ export default {
         "selectWinner": "Choisir le vainqueur",
         "enterScores": "Entrer les scores",
         "backToBracket": "Retour au tableau",
+        "totalScore": "Total",
         "playoffStarted": "Play-off commencé",
-        "round": "Tour"
+        "round": "Tour",
+        "tournamentWinner": "Vainqueur du tournoi",
+        "goToFinalTable": "Voir le classement final",
+        "twoRoundsShort": "2 tours",
+        "twoRoundSystem": "Système de qualification en 2 tours",
+        "twoRoundHint": "Le top 4 va en quarts directement. Les places 5-16 jouent un 2e tour.",
+        "juniorTournament": "Tournoi junior (sans 9m)",
+        "startRound2": "Commencer le tour 2",
+        "round2Hint": "Top 4 qualifiés directement. Les autres joueurs disputeront le tour 2.",
+        "round1Score": "T1",
+        "round2Score": "T2",
+        "combinedScore": "Total",
+        "directQualifier": "Direct",
+        "round2Qualifier": "Via T2",
+        "switchToR1Hint": "Appuyez sur R2 pour voir le premier tour",
+        "switchToR2Hint": "Appuyez sur R1 pour revenir au tour actuel",
+        "goToRound2": "→ Tour 2",
+        "eliminated": "Éliminé",
+        "place": "Place"
     }
 }

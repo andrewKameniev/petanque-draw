@@ -124,13 +124,23 @@ export default {
     props: {
         participant: {type: Object, required: true},
         ateliers: {type: Array, required: true},
-        distances: {type: Array, required: true}
+        distances: {type: Array, required: true},
+        scoresKey: {type: String, default: 'scores'},
+        readOnly: {type: Boolean, default: false}
     },
     emits: ['back', 'update', 'next'],
     data() {
         return {
             activeAtelierIndex: 0,
             lastSaved: null
+        }
+    },
+    created() {
+        this.goToFirstIncomplete();
+    },
+    watch: {
+        participant() {
+            this.goToFirstIncomplete();
         }
     },
     computed: {
@@ -151,8 +161,8 @@ export default {
         },
         participantTotal() {
             let total = 0;
-            if (!this.participant.scores) return 0;
-            Object.values(this.participant.scores).forEach(atelier => {
+            if (!this.participant[this.scoresKey]) return 0;
+            Object.values(this.participant[this.scoresKey]).forEach(atelier => {
                 Object.values(atelier).forEach(val => {
                     total += this.scoring[val] || 0;
                 });
@@ -160,41 +170,46 @@ export default {
             return total;
         },
         throwsCompleted() {
-            if (!this.participant.scores) return 0;
+            if (!this.participant[this.scoresKey]) return 0;
             let count = 0;
-            Object.values(this.participant.scores).forEach(atelier => {
+            Object.values(this.participant[this.scoresKey]).forEach(atelier => {
                 count += Object.keys(atelier).length;
             });
             return count;
         }
     },
     methods: {
+        goToFirstIncomplete() {
+            const first = this.ateliers.findIndex((_, idx) => !this.isAtelierComplete(idx));
+            this.activeAtelierIndex = first !== -1 ? first : 0;
+        },
         getAtelierScore(atelierIndex) {
-            const scores = this.participant.scores?.[atelierIndex];
+            const scores = this.participant[this.scoresKey]?.[atelierIndex];
             if (!scores) return 0;
             return Object.values(scores).reduce((sum, val) => sum + (this.scoring[val] || 0), 0);
         },
         isAtelierComplete(atelierIndex) {
-            const scores = this.participant.scores?.[atelierIndex];
+            const scores = this.participant[this.scoresKey]?.[atelierIndex];
             if (!scores) return false;
             return Object.keys(scores).length >= this.distances.length;
         },
         getDistanceValue(distance) {
-            return this.participant.scores?.[this.activeAtelierIndex]?.[distance] || null;
+            return this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance] || null;
         },
         setScore(distance, type) {
-            if (!this.participant.scores) {
-                this.participant.scores = {};
+            if (this.readOnly) return;
+            if (!this.participant[this.scoresKey]) {
+                this.participant[this.scoresKey] = {};
             }
-            if (!this.participant.scores[this.activeAtelierIndex]) {
-                this.participant.scores[this.activeAtelierIndex] = {};
+            if (!this.participant[this.scoresKey][this.activeAtelierIndex]) {
+                this.participant[this.scoresKey][this.activeAtelierIndex] = {};
             }
-            const current = this.participant.scores[this.activeAtelierIndex][distance];
+            const current = this.participant[this.scoresKey][this.activeAtelierIndex][distance];
             if (current === type) {
-                delete this.participant.scores[this.activeAtelierIndex][distance];
+                delete this.participant[this.scoresKey][this.activeAtelierIndex][distance];
                 this.lastSaved = null;
             } else {
-                this.participant.scores[this.activeAtelierIndex][distance] = type;
+                this.participant[this.scoresKey][this.activeAtelierIndex][distance] = type;
                 const label = type.charAt(0).toUpperCase() + type.slice(1);
                 this.lastSaved = `${this.$t('tir.saved')}: ${distance}m · ${label} · ${this.scoring[type]} ${this.$t('ranking.points')}`;
                 if (this.isAtelierComplete(this.activeAtelierIndex)) {
@@ -202,7 +217,7 @@ export default {
                         if (this.activeAtelierIndex < this.ateliers.length - 1) {
                             this.activeAtelierIndex++;
                         } else if (this.throwsCompleted >= this.totalThrows) {
-                            this.$emit('next');
+                            this.$emit('back');
                         }
                     }, 300);
                 }

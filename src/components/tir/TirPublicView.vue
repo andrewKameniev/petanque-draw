@@ -164,7 +164,10 @@ export default {
         }
     },
     created() {
-        if (this.tournament.tirPlayoff) {
+        if (!this.isTwoRoundSystem) {
+            this.activeBracket = 'r1';
+            if (this.tournament.tirPlayoff) this.view = 'playoff';
+        } else if (this.tournament.tirPlayoff) {
             this.view = 'playoff';
             const tabs = this.bracketTabs;
             if (tabs.length) this.activeBracket = tabs[tabs.length - 1].key;

@@ -22,7 +22,7 @@
         </div>
 
         <!-- Status -->
-        <div class="tir-pmatch__status" :class="statusClass">
+        <div v-if="!isTied" class="tir-pmatch__status" :class="statusClass">
             {{ statusText }}
         </div>
 

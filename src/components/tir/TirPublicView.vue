@@ -19,89 +19,8 @@
         </div>
 
         <!-- Participants view — scoring page style, read-only -->
-        <div v-if="view === 'participants'" class="tir-scoring">
-            <div v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1" class="tir-scoring__bracket-switcher">
-                <button v-for="tab in bracketTabs" :key="tab.key"
-                        class="tir-scoring__bracket-btn"
-                        :class="{'tir-scoring__bracket-btn--active': activeBracket === tab.key}"
-                        @click="activeBracket = tab.key">
-                    {{ tab.label }}
-                </button>
-            </div>
-            <!-- Participant list -->
-            <div v-if="expanded === null" class="tir-scoring__select">
-                <div v-for="(participant, index) in rankedParticipants" :key="participant.id || index" class="tir-scoring__participant-row" @click="expandParticipant(index)">
-                    <span class="tir-scoring__participant-rank">{{ index + 1 }}</span>
-                    <span class="tir-scoring__participant-name">{{ participant.name }}</span>
-                    <span class="tir-scoring__participant-score">{{ getTotal(participant) }}/{{ maxTotal }}</span>
-                    <span class="tir-scoring__participant-status" :class="getStatusClass(participant)">
-                        <CheckCircle v-if="isComplete(participant)" :size="16"/>
-                        <AlertCircle v-else-if="getThrows(participant) > 0" :size="16"/>
-                        <Circle v-else :size="16"/>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Expanded participant details (read-only scoring view) -->
-            <div v-else class="tir-pview">
-                <div class="tir-pview__header">
-                    <button class="tir-pview__back" @click="expanded = null">
-                        <ChevronLeft :size="20"/>
-                    </button>
-                    <div class="tir-pview__info">
-                        <h3 class="tir-pview__name">{{ expandedParticipant.name }}</h3>
-                        <div class="tir-pview__total">
-                            <span class="tir-pview__total-score">{{ getTotal(expandedParticipant) }}</span>
-                            <span class="tir-pview__total-max">/ {{ maxTotal }} {{ $t('ranking.points') }}</span>
-                        </div>
-                        <div class="tir-pview__throws">{{ getThrows(expandedParticipant) }} / {{ totalThrows }} {{ $t('tir.throws') }}</div>
-                    </div>
-                </div>
-
-                <div class="tir-pview__tabs">
-                    <button v-for="(atelier, aIdx) in atelierNames" :key="aIdx"
-                            class="tir-pview__tab"
-                            :class="{'tir-pview__tab--active': activeAtelier === aIdx, 'tir-pview__tab--complete': isAtelierComplete(expandedParticipant, aIdx)}"
-                            @click="activeAtelier = aIdx">
-                        {{ aIdx + 1 }}
-                    </button>
-                </div>
-
-                <div class="tir-pview__atelier">
-                    <div class="tir-pview__atelier-header">
-                        <h4>{{ atelierNames[activeAtelier] }}</h4>
-                        <div class="tir-pview__atelier-score">
-                            <span class="tir-pview__atelier-score-val">{{ getAtelierTotal(expandedParticipant, activeAtelier) }}</span>
-                            <span class="tir-pview__atelier-score-max">/ {{ maxAtelierScore }}</span>
-                        </div>
-                    </div>
-
-                    <div class="tir-pview__grid">
-                        <div class="tir-pview__grid-header">
-                            <div class="tir-pview__grid-corner"></div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--carreau">{{ $t('tir.carreau') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--reussi">{{ $t('tir.reussi') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--touche">{{ $t('tir.touche') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--manque">{{ $t('tir.manque') }}</div>
-                        </div>
-                        <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
-                            <div class="tir-pview__grid-distance">{{ distance }}m</div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getScore(expandedParticipant, activeAtelier, distance) === 'carreau'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'carreau'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getScore(expandedParticipant, activeAtelier, distance) === 'reussi'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'reussi'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getScore(expandedParticipant, activeAtelier, distance) === 'touche'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'touche'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getScore(expandedParticipant, activeAtelier, distance) === 'manque'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'manque'" :size="14"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div v-if="view === 'participants'">
+            <TirParticipantsList ref="participantsList" :tournament="tournament" :readOnly="true"/>
         </div>
 
         <!-- Table view — qualification ranking -->
@@ -130,7 +49,7 @@
                     <tbody v-if="isTwoRoundSystem">
                         <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
-                            <td class="tir-table__sticky-col tir-table__sticky-col--name">{{ row.name }}</td>
+                            <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">{{ row.name }}</td>
                             <td>{{ row.r1 }}</td>
                             <td v-if="currentRound >= 2">{{ row.r2 }}</td>
                             <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
@@ -168,19 +87,29 @@
                 <div class="tir-playoff__timeline">
                     <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
                         <div class="tir-playoff__progress">
-                            <span class="tir-playoff__progress-dot" :class="{'tir-playoff__progress-dot--complete': round.matches.every(m => isMatchComplete(m)), 'tir-playoff__progress-dot--final': round.isFinal}"></span>
+                            <span class="tir-playoff__progress-dot" :class="{'tir-playoff__progress-dot--complete': !round.isPreview && round.matches.every(m => isMatchComplete(m)), 'tir-playoff__progress-dot--final': round.isFinal}"></span>
                             <span v-if="rIdx < playoffDisplayRounds.length - 1" class="tir-playoff__progress-line"></span>
                         </div>
                         <div class="tir-playoff__round-content">
                             <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--in-progress': !isMatchComplete(match) && (match.score1 != null || match.score2 != null), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--final': round.isFinal}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
-                                <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
+                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--in-progress': !isMatchComplete(match) && !match.preview && (match.score1 != null || match.score2 != null), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--preview': match.preview, 'tir-playoff__match--final': round.isFinal}" @click="!match.preview && openPlayoffMatch(match, round.title, round.key, mIdx)">
+                                <div class="tir-playoff__match-top">
+                                    <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
+                                    <span v-if="isMatchComplete(match)" class="tir-playoff__match-status tir-playoff__match-status--complete">{{ $t('tir.matchCompleted') }}</span>
+                                    <span v-else-if="!match.preview && (match.score1 != null || match.score2 != null)" class="tir-playoff__match-status tir-playoff__match-status--progress">{{ $t('tir.matchInProgress') }}</span>
+                                </div>
                                 <div class="tir-playoff__match-row">
-                                    <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">{{ match.player1 || $t('tir.matchPending') }}</span>
+                                    <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">
+                                        <Trophy v-if="getMatchWinner(match) === match.player1" :size="12" class="tir-playoff__winner-icon"/>
+                                        <span v-html="formatName(match.preview ? match.previewLabel1 : match.player1)"></span>
+                                    </span>
                                     <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player1}">{{ match.score1 !== null ? match.score1 : '—' }}</span>
                                     <span class="tir-playoff__vs">vs</span>
                                     <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player2}">{{ match.score2 !== null ? match.score2 : '—' }}</span>
-                                    <span class="tir-playoff__player-name tir-playoff__player-name--right" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2}">{{ match.player2 || $t('tir.matchPending') }}</span>
+                                    <span class="tir-playoff__player-name tir-playoff__player-name--right" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2}">
+                                        <span v-html="formatName(match.preview ? match.previewLabel2 : match.player2)"></span>
+                                        <Trophy v-if="getMatchWinner(match) === match.player2" :size="12" class="tir-playoff__winner-icon"/>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -188,13 +117,13 @@
                 </div>
 
                 <!-- Winner block -->
-                <div v-if="champion" class="tir-playoff__winner">
-                    <div class="tir-playoff__winner-icon">
+                <div v-if="champion" class="tir-playoff__champion">
+                    <div class="tir-playoff__champion-icon">
                         <Trophy :size="28" color="#fff"/>
                     </div>
-                    <div class="tir-playoff__winner-info">
-                        <span class="tir-playoff__winner-label">{{ $t('tir.tournamentWinner') }}</span>
-                        <span class="tir-playoff__winner-name">{{ champion }}</span>
+                    <div class="tir-playoff__champion-info">
+                        <span class="tir-playoff__champion-label">{{ $t('tir.tournamentWinner') }}</span>
+                        <span class="tir-playoff__champion-name">{{ champion }}</span>
                     </div>
                 </div>
 
@@ -212,12 +141,13 @@
 <script>
 import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
+import TirParticipantsList from "./TirParticipantsList.vue";
 
 import {SCORING, ATELIER_KEYS} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
-    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check, TirPlayoffComparison},
+    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check, TirPlayoffComparison, TirParticipantsList},
     props: {
         tournament: {type: Object, required: true}
     },
@@ -229,7 +159,8 @@ export default {
             activePlayoffMatchKey: null,
             activePlayoffMatchLabel: '',
             viewingRound: null,
-            activeBracket: 'r2'
+            activeBracket: 'r2',
+            searchQuery: ''
         }
     },
     created() {
@@ -279,6 +210,9 @@ export default {
         },
         maxTotal() {
             return 5 * this.maxAtelierScore;
+        },
+        resultOptions() {
+            return [{key: 'carreau'}, {key: 'reussi'}, {key: 'touche'}, {key: 'manque'}];
         },
         atelierNames() {
             return ATELIER_KEYS.map(k => this.$t(`tir.${k}`));
@@ -348,6 +282,11 @@ export default {
         rankedParticipants() {
             return [...this.scoringParticipants].sort((a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));
         },
+        filteredParticipants() {
+            if (!this.searchQuery) return this.rankedParticipants;
+            const q = this.searchQuery.toLowerCase();
+            return this.rankedParticipants.filter(p => p.name.toLowerCase().includes(q) || (p.city && p.city.toLowerCase().includes(q)));
+        },
         playoffHasQf() {
             const playoff = this.tournament.tirPlayoff;
             if (!playoff?.rounds?.[0]) return false;
@@ -393,25 +332,68 @@ export default {
 
             let laneCounter = rounds.reduce((sum, r) => sum + r.matches.length, 0);
 
+            if (!playoff.thirdPlace && !playoff.final && rounds.length) {
+                const lastRound = rounds[rounds.length - 1];
+                const lastMatches = lastRound.matches;
+                if (lastMatches.length >= 2) {
+                    const nextMatchCount = Math.floor(lastMatches.length / 2);
+                    const previewMatches = [];
+                    for (let i = 0; i < lastMatches.length; i += 2) {
+                        const m1 = lastMatches[i];
+                        const m2 = lastMatches[i + 1];
+                        const w1 = this.getMatchWinner(m1);
+                        const w2 = m2 ? this.getMatchWinner(m2) : null;
+                        const p1 = w1 || this.$t('tir.matchPending');
+                        const p2 = w2 || this.$t('tir.matchPending');
+                        previewMatches.push({player1: w1 || null, player2: w2 || null, score1: null, score2: null, preview: true, previewLabel1: p1, previewLabel2: p2});
+                    }
+
+                    if (lastMatches.length === 2) {
+                        const loser1 = this.getMatchLoser(lastMatches[0]);
+                        const loser2 = this.getMatchLoser(lastMatches[1]);
+                        const l1 = loser1 || this.$t('tir.matchPending');
+                        const l2 = loser2 || this.$t('tir.matchPending');
+                        rounds.push({
+                            title: this.$t('tir.thirdPlaceMatch'),
+                            matches: [{player1: loser1 || null, player2: loser2 || null, score1: null, score2: null, preview: true, previewLabel1: l1, previewLabel2: l2}],
+                            key: `preview-third:${rounds.length}`,
+                            isFinal: false,
+                            isPreview: true,
+                            laneStart: 2
+                        });
+                    }
+
+                    if (previewMatches.length > 0) {
+                        const isFinal = nextMatchCount === 1;
+                        rounds.push({
+                            title: isFinal ? this.$t('games.final') : this.getRoundTitle(nextMatchCount, playoffSize),
+                            matches: previewMatches,
+                            key: `preview:${rounds.length}`,
+                            isFinal,
+                            isPreview: true,
+                            laneStart: isFinal ? 1 : 1
+                        });
+                    }
+                }
+            }
+
             if (playoff.thirdPlace) {
-                laneCounter++;
                 rounds.push({
                     title: this.$t('tir.thirdPlaceMatch'),
                     matches: [playoff.thirdPlace],
                     key: 'third:0',
                     isFinal: false,
-                    laneStart: laneCounter
+                    laneStart: 2
                 });
             }
 
             if (playoff.final) {
-                laneCounter++;
                 rounds.push({
                     title: this.$t('games.final'),
                     matches: [playoff.final],
                     key: 'final:0',
                     isFinal: true,
-                    laneStart: laneCounter
+                    laneStart: 1
                 });
             }
 
@@ -450,9 +432,13 @@ export default {
 
                 let place = '';
                 let rowClass = '';
+                const qualifiedNames = playoff?.qualified || [];
                 if (isDirect) {
                     rowClass = 'tir-table__row--direct';
                     place = this.$t('tir.directQualifier');
+                } else if (isR2 && playoff && qualifiedNames.includes(p.name)) {
+                    rowClass = 'tir-table__row--direct';
+                    place = this.$t('tir.round2Qualifier');
                 } else if (isR2) {
                     rowClass = 'tir-table__row--r2';
                 } else if (this.isTwoRoundSystem && this.currentRound === 1 && r2CandidateIds.includes(p.id)) {
@@ -540,6 +526,14 @@ export default {
             const firstIncomplete = ATELIER_KEYS.findIndex((_, idx) => !this.isAtelierComplete(p, idx));
             this.activeAtelier = firstIncomplete !== -1 ? firstIncomplete : 0;
         },
+        expandParticipantById(id) {
+            const index = this.rankedParticipants.findIndex(p => p.id === id);
+            if (index !== -1) this.expandParticipant(index);
+        },
+        openFromTable(id) {
+            this.view = 'participants';
+            this.$nextTick(() => this.$refs.participantsList?.expandById(id));
+        },
         getTotal(participant) {
             if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
                 return this.getPlayoffBracketScore(participant);
@@ -593,15 +587,21 @@ export default {
             return this.qualifiedNames.includes(participant.name);
         },
         isMatchComplete(match) {
-            if (match.complete) return true;
-            return match.score1 !== null && match.score2 !== null && match.score1 !== match.score2;
+            return !!match.complete || !!match.winner;
         },
         getMatchWinner(match) {
-            if (match.winner) return match.winner;
-            if (match.score1 !== null && match.score2 !== null && match.score1 !== match.score2) {
-                return match.score1 > match.score2 ? match.player1 : match.player2;
-            }
-            return null;
+            return match.winner || null;
+        },
+        getMatchLoser(match) {
+            const winner = this.getMatchWinner(match);
+            if (!winner) return null;
+            return winner === match.player1 ? match.player2 : match.player1;
+        },
+        formatName(name) {
+            if (!name) return this.$t('tir.matchPending');
+            const parts = name.split(' ');
+            if (parts.length <= 1) return `<b>${name}</b>`;
+            return `<b>${parts[0]}</b> ${parts.slice(1).join(' ')}`;
         },
         getRoundTitle(matchCount, playoffSize) {
             if (playoffSize === 2) return this.$t('games.final');
@@ -764,6 +764,27 @@ export default {
     color: #fff;
 }
 
+.tir-scoring__search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    outline: none;
+}
+
+.tir-scoring__search:focus {
+    border-color: var(--color-primary, #471aa0);
+}
+
+.tir-scoring__participant-club {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary, #888);
+    font-weight: 400;
+}
+
 /* Scoring list */
 .tir-scoring__select {
     display: flex;
@@ -906,6 +927,82 @@ export default {
 .tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); color: #fff; }
 .tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); color: #fff; }
 
+/* Stacked ateliers (detail view) */
+.tir-pview__atelier-card {
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.tir-pview__atelier-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tir-pview__atelier-card-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #F5A623;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tir-pview__atelier-card-name {
+    font-weight: 700;
+    font-size: 14px;
+    flex: 1;
+}
+
+.tir-pview__atelier-card-score {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+}
+
+.tir-pview__circles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tir-pview__circles-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tir-pview__circles-dist {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #777);
+    min-width: 24px;
+    order: -1;
+}
+
+.tir-pview__circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    opacity: 0.35;
+}
+
+.tir-pview__circle--active { opacity: 1; }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); }
+
 /* Table */
 .tir-table__content {
     width: 100%;
@@ -978,6 +1075,16 @@ export default {
 
 .tir-table__row--eliminated td.tir-table__sticky-col {
     background: var(--card-bg, #fff);
+}
+
+.tir-table__clickable {
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+}
+
+.tir-table__clickable:hover {
+    text-decoration: underline;
 }
 
 .tir-table__empty {
@@ -1080,13 +1187,13 @@ export default {
 }
 
 .tir-playoff__match--in-progress {
-    border-color: #F5A623;
-    background: #fffcf5;
+    border-color: var(--color-primary, #471aa0);
+    background: #f8f4ff;
     border-width: 2px;
 }
 
 .tir-playoff__match--in-progress .tir-playoff__match-num {
-    background: #F5A623;
+    background: var(--color-primary, #471aa0);
     color: #fff;
 }
 
@@ -1105,6 +1212,24 @@ export default {
     border-color: var(--color-border, #e0e0e0);
 }
 
+.tir-playoff__match--preview {
+    opacity: 0.55;
+    cursor: default;
+    border-style: dashed;
+}
+
+.tir-playoff__match--preview:hover {
+    background: #fff;
+    border-color: var(--color-border, #e0e0e0);
+}
+
+.tir-playoff__match-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
 .tir-playoff__match-num {
     display: inline-flex;
     align-items: center;
@@ -1116,7 +1241,23 @@ export default {
     font-size: 11px;
     font-weight: 700;
     color: var(--text-secondary, #777);
-    margin-bottom: 8px;
+}
+
+.tir-playoff__match-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.tir-playoff__match-status--complete {
+    color: #2e7d32;
+    background: rgba(76, 175, 80, 0.12);
+}
+
+.tir-playoff__match-status--progress {
+    color: #5e35b1;
+    background: rgba(94, 53, 177, 0.1);
 }
 
 .tir-playoff__match-row {
@@ -1131,10 +1272,13 @@ export default {
     font-weight: 500;
     color: #1F2233;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     min-width: 0;
+    word-break: break-word;
 }
+
 
 .tir-playoff__player-name--right {
     text-align: right;
@@ -1143,6 +1287,16 @@ export default {
 .tir-playoff__player-name--winner {
     color: #43A047;
     font-weight: 700;
+}
+
+.tir-playoff__winner-icon {
+    color: #43A047;
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
+    flex-shrink: 0;
+    display: inline-block;
+    margin-left: 4px;
 }
 
 .tir-playoff__score {
@@ -1166,8 +1320,8 @@ export default {
     text-align: center;
 }
 
-/* Winner block */
-.tir-playoff__winner {
+/* Champion block */
+.tir-playoff__champion {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -1177,7 +1331,7 @@ export default {
     border: 1px solid rgba(67, 160, 71, 0.22);
 }
 
-.tir-playoff__winner-icon {
+.tir-playoff__champion-icon {
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -1188,20 +1342,20 @@ export default {
     flex-shrink: 0;
 }
 
-.tir-playoff__winner-info {
+.tir-playoff__champion-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.tir-playoff__winner-label {
+.tir-playoff__champion-label {
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     color: #43A047;
 }
 
-.tir-playoff__winner-name {
+.tir-playoff__champion-name {
     font-size: 22px;
     font-weight: 800;
     color: #1F2233;
@@ -1232,5 +1386,40 @@ export default {
 .tir-playoff__cta > :last-child {
     margin-left: auto;
     color: #43A047;
+}
+
+@media (max-width: 400px) {
+    .tir-playoff__round {
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 450px) {
+    .tir-playoff__match {
+        padding: 10px 10px;
+    }
+
+    .tir-playoff__match-row {
+        gap: 4px;
+    }
+
+    .tir-playoff__player-name {
+        font-size: 12px;
+    }
+
+    .tir-playoff__score {
+        font-size: 16px;
+        min-width: 22px;
+    }
+
+    .tir-playoff__vs {
+        font-size: 11px;
+        min-width: 18px;
+    }
+
+    .tir-playoff__winner-icon {
+        width: 10px;
+        height: 10px;
+    }
 }
 </style>

@@ -338,7 +338,7 @@ export default {
     },
     "tir": {
         "participants": "Учасники",
-        "scoring": "Режим",
+        "scoring": "Рахунок",
         "table": "Таблиця",
         "settings": "Налаштування",
         "throws": "кидків",

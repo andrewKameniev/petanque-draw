@@ -92,7 +92,7 @@
 import {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon} from "lucide-vue-next";
 import Modal from "@/components/Modal";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+import {SCORING} from '@/services/tir';
 
 export default {
     name: 'TirAtelierView',

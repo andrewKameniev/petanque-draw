@@ -173,7 +173,7 @@
                         </div>
                         <div class="tir-playoff__round-content">
                             <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--final': round.isFinal}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
+                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--in-progress': !isMatchComplete(match) && (match.score1 != null || match.score2 != null), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--final': round.isFinal}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
                                 <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
                                 <div class="tir-playoff__match-row">
                                     <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">{{ match.player1 || $t('tir.matchPending') }}</span>
@@ -213,8 +213,7 @@
 import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
-const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
+import {SCORING, ATELIER_KEYS} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
@@ -1070,8 +1069,25 @@ export default {
 .tir-playoff__match:last-child { margin-bottom: 0; }
 
 .tir-playoff__match--complete {
-    border-color: rgba(67, 160, 71, 0.35);
-    background: #FCFFFC;
+    border-color: #4caf50;
+    background: #f0faf1;
+    border-width: 2px;
+}
+
+.tir-playoff__match--complete .tir-playoff__match-num {
+    background: #4caf50;
+    color: #fff;
+}
+
+.tir-playoff__match--in-progress {
+    border-color: #F5A623;
+    background: #fffcf5;
+    border-width: 2px;
+}
+
+.tir-playoff__match--in-progress .tir-playoff__match-num {
+    background: #F5A623;
+    color: #fff;
 }
 
 .tir-playoff__match--final {

@@ -282,17 +282,7 @@ import TirAtelierView from "./TirAtelierView.vue";
 import TirPlayoffMatch from "./TirPlayoffMatch.vue";
 import {Users, Grid3x3, TableProperties, Plus, CheckCircle, AlertCircle, Circle, Trophy, Pencil} from "lucide-vue-next";
 
-const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
-
-const SCORING = {
-    carreau: 5,
-    reussi: 3,
-    touche: 1,
-    manque: 0
-};
-
-const DISTANCES_FULL = [6, 7, 8, 9];
-const DISTANCES_JUNIOR = [6, 7, 8];
+import {SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR} from '@/services/tir';
 
 export default {
     name: 'TirModule',

@@ -549,6 +549,27 @@ footer {
     }
 }
 
+@media all and (max-width: 450px) {
+    .container {
+        padding: 0;
+    }
+
+    .remote-toolbar {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .tournament-name-row {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .tir-module {
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+    }
+}
+
 .opacity-0 {
     opacity: 0;
 }

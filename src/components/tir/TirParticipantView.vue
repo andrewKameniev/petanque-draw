@@ -116,7 +116,7 @@
 <script>
 import {ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon} from "lucide-vue-next";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+import {SCORING} from '@/services/tir';
 
 export default {
     name: 'TirParticipantView',

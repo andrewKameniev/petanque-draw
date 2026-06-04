@@ -47,6 +47,12 @@
             </span>
         </div>
 
+        <!-- Match result notice -->
+        <div v-if="matchComplete" class="tir-compare__result">
+            <Trophy :size="18" class="tir-compare__result-icon"/>
+            <span class="tir-compare__result-text">{{ winnerName }}</span>
+        </div>
+
         <!-- Atelier comparison cards -->
         <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-compare__atelier">
             <div class="tir-compare__atelier-header">
@@ -95,9 +101,9 @@
 </template>
 
 <script>
-import {ChevronLeft} from "lucide-vue-next";
+import {ChevronLeft, Trophy} from "lucide-vue-next";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+import {SCORING} from '@/services/tir';
 
 const RESULT_OPTIONS = [
     {key: 'carreau', points: 5},
@@ -108,7 +114,7 @@ const RESULT_OPTIONS = [
 
 export default {
     name: 'TirPlayoffComparison',
-    components: {ChevronLeft},
+    components: {ChevronLeft, Trophy},
     props: {
         match: {type: Object, required: true},
         ateliers: {type: Array, required: true},
@@ -155,6 +161,11 @@ export default {
             if (!this.bothComplete) return false;
             if (this.isTied) return !!this.match.tieWinner;
             return true;
+        },
+        winnerName() {
+            if (!this.matchComplete) return '';
+            if (this.isPlayer1Winner) return this.match.player1;
+            return this.match.player2;
         }
     },
     methods: {
@@ -444,6 +455,28 @@ export default {
     border-radius: 10px;
     border: 1px solid var(--border-color, #e0e0e0);
     margin-top: 6px;
+}
+
+.tir-compare__result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #EAF7EC;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.tir-compare__result-icon {
+    color: #F5A623;
+}
+
+.tir-compare__result-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2e7d32;
 }
 
 .tir-compare__summary--complete {

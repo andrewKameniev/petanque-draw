@@ -601,11 +601,11 @@ export default {
 }
 
 [data-theme="dark"] .wrapper::before {
-    opacity: 0.05;
+    display: none;
 }
 
 .wrapper--tir {
-    background: #fff;
+    background: var(--color-body-bg);
 }
 
 .wrapper--tir::before {

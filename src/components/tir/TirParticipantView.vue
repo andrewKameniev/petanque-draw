@@ -197,6 +197,7 @@ export default {
         getDistanceValue(distance) {
             return this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance] || null;
         },
+        /* eslint-disable vue/no-mutating-props */
         setScore(distance, type) {
             if (this.readOnly) return;
             if (!this.participant[this.scoresKey]) {
@@ -225,6 +226,7 @@ export default {
             }
             this.$emit('update');
         },
+        /* eslint-enable vue/no-mutating-props */
         prevAtelier() {
             if (this.activeAtelierIndex > 0) this.activeAtelierIndex--;
         },
@@ -248,7 +250,7 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__info {
@@ -272,12 +274,12 @@ export default {
 
 .tir-pview__total-max {
     font-size: 14px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__throws {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 /* Tabs */
@@ -291,18 +293,18 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--border-color, #e0e0e0);
-    background: var(--bg-color, #fff);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     transition: all 0.2s;
 }
 
 .tir-pview__tab--active {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
@@ -321,21 +323,21 @@ export default {
     width: 36px;
     text-align: center;
     font-size: 9px;
-    color: var(--text-secondary, #aaa);
+    color: var(--color-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .tir-pview__tab-label--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
     font-weight: 600;
 }
 
 /* Atelier */
 .tir-pview__atelier {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 16px;
 }
@@ -364,18 +366,18 @@ export default {
 
 .tir-pview__atelier-score-max {
     font-size: 13px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__atelier-score-label {
     display: block;
     font-size: 11px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__atelier-desc {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     margin-bottom: 8px;
 }
 
@@ -392,7 +394,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 /* Grid */
@@ -435,13 +437,13 @@ export default {
     align-items: center;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__grid-cell {
     flex: 1;
     height: 32px;
-    border: 2px solid var(--border-color, #e0e0e0);
+    border: 2px solid var(--color-border);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -451,7 +453,7 @@ export default {
 }
 
 .tir-pview__grid-cell:hover {
-    border-color: var(--primary-color, #f5a623);
+    border-color: #f5a623;
 }
 
 .tir-pview__grid-cell--carreau {
@@ -500,10 +502,10 @@ export default {
     align-items: center;
     gap: 4px;
     padding: 10px 14px;
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: var(--bg-color, #fff);
-    color: var(--text-color, #333);
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: 13px;
     cursor: pointer;
 }
@@ -514,8 +516,8 @@ export default {
 }
 
 .tir-pview__nav-btn--primary {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
@@ -550,7 +552,7 @@ export default {
 
 /* Stacked ateliers (complete/readOnly) */
 .tir-pview__atelier-card {
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 8px;
@@ -586,7 +588,7 @@ export default {
 .tir-pview__atelier-card-score {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__circles-grid {
@@ -621,7 +623,7 @@ export default {
 .tir-pview__circles-dist {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     min-width: 24px;
 }
 </style>

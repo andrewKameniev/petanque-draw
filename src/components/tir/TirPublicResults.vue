@@ -87,7 +87,7 @@ export default {
             const playoffSize = firstRoundMatches > 0 ? firstRoundMatches * 2 : playoff.size || 2;
 
             if (playoff.rounds) {
-                playoff.rounds.forEach((round, rIdx) => {
+                playoff.rounds.forEach((round) => {
                     const matchCount = round.matches.length;
                     rounds.push({
                         title: this.getRoundTitle(matchCount, playoffSize),
@@ -175,10 +175,10 @@ export default {
 
 <style scoped>
 .tir-public {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
     border-radius: 12px;
     padding: 1.25rem;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
 }
 
 .tir-public__title {
@@ -195,10 +195,10 @@ export default {
 .tir-public__table th {
     text-align: left;
     padding: 0.75rem 0.5rem;
-    border-bottom: 2px solid var(--color-border, #e0e0e0);
+    border-bottom: 2px solid var(--color-border);
     font-size: 0.8rem;
     text-transform: uppercase;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-public__table td {
@@ -208,7 +208,7 @@ export default {
 
 .tir-public__rank {
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-public__row--qualified {
@@ -218,25 +218,25 @@ export default {
 .tir-public__empty {
     text-align: center;
     padding: 2rem;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 /* Playoff */
 .tir-public__playoff {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--color-border, #e0e0e0);
+    border-top: 1px solid var(--color-border);
 }
 
 .tir-public__round {
     margin-bottom: 1rem;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 12px;
 }
 
 .tir-public__round--final {
-    border-color: var(--primary-color, #f5a623);
+    border-color: #f5a623;
     background: rgba(245, 166, 35, 0.03);
 }
 
@@ -244,7 +244,7 @@ export default {
     margin: 0 0 8px;
     font-size: 12px;
     font-weight: 700;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     text-transform: uppercase;
 }
 
@@ -295,7 +295,7 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    background: var(--bg-secondary, #f9f9f9);
+    background: var(--color-surface-hover);
     border-radius: 8px;
 }
 

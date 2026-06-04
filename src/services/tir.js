@@ -213,6 +213,88 @@ export function getMatchWinner(match, totalThrows) {
     return s1 > s2 ? match.player1 : match.player2;
 }
 
+export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, playoff, currentRound, isTwoRoundSystem, hasPlayoffScores, labels}) {
+    const r1Ranked = [...participants].sort((a, b) =>
+        getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
+    );
+
+    const allPlayers = r1Ranked.map(p => {
+        const isDirect = directIds.includes(p.id);
+        const isR2 = r2Ids.includes(p.id);
+        const r1Score = getScoreTotal(p, 'scores');
+        const r2Score = isR2 ? getScoreTotal(p, 'scores2') : null;
+        const combined = isR2 ? r1Score + r2Score : r1Score;
+
+        let place, rowClass;
+        const qualifiedNames = playoff?.qualified || [];
+        if (isDirect) {
+            rowClass = 'tir-table__row--direct';
+            place = labels.direct;
+        } else if (isR2 && playoff && qualifiedNames.includes(p.name)) {
+            rowClass = 'tir-table__row--direct';
+            place = labels.r2Qualifier;
+        } else if (isR2) {
+            rowClass = 'tir-table__row--r2';
+            place = '';
+        } else if (isTwoRoundSystem && currentRound === 1 && r2CandidateIds.includes(p.id)) {
+            rowClass = 'tir-table__row--r2';
+            place = labels.goToR2;
+        } else {
+            rowClass = 'tir-table__row--eliminated';
+            place = labels.eliminated;
+        }
+
+        const matchScores = getPlayoffMatchScores(p.name, playoff);
+
+        let playoffStage = 0;
+        let playoffLastScore = 0;
+        if (matchScores.final !== '') { playoffStage = 3; playoffLastScore = matchScores.final; }
+        else if (matchScores.sf !== '') { playoffStage = 2; playoffLastScore = matchScores.sf; }
+        else if (matchScores.qf !== '') { playoffStage = 1; playoffLastScore = matchScores.qf; }
+
+        return {
+            id: p.id, name: p.name, r1: r1Score,
+            r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
+            combined: isR2 ? combined : (isDirect ? r1Score : ''),
+            qf: matchScores.qf, sf: matchScores.sf, final: matchScores.final,
+            place, rowClass, combinedNum: combined, playoffStage, playoffLastScore
+        };
+    });
+
+    if (currentRound >= 2 && r2Ids.length) {
+        const qualifiedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--direct');
+        const r2Rows = allPlayers.filter(r => r.rowClass === 'tir-table__row--r2');
+        const eliminatedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--eliminated');
+
+        if (playoff && hasPlayoffScores) {
+            const playoffParticipants = [...qualifiedRows, ...r2Rows];
+
+            const finalMatch = playoff.final;
+            if (finalMatch?.winner) {
+                const winner = finalMatch.winner;
+                const loser = winner === finalMatch.player1 ? finalMatch.player2 : finalMatch.player1;
+                const thirdWinner = playoff.thirdPlace?.winner;
+
+                playoffParticipants.forEach(row => {
+                    if (row.name === winner) { row.rowClass = 'place-gold'; row.place = '1'; row.placeNum = 1; }
+                    else if (row.name === loser) { row.rowClass = 'place-silver'; row.place = '2'; row.placeNum = 2; }
+                    else if (thirdWinner && row.name === thirdWinner) { row.rowClass = 'place-bronze'; row.place = '3'; row.placeNum = 3; }
+                });
+            }
+
+            playoffParticipants.sort((a, b) => {
+                if (a.placeNum || b.placeNum) return (a.placeNum || 99) - (b.placeNum || 99);
+                return b.playoffStage - a.playoffStage || b.playoffLastScore - a.playoffLastScore || b.combinedNum - a.combinedNum;
+            });
+
+            return [...playoffParticipants, ...eliminatedRows];
+        }
+
+        return [...qualifiedRows, ...r2Rows.sort((a, b) => b.combinedNum - a.combinedNum), ...eliminatedRows];
+    }
+    return allPlayers;
+}
+
 export function getPlayoffMatchScores(playerName, playoff) {
     const result = {qf: '', sf: '', final: ''};
     if (!playoff) return result;

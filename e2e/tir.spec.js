@@ -139,7 +139,7 @@ test.describe('TIR Tournament', () => {
     test('junior mode uses 3 distances', async ({page}) => {
         await setupTirTournament(page, {teams: 4, junior: true});
         await page.locator('.tir-scoring__participant-row').first().click();
-        const distances = page.locator('.tir-pview__grid-row .tir-pview__grid-distance, .tir-pview__grid-row div:first-child');
+        page.locator('.tir-pview__grid-row .tir-pview__grid-distance, .tir-pview__grid-row div:first-child');
         await expect(page.locator('.tir-pview__throws')).toContainText('/ 15');
     });
 });

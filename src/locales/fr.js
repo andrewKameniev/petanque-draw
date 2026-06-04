@@ -406,7 +406,6 @@ export default {
         "twoRoundsShort": "2 tours",
         "twoRoundSystem": "Système de qualification en 2 tours",
         "twoRoundHint": "Le top 4 va en quarts directement. Les places 5-16 jouent un 2e tour.",
-        "juniorTournament": "Tournoi junior (sans 9m)",
         "startRound2": "Commencer le tour 2",
         "round2Hint": "Top 4 qualifiés directement. Les autres joueurs disputeront le tour 2.",
         "round1Score": "T1",

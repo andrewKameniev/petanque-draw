@@ -257,34 +257,36 @@ export default {
 
 .tir-plist__bracket-btn {
     padding: 4px 10px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: none;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .tir-plist__bracket-btn--active {
-    background: var(--color-primary, #471aa0);
-    border-color: var(--color-primary, #471aa0);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
 }
 
 .tir-plist__search {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 13px;
     margin-bottom: 8px;
     outline: none;
+    background: var(--color-bg-input);
+    color: var(--color-text);
 }
 
 .tir-plist__search:focus {
-    border-color: var(--color-primary, #471aa0);
+    border-color: var(--color-primary);
 }
 
 .tir-plist__select {
@@ -298,41 +300,42 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .tir-plist__row:hover {
-    background: var(--bg-secondary, #f9f9f9);
+    background: var(--color-surface-hover);
 }
 
 .tir-plist__rank {
     font-weight: 600;
     min-width: 20px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-plist__name {
     flex: 1;
     font-weight: 500;
+    color: var(--color-text);
 }
 
 .tir-plist__club {
     display: block;
     font-size: 11px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
 .tir-plist__score {
     font-size: 13px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
-.tir-plist__status { color: var(--text-secondary, #ccc); }
-.tir-plist__status--complete { color: #4caf50; }
+.tir-plist__status { color: var(--color-grey); }
+.tir-plist__status--complete { color: var(--color-success); }
 .tir-plist__status--partial { color: #f5a623; }
 </style>

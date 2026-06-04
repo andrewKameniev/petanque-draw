@@ -3,7 +3,7 @@ import {
     SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR,
     getScoreTotal, getScoreCarreauCount, getCombinedTotal,
     getThrowCount, isParticipantComplete, getAtelierScore, isAtelierComplete,
-    rankParticipants, rankByR1, rankByCombined,
+    rankParticipants,
     getDirectQualifiers, getR2Candidates,
     generateSeededBracket, createMatch, buildPlayoffBracket,
     advancePlayoff, getMatchPlayerScore, getMatchPlayerThrows,
@@ -14,7 +14,7 @@ function makeParticipant(name, scores = {}) {
     return {id: name, name, scores};
 }
 
-function fillAtelier(scoreType, distances = DISTANCES_FULL) {
+function fillAtelier(scoreType, distances = DISTANCES_FULL) { // eslint-disable-line no-unused-vars
     const atelier = {};
     distances.forEach(d => { atelier[d] = scoreType; });
     return atelier;
@@ -276,7 +276,7 @@ describe('advancePlayoff', () => {
     it('creates next round for 8+ players', () => {
         const names = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'];
         const playoff = buildPlayoffBracket(names, 8);
-        playoff.rounds[0].matches.forEach((m, i) => {
+        playoff.rounds[0].matches.forEach((m) => {
             m.complete = true;
             m.winner = m.player1;
             m.loser = m.player2;

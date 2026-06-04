@@ -89,13 +89,13 @@
 </template>
 
 <script>
-import {ChevronLeft, ChevronRight} from "lucide-vue-next";
+import {ChevronLeft} from "lucide-vue-next";
 
 import {SCORING} from '@/services/tir';
 
 export default {
     name: 'TirPlayoffMatch',
-    components: {ChevronLeft, ChevronRight},
+    components: {ChevronLeft},
     props: {
         match: {type: Object, required: true},
         ateliers: {type: Array, required: true},
@@ -163,6 +163,7 @@ export default {
         }
     },
     methods: {
+        /* eslint-disable vue/no-mutating-props */
         getScores(playerNum) {
             const key = playerNum === 1 ? 'scores1' : 'scores2';
             if (!this.match[key]) this.match[key] = {};
@@ -236,6 +237,7 @@ export default {
             this.$emit('update');
             setTimeout(() => { this.$emit('back'); }, 500);
         }
+        /* eslint-enable vue/no-mutating-props */
     }
 }
 </script>
@@ -256,14 +258,14 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     font-size: 13px;
 }
 
 .tir-pmatch__round-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     text-transform: uppercase;
     margin-left: auto;
 }
@@ -279,7 +281,7 @@ export default {
     flex: 1 1 0;
     min-width: 0;
     padding: 12px;
-    border: 2px solid var(--border-color, #e0e0e0);
+    border: 2px solid var(--color-border);
     border-radius: 10px;
     text-align: center;
     transition: border-color 0.2s;
@@ -302,19 +304,19 @@ export default {
 .tir-pmatch__player-score {
     font-size: 22px;
     font-weight: 700;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pmatch__player-score span {
     font-size: 13px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
 .tir-pmatch__vs {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #999);
+    color: var(--color-text-muted);
 }
 
 .tir-pmatch__status {
@@ -324,8 +326,8 @@ export default {
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 14px;
-    background: var(--bg-secondary, #f5f5f5);
-    color: var(--text-secondary, #888);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
 }
 
 .tir-pmatch__status--progress { background: #fff3e0; color: #f57c00; }
@@ -348,7 +350,7 @@ export default {
 .tir-pmatch__tie-btn {
     flex: 1;
     padding: 10px;
-    border: 2px solid var(--border-color, #e0e0e0);
+    border: 2px solid var(--color-border);
     border-radius: 8px;
     background: #fff;
     font-weight: 600;
@@ -376,7 +378,7 @@ export default {
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-pmatch__legend-dot {
@@ -392,7 +394,7 @@ export default {
 
 /* Atelier cards */
 .tir-pmatch__atelier {
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 10px;
@@ -448,7 +450,7 @@ export default {
 .tir-pmatch__distance {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     min-width: 30px;
     text-align: center;
 }
@@ -492,12 +494,12 @@ export default {
     justify-content: space-between;
     padding: 12px 16px;
     border-radius: 10px;
-    background: var(--bg-secondary, #f5f5f5);
+    background: var(--color-surface-alt);
 }
 
 .tir-pmatch__summary-side {
     font-size: 13px;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pmatch__summary-side strong {
@@ -506,7 +508,7 @@ export default {
 
 .tir-pmatch__summary-max {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 @media (max-width: 450px) {

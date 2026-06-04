@@ -199,6 +199,10 @@ input[type="checkbox"]:focus {
     background-color: var(--color-body-bg);
 }
 
+[data-theme="dark"] body:not(.documentation)::before {
+    display: none;
+}
+
 [data-theme="dark"] .navbar-brand img,
 [data-theme="dark"] .login-card__logo img {
     filter: brightness(0) invert(1);

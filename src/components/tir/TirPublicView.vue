@@ -139,15 +139,15 @@
 </template>
 
 <script>
-import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check} from "lucide-vue-next";
+import {Users, TableProperties, Trophy, ChevronRight} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
 import TirParticipantsList from "./TirParticipantsList.vue";
 
-import {SCORING, ATELIER_KEYS} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, getScoreTotal, buildTableRows} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
-    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check, TirPlayoffComparison, TirParticipantsList},
+    components: {Users, TableProperties, Trophy, ChevronRight, TirPlayoffComparison, TirParticipantsList},
     props: {
         tournament: {type: Object, required: true}
     },
@@ -330,8 +330,6 @@ export default {
                 });
             }
 
-            let laneCounter = rounds.reduce((sum, r) => sum + r.matches.length, 0);
-
             if (!playoff.thirdPlace && !playoff.final && rounds.length) {
                 const lastRound = rounds[rounds.length - 1];
                 const lastMatches = lastRound.matches;
@@ -408,72 +406,31 @@ export default {
         },
         r1RankedParticipants() {
             return [...this.participants].sort((a, b) =>
-                this.getTotal(a, 'scores') !== undefined ?
-                    this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores') :
-                    this.getTotal(b) - this.getTotal(a)
+                getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
             );
         },
         publicTableRows() {
             if (!this.isTwoRoundSystem) return [];
-            const playoff = this.tournament.tirPlayoff;
             const r2Ids = this.tournament.tirR2Participants || [];
             const r1Ranked = [...this.participants].sort((a, b) =>
-                this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores')
+                getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
             );
-            const directIds = r1Ranked.slice(0, 4).map(p => p.id);
-            const r2CandidateIds = r1Ranked.slice(4, 16).map(p => p.id);
-
-            const allPlayers = r1Ranked.map(p => {
-                const isDirect = directIds.includes(p.id);
-                const isR2 = r2Ids.includes(p.id);
-                const r1Score = this.getScoreForKey(p, 'scores');
-                const r2Score = isR2 ? this.getScoreForKey(p, 'scores2') : null;
-                const combined = isR2 ? r1Score + r2Score : r1Score;
-
-                let place = '';
-                let rowClass = '';
-                const qualifiedNames = playoff?.qualified || [];
-                if (isDirect) {
-                    rowClass = 'tir-table__row--direct';
-                    place = this.$t('tir.directQualifier');
-                } else if (isR2 && playoff && qualifiedNames.includes(p.name)) {
-                    rowClass = 'tir-table__row--direct';
-                    place = this.$t('tir.round2Qualifier');
-                } else if (isR2) {
-                    rowClass = 'tir-table__row--r2';
-                } else if (this.isTwoRoundSystem && this.currentRound === 1 && r2CandidateIds.includes(p.id)) {
-                    rowClass = 'tir-table__row--r2';
-                    place = this.$t('tir.goToRound2');
-                } else {
-                    rowClass = 'tir-table__row--eliminated';
-                    place = this.$t('tir.eliminated');
+            return buildTableRows({
+                participants: this.participants,
+                directIds: r1Ranked.slice(0, 4).map(p => p.id),
+                r2Ids,
+                r2CandidateIds: r1Ranked.slice(4, 16).map(p => p.id),
+                playoff: this.tournament.tirPlayoff,
+                currentRound: this.currentRound,
+                isTwoRoundSystem: this.isTwoRoundSystem,
+                hasPlayoffScores: this.playoffHasQf || this.playoffHasSf || this.playoffHasFinal,
+                labels: {
+                    direct: this.$t('tir.directQualifier'),
+                    r2Qualifier: this.$t('tir.round2Qualifier'),
+                    goToR2: this.$t('tir.goToRound2'),
+                    eliminated: this.$t('tir.eliminated')
                 }
-
-                const matchScores = this.getPlayoffMatchScores(p.name, playoff);
-
-                return {
-                    id: p.id,
-                    name: p.name,
-                    r1: r1Score,
-                    r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
-                    combined: isR2 ? combined : (isDirect ? r1Score : ''),
-                    qf: matchScores.qf,
-                    sf: matchScores.sf,
-                    final: matchScores.final,
-                    place,
-                    rowClass,
-                    combinedNum: combined
-                };
             });
-
-            if (this.currentRound >= 2 && r2Ids.length) {
-                const directRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--direct');
-                const r2Rows = allPlayers.filter(r => r.rowClass === 'tir-table__row--r2')
-                    .sort((a, b) => b.combinedNum - a.combinedNum);
-                const eliminatedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--eliminated');
-                return [...directRows, ...r2Rows, ...eliminatedRows];
-            }
-            return allPlayers;
         }
     },
     methods: {
@@ -611,43 +568,6 @@ export default {
             if (matchCount === 16) return this.$t('tir.sixteenthFinal');
             return this.$t('tir.round') + ' ' + matchCount;
         },
-        getScoreForKey(participant, key) {
-            if (!participant[key]) return 0;
-            let total = 0;
-            Object.values(participant[key]).forEach(atelier => {
-                if (atelier && typeof atelier === 'object') {
-                    Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
-                }
-            });
-            return total;
-        },
-        getPlayoffMatchScores(playerName, playoff) {
-            const result = {qf: '', sf: '', final: ''};
-            if (!playoff) return result;
-            if (playoff.rounds) {
-                playoff.rounds.forEach(round => {
-                    round.matches.forEach(m => {
-                        if (m.player1 === playerName || m.player2 === playerName) {
-                            const score = m.player1 === playerName ? m.score1 : m.score2;
-                            if (score != null) {
-                                if (round.matches.length >= 4) result.qf = score;
-                                else if (round.matches.length === 2) result.sf = score;
-                                else if (round.matches.length === 1) result.final = score;
-                            }
-                        }
-                    });
-                });
-            }
-            if (playoff.final && (playoff.final.player1 === playerName || playoff.final.player2 === playerName)) {
-                const score = playoff.final.player1 === playerName ? playoff.final.score1 : playoff.final.score2;
-                if (score != null) result.final = score;
-            }
-            if (playoff.thirdPlace && (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)) {
-                const score = playoff.thirdPlace.player1 === playerName ? playoff.thirdPlace.score1 : playoff.thirdPlace.score2;
-                if (score != null) result.final = score;
-            }
-            return result;
-        },
         openPlayoffMatch(match, label, roundKey, mIdx) {
             if (!match.player1 || !match.player2) return;
             const [type, rIdx] = roundKey.split(':');
@@ -667,16 +587,16 @@ export default {
 
 <style scoped>
 .tir-module {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
     border-radius: 12px;
     padding: 16px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
 }
 
 .tir-nav {
     display: flex;
-    background: var(--bg-color, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 6px 0;
     margin-bottom: 16px;
@@ -691,14 +611,14 @@ export default {
     padding: 6px;
     border: none;
     background: none;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     font-size: 11px;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .tir-nav__btn--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
 }
 
 .tir-nav__btn--participants.tir-nav__btn--active {
@@ -710,7 +630,7 @@ export default {
 }
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
 }
 
 .tir-nav__round-badge {
@@ -725,7 +645,7 @@ export default {
     font-size: 10px;
     font-weight: 700;
     border-radius: 5px;
-    background: var(--color-primary, #471aa0);
+    background: var(--color-primary);
     color: #fff;
     margin-right: 6px;
     border: none;
@@ -734,7 +654,7 @@ export default {
 
 .tir-scoring__round-hint {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     text-align: left;
     margin: -8px 0 6px;
 }
@@ -748,40 +668,42 @@ export default {
 
 .tir-scoring__bracket-btn {
     padding: 4px 10px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: none;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .tir-scoring__bracket-btn--active {
-    background: var(--color-primary, #471aa0);
-    border-color: var(--color-primary, #471aa0);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
 }
 
 .tir-scoring__search {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 13px;
     margin-bottom: 8px;
     outline: none;
+    background: var(--color-bg-input);
+    color: var(--color-text);
 }
 
 .tir-scoring__search:focus {
-    border-color: var(--color-primary, #471aa0);
+    border-color: var(--color-primary);
 }
 
 .tir-scoring__participant-club {
     display: block;
     font-size: 11px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
@@ -797,21 +719,22 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .tir-scoring__participant-row:hover {
-    background: var(--bg-secondary, #f9f9f9);
+    background: var(--color-surface-hover);
 }
 
 .tir-scoring__participant-rank {
     font-weight: 600;
     min-width: 20px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-scoring__participant-name {
@@ -821,11 +744,11 @@ export default {
 
 .tir-scoring__participant-score {
     font-size: 13px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
-.tir-scoring__participant-status { color: var(--text-secondary, #ccc); }
-.tir-scoring__participant-status--complete { color: #4caf50; }
+.tir-scoring__participant-status { color: var(--color-grey); }
+.tir-scoring__participant-status--complete { color: var(--color-success); }
 .tir-scoring__participant-status--partial { color: #f5a623; }
 
 /* Participant detail view */
@@ -841,15 +764,15 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__info { flex: 1; }
-.tir-pview__name { margin: 0; font-size: 18px; }
+.tir-pview__name { margin: 0; font-size: 18px; color: var(--color-text); }
 .tir-pview__total { margin-top: 4px; }
-.tir-pview__total-score { font-size: 24px; font-weight: 700; color: #4caf50; }
-.tir-pview__total-max { font-size: 14px; color: var(--text-secondary, #888); }
-.tir-pview__throws { font-size: 12px; color: var(--text-secondary, #888); }
+.tir-pview__total-score { font-size: 24px; font-weight: 700; color: var(--color-success); }
+.tir-pview__total-max { font-size: 14px; color: var(--color-text-muted); }
+.tir-pview__throws { font-size: 12px; color: var(--color-text-muted); }
 
 .tir-pview__tabs { display: flex; gap: 6px; margin-bottom: 12px; }
 
@@ -857,29 +780,29 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--color-border, #e0e0e0);
-    background: var(--bg-color, #fff);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     transition: all 0.2s;
 }
 
 .tir-pview__tab--active {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
 .tir-pview__tab--complete:not(.tir-pview__tab--active) {
-    border-color: #4caf50;
-    color: #4caf50;
+    border-color: var(--color-success);
+    color: var(--color-success);
 }
 
 .tir-pview__atelier {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 14px;
 }
@@ -891,10 +814,10 @@ export default {
     margin-bottom: 2px;
 }
 
-.tir-pview__atelier-header h4 { margin: 0; font-size: 16px; }
+.tir-pview__atelier-header h4 { margin: 0; font-size: 16px; color: var(--color-text); }
 .tir-pview__atelier-score { text-align: right; }
-.tir-pview__atelier-score-val { font-size: 20px; font-weight: 700; color: #4caf50; }
-.tir-pview__atelier-score-max { font-size: 13px; color: var(--text-secondary, #888); }
+.tir-pview__atelier-score-val { font-size: 20px; font-weight: 700; color: var(--color-success); }
+.tir-pview__atelier-score-max { font-size: 13px; color: var(--color-text-muted); }
 
 .tir-pview__grid { margin-top: 10px; }
 .tir-pview__grid-header { display: flex; gap: 3px; margin-bottom: 6px; }
@@ -906,15 +829,15 @@ export default {
 .tir-pview__grid-th--manque { color: #9e9e9e; }
 
 .tir-pview__grid-row { display: flex; gap: 3px; margin-bottom: 3px; }
-.tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--text-color, #333); }
+.tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--color-text); }
 
 .tir-pview__grid-cell {
     flex: 1;
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--color-border);
+    background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
     opacity: 0.4;
     display: flex;
     align-items: center;
@@ -922,14 +845,14 @@ export default {
     transition: all 0.15s;
 }
 
-.tir-pview__grid-cell--carreau { opacity: 1; border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--reussi { opacity: 1; border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); color: #fff; }
+.tir-pview__grid-cell--carreau { opacity: 1; border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--reussi { opacity: 1; border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); color: #fff; }
 
 /* Stacked ateliers (detail view) */
 .tir-pview__atelier-card {
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 8px;
@@ -965,7 +888,7 @@ export default {
 .tir-pview__atelier-card-score {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__circles-grid {
@@ -983,7 +906,7 @@ export default {
 .tir-pview__circles-dist {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     min-width: 24px;
     order: -1;
 }
@@ -992,16 +915,16 @@ export default {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--color-border);
+    background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
     opacity: 0.35;
 }
 
 .tir-pview__circle--active { opacity: 1; }
-.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); }
 
 /* Table */
 .tir-table__content {
@@ -1013,33 +936,34 @@ export default {
 .tir-table__content th {
     text-align: left;
     padding: 10px 8px;
-    border-bottom: 2px solid var(--color-border, #e0e0e0);
+    border-bottom: 2px solid var(--color-border);
     font-weight: 600;
     font-size: 12px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     text-transform: uppercase;
 }
 
 .tir-table__content td {
     padding: 10px 8px;
-    border-bottom: 1px solid var(--color-border, #f0f0f0);
+    border-bottom: 1px solid var(--color-border-light);
     white-space: nowrap;
+    color: var(--color-text);
 }
 
 .tir-table__row--qualified td {
-    background: var(--color-highlight, rgba(16, 185, 129, 0.12));
+    background: var(--color-highlight);
 }
 
 .tir-table__row--direct td {
-    background: rgba(76, 175, 80, 0.08);
+    background: var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08));
 }
 
 .tir-table__row--r2 td {
-    background: rgba(245, 166, 35, 0.08);
+    background: var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08));
 }
 
 .tir-table__row--eliminated td {
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-table__scroll {
@@ -1062,25 +986,61 @@ export default {
 
 .tir-table__content tr th.tir-table__sticky-col,
 .tir-table__content tr td.tir-table__sticky-col {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
 }
 
-.tir-table__row--direct td.tir-table__sticky-col {
-    background: #f0faf1;
+.tir-table__content tr.tir-table__row--direct td.tir-table__sticky-col {
+    background: var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08));
 }
 
-.tir-table__row--r2 td.tir-table__sticky-col {
-    background: #fef9f0;
+.tir-table__content tr.tir-table__row--r2 td.tir-table__sticky-col {
+    background: var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08));
 }
 
-.tir-table__row--eliminated td.tir-table__sticky-col {
-    background: var(--card-bg, #fff);
+.tir-table__content tr.tir-table__row--eliminated td.tir-table__sticky-col {
+    background: var(--color-surface);
+}
+
+.place-gold td {
+    background: var(--color-badge-gold-bg) !important;
+}
+
+.place-gold td:first-child {
+    border-left: 3px solid var(--color-badge-gold-border);
+}
+
+.place-gold td.tir-table__sticky-col {
+    background: var(--color-badge-gold-bg) !important;
+}
+
+.place-silver td {
+    background: var(--color-badge-silver-bg) !important;
+}
+
+.place-silver td:first-child {
+    border-left: 3px solid var(--color-badge-silver-border);
+}
+
+.place-silver td.tir-table__sticky-col {
+    background: var(--color-badge-silver-bg) !important;
+}
+
+.place-bronze td {
+    background: var(--color-badge-bronze-bg) !important;
+}
+
+.place-bronze td:first-child {
+    border-left: 3px solid var(--color-badge-bronze-border);
+}
+
+.place-bronze td.tir-table__sticky-col {
+    background: var(--color-badge-bronze-bg) !important;
 }
 
 .tir-table__clickable {
     cursor: pointer;
     font-weight: 500;
-    color: #333;
+    color: var(--color-text);
 }
 
 .tir-table__clickable:hover {
@@ -1090,7 +1050,7 @@ export default {
 .tir-table__empty {
     text-align: center;
     padding: 40px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 /* Playoff */
@@ -1122,8 +1082,8 @@ export default {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid #d0d0d0;
-    background: #fff;
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     flex-shrink: 0;
 }
 
@@ -1140,7 +1100,7 @@ export default {
 .tir-playoff__progress-line {
     width: 2px;
     flex: 1;
-    background: #e0e0e0;
+    background: var(--color-border);
     margin: 4px 0;
 }
 
@@ -1154,30 +1114,30 @@ export default {
     margin: 0 0 10px;
     font-size: 13px;
     font-weight: 700;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     text-transform: uppercase;
 }
 
 .tir-playoff__match {
     padding: 12px 14px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 14px;
     margin-bottom: 8px;
     cursor: pointer;
-    background: #fff;
+    background: var(--color-surface);
     transition: background 0.15s, border-color 0.15s;
 }
 
 .tir-playoff__match:hover {
-    background: var(--bg-secondary, #f9f9f9);
-    border-color: var(--primary-color, #f5a623);
+    background: var(--color-surface-hover);
+    border-color: #f5a623;
 }
 
 .tir-playoff__match:last-child { margin-bottom: 0; }
 
 .tir-playoff__match--complete {
     border-color: #4caf50;
-    background: #f0faf1;
+    background: rgba(76, 175, 80, 0.06);
     border-width: 2px;
 }
 
@@ -1187,19 +1147,19 @@ export default {
 }
 
 .tir-playoff__match--in-progress {
-    border-color: var(--color-primary, #471aa0);
-    background: #f8f4ff;
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
     border-width: 2px;
 }
 
 .tir-playoff__match--in-progress .tir-playoff__match-num {
-    background: var(--color-primary, #471aa0);
+    background: var(--color-primary);
     color: #fff;
 }
 
 .tir-playoff__match--final {
     border-color: #F5A623;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .tir-playoff__match--pending {
@@ -1208,8 +1168,8 @@ export default {
 }
 
 .tir-playoff__match--pending:hover {
-    background: #fff;
-    border-color: var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border-color: var(--color-border);
 }
 
 .tir-playoff__match--preview {
@@ -1219,8 +1179,8 @@ export default {
 }
 
 .tir-playoff__match--preview:hover {
-    background: #fff;
-    border-color: var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border-color: var(--color-border);
 }
 
 .tir-playoff__match-top {
@@ -1237,10 +1197,10 @@ export default {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #f2f3f5;
+    background: var(--color-surface-alt);
     font-size: 11px;
     font-weight: 700;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
 }
 
 .tir-playoff__match-status {
@@ -1270,7 +1230,7 @@ export default {
 .tir-playoff__player-name {
     font-size: 14px;
     font-weight: 500;
-    color: #1F2233;
+    color: var(--color-text);
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1302,20 +1262,20 @@ export default {
 .tir-playoff__score {
     font-size: 18px;
     font-weight: 700;
-    color: #1F2233;
+    color: var(--color-text);
     min-width: 28px;
     text-align: center;
     flex-shrink: 0;
 }
 
 .tir-playoff__score--winner {
-    color: #1F2233;
+    color: var(--color-text);
 }
 
 .tir-playoff__vs {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #999);
+    color: var(--color-text-muted);
     min-width: 24px;
     text-align: center;
 }
@@ -1327,7 +1287,7 @@ export default {
     gap: 16px;
     padding: 18px;
     border-radius: 16px;
-    background: #EAF7EC;
+    background: rgba(76, 175, 80, 0.08);
     border: 1px solid rgba(67, 160, 71, 0.22);
 }
 
@@ -1358,7 +1318,7 @@ export default {
 .tir-playoff__champion-name {
     font-size: 22px;
     font-weight: 800;
-    color: #1F2233;
+    color: var(--color-text);
 }
 
 /* CTA */
@@ -1370,8 +1330,8 @@ export default {
     padding: 0 18px;
     border: 1px solid rgba(67, 160, 71, 0.45);
     border-radius: 14px;
-    background: #fff;
-    color: #1F2233;
+    background: var(--color-surface);
+    color: var(--color-text);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -1380,7 +1340,7 @@ export default {
 }
 
 .tir-playoff__cta:hover {
-    background: #f9fff9;
+    background: var(--color-surface-hover);
 }
 
 .tir-playoff__cta > :last-child {

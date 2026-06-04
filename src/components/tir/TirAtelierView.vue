@@ -190,7 +190,7 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-aview__name {
@@ -200,7 +200,7 @@ export default {
 
 .tir-aview__desc {
     font-size: 13px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-aview__legend {
@@ -214,7 +214,7 @@ export default {
 
 .tir-aview__legend-label {
     margin-right: 8px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-aview__list {
@@ -224,8 +224,8 @@ export default {
 }
 
 .tir-aview__row {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 12px;
     display: flex;
@@ -245,7 +245,7 @@ export default {
 .tir-aview__row-rank {
     font-weight: 600;
     min-width: 20px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-aview__row-name {
@@ -259,13 +259,13 @@ export default {
 
 .tir-aview__row-score {
     font-size: 12px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     white-space: nowrap;
 }
 
 .tir-aview__row-throws {
     font-size: 11px;
-    color: var(--text-secondary, #aaa);
+    color: var(--color-text-muted);
     white-space: nowrap;
 }
 
@@ -291,7 +291,7 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     transition: transform 0.2s;
 }
 
@@ -303,7 +303,7 @@ export default {
     width: 100%;
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid var(--border-color, #f0f0f0);
+    border-top: 1px solid var(--color-border-light);
 }
 
 .tir-aview__finish {
@@ -330,7 +330,7 @@ export default {
 
 .tir-aview__confirm-text {
     font-size: 14px;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     margin: 0 4px 16px;
 }
 
@@ -350,8 +350,8 @@ export default {
 }
 
 .tir-aview__confirm-btn--cancel {
-    background: var(--bg-secondary, #f0f0f0);
-    color: var(--text-color, #333);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
 }
 
 .tir-aview__confirm-btn--confirm {
@@ -370,8 +370,8 @@ export default {
 .tir-pview__grid-th--manque { color: #9e9e9e; }
 .tir-pview__grid-row { display: flex; gap: 3px; margin-bottom: 3px; }
 .tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; }
-.tir-pview__grid-cell { flex: 1; height: 32px; border: 2px solid var(--border-color, #e0e0e0); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
-.tir-pview__grid-cell:hover { border-color: var(--primary-color, #f5a623); }
+.tir-pview__grid-cell { flex: 1; height: 32px; border: 2px solid var(--color-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+.tir-pview__grid-cell:hover { border-color: #f5a623; }
 .tir-pview__grid-cell--carreau { background: #4caf50; border-color: #4caf50; color: #fff; }
 .tir-pview__grid-cell--reussi { background: #2196F3; border-color: #2196F3; color: #fff; }
 .tir-pview__grid-cell--touche { background: #f5a623; border-color: #f5a623; color: #fff; }

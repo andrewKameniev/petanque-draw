@@ -406,7 +406,6 @@ export default {
         "twoRoundsShort": "2 rounds",
         "twoRoundSystem": "2-round qualification system",
         "twoRoundHint": "Top 4 go to quarterfinals directly. Places 5-16 play a 2nd round.",
-        "juniorTournament": "Junior tournament (no 9m)",
         "startRound2": "Start Round 2",
         "round2Hint": "Top 4 qualified directly. Remaining players will compete in Round 2.",
         "round1Score": "R1",

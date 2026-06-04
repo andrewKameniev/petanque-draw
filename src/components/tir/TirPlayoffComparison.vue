@@ -224,14 +224,14 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     font-size: 13px;
 }
 
 .tir-compare__round-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     text-transform: uppercase;
     margin-left: auto;
 }
@@ -248,7 +248,7 @@ export default {
     flex: 1 1 0;
     min-width: 0;
     padding: 14px 12px;
-    border: 2px solid var(--border-color, #e0e0e0);
+    border: 2px solid var(--color-border);
     border-radius: 12px;
     text-align: center;
     transition: border-color 0.2s, background 0.2s;
@@ -256,7 +256,7 @@ export default {
 
 .tir-compare__player-card--winner {
     border-color: #4caf50;
-    background: rgba(76, 175, 80, 0.04);
+    background: rgba(76, 175, 80, 0.06);
 }
 
 .tir-compare__player-name {
@@ -266,6 +266,7 @@ export default {
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.3;
+    color: var(--color-text);
 }
 
 .tir-compare__player-total {
@@ -278,23 +279,23 @@ export default {
 .tir-compare__player-total-val {
     font-size: 28px;
     font-weight: 700;
-    color: var(--text-color, #1f2233);
+    color: var(--color-text);
 }
 
 .tir-compare__player-card--winner .tir-compare__player-total-val {
-    color: #4caf50;
+    color: var(--color-success);
 }
 
 .tir-compare__player-total-max {
     font-size: 14px;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
 .tir-compare__vs {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #999);
+    color: var(--color-text-muted);
     flex-shrink: 0;
 }
 
@@ -313,7 +314,7 @@ export default {
     align-items: center;
     gap: 5px;
     font-size: 12px;
-    color: var(--text-secondary, #555);
+    color: var(--color-text-muted);
     white-space: nowrap;
 }
 
@@ -325,27 +326,27 @@ export default {
 
 .tir-compare__legend-dot--carreau {
     border: 2px solid #4CAF50;
-    background: radial-gradient(circle, #4CAF50 56%, #fff 56%);
+    background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--reussi {
     border: 2px solid #2196F3;
-    background: radial-gradient(circle, #2196F3 56%, #fff 56%);
+    background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--touche {
     border: 2px solid #F5A623;
-    background: radial-gradient(circle, #F5A623 56%, #fff 56%);
+    background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--manque {
     border: 2px solid #bdbdbd;
-    background: radial-gradient(circle, #bdbdbd 56%, #fff 56%);
+    background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%);
 }
 
 /* Atelier cards */
 .tir-compare__atelier {
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 10px;
@@ -375,7 +376,7 @@ export default {
 .tir-compare__atelier-name {
     font-weight: 700;
     font-size: 15px;
-    color: var(--text-color, #1f2233);
+    color: var(--color-text);
 }
 
 /* Comparison grid */
@@ -408,8 +409,8 @@ export default {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--color-border);
+    background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
     opacity: 0.4;
     transition: all 0.15s;
 }
@@ -420,28 +421,28 @@ export default {
 
 .tir-compare__circle--active.tir-compare__circle--carreau {
     border-color: #4CAF50;
-    background: radial-gradient(circle, #4CAF50 56%, #fff 56%);
+    background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--reussi {
     border-color: #2196F3;
-    background: radial-gradient(circle, #2196F3 56%, #fff 56%);
+    background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--touche {
     border-color: #F5A623;
-    background: radial-gradient(circle, #F5A623 56%, #fff 56%);
+    background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--manque {
     border-color: #bdbdbd;
-    background: radial-gradient(circle, #bdbdbd 56%, #fff 56%);
+    background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__distance {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     min-width: 28px;
     text-align: center;
 }
@@ -453,7 +454,7 @@ export default {
     justify-content: space-between;
     padding: 12px 16px;
     border-radius: 10px;
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     margin-top: 6px;
 }
 
@@ -463,7 +464,7 @@ export default {
     justify-content: center;
     gap: 8px;
     padding: 10px 16px;
-    background: #EAF7EC;
+    background: rgba(76, 175, 80, 0.08);
     border: 1px solid rgba(76, 175, 80, 0.3);
     border-radius: 8px;
     margin-bottom: 12px;
@@ -480,7 +481,7 @@ export default {
 }
 
 .tir-compare__summary--complete {
-    background: #EAF7EC;
+    background: rgba(76, 175, 80, 0.08);
     border-color: rgba(76, 175, 80, 0.3);
 }
 
@@ -492,23 +493,23 @@ export default {
 
 .tir-compare__summary-label {
     font-size: 12px;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
     font-weight: 500;
 }
 
 .tir-compare__summary-val {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-color, #1f2233);
+    color: var(--color-text);
 }
 
 .tir-compare__summary--complete .tir-compare__summary-val {
-    color: #3F9142;
+    color: var(--color-success);
 }
 
 .tir-compare__summary-max {
     font-size: 13px;
-    color: var(--text-secondary, #777);
+    color: var(--color-text-muted);
 }
 
 /* Responsive adjustments */

@@ -602,13 +602,13 @@ export default {
     font-size: 1rem;
     font-weight: 700;
     background: var(--color-error);
-    color: #fff;
+    color: var(--color-btn-text);
     padding: 0 4px;
 }
 
 .stats-tabs__btn--active .stats-tabs__badge {
     background: rgba(255, 255, 255, 0.3);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .stats-tabs__content {
@@ -734,12 +734,12 @@ export default {
 
 .stats-btn--danger:hover {
     background: var(--color-error);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .stats-btn--danger-confirm {
     background: var(--color-error);
-    color: #fff;
+    color: var(--color-btn-text);
     animation: pulse-danger 0.3s ease;
 }
 

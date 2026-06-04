@@ -288,7 +288,7 @@ export default {
 }
 
 .tir-pmatch__player-card--winner {
-    border-color: #4caf50;
+    border-color: var(--tir-carreau);
     background: rgba(76, 175, 80, 0.05);
 }
 
@@ -330,20 +330,20 @@ export default {
     color: var(--color-text-muted);
 }
 
-.tir-pmatch__status--progress { background: #fff3e0; color: #f57c00; }
-.tir-pmatch__status--complete { background: #e8f5e9; color: #388e3c; }
-.tir-pmatch__status--tied { background: #fce4ec; color: #c62828; }
+.tir-pmatch__status--progress { background: var(--tir-progress-bg); color: var(--tir-progress-text); }
+.tir-pmatch__status--complete { background: var(--tir-winner-bg); color: var(--tir-winner-text); }
+.tir-pmatch__status--tied { background: var(--tir-tied-bg); color: var(--tir-tied-text); }
 
 .tir-pmatch__tie {
     text-align: center;
     margin-bottom: 14px;
     padding: 12px;
-    border: 2px solid #ef5350;
+    border: 2px solid var(--tir-tied-border);
     border-radius: 10px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
-.tir-pmatch__tie p { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #c62828; }
+.tir-pmatch__tie p { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--tir-tied-text); }
 
 .tir-pmatch__tie-buttons { display: flex; gap: 8px; }
 
@@ -352,16 +352,16 @@ export default {
     padding: 10px;
     border: 2px solid var(--color-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--color-surface);
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
 }
 
 .tir-pmatch__tie-btn--selected {
-    border-color: #4caf50;
-    background: #e8f5e9;
-    color: #2e7d32;
+    border-color: var(--tir-carreau);
+    background: var(--tir-winner-bg);
+    color: var(--tir-winner-text);
 }
 
 /* Legend */
@@ -387,10 +387,10 @@ export default {
     border-radius: 50%;
 }
 
-.tir-pmatch__legend-dot--carreau { background: #4CAF50; }
-.tir-pmatch__legend-dot--reussi { background: #2196F3; }
-.tir-pmatch__legend-dot--touche { background: #F5A623; }
-.tir-pmatch__legend-dot--manque { background: #bdbdbd; }
+.tir-pmatch__legend-dot--carreau { background: var(--tir-carreau); }
+.tir-pmatch__legend-dot--reussi { background: var(--tir-reussi); }
+.tir-pmatch__legend-dot--touche { background: var(--tir-touche); }
+.tir-pmatch__legend-dot--manque { background: var(--tir-manque); }
 
 /* Atelier cards */
 .tir-pmatch__atelier {
@@ -411,8 +411,8 @@ export default {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: #F5A623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     font-size: 13px;
     font-weight: 700;
     display: flex;
@@ -459,8 +459,8 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--tir-circle-inactive);
+    background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
     opacity: 0.4;
     transition: all 0.15s;
     cursor: pointer;
@@ -469,23 +469,23 @@ export default {
 .tir-pmatch__circle--active { opacity: 1; }
 
 .tir-pmatch__circle--active.tir-pmatch__circle--carreau {
-    border-color: #4CAF50;
-    background: radial-gradient(circle, #4CAF50 56%, #fff 56%);
+    border-color: var(--tir-carreau);
+    background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
 }
 
 .tir-pmatch__circle--active.tir-pmatch__circle--reussi {
-    border-color: #2196F3;
-    background: radial-gradient(circle, #2196F3 56%, #fff 56%);
+    border-color: var(--tir-reussi);
+    background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
 }
 
 .tir-pmatch__circle--active.tir-pmatch__circle--touche {
-    border-color: #F5A623;
-    background: radial-gradient(circle, #F5A623 56%, #fff 56%);
+    border-color: var(--tir-touche);
+    background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
 }
 
 .tir-pmatch__circle--active.tir-pmatch__circle--manque {
-    border-color: #bdbdbd;
-    background: radial-gradient(circle, #bdbdbd 56%, #fff 56%);
+    border-color: var(--tir-manque);
+    background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 /* Summary */

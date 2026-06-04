@@ -114,7 +114,7 @@ export default {
     background: var(--color-surface);
     border-radius: 12px;
     padding: 1.25rem;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border, var(--tir-circle-inactive));
 }
 
 .tir-details__title {
@@ -130,7 +130,7 @@ export default {
 }
 
 .tir-details__card {
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border, var(--tir-circle-inactive));
     border-radius: 8px;
     overflow: hidden;
 }
@@ -221,10 +221,10 @@ export default {
     padding: 2px;
 }
 
-.tir-details__grid-th--carreau { color: #4caf50; }
-.tir-details__grid-th--reussi { color: #2196F3; }
-.tir-details__grid-th--touche { color: #f5a623; }
-.tir-details__grid-th--manque { color: #9e9e9e; }
+.tir-details__grid-th--carreau { color: var(--tir-carreau); }
+.tir-details__grid-th--reussi { color: var(--tir-reussi); }
+.tir-details__grid-th--touche { color: var(--tir-touche); }
+.tir-details__grid-th--manque { color: var(--tir-manque); }
 
 .tir-details__grid-row {
     display: flex;
@@ -243,17 +243,17 @@ export default {
 .tir-details__grid-cell {
     flex: 1;
     height: 28px;
-    border: 1.5px solid var(--color-border, #e0e0e0);
+    border: 1.5px solid var(--color-border, var(--tir-circle-inactive));
     border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.tir-details__grid-cell--carreau { background: #4caf50; border-color: #4caf50; color: #fff; }
-.tir-details__grid-cell--reussi { background: #2196F3; border-color: #2196F3; color: #fff; }
-.tir-details__grid-cell--touche { background: #f5a623; border-color: #f5a623; color: #fff; }
-.tir-details__grid-cell--manque { background: #9e9e9e; border-color: #9e9e9e; color: #fff; }
+.tir-details__grid-cell--carreau { background: var(--tir-carreau); border-color: var(--tir-carreau); color: var(--color-btn-text); }
+.tir-details__grid-cell--reussi { background: var(--tir-reussi); border-color: var(--tir-reussi); color: var(--color-btn-text); }
+.tir-details__grid-cell--touche { background: var(--tir-touche); border-color: var(--tir-touche); color: var(--color-btn-text); }
+.tir-details__grid-cell--manque { background: var(--tir-manque); border-color: var(--tir-manque); color: var(--color-btn-text); }
 
 .tir-details__empty {
     text-align: center;

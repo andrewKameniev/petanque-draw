@@ -236,7 +236,7 @@ export default {
 }
 
 .tir-public__round--final {
-    border-color: #f5a623;
+    border-color: var(--tir-touche);
     background: rgba(245, 166, 35, 0.03);
 }
 
@@ -274,7 +274,7 @@ export default {
 
 .tir-public__match-player--winner {
     font-weight: 700;
-    color: #4caf50;
+    color: var(--tir-carreau);
 }
 
 .tir-public__match-score {

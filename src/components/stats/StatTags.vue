@@ -98,7 +98,7 @@ export default {
     border-radius: 8px;
     border: none;
     background: var(--color-success);
-    color: #fff;
+    color: var(--color-btn-text);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;

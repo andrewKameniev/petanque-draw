@@ -1608,7 +1608,7 @@ export default {
 
 .confirm-playoff__btn--cancel:hover {
     border-color: var(--color-text-muted);
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
 }
 
 .confirm-playoff__btn--confirm {

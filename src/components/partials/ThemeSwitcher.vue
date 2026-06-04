@@ -70,7 +70,7 @@ export default {
     left: 2px;
     width: 20px;
     height: 20px;
-    background: #ffffff;
+    background: var(--color-surface);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@ export default {
 }
 
 .theme-switch__sun {
-    color: #f59e0b;
+    color: var(--color-warning);
     opacity: 1;
     transform: rotate(0deg) scale(1);
 }
@@ -102,7 +102,7 @@ export default {
 }
 
 .theme-switch__moon {
-    color: #7c3aed;
+    color: var(--color-primary);
     opacity: 0;
     transform: rotate(-90deg) scale(0.5);
 }

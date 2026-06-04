@@ -255,7 +255,7 @@ export default {
 }
 
 .tir-compare__player-card--winner {
-    border-color: #4caf50;
+    border-color: var(--tir-carreau);
     background: rgba(76, 175, 80, 0.06);
 }
 
@@ -325,23 +325,23 @@ export default {
 }
 
 .tir-compare__legend-dot--carreau {
-    border: 2px solid #4CAF50;
-    background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%);
+    border: 2px solid var(--tir-carreau);
+    background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--reussi {
-    border: 2px solid #2196F3;
-    background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%);
+    border: 2px solid var(--tir-reussi);
+    background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--touche {
-    border: 2px solid #F5A623;
-    background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%);
+    border: 2px solid var(--tir-touche);
+    background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__legend-dot--manque {
-    border: 2px solid #bdbdbd;
-    background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%);
+    border: 2px solid var(--tir-manque);
+    background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 /* Atelier cards */
@@ -363,8 +363,8 @@ export default {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: #F5A623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     font-size: 13px;
     font-weight: 700;
     display: flex;
@@ -420,23 +420,23 @@ export default {
 }
 
 .tir-compare__circle--active.tir-compare__circle--carreau {
-    border-color: #4CAF50;
-    background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%);
+    border-color: var(--tir-carreau);
+    background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--reussi {
-    border-color: #2196F3;
-    background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%);
+    border-color: var(--tir-reussi);
+    background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--touche {
-    border-color: #F5A623;
-    background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%);
+    border-color: var(--tir-touche);
+    background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__circle--active.tir-compare__circle--manque {
-    border-color: #bdbdbd;
-    background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%);
+    border-color: var(--tir-manque);
+    background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__distance {
@@ -471,13 +471,13 @@ export default {
 }
 
 .tir-compare__result-icon {
-    color: #F5A623;
+    color: var(--tir-touche);
 }
 
 .tir-compare__result-text {
     font-size: 14px;
     font-weight: 700;
-    color: #2e7d32;
+    color: var(--tir-winner-text);
 }
 
 .tir-compare__summary--complete {

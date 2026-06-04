@@ -272,7 +272,7 @@ export default {
 .tir-plist__bracket-btn--active {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-plist__search {
@@ -339,5 +339,5 @@ export default {
 
 .tir-plist__status { color: var(--color-grey); }
 .tir-plist__status--complete { color: var(--color-success); }
-.tir-plist__status--partial { color: #f5a623; }
+.tir-plist__status--partial { color: var(--tir-touche); }
 </style>

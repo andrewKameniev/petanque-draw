@@ -653,13 +653,13 @@ export default {
 }
 
 .group-cell--win {
-    color: #3a7d44;
+    color: var(--tir-winner-text);
     font-weight: 600;
     white-space: nowrap;
 }
 
 .group-cell--lose {
-    color: #b04040;
+    color: var(--color-error);
     font-weight: 600;
     white-space: nowrap;
 }

@@ -277,7 +277,7 @@ export default {
 .tir-pview__total-score {
     font-size: 24px;
     font-weight: 700;
-    color: #4caf50;
+    color: var(--tir-carreau);
 }
 
 .tir-pview__total-max {
@@ -311,14 +311,14 @@ export default {
 }
 
 .tir-pview__tab--active {
-    background: #f5a623;
-    border-color: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
 }
 
 .tir-pview__tab--complete:not(.tir-pview__tab--active) {
-    border-color: #4caf50;
-    color: #4caf50;
+    border-color: var(--tir-carreau);
+    color: var(--tir-carreau);
 }
 
 .tir-pview__tab-labels {
@@ -338,7 +338,7 @@ export default {
 }
 
 .tir-pview__tab-label--active {
-    color: #f5a623;
+    color: var(--tir-touche);
     font-weight: 600;
 }
 
@@ -369,7 +369,7 @@ export default {
 .tir-pview__atelier-score-val {
     font-size: 20px;
     font-weight: 700;
-    color: #4caf50;
+    color: var(--tir-carreau);
 }
 
 .tir-pview__atelier-score-max {
@@ -412,10 +412,10 @@ export default {
     border-radius: 50%;
 }
 
-.tir-pview__legend-dot--carreau { background: #4CAF50; }
-.tir-pview__legend-dot--reussi { background: #2196F3; }
-.tir-pview__legend-dot--touche { background: #F5A623; }
-.tir-pview__legend-dot--manque { background: #bdbdbd; }
+.tir-pview__legend-dot--carreau { background: var(--tir-carreau); }
+.tir-pview__legend-dot--reussi { background: var(--tir-reussi); }
+.tir-pview__legend-dot--touche { background: var(--tir-touche); }
+.tir-pview__legend-dot--manque { background: var(--tir-manque); }
 
 /* Grid */
 .tir-pview__grid {
@@ -440,10 +440,10 @@ export default {
     padding: 2px;
 }
 
-.tir-pview__grid-th--carreau { color: #4caf50; }
-.tir-pview__grid-th--reussi { color: #2196F3; }
-.tir-pview__grid-th--touche { color: #f5a623; }
-.tir-pview__grid-th--manque { color: #9e9e9e; }
+.tir-pview__grid-th--carreau { color: var(--tir-carreau); }
+.tir-pview__grid-th--reussi { color: var(--tir-reussi); }
+.tir-pview__grid-th--touche { color: var(--tir-touche); }
+.tir-pview__grid-th--manque { color: var(--tir-manque); }
 
 .tir-pview__grid-row {
     display: flex;
@@ -473,31 +473,31 @@ export default {
 }
 
 .tir-pview__grid-cell:hover {
-    border-color: #f5a623;
+    border-color: var(--tir-touche);
 }
 
 .tir-pview__grid-cell--carreau {
-    background: #4caf50;
-    border-color: #4caf50;
-    color: #fff;
+    background: var(--tir-carreau);
+    border-color: var(--tir-carreau);
+    color: var(--color-btn-text);
 }
 
 .tir-pview__grid-cell--reussi {
-    background: #2196F3;
-    border-color: #2196F3;
-    color: #fff;
+    background: var(--tir-reussi);
+    border-color: var(--tir-reussi);
+    color: var(--color-btn-text);
 }
 
 .tir-pview__grid-cell--touche {
-    background: #f5a623;
-    border-color: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
 }
 
 .tir-pview__grid-cell--manque {
-    background: #9e9e9e;
-    border-color: #9e9e9e;
-    color: #fff;
+    background: var(--tir-manque);
+    border-color: var(--tir-manque);
+    color: var(--color-btn-text);
 }
 
 /* Saved indicator */
@@ -506,7 +506,7 @@ export default {
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #4caf50;
+    color: var(--tir-carreau);
     margin-top: 8px;
 }
 
@@ -536,9 +536,9 @@ export default {
 }
 
 .tir-pview__nav-btn--primary {
-    background: #f5a623;
-    border-color: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
 }
 
 /* Score badges */
@@ -551,23 +551,23 @@ export default {
     border-radius: 50%;
     font-size: 11px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-score-badge--carreau {
-    background: #4caf50;
+    background: var(--tir-carreau);
 }
 
 .tir-score-badge--reussi {
-    background: #2196F3;
+    background: var(--tir-reussi);
 }
 
 .tir-score-badge--touche {
-    background: #f5a623;
+    background: var(--tir-touche);
 }
 
 .tir-score-badge--manque {
-    background: #9e9e9e;
+    background: var(--tir-manque);
 }
 
 /* Stacked ateliers (complete/readOnly) */
@@ -589,8 +589,8 @@ export default {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #F5A623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     font-size: 12px;
     font-weight: 700;
     display: flex;
@@ -628,17 +628,17 @@ export default {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--tir-circle-inactive);
+    background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
     opacity: 0.35;
     transition: all 0.15s;
 }
 
 .tir-pview__circle--active { opacity: 1; }
-.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); }
-.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: var(--tir-carreau); background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: var(--tir-reussi); background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: var(--tir-touche); background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: var(--tir-manque); background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%); }
 
 .tir-pview__circles-dist {
     font-size: 12px;

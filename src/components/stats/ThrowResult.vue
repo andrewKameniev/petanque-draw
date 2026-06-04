@@ -251,7 +251,7 @@ export default {
     position: absolute;
     line-height: 28px;
     font-weight: bold;
-    color: #fff;
+    color: var(--color-btn-text);
     top: 0;
     left: 0;
     backface-visibility: hidden;

@@ -621,19 +621,19 @@ export default {
 }
 
 .tir-nav__btn--active {
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-nav__btn--participants.tir-nav__btn--active {
-    color: #be185d;
+    color: var(--tir-delete);
 }
 
 .tir-nav__btn--table.tir-nav__btn--active {
-    color: #4CAF50;
+    color: var(--tir-carreau);
 }
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-nav__round-badge {
@@ -649,7 +649,7 @@ export default {
     font-weight: 700;
     border-radius: 5px;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
     margin-right: 6px;
     border: none;
     cursor: pointer;
@@ -684,7 +684,7 @@ export default {
 .tir-scoring__bracket-btn--active {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-scoring__search {
@@ -752,7 +752,7 @@ export default {
 
 .tir-scoring__participant-status { color: var(--color-grey); }
 .tir-scoring__participant-status--complete { color: var(--color-success); }
-.tir-scoring__participant-status--partial { color: #f5a623; }
+.tir-scoring__participant-status--partial { color: var(--tir-touche); }
 
 /* Participant detail view */
 .tir-pview__header {
@@ -793,9 +793,9 @@ export default {
 }
 
 .tir-pview__tab--active {
-    background: #f5a623;
-    border-color: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
 }
 
 .tir-pview__tab--complete:not(.tir-pview__tab--active) {
@@ -826,10 +826,10 @@ export default {
 .tir-pview__grid-header { display: flex; gap: 3px; margin-bottom: 6px; }
 .tir-pview__grid-corner { width: 32px; }
 .tir-pview__grid-th { flex: 1; text-align: center; font-size: 10px; font-weight: 700; padding: 2px; }
-.tir-pview__grid-th--carreau { color: #4caf50; }
-.tir-pview__grid-th--reussi { color: #2196F3; }
-.tir-pview__grid-th--touche { color: #f5a623; }
-.tir-pview__grid-th--manque { color: #9e9e9e; }
+.tir-pview__grid-th--carreau { color: var(--tir-carreau); }
+.tir-pview__grid-th--reussi { color: var(--tir-reussi); }
+.tir-pview__grid-th--touche { color: var(--tir-touche); }
+.tir-pview__grid-th--manque { color: var(--tir-manque); }
 
 .tir-pview__grid-row { display: flex; gap: 3px; margin-bottom: 3px; }
 .tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--color-text); }
@@ -848,10 +848,10 @@ export default {
     transition: all 0.15s;
 }
 
-.tir-pview__grid-cell--carreau { opacity: 1; border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); color: #fff; }
-.tir-pview__grid-cell--reussi { opacity: 1; border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); color: #fff; }
-.tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); color: #fff; }
-.tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--carreau { opacity: 1; border-color: var(--tir-carreau); background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%); color: var(--color-btn-text); }
+.tir-pview__grid-cell--reussi { opacity: 1; border-color: var(--tir-reussi); background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%); color: var(--color-btn-text); }
+.tir-pview__grid-cell--touche { opacity: 1; border-color: var(--tir-touche); background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%); color: var(--color-btn-text); }
+.tir-pview__grid-cell--manque { opacity: 1; border-color: var(--tir-manque); background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%); color: var(--color-btn-text); }
 
 /* Stacked ateliers (detail view) */
 .tir-pview__atelier-card {
@@ -872,8 +872,8 @@ export default {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #F5A623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     font-size: 12px;
     font-weight: 700;
     display: flex;
@@ -924,10 +924,10 @@ export default {
 }
 
 .tir-pview__circle--active { opacity: 1; }
-.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: var(--tir-carreau); background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: var(--tir-reussi); background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: var(--tir-touche); background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: var(--tir-manque); background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%); }
 
 /* Table */
 .tir-table__content {
@@ -1098,13 +1098,13 @@ export default {
 }
 
 .tir-playoff__progress-dot--complete {
-    border-color: #43A047;
-    background: #43A047;
+    border-color: var(--tir-winner);
+    background: var(--tir-winner);
 }
 
 .tir-playoff__progress-dot--final {
-    border-color: #F5A623;
-    background: #F5A623;
+    border-color: var(--tir-touche);
+    background: var(--tir-touche);
 }
 
 .tir-playoff__progress-line {
@@ -1140,20 +1140,20 @@ export default {
 
 .tir-playoff__match:hover {
     background: var(--color-surface-hover);
-    border-color: #f5a623;
+    border-color: var(--tir-touche);
 }
 
 .tir-playoff__match:last-child { margin-bottom: 0; }
 
 .tir-playoff__match--complete {
-    border-color: #4caf50;
+    border-color: var(--tir-carreau);
     background: rgba(76, 175, 80, 0.06);
     border-width: 2px;
 }
 
 .tir-playoff__match--complete .tir-playoff__match-num {
-    background: #4caf50;
-    color: #fff;
+    background: var(--tir-carreau);
+    color: var(--color-btn-text);
 }
 
 .tir-playoff__match--in-progress {
@@ -1164,11 +1164,11 @@ export default {
 
 .tir-playoff__match--in-progress .tir-playoff__match-num {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-playoff__match--final {
-    border-color: #F5A623;
+    border-color: var(--tir-touche);
     background: var(--color-surface);
 }
 
@@ -1221,13 +1221,13 @@ export default {
 }
 
 .tir-playoff__match-status--complete {
-    color: #2e7d32;
+    color: var(--tir-winner-text);
     background: rgba(76, 175, 80, 0.12);
 }
 
 .tir-playoff__match-status--progress {
-    color: #5e35b1;
-    background: rgba(94, 53, 177, 0.1);
+    color: var(--tir-in-progress);
+    background: var(--tir-in-progress-bg);
 }
 
 .tir-playoff__match-row {
@@ -1255,12 +1255,12 @@ export default {
 }
 
 .tir-playoff__player-name--winner {
-    color: #43A047;
+    color: var(--tir-winner);
     font-weight: 700;
 }
 
 .tir-playoff__winner-icon {
-    color: #43A047;
+    color: var(--tir-winner);
     width: 12px;
     height: 12px;
     vertical-align: -1px;
@@ -1305,7 +1305,7 @@ export default {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #43A047;
+    background: var(--tir-winner);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1322,7 +1322,7 @@ export default {
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #43A047;
+    color: var(--tir-winner);
 }
 
 .tir-playoff__champion-name {
@@ -1355,7 +1355,7 @@ export default {
 
 .tir-playoff__cta > :last-child {
     margin-left: auto;
-    color: #43A047;
+    color: var(--tir-winner);
 }
 
 @media (max-width: 400px) {

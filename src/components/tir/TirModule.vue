@@ -1005,11 +1005,11 @@ export default {
 }
 
 .tir-nav__btn--active {
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-nav__btn--participants.tir-nav__btn--active {
-    color: #be185d;
+    color: var(--tir-delete);
 }
 
 .tir-nav__btn--scoring.tir-nav__btn--active {
@@ -1017,11 +1017,11 @@ export default {
 }
 
 .tir-nav__btn--table.tir-nav__btn--active {
-    color: #4CAF50;
+    color: var(--tir-carreau);
 }
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-nav__round-badge {
@@ -1037,7 +1037,7 @@ export default {
     font-weight: 700;
     border-radius: 6px;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
     margin-right: 6px;
 }
 
@@ -1059,8 +1059,8 @@ export default {
     height: 36px;
     border-radius: 50%;
     border: none;
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1117,7 +1117,7 @@ export default {
 
 .tir-participant-card__lane:hover {
     background: var(--color-surface-alt);
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-participant-card__body {
@@ -1163,7 +1163,7 @@ export default {
 
 .tir-participant-card__progress-fill {
     height: 100%;
-    background: #f5a623;
+    background: var(--tir-touche);
     border-radius: 2px;
     transition: width 0.3s;
 }
@@ -1217,7 +1217,7 @@ export default {
 .tir-scoring__round-btn--active {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-scoring__mode-toggle {
@@ -1242,8 +1242,8 @@ export default {
 }
 
 .tir-scoring__mode-btn--active {
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1296,7 +1296,7 @@ export default {
 
 .tir-scoring__progress-fill {
     height: 100%;
-    background: #f5a623;
+    background: var(--tir-touche);
     border-radius: 2px;
     transition: width 0.3s;
 }
@@ -1344,11 +1344,11 @@ export default {
 }
 
 .tir-scoring__participant-status--complete {
-    color: #4caf50;
+    color: var(--tir-carreau);
 }
 
 .tir-scoring__participant-status--partial {
-    color: #f5a623;
+    color: var(--tir-touche);
 }
 
 .tir-scoring__atelier-card {
@@ -1370,8 +1370,8 @@ export default {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1590,8 +1590,8 @@ export default {
 
 .tir-table__playoff-btn {
     padding: 10px 20px;
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -1607,7 +1607,7 @@ export default {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-table__export {
@@ -1647,23 +1647,23 @@ export default {
     border-radius: 50%;
     font-size: 12px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-score-badge--carreau {
-    background: #4caf50;
+    background: var(--tir-carreau);
 }
 
 .tir-score-badge--reussi {
-    background: #2196F3;
+    background: var(--tir-reussi);
 }
 
 .tir-score-badge--touche {
-    background: #f5a623;
+    background: var(--tir-touche);
 }
 
 .tir-score-badge--manque {
-    background: #9e9e9e;
+    background: var(--tir-manque);
 }
 
 /* Add form */
@@ -1689,8 +1689,8 @@ export default {
 
 .tir-add-form__btn {
     padding: 12px;
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -1714,7 +1714,7 @@ export default {
 }
 
 .tir-playoff__round--final {
-    border-color: #f5a623;
+    border-color: var(--tir-touche);
 }
 
 .tir-playoff__round-title {
@@ -1741,18 +1741,18 @@ export default {
 
 .tir-playoff__match:hover {
     background: var(--color-surface-hover);
-    border-color: #f5a623;
+    border-color: var(--tir-touche);
 }
 
 .tir-playoff__match--complete {
-    border-color: #4caf50;
+    border-color: var(--tir-carreau);
     background: rgba(76, 175, 80, 0.06);
     border-width: 2px;
 }
 
 .tir-playoff__match--complete .tir-playoff__match-num {
-    background: #4caf50;
-    color: #fff;
+    background: var(--tir-carreau);
+    color: var(--color-btn-text);
 }
 
 .tir-playoff__match--in-progress {
@@ -1763,7 +1763,7 @@ export default {
 
 .tir-playoff__match--in-progress .tir-playoff__match-num {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-btn-text);
 }
 
 .tir-playoff__match--pending {
@@ -1811,13 +1811,13 @@ export default {
 }
 
 .tir-playoff__match-status--complete {
-    color: #2e7d32;
+    color: var(--tir-winner-text);
     background: rgba(76, 175, 80, 0.12);
 }
 
 .tir-playoff__match-status--progress {
-    color: #5e35b1;
-    background: rgba(94, 53, 177, 0.1);
+    color: var(--tir-in-progress);
+    background: var(--tir-in-progress-bg);
 }
 
 .tir-playoff__match-edit {
@@ -1849,12 +1849,12 @@ export default {
 }
 
 .tir-playoff__player-name--winner {
-    color: #43A047;
+    color: var(--tir-winner);
     font-weight: 700;
 }
 
 .tir-playoff__winner-icon {
-    color: #43A047;
+    color: var(--tir-winner);
     width: 12px;
     height: 12px;
     vertical-align: -1px;
@@ -1887,8 +1887,8 @@ export default {
 .tir-playoff__advance-btn {
     width: 100%;
     padding: 12px;
-    background: #f5a623;
-    color: #fff;
+    background: var(--tir-touche);
+    color: var(--color-btn-text);
     border: none;
     border-radius: 8px;
     font-weight: 600;

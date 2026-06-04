@@ -986,19 +986,23 @@ export default {
 
 .tir-table__content tr th.tir-table__sticky-col,
 .tir-table__content tr td.tir-table__sticky-col {
-    background: var(--color-surface);
+    background-color: var(--color-surface);
+    background-image: none;
 }
 
 .tir-table__content tr.tir-table__row--direct td.tir-table__sticky-col {
-    background: var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08));
+    background-color: var(--color-surface);
+    background-image: linear-gradient(var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08)), var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08)));
 }
 
 .tir-table__content tr.tir-table__row--r2 td.tir-table__sticky-col {
-    background: var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08));
+    background-color: var(--color-surface);
+    background-image: linear-gradient(var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08)), var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08)));
 }
 
 .tir-table__content tr.tir-table__row--eliminated td.tir-table__sticky-col {
-    background: var(--color-surface);
+    background-color: var(--color-surface);
+    background-image: none;
 }
 
 .place-gold td {
@@ -1010,7 +1014,8 @@ export default {
 }
 
 .place-gold td.tir-table__sticky-col {
-    background: var(--color-badge-gold-bg) !important;
+    background-color: var(--color-surface) !important;
+    background-image: linear-gradient(var(--color-badge-gold-bg), var(--color-badge-gold-bg)) !important;
 }
 
 .place-silver td {
@@ -1022,7 +1027,8 @@ export default {
 }
 
 .place-silver td.tir-table__sticky-col {
-    background: var(--color-badge-silver-bg) !important;
+    background-color: var(--color-surface) !important;
+    background-image: linear-gradient(var(--color-badge-silver-bg), var(--color-badge-silver-bg)) !important;
 }
 
 .place-bronze td {
@@ -1034,7 +1040,8 @@ export default {
 }
 
 .place-bronze td.tir-table__sticky-col {
-    background: var(--color-badge-bronze-bg) !important;
+    background-color: var(--color-surface) !important;
+    background-image: linear-gradient(var(--color-badge-bronze-bg), var(--color-badge-bronze-bg)) !important;
 }
 
 .tir-table__clickable {

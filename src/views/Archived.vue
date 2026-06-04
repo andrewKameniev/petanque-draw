@@ -290,7 +290,7 @@ export default {
             this.selectorOpen = false;
         },
         removeTournament() {
-            if (!confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')) return;
+            if (!window.confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')) return;
             this.removeSavedTournament(this.activeKey);
             const remaining = this.tournamentKeys.filter(k => k !== this.activeKey);
             this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
@@ -349,7 +349,7 @@ export default {
 }
 
 [data-theme="dark"] .wrapper::before {
-    opacity: 0.05;
+    display: none;
 }
 
 .wrapper > * {

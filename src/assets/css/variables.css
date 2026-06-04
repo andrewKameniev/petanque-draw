@@ -106,6 +106,9 @@
     --color-public-surface: #f7f7f7;
     --color-public-surface-border: #e8e8e8;
     --color-public-surface-white: #ffffff;
+
+    --tir-row-direct-bg: rgba(76, 175, 80, 0.08);
+    --tir-row-r2-bg: rgba(245, 166, 35, 0.08);
 }
 
 [data-theme="dark"] {
@@ -216,4 +219,7 @@
     --color-public-surface: #1e2130;
     --color-public-surface-border: #2f3543;
     --color-public-surface-white: #181a24;
+
+    --tir-row-direct-bg: rgba(76, 175, 80, 0.04);
+    --tir-row-r2-bg: rgba(245, 166, 35, 0.04);
 }

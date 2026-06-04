@@ -14,89 +14,81 @@
             </div>
         </div>
 
-        <!-- Atelier tabs -->
-        <div class="tir-pview__tabs">
-            <button v-for="(atelier, index) in ateliers" :key="index"
-                    class="tir-pview__tab"
-                    :class="{'tir-pview__tab--active': activeAtelierIndex === index, 'tir-pview__tab--complete': isAtelierComplete(index)}"
-                    @click="activeAtelierIndex = index">
-                {{ index + 1 }}
-            </button>
-        </div>
-        <div class="tir-pview__tab-labels">
-            <span v-for="(atelier, index) in ateliers" :key="index" class="tir-pview__tab-label" :class="{'tir-pview__tab-label--active': activeAtelierIndex === index}">
-                {{ atelier.name.split(' ')[0] }}
-            </span>
-        </div>
-
-        <!-- Active atelier scoring -->
-        <div class="tir-pview__atelier">
-            <div class="tir-pview__atelier-header">
-                <h4>{{ currentAtelier.name }}</h4>
-                <div class="tir-pview__atelier-score">
-                    <span class="tir-pview__atelier-score-val">{{ getAtelierScore(activeAtelierIndex) }}</span>
-                    <span class="tir-pview__atelier-score-max">/ {{ maxAtelierScore }}</span>
-                    <span class="tir-pview__atelier-score-label">{{ $t('ranking.points') }}</span>
+        <!-- All ateliers stacked (when complete / readOnly) -->
+        <template v-if="isAllComplete || readOnly">
+            <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-pview__atelier-card">
+                <div class="tir-pview__atelier-card-header">
+                    <span class="tir-pview__atelier-card-num">{{ aIdx + 1 }}</span>
+                    <span class="tir-pview__atelier-card-name">{{ atelier.name }}</span>
+                    <span class="tir-pview__atelier-card-score">{{ getAtelierScore(aIdx) }}/{{ maxAtelierScore }}</span>
                 </div>
-            </div>
-
-            <div class="tir-pview__atelier-desc">{{ currentAtelier.description }}</div>
-
-            <!-- Scoring legend -->
-            <div class="tir-pview__legend">
-                <div class="tir-pview__legend-item">
-                    <span class="tir-score-badge tir-score-badge--carreau">{{ scoring.carreau }}</span>
-                    <span>{{ $t('tir.carreau') }}: {{ scoring.carreau }} p</span>
-                </div>
-                <div class="tir-pview__legend-item">
-                    <span class="tir-score-badge tir-score-badge--reussi">{{ scoring.reussi }}</span>
-                    <span>{{ $t('tir.reussi') }}: {{ scoring.reussi }} p</span>
-                </div>
-                <div class="tir-pview__legend-item">
-                    <span class="tir-score-badge tir-score-badge--touche">{{ scoring.touche }}</span>
-                    <span>{{ $t('tir.touche') }}: {{ scoring.touche }} p</span>
-                </div>
-                <div class="tir-pview__legend-item">
-                    <span class="tir-score-badge tir-score-badge--manque">{{ scoring.manque }}</span>
-                    <span>{{ $t('tir.manque') }}: {{ scoring.manque }} p</span>
-                </div>
-            </div>
-
-            <!-- Scoring grid: columns = score types, rows = distances, one selection per row -->
-            <div class="tir-pview__grid">
-                <div class="tir-pview__grid-header">
-                    <div class="tir-pview__grid-corner"></div>
-                    <div class="tir-pview__grid-th tir-pview__grid-th--carreau">{{ $t('tir.carreau') }}</div>
-                    <div class="tir-pview__grid-th tir-pview__grid-th--reussi">{{ $t('tir.reussi') }}</div>
-                    <div class="tir-pview__grid-th tir-pview__grid-th--touche">{{ $t('tir.touche') }}</div>
-                    <div class="tir-pview__grid-th tir-pview__grid-th--manque">{{ $t('tir.manque') }}</div>
-                </div>
-                <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
-                    <div class="tir-pview__grid-distance">{{ distance }}m</div>
-                    <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getDistanceValue(distance) === 'carreau'}" @click="setScore(distance, 'carreau')">
-                        <CheckIcon v-if="getDistanceValue(distance) === 'carreau'" :size="14"/>
-                    </div>
-                    <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getDistanceValue(distance) === 'reussi'}" @click="setScore(distance, 'reussi')">
-                        <CheckIcon v-if="getDistanceValue(distance) === 'reussi'" :size="14"/>
-                    </div>
-                    <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getDistanceValue(distance) === 'touche'}" @click="setScore(distance, 'touche')">
-                        <CheckIcon v-if="getDistanceValue(distance) === 'touche'" :size="14"/>
-                    </div>
-                    <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getDistanceValue(distance) === 'manque'}" @click="setScore(distance, 'manque')">
-                        <CheckIcon v-if="getDistanceValue(distance) === 'manque'" :size="14"/>
+                <div class="tir-pview__circles-grid">
+                    <div v-for="distance in distances" :key="distance" class="tir-pview__circles-row">
+                        <span class="tir-pview__circles-dist">{{ distance }}m</span>
+                        <span v-for="opt in resultOptions" :key="opt.key"
+                              class="tir-pview__circle"
+                              :class="[`tir-pview__circle--${opt.key}`, {'tir-pview__circle--active': getScoreAt(aIdx, distance) === opt.key}]">
+                        </span>
                     </div>
                 </div>
             </div>
+        </template>
 
-            <!-- Saved indicator -->
-            <div v-if="lastSaved" class="tir-pview__saved">
-                <CheckCircle :size="14"/>
-                {{ lastSaved }}
+        <!-- Atelier tabs (scoring mode) -->
+        <template v-else>
+            <div class="tir-pview__tabs">
+                <button v-for="(atelier, index) in ateliers" :key="index"
+                        class="tir-pview__tab"
+                        :class="{'tir-pview__tab--active': activeAtelierIndex === index, 'tir-pview__tab--complete': isAtelierComplete(index)}"
+                        @click="activeAtelierIndex = index">
+                    {{ index + 1 }}
+                </button>
             </div>
-        </div>
 
-        <!-- Navigation -->
-        <div class="tir-pview__nav">
+            <!-- Active atelier scoring -->
+            <div class="tir-pview__atelier">
+                <div class="tir-pview__atelier-header">
+                    <h4>{{ currentAtelier.name }}</h4>
+                    <div class="tir-pview__atelier-score">
+                        <span class="tir-pview__atelier-score-val">{{ getAtelierScore(activeAtelierIndex) }}</span>
+                        <span class="tir-pview__atelier-score-max">/ {{ maxAtelierScore }}</span>
+                    </div>
+                </div>
+
+                <div class="tir-pview__grid">
+                    <div class="tir-pview__grid-header">
+                        <div class="tir-pview__grid-corner"></div>
+                        <div class="tir-pview__grid-th tir-pview__grid-th--carreau">{{ $t('tir.carreau') }}</div>
+                        <div class="tir-pview__grid-th tir-pview__grid-th--reussi">{{ $t('tir.reussi') }}</div>
+                        <div class="tir-pview__grid-th tir-pview__grid-th--touche">{{ $t('tir.touche') }}</div>
+                        <div class="tir-pview__grid-th tir-pview__grid-th--manque">{{ $t('tir.manque') }}</div>
+                    </div>
+                    <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
+                        <div class="tir-pview__grid-distance">{{ distance }}m</div>
+                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getDistanceValue(distance) === 'carreau'}" @click="setScore(distance, 'carreau')">
+                            <CheckIcon v-if="getDistanceValue(distance) === 'carreau'" :size="14"/>
+                        </div>
+                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getDistanceValue(distance) === 'reussi'}" @click="setScore(distance, 'reussi')">
+                            <CheckIcon v-if="getDistanceValue(distance) === 'reussi'" :size="14"/>
+                        </div>
+                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getDistanceValue(distance) === 'touche'}" @click="setScore(distance, 'touche')">
+                            <CheckIcon v-if="getDistanceValue(distance) === 'touche'" :size="14"/>
+                        </div>
+                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getDistanceValue(distance) === 'manque'}" @click="setScore(distance, 'manque')">
+                            <CheckIcon v-if="getDistanceValue(distance) === 'manque'" :size="14"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="lastSaved" class="tir-pview__saved">
+                    <CheckCircle :size="14"/>
+                    {{ lastSaved }}
+                </div>
+            </div>
+        </template>
+
+        <!-- Navigation (scoring mode only) -->
+        <div v-if="!isAllComplete && !readOnly" class="tir-pview__nav">
             <button class="tir-pview__nav-btn" @click="prevAtelier" :disabled="activeAtelierIndex === 0">
                 <ChevronLeft :size="16"/>
                 {{ $t('tir.prevAtelier') }}
@@ -116,7 +108,7 @@
 <script>
 import {ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon} from "lucide-vue-next";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+import {SCORING} from '@/services/tir';
 
 export default {
     name: 'TirParticipantView',
@@ -146,6 +138,12 @@ export default {
     computed: {
         scoring() {
             return SCORING;
+        },
+        resultOptions() {
+            return [{key: 'carreau'}, {key: 'reussi'}, {key: 'touche'}, {key: 'manque'}];
+        },
+        isAllComplete() {
+            return this.throwsCompleted >= this.totalThrows;
         },
         totalThrows() {
             return 5 * this.distances.length;
@@ -193,9 +191,13 @@ export default {
             if (!scores) return false;
             return Object.keys(scores).length >= this.distances.length;
         },
+        getScoreAt(atelierIdx, distance) {
+            return this.participant[this.scoresKey]?.[atelierIdx]?.[distance] || null;
+        },
         getDistanceValue(distance) {
             return this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance] || null;
         },
+        /* eslint-disable vue/no-mutating-props */
         setScore(distance, type) {
             if (this.readOnly) return;
             if (!this.participant[this.scoresKey]) {
@@ -224,6 +226,7 @@ export default {
             }
             this.$emit('update');
         },
+        /* eslint-enable vue/no-mutating-props */
         prevAtelier() {
             if (this.activeAtelierIndex > 0) this.activeAtelierIndex--;
         },
@@ -247,7 +250,7 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__info {
@@ -271,12 +274,12 @@ export default {
 
 .tir-pview__total-max {
     font-size: 14px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__throws {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 /* Tabs */
@@ -290,18 +293,18 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--border-color, #e0e0e0);
-    background: var(--bg-color, #fff);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     transition: all 0.2s;
 }
 
 .tir-pview__tab--active {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
@@ -320,21 +323,21 @@ export default {
     width: 36px;
     text-align: center;
     font-size: 9px;
-    color: var(--text-secondary, #aaa);
+    color: var(--color-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .tir-pview__tab-label--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
     font-weight: 600;
 }
 
 /* Atelier */
 .tir-pview__atelier {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 16px;
 }
@@ -363,18 +366,18 @@ export default {
 
 .tir-pview__atelier-score-max {
     font-size: 13px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__atelier-score-label {
     display: block;
     font-size: 11px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-pview__atelier-desc {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     margin-bottom: 8px;
 }
 
@@ -391,7 +394,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 /* Grid */
@@ -434,13 +437,13 @@ export default {
     align-items: center;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__grid-cell {
     flex: 1;
     height: 32px;
-    border: 2px solid var(--border-color, #e0e0e0);
+    border: 2px solid var(--color-border);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -450,7 +453,7 @@ export default {
 }
 
 .tir-pview__grid-cell:hover {
-    border-color: var(--primary-color, #f5a623);
+    border-color: #f5a623;
 }
 
 .tir-pview__grid-cell--carreau {
@@ -499,10 +502,10 @@ export default {
     align-items: center;
     gap: 4px;
     padding: 10px 14px;
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: var(--bg-color, #fff);
-    color: var(--text-color, #333);
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: 13px;
     cursor: pointer;
 }
@@ -513,8 +516,8 @@ export default {
 }
 
 .tir-pview__nav-btn--primary {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
@@ -545,5 +548,82 @@ export default {
 
 .tir-score-badge--manque {
     background: #9e9e9e;
+}
+
+/* Stacked ateliers (complete/readOnly) */
+.tir-pview__atelier-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.tir-pview__atelier-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tir-pview__atelier-card-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #F5A623;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tir-pview__atelier-card-name {
+    font-weight: 700;
+    font-size: 14px;
+    flex: 1;
+}
+
+.tir-pview__atelier-card-score {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.tir-pview__circles-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.tir-pview__circles-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tir-pview__circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    opacity: 0.35;
+    transition: all 0.15s;
+}
+
+.tir-pview__circle--active { opacity: 1; }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); }
+
+.tir-pview__circles-dist {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    min-width: 24px;
 }
 </style>

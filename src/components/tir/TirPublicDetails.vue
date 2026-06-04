@@ -111,7 +111,7 @@ export default {
 
 <style scoped>
 .tir-details {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
     border-radius: 12px;
     padding: 1.25rem;
     border: 1px solid var(--color-border, #e0e0e0);
@@ -145,13 +145,13 @@ export default {
 }
 
 .tir-details__card-header:hover {
-    background: var(--bg-secondary, #f9f9f9);
+    background: var(--color-surface-hover);
 }
 
 .tir-details__rank {
     font-weight: 700;
     min-width: 20px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-details__name {
@@ -161,12 +161,12 @@ export default {
 
 .tir-details__score {
     font-size: 0.9rem;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-details__chevron {
     transition: transform 0.2s;
-    color: var(--text-secondary, #999);
+    color: var(--color-text-muted);
 }
 
 .tir-details__chevron--open {
@@ -196,7 +196,7 @@ export default {
 
 .tir-details__atelier-score {
     font-size: 0.8rem;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-details__grid {
@@ -258,6 +258,6 @@ export default {
 .tir-details__empty {
     text-align: center;
     padding: 2rem;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 </style>

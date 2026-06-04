@@ -25,10 +25,10 @@ export default {
                     <a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a>
                     <a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a>
                 </div>
-                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
+                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
             </div>
         </div>
-        <p class="app-footer__credit app-footer__mobile-credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
+        <p class="app-footer__credit app-footer__mobile-credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
     </footer>
 </template>
 

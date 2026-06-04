@@ -19,89 +19,8 @@
         </div>
 
         <!-- Participants view — scoring page style, read-only -->
-        <div v-if="view === 'participants'" class="tir-scoring">
-            <div v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1" class="tir-scoring__bracket-switcher">
-                <button v-for="tab in bracketTabs" :key="tab.key"
-                        class="tir-scoring__bracket-btn"
-                        :class="{'tir-scoring__bracket-btn--active': activeBracket === tab.key}"
-                        @click="activeBracket = tab.key">
-                    {{ tab.label }}
-                </button>
-            </div>
-            <!-- Participant list -->
-            <div v-if="expanded === null" class="tir-scoring__select">
-                <div v-for="(participant, index) in rankedParticipants" :key="participant.id || index" class="tir-scoring__participant-row" @click="expandParticipant(index)">
-                    <span class="tir-scoring__participant-rank">{{ index + 1 }}</span>
-                    <span class="tir-scoring__participant-name">{{ participant.name }}</span>
-                    <span class="tir-scoring__participant-score">{{ getTotal(participant) }}/{{ maxTotal }}</span>
-                    <span class="tir-scoring__participant-status" :class="getStatusClass(participant)">
-                        <CheckCircle v-if="isComplete(participant)" :size="16"/>
-                        <AlertCircle v-else-if="getThrows(participant) > 0" :size="16"/>
-                        <Circle v-else :size="16"/>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Expanded participant details (read-only scoring view) -->
-            <div v-else class="tir-pview">
-                <div class="tir-pview__header">
-                    <button class="tir-pview__back" @click="expanded = null">
-                        <ChevronLeft :size="20"/>
-                    </button>
-                    <div class="tir-pview__info">
-                        <h3 class="tir-pview__name">{{ expandedParticipant.name }}</h3>
-                        <div class="tir-pview__total">
-                            <span class="tir-pview__total-score">{{ getTotal(expandedParticipant) }}</span>
-                            <span class="tir-pview__total-max">/ {{ maxTotal }} {{ $t('ranking.points') }}</span>
-                        </div>
-                        <div class="tir-pview__throws">{{ getThrows(expandedParticipant) }} / {{ totalThrows }} {{ $t('tir.throws') }}</div>
-                    </div>
-                </div>
-
-                <div class="tir-pview__tabs">
-                    <button v-for="(atelier, aIdx) in atelierNames" :key="aIdx"
-                            class="tir-pview__tab"
-                            :class="{'tir-pview__tab--active': activeAtelier === aIdx, 'tir-pview__tab--complete': isAtelierComplete(expandedParticipant, aIdx)}"
-                            @click="activeAtelier = aIdx">
-                        {{ aIdx + 1 }}
-                    </button>
-                </div>
-
-                <div class="tir-pview__atelier">
-                    <div class="tir-pview__atelier-header">
-                        <h4>{{ atelierNames[activeAtelier] }}</h4>
-                        <div class="tir-pview__atelier-score">
-                            <span class="tir-pview__atelier-score-val">{{ getAtelierTotal(expandedParticipant, activeAtelier) }}</span>
-                            <span class="tir-pview__atelier-score-max">/ {{ maxAtelierScore }}</span>
-                        </div>
-                    </div>
-
-                    <div class="tir-pview__grid">
-                        <div class="tir-pview__grid-header">
-                            <div class="tir-pview__grid-corner"></div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--carreau">{{ $t('tir.carreau') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--reussi">{{ $t('tir.reussi') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--touche">{{ $t('tir.touche') }}</div>
-                            <div class="tir-pview__grid-th tir-pview__grid-th--manque">{{ $t('tir.manque') }}</div>
-                        </div>
-                        <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
-                            <div class="tir-pview__grid-distance">{{ distance }}m</div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getScore(expandedParticipant, activeAtelier, distance) === 'carreau'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'carreau'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getScore(expandedParticipant, activeAtelier, distance) === 'reussi'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'reussi'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getScore(expandedParticipant, activeAtelier, distance) === 'touche'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'touche'" :size="14"/>
-                            </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getScore(expandedParticipant, activeAtelier, distance) === 'manque'}">
-                                <Check v-if="getScore(expandedParticipant, activeAtelier, distance) === 'manque'" :size="14"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div v-if="view === 'participants'">
+            <TirParticipantsList ref="participantsList" :tournament="tournament" :readOnly="true"/>
         </div>
 
         <!-- Table view — qualification ranking -->
@@ -130,7 +49,7 @@
                     <tbody v-if="isTwoRoundSystem">
                         <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
-                            <td class="tir-table__sticky-col tir-table__sticky-col--name">{{ row.name }}</td>
+                            <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">{{ row.name }}</td>
                             <td>{{ row.r1 }}</td>
                             <td v-if="currentRound >= 2">{{ row.r2 }}</td>
                             <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
@@ -168,19 +87,29 @@
                 <div class="tir-playoff__timeline">
                     <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
                         <div class="tir-playoff__progress">
-                            <span class="tir-playoff__progress-dot" :class="{'tir-playoff__progress-dot--complete': round.matches.every(m => isMatchComplete(m)), 'tir-playoff__progress-dot--final': round.isFinal}"></span>
+                            <span class="tir-playoff__progress-dot" :class="{'tir-playoff__progress-dot--complete': !round.isPreview && round.matches.every(m => isMatchComplete(m)), 'tir-playoff__progress-dot--final': round.isFinal}"></span>
                             <span v-if="rIdx < playoffDisplayRounds.length - 1" class="tir-playoff__progress-line"></span>
                         </div>
                         <div class="tir-playoff__round-content">
                             <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--final': round.isFinal}" @click="openPlayoffMatch(match, round.title, round.key, mIdx)">
-                                <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
+                            <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': isMatchComplete(match), 'tir-playoff__match--in-progress': !isMatchComplete(match) && !match.preview && (match.score1 != null || match.score2 != null), 'tir-playoff__match--pending': !match.player1 || !match.player2, 'tir-playoff__match--preview': match.preview, 'tir-playoff__match--final': round.isFinal}" @click="!match.preview && openPlayoffMatch(match, round.title, round.key, mIdx)">
+                                <div class="tir-playoff__match-top">
+                                    <span class="tir-playoff__match-num">{{ round.laneStart ? round.laneStart + mIdx : mIdx + 1 }}</span>
+                                    <span v-if="isMatchComplete(match)" class="tir-playoff__match-status tir-playoff__match-status--complete">{{ $t('tir.matchCompleted') }}</span>
+                                    <span v-else-if="!match.preview && (match.score1 != null || match.score2 != null)" class="tir-playoff__match-status tir-playoff__match-status--progress">{{ $t('tir.matchInProgress') }}</span>
+                                </div>
                                 <div class="tir-playoff__match-row">
-                                    <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">{{ match.player1 || $t('tir.matchPending') }}</span>
+                                    <span class="tir-playoff__player-name" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player1}">
+                                        <Trophy v-if="getMatchWinner(match) === match.player1" :size="12" class="tir-playoff__winner-icon"/>
+                                        <span v-html="formatName(match.preview ? match.previewLabel1 : match.player1)"></span>
+                                    </span>
                                     <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player1}">{{ match.score1 !== null ? match.score1 : '—' }}</span>
                                     <span class="tir-playoff__vs">vs</span>
                                     <span class="tir-playoff__score" :class="{'tir-playoff__score--winner': getMatchWinner(match) === match.player2}">{{ match.score2 !== null ? match.score2 : '—' }}</span>
-                                    <span class="tir-playoff__player-name tir-playoff__player-name--right" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2}">{{ match.player2 || $t('tir.matchPending') }}</span>
+                                    <span class="tir-playoff__player-name tir-playoff__player-name--right" :class="{'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2}">
+                                        <span v-html="formatName(match.preview ? match.previewLabel2 : match.player2)"></span>
+                                        <Trophy v-if="getMatchWinner(match) === match.player2" :size="12" class="tir-playoff__winner-icon"/>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -188,13 +117,13 @@
                 </div>
 
                 <!-- Winner block -->
-                <div v-if="champion" class="tir-playoff__winner">
-                    <div class="tir-playoff__winner-icon">
+                <div v-if="champion" class="tir-playoff__champion">
+                    <div class="tir-playoff__champion-icon">
                         <Trophy :size="28" color="#fff"/>
                     </div>
-                    <div class="tir-playoff__winner-info">
-                        <span class="tir-playoff__winner-label">{{ $t('tir.tournamentWinner') }}</span>
-                        <span class="tir-playoff__winner-name">{{ champion }}</span>
+                    <div class="tir-playoff__champion-info">
+                        <span class="tir-playoff__champion-label">{{ $t('tir.tournamentWinner') }}</span>
+                        <span class="tir-playoff__champion-name">{{ champion }}</span>
                     </div>
                 </div>
 
@@ -210,15 +139,15 @@
 </template>
 
 <script>
-import {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check} from "lucide-vue-next";
+import {Users, TableProperties, Trophy, ChevronRight} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
+import TirParticipantsList from "./TirParticipantsList.vue";
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
-const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
+import {SCORING, ATELIER_KEYS, getScoreTotal, buildTableRows} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
-    components: {Users, TableProperties, Trophy, CheckCircle, AlertCircle, Circle, ChevronLeft, ChevronRight, Check, TirPlayoffComparison},
+    components: {Users, TableProperties, Trophy, ChevronRight, TirPlayoffComparison, TirParticipantsList},
     props: {
         tournament: {type: Object, required: true}
     },
@@ -230,7 +159,8 @@ export default {
             activePlayoffMatchKey: null,
             activePlayoffMatchLabel: '',
             viewingRound: null,
-            activeBracket: 'r2'
+            activeBracket: 'r2',
+            searchQuery: ''
         }
     },
     created() {
@@ -280,6 +210,9 @@ export default {
         },
         maxTotal() {
             return 5 * this.maxAtelierScore;
+        },
+        resultOptions() {
+            return [{key: 'carreau'}, {key: 'reussi'}, {key: 'touche'}, {key: 'manque'}];
         },
         atelierNames() {
             return ATELIER_KEYS.map(k => this.$t(`tir.${k}`));
@@ -349,6 +282,11 @@ export default {
         rankedParticipants() {
             return [...this.scoringParticipants].sort((a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));
         },
+        filteredParticipants() {
+            if (!this.searchQuery) return this.rankedParticipants;
+            const q = this.searchQuery.toLowerCase();
+            return this.rankedParticipants.filter(p => p.name.toLowerCase().includes(q) || (p.city && p.city.toLowerCase().includes(q)));
+        },
         playoffHasQf() {
             const playoff = this.tournament.tirPlayoff;
             if (!playoff?.rounds?.[0]) return false;
@@ -392,27 +330,68 @@ export default {
                 });
             }
 
-            let laneCounter = rounds.reduce((sum, r) => sum + r.matches.length, 0);
+            if (!playoff.thirdPlace && !playoff.final && rounds.length) {
+                const lastRound = rounds[rounds.length - 1];
+                const lastMatches = lastRound.matches;
+                if (lastMatches.length >= 2) {
+                    const nextMatchCount = Math.floor(lastMatches.length / 2);
+                    const previewMatches = [];
+                    for (let i = 0; i < lastMatches.length; i += 2) {
+                        const m1 = lastMatches[i];
+                        const m2 = lastMatches[i + 1];
+                        const w1 = this.getMatchWinner(m1);
+                        const w2 = m2 ? this.getMatchWinner(m2) : null;
+                        const p1 = w1 || this.$t('tir.matchPending');
+                        const p2 = w2 || this.$t('tir.matchPending');
+                        previewMatches.push({player1: w1 || null, player2: w2 || null, score1: null, score2: null, preview: true, previewLabel1: p1, previewLabel2: p2});
+                    }
+
+                    if (lastMatches.length === 2) {
+                        const loser1 = this.getMatchLoser(lastMatches[0]);
+                        const loser2 = this.getMatchLoser(lastMatches[1]);
+                        const l1 = loser1 || this.$t('tir.matchPending');
+                        const l2 = loser2 || this.$t('tir.matchPending');
+                        rounds.push({
+                            title: this.$t('tir.thirdPlaceMatch'),
+                            matches: [{player1: loser1 || null, player2: loser2 || null, score1: null, score2: null, preview: true, previewLabel1: l1, previewLabel2: l2}],
+                            key: `preview-third:${rounds.length}`,
+                            isFinal: false,
+                            isPreview: true,
+                            laneStart: 2
+                        });
+                    }
+
+                    if (previewMatches.length > 0) {
+                        const isFinal = nextMatchCount === 1;
+                        rounds.push({
+                            title: isFinal ? this.$t('games.final') : this.getRoundTitle(nextMatchCount, playoffSize),
+                            matches: previewMatches,
+                            key: `preview:${rounds.length}`,
+                            isFinal,
+                            isPreview: true,
+                            laneStart: isFinal ? 1 : 1
+                        });
+                    }
+                }
+            }
 
             if (playoff.thirdPlace) {
-                laneCounter++;
                 rounds.push({
                     title: this.$t('tir.thirdPlaceMatch'),
                     matches: [playoff.thirdPlace],
                     key: 'third:0',
                     isFinal: false,
-                    laneStart: laneCounter
+                    laneStart: 2
                 });
             }
 
             if (playoff.final) {
-                laneCounter++;
                 rounds.push({
                     title: this.$t('games.final'),
                     matches: [playoff.final],
                     key: 'final:0',
                     isFinal: true,
-                    laneStart: laneCounter
+                    laneStart: 1
                 });
             }
 
@@ -427,68 +406,31 @@ export default {
         },
         r1RankedParticipants() {
             return [...this.participants].sort((a, b) =>
-                this.getTotal(a, 'scores') !== undefined ?
-                    this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores') :
-                    this.getTotal(b) - this.getTotal(a)
+                getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
             );
         },
         publicTableRows() {
             if (!this.isTwoRoundSystem) return [];
-            const playoff = this.tournament.tirPlayoff;
             const r2Ids = this.tournament.tirR2Participants || [];
             const r1Ranked = [...this.participants].sort((a, b) =>
-                this.getScoreForKey(b, 'scores') - this.getScoreForKey(a, 'scores')
+                getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
             );
-            const directIds = r1Ranked.slice(0, 4).map(p => p.id);
-            const r2CandidateIds = r1Ranked.slice(4, 16).map(p => p.id);
-
-            const allPlayers = r1Ranked.map(p => {
-                const isDirect = directIds.includes(p.id);
-                const isR2 = r2Ids.includes(p.id);
-                const r1Score = this.getScoreForKey(p, 'scores');
-                const r2Score = isR2 ? this.getScoreForKey(p, 'scores2') : null;
-                const combined = isR2 ? r1Score + r2Score : r1Score;
-
-                let place = '';
-                let rowClass = '';
-                if (isDirect) {
-                    rowClass = 'tir-table__row--direct';
-                    place = this.$t('tir.directQualifier');
-                } else if (isR2) {
-                    rowClass = 'tir-table__row--r2';
-                } else if (this.isTwoRoundSystem && this.currentRound === 1 && r2CandidateIds.includes(p.id)) {
-                    rowClass = 'tir-table__row--r2';
-                    place = this.$t('tir.goToRound2');
-                } else {
-                    rowClass = 'tir-table__row--eliminated';
-                    place = this.$t('tir.eliminated');
+            return buildTableRows({
+                participants: this.participants,
+                directIds: r1Ranked.slice(0, 4).map(p => p.id),
+                r2Ids,
+                r2CandidateIds: r1Ranked.slice(4, 16).map(p => p.id),
+                playoff: this.tournament.tirPlayoff,
+                currentRound: this.currentRound,
+                isTwoRoundSystem: this.isTwoRoundSystem,
+                hasPlayoffScores: this.playoffHasQf || this.playoffHasSf || this.playoffHasFinal,
+                labels: {
+                    direct: this.$t('tir.directQualifier'),
+                    r2Qualifier: this.$t('tir.round2Qualifier'),
+                    goToR2: this.$t('tir.goToRound2'),
+                    eliminated: this.$t('tir.eliminated')
                 }
-
-                const matchScores = this.getPlayoffMatchScores(p.name, playoff);
-
-                return {
-                    id: p.id,
-                    name: p.name,
-                    r1: r1Score,
-                    r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
-                    combined: isR2 ? combined : (isDirect ? r1Score : ''),
-                    qf: matchScores.qf,
-                    sf: matchScores.sf,
-                    final: matchScores.final,
-                    place,
-                    rowClass,
-                    combinedNum: combined
-                };
             });
-
-            if (this.currentRound >= 2 && r2Ids.length) {
-                const directRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--direct');
-                const r2Rows = allPlayers.filter(r => r.rowClass === 'tir-table__row--r2')
-                    .sort((a, b) => b.combinedNum - a.combinedNum);
-                const eliminatedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--eliminated');
-                return [...directRows, ...r2Rows, ...eliminatedRows];
-            }
-            return allPlayers;
         }
     },
     methods: {
@@ -540,6 +482,14 @@ export default {
             const p = this.rankedParticipants[index];
             const firstIncomplete = ATELIER_KEYS.findIndex((_, idx) => !this.isAtelierComplete(p, idx));
             this.activeAtelier = firstIncomplete !== -1 ? firstIncomplete : 0;
+        },
+        expandParticipantById(id) {
+            const index = this.rankedParticipants.findIndex(p => p.id === id);
+            if (index !== -1) this.expandParticipant(index);
+        },
+        openFromTable(id) {
+            this.view = 'participants';
+            this.$nextTick(() => this.$refs.participantsList?.expandById(id));
         },
         getTotal(participant) {
             if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
@@ -594,15 +544,21 @@ export default {
             return this.qualifiedNames.includes(participant.name);
         },
         isMatchComplete(match) {
-            if (match.complete) return true;
-            return match.score1 !== null && match.score2 !== null && match.score1 !== match.score2;
+            return !!match.complete || !!match.winner;
         },
         getMatchWinner(match) {
-            if (match.winner) return match.winner;
-            if (match.score1 !== null && match.score2 !== null && match.score1 !== match.score2) {
-                return match.score1 > match.score2 ? match.player1 : match.player2;
-            }
-            return null;
+            return match.winner || null;
+        },
+        getMatchLoser(match) {
+            const winner = this.getMatchWinner(match);
+            if (!winner) return null;
+            return winner === match.player1 ? match.player2 : match.player1;
+        },
+        formatName(name) {
+            if (!name) return this.$t('tir.matchPending');
+            const parts = name.split(' ');
+            if (parts.length <= 1) return `<b>${name}</b>`;
+            return `<b>${parts[0]}</b> ${parts.slice(1).join(' ')}`;
         },
         getRoundTitle(matchCount, playoffSize) {
             if (playoffSize === 2) return this.$t('games.final');
@@ -611,43 +567,6 @@ export default {
             if (matchCount === 8) return this.$t('tir.eighthFinal');
             if (matchCount === 16) return this.$t('tir.sixteenthFinal');
             return this.$t('tir.round') + ' ' + matchCount;
-        },
-        getScoreForKey(participant, key) {
-            if (!participant[key]) return 0;
-            let total = 0;
-            Object.values(participant[key]).forEach(atelier => {
-                if (atelier && typeof atelier === 'object') {
-                    Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
-                }
-            });
-            return total;
-        },
-        getPlayoffMatchScores(playerName, playoff) {
-            const result = {qf: '', sf: '', final: ''};
-            if (!playoff) return result;
-            if (playoff.rounds) {
-                playoff.rounds.forEach(round => {
-                    round.matches.forEach(m => {
-                        if (m.player1 === playerName || m.player2 === playerName) {
-                            const score = m.player1 === playerName ? m.score1 : m.score2;
-                            if (score != null) {
-                                if (round.matches.length >= 4) result.qf = score;
-                                else if (round.matches.length === 2) result.sf = score;
-                                else if (round.matches.length === 1) result.final = score;
-                            }
-                        }
-                    });
-                });
-            }
-            if (playoff.final && (playoff.final.player1 === playerName || playoff.final.player2 === playerName)) {
-                const score = playoff.final.player1 === playerName ? playoff.final.score1 : playoff.final.score2;
-                if (score != null) result.final = score;
-            }
-            if (playoff.thirdPlace && (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)) {
-                const score = playoff.thirdPlace.player1 === playerName ? playoff.thirdPlace.score1 : playoff.thirdPlace.score2;
-                if (score != null) result.final = score;
-            }
-            return result;
         },
         openPlayoffMatch(match, label, roundKey, mIdx) {
             if (!match.player1 || !match.player2) return;
@@ -668,16 +587,16 @@ export default {
 
 <style scoped>
 .tir-module {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
     border-radius: 12px;
     padding: 16px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
 }
 
 .tir-nav {
     display: flex;
-    background: var(--bg-color, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 6px 0;
     margin-bottom: 16px;
@@ -692,14 +611,14 @@ export default {
     padding: 6px;
     border: none;
     background: none;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     font-size: 11px;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .tir-nav__btn--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
 }
 
 .tir-nav__btn--participants.tir-nav__btn--active {
@@ -711,7 +630,7 @@ export default {
 }
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
-    color: var(--primary-color, #f5a623);
+    color: #f5a623;
 }
 
 .tir-nav__round-badge {
@@ -726,7 +645,7 @@ export default {
     font-size: 10px;
     font-weight: 700;
     border-radius: 5px;
-    background: var(--color-primary, #471aa0);
+    background: var(--color-primary);
     color: #fff;
     margin-right: 6px;
     border: none;
@@ -735,7 +654,7 @@ export default {
 
 .tir-scoring__round-hint {
     font-size: 12px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
     text-align: left;
     margin: -8px 0 6px;
 }
@@ -749,20 +668,43 @@ export default {
 
 .tir-scoring__bracket-btn {
     padding: 4px 10px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: none;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .tir-scoring__bracket-btn--active {
-    background: var(--color-primary, #471aa0);
-    border-color: var(--color-primary, #471aa0);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
+}
+
+.tir-scoring__search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    outline: none;
+    background: var(--color-bg-input);
+    color: var(--color-text);
+}
+
+.tir-scoring__search:focus {
+    border-color: var(--color-primary);
+}
+
+.tir-scoring__participant-club {
+    display: block;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-weight: 400;
 }
 
 /* Scoring list */
@@ -777,21 +719,22 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .tir-scoring__participant-row:hover {
-    background: var(--bg-secondary, #f9f9f9);
+    background: var(--color-surface-hover);
 }
 
 .tir-scoring__participant-rank {
     font-weight: 600;
     min-width: 20px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .tir-scoring__participant-name {
@@ -801,11 +744,11 @@ export default {
 
 .tir-scoring__participant-score {
     font-size: 13px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
-.tir-scoring__participant-status { color: var(--text-secondary, #ccc); }
-.tir-scoring__participant-status--complete { color: #4caf50; }
+.tir-scoring__participant-status { color: var(--color-grey); }
+.tir-scoring__participant-status--complete { color: var(--color-success); }
 .tir-scoring__participant-status--partial { color: #f5a623; }
 
 /* Participant detail view */
@@ -821,15 +764,15 @@ export default {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
 }
 
 .tir-pview__info { flex: 1; }
-.tir-pview__name { margin: 0; font-size: 18px; }
+.tir-pview__name { margin: 0; font-size: 18px; color: var(--color-text); }
 .tir-pview__total { margin-top: 4px; }
-.tir-pview__total-score { font-size: 24px; font-weight: 700; color: #4caf50; }
-.tir-pview__total-max { font-size: 14px; color: var(--text-secondary, #888); }
-.tir-pview__throws { font-size: 12px; color: var(--text-secondary, #888); }
+.tir-pview__total-score { font-size: 24px; font-weight: 700; color: var(--color-success); }
+.tir-pview__total-max { font-size: 14px; color: var(--color-text-muted); }
+.tir-pview__throws { font-size: 12px; color: var(--color-text-muted); }
 
 .tir-pview__tabs { display: flex; gap: 6px; margin-bottom: 12px; }
 
@@ -837,29 +780,29 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--color-border, #e0e0e0);
-    background: var(--bg-color, #fff);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--color-text);
     transition: all 0.2s;
 }
 
 .tir-pview__tab--active {
-    background: var(--primary-color, #f5a623);
-    border-color: var(--primary-color, #f5a623);
+    background: #f5a623;
+    border-color: #f5a623;
     color: #fff;
 }
 
 .tir-pview__tab--complete:not(.tir-pview__tab--active) {
-    border-color: #4caf50;
-    color: #4caf50;
+    border-color: var(--color-success);
+    color: var(--color-success);
 }
 
 .tir-pview__atelier {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 14px;
 }
@@ -871,10 +814,10 @@ export default {
     margin-bottom: 2px;
 }
 
-.tir-pview__atelier-header h4 { margin: 0; font-size: 16px; }
+.tir-pview__atelier-header h4 { margin: 0; font-size: 16px; color: var(--color-text); }
 .tir-pview__atelier-score { text-align: right; }
-.tir-pview__atelier-score-val { font-size: 20px; font-weight: 700; color: #4caf50; }
-.tir-pview__atelier-score-max { font-size: 13px; color: var(--text-secondary, #888); }
+.tir-pview__atelier-score-val { font-size: 20px; font-weight: 700; color: var(--color-success); }
+.tir-pview__atelier-score-max { font-size: 13px; color: var(--color-text-muted); }
 
 .tir-pview__grid { margin-top: 10px; }
 .tir-pview__grid-header { display: flex; gap: 3px; margin-bottom: 6px; }
@@ -886,15 +829,15 @@ export default {
 .tir-pview__grid-th--manque { color: #9e9e9e; }
 
 .tir-pview__grid-row { display: flex; gap: 3px; margin-bottom: 3px; }
-.tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--text-color, #333); }
+.tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--color-text); }
 
 .tir-pview__grid-cell {
     flex: 1;
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: radial-gradient(circle, #e0e0e0 56%, #fff 56%);
+    border: 2px solid var(--color-border);
+    background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
     opacity: 0.4;
     display: flex;
     align-items: center;
@@ -902,10 +845,86 @@ export default {
     transition: all 0.15s;
 }
 
-.tir-pview__grid-cell--carreau { opacity: 1; border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--reussi { opacity: 1; border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, #fff 56%); color: #fff; }
-.tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, #fff 56%); color: #fff; }
+.tir-pview__grid-cell--carreau { opacity: 1; border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--reussi { opacity: 1; border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--touche { opacity: 1; border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); color: #fff; }
+.tir-pview__grid-cell--manque { opacity: 1; border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); color: #fff; }
+
+/* Stacked ateliers (detail view) */
+.tir-pview__atelier-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.tir-pview__atelier-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tir-pview__atelier-card-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #F5A623;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tir-pview__atelier-card-name {
+    font-weight: 700;
+    font-size: 14px;
+    flex: 1;
+}
+
+.tir-pview__atelier-card-score {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.tir-pview__circles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tir-pview__circles-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tir-pview__circles-dist {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    min-width: 24px;
+    order: -1;
+}
+
+.tir-pview__circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
+    opacity: 0.35;
+}
+
+.tir-pview__circle--active { opacity: 1; }
+.tir-pview__circle--active.tir-pview__circle--carreau { border-color: #4CAF50; background: radial-gradient(circle, #4CAF50 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--reussi { border-color: #2196F3; background: radial-gradient(circle, #2196F3 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--touche { border-color: #F5A623; background: radial-gradient(circle, #F5A623 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active.tir-pview__circle--manque { border-color: #bdbdbd; background: radial-gradient(circle, #bdbdbd 56%, var(--color-surface) 56%); }
 
 /* Table */
 .tir-table__content {
@@ -917,33 +936,34 @@ export default {
 .tir-table__content th {
     text-align: left;
     padding: 10px 8px;
-    border-bottom: 2px solid var(--color-border, #e0e0e0);
+    border-bottom: 2px solid var(--color-border);
     font-weight: 600;
     font-size: 12px;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     text-transform: uppercase;
 }
 
 .tir-table__content td {
     padding: 10px 8px;
-    border-bottom: 1px solid var(--color-border, #f0f0f0);
+    border-bottom: 1px solid var(--color-border-light);
     white-space: nowrap;
+    color: var(--color-text);
 }
 
 .tir-table__row--qualified td {
-    background: var(--color-highlight, rgba(16, 185, 129, 0.12));
+    background: var(--color-highlight);
 }
 
 .tir-table__row--direct td {
-    background: rgba(76, 175, 80, 0.08);
+    background: var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08));
 }
 
 .tir-table__row--r2 td {
-    background: rgba(245, 166, 35, 0.08);
+    background: var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08));
 }
 
 .tir-table__row--eliminated td {
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 .tir-table__scroll {
@@ -966,25 +986,71 @@ export default {
 
 .tir-table__content tr th.tir-table__sticky-col,
 .tir-table__content tr td.tir-table__sticky-col {
-    background: var(--card-bg, #fff);
+    background: var(--color-surface);
 }
 
-.tir-table__row--direct td.tir-table__sticky-col {
-    background: #f0faf1;
+.tir-table__content tr.tir-table__row--direct td.tir-table__sticky-col {
+    background: var(--tir-row-direct-bg, rgba(76, 175, 80, 0.08));
 }
 
-.tir-table__row--r2 td.tir-table__sticky-col {
-    background: #fef9f0;
+.tir-table__content tr.tir-table__row--r2 td.tir-table__sticky-col {
+    background: var(--tir-row-r2-bg, rgba(245, 166, 35, 0.08));
 }
 
-.tir-table__row--eliminated td.tir-table__sticky-col {
-    background: var(--card-bg, #fff);
+.tir-table__content tr.tir-table__row--eliminated td.tir-table__sticky-col {
+    background: var(--color-surface);
+}
+
+.place-gold td {
+    background: var(--color-badge-gold-bg) !important;
+}
+
+.place-gold td:first-child {
+    border-left: 3px solid var(--color-badge-gold-border);
+}
+
+.place-gold td.tir-table__sticky-col {
+    background: var(--color-badge-gold-bg) !important;
+}
+
+.place-silver td {
+    background: var(--color-badge-silver-bg) !important;
+}
+
+.place-silver td:first-child {
+    border-left: 3px solid var(--color-badge-silver-border);
+}
+
+.place-silver td.tir-table__sticky-col {
+    background: var(--color-badge-silver-bg) !important;
+}
+
+.place-bronze td {
+    background: var(--color-badge-bronze-bg) !important;
+}
+
+.place-bronze td:first-child {
+    border-left: 3px solid var(--color-badge-bronze-border);
+}
+
+.place-bronze td.tir-table__sticky-col {
+    background: var(--color-badge-bronze-bg) !important;
+}
+
+.tir-table__clickable {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.tir-table__clickable:hover {
+    text-decoration: underline;
 }
 
 .tir-table__empty {
     text-align: center;
     padding: 40px;
-    color: var(--text-secondary, #888);
+    color: var(--color-text-muted);
 }
 
 /* Playoff */
@@ -1016,8 +1082,8 @@ export default {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid #d0d0d0;
-    background: #fff;
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
     flex-shrink: 0;
 }
 
@@ -1034,7 +1100,7 @@ export default {
 .tir-playoff__progress-line {
     width: 2px;
     flex: 1;
-    background: #e0e0e0;
+    background: var(--color-border);
     margin: 4px 0;
 }
 
@@ -1048,35 +1114,52 @@ export default {
     margin: 0 0 10px;
     font-size: 13px;
     font-weight: 700;
-    color: var(--text-secondary, #666);
+    color: var(--color-text-muted);
     text-transform: uppercase;
 }
 
 .tir-playoff__match {
     padding: 12px 14px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid var(--color-border);
     border-radius: 14px;
     margin-bottom: 8px;
     cursor: pointer;
-    background: #fff;
+    background: var(--color-surface);
     transition: background 0.15s, border-color 0.15s;
 }
 
 .tir-playoff__match:hover {
-    background: var(--bg-secondary, #f9f9f9);
-    border-color: var(--primary-color, #f5a623);
+    background: var(--color-surface-hover);
+    border-color: #f5a623;
 }
 
 .tir-playoff__match:last-child { margin-bottom: 0; }
 
 .tir-playoff__match--complete {
-    border-color: rgba(67, 160, 71, 0.35);
-    background: #FCFFFC;
+    border-color: #4caf50;
+    background: rgba(76, 175, 80, 0.06);
+    border-width: 2px;
+}
+
+.tir-playoff__match--complete .tir-playoff__match-num {
+    background: #4caf50;
+    color: #fff;
+}
+
+.tir-playoff__match--in-progress {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    border-width: 2px;
+}
+
+.tir-playoff__match--in-progress .tir-playoff__match-num {
+    background: var(--color-primary);
+    color: #fff;
 }
 
 .tir-playoff__match--final {
     border-color: #F5A623;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .tir-playoff__match--pending {
@@ -1085,8 +1168,26 @@ export default {
 }
 
 .tir-playoff__match--pending:hover {
-    background: #fff;
-    border-color: var(--color-border, #e0e0e0);
+    background: var(--color-surface);
+    border-color: var(--color-border);
+}
+
+.tir-playoff__match--preview {
+    opacity: 0.55;
+    cursor: default;
+    border-style: dashed;
+}
+
+.tir-playoff__match--preview:hover {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+}
+
+.tir-playoff__match-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .tir-playoff__match-num {
@@ -1096,11 +1197,27 @@ export default {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #f2f3f5;
+    background: var(--color-surface-alt);
     font-size: 11px;
     font-weight: 700;
-    color: var(--text-secondary, #777);
-    margin-bottom: 8px;
+    color: var(--color-text-muted);
+}
+
+.tir-playoff__match-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.tir-playoff__match-status--complete {
+    color: #2e7d32;
+    background: rgba(76, 175, 80, 0.12);
+}
+
+.tir-playoff__match-status--progress {
+    color: #5e35b1;
+    background: rgba(94, 53, 177, 0.1);
 }
 
 .tir-playoff__match-row {
@@ -1113,12 +1230,15 @@ export default {
 .tir-playoff__player-name {
     font-size: 14px;
     font-weight: 500;
-    color: #1F2233;
+    color: var(--color-text);
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     min-width: 0;
+    word-break: break-word;
 }
+
 
 .tir-playoff__player-name--right {
     text-align: right;
@@ -1129,39 +1249,49 @@ export default {
     font-weight: 700;
 }
 
+.tir-playoff__winner-icon {
+    color: #43A047;
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
+    flex-shrink: 0;
+    display: inline-block;
+    margin-left: 4px;
+}
+
 .tir-playoff__score {
     font-size: 18px;
     font-weight: 700;
-    color: #1F2233;
+    color: var(--color-text);
     min-width: 28px;
     text-align: center;
     flex-shrink: 0;
 }
 
 .tir-playoff__score--winner {
-    color: #1F2233;
+    color: var(--color-text);
 }
 
 .tir-playoff__vs {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #999);
+    color: var(--color-text-muted);
     min-width: 24px;
     text-align: center;
 }
 
-/* Winner block */
-.tir-playoff__winner {
+/* Champion block */
+.tir-playoff__champion {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 18px;
     border-radius: 16px;
-    background: #EAF7EC;
+    background: rgba(76, 175, 80, 0.08);
     border: 1px solid rgba(67, 160, 71, 0.22);
 }
 
-.tir-playoff__winner-icon {
+.tir-playoff__champion-icon {
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -1172,23 +1302,23 @@ export default {
     flex-shrink: 0;
 }
 
-.tir-playoff__winner-info {
+.tir-playoff__champion-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.tir-playoff__winner-label {
+.tir-playoff__champion-label {
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     color: #43A047;
 }
 
-.tir-playoff__winner-name {
+.tir-playoff__champion-name {
     font-size: 22px;
     font-weight: 800;
-    color: #1F2233;
+    color: var(--color-text);
 }
 
 /* CTA */
@@ -1200,8 +1330,8 @@ export default {
     padding: 0 18px;
     border: 1px solid rgba(67, 160, 71, 0.45);
     border-radius: 14px;
-    background: #fff;
-    color: #1F2233;
+    background: var(--color-surface);
+    color: var(--color-text);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -1210,11 +1340,46 @@ export default {
 }
 
 .tir-playoff__cta:hover {
-    background: #f9fff9;
+    background: var(--color-surface-hover);
 }
 
 .tir-playoff__cta > :last-child {
     margin-left: auto;
     color: #43A047;
+}
+
+@media (max-width: 400px) {
+    .tir-playoff__round {
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 450px) {
+    .tir-playoff__match {
+        padding: 10px 10px;
+    }
+
+    .tir-playoff__match-row {
+        gap: 4px;
+    }
+
+    .tir-playoff__player-name {
+        font-size: 12px;
+    }
+
+    .tir-playoff__score {
+        font-size: 16px;
+        min-width: 22px;
+    }
+
+    .tir-playoff__vs {
+        font-size: 11px;
+        min-width: 18px;
+    }
+
+    .tir-playoff__winner-icon {
+        width: 10px;
+        height: 10px;
+    }
 }
 </style>

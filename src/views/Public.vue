@@ -9,7 +9,7 @@
     </div>
     <div v-else class="wrapper" :class="{'wrapper--tir': tournament?.system === 'tir'}">
         <div v-if="tournament" class="container">
-            <div class="is-flex is-justify-content-space-between">
+            <div class="is-flex is-justify-content-space-between is-align-items-center">
                 <router-link class="navbar-item" to="/">
                     <img src="../assets/img/logo.webp" alt="logo">
                 </router-link>
@@ -216,7 +216,24 @@ export default {
         badgeLabel() {
             if (this.isFinished) return this.$t('common.finished');
             if (!this.isStarted) return this.$t('common.notStarted');
+            if (this.tournament?.system === 'tir') {
+                return this.tirPhaseLabel;
+            }
             return this.$t('common.active');
+        },
+        tirPhaseLabel() {
+            const t = this.tournament;
+            if (!t) return this.$t('common.active');
+            if (t.tirPlayoff) {
+                const playoff = t.tirPlayoff;
+                if (playoff.final?.score1 != null) return this.$t('games.final');
+                const sfRound = playoff.rounds?.find(r => r.matches.length === 2);
+                if (sfRound?.matches.some(m => m.score1 != null)) return this.$t('tir.semifinal');
+                if (playoff.rounds?.[0]?.matches.some(m => m.score1 != null)) return this.$t('tir.quarterfinal');
+                return this.$t('games.playOff');
+            }
+            const round = t.tirRound || 1;
+            return this.$t('tir.round') + ' ' + round;
         },
         systemDescription() {
             if (this.tournament.system === 'tir') {
@@ -584,15 +601,20 @@ export default {
 }
 
 [data-theme="dark"] .wrapper::before {
-    opacity: 0.05;
+    display: none;
 }
 
 .wrapper--tir {
-    background: #fff;
+    background: var(--color-body-bg);
 }
 
 .wrapper--tir::before {
     display: none;
+}
+
+.wrapper--tir .tournament-info-card {
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .wrapper > * {

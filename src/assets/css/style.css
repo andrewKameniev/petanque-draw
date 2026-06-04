@@ -199,6 +199,10 @@ input[type="checkbox"]:focus {
     background-color: var(--color-body-bg);
 }
 
+[data-theme="dark"] body:not(.documentation)::before {
+    display: none;
+}
+
 [data-theme="dark"] .navbar-brand img,
 [data-theme="dark"] .login-card__logo img {
     filter: brightness(0) invert(1);
@@ -546,6 +550,27 @@ footer {
 
     .column {
         padding: 0.75rem 0.25rem;
+    }
+}
+
+@media all and (max-width: 450px) {
+    .container {
+        padding: 0;
+    }
+
+    .remote-toolbar {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .tournament-name-row {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .tir-module {
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
     }
 }
 

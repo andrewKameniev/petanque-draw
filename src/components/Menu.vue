@@ -113,7 +113,7 @@
 
                 <!-- Credit -->
                 <div class="sidebar__credit">
-                    <p>{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a></p>
+                    <p>{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
                 </div>
             </aside>
         </div>

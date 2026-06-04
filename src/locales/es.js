@@ -406,7 +406,6 @@ export default {
         "twoRoundsShort": "2 rondas",
         "twoRoundSystem": "Sistema de clasificación de 2 rondas",
         "twoRoundHint": "Los 4 primeros van a cuartos directamente. Puestos 5-16 juegan ronda 2.",
-        "juniorTournament": "Torneo júnior (sin 9m)",
         "startRound2": "Iniciar ronda 2",
         "round2Hint": "Los 4 primeros clasificados directamente. El resto competirá en la ronda 2.",
         "round1Score": "R1",

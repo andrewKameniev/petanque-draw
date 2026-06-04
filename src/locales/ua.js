@@ -338,7 +338,7 @@ export default {
     },
     "tir": {
         "participants": "Учасники",
-        "scoring": "Режим",
+        "scoring": "Рахунок",
         "table": "Таблиця",
         "settings": "Налаштування",
         "throws": "кидків",
@@ -406,7 +406,6 @@ export default {
         "twoRoundsShort": "2 раунди",
         "twoRoundSystem": "Система з 2 раундами кваліфікації",
         "twoRoundHint": "Топ-4 йдуть у чвертьфінал напряму. Місця 5-16 грають 2-й раунд.",
-        "juniorTournament": "Юніорський турнір (без 9м)",
         "startRound2": "Почати раунд 2",
         "round2Hint": "Топ-4 виходять у чвертьфінал. Місця 5-16 змагатимуться у раунді 2.",
         "round1Score": "Р1",

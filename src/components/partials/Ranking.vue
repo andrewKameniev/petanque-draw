@@ -287,7 +287,7 @@
 
 <script>
 import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
-import {getQualifiedCountForGroup, getPlayOffTeamsPerGroup, getPoulesQualifiedPerGroup} from "@/services/results";
+import {getQualifiedCountForGroup, getPlayOffTeamsPerGroup} from "@/services/results";
 import {Copy, Check, Upload, Trophy} from "lucide-vue-next";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";

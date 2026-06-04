@@ -254,7 +254,7 @@
             <template v-else>
                 <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-playoff__round" :class="{'tir-playoff__round--final': round.isFinal}">
                     <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': match.complete || (match.score1 != null && match.score2 != null && match.score1 !== match.score2), 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title)">
+                    <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-playoff__match" :class="{'tir-playoff__match--complete': match.complete || (match.score1 != null && match.score2 != null && match.score1 !== match.score2), 'tir-playoff__match--in-progress': !(match.complete || (match.score1 != null && match.score2 != null && match.score1 !== match.score2)) && match.player1 && match.player2 && (match.score1 != null || match.score2 != null), 'tir-playoff__match--pending': !match.player1 || !match.player2}" @click="openPlayoffMatch(match, round.title)">
                         <span class="tir-playoff__lane" @click.stop="editLane(rIdx, mIdx, match)">{{ getMatchLane(rIdx, mIdx, match) }}</span>
                         <div class="tir-playoff__player" :class="{'tir-playoff__player--winner': match.winner === match.player1}">
                             <span class="tir-playoff__player-name">{{ match.player1 || '—' }}</span>
@@ -1743,6 +1743,12 @@ export default {
 .tir-playoff__match--complete {
     background: rgba(76, 175, 80, 0.04);
     border-color: rgba(76, 175, 80, 0.3);
+}
+
+.tir-playoff__match--in-progress {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    border-width: 2px;
 }
 
 .tir-playoff__match--pending {

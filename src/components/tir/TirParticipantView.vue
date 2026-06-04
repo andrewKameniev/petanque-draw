@@ -14,6 +14,14 @@
             </div>
         </div>
 
+        <!-- Legend -->
+        <div class="tir-pview__legend">
+            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span>
+            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span>
+            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span>
+            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span>
+        </div>
+
         <!-- All ateliers stacked (when complete / readOnly) -->
         <template v-if="isAllComplete || readOnly">
             <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-pview__atelier-card">
@@ -383,19 +391,31 @@ export default {
 
 /* Legend */
 .tir-pview__legend {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 12px;
-    margin-bottom: 12px;
-    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    justify-content: center;
 }
 
 .tir-pview__legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    font-size: 12px;
     color: var(--color-text-muted);
 }
+
+.tir-pview__legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.tir-pview__legend-dot--carreau { background: #4CAF50; }
+.tir-pview__legend-dot--reussi { background: #2196F3; }
+.tir-pview__legend-dot--touche { background: #F5A623; }
+.tir-pview__legend-dot--manque { background: #bdbdbd; }
 
 /* Grid */
 .tir-pview__grid {

@@ -220,6 +220,6 @@
     --color-public-surface-border: #2f3543;
     --color-public-surface-white: #181a24;
 
-    --tir-row-direct-bg: rgba(76, 175, 80, 0.04);
-    --tir-row-r2-bg: rgba(245, 166, 35, 0.04);
+    --tir-row-direct-bg: rgba(76, 175, 80, 0.18);
+    --tir-row-r2-bg: rgba(245, 166, 35, 0.18);
 }

@@ -13,7 +13,10 @@
                 <router-link class="navbar-item" to="/">
                     <img src="../assets/img/logo.webp" alt="logo">
                 </router-link>
-                <LanguageSwitcher/>
+                <div class="is-flex is-align-items-center" style="gap: 4px;">
+                    <LanguageSwitcher/>
+                    <ThemeSwitcher/>
+                </div>
             </div>
             <div class="text-center is-size-3 tournament-title-wrapper">
                 <strong>{{ tournament.name }}</strong>
@@ -116,13 +119,14 @@ import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
+import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
 import {GitFork, X} from "lucide-vue-next";
 import TeamSearch from "@/components/partials/TeamSearch.vue";
 import TirPublicView from "@/components/tir/TirPublicView.vue";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView},
+    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView},
     data() {
         return {
             isLoading: false,

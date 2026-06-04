@@ -61,7 +61,9 @@ export default {
         }
     },
     created() {
-        if (this.tournament.tirPlayoff) {
+        if (!this.isTwoRoundSystem) {
+            this.activeBracket = 'r1';
+        } else if (this.tournament.tirPlayoff) {
             const tabs = this.bracketTabs;
             if (tabs.length) this.activeBracket = tabs[tabs.length - 1].key;
         } else if (this.currentRound === 2) {

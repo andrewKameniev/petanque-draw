@@ -18,8 +18,10 @@
                     <span class="tir-plist__name">{{ participant.name }}</span>
                     <span v-if="getClub(participant)" class="tir-plist__club">{{ getClub(participant) }}</span>
                     <div class="tir-plist__progress">
-                        <div class="tir-plist__progress-bar">
-                            <div class="tir-plist__progress-fill" :class="{'tir-plist__progress-fill--complete': isComplete(participant)}" :style="{width: getProgressPercent(participant) + '%'}"></div>
+                        <div class="tir-plist__progress-segments">
+                            <div v-for="i in 5" :key="i" class="tir-plist__progress-segment">
+                                <div class="tir-plist__progress-fill" :class="{'tir-plist__progress-fill--complete': isComplete(participant)}" :style="{width: getAtelierPercent(participant, i - 1) + '%'}"></div>
+                            </div>
                         </div>
                         <span class="tir-plist__progress-text">{{ getThrows(participant) }}/{{ totalThrows }}</span>
                     </div>
@@ -266,6 +268,11 @@ export default {
         getProgressPercent(participant) {
             return Math.round((this.getThrows(participant) / this.totalThrows) * 100);
         },
+        getAtelierPercent(participant, atelierIdx) {
+            const scores = participant[this.activeScoresKey]?.[atelierIdx];
+            if (!scores) return 0;
+            return Math.round((Object.keys(scores).length / this.distances.length) * 100);
+        },
         getClub(participant) {
             const team = this.tournament.teams?.find(t => t.title === participant.name);
             if (!team?.players) return participant.city || '';
@@ -379,7 +386,13 @@ export default {
     margin-top: 4px;
 }
 
-.tir-plist__progress-bar {
+.tir-plist__progress-segments {
+    flex: 1;
+    display: flex;
+    gap: 2px;
+}
+
+.tir-plist__progress-segment {
     flex: 1;
     height: 4px;
     background: var(--color-border);

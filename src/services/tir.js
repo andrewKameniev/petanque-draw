@@ -31,6 +31,17 @@ export function getScoreCarreauCount(participant, key) {
     return count;
 }
 
+export function getScoreReussiCount(participant, key) {
+    if (!participant[key]) return 0;
+    let count = 0;
+    Object.values(participant[key]).forEach(atelier => {
+        if (atelier && typeof atelier === 'object') {
+            Object.values(atelier).forEach(val => { if (val === 'reussi') count++; });
+        }
+    });
+    return count;
+}
+
 export function getCombinedTotal(participant) {
     return getScoreTotal(participant, 'scores') + getScoreTotal(participant, 'scores2');
 }
@@ -96,12 +107,14 @@ export function getTiebreakerKey(round) {
 export function rankWithTiebreakers(participants, mainKey, tiebreakerCount) {
     return [...participants].sort((a, b) => {
         const diff = getScoreTotal(b, mainKey) - getScoreTotal(a, mainKey) ||
-            getScoreCarreauCount(b, mainKey) - getScoreCarreauCount(a, mainKey);
+            getScoreCarreauCount(b, mainKey) - getScoreCarreauCount(a, mainKey) ||
+            getScoreReussiCount(b, mainKey) - getScoreReussiCount(a, mainKey);
         if (diff !== 0) return diff;
         for (let i = 1; i <= tiebreakerCount; i++) {
             const tbKey = getTiebreakerKey(i);
             const tbDiff = getScoreTotal(b, tbKey) - getScoreTotal(a, tbKey) ||
-                getScoreCarreauCount(b, tbKey) - getScoreCarreauCount(a, tbKey);
+                getScoreCarreauCount(b, tbKey) - getScoreCarreauCount(a, tbKey) ||
+                getScoreReussiCount(b, tbKey) - getScoreReussiCount(a, tbKey);
             if (tbDiff !== 0) return tbDiff;
         }
         return 0;
@@ -117,22 +130,27 @@ export function findTiesAtBoundary(rankedParticipants, boundaryIndex, mainKey, t
     const firstOutScore = getScoreTotal(firstOut, mainKey);
     if (lastInScore !== firstOutScore) return [];
     if (getScoreCarreauCount(lastIn, mainKey) !== getScoreCarreauCount(firstOut, mainKey)) return [];
+    if (getScoreReussiCount(lastIn, mainKey) !== getScoreReussiCount(firstOut, mainKey)) return [];
 
     for (let i = 1; i <= tiebreakerCount; i++) {
         const tbKey = getTiebreakerKey(i);
         if (getScoreTotal(lastIn, tbKey) !== getScoreTotal(firstOut, tbKey)) return [];
         if (getScoreCarreauCount(lastIn, tbKey) !== getScoreCarreauCount(firstOut, tbKey)) return [];
+        if (getScoreReussiCount(lastIn, tbKey) !== getScoreReussiCount(firstOut, tbKey)) return [];
     }
 
     const tiedScore = lastInScore;
     const tiedCarreau = getScoreCarreauCount(lastIn, mainKey);
+    const tiedReussi = getScoreReussiCount(lastIn, mainKey);
     return rankedParticipants.filter(p => {
         if (getScoreTotal(p, mainKey) !== tiedScore) return false;
         if (getScoreCarreauCount(p, mainKey) !== tiedCarreau) return false;
+        if (getScoreReussiCount(p, mainKey) !== tiedReussi) return false;
         for (let i = 1; i <= tiebreakerCount; i++) {
             const tbKey = getTiebreakerKey(i);
             if (getScoreTotal(p, tbKey) !== getScoreTotal(lastIn, tbKey)) return false;
             if (getScoreCarreauCount(p, tbKey) !== getScoreCarreauCount(lastIn, tbKey)) return false;
+            if (getScoreReussiCount(p, tbKey) !== getScoreReussiCount(lastIn, tbKey)) return false;
         }
         return true;
     });

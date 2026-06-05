@@ -51,7 +51,7 @@
 <script>
 import {CheckCircle, AlertCircle, Circle} from "lucide-vue-next";
 import TirParticipantView from "./TirParticipantView.vue";
-import {SCORING, ATELIER_KEYS} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, findPlayoffMatchForParticipant, getMatchPlayerThrows} from '@/services/tir';
 
 export default {
     name: 'TirParticipantsList',
@@ -257,14 +257,6 @@ export default {
             }
             return [];
         },
-        getPlayoffMatchForParticipant(participant) {
-            const matches = this.getPlayoffMatches();
-            for (const m of matches) {
-                if (m.player1 === participant.name) return {match: m, playerKey: 'scores1'};
-                if (m.player2 === participant.name) return {match: m, playerKey: 'scores2'};
-            }
-            return null;
-        },
         getPlayoffBracketScore(participant) {
             const matches = this.getPlayoffMatches();
             for (const m of matches) {
@@ -296,15 +288,9 @@ export default {
         },
         getThrows(participant) {
             if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
-                const info = this.getPlayoffMatchForParticipant(participant);
+                const info = findPlayoffMatchForParticipant(participant.name, this.getPlayoffMatches());
                 if (!info) return 0;
-                const scores = info.match[info.playerKey];
-                if (!scores || typeof scores !== 'object') return 0;
-                let count = 0;
-                Object.values(scores).forEach(atelier => {
-                    if (atelier && typeof atelier === 'object') count += Object.keys(atelier).length;
-                });
-                return count;
+                return getMatchPlayerThrows(info.match, info.playerNum);
             }
             const scores = participant[this.activeScoresKey];
             if (!scores) return 0;
@@ -320,10 +306,10 @@ export default {
         },
         getAtelierPercent(participant, atelierIdx) {
             if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
-                const info = this.getPlayoffMatchForParticipant(participant);
+                const info = findPlayoffMatchForParticipant(participant.name, this.getPlayoffMatches());
                 if (!info) return 0;
-                const scores = info.match[info.playerKey]?.[atelierIdx];
-                if (!scores) return 0;
+                const scores = info.match[info.scoresKey]?.[atelierIdx];
+                if (!scores || typeof scores !== 'object') return 0;
                 return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);
             }
             const scores = participant[this.activeScoresKey]?.[atelierIdx];

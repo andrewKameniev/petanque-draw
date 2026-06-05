@@ -14,8 +14,6 @@
                 <Trophy :size="18"/>
                 <span>{{ $t('games.playOff') }}</span>
             </button>
-            <button v-if="isTwoRoundSystem && currentRound === 2 && !tournament.tirPlayoff" class="tir-nav__round-badge" @click="toggleViewingRound">R{{ displayRound }}</button>
-            <span v-else-if="isTwoRoundSystem && !tournament.tirPlayoff" class="tir-nav__round-badge">R{{ currentRound }}</span>
         </div>
 
         <!-- Participants view — scoring page style, read-only -->
@@ -160,7 +158,6 @@ export default {
             activeAtelier: 0,
             activePlayoffMatchKey: null,
             activePlayoffMatchLabel: '',
-            viewingRound: null,
             activeBracket: 'r2',
             searchQuery: ''
         }
@@ -248,7 +245,7 @@ export default {
             if (this.tournament.tirPlayoff) {
                 return this.activeBracket === 'r1' ? 1 : 2;
             }
-            return this.viewingRound || this.currentRound;
+            return this.currentRound;
         },
         activeScoresKey() {
             return this.displayRound === 2 ? 'scores2' : 'scores';
@@ -449,10 +446,6 @@ export default {
             if (!p[tbKey]) return '';
             return getScoreTotal(p, tbKey);
         },
-        toggleViewingRound() {
-            this.viewingRound = this.displayRound === 1 ? 2 : 1;
-            this.expanded = null;
-        },
         getPlayoffBracketParticipants() {
             const playoff = this.tournament.tirPlayoff;
             if (!playoff?.rounds) return [];
@@ -646,25 +639,6 @@ export default {
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
     color: var(--tir-touche);
-}
-
-.tir-nav__round-badge {
-    position: relative;
-    right: 0px;
-    top: -4px;
-    align-self: baseline;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 3px 6px;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 5px;
-    background: var(--color-primary);
-    color: var(--color-btn-text);
-    margin-right: 6px;
-    border: none;
-    cursor: pointer;
 }
 
 .tir-scoring__round-hint {

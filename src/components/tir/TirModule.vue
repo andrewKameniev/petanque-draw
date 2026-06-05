@@ -17,7 +17,6 @@
                 <Trophy :size="18"/>
                 <span>{{ $t('games.playOff') }}</span>
             </button>
-            <span v-if="isTwoRoundSystem && !tournament.tirPlayoff" class="tir-nav__round-badge">R{{ currentRound }}</span>
         </div>
 
         <!-- Participants list -->
@@ -1245,23 +1244,6 @@ export default {
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
     color: var(--tir-touche);
-}
-
-.tir-nav__round-badge {
-    position: relative;
-    right: 0px;
-    top: -4px;
-    align-self: baseline;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 6px;
-    background: var(--color-primary);
-    color: var(--color-btn-text);
-    margin-right: 6px;
 }
 
 /* Participants */

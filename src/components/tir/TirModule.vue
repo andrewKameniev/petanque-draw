@@ -789,7 +789,7 @@ export default {
             return SCORING[type] || 0;
         },
         getAtelierCompletedCount(atelierIndex) {
-            const distCount = this.tirDistances.length;
+            const distCount = this.activeScoringDistances.length;
             const key = this.activeScoresKey;
             return this.activeScoringParticipants.filter(p => {
                 const atelierScores = p[key]?.[atelierIndex];

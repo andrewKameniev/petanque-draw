@@ -51,7 +51,7 @@
 <script>
 import {CheckCircle, AlertCircle, Circle} from "lucide-vue-next";
 import TirParticipantView from "./TirParticipantView.vue";
-import {SCORING, ATELIER_KEYS} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, findPlayoffMatchForParticipant, getMatchPlayerThrows} from '@/services/tir';
 
 export default {
     name: 'TirParticipantsList',
@@ -243,19 +243,22 @@ export default {
             });
             return this.participants.filter(p => names.has(p.name));
         },
-        getPlayoffBracketScore(participant) {
+        getPlayoffMatches() {
             const playoff = this.tournament.tirPlayoff;
-            if (!playoff?.rounds) return 0;
-            let matches = [];
+            if (!playoff?.rounds) return [];
             if (this.activeBracket === 'qf') {
-                matches = playoff.rounds[0]?.matches || [];
+                return playoff.rounds[0]?.matches || [];
             } else if (this.activeBracket === 'sf') {
                 const sfRound = playoff.rounds.find(r => r.matches.length === 2);
-                matches = sfRound?.matches || [];
+                return sfRound?.matches || [];
             } else if (this.activeBracket === 'final') {
                 const finalRound = playoff.rounds.find(r => r.matches.length === 1);
-                matches = finalRound?.matches || (playoff.final ? [playoff.final] : []);
+                return finalRound?.matches || (playoff.final ? [playoff.final] : []);
             }
+            return [];
+        },
+        getPlayoffBracketScore(participant) {
+            const matches = this.getPlayoffMatches();
             for (const m of matches) {
                 if (m.player1 === participant.name) return m.score1 || 0;
                 if (m.player2 === participant.name) return m.score2 || 0;
@@ -284,6 +287,11 @@ export default {
             return count;
         },
         getThrows(participant) {
+            if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
+                const info = findPlayoffMatchForParticipant(participant.name, this.getPlayoffMatches());
+                if (!info) return 0;
+                return getMatchPlayerThrows(info.match, info.playerNum);
+            }
             const scores = participant[this.activeScoresKey];
             if (!scores) return 0;
             let count = 0;
@@ -297,6 +305,13 @@ export default {
             return Math.round((this.getThrows(participant) / this.totalThrows) * 100);
         },
         getAtelierPercent(participant, atelierIdx) {
+            if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
+                const info = findPlayoffMatchForParticipant(participant.name, this.getPlayoffMatches());
+                if (!info) return 0;
+                const scores = info.match[info.scoresKey]?.[atelierIdx];
+                if (!scores || typeof scores !== 'object') return 0;
+                return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);
+            }
             const scores = participant[this.activeScoresKey]?.[atelierIdx];
             if (!scores) return 0;
             return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);

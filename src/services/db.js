@@ -8,6 +8,9 @@ export const tournamentService = {
     update(uid, tournamentId, data) {
         return update(ref(db, `${uid}/tournaments/`), {[tournamentId]: data});
     },
+    updatePath(uid, tournamentId, path, data) {
+        return set(ref(db, `${uid}/tournaments/${tournamentId}/${path}`), data);
+    },
     remove(uid, tournamentId) {
         return remove(ref(db, `${uid}/tournaments/${tournamentId}`));
     },

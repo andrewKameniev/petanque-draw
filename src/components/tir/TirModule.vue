@@ -702,8 +702,14 @@ export default {
             return true;
         }
     },
+    mounted() {
+        this.subscribeTournament();
+    },
+    beforeUnmount() {
+        this.unsubscribeTournament();
+    },
     methods: {
-        ...mapActions(useMainStore, ['syncToFirebase', 'showMessage']),
+        ...mapActions(useMainStore, ['syncToFirebase', 'syncTirPlayoff', 'subscribeTournament', 'unsubscribeTournament', 'showMessage']),
         getScoreTotal(participant, key) {
             if (!participant[key]) return 0;
             let total = 0;
@@ -997,7 +1003,7 @@ export default {
             this.activePlayoffMatchLabel = '';
         },
         onPlayoffScoreChange() {
-            this.syncToFirebase();
+            this.syncTirPlayoff();
         },
         advanceIfReady() {
             const playoff = this.tournament.tirPlayoff;
@@ -1024,7 +1030,7 @@ export default {
                 }
                 playoff.rounds.push({matches: nextMatches});
             }
-            this.syncToFirebase();
+            this.syncTirPlayoff();
         },
         finishPlayoffTournament() {
             this.tournament.tournamentIsFinished = true;
@@ -1049,7 +1055,7 @@ export default {
                     conflict.lane = current;
                 }
                 match.lane = num;
-                this.syncToFirebase();
+                this.syncTirPlayoff();
             }
         },
         getMatchLaneInBracket(rIdx, mIdx, match) {

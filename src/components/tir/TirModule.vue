@@ -446,10 +446,25 @@ export default {
         },
         scoringListParticipants() {
             const list = this.activeScoringParticipants;
-            return [...list].sort((a, b) =>
-                this.getParticipantTotal(b) - this.getParticipantTotal(a) ||
-                this.getCarreauCount(b) - this.getCarreauCount(a)
-            );
+            const total = this.totalThrows;
+            return [...list].sort((a, b) => {
+                const aThrows = this.getThrowsCompleted(a);
+                const bThrows = this.getThrowsCompleted(b);
+                const aComplete = aThrows >= total;
+                const bComplete = bThrows >= total;
+                const aInProgress = aThrows > 0 && !aComplete;
+                const bInProgress = bThrows > 0 && !bComplete;
+
+                if (aInProgress && !bInProgress) return -1;
+                if (!aInProgress && bInProgress) return 1;
+                if (aInProgress && bInProgress) return bThrows - aThrows || this.getParticipantTotal(b) - this.getParticipantTotal(a);
+
+                if (aComplete && !bComplete) return -1;
+                if (!aComplete && bComplete) return 1;
+                if (aComplete && bComplete) return this.getParticipantTotal(b) - this.getParticipantTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a);
+
+                return a.name.localeCompare(b.name);
+            });
         },
         rankedParticipants() {
             return [...this.tirParticipants].sort((a, b) => this.getParticipantTotal(b) - this.getParticipantTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));

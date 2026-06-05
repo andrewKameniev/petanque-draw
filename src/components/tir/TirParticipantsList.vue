@@ -39,7 +39,7 @@
         <TirParticipantView v-else
             :participant="expandedParticipant"
             :ateliers="atelierObjects"
-            :distances="distances"
+            :distances="activeDistances"
             :scoresKey="activeScoresKey"
             :readOnly="readOnly"
             @back="expanded = null"
@@ -76,6 +76,8 @@ export default {
             if (tabs.length) this.activeBracket = tabs[tabs.length - 1].key;
         } else if (this.currentRound === 2) {
             this.activeBracket = 'r2';
+        } else if (this.tiebreakerCount > 0) {
+            this.activeBracket = `ex${this.tiebreakerCount}`;
         } else {
             this.activeBracket = 'r1';
         }
@@ -83,6 +85,9 @@ export default {
     computed: {
         isTwoRoundSystem() {
             return this.tournament.tirConfig?.rounds === 2;
+        },
+        tiebreakerCount() {
+            return this.tournament.tirTiebreakerCount || 0;
         },
         currentRound() {
             return this.tournament.tirRound || 1;
@@ -93,11 +98,15 @@ export default {
         distances() {
             return this.isJunior ? [6, 7, 8] : [6, 7, 8, 9];
         },
+        activeDistances() {
+            if (this.isTiebreakerTab) return [7];
+            return this.distances;
+        },
         totalThrows() {
-            return 5 * this.distances.length;
+            return 5 * this.activeDistances.length;
         },
         maxAtelierScore() {
-            return this.distances.length * SCORING.carreau;
+            return this.activeDistances.length * SCORING.carreau;
         },
         maxTotal() {
             return 5 * this.maxAtelierScore;
@@ -115,12 +124,19 @@ export default {
             return this.currentRound;
         },
         activeScoresKey() {
+            if (this.activeBracket.startsWith('ex')) {
+                const round = parseInt(this.activeBracket.replace('ex', ''));
+                return `tiebreaker_${round}`;
+            }
             return this.displayRound === 2 ? 'scores2' : 'scores';
         },
         bracketTabs() {
             const tabs = [];
             if (!this.isTwoRoundSystem) return tabs;
             tabs.push({key: 'r1', label: 'R1'});
+            for (let i = 1; i <= this.tiebreakerCount; i++) {
+                tabs.push({key: `ex${i}`, label: `EX${i}`});
+            }
             if (this.currentRound >= 2) tabs.push({key: 'r2', label: 'R2'});
             if (this.tournament.tirPlayoff) {
                 const playoff = this.tournament.tirPlayoff;
@@ -141,9 +157,22 @@ export default {
         participants() {
             return this.tournament.tirParticipants || [];
         },
+        isTiebreakerTab() {
+            return this.activeBracket.startsWith('ex');
+        },
+        tiebreakerTabThrows() {
+            return 5;
+        },
+        tiebreakerTabMaxScore() {
+            return 5 * SCORING.carreau;
+        },
         scoringParticipants() {
             if (this.tournament.tirPlayoff && ['qf', 'sf', 'final'].includes(this.activeBracket)) {
                 return this.getPlayoffBracketParticipants();
+            }
+            if (this.isTiebreakerTab) {
+                const ids = this.tournament.tirTiebreakerParticipantIds || [];
+                return this.participants.filter(p => ids.includes(p.id));
             }
             if (this.displayRound === 2) {
                 const r2Ids = this.tournament.tirR2Participants || [];
@@ -271,7 +300,7 @@ export default {
         getAtelierPercent(participant, atelierIdx) {
             const scores = participant[this.activeScoresKey]?.[atelierIdx];
             if (!scores) return 0;
-            return Math.round((Object.keys(scores).length / this.distances.length) * 100);
+            return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);
         },
         getClub(participant) {
             const team = this.tournament.teams?.find(t => t.title === participant.name);

@@ -32,6 +32,31 @@
                 :readOnly="!!tournament.tirPlayoff"
                 @update="onScoreUpdate"/>
 
+            <!-- Tiebreaker needed (participants view) -->
+            <div v-if="isRound1Complete && isTwoRoundSystem && currentRound === 1 && !tournament.tirPlayoff && (hasPendingTiebreaker || isTiebreakerInProgress)" class="tir-tiebreaker">
+                <div class="tir-tiebreaker__header">
+                    <h4 class="tir-tiebreaker__title">{{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}</h4>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
+                </div>
+                <template v-if="!isTiebreakerInProgress">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="startTiebreaker">
+                            {{ $t('tir.startTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else-if="isTiebreakerRoundComplete">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                            {{ $t('tir.finishTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
+                </template>
+            </div>
+
             <!-- Lane swap modal -->
             <Modal v-if="swapParticipant" @close-modal="swapParticipant = null">
                 <h4 class="tir-add-form__title">{{ $t('games.lane') }} {{ getParticipantLane(swapParticipant) }} — {{ swapParticipant.name }}</h4>
@@ -135,13 +160,29 @@
                     @finish="finishAtelier"/>
             </template>
 
-            <!-- Tiebreaker: finish round (scoring view) -->
-            <div v-if="isTiebreakerInProgress && isTiebreakerRoundComplete && !activeParticipant && activeAtelier === null" class="tir-tiebreaker">
-                <div class="tir-tiebreaker__actions">
-                    <button class="tir-table__playoff-btn" @click="finishTiebreaker">
-                        {{ $t('tir.finishTiebreaker') }}
-                    </button>
+            <!-- Tiebreaker needed (scoring view) -->
+            <div v-if="isRound1Complete && isTwoRoundSystem && currentRound === 1 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null && (hasPendingTiebreaker || isTiebreakerInProgress)" class="tir-tiebreaker">
+                <div class="tir-tiebreaker__header">
+                    <h4 class="tir-tiebreaker__title">{{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}</h4>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
                 </div>
+                <template v-if="!isTiebreakerInProgress">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="startTiebreaker">
+                            {{ $t('tir.startTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else-if="isTiebreakerRoundComplete">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                            {{ $t('tir.finishTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
+                </template>
             </div>
 
             <!-- 2-round: transition to R2 (bottom of scoring) -->

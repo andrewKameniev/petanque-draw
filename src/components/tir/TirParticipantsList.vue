@@ -393,7 +393,7 @@ export default {
 }
 
 .tir-plist__score strong {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--color-text);
 }

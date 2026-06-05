@@ -62,6 +62,7 @@
                 <button class="tir-scoring__round-btn" :class="{'tir-scoring__round-btn--active': activeScoringRound === 1}" @click="scoringRound = 1">R1</button>
                 <button class="tir-scoring__round-btn" :class="{'tir-scoring__round-btn--active': activeScoringRound === 2}" @click="scoringRound = 2">R2</button>
             </div>
+            <template v-if="!isTiebreakerInProgress || !isRound1Complete">
             <div class="tir-scoring__mode-toggle">
                 <button class="tir-scoring__mode-btn" :class="{'tir-scoring__mode-btn--active': scoringMode === 'participant'}" @click="scoringMode = 'participant'">
                     {{ $t('tir.byParticipant') }}
@@ -130,6 +131,18 @@
                     @update="onScoreUpdate"
                     @finish="finishAtelier"/>
             </template>
+            </template>
+
+            <!-- Tiebreaker scoring view -->
+            <TirParticipantView v-if="activeParticipant && scoringRound === 'tiebreaker'"
+                :participant="activeParticipant"
+                :ateliers="tirAteliers"
+                :distances="[7]"
+                :scoresKey="activeScoresKey"
+                :readOnly="false"
+                @back="onParticipantViewBack"
+                @update="onScoreUpdate"
+                @next="goToNextTiebreakerParticipant"/>
 
             <!-- Tiebreaker section -->
             <div v-if="isRound1Complete && isTwoRoundSystem && currentRound === 1 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null && (hasPendingTiebreaker || isTiebreakerInProgress)" class="tir-tiebreaker">
@@ -708,6 +721,17 @@ export default {
         openTiebreakerScoring(participant) {
             this.activeParticipant = participant;
             this.scoringRound = 'tiebreaker';
+        },
+        goToNextTiebreakerParticipant() {
+            const participants = this.tiebreakerDisplayParticipants;
+            const idx = participants.findIndex(p => p.id === this.activeParticipant.id);
+            const next = participants.find((p, i) => i > idx && !this.isTiebreakerParticipantComplete(p));
+            if (next) {
+                this.activeParticipant = next;
+            } else {
+                this.activeParticipant = null;
+                this.scoringRound = null;
+            }
         },
         onParticipantViewBack() {
             this.activeParticipant = null;

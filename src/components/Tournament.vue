@@ -276,6 +276,14 @@
         <!-- POST-START: Tir module (no tabs) -->
         <template v-else-if="tournament.system === 'tir'">
             <TirModule @finish="showFinishConfirm = true"/>
+            <div class="bottom-actions">
+                <div class="bottom-actions__row">
+                    <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
+                        <Trash2 :size="16"/>
+                        {{ $t('teams.removeTournament') }}
+                    </button>
+                </div>
+            </div>
         </template>
 
         <!-- POST-START: Tabbed tournament view -->

@@ -150,7 +150,24 @@ export default {
             return this.participants;
         },
         rankedParticipants() {
-            return [...this.scoringParticipants].sort((a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));
+            return [...this.scoringParticipants].sort((a, b) => {
+                const aThrows = this.getThrows(a);
+                const bThrows = this.getThrows(b);
+                const aComplete = aThrows >= this.totalThrows;
+                const bComplete = bThrows >= this.totalThrows;
+                const aInProgress = aThrows > 0 && !aComplete;
+                const bInProgress = bThrows > 0 && !bComplete;
+
+                if (aInProgress && !bInProgress) return -1;
+                if (!aInProgress && bInProgress) return 1;
+                if (aInProgress && bInProgress) return bThrows - aThrows || this.getTotal(b) - this.getTotal(a);
+
+                if (aComplete && !bComplete) return -1;
+                if (!aComplete && bComplete) return 1;
+                if (aComplete && bComplete) return this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a);
+
+                return a.name.localeCompare(b.name);
+            });
         },
         filteredParticipants() {
             if (!this.searchQuery) return this.rankedParticipants;

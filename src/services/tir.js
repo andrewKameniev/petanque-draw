@@ -239,6 +239,9 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
         } else if (isTwoRoundSystem && currentRound === 1 && r2CandidateIds.includes(p.id)) {
             rowClass = 'tir-table__row--r2';
             place = labels.goToR2;
+        } else if (isTwoRoundSystem && currentRound === 1) {
+            rowClass = '';
+            place = '';
         } else {
             rowClass = 'tir-table__row--eliminated';
             place = labels.eliminated;

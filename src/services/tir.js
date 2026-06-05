@@ -116,18 +116,23 @@ export function findTiesAtBoundary(rankedParticipants, boundaryIndex, mainKey, t
     const lastInScore = getScoreTotal(lastIn, mainKey);
     const firstOutScore = getScoreTotal(firstOut, mainKey);
     if (lastInScore !== firstOutScore) return [];
+    if (getScoreCarreauCount(lastIn, mainKey) !== getScoreCarreauCount(firstOut, mainKey)) return [];
 
     for (let i = 1; i <= tiebreakerCount; i++) {
         const tbKey = getTiebreakerKey(i);
         if (getScoreTotal(lastIn, tbKey) !== getScoreTotal(firstOut, tbKey)) return [];
+        if (getScoreCarreauCount(lastIn, tbKey) !== getScoreCarreauCount(firstOut, tbKey)) return [];
     }
 
     const tiedScore = lastInScore;
+    const tiedCarreau = getScoreCarreauCount(lastIn, mainKey);
     return rankedParticipants.filter(p => {
         if (getScoreTotal(p, mainKey) !== tiedScore) return false;
+        if (getScoreCarreauCount(p, mainKey) !== tiedCarreau) return false;
         for (let i = 1; i <= tiebreakerCount; i++) {
             const tbKey = getTiebreakerKey(i);
             if (getScoreTotal(p, tbKey) !== getScoreTotal(lastIn, tbKey)) return false;
+            if (getScoreCarreauCount(p, tbKey) !== getScoreCarreauCount(lastIn, tbKey)) return false;
         }
         return true;
     });

@@ -24,7 +24,7 @@
                         <span class="tir-plist__progress-text">{{ getThrows(participant) }}/{{ totalThrows }}</span>
                     </div>
                 </div>
-                <span class="tir-plist__score">{{ getTotal(participant) }}/{{ maxTotal }}</span>
+                <span class="tir-plist__score"><strong>{{ getTotal(participant) }}</strong>/{{ maxTotal }}</span>
                 <span class="tir-plist__status" :class="getStatusClass(participant)">
                     <CheckCircle v-if="isComplete(participant)" :size="16"/>
                     <AlertCircle v-else-if="getThrows(participant) > 0" :size="16"/>
@@ -388,9 +388,14 @@ export default {
 }
 
 .tir-plist__score {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 13px;
     color: var(--color-text-muted);
+}
+
+.tir-plist__score strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
 }
 
 .tir-plist__status { color: var(--color-grey); }

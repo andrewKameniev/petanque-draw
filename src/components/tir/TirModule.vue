@@ -403,6 +403,7 @@ export default {
             qualifyCount: 4,
             activePlayoffMatch: null,
             activePlayoffMatchLabel: '',
+            activePlayoffMatchPath: null,
             swapParticipant: null,
             swapTarget: null,
             scoringRound: null
@@ -709,7 +710,7 @@ export default {
         this.unsubscribeTournament();
     },
     methods: {
-        ...mapActions(useMainStore, ['syncToFirebase', 'syncTirPlayoff', 'subscribeTournament', 'unsubscribeTournament', 'showMessage']),
+        ...mapActions(useMainStore, ['syncToFirebase', 'syncTirPlayoffMatch', 'setActivePlayoffMatchPath', 'subscribeTournament', 'unsubscribeTournament', 'showMessage']),
         getScoreTotal(participant, key) {
             if (!participant[key]) return 0;
             let total = 0;
@@ -996,14 +997,35 @@ export default {
             if (!match.player1 || !match.player2) return;
             this.activePlayoffMatch = match;
             this.activePlayoffMatchLabel = label;
+            this.activePlayoffMatchPath = this._getMatchFirebasePath(match);
+            this.setActivePlayoffMatchPath(this.activePlayoffMatchPath);
         },
         closePlayoffMatch() {
+            this.setActivePlayoffMatchPath(null);
             this.advanceIfReady();
             this.activePlayoffMatch = null;
             this.activePlayoffMatchLabel = '';
+            this.activePlayoffMatchPath = null;
+        },
+        _getMatchFirebasePath(match) {
+            const playoff = this.tournament.tirPlayoff;
+            if (!playoff) return null;
+            if (match === playoff.final) return 'final';
+            if (match === playoff.thirdPlace) return 'thirdPlace';
+            if (playoff.rounds) {
+                for (let rIdx = 0; rIdx < playoff.rounds.length; rIdx++) {
+                    const mIdx = playoff.rounds[rIdx].matches.indexOf(match);
+                    if (mIdx !== -1) return `rounds/${rIdx}/matches/${mIdx}`;
+                }
+            }
+            return null;
         },
         onPlayoffScoreChange() {
-            this.syncTirPlayoff();
+            if (this.activePlayoffMatchPath && this.activePlayoffMatch) {
+                this.syncTirPlayoffMatch(this.activePlayoffMatchPath, this.activePlayoffMatch);
+            } else {
+                this.syncTirPlayoffMatch(null, null);
+            }
         },
         advanceIfReady() {
             const playoff = this.tournament.tirPlayoff;
@@ -1030,7 +1052,7 @@ export default {
                 }
                 playoff.rounds.push({matches: nextMatches});
             }
-            this.syncTirPlayoff();
+            this.syncTirPlayoffMatch(null, null);
         },
         finishPlayoffTournament() {
             this.tournament.tournamentIsFinished = true;
@@ -1055,7 +1077,7 @@ export default {
                     conflict.lane = current;
                 }
                 match.lane = num;
-                this.syncTirPlayoff();
+                this.syncTirPlayoffMatch(null, null);
             }
         },
         getMatchLaneInBracket(rIdx, mIdx, match) {

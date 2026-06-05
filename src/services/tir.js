@@ -89,6 +89,69 @@ export function getR2Candidates(participants, directCount = 4, maxR2 = 12) {
     return rankByR1(participants).slice(directCount, directCount + maxR2);
 }
 
+export function getTiebreakerKey(round) {
+    return `tiebreaker_${round}`;
+}
+
+export function rankWithTiebreakers(participants, mainKey, tiebreakerCount) {
+    return [...participants].sort((a, b) => {
+        const diff = getScoreTotal(b, mainKey) - getScoreTotal(a, mainKey) ||
+            getScoreCarreauCount(b, mainKey) - getScoreCarreauCount(a, mainKey);
+        if (diff !== 0) return diff;
+        for (let i = 1; i <= tiebreakerCount; i++) {
+            const tbKey = getTiebreakerKey(i);
+            const tbDiff = getScoreTotal(b, tbKey) - getScoreTotal(a, tbKey) ||
+                getScoreCarreauCount(b, tbKey) - getScoreCarreauCount(a, tbKey);
+            if (tbDiff !== 0) return tbDiff;
+        }
+        return 0;
+    });
+}
+
+export function findTiesAtBoundary(rankedParticipants, boundaryIndex, mainKey, tiebreakerCount) {
+    if (boundaryIndex <= 0 || boundaryIndex >= rankedParticipants.length) return [];
+    const lastIn = rankedParticipants[boundaryIndex - 1];
+    const firstOut = rankedParticipants[boundaryIndex];
+
+    const lastInScore = getScoreTotal(lastIn, mainKey);
+    const firstOutScore = getScoreTotal(firstOut, mainKey);
+    if (lastInScore !== firstOutScore) return [];
+
+    for (let i = 1; i <= tiebreakerCount; i++) {
+        const tbKey = getTiebreakerKey(i);
+        if (getScoreTotal(lastIn, tbKey) !== getScoreTotal(firstOut, tbKey)) return [];
+    }
+
+    const tiedScore = lastInScore;
+    return rankedParticipants.filter(p => {
+        if (getScoreTotal(p, mainKey) !== tiedScore) return false;
+        for (let i = 1; i <= tiebreakerCount; i++) {
+            const tbKey = getTiebreakerKey(i);
+            if (getScoreTotal(p, tbKey) !== getScoreTotal(lastIn, tbKey)) return false;
+        }
+        return true;
+    });
+}
+
+export function detectTiebreakersNeeded(participants, tiebreakerCount) {
+    const ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
+    const top4Ties = findTiesAtBoundary(ranked, 4, 'scores', tiebreakerCount);
+    const r2Ties = findTiesAtBoundary(ranked, 16, 'scores', tiebreakerCount);
+    return {top4Ties, r2Ties, ranked};
+}
+
+export function isTiebreakerComplete(participant, tbKey) {
+    const scores = participant[tbKey];
+    if (!scores) return false;
+    let count = 0;
+    Object.values(scores).forEach(atelier => {
+        if (atelier && typeof atelier === 'object') {
+            count += Object.keys(atelier).length;
+        }
+    });
+    return count >= 5;
+}
+
 export function generateSeededBracket(n) {
     if (n === 2) return [[0, 1]];
     if (n === 4) return [[0, 3], [1, 2]];
@@ -213,10 +276,8 @@ export function getMatchWinner(match, totalThrows) {
     return s1 > s2 ? match.player1 : match.player2;
 }
 
-export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, playoff, currentRound, isTwoRoundSystem, hasPlayoffScores, labels}) {
-    const r1Ranked = [...participants].sort((a, b) =>
-        getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
-    );
+export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, playoff, currentRound, isTwoRoundSystem, hasPlayoffScores, labels, tiebreakerCount = 0}) {
+    const r1Ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
 
     const allPlayers = r1Ranked.map(p => {
         const isDirect = directIds.includes(p.id);

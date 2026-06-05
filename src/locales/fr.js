@@ -417,6 +417,13 @@ export default {
         "switchToR2Hint": "Appuyez sur R1 pour revenir au tour actuel",
         "goToRound2": "→ Tour 2",
         "eliminated": "Éliminé",
-        "place": "Place"
+        "place": "Place",
+        "tiebreaker": "Barrage",
+        "tiebreakerDesc": "Les joueurs à égalité doivent jouer un tour supplémentaire à 7m (5 ateliers) pour déterminer la qualification.",
+        "startTiebreaker": "Commencer le barrage",
+        "finishTiebreaker": "Terminer le barrage",
+        "tiebreakerInProgress": "Barrage en cours — allez dans l'onglet Score pour entrer les résultats.",
+        "tieAtTop4": "Égalité à la limite Top 4",
+        "tieAtR2": "Égalité à la limite du Tour 2 (pos. 16)"
     }
 }

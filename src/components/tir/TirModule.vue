@@ -231,7 +231,7 @@
                             <td v-if="playoffHasQf">{{ row.qf }}</td>
                             <td v-if="playoffHasSf">{{ row.sf }}</td>
                             <td v-if="playoffHasFinal">{{ row.final }}</td>
-                            <td>{{ row.place }}</td>
+                            <td>{{ getPlaceWithTiebreaker(row) }}</td>
                         </tr>
                     </tbody>
                     <tbody v-else>
@@ -746,6 +746,15 @@ export default {
             this.tournament.tirTiebreakerActive = false;
             this.tournament.tirTiebreakerParticipantIds = null;
             this.syncToFirebase();
+        },
+        getPlaceWithTiebreaker(row) {
+            if (row.place) return row.place;
+            if (!this.tiebreakerState) return '';
+            const allTied = [...this.tiebreakerState.top4Ties, ...this.tiebreakerState.r2Ties];
+            if (allTied.some(p => p.id === row.id)) {
+                return `EX${this.tiebreakerCount + (this.isTiebreakerInProgress ? 0 : 1)}`;
+            }
+            return '';
         },
         getTiebreakerScore(participant) {
             const tbKey = getTiebreakerKey(this.tiebreakerCount);

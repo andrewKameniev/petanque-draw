@@ -407,6 +407,7 @@ export default {
         "twoRoundSystem": "Système de qualification en 2 tours",
         "twoRoundHint": "Le top 4 va en quarts directement. Les places 5-16 jouent un 2e tour.",
         "startRound2": "Commencer le tour 2",
+        "returnToRound1": "Retour au tour 1",
         "round2Hint": "Top 4 qualifiés directement. Les autres joueurs disputeront le tour 2.",
         "round1Score": "T1",
         "round2Score": "T2",

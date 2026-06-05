@@ -417,6 +417,13 @@ export default {
         "switchToR2Hint": "Tap R1 to return to the current round",
         "goToRound2": "→ Round 2",
         "eliminated": "Eliminated",
-        "place": "Place"
+        "place": "Place",
+        "tiebreaker": "Tiebreaker",
+        "tiebreakerDesc": "Players with equal scores must play an extra round at 7m (all 5 ateliers) to determine qualification.",
+        "startTiebreaker": "Start tiebreaker",
+        "finishTiebreaker": "Finish tiebreaker",
+        "tiebreakerInProgress": "Tiebreaker in progress — go to Scoring tab to enter results.",
+        "tieAtTop4": "Tie at Top 4 boundary",
+        "tieAtR2": "Tie at Round 2 boundary (pos. 16)"
     }
 }

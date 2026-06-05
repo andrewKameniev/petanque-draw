@@ -417,6 +417,13 @@ export default {
         "switchToR2Hint": "Pulse R1 para volver a la ronda actual",
         "goToRound2": "→ Ronda 2",
         "eliminated": "Eliminado",
-        "place": "Puesto"
+        "place": "Puesto",
+        "tiebreaker": "Desempate",
+        "tiebreakerDesc": "Los jugadores empatados deben jugar una ronda extra a 7m (5 talleres) para determinar la clasificación.",
+        "startTiebreaker": "Iniciar desempate",
+        "finishTiebreaker": "Finalizar desempate",
+        "tiebreakerInProgress": "Desempate en curso — ve a la pestaña Puntuación para ingresar resultados.",
+        "tieAtTop4": "Empate en el límite Top 4",
+        "tieAtR2": "Empate en el límite de Ronda 2 (pos. 16)"
     }
 }

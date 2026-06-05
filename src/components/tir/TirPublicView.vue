@@ -143,7 +143,7 @@ import {Users, TableProperties, Trophy, ChevronRight} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
 import TirParticipantsList from "./TirParticipantsList.vue";
 
-import {SCORING, ATELIER_KEYS, getScoreTotal, buildTableRows} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, getScoreTotal, buildTableRows, rankWithTiebreakers} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
@@ -415,9 +415,8 @@ export default {
         publicTableRows() {
             if (!this.isTwoRoundSystem) return [];
             const r2Ids = this.tournament.tirR2Participants || [];
-            const r1Ranked = [...this.participants].sort((a, b) =>
-                getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores')
-            );
+            const tbCount = this.tournament.tirTiebreakerCount || 0;
+            const r1Ranked = rankWithTiebreakers(this.participants, 'scores', tbCount);
             return buildTableRows({
                 participants: this.participants,
                 directIds: r1Ranked.slice(0, 4).map(p => p.id),
@@ -427,6 +426,7 @@ export default {
                 currentRound: this.currentRound,
                 isTwoRoundSystem: this.isTwoRoundSystem,
                 hasPlayoffScores: this.playoffHasQf || this.playoffHasSf || this.playoffHasFinal,
+                tiebreakerCount: tbCount,
                 labels: {
                     direct: this.$t('tir.directQualifier'),
                     r2Qualifier: this.$t('tir.round2Qualifier'),

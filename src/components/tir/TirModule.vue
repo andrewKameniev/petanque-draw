@@ -99,10 +99,10 @@
                 <TirParticipantView v-else
                     :participant="activeParticipant"
                     :ateliers="tirAteliers"
-                    :distances="tirDistances"
+                    :distances="activeScoringDistances"
                     :scoresKey="activeScoresKey"
                     :readOnly="!!tournament.tirPlayoff"
-                    @back="activeParticipant = null"
+                    @back="onParticipantViewBack"
                     @update="onScoreUpdate"
                     @next="goToNextParticipant"/>
             </template>
@@ -130,6 +130,50 @@
                     @update="onScoreUpdate"
                     @finish="finishAtelier"/>
             </template>
+
+            <!-- Tiebreaker section -->
+            <div v-if="isRound1Complete && isTwoRoundSystem && currentRound === 1 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null && (hasPendingTiebreaker || isTiebreakerInProgress)" class="tir-tiebreaker">
+                <div class="tir-tiebreaker__header">
+                    <h4 class="tir-tiebreaker__title">{{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}</h4>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
+                </div>
+
+                <template v-if="isTiebreakerInProgress">
+                    <div class="tir-tiebreaker__list">
+                        <div v-for="p in tiebreakerDisplayParticipants" :key="p.id" class="tir-tiebreaker__participant" @click="openTiebreakerScoring(p)">
+                            <span class="tir-tiebreaker__participant-name">{{ p.name }}</span>
+                            <span class="tir-tiebreaker__participant-score">{{ getTiebreakerScore(p) }}/{{ 25 }}</span>
+                            <span class="tir-tiebreaker__participant-status">
+                                <CheckCircle v-if="isTiebreakerParticipantComplete(p)" :size="16" class="tir-tiebreaker__icon--complete"/>
+                                <Circle v-else :size="16"/>
+                            </span>
+                        </div>
+                    </div>
+                    <div v-if="isTiebreakerRoundComplete" class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                            {{ $t('tir.finishTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <div class="tir-tiebreaker__ties">
+                        <div v-if="tiebreakerState.top4Ties.length" class="tir-tiebreaker__group">
+                            <span class="tir-tiebreaker__group-label">{{ $t('tir.tieAtTop4') }}:</span>
+                            <span v-for="p in tiebreakerState.top4Ties" :key="p.id" class="tir-tiebreaker__tied-name">{{ p.name }}</span>
+                        </div>
+                        <div v-if="tiebreakerState.r2Ties.length" class="tir-tiebreaker__group">
+                            <span class="tir-tiebreaker__group-label">{{ $t('tir.tieAtR2') }}:</span>
+                            <span v-for="p in tiebreakerState.r2Ties" :key="p.id" class="tir-tiebreaker__tied-name">{{ p.name }}</span>
+                        </div>
+                    </div>
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="startTiebreaker">
+                            {{ $t('tir.startTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+            </div>
 
             <!-- 2-round: transition to R2 (bottom of scoring) -->
             <div v-if="canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null" class="tir-table__actions">
@@ -189,6 +233,31 @@
                 </table>
             </div>
             <div v-else class="tir-table__empty">{{ $t('tir.noParticipants') }}</div>
+
+            <!-- Tiebreaker needed (table view) -->
+            <div v-if="isRound1Complete && isTwoRoundSystem && currentRound === 1 && !tournament.tirPlayoff && (hasPendingTiebreaker || isTiebreakerInProgress)" class="tir-tiebreaker">
+                <div class="tir-tiebreaker__header">
+                    <h4 class="tir-tiebreaker__title">{{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}</h4>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
+                </div>
+                <template v-if="!isTiebreakerInProgress">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="startTiebreaker">
+                            {{ $t('tir.startTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else-if="isTiebreakerRoundComplete">
+                    <div class="tir-tiebreaker__actions">
+                        <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                            {{ $t('tir.finishTiebreaker') }}
+                        </button>
+                    </div>
+                </template>
+                <template v-else>
+                    <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
+                </template>
+            </div>
 
             <!-- 2-round: transition to R2 -->
             <div v-if="canTransitionToRound2 && !tournament.tirPlayoff" class="tir-table__actions">
@@ -296,7 +365,7 @@ import TirAtelierView from "./TirAtelierView.vue";
 import TirPlayoffMatch from "./TirPlayoffMatch.vue";
 import {Users, Grid3x3, TableProperties, Plus, CheckCircle, AlertCircle, Circle, Trophy, Pencil, Download} from "lucide-vue-next";
 
-import {SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR, buildTableRows} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR, buildTableRows, detectTiebreakersNeeded, getTiebreakerKey, isTiebreakerComplete, rankWithTiebreakers} from '@/services/tir';
 
 export default {
     name: 'TirModule',
@@ -349,10 +418,12 @@ export default {
             return this.currentRound === 2;
         },
         activeScoringRound() {
+            if (this.scoringRound === 'tiebreaker') return 'tiebreaker';
             if (this.scoringRound !== null) return this.scoringRound;
             return this.currentRound;
         },
         activeScoresKey() {
+            if (this.scoringRound === 'tiebreaker') return getTiebreakerKey(this.tiebreakerCount);
             return this.activeScoringRound === 2 ? 'scores2' : 'scores';
         },
         tirParticipants() {
@@ -366,6 +437,10 @@ export default {
         },
         tirDistances() {
             return this.tirConfig.junior ? DISTANCES_JUNIOR : DISTANCES_FULL;
+        },
+        activeScoringDistances() {
+            if (this.scoringRound === 'tiebreaker') return [7];
+            return this.tirDistances;
         },
         totalThrows() {
             return 5 * this.tirDistances.length;
@@ -401,10 +476,7 @@ export default {
             return [...this.tirParticipants].sort((a, b) => this.getParticipantTotal(b) - this.getParticipantTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));
         },
         r1RankedParticipants() {
-            return [...this.tirParticipants].sort((a, b) =>
-                this.getScoreTotal(b, 'scores') - this.getScoreTotal(a, 'scores') ||
-                this.getScoreCarreauCount(b, 'scores') - this.getScoreCarreauCount(a, 'scores')
-            );
+            return rankWithTiebreakers(this.tirParticipants, 'scores', this.tiebreakerCount);
         },
         directQualifiers() {
             if (!this.isTwoRoundSystem) return [];
@@ -425,8 +497,48 @@ export default {
         isRound1Complete() {
             return this.tirParticipants.every(p => this.isParticipantCompleteForKey(p, 'scores'));
         },
+        tiebreakerCount() {
+            return this.tournament.tirTiebreakerCount || 0;
+        },
+        tiebreakerState() {
+            if (!this.isTwoRoundSystem || !this.isRound1Complete) return null;
+            return detectTiebreakersNeeded(this.tirParticipants, this.tiebreakerCount);
+        },
+        hasPendingTiebreaker() {
+            if (!this.tiebreakerState) return false;
+            return this.tiebreakerState.top4Ties.length > 0 || this.tiebreakerState.r2Ties.length > 0;
+        },
+        activeTiebreakerParticipants() {
+            if (!this.tiebreakerState) return [];
+            const ids = new Set();
+            this.tiebreakerState.top4Ties.forEach(p => ids.add(p.id));
+            this.tiebreakerState.r2Ties.forEach(p => ids.add(p.id));
+            return this.tirParticipants.filter(p => ids.has(p.id));
+        },
+        activeTiebreakerKey() {
+            return getTiebreakerKey(this.tiebreakerCount + 1);
+        },
+        isTiebreakerInProgress() {
+            return !!(this.tournament.tirTiebreakerActive);
+        },
+        isTiebreakerRoundComplete() {
+            if (!this.isTiebreakerInProgress) return false;
+            const tbKey = getTiebreakerKey(this.tiebreakerCount);
+            const ids = this.tournament.tirTiebreakerParticipantIds || [];
+            return ids.every(id => {
+                const p = this.tirParticipants.find(pp => pp.id === id);
+                return p && isTiebreakerComplete(p, tbKey);
+            });
+        },
+        tiebreakerDisplayParticipants() {
+            const ids = this.tournament.tirTiebreakerParticipantIds || [];
+            return this.tirParticipants.filter(p => ids.includes(p.id));
+        },
         canTransitionToRound2() {
-            return this.isTwoRoundSystem && this.currentRound === 1 && this.isRound1Complete;
+            if (!this.isTwoRoundSystem || this.currentRound !== 1 || !this.isRound1Complete) return false;
+            if (this.isTiebreakerInProgress) return false;
+            if (this.hasPendingTiebreaker) return false;
+            return true;
         },
         canStartPlayoff() {
             if (this.isTwoRoundSystem) {
@@ -473,6 +585,7 @@ export default {
                 currentRound: this.currentRound,
                 isTwoRoundSystem: this.isTwoRoundSystem,
                 hasPlayoffScores: this.playoffHasQf || this.playoffHasSf || this.playoffHasFinal,
+                tiebreakerCount: this.tiebreakerCount,
                 labels: {
                     direct: this.$t('tir.directQualifier'),
                     r2Qualifier: this.$t('tir.round2Qualifier'),
@@ -559,9 +672,50 @@ export default {
             });
             return count >= this.totalThrows;
         },
+        startTiebreaker() {
+            const participants = this.activeTiebreakerParticipants;
+            if (!participants.length) return;
+            const tbKey = this.activeTiebreakerKey;
+            participants.forEach(p => {
+                if (!p[tbKey]) p[tbKey] = {};
+            });
+            this.tournament.tirTiebreakerActive = true;
+            this.tournament.tirTiebreakerParticipantIds = participants.map(p => p.id);
+            this.tournament.tirTiebreakerCount = (this.tiebreakerCount || 0) + 1;
+            this.syncToFirebase();
+        },
+        finishTiebreaker() {
+            this.tournament.tirTiebreakerActive = false;
+            this.tournament.tirTiebreakerParticipantIds = null;
+            this.syncToFirebase();
+        },
+        getTiebreakerScore(participant) {
+            const tbKey = getTiebreakerKey(this.tiebreakerCount);
+            const scores = participant[tbKey];
+            if (!scores) return 0;
+            let total = 0;
+            Object.values(scores).forEach(atelier => {
+                if (atelier && typeof atelier === 'object') {
+                    Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+                }
+            });
+            return total;
+        },
+        isTiebreakerParticipantComplete(participant) {
+            const tbKey = getTiebreakerKey(this.tiebreakerCount);
+            return isTiebreakerComplete(participant, tbKey);
+        },
+        openTiebreakerScoring(participant) {
+            this.activeParticipant = participant;
+            this.scoringRound = 'tiebreaker';
+        },
+        onParticipantViewBack() {
+            this.activeParticipant = null;
+            if (this.scoringRound === 'tiebreaker') this.scoringRound = null;
+        },
         startRound2() {
-            const r1Ranked = this.r1RankedParticipants;
-            const r2Qualifiers = r1Ranked.slice(4, 16);
+            const ranked = rankWithTiebreakers(this.tirParticipants, 'scores', this.tiebreakerCount);
+            const r2Qualifiers = ranked.slice(4, 16);
             this.tournament.tirR2Participants = r2Qualifiers.map(p => p.id);
             r2Qualifiers.forEach(p => {
                 if (!p.scores2) p.scores2 = {};
@@ -1894,5 +2048,105 @@ export default {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
+}
+
+/* Tiebreaker */
+.tir-tiebreaker {
+    margin-top: 16px;
+    padding: 16px;
+    border: 2px solid var(--color-warning);
+    border-radius: 12px;
+    background: rgba(245, 166, 35, 0.06);
+}
+
+.tir-tiebreaker__header {
+    margin-bottom: 12px;
+}
+
+.tir-tiebreaker__title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.tir-tiebreaker__desc {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.tir-tiebreaker__ties {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tir-tiebreaker__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.tir-tiebreaker__group-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.tir-tiebreaker__tied-name {
+    font-size: 13px;
+    padding: 2px 8px;
+    background: var(--color-surface-alt);
+    border-radius: 4px;
+    color: var(--color-text);
+}
+
+.tir-tiebreaker__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.tir-tiebreaker__participant {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.tir-tiebreaker__participant:hover {
+    background: var(--color-surface-hover);
+}
+
+.tir-tiebreaker__participant-name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.tir-tiebreaker__participant-score {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.tir-tiebreaker__participant-status {
+    color: var(--color-grey);
+}
+
+.tir-tiebreaker__icon--complete {
+    color: var(--color-success);
+}
+
+.tir-tiebreaker__actions {
+    margin-top: 12px;
 }
 </style>

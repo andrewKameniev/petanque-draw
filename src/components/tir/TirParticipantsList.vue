@@ -14,10 +14,16 @@
         <div v-if="expanded === null" class="tir-plist__select">
             <div v-for="(participant, index) in filteredParticipants" :key="participant.id || index" class="tir-plist__row" @click="selectParticipant(participant, index)">
                 <span class="tir-plist__rank">{{ index + 1 }}</span>
-                <span class="tir-plist__name">
-                    {{ participant.name }}
-                    <span v-if="participant.city" class="tir-plist__club">{{ participant.city }}</span>
-                </span>
+                <div class="tir-plist__info">
+                    <span class="tir-plist__name">{{ participant.name }}</span>
+                    <span v-if="getClub(participant)" class="tir-plist__club">{{ getClub(participant) }}</span>
+                    <div class="tir-plist__progress">
+                        <div class="tir-plist__progress-bar">
+                            <div class="tir-plist__progress-fill" :style="{width: getProgressPercent(participant) + '%'}"></div>
+                        </div>
+                        <span class="tir-plist__progress-text">{{ getThrows(participant) }}/{{ totalThrows }}</span>
+                    </div>
+                </div>
                 <span class="tir-plist__score">{{ getTotal(participant) }}/{{ maxTotal }}</span>
                 <span class="tir-plist__status" :class="getStatusClass(participant)">
                     <CheckCircle v-if="isComplete(participant)" :size="16"/>
@@ -149,7 +155,7 @@ export default {
         filteredParticipants() {
             if (!this.searchQuery) return this.rankedParticipants;
             const q = this.searchQuery.toLowerCase();
-            return this.rankedParticipants.filter(p => p.name.toLowerCase().includes(q) || (p.city && p.city.toLowerCase().includes(q)));
+            return this.rankedParticipants.filter(p => p.name.toLowerCase().includes(q) || (p.city && p.city.toLowerCase().includes(q)) || this.getClub(p).toLowerCase().includes(q));
         },
         expandedParticipant() {
             if (this.expanded === null) return null;
@@ -240,6 +246,15 @@ export default {
         isComplete(participant) {
             return this.getThrows(participant) >= this.totalThrows;
         },
+        getProgressPercent(participant) {
+            return Math.round((this.getThrows(participant) / this.totalThrows) * 100);
+        },
+        getClub(participant) {
+            const team = this.tournament.teams?.find(t => t.title === participant.name);
+            if (!team?.players) return participant.city || '';
+            const players = Object.values(team.players);
+            return players[0]?.club || participant.city || '';
+        },
         getStatusClass(participant) {
             if (this.isComplete(participant)) return 'tir-plist__status--complete';
             if (this.getThrows(participant) > 0) return 'tir-plist__status--partial';
@@ -319,8 +334,13 @@ export default {
     color: var(--color-text-muted);
 }
 
-.tir-plist__name {
+.tir-plist__info {
     flex: 1;
+    min-width: 0;
+}
+
+.tir-plist__name {
+    display: block;
     font-weight: 500;
     color: var(--color-text);
 }
@@ -330,6 +350,37 @@ export default {
     font-size: 11px;
     color: var(--color-text-muted);
     font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tir-plist__progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.tir-plist__progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.tir-plist__progress-fill {
+    height: 100%;
+    background: var(--tir-touche);
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
+.tir-plist__progress-text {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
 }
 
 .tir-plist__score {

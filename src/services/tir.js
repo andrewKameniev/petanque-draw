@@ -413,3 +413,26 @@ export function getPlayoffMatchScores(playerName, playoff) {
     }
     return result;
 }
+
+export function findPlayoffMatchForParticipant(participantName, matches) {
+    if (!matches) return null;
+    for (const m of matches) {
+        if (m.player1 === participantName) return {match: m, playerNum: 1, scoresKey: 'scores1'};
+        if (m.player2 === participantName) return {match: m, playerNum: 2, scoresKey: 'scores2'};
+    }
+    return null;
+}
+
+export function getPlayoffMatchThrowsForParticipant(participantName, matches) {
+    const info = findPlayoffMatchForParticipant(participantName, matches);
+    if (!info) return 0;
+    return getMatchPlayerThrows(info.match, info.playerNum);
+}
+
+export function getPlayoffMatchAtelierPercent(participantName, matches, atelierIdx, distancesCount) {
+    const info = findPlayoffMatchForParticipant(participantName, matches);
+    if (!info) return 0;
+    const scores = info.match[info.scoresKey]?.[atelierIdx];
+    if (!scores || typeof scores !== 'object') return 0;
+    return Math.round((Object.keys(scores).length / distancesCount) * 100);
+}

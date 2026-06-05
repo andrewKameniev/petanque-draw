@@ -22,8 +22,8 @@
             <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span>
         </div>
 
-        <!-- All ateliers stacked (when complete / readOnly) -->
-        <template v-if="isAllComplete || readOnly">
+        <!-- All ateliers stacked (readOnly) -->
+        <template v-if="readOnly">
             <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-pview__atelier-card">
                 <div class="tir-pview__atelier-card-header">
                     <span class="tir-pview__atelier-card-num">{{ aIdx + 1 }}</span>
@@ -96,7 +96,7 @@
         </template>
 
         <!-- Navigation (scoring mode only) -->
-        <div v-if="!isAllComplete && !readOnly" class="tir-pview__nav">
+        <div v-if="!readOnly" class="tir-pview__nav">
             <button class="tir-pview__nav-btn" @click="prevAtelier" :disabled="activeAtelierIndex === 0">
                 <ChevronLeft :size="16"/>
                 {{ $t('tir.prevAtelier') }}

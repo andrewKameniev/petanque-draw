@@ -336,7 +336,7 @@ import TirAtelierView from "./TirAtelierView.vue";
 import TirPlayoffMatch from "./TirPlayoffMatch.vue";
 import {Users, Grid3x3, TableProperties, Plus, CheckCircle, AlertCircle, Circle, Trophy, Pencil, Download} from "lucide-vue-next";
 
-import {SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR, buildTableRows, detectTiebreakersNeeded, getTiebreakerKey, isTiebreakerComplete, rankWithTiebreakers} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, DISTANCES_FULL, DISTANCES_JUNIOR, getScoreTotal, buildTableRows, detectTiebreakersNeeded, getTiebreakerKey, isTiebreakerComplete, rankWithTiebreakers} from '@/services/tir';
 
 export default {
     name: 'TirModule',

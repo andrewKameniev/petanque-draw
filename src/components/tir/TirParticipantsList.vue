@@ -372,7 +372,7 @@ export default {
 
 .tir-plist__progress-fill {
     height: 100%;
-    background: var(--tir-touche);
+    background: var(--color-primary);
     border-radius: 2px;
     transition: width 0.3s;
 }

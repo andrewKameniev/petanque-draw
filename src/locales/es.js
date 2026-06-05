@@ -407,6 +407,7 @@ export default {
         "twoRoundSystem": "Sistema de clasificación de 2 rondas",
         "twoRoundHint": "Los 4 primeros van a cuartos directamente. Puestos 5-16 juegan ronda 2.",
         "startRound2": "Iniciar ronda 2",
+        "returnToRound1": "Volver a ronda 1",
         "round2Hint": "Los 4 primeros clasificados directamente. El resto competirá en la ronda 2.",
         "round1Score": "R1",
         "round2Score": "R2",

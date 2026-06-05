@@ -118,9 +118,8 @@ export default {
             }));
         },
         displayRound() {
-            if (this.tournament.tirPlayoff) {
-                return this.activeBracket === 'r1' ? 1 : 2;
-            }
+            if (this.activeBracket === 'r1') return 1;
+            if (this.activeBracket === 'r2') return 2;
             return this.currentRound;
         },
         activeScoresKey() {

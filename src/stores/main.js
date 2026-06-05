@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {tournamentNames} from "@/helpers";
-import {get, getDatabase, ref, set, remove, update} from "firebase/database";
+import {get, getDatabase, ref, set, remove, update, onValue} from "firebase/database";
 import {database} from "@/firebase";
 import i18n from "@/i18n";
 
@@ -88,6 +88,132 @@ export const useMainStore = defineStore('main', {
                     });
                 }
             }, 300);
+        },
+        syncTirPlayoff() {
+            clearTimeout(this._syncTirPlayoffTimeout);
+            this._syncTirPlayoffTimeout = setTimeout(() => {
+                if (this.user && this.user.uid && this.currentTournamentIndex) {
+                    const tournament = this.tournaments[this.currentTournamentIndex];
+                    if (!tournament?.tirPlayoff) return;
+                    const db = getDatabase();
+                    set(ref(db, `${this.user.uid}/tournaments/${this.currentTournamentIndex}/tirPlayoff`), tournament.tirPlayoff)
+                        .catch(error => {
+                            console.error('Error updating tirPlayoff:', error);
+                        });
+                }
+            }, 200);
+        },
+        subscribeTournament() {
+            this.unsubscribeTournament();
+            if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
+            const db = getDatabase();
+            const dbRef = ref(db, `${this.user.uid}/tournaments/${this.currentTournamentIndex}`);
+            this._tournamentUnsubscribe = onValue(dbRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+                const remote = snapshot.val();
+                const local = this.tournaments[this.currentTournamentIndex];
+                if (!local) return;
+                if (remote.tirPlayoff && local.tirPlayoff) {
+                    this._mergeTirPlayoff(local, remote);
+                }
+                if (remote.tirParticipants) {
+                    local.tirParticipants = remote.tirParticipants;
+                }
+                if (remote.tirRound !== undefined) local.tirRound = remote.tirRound;
+                if (remote.tirR2Participants !== undefined) local.tirR2Participants = remote.tirR2Participants;
+                if (remote.tirTiebreakerCount !== undefined) local.tirTiebreakerCount = remote.tirTiebreakerCount;
+                if (remote.tirTiebreakerActive !== undefined) local.tirTiebreakerActive = remote.tirTiebreakerActive;
+                if (remote.tirTiebreakerParticipantIds !== undefined) local.tirTiebreakerParticipantIds = remote.tirTiebreakerParticipantIds;
+                if (remote.tournamentIsFinished) local.tournamentIsFinished = remote.tournamentIsFinished;
+            });
+        },
+        _mergeTirPlayoff(local, remote) {
+            const localPlayoff = local.tirPlayoff;
+            const remotePlayoff = remote.tirPlayoff;
+            if (!remotePlayoff) return;
+
+            if (remotePlayoff.rounds) {
+                if (!localPlayoff.rounds) {
+                    localPlayoff.rounds = remotePlayoff.rounds;
+                } else {
+                    while (localPlayoff.rounds.length < remotePlayoff.rounds.length) {
+                        localPlayoff.rounds.push(remotePlayoff.rounds[localPlayoff.rounds.length]);
+                    }
+                    remotePlayoff.rounds.forEach((remoteRound, rIdx) => {
+                        if (!localPlayoff.rounds[rIdx]) {
+                            localPlayoff.rounds[rIdx] = remoteRound;
+                            return;
+                        }
+                        remoteRound.matches.forEach((remoteMatch, mIdx) => {
+                            const localMatch = localPlayoff.rounds[rIdx].matches[mIdx];
+                            if (!localMatch) {
+                                localPlayoff.rounds[rIdx].matches[mIdx] = remoteMatch;
+                                return;
+                            }
+                            if (remoteMatch.complete && !localMatch.complete) {
+                                Object.assign(localMatch, remoteMatch);
+                            } else if (!localMatch.complete && !remoteMatch.complete) {
+                                const localThrows = this._countMatchThrows(localMatch);
+                                const remoteThrows = this._countMatchThrows(remoteMatch);
+                                if (remoteThrows > localThrows) {
+                                    Object.assign(localMatch, remoteMatch);
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            if (remotePlayoff.final) {
+                if (!localPlayoff.final) {
+                    localPlayoff.final = remotePlayoff.final;
+                } else if (remotePlayoff.final.complete && !localPlayoff.final.complete) {
+                    Object.assign(localPlayoff.final, remotePlayoff.final);
+                } else if (!localPlayoff.final.complete) {
+                    const localThrows = this._countMatchThrows(localPlayoff.final);
+                    const remoteThrows = this._countMatchThrows(remotePlayoff.final);
+                    if (remoteThrows > localThrows) {
+                        Object.assign(localPlayoff.final, remotePlayoff.final);
+                    }
+                }
+            }
+
+            if (remotePlayoff.thirdPlace) {
+                if (!localPlayoff.thirdPlace) {
+                    localPlayoff.thirdPlace = remotePlayoff.thirdPlace;
+                } else if (remotePlayoff.thirdPlace.complete && !localPlayoff.thirdPlace.complete) {
+                    Object.assign(localPlayoff.thirdPlace, remotePlayoff.thirdPlace);
+                } else if (!localPlayoff.thirdPlace.complete) {
+                    const localThrows = this._countMatchThrows(localPlayoff.thirdPlace);
+                    const remoteThrows = this._countMatchThrows(remotePlayoff.thirdPlace);
+                    if (remoteThrows > localThrows) {
+                        Object.assign(localPlayoff.thirdPlace, remotePlayoff.thirdPlace);
+                    }
+                }
+            }
+
+            if (remotePlayoff.qualified) localPlayoff.qualified = remotePlayoff.qualified;
+            if (remotePlayoff.size) localPlayoff.size = remotePlayoff.size;
+        },
+        _countMatchThrows(match) {
+            let count = 0;
+            ['scores1', 'scores2'].forEach(key => {
+                const scores = match[key];
+                if (scores && typeof scores === 'object') {
+                    Object.values(scores).forEach(atelier => {
+                        if (atelier && typeof atelier === 'object') {
+                            count += Object.keys(atelier).length;
+                        }
+                    });
+                }
+            });
+            return count;
+        },
+        unsubscribeTournament() {
+            if (this._tournamentUnsubscribe) {
+                this._tournamentUnsubscribe();
+                this._tournamentUnsubscribe = null;
+            }
         },
         async getTournaments() {
             const dbRef = ref(database, `${this.user.uid}/tournaments/`);

@@ -61,7 +61,7 @@
             <div v-if="isTwoRoundSystem && scoringRoundTabs.length > 1 && !activeParticipant && activeAtelier === null" class="tir-scoring__round-switcher">
                 <button v-for="tab in scoringRoundTabs" :key="tab.key"
                     class="tir-scoring__round-btn"
-                    :class="{'tir-scoring__round-btn--active': scoringRound === tab.key}"
+                    :class="{'tir-scoring__round-btn--active': activeScoringRound === tab.key}"
                     @click="scoringRound = tab.key">
                     {{ tab.label }}
                 </button>

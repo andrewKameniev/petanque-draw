@@ -281,6 +281,15 @@
                 </div>
             </div>
 
+            <!-- Return to R1 to fix scores -->
+            <div v-if="currentRound >= 2 && !tournament.tirPlayoff" class="tir-table__actions">
+                <div class="tir-table__actions-row">
+                    <button class="tir-table__return-btn" @click="returnToRound1">
+                        {{ $t('tir.returnToRound1') }}
+                    </button>
+                </div>
+            </div>
+
             <!-- Start playoff or finish -->
             <div v-else-if="canStartPlayoff && !tournament.tournamentIsFinished && !tournament.tirPlayoff" class="tir-table__actions">
                 <div v-if="!isTwoRoundSystem" class="tir-table__playoff-row">
@@ -790,6 +799,12 @@ export default {
                 if (!p.scores2) p.scores2 = {};
             });
             this.tournament.tirRound = 2;
+            this.syncToFirebase();
+        },
+        returnToRound1() {
+            this.tournament.tirRound = 1;
+            this.tournament.tirR2Participants = null;
+            this.scoringRound = 'r1';
             this.syncToFirebase();
         },
         addParticipant() {
@@ -1831,6 +1846,17 @@ export default {
     font-size: 14px;
     cursor: pointer;
     color: var(--color-btn-text);
+}
+
+.tir-table__return-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: none;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--color-text-muted);
 }
 
 .tir-table__export {

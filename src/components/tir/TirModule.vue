@@ -223,10 +223,10 @@
                         <tr v-for="(row, index) in tableRows" :key="row.id" :class="row.rowClass">
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
                             <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openParticipantFromTable(row.id)">{{ row.name }}</td>
-                            <td>{{ row.r1 }}</td>
+                            <td :class="{'tir-table__muted': row.r1 === '—'}">{{ row.r1 }}</td>
                             <td v-for="i in tiebreakerCount" :key="'ex'+i">{{ getTiebreakerScoreForTable(row.id, i) }}</td>
-                            <td v-if="currentRound >= 2">{{ row.r2 }}</td>
-                            <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
+                            <td v-if="currentRound >= 2" :class="{'tir-table__muted': row.r2 === '—'}">{{ row.r2 }}</td>
+                            <td v-if="currentRound >= 2" :class="{'tir-table__muted': row.combined === '—'}"><strong>{{ row.combined }}</strong></td>
                             <td v-if="playoffHasQf">{{ row.qf }}</td>
                             <td v-if="playoffHasSf">{{ row.sf }}</td>
                             <td v-if="playoffHasFinal">{{ row.final }}</td>
@@ -1670,6 +1670,11 @@ export default {
     max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+td.tir-table__muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
 }
 
 .tir-table__clickable {

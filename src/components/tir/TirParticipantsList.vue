@@ -171,8 +171,8 @@ export default {
                 return this.getPlayoffBracketParticipants();
             }
             if (this.isTiebreakerTab) {
-                const ids = this.tournament.tirTiebreakerParticipantIds || [];
-                return this.participants.filter(p => ids.includes(p.id));
+                const tbKey = this.activeScoresKey;
+                return this.participants.filter(p => p[tbKey] && Object.keys(p[tbKey]).length > 0);
             }
             if (this.displayRound === 2) {
                 const r2Ids = this.tournament.tirR2Participants || [];

@@ -32,6 +32,7 @@
                             <th class="tir-table__sticky-col">#</th>
                             <th class="tir-table__sticky-col tir-table__sticky-col--name">{{ $t('tir.participant') }}</th>
                             <th>{{ $t('tir.round1Score') }}</th>
+                            <th v-for="i in tiebreakerCount" :key="'exh'+i">EX{{ i }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.round2Score') }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.combinedScore') }}</th>
                             <th v-if="playoffHasQf">1/4</th>
@@ -51,6 +52,7 @@
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
                             <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">{{ row.name }}</td>
                             <td>{{ row.r1 }}</td>
+                            <td v-for="i in tiebreakerCount" :key="'ex'+i">{{ getTiebreakerScoreForTable(row.id, i) }}</td>
                             <td v-if="currentRound >= 2">{{ row.r2 }}</td>
                             <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
                             <td v-if="playoffHasQf">{{ row.qf }}</td>
@@ -143,7 +145,7 @@ import {Users, TableProperties, Trophy, ChevronRight} from "lucide-vue-next";
 import TirPlayoffComparison from "./TirPlayoffComparison.vue";
 import TirParticipantsList from "./TirParticipantsList.vue";
 
-import {SCORING, ATELIER_KEYS, getScoreTotal, buildTableRows, rankWithTiebreakers} from '@/services/tir';
+import {SCORING, ATELIER_KEYS, getScoreTotal, getTiebreakerKey, buildTableRows, rankWithTiebreakers} from '@/services/tir';
 
 export default {
     name: 'TirPublicView',
@@ -195,6 +197,9 @@ export default {
     computed: {
         isTwoRoundSystem() {
             return this.tournament.tirConfig?.rounds === 2;
+        },
+        tiebreakerCount() {
+            return this.tournament.tirTiebreakerCount || 0;
         },
         currentRound() {
             return this.tournament.tirRound || 1;
@@ -437,6 +442,13 @@ export default {
         }
     },
     methods: {
+        getTiebreakerScoreForTable(participantId, round) {
+            const p = this.participants.find(pp => pp.id === participantId);
+            if (!p) return '';
+            const tbKey = getTiebreakerKey(round);
+            if (!p[tbKey]) return '';
+            return getScoreTotal(p, tbKey);
+        },
         toggleViewingRound() {
             this.viewingRound = this.displayRound === 1 ? 2 : 1;
             this.expanded = null;

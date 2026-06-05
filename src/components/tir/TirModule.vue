@@ -488,8 +488,8 @@ export default {
             if (this.activeScoringRound === 'r2') return this.round2Participants;
             const round = this.activeScoringRound;
             if (typeof round === 'string' && round.startsWith('ex')) {
-                const ids = this.tournament.tirTiebreakerParticipantIds || [];
-                return this.tirParticipants.filter(p => ids.includes(p.id));
+                const tbKey = this.activeScoresKey;
+                return this.tirParticipants.filter(p => p[tbKey] && Object.keys(p[tbKey]).length > 0);
             }
             return this.tirParticipants;
         },

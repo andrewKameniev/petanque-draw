@@ -305,7 +305,9 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
     const allPlayers = r1Ranked.map(p => {
         const isDirect = directIds.includes(p.id);
         const isR2 = r2Ids.includes(p.id);
+        const r1Started = getThrowCount(p, 'scores') > 0;
         const r1Score = getScoreTotal(p, 'scores');
+        const r2Started = isR2 && getThrowCount(p, 'scores2') > 0;
         const r2Score = isR2 ? getScoreTotal(p, 'scores2') : null;
         const combined = isR2 ? r1Score + r2Score : r1Score;
 
@@ -340,9 +342,11 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
         else if (matchScores.qf !== '') { playoffStage = 1; playoffLastScore = matchScores.qf; }
 
         return {
-            id: p.id, name: p.name, r1: r1Score,
-            r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
-            combined: isR2 ? combined : (isDirect ? r1Score : ''),
+            id: p.id, name: p.name,
+            r1: r1Started ? r1Score : '—',
+            r2: isDirect ? '—' : (r2Score !== null ? (r2Started ? r2Score : '—') : ''),
+            r2Num: r2Score || 0,
+            combined: isR2 ? (r1Started || r2Started ? combined : '—') : (isDirect ? (r1Started ? r1Score : '—') : ''),
             qf: matchScores.qf, sf: matchScores.sf, final: matchScores.final,
             place, rowClass, combinedNum: combined, playoffStage, playoffLastScore
         };

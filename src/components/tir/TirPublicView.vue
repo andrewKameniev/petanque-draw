@@ -14,8 +14,6 @@
                 <Trophy :size="18"/>
                 <span>{{ $t('games.playOff') }}</span>
             </button>
-            <button v-if="isTwoRoundSystem && currentRound === 2 && !tournament.tirPlayoff" class="tir-nav__round-badge" @click="toggleViewingRound">R{{ displayRound }}</button>
-            <span v-else-if="isTwoRoundSystem && !tournament.tirPlayoff" class="tir-nav__round-badge">R{{ currentRound }}</span>
         </div>
 
         <!-- Participants view — scoring page style, read-only -->
@@ -51,10 +49,10 @@
                         <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
                             <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">{{ row.name }}</td>
-                            <td>{{ row.r1 }}</td>
+                            <td :class="{'tir-table__muted': row.r1 === '—'}">{{ row.r1 }}</td>
                             <td v-for="i in tiebreakerCount" :key="'ex'+i">{{ getTiebreakerScoreForTable(row.id, i) }}</td>
-                            <td v-if="currentRound >= 2">{{ row.r2 }}</td>
-                            <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
+                            <td v-if="currentRound >= 2" :class="{'tir-table__muted': row.r2 === '—'}">{{ row.r2 }}</td>
+                            <td v-if="currentRound >= 2" :class="{'tir-table__muted': row.combined === '—'}"><strong>{{ row.combined }}</strong></td>
                             <td v-if="playoffHasQf">{{ row.qf }}</td>
                             <td v-if="playoffHasSf">{{ row.sf }}</td>
                             <td v-if="playoffHasFinal">{{ row.final }}</td>
@@ -160,7 +158,6 @@ export default {
             activeAtelier: 0,
             activePlayoffMatchKey: null,
             activePlayoffMatchLabel: '',
-            viewingRound: null,
             activeBracket: 'r2',
             searchQuery: ''
         }
@@ -248,7 +245,7 @@ export default {
             if (this.tournament.tirPlayoff) {
                 return this.activeBracket === 'r1' ? 1 : 2;
             }
-            return this.viewingRound || this.currentRound;
+            return this.currentRound;
         },
         activeScoresKey() {
             return this.displayRound === 2 ? 'scores2' : 'scores';
@@ -449,10 +446,6 @@ export default {
             if (!p[tbKey]) return '';
             return getScoreTotal(p, tbKey);
         },
-        toggleViewingRound() {
-            this.viewingRound = this.displayRound === 1 ? 2 : 1;
-            this.expanded = null;
-        },
         getPlayoffBracketParticipants() {
             const playoff = this.tournament.tirPlayoff;
             if (!playoff?.rounds) return [];
@@ -646,25 +639,6 @@ export default {
 
 .tir-nav__btn--playoff.tir-nav__btn--active {
     color: var(--tir-touche);
-}
-
-.tir-nav__round-badge {
-    position: relative;
-    right: 0px;
-    top: -4px;
-    align-self: baseline;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 3px 6px;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 5px;
-    background: var(--color-primary);
-    color: var(--color-btn-text);
-    margin-right: 6px;
-    border: none;
-    cursor: pointer;
 }
 
 .tir-scoring__round-hint {
@@ -1057,6 +1031,11 @@ export default {
 .place-bronze td.tir-table__sticky-col {
     background-color: var(--color-surface) !important;
     background-image: linear-gradient(var(--color-badge-bronze-bg), var(--color-badge-bronze-bg)) !important;
+}
+
+td.tir-table__muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
 }
 
 .tir-table__clickable {

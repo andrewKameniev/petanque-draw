@@ -135,6 +135,15 @@
                     @finish="finishAtelier"/>
             </template>
 
+            <!-- Tiebreaker: finish round (scoring view) -->
+            <div v-if="isTiebreakerInProgress && isTiebreakerRoundComplete && !activeParticipant && activeAtelier === null" class="tir-tiebreaker">
+                <div class="tir-tiebreaker__actions">
+                    <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                        {{ $t('tir.finishTiebreaker') }}
+                    </button>
+                </div>
+            </div>
+
             <!-- 2-round: transition to R2 (bottom of scoring) -->
             <div v-if="canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null" class="tir-table__actions">
                 <p class="tir-table__hint">{{ $t('tir.round2Hint') }}</p>
@@ -155,6 +164,7 @@
                             <th class="tir-table__sticky-col">#</th>
                             <th class="tir-table__sticky-col tir-table__sticky-col--name">{{ $t('tir.participant') }}</th>
                             <th>{{ $t('tir.round1Score') }}</th>
+                            <th v-for="i in tiebreakerCount" :key="'exh'+i">EX{{ i }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.round2Score') }}</th>
                             <th v-if="currentRound >= 2">{{ $t('tir.combinedScore') }}</th>
                             <th v-if="playoffHasQf">1/4</th>
@@ -174,6 +184,7 @@
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
                             <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openParticipantFromTable(row.id)">{{ row.name }}</td>
                             <td>{{ row.r1 }}</td>
+                            <td v-for="i in tiebreakerCount" :key="'ex'+i">{{ getTiebreakerScoreForTable(row.id, i) }}</td>
                             <td v-if="currentRound >= 2">{{ row.r2 }}</td>
                             <td v-if="currentRound >= 2"><strong>{{ row.combined }}</strong></td>
                             <td v-if="playoffHasQf">{{ row.qf }}</td>
@@ -706,6 +717,13 @@ export default {
                 }
             });
             return total;
+        },
+        getTiebreakerScoreForTable(participantId, round) {
+            const p = this.tirParticipants.find(pp => pp.id === participantId);
+            if (!p) return '';
+            const tbKey = getTiebreakerKey(round);
+            if (!p[tbKey]) return '';
+            return getScoreTotal(p, tbKey);
         },
         isTiebreakerParticipantComplete(participant) {
             const tbKey = getTiebreakerKey(this.tiebreakerCount);

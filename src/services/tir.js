@@ -342,6 +342,7 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
         return {
             id: p.id, name: p.name, r1: r1Score,
             r2: isDirect ? '—' : (r2Score !== null ? r2Score : ''),
+            r2Num: r2Score || 0,
             combined: isR2 ? combined : (isDirect ? r1Score : ''),
             qf: matchScores.qf, sf: matchScores.sf, final: matchScores.final,
             place, rowClass, combinedNum: combined, playoffStage, playoffLastScore

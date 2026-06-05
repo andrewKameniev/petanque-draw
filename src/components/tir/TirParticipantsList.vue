@@ -19,7 +19,7 @@
                     <span v-if="getClub(participant)" class="tir-plist__club">{{ getClub(participant) }}</span>
                     <div class="tir-plist__progress">
                         <div class="tir-plist__progress-bar">
-                            <div class="tir-plist__progress-fill" :style="{width: getProgressPercent(participant) + '%'}"></div>
+                            <div class="tir-plist__progress-fill" :class="{'tir-plist__progress-fill--complete': isComplete(participant)}" :style="{width: getProgressPercent(participant) + '%'}"></div>
                         </div>
                         <span class="tir-plist__progress-text">{{ getThrows(participant) }}/{{ totalThrows }}</span>
                     </div>
@@ -372,9 +372,13 @@ export default {
 
 .tir-plist__progress-fill {
     height: 100%;
-    background: var(--color-primary);
+    background: var(--color-warning);
     border-radius: 2px;
-    transition: width 0.3s;
+    transition: width 0.3s, background 0.3s;
+}
+
+.tir-plist__progress-fill--complete {
+    background: var(--color-success);
 }
 
 .tir-plist__progress-text {

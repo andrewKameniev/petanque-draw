@@ -450,7 +450,8 @@ export default {
         "timeLimitEnded": "Час вичерпано",
         "playLastCochonette": "Зіграйте",
         "lastCochonette": "останній кошонет",
-        "lastCochonettes": "останні кошонети"
+        "lastCochonettes": "останні кошонети",
+        "min": "хв"
     },
     "teamPlayoff": {
         "startPlayoff": "Плей-оф",

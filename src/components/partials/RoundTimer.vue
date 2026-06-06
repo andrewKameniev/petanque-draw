@@ -1,15 +1,27 @@
 <template>
-    <div class="round-timer" :class="{'round-timer--ended': isEnded}">
+    <div class="round-timer" :class="{'round-timer--ended': isEnded}" @click="onTimerClick">
         <div class="round-timer__display">
             <Timer :size="18" class="round-timer__icon"/>
-            <span v-if="isEnded" class="round-timer__text round-timer__text--ended">
+            <span v-if="isEnded && !showRestart" class="round-timer__text round-timer__text--ended">
                 {{ $t('timer.timeLimitEnded') }}
             </span>
-            <span v-else class="round-timer__text">
+            <span v-else-if="!showRestart" class="round-timer__text">
                 {{ formattedTime }}
             </span>
+            <div v-if="showRestart" class="round-timer__restart">
+                <button v-for="opt in restartOptions" :key="opt" class="round-timer__restart-btn" @click.stop="restart(opt)">
+                    {{ opt }}
+                </button>
+                <input ref="customMinutes" class="round-timer__restart-input" type="number" min="1"
+                       v-model.number="customMinutes" :placeholder="$t('timer.min')"
+                       @click.stop
+                       @keydown.enter.stop="restart(customMinutes)">
+                <button class="round-timer__restart-btn round-timer__restart-btn--go" @click.stop="restart(customMinutes)" :disabled="!customMinutes">
+                    ▶
+                </button>
+            </div>
         </div>
-        <div v-if="isEnded && cochonettesMessage" class="round-timer__cochonettes">
+        <div v-if="isEnded && cochonettesMessage && !showRestart" class="round-timer__cochonettes">
             {{ cochonettesMessage }}
         </div>
     </div>
@@ -28,10 +40,14 @@ export default {
         cochonettesEnabled: {type: Boolean, default: false},
         cochonettes: {type: Number, default: 1}
     },
+    emits: ['timer-ended', 'restart'],
     data() {
         return {
             now: Date.now(),
-            interval: null
+            interval: null,
+            showRestart: false,
+            restartOptions: [5, 10, 15, 30, 60],
+            customMinutes: null
         };
     },
     computed: {
@@ -62,6 +78,7 @@ export default {
         timerStatus(val) {
             if (val === 'running') {
                 this.startTick();
+                this.showRestart = false;
             } else if (val === 'ended' || val === 'not_started') {
                 this.stopTick();
             }
@@ -93,6 +110,14 @@ export default {
                 clearInterval(this.interval);
                 this.interval = null;
             }
+        },
+        onTimerClick() {
+            this.showRestart = !this.showRestart;
+        },
+        restart(minutes) {
+            if (!minutes || minutes < 1) return;
+            this.showRestart = false;
+            this.$emit('restart', minutes);
         }
     }
 };
@@ -108,6 +133,7 @@ export default {
     border-radius: 8px;
     background: var(--color-primary-bg);
     border: 1px solid var(--color-primary);
+    cursor: pointer;
 }
 
 .round-timer--ended {
@@ -145,5 +171,53 @@ export default {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--color-danger-light);
+}
+
+.round-timer__restart {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.round-timer__restart-btn {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.round-timer__restart-btn:hover {
+    opacity: 0.85;
+}
+
+.round-timer__restart-btn--go {
+    padding: 4px 8px;
+}
+
+.round-timer__restart-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.round-timer__restart-input {
+    width: 50px;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--color-primary);
+    border-radius: 6px;
+    text-align: center;
+    outline: none;
+    background: var(--color-surface, #fff);
+    color: var(--color-text);
+}
+
+.round-timer__restart-input:focus {
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
 }
 </style>

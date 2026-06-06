@@ -637,6 +637,68 @@ export function drawGroupsRound(tournament) {
     return round;
 }
 
+export function reshuffleGroupSchedule(tournament) {
+    const groups = tournament.groups;
+    const newGroups = [];
+    const schemas = [];
+
+    groups.forEach(group => {
+        const n = group.length;
+        const schedule = computeRoundRobinSchedule(n % 2 === 0 ? n : n + 1);
+        const shuffled = findBalancedOrder(group, schedule);
+        newGroups.push(shuffled);
+
+        let groupIndexes = Array.from({length: n}, (_, i) => i);
+        if (n % 2 !== 0) groupIndexes.push(n);
+        const scheme = {top: [], bottom: []};
+        for (let i = 0; i < groupIndexes.length / 2; i++) {
+            scheme.top.push(i);
+        }
+        for (let i = groupIndexes.length - 1; i >= groupIndexes.length / 2; i--) {
+            scheme.bottom.push(i);
+        }
+        schemas.push(scheme);
+    });
+
+    return {groups: newGroups, schemas};
+}
+
+function scoreRatingBalance(orderedTeams, schedule) {
+    const n = orderedTeams.length;
+    const effectiveN = n % 2 === 0 ? n : n + 1;
+    const totalRounds = effectiveN - 1;
+    let penalty = 0;
+
+    for (let r = 0; r < Math.min(schedule.length, totalRounds); r++) {
+        let maxRating = 0;
+        for (const [a, b] of schedule[r]) {
+            if (a >= n || b >= n) continue;
+            const combined = orderedTeams[a].rating + orderedTeams[b].rating;
+            if (combined > maxRating) maxRating = combined;
+        }
+        penalty += maxRating * maxRating;
+    }
+    return penalty;
+}
+
+function findBalancedOrder(group, schedule) {
+    const n = group.length;
+    if (n < 4) return [...group];
+
+    let bestOrder = [...group];
+    let bestScore = scoreRatingBalance(bestOrder, schedule);
+
+    for (let attempt = 0; attempt < 1000; attempt++) {
+        const shuffled = [...group].sort(() => Math.random() - 0.5);
+        const score = scoreRatingBalance(shuffled, schedule);
+        if (score < bestScore) {
+            bestOrder = shuffled;
+            bestScore = score;
+        }
+    }
+    return bestOrder;
+}
+
 export function createPoules(tournament) {
     const teamsCount = tournament.teams.length;
     const groupsQuantity = teamsCount / 4;

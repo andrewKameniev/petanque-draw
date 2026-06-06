@@ -348,7 +348,9 @@ export default {
         "tournamentUnpinned": "Torneo desfijado",
         "preferencesSaved": "Ajustes guardados",
         "warning": "Advertencia",
-        "constraintsNotSatisfied": "No se pudo encontrar un calendario que satisfaga todas las restricciones (equipos del mismo club en la primera mitad)"
+        "constraintsNotSatisfied": "No se pudo encontrar un calendario que satisfaga todas las restricciones (equipos del mismo club en la primera mitad)",
+        "redrawDone": "Sorteo actualizado",
+        "redrawDoneText": "Las rondas se han vuelto a sortear con éxito"
     },
     "tir": {
         "participants": "Participantes",

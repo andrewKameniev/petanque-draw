@@ -473,7 +473,7 @@ import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
 import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw} from "lucide-vue-next";
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound} from '@/services/draw';
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
 
 export default {
@@ -822,13 +822,42 @@ export default {
             this.tournament.teams.forEach(team => {
                 team.lanes = [];
             });
-            this.tournament.groupSchedule = null;
-            this.tournament.groupsScheme = null;
-            this.tournament.groups = null;
-            this.drawFirstRound();
+
+            if (this.tournament.system === 'groups' && this.tournament.groups) {
+                const {groups, schemas} = reshuffleGroupSchedule(this.tournament);
+                this.tournament.groups = groups;
+                this.tournament.groupsScheme = schemas;
+                this.tournament.groupSchedule = null;
+
+                let round;
+                if (this.isAllTeamsGroup) {
+                    const totalRounds = this.tournament.preferences?.groupTotalRounds || this.groupRoundsCount;
+                    const schedule = [];
+                    for (let i = 0; i < totalRounds; i++) {
+                        schedule.push(assignLanes(shuffleArray(drawGroupsRound(this.tournament)), this.tournament));
+                    }
+                    this.tournament.groupSchedule = schedule;
+                    round = schedule[0];
+                } else {
+                    round = drawGroupsRound(this.tournament);
+                }
+
+                if (this.tournament.groupSchedule) {
+                    this.addRoundToGames(round);
+                } else {
+                    this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
+                }
+            } else {
+                this.tournament.groupSchedule = null;
+                this.tournament.groupsScheme = null;
+                this.tournament.groups = null;
+                this.drawFirstRound();
+            }
+
             this.tournament.roundIsActive = false;
             this.tournament.tournamentIsStarted = false;
             this.syncToFirebase();
+            this.showMessage({title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText')});
         }
     },
     computed: {

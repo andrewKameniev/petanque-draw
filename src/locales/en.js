@@ -348,7 +348,9 @@ export default {
         "tournamentUnpinned": "Tournament unpinned",
         "preferencesSaved": "Settings saved",
         "warning": "Warning",
-        "constraintsNotSatisfied": "Could not find a schedule where all constraints (same-club teams in first half) are fully satisfied"
+        "constraintsNotSatisfied": "Could not find a schedule where all constraints (same-club teams in first half) are fully satisfied",
+        "redrawDone": "Schedule reshuffled",
+        "redrawDoneText": "Rounds have been redrawn successfully"
     },
     "tir": {
         "participants": "Participants",

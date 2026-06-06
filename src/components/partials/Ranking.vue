@@ -707,7 +707,7 @@ export default {
 }
 
 .group-cell--muted {
-    color: #aaa;
+    color: var(--color-text-muted);
 }
 
 .confirm-export {

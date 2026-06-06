@@ -176,7 +176,7 @@ export default {
 
 <style scoped>
 .game-row.has-background-danger {
-    background: rgba(255, 56, 96, 0.12) !important;
+    background: var(--color-error-bg) !important;
 }
 
 .game-row__action {

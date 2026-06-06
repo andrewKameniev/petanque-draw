@@ -835,7 +835,7 @@ export default {
 }
 
 .games-list > :deep(.game-row:nth-child(odd)) {
-    background: rgba(108, 92, 231, 0.06);
+    background: var(--color-primary-bg);
 }
 
 .poules-group :deep(.game-row) {
@@ -843,7 +843,7 @@ export default {
 }
 
 .poules-group :deep(.game-row:nth-child(odd)) {
-    background: rgba(108, 92, 231, 0.06);
+    background: var(--color-primary-bg);
 }
 
 .poules-group__title {

@@ -262,12 +262,22 @@ export function assignLanes(games, tournament) {
         }
     });
 
+    function getLastLane(teamTitle) {
+        const team = tournament.teams.find(t => t.title === teamTitle);
+        if (team?.lanes?.length) return team.lanes[team.lanes.length - 1];
+        return null;
+    }
+
     function getWeight(game, lane) {
         if (isSupermele) {
             const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
-            return players.reduce((sum, p) => sum + (teamsMatrix[p]?.[lane] || 0), 0);
+            let weight = players.reduce((sum, p) => sum + (teamsMatrix[p]?.[lane] || 0), 0);
+            if (players.some(p => getLastLane(p) === lane)) weight += laneCount;
+            return weight;
         }
-        return (teamsMatrix[game.team_1]?.[lane] || 0) + (teamsMatrix[game.team_2]?.[lane] || 0);
+        let weight = (teamsMatrix[game.team_1]?.[lane] || 0) + (teamsMatrix[game.team_2]?.[lane] || 0);
+        if (getLastLane(game.team_1) === lane || getLastLane(game.team_2) === lane) weight += laneCount;
+        return weight;
     }
 
     function getPlayedLanes(game) {

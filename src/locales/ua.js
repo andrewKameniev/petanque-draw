@@ -96,7 +96,9 @@ export default {
         "finish": "Готово",
         "finishRound": "Завершити раунд",
         "finishAllGames": "Всі матчі повинні бути завершені перед закінченням раунду",
-        "noDrawsAllowed": "Нічия неможлива. Перевірте рахунок"
+        "noDrawsAllowed": "Нічия неможлива. Перевірте рахунок",
+        "streamPlaceholder": "Посилання на трансляцію (YouTube, Twitch...)",
+        "live": "Наживо"
     },
     "results": {
         "title": "Результати кожного раунду",
@@ -408,7 +410,7 @@ export default {
         "sixteenthFinal": "1/16 фіналу",
         "thirdPlaceMatch": "Матч за 3 місце",
         "matchPending": "Очікується",
-        "matchInProgress": "В процесі",
+        "matchInProgress": "Триває",
         "matchCompleted": "Завершено",
         "matchTied": "Нічия — оберіть переможця",
         "selectWinner": "Обрати переможця",
@@ -456,7 +458,7 @@ export default {
         "finishRound": "Завершити раунд",
         "finishAllMatches": "Всі матчі мають бути завершені перед закриттям раунду",
         "matchFinished": "Завершено",
-        "matchInProgress": "В процесі",
+        "matchInProgress": "Триває",
         "semifinal": "Півфінал",
         "round": "Раунд",
         "scoreError": "Рахунок не може бути рівним"

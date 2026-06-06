@@ -83,7 +83,9 @@ export default {
         "finish": "Finish",
         "finishRound": "Finish round",
         "finishAllGames": "All matches must be finished before completing this round",
-        "noDrawsAllowed": "Draws are not allowed. Check the score"
+        "noDrawsAllowed": "Draws are not allowed. Check the score",
+        "streamPlaceholder": "Streaming link (YouTube, Twitch...)",
+        "live": "Live"
     },
     "results": {
         "title": "Every round results",

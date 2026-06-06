@@ -114,6 +114,7 @@
                 <!-- Credit -->
                 <div class="sidebar__credit">
                     <p>{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
+                    <p class="sidebar__version">v{{ appVersion }}</p>
                 </div>
             </aside>
         </div>
@@ -129,6 +130,7 @@ import {auth} from "@/firebase";
 import {useTheme} from "@/composables/useTheme";
 import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 import {Paintbrush} from "lucide-vue-next";
+import {version} from "../../package.json";
 
 export default {
     name: 'Menu',
@@ -142,6 +144,7 @@ export default {
             tournamentNames,
             tournamentsOpen: false,
             savedOpen: false,
+            appVersion: version,
         }
     },
     props: ['active'],
@@ -453,4 +456,10 @@ export default {
     color: var(--color-primary);
 }
 
+.sidebar__version {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    opacity: 0.6;
+    margin-top: 0.25rem;
+}
 </style>

@@ -362,8 +362,6 @@ export default {
                                 } else {
                                     results.push({ text: '-- : --', diff: 0, pending: true });
                                 }
-                            } else if (roundIndex === playedRounds) {
-                                results.push({ text: '-- : --', diff: 0, pending: true });
                             } else {
                                 results.push({ text: `R${roundIndex + 1}`, diff: 0, pending: true });
                             }

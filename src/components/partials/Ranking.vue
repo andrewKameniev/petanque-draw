@@ -87,7 +87,7 @@
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ team.title }}</td>
                                 <td align="center">{{ team.wins }}</td>
-                                <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -129,7 +129,7 @@
                                     </template>
                                 </td>
                                 <td align="center">{{ team.wins }}</td>
-                                <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -177,7 +177,7 @@
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
-                            <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
@@ -216,7 +216,7 @@
                             <td>{{ team.title }}</td>
                             <td align="center">{{ team.wins }}</td>
                             <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
-                            <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
                         </tbody>
@@ -251,16 +251,16 @@
                                 <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
                                 <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
                                     class="no-wrap group-cell">
-                                    <template v-if="team.title === opponent.title">-</template>
+                                    <template v-if="team.title === opponent.title"><span class="group-cell--muted">-</span></template>
                                     <template v-else>
                                         <div v-for="(result, ri) in getGameResults(team.title, opponent.title)" :key="ri"
-                                             :class="{'group-cell--win': result.diff > 0, 'group-cell--lose': result.diff < 0}">
+                                             :class="{'group-cell--win': result.diff > 0 && !result.inProgress, 'group-cell--lose': result.diff < 0 && !result.inProgress, 'group-cell--in-progress': result.inProgress, 'group-cell--muted': result.pending}">
                                             {{ result.text }}
                                         </div>
                                     </template>
                                 </td>
                                 <td align="center">{{ team.wins }}</td>
-                                <td align="center">{{ team.pointsPlus }}:{{ team.pointsMinus }}</td>
+                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -343,15 +343,51 @@ export default {
         getGameResultInGroup: getGameResultInGroup,
         getGameResults(team, opponent) {
             const results = [];
-            this.tournament.games.forEach(round => {
-                round.forEach(game => {
-                    if (game.team_1 + game.team_2 === team + opponent) {
-                        results.push({ text: `${game.team_1_score || 0} : ${game.team_2_score || 0}`, diff: (game.team_1_score || 0) - (game.team_2_score || 0) });
-                    } else if (game.team_2 + game.team_1 === team + opponent) {
-                        results.push({ text: `${game.team_2_score || 0} : ${game.team_1_score || 0}`, diff: (game.team_2_score || 0) - (game.team_1_score || 0) });
-                    }
+            if (this.tournament.groupSchedule) {
+                const playedRounds = this.tournament.games?.length || 0;
+                this.tournament.groupSchedule.forEach((round, roundIndex) => {
+                    round.forEach(game => {
+                        if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
+                            if (roundIndex < playedRounds) {
+                                const playedGame = this.tournament.games[roundIndex].find(g =>
+                                    g.team_1 + g.team_2 === team + opponent || g.team_2 + g.team_1 === team + opponent
+                                );
+                                if (playedGame && (playedGame.status === 'in_progress' || playedGame.status === 'finished' ||
+                                    (playedGame.team_1_score != null && playedGame.team_2_score != null))) {
+                                    const isFirst = playedGame.team_1 + playedGame.team_2 === team + opponent;
+                                    const s1 = isFirst ? (playedGame.team_1_score ?? 0) : (playedGame.team_2_score ?? 0);
+                                    const s2 = isFirst ? (playedGame.team_2_score ?? 0) : (playedGame.team_1_score ?? 0);
+                                    const inProgress = playedGame.status === 'in_progress';
+                                    results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
+                                } else {
+                                    results.push({ text: '-- : --', diff: 0, pending: true });
+                                }
+                            } else if (roundIndex === playedRounds) {
+                                results.push({ text: '-- : --', diff: 0, pending: true });
+                            } else {
+                                results.push({ text: `R${roundIndex + 1}`, diff: 0, pending: true });
+                            }
+                        }
+                    });
                 });
-            });
+            } else if (this.tournament.games) {
+                this.tournament.games.forEach((round, roundIndex) => {
+                    round.forEach(game => {
+                        if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
+                            const isFirst = game.team_1 + game.team_2 === team + opponent;
+                            if (game.status === 'in_progress' || game.status === 'finished' ||
+                                (game.team_1_score != null && game.team_2_score != null)) {
+                                const s1 = isFirst ? (game.team_1_score ?? 0) : (game.team_2_score ?? 0);
+                                const s2 = isFirst ? (game.team_2_score ?? 0) : (game.team_1_score ?? 0);
+                                const inProgress = game.status === 'in_progress';
+                                results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
+                            } else {
+                                results.push({ text: '-- : --', diff: 0, pending: true });
+                            }
+                        }
+                    });
+                });
+            }
             return results;
         },
         getBarrageGameResults(team, opponent) {
@@ -649,7 +685,7 @@ export default {
 }
 
 .group-cell {
-    white-space: pre-line;
+    white-space: nowrap;
 }
 
 .group-cell--win {
@@ -662,6 +698,16 @@ export default {
     color: var(--color-error);
     font-weight: 600;
     white-space: nowrap;
+}
+
+.group-cell--in-progress {
+    color: var(--color-primary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.group-cell--muted {
+    color: #aaa;
 }
 
 .confirm-export {
@@ -711,5 +757,16 @@ export default {
 .confirm-export__btn--confirm:hover {
     background: var(--color-primary-light);
     border-color: var(--color-primary-light);
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    min-width: 0;
 }
 </style>

@@ -103,7 +103,9 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
             team_1: technicalTeam.title,
             team_1_score: tournament.preferences.technical.technicalFirst,
             team_2: 'Technical',
-            team_2_score: tournament.preferences.technical.technicalSecond
+            team_2_score: tournament.preferences.technical.technicalSecond,
+            status: 'finished',
+            winner: technicalTeam.title
         });
         teamsToDraw.splice(technicalTeamIndex, 1);
     }
@@ -128,7 +130,8 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
             team_1: teamsToDraw[competitors.teamIndex].title,
             team_1_score: null,
             team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
-            team_2_score: null
+            team_2_score: null,
+            status: 'not_started'
         });
         teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]);
         const teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title];
@@ -221,7 +224,8 @@ export function drawSupermeleRound(tournament, rankingTeams) {
             team_1_score: null,
             team_2: teamsForRound[1].title,
             team_2_players: teamsForRound[1].players,
-            team_2_score: null
+            team_2_score: null,
+            status: 'not_started'
         });
         teamsForRound.splice(0, 2);
     }
@@ -432,6 +436,122 @@ function createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuant
     });
 }
 
+function computeRoundRobinSchedule(n) {
+    const rounds = [];
+    const positions = Array.from({length: n}, (_, i) => i);
+    for (let r = 0; r < n - 1; r++) {
+        const pairs = [];
+        for (let i = 0; i < n / 2; i++) {
+            pairs.push([positions[i], positions[n - 1 - i]]);
+        }
+        rounds.push(pairs);
+        const last = positions.pop();
+        positions.splice(1, 0, last);
+    }
+    return rounds;
+}
+
+function getMeetingRound(schedule, posA, posB) {
+    for (let r = 0; r < schedule.length; r++) {
+        for (const [a, b] of schedule[r]) {
+            if ((a === posA && b === posB) || (a === posB && b === posA)) return r;
+        }
+    }
+    return -1;
+}
+
+function getTeamClub(team) {
+    return team.players?.[0]?.club || null;
+}
+
+function buildClubMap(teams) {
+    const map = {};
+    teams.forEach(t => {
+        const club = getTeamClub(t);
+        if (club) {
+            if (!map[club]) map[club] = [];
+            map[club].push(t.title);
+        }
+    });
+    return map;
+}
+
+function findSameClubPairs(teams) {
+    const clubMap = buildClubMap(teams);
+    const pairs = [];
+    Object.values(clubMap).forEach(members => {
+        if (members.length >= 2) {
+            for (let i = 0; i < members.length; i++) {
+                for (let j = i + 1; j < members.length; j++) {
+                    pairs.push([members[i], members[j]]);
+                }
+            }
+        }
+    });
+    return pairs;
+}
+
+function scoreConstraints(orderedTeams, schedule) {
+    const titleToPos = {};
+    orderedTeams.forEach((t, i) => { titleToPos[t.title] = i; });
+
+    const sameClubPairs = findSameClubPairs(orderedTeams);
+    if (!sameClubPairs.length) return 0;
+
+    let totalRound = 0;
+    for (const [titleA, titleB] of sameClubPairs) {
+        const posA = titleToPos[titleA];
+        const posB = titleToPos[titleB];
+        const round = getMeetingRound(schedule, posA, posB);
+        totalRound += round;
+    }
+    return totalRound;
+}
+
+export function generateConstrainedGroups(tournament, teamsInGroup) {
+    const groupsQuantity = Math.round(tournament.teams.length / teamsInGroup);
+    if (groupsQuantity !== 1) {
+        return createGroups(tournament, teamsInGroup);
+    }
+
+    const n = tournament.teams.length;
+    if (n < 4 || n % 2 !== 0) {
+        return createGroups(tournament, teamsInGroup);
+    }
+
+    const schedule = computeRoundRobinSchedule(n);
+    const sameClubPairs = findSameClubPairs(tournament.teams);
+
+    let bestResult = [...tournament.teams];
+    let bestScore = sameClubPairs.length ? scoreConstraints(bestResult, schedule) : 0;
+
+    if (sameClubPairs.length) {
+        for (let attempt = 0; attempt < 1000; attempt++) {
+            const shuffled = [...tournament.teams].sort(() => Math.random() - 0.5);
+            const score = scoreConstraints(shuffled, schedule);
+            if (score < bestScore) {
+                bestResult = shuffled;
+                bestScore = score;
+            }
+            if (bestScore === 0) break;
+        }
+    }
+
+    const group = bestResult.map(t => tournament.teams.find(orig => orig.title === t.title));
+
+    let groupIndexes = Array.from({length: n}, (_, i) => i);
+    if (n % 2 !== 0) groupIndexes.push(n);
+    const scheme = {top: [], bottom: []};
+    for (let i = 0; i < groupIndexes.length / 2; i++) {
+        scheme.top.push(i);
+    }
+    for (let i = groupIndexes.length - 1; i >= groupIndexes.length / 2; i--) {
+        scheme.bottom.push(i);
+    }
+
+    return {groups: [group], schemas: [scheme], warning: null};
+}
+
 export function createGroups(tournament, teamsInGroup) {
     const groupsQuantity = Math.round(tournament.teams.length / teamsInGroup);
     let groups = [];
@@ -502,7 +622,8 @@ export function drawGroupsRound(tournament) {
                     team_1: group[tournament.groupsScheme[index].top[i]].title,
                     team_1_score: null,
                     team_2: group[tournament.groupsScheme[index].bottom[i]].title,
-                    team_2_score: null
+                    team_2_score: null,
+                    status: 'not_started'
                 });
             }
         }
@@ -554,20 +675,21 @@ export function drawPoulesRound(tournament) {
 
     tournament.groups.forEach((group, groupIndex) => {
         if (poulesRound === 1) {
-            // Round 1: A vs C, B vs D (seeds within group: index 0=A, 1=B, 2=C, 3=D)
             round.push({
                 group: groupIndex,
                 team_1: group[0].title,
                 team_1_score: null,
                 team_2: group[2].title,
-                team_2_score: null
+                team_2_score: null,
+                status: 'not_started'
             });
             round.push({
                 group: groupIndex,
                 team_1: group[1].title,
                 team_1_score: null,
                 team_2: group[3].title,
-                team_2_score: null
+                team_2_score: null,
+                status: 'not_started'
             });
         } else if (poulesRound === 2) {
             // Round 2: winners play winners, losers play losers
@@ -585,14 +707,16 @@ export function drawPoulesRound(tournament) {
                 team_1: winner1,
                 team_1_score: null,
                 team_2: winner2,
-                team_2_score: null
+                team_2_score: null,
+                status: 'not_started'
             });
             round.push({
                 group: groupIndex,
                 team_1: loser1,
                 team_1_score: null,
                 team_2: loser2,
-                team_2_score: null
+                team_2_score: null,
+                status: 'not_started'
             });
         } else if (poulesRound === 3) {
             // Round 3 (barrage): two teams with exactly 1 win play each other
@@ -619,7 +743,8 @@ export function drawPoulesRound(tournament) {
                     team_1: oneWinTeams[0],
                     team_1_score: null,
                     team_2: oneWinTeams[1],
-                    team_2_score: null
+                    team_2_score: null,
+                    status: 'not_started'
                 });
             }
         }

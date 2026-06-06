@@ -8,15 +8,19 @@ function getGameResultInGroup(where, team1, team2, difference) {
     where.forEach(round => {
         round.forEach(gameInRound => {
             if (gameInRound.team_1 + gameInRound.team_2 === team1 + team2) {
-                results.push({
-                    score1: gameInRound.team_1_score || 0,
-                    score2: gameInRound.team_2_score || 0
-                });
+                if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
+                    results.push({
+                        score1: gameInRound.team_1_score || 0,
+                        score2: gameInRound.team_2_score || 0
+                    });
+                }
             } else if (gameInRound.team_2 + gameInRound.team_1 === team1 + team2) {
-                results.push({
-                    score1: gameInRound.team_2_score || 0,
-                    score2: gameInRound.team_1_score || 0
-                });
+                if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
+                    results.push({
+                        score1: gameInRound.team_2_score || 0,
+                        score2: gameInRound.team_1_score || 0
+                    });
+                }
             }
         })
     })
@@ -235,33 +239,62 @@ function getTeamsRanking(tournament, activeRound) {
                 sortedGroups.push(groupRanking);
             });
             return sortedGroups;
-        } else if (tournament.system === 'groups' && activeRound > 1) {
+        } else if (tournament.system === 'groups' && (activeRound > 1 || tournament.groupSchedule)) {
             let sortedGroups = [];
 
             tournament.groups.forEach(group => {
+                const teamWins = {};
+                const teamPointsPlus = {};
+                const teamPointsMinus = {};
+                const teamOpponents = {};
+                group.forEach(t => {
+                    teamWins[t.title] = 0;
+                    teamPointsPlus[t.title] = 0;
+                    teamPointsMinus[t.title] = 0;
+                    teamOpponents[t.title] = [];
+                });
+
+                if (tournament.games) {
+                    tournament.games.forEach(roundGames => {
+                        roundGames.forEach(game => {
+                            if (game.team_1_score == null || game.team_2_score == null) return;
+                            if (game.status === 'in_progress' || game.status === 'not_started') return;
+                            const t1 = game.team_1;
+                            const t2 = game.team_2;
+                            if (!(t1 in teamWins) || !(t2 in teamWins)) return;
+                            const s1 = Number(game.team_1_score);
+                            const s2 = Number(game.team_2_score);
+                            teamPointsPlus[t1] = (teamPointsPlus[t1] || 0) + s1;
+                            teamPointsMinus[t1] = (teamPointsMinus[t1] || 0) + s2;
+                            teamPointsPlus[t2] = (teamPointsPlus[t2] || 0) + s2;
+                            teamPointsMinus[t2] = (teamPointsMinus[t2] || 0) + s1;
+                            if (s1 > s2) { teamWins[t1]++; teamOpponents[t1].push(t2); teamOpponents[t2].push(t1); }
+                            else if (s2 > s1) { teamWins[t2]++; teamOpponents[t1].push(t2); teamOpponents[t2].push(t1); }
+                        });
+                    });
+                }
+
                 group.forEach(team => {
-                    const teamInfo = tournament.teams.find(item => item.title === team.title);
-                    team.wins = teamInfo.wins;
-                    team.opponents = teamInfo.opponents;
-                    team.pointsPlus = teamInfo.pointsPlus;
-                    team.pointsMinus = teamInfo.pointsMinus;
+                    team.wins = teamWins[team.title] || 0;
+                    team.opponents = teamOpponents[team.title] || [];
+                    team.pointsPlus = teamPointsPlus[team.title] || 0;
+                    team.pointsMinus = teamPointsMinus[team.title] || 0;
 
                     let directPoints = 0;
                     let directWins = 0;
                     if (team.opponents) {
                         team.opponents.forEach(opponent => {
-                            const opponentIndex = tournament.teams.findIndex(team => team.title === opponent);
-                            if (opponentIndex !== -1 && team.wins === tournament.teams[opponentIndex].wins) {
-                                if (getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true) > 0) {
+                            const opponentTeam = group.find(t => t.title === opponent);
+                            if (opponentTeam && team.wins === (teamWins[opponent] || 0)) {
+                                if (getGameResultInGroup(tournament.games, team.title, opponent, true) > 0) {
                                     directWins++
                                 }
-                                directPoints += getGameResultInGroup(tournament.games, team.title, tournament.teams[opponentIndex].title, true)
+                                directPoints += getGameResultInGroup(tournament.games, team.title, opponent, true)
                             }
                         })
                         team.directWins = directWins;
                         team.directPoints = directPoints;
                     }
-
                 })
                 let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directWins - a.directWins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
                 sortedGroups.push(groupRanking);

@@ -61,7 +61,8 @@
                         <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                     </div>
                 </div>
-                <PlayOff v-if="activeTournament.playOff" ref="playOff" :active-tournament="activeTournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
+                <TeamPlayoff v-if="activeTournament.teamPlayoff" :read-only="true"/>
+                <PlayOff v-else-if="activeTournament.playOff" ref="playOff" :active-tournament="activeTournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
                 <Cadrage v-else-if="activeTournament.cadrage" :active-tournament="activeTournament" :is-public-view="true" class="playoff-public-wrapper"/>
                 <div v-if="activeTournament.games && activeTournament.roundIsActive && !activeTournament.cadrage && !activeTournament.playOff" class="current-round-card mt-3 mb-3">
                     <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
@@ -76,22 +77,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="tabs">
-                    <ul>
-                        <li v-for="(tab, index) in tabs" :key="index"
-                            :class="{'is-active': tab.id === activeTab}">
-                            <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
-                        </li>
-                    </ul>
+                <div class="tournament-nav">
+                    <button v-for="(tab, index) in tabs" :key="index"
+                        class="tournament-nav__btn"
+                        :class="[`tournament-nav__btn--${tab.id}`, {'tournament-nav__btn--active': tab.id === activeTab}]"
+                        @click="activeTab = tab.id">
+                        <component :is="tab.icon" :size="18"/>
+                        <span>{{ tab.label }}</span>
+                    </button>
                 </div>
-                <div class="content tabs-content" v-if="activeTab === 'teams'">
-                    <TeamsList :previewTournament="activeTournament"/>
-                </div>
-                <Results v-if="activeTab === 'results'" :previewTournament="activeTournament"/>
-                <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                    <Ranking :tournament="activeTournament"
-                             :rankingTeams="rankingTeams" :activeRound="activeRound"
-                             :showInSaved="!!activeTournament.ranking"/>
+                <div class="tabs-content-area">
+                    <div v-if="activeTab === 'teams'">
+                        <TeamsList :previewTournament="activeTournament"/>
+                    </div>
+                    <Results v-if="activeTab === 'results'" :previewTournament="activeTournament"/>
+                    <div v-if="activeTab === 'ranking'">
+                        <Ranking :tournament="activeTournament"
+                                 :rankingTeams="rankingTeams" :activeRound="activeRound"
+                                 :showInSaved="!!activeTournament.ranking"/>
+                    </div>
                 </div>
             </template>
         </div>
@@ -104,6 +108,7 @@ import Ranking from "@/components/partials/Ranking";
 import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import Footer from "@/components/partials/Footer.vue";
 import Navbar from "@/components/Navbar.vue";
@@ -112,11 +117,11 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getTeamsRanking} from "@/helpers";
 import {tournamentService} from "@/services/db";
-import {GitFork} from "lucide-vue-next";
+import {GitFork, Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
 
 export default {
     name: 'Archived',
-    components: {Footer, Navbar, Menu, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork},
+    components: {Footer, Navbar, Menu, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, Users, List, TrophyIcon},
     data() {
         return {
             activeTab: "ranking",
@@ -179,9 +184,9 @@ export default {
         },
         tabs() {
             return [
-                { id: 'teams', label: this.$t('teams.teams') },
-                { id: 'results', label: this.$t('teams.results') },
-                { id: 'ranking', label: this.$t('teams.ranking') }
+                { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
+                { id: 'results', label: this.$t('teams.results'), icon: 'List' },
+                { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' }
             ];
         },
         activeRound() {
@@ -442,19 +447,53 @@ export default {
     font-weight: 600;
 }
 
-.wrapper .tabs a {
-    border-bottom-color: transparent;
-    transition: border-bottom-color 0.3s ease, color 0.3s ease;
+.tournament-nav {
+    display: flex;
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 6px 0;
+    margin-bottom: 16px;
 }
 
-.wrapper .tabs a:hover {
-    border-bottom-color: transparent;
-    color: var(--color-primary);
+.tournament-nav__btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
-.wrapper .tabs li.is-active a {
-    border-bottom: 3px solid var(--color-primary);
-    color: var(--color-primary);
+.tournament-nav__btn--active {
+    font-weight: 700;
+}
+
+.tournament-nav__btn--teams.tournament-nav__btn--active {
+    color: var(--tir-delete, #e53935);
+}
+
+.tournament-nav__btn--results.tournament-nav__btn--active {
+    color: var(--tir-carreau, #4caf50);
+}
+
+.tournament-nav__btn--ranking.tournament-nav__btn--active {
+    color: var(--tir-touche, #ff9800);
+}
+
+.tabs-content-area {
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 200px;
 }
 
 @media screen and (max-width: 768px) {
@@ -635,5 +674,81 @@ export default {
     flex: 0 0 auto;
     min-width: 60px;
     padding: 0 0.5rem;
+}
+
+.current-round-card {
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
+    min-width: 280px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.round-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+}
+
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.match-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.match-item:hover {
+    border-color: var(--tir-touche, #ff9800);
+}
+
+.match-team {
+    min-width: 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+.match-team-right {
+    text-align: right;
+}
+
+.match-vs {
+    text-align: center;
+}
+
+.match-lane {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-surface-alt, var(--color-primary-bg));
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 700;
 }
 </style>

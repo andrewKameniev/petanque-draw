@@ -4,9 +4,9 @@
             <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
                 <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || hasPlayOffResults)" class="round-tabs-row mb-4">
                     <div class="round-tabs">
-                        <button v-for="(round, index) in tournament.games" :key="index"
+                        <button v-for="(round, index) in allDisplayRounds" :key="index"
                                 class="button is-small mr-1 mb-1"
-                                :class="{'is-purple': selectedRound === index}"
+                                :class="{'is-purple': selectedRound === index, 'is-outlined': index >= tournament.games.length}"
                                 @click="selectedRound = index">
                             {{ getRoundLabel(index) }}
                         </button>
@@ -34,7 +34,7 @@
                 <div class="table-container" v-if="selectedRound !== 'playoff'">
                     <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
                         <tbody>
-                            <template v-for="(round, index) in sortedGames" :key="index">
+                            <template v-for="(round, index) in allSortedRounds" :key="index">
                                 <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
                                     <tr v-for="(game, i) in round" :key="i" :class="{'search-highlight': isGameHighlighted(game)}">
                                         <td v-if="selectedRound === -1 || isForProtocol" class="is-narrow round-group-cell">
@@ -147,6 +147,20 @@ export default {
         },
         sortedGames() {
             return sortGamesByGroup(this.tournament.games, this.hasGroupsColumn);
+        },
+        allDisplayRounds() {
+            if (this.tournament.groupSchedule) {
+                return this.tournament.groupSchedule;
+            }
+            return this.tournament.games || [];
+        },
+        allSortedRounds() {
+            if (this.tournament.groupSchedule) {
+                const played = this.sortedGames || [];
+                const scheduled = this.tournament.groupSchedule.slice(played.length);
+                return [...played, ...sortGamesByGroup(scheduled, this.hasGroupsColumn)];
+            }
+            return this.sortedGames;
         },
         colCount() {
             return this.hasGroupsColumn ? 5 : 4

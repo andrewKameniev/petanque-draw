@@ -1,5 +1,5 @@
 <template>
-    <div class="round-timer" :class="{'round-timer--ended': isEnded}" @click="onTimerClick">
+    <div class="round-timer" :class="{'round-timer--ended': isEnded, 'round-timer--clickable': !readOnly}" @click="onTimerClick">
         <div class="round-timer__display">
             <Timer :size="18" class="round-timer__icon"/>
             <span v-if="isEnded && !showRestart" class="round-timer__text round-timer__text--ended">
@@ -38,7 +38,8 @@ export default {
         timerEndsAt: {type: String, default: null},
         timerStatus: {type: String, default: 'not_started'},
         cochonettesEnabled: {type: Boolean, default: false},
-        cochonettes: {type: Number, default: 1}
+        cochonettes: {type: Number, default: 1},
+        readOnly: {type: Boolean, default: false}
     },
     emits: ['timer-ended', 'restart'],
     data() {
@@ -112,6 +113,7 @@ export default {
             }
         },
         onTimerClick() {
+            if (this.readOnly) return;
             this.showRestart = !this.showRestart;
         },
         restart(minutes) {
@@ -133,6 +135,9 @@ export default {
     border-radius: 8px;
     background: var(--color-primary-bg);
     border: 1px solid var(--color-primary);
+}
+
+.round-timer--clickable {
     cursor: pointer;
 }
 

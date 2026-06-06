@@ -100,6 +100,7 @@
                     :timer-status="tournament.roundTimer.timerStatus"
                     :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
                     :cochonettes="tournament.preferences.cochonettes || 1"
+                    :read-only="true"
                     class="mb-3"/>
                 <div class="match-list">
                     <div class="match-item"

@@ -464,6 +464,19 @@ export const useMainStore = defineStore('main', {
                 this.syncToFirebase();
             }
         },
+        restartRoundTimer(minutes) {
+            const tournament = this.tournaments[this.currentTournamentIndex];
+            if (!tournament) return;
+            const now = new Date().toISOString();
+            const endsAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+            tournament.roundTimer = {
+                timerStartedAt: now,
+                timerEndsAt: endsAt,
+                timerStatus: 'running',
+                timeLimitMinutes: minutes
+            };
+            this.syncToFirebase();
+        },
         clearRoundTimer() {
             const tournament = this.tournaments[this.currentTournamentIndex];
             if (tournament) {

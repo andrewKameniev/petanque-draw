@@ -450,7 +450,8 @@ export default {
         "timeLimitEnded": "Tiempo agotado",
         "playLastCochonette": "Jugar",
         "lastCochonette": "último cochonnet",
-        "lastCochonettes": "últimos cochonnets"
+        "lastCochonettes": "últimos cochonnets",
+        "min": "min"
     },
     "teamPlayoff": {
         "startPlayoff": "Playoff",

@@ -44,7 +44,8 @@
                         :timer-status="tournament.roundTimer.timerStatus"
                         :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
                         :cochonettes="tournament.preferences.cochonettes || 1"
-                        @timer-ended="onTimerEnded"/>
+                        @timer-ended="onTimerEnded"
+                        @restart="onTimerRestart"/>
                     <button v-else class="start-timer-btn" @click="startRoundTimer">
                         <Timer :size="16"/>
                         {{ $t('timer.startTimer') }}
@@ -266,10 +267,13 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
         gameHasError,
         onTimerEnded() {
             this.endRoundTimer();
+        },
+        onTimerRestart(minutes) {
+            this.restartRoundTimer(minutes);
         },
         onGameUpdate(gameIndex) {
             const game = this.tournament.games[this.activeRound - 1][gameIndex];

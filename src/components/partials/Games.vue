@@ -1,9 +1,21 @@
 <template>
     <div class="content tabs-content">
-        <PlayOff v-if="tournament.playOff" @openResults="$emit('openResults')"/>
+        <TeamPlayoff v-if="tournament.teamPlayoff"/>
+        <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
         <div v-else>
-            <div v-if="tournament.games?.length && showDrawLinks" class="draw-card">
+            <div v-if="tournament.games?.length && !tournament.tournamentIsStarted && !tournament.roundIsActive && tournament.games.length === 1 && !hasAnyFinishedGame" class="draw-card">
+                <div class="draw-card__links">
+                    <a href="#" class="draw-card__link draw-card__link--start" @click.prevent="$emit('startFirstRound')">
+                        {{ $t('setup.startRound') }}
+                    </a>
+                    <span class="draw-card__or">{{ $t('common.or') }}</span>
+                    <a href="#" class="draw-card__link draw-card__link--redraw" @click.prevent="$emit('redraw')">
+                        {{ $t('setup.redraw') }}
+                    </a>
+                </div>
+            </div>
+            <div v-else-if="tournament.games?.length && showDrawLinks" class="draw-card">
                 <div class="draw-card__links">
                     <a v-if="!tournament.playOff && !tournament.roundIsActive
                         && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
@@ -23,8 +35,21 @@
                 <h2 class="text-center">
                     <template v-if="tournament.barrage">{{ barrageRoundLabel }}</template>
                     <template v-else-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
-                    <template v-else>{{ $t('common.round') }} {{ activeRound }}</template>
+                    <template v-else>{{ $t('common.round') }} {{ activeRound }}<template v-if="tournament.preferences?.groupTotalRounds">/{{ tournament.preferences.groupTotalRounds }}</template></template>
                 </h2>
+                <div v-if="showTimerSection" class="round-timer-section">
+                    <RoundTimer v-if="tournament.roundTimer?.timerStatus === 'running' || tournament.roundTimer?.timerStatus === 'ended'"
+                        :timer-started-at="tournament.roundTimer.timerStartedAt"
+                        :timer-ends-at="tournament.roundTimer.timerEndsAt"
+                        :timer-status="tournament.roundTimer.timerStatus"
+                        :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+                        :cochonettes="tournament.preferences.cochonettes || 1"
+                        @timer-ended="onTimerEnded"/>
+                    <button v-else class="start-timer-btn" @click="startRoundTimer">
+                        <Timer :size="16"/>
+                        {{ $t('timer.startTimer') }}
+                    </button>
+                </div>
                 <div class="games-toolbar">
                     <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
@@ -36,9 +61,7 @@
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
                         <Game v-for="(game, index) in group" :key="index"
                               :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
-                              :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
-                              :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                              @save="saveResults" @swapLane="swapLane"/>
+                              @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -48,9 +71,7 @@
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
                         <Game v-for="(game, index) in group" :key="index"
                               :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
-                              :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
-                              :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                              @save="saveResults" @swapLane="swapLane"/>
+                              @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -58,19 +79,29 @@
                 <div class="games-list" v-else>
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
                           :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
-                          :team1-lanes="teamsByTitle[game.team_1]?.lanes || null"
-                          :team2-lanes="teamsByTitle[game.team_2]?.lanes || null"
-                          @save="saveResults" @swapLane="swapLane"/>
+                          @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
+                <div class="finish-round-section" v-if="tournament.roundIsActive">
+                    <button class="finish-round-btn" data-testid="btn-finish-round" @click="validateAndFinishRound">
+                        {{ $t('games.finishRound') }}
+                    </button>
+                    <a v-if="!tournament.playOff && tournament.system !== 'swiss'" href="#" class="restore-round-link" @click.prevent="showRestoreConfirm = true">
+                        {{ $t('games.restoreRound') }}
+                    </a>
+                </div>
             </div>
             <div v-else-if="tournament.tournamentIsFinished">
                 <FinishedBanner @openResults="$emit('openResults')"/>
             </div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system === 'groups'" class="draw-card">
                 <div class="draw-card__links">
+                    <a href="#" class="draw-card__link draw-card__link--draw" data-testid="link-start-team-playoff" @click.prevent="startTeamPlayoff">
+                        {{ $t('teamPlayoff.startPlayoff') }}
+                    </a>
+                    <span class="draw-card__or">{{ $t('common.or') }}</span>
                     <a href="#" class="draw-card__link draw-card__link--draw" data-testid="link-play-next-circle" @click.prevent="playNextCircle">
                         {{ $t('games.playNextCircle') }}
                     </a>
@@ -89,25 +120,33 @@
             :confirm-label="$t('games.restoreRound')"
             @confirm="restoreRoundGames()"
             @close="showRestoreConfirm = false"/>
+        <ConfirmRemoveModal v-if="showFinishConfirmIndex !== null"
+            :hint="$t('teamPlayoff.finishMatch')"
+            :message="finishConfirmMessage"
+            :confirm-label="$t('teamPlayoff.finishMatch')"
+            @confirm="confirmFinishMatch()"
+            @close="showFinishConfirmIndex = null"/>
     </div>
 </template>
 
 <script>
 
 import PlayOff from './PlayOff';
+import TeamPlayoff from './TeamPlayoff.vue';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {gameHasError, isScoreError, shuffleArray, tournamentNames} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
+import {gameHasError, shuffleArray, tournamentNames} from '@/helpers'
+import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
-import {ChevronDown} from "lucide-vue-next";
+import {ChevronDown, Timer} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
+import RoundTimer from "@/components/partials/RoundTimer.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, ChevronDown, ConfirmRemoveModal, FinishedBanner},
+    components: {Cadrage, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -115,19 +154,14 @@ export default {
             scoreError: false,
             isRestoredRound: false,
             compactView: false,
-            showRestoreConfirm: false
+            showRestoreConfirm: false,
+            showFinishConfirmIndex: null
         }
     },
     mounted() {
-        this._onEnter = (e) => {
-            if (e.key === 'Enter' && !!document.querySelector('#tab-games.is-active')) {
-                e.preventDefault();
-                this.handleGlobalSave();
-            }
-        };
         this._onTab = (e) => {
             if (e.key === 'Tab' && !!document.querySelector('#tab-games.is-active')) {
-                const inputs = Array.from(document.querySelectorAll('.game-row input[type="number"]'));
+                const inputs = Array.from(document.querySelectorAll('.game-row input[type="number"]:not(:disabled)'));
                 if (!inputs.length) return;
                 const currentIndex = inputs.indexOf(e.target);
                 e.preventDefault();
@@ -136,12 +170,12 @@ export default {
                 inputs[nextIndex].select();
             }
         };
-        document.addEventListener('keydown', this._onEnter);
         document.addEventListener('keydown', this._onTab);
+        this.subscribeTournament();
     },
     beforeUnmount() {
-        document.removeEventListener('keydown', this._onEnter);
         document.removeEventListener('keydown', this._onTab);
+        this.unsubscribeTournament();
     },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament', 'allScoresFilled']),
@@ -151,6 +185,9 @@ export default {
         teamsCount() {
             if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
             if (this.tournament.groups) {
+                if (this.tournament.preferences?.groupTotalRounds) {
+                    return this.tournament.preferences.groupTotalRounds;
+                }
                 const roundsPerCircle = this.tournament.groups[0].length % 2 !== 0
                     ? this.tournament.groups[0].length
                     : this.tournament.groups[0].length - 1;
@@ -161,11 +198,6 @@ export default {
         },
         maxSwissRounds() {
             return Math.ceil(Math.log2(this.tournament.teams?.length))
-        },
-        teamsByTitle() {
-            const map = {};
-            this.tournament.teams?.forEach(t => { map[t.title] = t; });
-            return map;
         },
         poulesRoundLabel() {
             const round = this.tournament.poulesRound || 1;
@@ -193,6 +225,14 @@ export default {
             });
             return Object.keys(grouped).sort((a, b) => a - b).map(k => grouped[k]);
         },
+        showTimerSection() {
+            if (!this.tournament.preferences?.timeLimitEnabled) return false;
+            if (!this.tournament.roundIsActive) return false;
+            const prefs = this.tournament.preferences;
+            const isFinale = this.tournament.playOff?.length && this.tournament.playOff[this.tournament.playOff.length - 1].teams?.length === 1;
+            if (isFinale && prefs.noTimeLimitFinale) return false;
+            return true;
+        },
         showDrawLinks() {
             if (!this.tournament.games?.length) return false;
             if (this.tournament.tournamentIsFinished) return false;
@@ -203,20 +243,121 @@ export default {
             const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
                 && (this.tournament.games.length < this.teamsCount)
                 && (this.tournament.system === 'swiss' ? (this.activeRound <= this.maxSwissRounds) : true);
-            const hasRestoreLink = this.tournament.games.length && !this.tournament.roundIsActive && !this.isRestoredRound;
+            const hasRestoreLink = this.tournament.games.length && !this.tournament.roundIsActive && !this.isRestoredRound && !this.tournament.playOff;
             return hasDrawLink || hasRestoreLink;
         },
         canRestoreRound() {
             return !!(this.tournament.playOff || (this.tournament.cadrage && this.tournament.cadrage.length))
                 && this.tournament.games?.length && !this.isRestoredRound;
+        },
+        allGamesFinished() {
+            const games = this.currentRoundGames;
+            if (!games.length) return false;
+            return games.every(g => g.status === 'finished' || g.team_2 === 'Technical');
+        },
+        hasAnyFinishedGame() {
+            return this.currentRoundGames.some(g => g.status === 'finished' || g.status === 'in_progress');
+        },
+        finishConfirmMessage() {
+            if (this.showFinishConfirmIndex === null) return '';
+            const game = this.currentRoundGames[this.showFinishConfirmIndex];
+            if (!game) return '';
+            return `${game.team_1} ${game.team_1_score} : ${game.team_2_score} ${game.team_2}`;
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
         gameHasError,
-        handleGlobalSave() {
-            const btn = document.querySelector('[data-testid="btn-save-results"], [data-testid="btn-save-cadrage"], [data-testid="btn-save-playoff"]');
-            if (btn) btn.click();
+        onTimerEnded() {
+            this.endRoundTimer();
+        },
+        onGameUpdate(gameIndex) {
+            const game = this.tournament.games[this.activeRound - 1][gameIndex];
+            this.syncGameMatch(this.activeRound - 1, gameIndex, game);
+        },
+        onGameFinish(gameIndex) {
+            this.showFinishConfirmIndex = gameIndex;
+        },
+        confirmFinishMatch() {
+            const idx = this.showFinishConfirmIndex;
+            const game = this.tournament.games[this.activeRound - 1][idx];
+            game.team_1_score = Number(game.team_1_score);
+            game.team_2_score = Number(game.team_2_score);
+            game.status = 'finished';
+            game.winner = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2;
+            game.updated_at = new Date().toISOString();
+            this.syncGameMatch(this.activeRound - 1, idx, game);
+            this.showFinishConfirmIndex = null;
+        },
+        validateAndFinishRound() {
+            const games = this.currentRoundGames;
+            for (const game of games) {
+                if (game.team_2 === 'Technical') continue;
+                const s1 = Number(game.team_1_score);
+                const s2 = Number(game.team_2_score);
+                if (game.team_1_score == null || game.team_1_score === '' ||
+                    game.team_2_score == null || game.team_2_score === '') {
+                    this.showMessage({title: this.$t('messages.error'), text: this.$t('games.finishAllGames'), type: 'error'});
+                    return;
+                }
+                if (isNaN(s1) || isNaN(s2) || s1 === s2) {
+                    this.showMessage({title: this.$t('messages.error'), text: this.$t('games.noDrawsAllowed'), type: 'error'});
+                    return;
+                }
+            }
+            this.finishRound();
+        },
+        finishRound() {
+            this.scoreError = false;
+            this.tournament.games[this.activeRound - 1].forEach(game => {
+                game.team_1_score = Number(game.team_1_score);
+                game.team_2_score = Number(game.team_2_score);
+                game.status = 'finished';
+                if (game.team_1_score > game.team_2_score) game.winner = game.team_1;
+                else if (game.team_2_score > game.team_1_score) game.winner = game.team_2;
+            });
+            if (!this.tournament.barrage) {
+                this.saveResultsForRound(this.activeRound - 1);
+            }
+            if (this.isRestoredRound && !this.tournament.barrage) {
+                this.tournament.teams.forEach(team => {
+                    team.wins = 0;
+                    team.opponents = [];
+                    team.buhgolts = 0;
+                    team.smallBuhgolts = 0;
+                    team.pointsMinus = 0;
+                    team.pointsPlus = 0;
+                });
+                for (let i = 0; i < this.tournament.games.length; i++) {
+                    this.saveResultsForRound(i);
+                }
+            }
+            this.clearRoundTimer();
+            this.endRound();
+
+            if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
+                this.drawBarrageRound();
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+            if (this.tournament.barrage && this.tournament.barrage.barrageRound === 3) {
+                const qualified = this.getBarrageQualifiedTeams();
+                this.$emit('startPlayOff', qualified);
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound < 3) {
+                this.drawRound();
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+            if (this.tournament.system === 'poules' && this.tournament.poulesRound === 3) {
+                const qualified = getPoulesQualifiedTeams(this.tournament);
+                this.$emit('startPlayOff', qualified);
+                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                return;
+            }
+            this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
         },
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
@@ -249,6 +390,13 @@ export default {
                 if (this.activeRound === 1) {
                     this.createGroups();
                 }
+                if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
+                    round = this.tournament.groupSchedule[this.activeRound - 1].map(g => ({...g, status: g.status || 'not_started'}));
+                    this.addRoundToGames(round);
+                    this.startRound();
+                    this.isRestoredRound = false;
+                    return;
+                }
                 if (this.tournament.groups) {
                     round = drawGroupsRound(this.tournament);
                 }
@@ -267,70 +415,15 @@ export default {
                 this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
                 return false;
             }
-            const {groups, schemas} = createGroups(this.tournament, this.teamsInGroup);
-            this.tournament.groups = groups;
-            this.tournament.groupsScheme = schemas;
+            const result = generateConstrainedGroups(this.tournament, this.teamsInGroup);
+            this.tournament.groups = result.groups;
+            this.tournament.groupsScheme = result.schemas;
+            if (result.warning) {
+                this.showMessage({title: this.$t('messages.warning'), text: this.$t('messages.constraintsNotSatisfied'), type: 'error'});
+            }
         },
         saveResults() {
-            this.scoreError = false;
-
-            if (this.tournament.games[this.activeRound - 1].some(game => isScoreError(game, this.tournament.preferences.maxScore))) {
-                this.scoreError = true;
-                return false
-            }
-
-            this.tournament.games[this.activeRound - 1].forEach(game => {
-                game.team_1_score = Number(game.team_1_score);
-                game.team_2_score = Number(game.team_2_score);
-            });
-
-            if (!this.tournament.barrage) {
-                this.saveResultsForRound(this.activeRound - 1);
-            }
-
-            if (this.isRestoredRound && !this.tournament.barrage) {
-                this.tournament.teams.forEach(team => {
-                    team.wins = 0;
-                    team.opponents = [];
-                    team.buhgolts = 0;
-                    team.smallBuhgolts = 0;
-                    team.pointsMinus = 0;
-                    team.pointsPlus = 0;
-                })
-                for (let i = 0; i < this.tournament.games.length; i++) {
-                    this.saveResultsForRound(i);
-                }
-            }
-
-            this.endRound();
-
-            if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
-                this.drawBarrageRound();
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
-                return;
-            }
-
-            if (this.tournament.barrage && this.tournament.barrage.barrageRound === 3) {
-                const qualified = this.getBarrageQualifiedTeams();
-                this.$emit('startPlayOff', qualified);
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
-                return;
-            }
-
-            if (this.tournament.system === 'poules' && this.tournament.poulesRound < 3) {
-                this.drawRound();
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
-                return;
-            }
-
-            if (this.tournament.system === 'poules' && this.tournament.poulesRound === 3) {
-                const qualified = getPoulesQualifiedTeams(this.tournament);
-                this.$emit('startPlayOff', qualified);
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
-                return;
-            }
-
-            this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')})
+            this.finishRound();
         },
         restoreRoundGames(){
             this.isRestoredRound = true;
@@ -419,6 +512,60 @@ export default {
                 this.startRound();
             }
         },
+        startTeamPlayoff() {
+            const teams = [...this.tournament.teams].sort((a, b) => {
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                if ((b.pointsPlus - b.pointsMinus) !== (a.pointsPlus - a.pointsMinus)) {
+                    return (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus);
+                }
+                return b.pointsPlus - a.pointsPlus;
+            });
+
+            const qualifyCount = this.tournament.preferences.playOffTeams || 8;
+            const qualified = teams.slice(0, Math.min(qualifyCount, teams.length));
+            const size = Math.pow(2, Math.ceil(Math.log2(qualified.length)));
+
+            while (qualified.length < size) {
+                qualified.push({title: null, isBye: true});
+            }
+
+            const createMatch = (t1, t2) => ({
+                team1: t1,
+                team2: t2,
+                team1Score: null,
+                team2Score: null,
+                status: 'not_started',
+                winner: null,
+                updatedAt: null,
+                updatedBy: null
+            });
+
+            if (size === 2) {
+                this.tournament.teamPlayoff = {
+                    rounds: [],
+                    qualified: qualified.filter(t => t.title).map(t => t.title),
+                    size,
+                    thirdPlace: null,
+                    final: createMatch(qualified[0].title, qualified[1].title)
+                };
+            } else {
+                const matches = [];
+                for (let i = 0; i < size / 2; i++) {
+                    const t1 = qualified[i];
+                    const t2 = qualified[size - 1 - i];
+                    if (t1.isBye || t2.isBye) continue;
+                    matches.push(createMatch(t1.title, t2.title));
+                }
+                this.tournament.teamPlayoff = {
+                    rounds: [{matches}],
+                    qualified: qualified.filter(t => t.title).map(t => t.title),
+                    size,
+                    thirdPlace: null,
+                    final: null
+                };
+            }
+            this.syncToFirebase();
+        },
         playNextCircle() {
             this.tournament.roundRobinCircle = (this.tournament.roundRobinCircle || 1) + 1;
             this.tournament.groupsScheme = resetGroupsScheme(this.tournament);
@@ -452,18 +599,19 @@ export default {
                         team_1: winner1,
                         team_1_score: null,
                         team_2: winner2,
-                        team_2_score: null
+                        team_2_score: null,
+                        status: 'not_started'
                     });
                     round.push({
                         group: groupIndex,
                         team_1: loser1,
                         team_1_score: null,
                         team_2: loser2,
-                        team_2_score: null
+                        team_2_score: null,
+                        status: 'not_started'
                     });
                 });
             } else if (nextRound === 3) {
-                // Round 3 (barrage): two teams with exactly 1 win play each other
                 groups.forEach((group, groupIndex) => {
                     const teamWins = {};
                     group.forEach(t => { teamWins[t.title] = 0; });
@@ -488,7 +636,8 @@ export default {
                             team_1: oneWinTeams[0],
                             team_1_score: null,
                             team_2: oneWinTeams[1],
-                            team_2_score: null
+                            team_2_score: null,
+                            status: 'not_started'
                         });
                     }
                 });
@@ -558,6 +707,32 @@ export default {
 </script>
 
 <style scoped>
+.round-timer-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.start-timer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.start-timer-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-btn-text);
+}
+
 .draw-card {
     display: flex;
     flex-direction: column;
@@ -591,6 +766,14 @@ export default {
 
 .draw-card__link--draw {
     color: var(--color-info);
+}
+
+.draw-card__link--start {
+    color: var(--tir-carreau, #4caf50);
+}
+
+.draw-card__link--redraw {
+    color: var(--color-primary);
 }
 
 .draw-card__link--restore {
@@ -651,13 +834,16 @@ export default {
     padding: 1rem;
 }
 
+.games-list > :deep(.game-row:nth-child(odd)) {
+    background: rgba(108, 92, 231, 0.06);
+}
+
 .poules-group :deep(.game-row) {
     background: transparent;
 }
 
-.poules-group :deep(.game-row:nth-child(even)) {
-    background: var(--color-surface-hover);
-    border-radius: 8px;
+.poules-group :deep(.game-row:nth-child(odd)) {
+    background: rgba(108, 92, 231, 0.06);
 }
 
 .poules-group__title {
@@ -666,6 +852,42 @@ export default {
     font-weight: 600;
     color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
+}
+
+.finish-round-section {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.finish-round-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px;
+    background: var(--tir-touche, #ff9800);
+    color: var(--color-btn-text, #fff);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.finish-round-btn:hover {
+    opacity: 0.85;
+}
+
+.finish-round-hint {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.restore-round-link {
+    display: block;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    text-decoration: underline;
 }
 
 </style>

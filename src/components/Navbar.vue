@@ -233,6 +233,10 @@ export default {
 }
 
 @media (max-width: 1199px) {
+    .navbar-brand {
+        width: 100%;
+    }
+
     .menu-burger {
         display: flex;
     }

@@ -7,11 +7,12 @@ export default {
         "poules": "Poules (Barrage)",
         "tir": "Tir",
         "teams": "Teams",
-        "games": "Current games",
+        "games": "Score",
         "results": "Results",
         "ranking": "Ranking",
         "tournamentId": "Tournament Id",
         "importPortal": "Import from portal",
+        "importing": "Importing...",
         "teamTitle": "Team title",
         "addTeam": "Add team",
         "addTeamMessage": "add first team...",
@@ -27,6 +28,9 @@ export default {
         "rating": "Rating",
         "playersInTeam": "How many players in a team?",
         "teamsInGroup": "How many team in group?",
+        "allTeams": "All teams (round robin)",
+        "roundsCount": "Number of rounds",
+        "roundsCountHint": "N-1 means each team plays every other team once",
         "protocol": "protocol",
         "copyProtocol": "Copy protocol",
         "exportPdf": "Export to PDF",
@@ -75,7 +79,11 @@ export default {
         "poulesQualified": "Qualified",
         "poulesEliminated": "Eliminated",
         "poulesBarrage": "Barrage",
-        "exempt": "Exempt"
+        "exempt": "Exempt",
+        "finish": "Finish",
+        "finishRound": "Finish round",
+        "finishAllGames": "All matches must be finished before completing this round",
+        "noDrawsAllowed": "Draws are not allowed. Check the score"
     },
     "results": {
         "title": "Every round results",
@@ -196,6 +204,8 @@ export default {
     "setup": {
         "readyToStart": "Tournament setup",
         "drawFirstRound": "Draw first round",
+        "startRound": "Start round 1",
+        "redraw": "Redraw",
         "enablePlayOff": "Play-off after group stage",
         "additionalSettings": "Additional settings",
         "drawMethod": "Draw method",
@@ -271,6 +281,7 @@ export default {
         "finished": "Finished",
         "notStarted": "Not started",
         "teamsCount": "Teams",
+        "totalRounds": "Total rounds",
         "timeLimit": "Time limit",
         "cochonette": "cochonette",
         "cochonettes": "cochonettes",
@@ -319,8 +330,9 @@ export default {
         "tagUpdated": "Tag updated",
         "removed": "Removed",
         "tournamentRemoved": "Tournament has been removed",
+        "tournamentNotFound": "Tournament with this ID was not found",
         "notAvailable": "Not available",
-        "maxTournaments": "You can make only 10 tournaments. Remove one to add new",
+        "maxTournaments": "You can make only 20 tournaments. Remove one to add new",
         "saved": "Saved",
         "tournamentSavedList": "You can see your saved tournaments in the menu",
         "tournamentRemovedSaved": "Tournament removed from your saved list",
@@ -334,7 +346,9 @@ export default {
         "failedSaveData": "Failed to save data",
         "tournamentPinned": "This tournament will open by default",
         "tournamentUnpinned": "Tournament unpinned",
-        "preferencesSaved": "Settings saved"
+        "preferencesSaved": "Settings saved",
+        "warning": "Warning",
+        "constraintsNotSatisfied": "Could not find a schedule where all constraints (same-club teams in first half) are fully satisfied"
     },
     "tir": {
         "participants": "Participants",
@@ -426,5 +440,23 @@ export default {
         "tiebreakerInProgress": "Tiebreaker in progress — go to Scoring tab to enter results.",
         "tieAtTop4": "Tie at Top 4 boundary",
         "tieAtR2": "Tie at Round 2 boundary (pos. 16)"
+    },
+    "timer": {
+        "startTimer": "Start timer",
+        "timeLimitEnded": "Time limit ended",
+        "playLastCochonette": "Play",
+        "lastCochonette": "last cochonette",
+        "lastCochonettes": "last cochonettes"
+    },
+    "teamPlayoff": {
+        "startPlayoff": "Playoff",
+        "finishMatch": "Finish match",
+        "finishRound": "Finish round",
+        "finishAllMatches": "All matches must be finished before completing this round",
+        "matchFinished": "Finished",
+        "matchInProgress": "In progress",
+        "semifinal": "Semifinal",
+        "round": "Round",
+        "scoreError": "Score cannot be equal"
     }
 }

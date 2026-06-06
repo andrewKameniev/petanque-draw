@@ -1,8 +1,11 @@
 <template>
     <div class="add-team-card">
         <div class="add-team-card__row" v-if="!importHidden">
-            <input v-model="tournamentId" @keydown.enter="importList" class="add-team-card__input" type="number" data-testid="input-portal-id" :placeholder="$t('teams.tournamentId')">
-            <button class="add-team-card__btn add-team-card__btn--import" data-testid="btn-import-portal" @click="importList">{{ $t('teams.importPortal') }}</button>
+            <input v-model="tournamentId" @keydown.enter="importList" class="add-team-card__input" type="number" data-testid="input-portal-id" :placeholder="$t('teams.tournamentId')" :disabled="importing">
+            <button class="add-team-card__btn add-team-card__btn--import" data-testid="btn-import-portal" @click="importList" :disabled="importing">
+                <span v-if="importing" class="add-team-card__spinner"></span>
+                {{ importing ? $t('teams.importing') : $t('teams.importPortal') }}
+            </button>
         </div>
         <div class="add-team-card__row">
             <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--name" type="text" data-testid="input-team-title" :placeholder="$t('teams.teamTitle')">
@@ -31,6 +34,7 @@ export default {
             teamTitle: null,
             teamRating: null,
             tournamentId: null,
+            importing: false,
         }
     },
     emits: ['add-team', 'change-draw-style', 'restore'],
@@ -42,7 +46,7 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
-        addTeam(title, rating, players = false, portalTeamId = null){
+        addTeam(title, rating, players = false, portalTeamId = null, club = null){
             if(title !== null && title !== ''){
                 let teamExists = false;
                 if (!this.tournament.teams) {
@@ -58,6 +62,7 @@ export default {
                         title: title.trim(),
                         rating: rating,
                         players: players,
+                        club: club,
                         portalTeamId: portalTeamId,
                         wins: 0,
                         buhgolts: 0,
@@ -79,19 +84,26 @@ export default {
 
         },
         async importList(){
-            let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`);
+            if (!this.tournamentId) return;
+            this.importing = true;
+            try {
+                let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`);
 
-            if (response.ok) {
-                let importedList = await response.json();
+                if (response.ok) {
+                    let importedList = await response.json();
 
-                importedList.teams.forEach(team => {
-                    this.addTeam(team.name, +team.power, team.players, team.id);
-                } )
-                this.setTournamentInfoFromPortal(importedList.tournament);
-                this.setTournamentIdFromPortal(this.tournamentId);
-
-            } else {
-                alert("Error" + response.status);
+                    importedList.teams.forEach(team => {
+                        this.addTeam(team.name, +team.power, team.players, team.id, team.club);
+                    })
+                    this.setTournamentInfoFromPortal(importedList.tournament);
+                    this.setTournamentIdFromPortal(this.tournamentId);
+                } else {
+                    this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.tournamentNotFound'), type: 'error'});
+                }
+            } catch (e) {
+                this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.tournamentNotFound'), type: 'error'});
+            } finally {
+                this.importing = false;
             }
         }
     },
@@ -163,9 +175,30 @@ export default {
     border-color: var(--color-primary);
 }
 
-.add-team-card__btn--import:hover {
+.add-team-card__btn--import:hover:not(:disabled) {
     background: var(--color-primary-light);
     border-color: var(--color-primary-light);
+}
+
+.add-team-card__btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.add-team-card__spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .add-team-card__footer {

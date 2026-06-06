@@ -1,13 +1,19 @@
 <template>
-    <div class="game-row" data-testid="game-row" :class="{compact: compactView, 'has-background-danger': gameHasError(game, maxScore)}">
+    <div class="game-row" data-testid="game-row" :class="{
+        compact: compactView,
+        'has-background-danger': gameHasError(game, maxScore),
+        'game-row--finished': effectiveStatus === 'finished',
+        'game-row--in-progress': effectiveStatus === 'in_progress'
+    }">
         <div class="text-right team-block" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
             <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
-            <div v-if="team1Lanes && team1Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team1Lanes.map(l => l + 1).join(', ') }}</div>
         </div>
         <span class="text-center score-block">
             <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number" min="0"
-                   :disabled="game.team_2 === 'Technical'"
-                   @input="clampScore('team_1_score')"
+                   :disabled="isInputDisabled"
+                   @input="onScoreInput('team_1_score')"
+                   @focus="onFocus"
+                   @blur="onBlur"
                    v-if="!compactView">
             <span class="lane-block is-size-7" :class="{'lane-block--clickable': canSwapLane}" @click="startSwap">
                 <template v-if="swapMode">
@@ -22,14 +28,21 @@
                 </template>
             </span>
             <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
-                   type="number" min="0" :disabled="game.team_2 === 'Technical'"
-                   @input="clampScore('team_2_score')"
+                   type="number" min="0"
+                   :disabled="isInputDisabled"
+                   @input="onScoreInput('team_2_score')"
+                   @focus="onFocus"
+                   @blur="onBlur"
                    v-if="!compactView">
         </span>
         <div class="team-block" :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">
             <label :for="'opponent_' + gameIndex">{{ game.team_2 }}</label>
-            <div v-if="team2Lanes && team2Lanes.length" class="lanes-played is-hidden-mobile">{{ $t('games.lanesPlayed') }}: {{ team2Lanes.map(l => l + 1).join(', ') }}</div>
         </div>
+        <span v-if="!compactView" class="game-row__action">
+            <button v-if="canFinishGame" class="game-row__finish-btn" @click.stop="$emit('finish', gameIndex)">
+                {{ $t('games.finish') }}
+            </button>
+        </span>
     </div>
 </template>
 
@@ -40,8 +53,8 @@ import {useMainStore} from "@/stores/main";
 
 export default {
     name: 'Game',
-    props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'team1Lanes', 'team2Lanes', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
-    emits: ['save', 'swapLane'],
+    props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
+    emits: ['save', 'swapLane', 'update', 'finish'],
     data() {
         return {
             swapMode: false,
@@ -49,14 +62,40 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['updateGameScore']),
+        ...mapActions(useMainStore, ['updateGameScore', 'setActiveGameMatchPath']),
         gameHasError,
+        onScoreInput(field) {
+            this.clampScore(field);
+            if (this.currentGame.status === 'not_started' || !this.currentGame.status) {
+                this.currentGame.status = 'in_progress';
+                this.currentGame.updated_at = new Date().toISOString();
+            }
+            this.$emit('update', this.gameIndex);
+        },
         clampScore(field) {
             const val = Number(this.currentGame[field]);
             if (val < 0 || isNaN(val)) {
                 this.currentGame[field] = null;
-            } else if (this.maxScore && val > Number(this.maxScore)) {
-                this.currentGame[field] = Number(this.maxScore);
+            } else if (this.maxScore) {
+                const max = Number(this.maxScore);
+                if (val > max) {
+                    this.currentGame[field] = max;
+                }
+                const otherField = field === 'team_1_score' ? 'team_2_score' : 'team_1_score';
+                const otherVal = Number(this.currentGame[otherField]);
+                if (val >= max && otherVal >= max) {
+                    this.currentGame[otherField] = max - 1;
+                }
+            }
+        },
+        onFocus() {
+            if (!this.isPlayoff && !this.isCadrage && !this.isThird) {
+                this.setActiveGameMatchPath(`${this.activeRound}/${this.gameIndex}`);
+            }
+        },
+        onBlur() {
+            if (!this.isPlayoff && !this.isCadrage && !this.isThird) {
+                this.setActiveGameMatchPath(null);
             }
         },
         startSwap() {
@@ -87,8 +126,24 @@ export default {
         tournament() {
             return this.activeTournament || this.currentTournament
         },
+        effectiveStatus() {
+            return this.game.status || 'not_started';
+        },
+        isInputDisabled() {
+            return this.game.team_2 === 'Technical' || this.effectiveStatus === 'finished';
+        },
+        canFinishGame() {
+            if (this.effectiveStatus === 'finished') return false;
+            if (this.isPlayoff || this.isCadrage || this.isThird) return false;
+            const s1 = Number(this.game.team_1_score);
+            const s2 = Number(this.game.team_2_score);
+            if (this.game.team_1_score === null || this.game.team_1_score === '' ||
+                this.game.team_2_score === null || this.game.team_2_score === '') return false;
+            if (isNaN(s1) || isNaN(s2)) return false;
+            return s1 !== s2 && (s1 > 0 || s2 > 0);
+        },
         canSwapLane() {
-            return !this.compactView && !this.isThird && this.game.team_2 !== 'Technical';
+            return !this.compactView && !this.isThird && this.game.team_2 !== 'Technical' && this.effectiveStatus !== 'finished';
         },
         currentGame() {
             if (this.isThird) {
@@ -118,3 +173,34 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.game-row.has-background-danger {
+    background: rgba(255, 56, 96, 0.12) !important;
+}
+
+.game-row__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.game-row__finish-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--color-primary);
+    color: var(--color-btn-text, #fff);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.game-row__finish-btn:hover {
+    opacity: 0.85;
+}
+</style>

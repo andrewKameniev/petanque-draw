@@ -37,6 +37,10 @@
                     <span class="has-text-grey-dark">{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span>
                     <span class="has-text-weight-semibold">{{ tournament.system === 'tir' ? (tournament.tirParticipants || tournament.teams).length : tournament.teams.length }}</span>
                 </div>
+                <div class="tournament-info-row" v-if="tournament.preferences?.groupTotalRounds">
+                    <span class="has-text-grey-dark">{{ $t('common.totalRounds') }}:</span>
+                    <span class="has-text-weight-semibold">{{ tournament.preferences.groupTotalRounds }}</span>
+                </div>
                 <div class="tournament-info-row" v-if="tournamentExtrasLine">
                     <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
                     <span class="has-text-weight-semibold">{{ tournamentExtrasLine }}</span>
@@ -53,7 +57,8 @@
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
-            <PlayOff v-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
+            <TeamPlayoff v-if="tournament.teamPlayoff" :read-only="true"/>
+            <PlayOff v-else-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
             <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
                 <span>{{ highlightedTeam }}</span>
@@ -61,18 +66,42 @@
             </div>
             <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff && tournament.system !== 'tir'" class="current-round-card mt-3 mb-3">
                 <div class="round-header">
-                    <span>{{ $t('common.round') }} {{ activeRound }}</span>
+                    <span>{{ $t('common.round') }} {{ activeRound }}<template v-if="tournament.preferences?.groupTotalRounds">/{{ tournament.preferences.groupTotalRounds }}</template></span>
                     <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
                 </div>
+                <RoundTimer v-if="showPublicTimer"
+                    :timer-started-at="tournament.roundTimer.timerStartedAt"
+                    :timer-ends-at="tournament.roundTimer.timerEndsAt"
+                    :timer-status="tournament.roundTimer.timerStatus"
+                    :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+                    :cochonettes="tournament.preferences.cochonettes || 1"
+                    class="mb-3"/>
                 <div class="match-list">
                     <div class="match-item"
-                         :class="{'match-item--highlighted': isTeamHighlighted(game)}"
+                         :class="{
+                            'match-item--highlighted': isTeamHighlighted(game),
+                            'match-item--in-progress': game.status === 'in_progress',
+                            'match-item--finished': game.status === 'finished'
+                         }"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
-                        <span class="match-team match-team-right" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_1)}">{{ game.team_1 }}</span>
+                        <span class="match-team match-team-right" :class="{
+                            'match-team--highlighted': isTeamNameHighlighted(game.team_1),
+                            'match-team--winner': game.status === 'finished' && game.winner === game.team_1
+                        }">{{ game.team_1 }}</span>
                         <span class="match-vs">
-                            <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
+                            <template v-if="game.status === 'in_progress' || game.status === 'finished'">
+                                <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                            </template>
+                            <template v-else>
+                                <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
+                            </template>
                         </span>
-                        <span class="match-team" :class="{'match-team--highlighted': isTeamNameHighlighted(game.team_2)}">{{ game.team_2 }}</span>
+                        <span class="match-team" :class="{
+                            'match-team--highlighted': isTeamNameHighlighted(game.team_2),
+                            'match-team--winner': game.status === 'finished' && game.winner === game.team_2
+                        }">{{ game.team_2 }}</span>
+                        <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">{{ $t('teamPlayoff.matchInProgress') }}</span>
+                        <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{ $t('teamPlayoff.matchFinished') }}</span>
                     </div>
                 </div>
             </div>
@@ -81,21 +110,24 @@
 
             <!-- Other systems: tabs -->
             <template v-else>
-                <div class="tabs">
-                    <ul>
-                        <li v-for="(tab, index) in tabs" :key="index"
-                            :class="{'is-active': tab.id === activeTab}">
-                            <a href="#" @click.prevent="activeTab = tab.id">{{ tab.label }}</a>
-                        </li>
-                    </ul>
+                <div class="tournament-nav">
+                    <button v-for="(tab, index) in tabs" :key="index"
+                        class="tournament-nav__btn"
+                        :class="[`tournament-nav__btn--${tab.id}`, {'tournament-nav__btn--active': tab.id === activeTab}]"
+                        @click="activeTab = tab.id">
+                        <component :is="tab.icon" :size="18"/>
+                        <span>{{ tab.label }}</span>
+                    </button>
                 </div>
-                <div class="content tabs-content" v-if="activeTab === 'teams'">
-                    <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-                </div>
-                <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
-                <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                    <Ranking :tournament="tournament"
-                             :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                <div class="tabs-content-area">
+                    <div v-if="activeTab === 'teams'">
+                        <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                    </div>
+                    <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                    <div v-if="activeTab === 'ranking'">
+                        <Ranking :tournament="tournament"
+                                 :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                    </div>
                 </div>
             </template>
         </div>
@@ -117,6 +149,7 @@ import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
 import PlayOff from "@/components/partials/PlayOff.vue";
+import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
@@ -124,9 +157,11 @@ import Footer from "@/components/partials/Footer.vue";
 import {GitFork, X} from "lucide-vue-next";
 import TeamSearch from "@/components/partials/TeamSearch.vue";
 import TirPublicView from "@/components/tir/TirPublicView.vue";
+import RoundTimer from "@/components/partials/RoundTimer.vue";
+import {Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView},
+    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon},
     data() {
         return {
             isLoading: false,
@@ -170,18 +205,9 @@ export default {
     computed: {
         tabs() {
             return [
-                {
-                    id: 'teams',
-                    label: this.$t('teams.teams')
-                },
-                {
-                    id: 'results',
-                    label: this.$t('teams.results')
-                },
-                {
-                    id: 'ranking',
-                    label: this.$t('teams.ranking')
-                }
+                { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
+                { id: 'results', label: this.$t('teams.results'), icon: 'List' },
+                { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' }
             ];
         },
         activeRound() {
@@ -210,7 +236,11 @@ export default {
             return !!this.tournament?.tournamentIsFinished;
         },
         isStarted() {
-            return !!this.tournament?.tournamentIsStarted || !!this.tournament?.games?.length || !!this.tournament?.tirStarted;
+            if (this.tournament?.tournamentIsStarted || this.tournament?.roundIsActive || this.tournament?.tirStarted) return true;
+            if (this.tournament?.games?.length) {
+                return this.tournament.games.some(round => round.some(g => g.status && g.status !== 'not_started'));
+            }
+            return false;
         },
         badgeClass() {
             if (this.isFinished) return 'badge-finished';
@@ -223,6 +253,8 @@ export default {
             if (this.tournament?.system === 'tir') {
                 return this.tirPhaseLabel;
             }
+            const round = this.tournament?.games?.length || 0;
+            if (round) return `${this.$t('common.round')} ${round}`;
             return this.$t('common.active');
         },
         tirPhaseLabel() {
@@ -311,6 +343,10 @@ export default {
             const po = this.tournament?.playOff;
             if (!po?.length) return false;
             return po[po.length - 1].teams?.length === 1;
+        },
+        showPublicTimer() {
+            const rt = this.tournament?.roundTimer;
+            return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'ended');
         },
         teamNames() {
             if (!this.tournament?.teams) return [];
@@ -570,22 +606,50 @@ export default {
     background: transparent;
 }
 
-.wrapper .tabs a {
-    border-bottom-color: transparent;
-    transition: border-bottom-color 0.3s ease, color 0.3s ease;
+.tournament-nav {
+    display: flex;
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 12px 12px 0 0;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: -1px;
 }
 
-.wrapper .tabs a:hover {
-    border-bottom-color: transparent;
+.tournament-nav__btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.tournament-nav__btn--active {
+    font-weight: 700;
+}
+
+.tournament-nav__btn--teams.tournament-nav__btn--active {
+    color: var(--tir-delete, #e53935);
+}
+
+.tournament-nav__btn--games.tournament-nav__btn--active {
     color: var(--color-primary);
 }
 
-.wrapper .tabs li.is-active a {
-    border-bottom: 3px solid var(--color-primary);
-    color: var(--color-primary);
+.tournament-nav__btn--results.tournament-nav__btn--active {
+    color: var(--tir-carreau, #4caf50);
 }
 
-@media screen and (max-width: 768px) {
+.tournament-nav__btn--ranking.tournament-nav__btn--active {
+    color: var(--tir-touche, #ff9800);
 }
 
 .wrapper {
@@ -624,6 +688,12 @@ export default {
 .wrapper > * {
     position: relative;
     z-index: 1;
+}
+
+.wrapper .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
 .wrapper :deep(.navbar) {
@@ -668,9 +738,10 @@ export default {
 }
 
 .current-round-card {
-    border: 2px solid var(--color-primary);
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
     min-width: 280px;
     max-width: 700px;
     margin-left: auto;
@@ -707,26 +778,41 @@ export default {
 }
 
 .match-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background: var(--color-public-surface);
-    border: 1px solid var(--color-public-surface-border);
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    transition: background 0.15s, border-color 0.15s;
 }
 
-.match-item:nth-child(odd) {
-    background: var(--color-public-surface-white);
+.match-item:hover {
+    border-color: var(--tir-touche, #ff9800);
+}
+
+.match-item--in-progress {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg) !important;
+}
+
+.match-item--finished {
+    border-color: var(--tir-carreau, #4caf50);
+    background: rgba(76, 175, 80, 0.04) !important;
 }
 
 .match-team {
-    flex: 1 1 0;
     min-width: 0;
-    font-weight: 700;
-    font-size: 1rem;
-    white-space: nowrap;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
     overflow: hidden;
-    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
     transition: color 0.15s;
 }
 
@@ -743,21 +829,60 @@ export default {
 }
 
 .match-vs {
-    flex: 0 0 50px;
     text-align: center;
-    margin: 0 0.75rem;
 }
 
 .match-lane {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: var(--color-primary);
-    color: var(--color-white);
-    font-size: 1rem;
+    background: var(--color-surface-alt, var(--color-primary-bg));
+    color: var(--color-text-muted);
+    font-size: 12px;
     font-weight: 700;
+}
+
+.match-score {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.match-team--winner {
+    color: var(--tir-winner, #2e7d32) !important;
+    font-weight: 700;
+}
+
+.match-status-badge {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 0;
+}
+
+.match-status-badge--progress {
+    color: var(--tir-in-progress, #1976d2);
+}
+
+.match-status-badge--finished {
+    color: var(--tir-winner-text, #2e7d32);
+}
+
+.tabs-content-area {
+    background: var(--color-surface, var(--color-white));
+    border: 1px solid var(--color-border);
+    border-radius: 0 0 12px 12px;
+    padding: 16px;
+    min-height: 200px;
+    overflow-x: auto;
+}
+
+.tabs-content-area :deep(table) {
+    margin: 0 auto;
 }
 </style>

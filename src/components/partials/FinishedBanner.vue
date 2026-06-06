@@ -22,8 +22,9 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 7rem 0;
+    padding: 4rem 1rem;
 }
 
 .finished-banner__icon {
@@ -32,7 +33,7 @@ export default {
 }
 
 .finished-banner__text {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--color-text);
 }
@@ -42,7 +43,7 @@ export default {
 }
 
 .finished-banner__link {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--color-primary);
     text-decoration: none;
     font-weight: 500;

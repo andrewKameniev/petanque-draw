@@ -7,11 +7,12 @@ export default {
         "poules": "Poules (barrage)",
         "tir": "Tiro",
         "teams": "Equipos",
-        "games": "Partidas actuales",
+        "games": "Marcador",
         "results": "Resultados",
         "ranking": "Clasificación",
         "tournamentId": "ID del torneo",
         "importPortal": "Importar desde el portal",
+        "importing": "Importando...",
         "teamTitle": "Nombre del equipo",
         "addTeam": "Añadir equipo",
         "addTeamMessage": "añade el primer equipo...",
@@ -27,6 +28,9 @@ export default {
         "rating": "Rating",
         "playersInTeam": "¿Cuántos jugadores hay en un equipo?",
         "teamsInGroup": "¿Cuántos equipos hay en un grupo?",
+        "allTeams": "Todos los equipos (todos contra todos)",
+        "roundsCount": "Número de rondas",
+        "roundsCountHint": "N-1 significa que cada equipo juega contra cada otro una vez",
         "protocol": "protocolo",
         "copyProtocol": "Copiar protocolo",
         "exportPdf": "Exportar a PDF",
@@ -75,7 +79,11 @@ export default {
         "poulesQualified": "Clasificados",
         "poulesEliminated": "Eliminados",
         "poulesBarrage": "Barrage",
-        "exempt": "Exento"
+        "exempt": "Exento",
+        "finish": "Terminar",
+        "finishRound": "Finalizar ronda",
+        "finishAllGames": "Todos los partidos deben estar terminados antes de finalizar esta ronda",
+        "noDrawsAllowed": "Los empates no están permitidos. Verifique el marcador"
     },
     "results": {
         "title": "Resultados de cada ronda",
@@ -196,6 +204,8 @@ export default {
     "setup": {
         "readyToStart": "Configuración del torneo",
         "drawFirstRound": "Sortear primera ronda",
+        "startRound": "Iniciar ronda 1",
+        "redraw": "Resortear",
         "enablePlayOff": "Play-off después de la fase de grupos",
         "additionalSettings": "Ajustes adicionales",
         "drawMethod": "Método de sorteo",
@@ -271,6 +281,7 @@ export default {
         "finished": "Finalizado",
         "notStarted": "No iniciado",
         "teamsCount": "Equipos",
+        "totalRounds": "Total de rondas",
         "timeLimit": "Límite de tiempo",
         "cochonette": "cochonnet",
         "cochonettes": "cochonnets",
@@ -319,8 +330,9 @@ export default {
         "tagUpdated": "Etiqueta actualizada",
         "removed": "Eliminado",
         "tournamentRemoved": "El torneo ha sido eliminado",
+        "tournamentNotFound": "No se encontró el torneo con este ID",
         "notAvailable": "No disponible",
-        "maxTournaments": "Solo puedes crear 10 torneos. Elimina uno para añadir otro",
+        "maxTournaments": "Solo puedes crear 20 torneos. Elimina uno para añadir otro",
         "saved": "Guardado",
         "tournamentSavedList": "Puedes ver tus torneos guardados en el menú",
         "tournamentRemovedSaved": "Torneo eliminado de tu lista de guardados",
@@ -334,7 +346,9 @@ export default {
         "failedSaveData": "No se pudieron guardar los datos",
         "tournamentPinned": "Este torneo se abrirá por defecto",
         "tournamentUnpinned": "Torneo desfijado",
-        "preferencesSaved": "Ajustes guardados"
+        "preferencesSaved": "Ajustes guardados",
+        "warning": "Advertencia",
+        "constraintsNotSatisfied": "No se pudo encontrar un calendario que satisfaga todas las restricciones (equipos del mismo club en la primera mitad)"
     },
     "tir": {
         "participants": "Participantes",
@@ -426,5 +440,23 @@ export default {
         "tiebreakerInProgress": "Desempate en curso — ve a la pestaña Puntuación para ingresar resultados.",
         "tieAtTop4": "Empate en el límite Top 4",
         "tieAtR2": "Empate en el límite de Ronda 2 (pos. 16)"
+    },
+    "timer": {
+        "startTimer": "Iniciar cronómetro",
+        "timeLimitEnded": "Tiempo agotado",
+        "playLastCochonette": "Jugar",
+        "lastCochonette": "último cochonnet",
+        "lastCochonettes": "últimos cochonnets"
+    },
+    "teamPlayoff": {
+        "startPlayoff": "Playoff",
+        "finishMatch": "Terminar partido",
+        "finishRound": "Terminar ronda",
+        "finishAllMatches": "Todos los partidos deben estar terminados antes de cerrar esta ronda",
+        "matchFinished": "Terminado",
+        "matchInProgress": "En curso",
+        "semifinal": "Semifinal",
+        "round": "Ronda",
+        "scoreError": "El marcador no puede ser igual"
     }
 }

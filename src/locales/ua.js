@@ -7,11 +7,12 @@ export default {
         "poules": "Пулі (Бараж)",
         "tir": "Тир",
         "teams": "Команди",
-        "games": "Поточні ігри",
+        "games": "Рахунок",
         "results": "Результати",
         "ranking": "Таблиця",
         "tournamentId": "Id турніру",
         "importPortal": "Імпортувати з порталу",
+        "importing": "Імпорт...",
         "teamTitle": "Назва команди",
         "addTeam": "Додати",
         "addTeamMessage": "додайте першу команду...",
@@ -27,6 +28,9 @@ export default {
         "rating": "Рейтинг",
         "playersInTeam": "Скільки гравців у команді?",
         "teamsInGroup": "Скільки команд у групі?",
+        "allTeams": "Всі команди (кожен з кожним)",
+        "roundsCount": "Кількість раундів",
+        "roundsCountHint": "N-1 означає що кожна команда грає з кожною один раз",
         "protocol": "протокол",
         "copyProtocol": "Скопіювати протокол",
         "exportPdf": "Експортувати в PDF",
@@ -88,7 +92,11 @@ export default {
         "poulesQualified": "Кваліфіковані",
         "poulesEliminated": "Вибули",
         "poulesBarrage": "Бараж",
-        "exempt": "Звільнений"
+        "exempt": "Звільнений",
+        "finish": "Готово",
+        "finishRound": "Завершити раунд",
+        "finishAllGames": "Всі матчі повинні бути завершені перед закінченням раунду",
+        "noDrawsAllowed": "Нічия неможлива. Перевірте рахунок"
     },
     "results": {
         "title": "Результати кожного раунду",
@@ -196,6 +204,8 @@ export default {
     "setup": {
         "readyToStart": "Налаштування турніру",
         "drawFirstRound": "Жеребкувати перший раунд",
+        "startRound": "Старт раунду 1",
+        "redraw": "Пережеребкувати",
         "enablePlayOff": "Плей-офф після групового етапу",
         "additionalSettings": "Додаткові налаштування",
         "drawMethod": "Метод жеребкування",
@@ -271,6 +281,7 @@ export default {
         "finished": "Завершений",
         "notStarted": "Не розпочато",
         "teamsCount": "Команди",
+        "totalRounds": "Всього раундів",
         "timeLimit": "Обмеження часу",
         "cochonette": "кошонет",
         "cochonettes": "кошонети",
@@ -319,8 +330,9 @@ export default {
         "tagUpdated": "Тег оновлено",
         "removed": "Видалено",
         "tournamentRemoved": "Турнір видалено",
+        "tournamentNotFound": "Турнір з таким ID не знайдено",
         "notAvailable": "Недоступно",
-        "maxTournaments": "Ви можете створити максимум 10 турнірів. Видаліть один, щоб додати новий",
+        "maxTournaments": "Ви можете створити максимум 20 турнірів. Видаліть один, щоб додати новий",
         "saved": "Збережено",
         "tournamentSavedList": "Збережені турніри можна знайти в меню",
         "tournamentRemovedSaved": "Турнір видалено зі збережених",
@@ -334,7 +346,9 @@ export default {
         "failedSaveData": "Не вдалося зберегти дані",
         "tournamentPinned": "Цей турнір буде відкриватись за замовчуванням",
         "tournamentUnpinned": "Турнір відкріплено",
-        "preferencesSaved": "Налаштування збережено"
+        "preferencesSaved": "Налаштування збережено",
+        "warning": "Увага",
+        "constraintsNotSatisfied": "Не вдалось знайти розклад, де всі обмеження (команди одного клубу в першій половині) виконуються повністю"
     },
     "tir": {
         "participants": "Учасники",
@@ -426,5 +440,23 @@ export default {
         "tiebreakerInProgress": "Перестрілка в процесі — перейдіть до вкладки Рахунок для введення результатів.",
         "tieAtTop4": "Нічия на межі Топ-4",
         "tieAtR2": "Нічия на межі Раунду 2 (поз. 16)"
+    },
+    "timer": {
+        "startTimer": "Запустити таймер",
+        "timeLimitEnded": "Час вичерпано",
+        "playLastCochonette": "Зіграйте",
+        "lastCochonette": "останній кошонет",
+        "lastCochonettes": "останні кошонети"
+    },
+    "teamPlayoff": {
+        "startPlayoff": "Плей-оф",
+        "finishMatch": "Завершити матч",
+        "finishRound": "Завершити раунд",
+        "finishAllMatches": "Всі матчі мають бути завершені перед закриттям раунду",
+        "matchFinished": "Завершено",
+        "matchInProgress": "В процесі",
+        "semifinal": "Півфінал",
+        "round": "Раунд",
+        "scoreError": "Рахунок не може бути рівним"
     }
 }

@@ -164,7 +164,7 @@
                     <div v-if="activeTab === 'teams'">
                         <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
                     </div>
-                    <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                    <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap" :cardView="true"/>
                     <div v-if="activeTab === 'ranking'">
                         <Ranking :tournament="tournament"
                                  :rankingTeams="rankingTeams" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
@@ -606,14 +606,9 @@ export default {
     margin-bottom: 0.4rem;
     padding-bottom: 0.4rem;
     border-bottom: 1px solid var(--color-public-separator);
-    margin-right: -5.75rem;
+    margin-right: 6rem;
 }
 
-@media screen and (max-width: 352px) {
-    .tournament-info-message {
-        margin-right: 0;
-    }
-}
 
 .badge {
     display: inline-block;

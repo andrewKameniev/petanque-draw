@@ -31,7 +31,33 @@
                         <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
                     </button>
                 </div>
-                <div class="table-container" v-if="selectedRound !== 'playoff'">
+                <div v-if="selectedRound !== 'playoff' && cardView" class="results-card-list">
+                    <template v-for="(round, index) in allSortedRounds" :key="index">
+                        <template v-if="selectedRound === -1 || selectedRound === index">
+                            <div v-if="selectedRound === -1" class="results-card-round-label">{{ getRoundLabel(index) }}</div>
+                            <div v-for="(game, i) in round" :key="i"
+                                 class="match-item match-item--finished"
+                                 :class="{'match-item--highlighted': isGameHighlighted(game)}">
+                                <span class="match-team match-team-right" :class="{
+                                    'match-team--winner': game.team_1_score > game.team_2_score
+                                }">{{ game.team_1 }}</span>
+                                <span class="match-vs">
+                                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                                </span>
+                                <span class="match-team" :class="{
+                                    'match-team--winner': game.team_2_score > game.team_1_score
+                                }">{{ game.team_2 }}</span>
+                                <div v-if="game.score_history && game.score_history.length" class="score-history">
+                                    <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
+                                        <span class="score-history__num">{{ ei + 1 }}</span>
+                                        <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+                <div class="table-container" v-else-if="selectedRound !== 'playoff'">
                     <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
                         <tbody>
                             <template v-for="(round, index) in allSortedRounds" :key="index">
@@ -118,7 +144,7 @@ import {GitFork} from "lucide-vue-next";
 export default {
     name: 'Results',
     components: {Bracket, GitFork},
-    props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap'],
+    props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView'],
     data() {
         return {
             selectedRound: -1,
@@ -303,4 +329,17 @@ export default {
     border-left: 3px solid var(--color-primary);
 }
 
+.results-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.results-card-round-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    padding: 0.5rem 0 0.2rem;
+    text-transform: uppercase;
+}
 </style>

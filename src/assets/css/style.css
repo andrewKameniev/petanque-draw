@@ -260,6 +260,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     padding: 3px 0;
     border-radius: 4px;
 }
@@ -269,7 +270,7 @@ footer {
 }
 
 .game-row span.score-block {
-    flex: 0 0 210px;
+    flex: 0 0 90px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -278,6 +279,34 @@ footer {
 .game-row > div.team-block {
     flex: 1 1 0;
     min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.game-row > div.team-block.text-right {
+    justify-content: flex-end;
+}
+
+.game-row > div.team-block label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-row > div.team-block--left label {
+    order: 0;
+}
+
+.game-row > div.team-block--left .input.-small {
+    order: 1;
+}
+
+.game-row > div.team-block--right label {
+    order: 1;
+}
+
+.game-row > div.team-block--right .input.-small {
+    order: 0;
 }
 
 .lanes-played {
@@ -339,7 +368,7 @@ footer {
 
 .input.-small {
     max-width: 70px;
-    margin: 0 10px;
+    margin: 0 8px;
 }
 .input {
     font-size: 16px !important;
@@ -468,34 +497,87 @@ footer {
         background-color: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
     }
 
-    .game-row:nth-child(odd) {
+    .game-row-wrapper:nth-child(odd) .game-row {
         background-color: var(--color-game-row-odd);
     }
 }
 
 @media all and (max-width: 768px) {
     .game-row {
+        position: relative;
         flex-direction: column;
+        align-items: stretch;
         border-bottom: solid 1px var(--color-game-row-border);
         margin-bottom: 0;
-        padding: 15px 0;
+        padding: 12px;
     }
 
     .game-row:last-child {
         margin-bottom: 25px;
     }
 
-    .game-row span.score-block {
-        flex-basis: auto;
-        margin: 10px 0;
+    .game-row > .game-row__stream-toggle {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        margin-left: 0;
     }
 
-    .game-row.compact span.score-block {
+    .game-row span.score-block {
+        flex-basis: auto;
         margin: 0;
+        order: -1;
+        justify-content: center;
+    }
+
+    .game-row span.score-block .lane-block {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    .game-row > div.team-block {
+        display: flex;
+        align-items: center;
+        text-align: left !important;
+        padding: 6px 0;
+        margin-top: 0;
+    }
+
+    .game-row > div.team-block:first-of-type {
+        margin-top: 30px;
+    }
+
+    .game-row > div.team-block label {
+        flex: 1;
+        min-width: 0;
+        order: 0 !important;
+    }
+
+    .game-row > div.team-block .input.-small {
+        flex: 0 0 60px;
+        margin: 0;
+        order: 1 !important;
+    }
+
+    .game-row > .game-row__action {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    .game-row > .game-row__action .game-row__finish-btn {
+        padding: 4px 12px;
+        font-size: 0.75rem;
+        border-radius: 6px;
     }
 
     .game-row.compact {
         flex-direction: row;
+        align-items: center;
         justify-content: space-between;
         padding: 5px 0;
     }
@@ -510,6 +592,11 @@ footer {
 
     .game-row.compact > div {
         flex: 1;
+    }
+
+    .game-row.compact span.score-block {
+        margin: 0;
+        order: unset;
     }
 
     .game-row.compact span.team-block {

@@ -1,9 +1,13 @@
 <script>
 import {mapState} from "pinia";
 import {useMainStore} from "@/stores/main";
+import {version} from "../../../package.json";
 
 export default {
     name: "Footer",
+    data() {
+        return { appVersion: version }
+    },
     computed: mapState(useMainStore, ['user']),
 }
 </script>
@@ -25,7 +29,7 @@ export default {
                     <a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a>
                     <a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a>
                 </div>
-                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
+                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a> <span class="app-footer__version">ver: {{ appVersion }}</span></p>
             </div>
         </div>
         <p class="app-footer__credit app-footer__mobile-credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
@@ -95,6 +99,12 @@ export default {
 
 .app-footer__credit a:hover {
     color: var(--color-primary);
+}
+
+.app-footer__version {
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    margin-left: 0.5rem;
 }
 
 .app-footer__mobile-credit {

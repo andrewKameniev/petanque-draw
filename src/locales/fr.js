@@ -83,7 +83,9 @@ export default {
         "finish": "Finir",
         "finishRound": "Terminer le tour",
         "finishAllGames": "Tous les matchs doivent être terminés avant de finaliser ce tour",
-        "noDrawsAllowed": "Les matchs nuls sont interdits. Vérifiez le score"
+        "noDrawsAllowed": "Les matchs nuls sont interdits. Vérifiez le score",
+        "streamPlaceholder": "Lien de diffusion (YouTube, Twitch...)",
+        "live": "En direct"
     },
     "results": {
         "title": "Résultats de chaque tour",

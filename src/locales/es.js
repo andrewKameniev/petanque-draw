@@ -83,7 +83,9 @@ export default {
         "finish": "Terminar",
         "finishRound": "Finalizar ronda",
         "finishAllGames": "Todos los partidos deben estar terminados antes de finalizar esta ronda",
-        "noDrawsAllowed": "Los empates no están permitidos. Verifique el marcador"
+        "noDrawsAllowed": "Los empates no están permitidos. Verifique el marcador",
+        "streamPlaceholder": "Enlace de transmisión (YouTube, Twitch...)",
+        "live": "En vivo"
     },
     "results": {
         "title": "Resultados de cada ronda",

@@ -21,7 +21,7 @@
             <div class="text-center is-size-3 tournament-title-wrapper">
                 <strong>{{ tournament.name }}</strong>
             </div>
-            <div class="tournament-info-card mt-3 mb-3">
+            <div v-if="!showCurrentRound" class="tournament-info-card mt-3 mb-3">
                 <span class="badge badge-corner" :class="badgeClass">
                     {{ badgeLabel }}
                 </span>
@@ -64,7 +64,32 @@
                 <span>{{ highlightedTeam }}</span>
                 <X :size="14"/>
             </div>
-            <div v-if="tournament.games && tournament.roundIsActive && !tournament.cadrage && !tournament.playOff && tournament.system !== 'tir'" class="current-round-card mt-3 mb-3">
+            <div v-if="showCurrentRound" class="current-round-card mt-3 mb-3">
+                <div class="tournament-info-card tournament-info-card--inline">
+                    <span class="badge badge-corner" :class="badgeClass">
+                        {{ badgeLabel }}
+                    </span>
+                    <div v-if="tournamentMessageLines.length" class="tournament-info-message">
+                        <span class="has-text-grey-dark">{{ $t('remote.organizerMessage') }}: </span>
+                        <span class="has-text-weight-semibold" v-for="(line, i) in tournamentMessageLines" :key="i">{{ line }}<br v-if="i < tournamentMessageLines.length - 1"></span>
+                    </div>
+                    <div class="tournament-info-row">
+                        <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
+                        <span class="has-text-weight-semibold">{{ systemDescription }}</span>
+                    </div>
+                    <div class="tournament-info-row" v-if="tournament.teams">
+                        <span class="has-text-grey-dark">{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span>
+                        <span class="has-text-weight-semibold">{{ tournament.system === 'tir' ? (tournament.tirParticipants || tournament.teams).length : tournament.teams.length }}</span>
+                    </div>
+                    <div class="tournament-info-row" v-if="tournament.preferences?.groupTotalRounds">
+                        <span class="has-text-grey-dark">{{ $t('common.totalRounds') }}:</span>
+                        <span class="has-text-weight-semibold">{{ tournament.preferences.groupTotalRounds }}</span>
+                    </div>
+                    <div class="tournament-info-row" v-if="tournamentExtrasLine">
+                        <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
+                        <span class="has-text-weight-semibold">{{ tournamentExtrasLine }}</span>
+                    </div>
+                </div>
                 <div class="round-header">
                     <span>{{ $t('common.round') }} {{ activeRound }}<template v-if="tournament.preferences?.groupTotalRounds">/{{ tournament.preferences.groupTotalRounds }}</template></span>
                     <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam"/>
@@ -100,8 +125,23 @@
                             'match-team--highlighted': isTeamNameHighlighted(game.team_2),
                             'match-team--winner': game.status === 'finished' && game.winner === game.team_2
                         }">{{ game.team_2 }}</span>
-                        <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">{{ $t('teamPlayoff.matchInProgress') }}</span>
+                        <span v-if="game.stream_url && game.status === 'in_progress'" class="match-status-badge match-status-badge--live">
+                            <a :href="game.stream_url" target="_blank" rel="noopener" class="match-live-link">
+                                <span class="match-live-dot"></span>
+                                <svg class="match-live-icon" width="16" height="12" viewBox="0 0 24 18" fill="#ff0000"><path d="M23.5 2.8c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.7c-1 .3-1.7 1.1-2 2.1C0 4.7 0 9 0 9s0 4.3.5 6.2c.3 1 1 1.8 2 2.1C4.4 18 12 18 12 18s7.6 0 9.5-.7c1-.3 1.7-1.1 2-2.1.5-1.9.5-6.2.5-6.2s0-4.3-.5-6.2zM9.6 12.8V5.2l6.4 3.8-6.4 3.8z"/></svg>
+                                <span>{{ $t('games.live') }}</span>
+                            </a>
+                        </span>
+                        <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
+                            <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+                        </span>
                         <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{ $t('teamPlayoff.matchFinished') }}</span>
+                        <div v-if="game.score_history && game.score_history.length" class="score-history">
+                            <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
+                                <span class="score-history__num">{{ i + 1 }}</span>
+                                <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,6 +249,9 @@ export default {
                 { id: 'results', label: this.$t('teams.results'), icon: 'List' },
                 { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' }
             ];
+        },
+        showCurrentRound() {
+            return this.tournament.games && this.tournament.roundIsActive && !this.tournament.cadrage && !this.tournament.playOff && this.tournament.system !== 'tir';
         },
         activeRound() {
             return this.tournament.games?.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
@@ -505,6 +548,15 @@ export default {
     padding-right: 7rem;
 }
 
+.tournament-info-card--inline {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    padding-right: 6rem;
+    margin-bottom: 0.5rem;
+}
+
 @media screen and (max-width: 352px) {
     .tournament-info-card {
         padding-right: 1.25rem;
@@ -795,12 +847,12 @@ export default {
 
 .match-item--in-progress {
     border-color: var(--color-primary);
-    background: var(--color-primary-bg) !important;
+    background: url('@/assets/img/card-bg-active.png') center/cover no-repeat !important;
 }
 
 .match-item--finished {
     border-color: var(--tir-carreau, #4caf50);
-    background: rgba(76, 175, 80, 0.04) !important;
+    background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
 }
 
 .match-team {
@@ -866,11 +918,95 @@ export default {
 }
 
 .match-status-badge--progress {
-    color: var(--tir-in-progress, #1976d2);
+    color: var(--color-primary, #6c5ce7);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.match-progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary, #6c5ce7);
+    animation: live-pulse 1.5s ease-in-out infinite;
 }
 
 .match-status-badge--finished {
     color: var(--tir-winner-text, #2e7d32);
+}
+
+.match-status-badge--live {
+    color: #e53935;
+}
+
+.match-live-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #e53935;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.match-live-link:hover {
+    text-decoration: underline;
+}
+
+.match-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e53935;
+    animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+.match-live-icon {
+    flex-shrink: 0;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+
+.score-history {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-top: 6px;
+}
+
+.score-history__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 4px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.score-history__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.score-history__score {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
 }
 
 .tabs-content-area {

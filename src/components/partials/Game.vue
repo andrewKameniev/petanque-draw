@@ -1,48 +1,69 @@
 <template>
-    <div class="game-row" data-testid="game-row" :class="{
-        compact: compactView,
-        'has-background-danger': gameHasError(game, maxScore),
-        'game-row--finished': effectiveStatus === 'finished',
-        'game-row--in-progress': effectiveStatus === 'in_progress'
-    }">
-        <div class="text-right team-block" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
-            <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
-        </div>
-        <span class="text-center score-block">
-            <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number" min="0"
-                   :disabled="isInputDisabled"
-                   @input="onScoreInput('team_1_score')"
-                   @focus="onFocus"
-                   @blur="onBlur"
-                   v-if="!compactView">
-            <span class="lane-block is-size-7" :class="{'lane-block--clickable': canSwapLane}" @click="startSwap">
-                <template v-if="swapMode">
-                    <input ref="swapInput" class="swap-lane-input" type="number" min="1"
-                           v-model.number="swapTarget"
-                           @keydown.enter.stop="confirmSwap"
-                           @keydown.escape="cancelSwap"
-                           @blur="cancelSwap">
-                </template>
-                <template v-else>
-                    {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ displayLane }}</span>
-                </template>
+    <div class="game-row-wrapper">
+        <div class="game-row" data-testid="game-row" :class="{
+            compact: compactView,
+            'has-background-danger': gameHasError(game, maxScore),
+            'game-row--finished': effectiveStatus === 'finished',
+            'game-row--in-progress': effectiveStatus === 'in_progress'
+        }">
+            <span v-if="!compactView && !isPlayoff && !isCadrage && !isThird" class="game-row__stream-toggle" :class="{'game-row__stream-toggle--active': currentGame.stream_url}" @click="showStreamInput = !showStreamInput">
+                <svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><path d="M23.5 2.8c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.7c-1 .3-1.7 1.1-2 2.1C0 4.7 0 9 0 9s0 4.3.5 6.2c.3 1 1 1.8 2 2.1C4.4 18 12 18 12 18s7.6 0 9.5-.7c1-.3 1.7-1.1 2-2.1.5-1.9.5-6.2.5-6.2s0-4.3-.5-6.2zM9.6 12.8V5.2l6.4 3.8-6.4 3.8z"/></svg>
             </span>
-            <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
-                   type="number" min="0"
-                   :disabled="isInputDisabled"
-                   @input="onScoreInput('team_2_score')"
-                   @focus="onFocus"
-                   @blur="onBlur"
-                   v-if="!compactView">
-        </span>
-        <div class="team-block" :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">
-            <label :for="'opponent_' + gameIndex">{{ game.team_2 }}</label>
+            <div class="text-right team-block team-block--left" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
+                <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
+                <input :id="'team_' + gameIndex" v-model="currentGame.team_1_score" class="input -small" type="number" min="0"
+                       :disabled="isInputDisabled"
+                       @input="onScoreInput('team_1_score')"
+                       @focus="onFocus"
+                       @blur="onBlur"
+                       v-if="!compactView">
+            </div>
+            <span class="text-center score-block">
+                <span class="lane-block is-size-7" :class="{'lane-block--clickable': canSwapLane}" @click="startSwap">
+                    <template v-if="swapMode">
+                        <input ref="swapInput" class="swap-lane-input" type="number" min="1"
+                               v-model.number="swapTarget"
+                               @keydown.enter.stop="confirmSwap"
+                               @keydown.escape="cancelSwap"
+                               @blur="confirmSwap">
+                    </template>
+                    <template v-else>
+                        {{ $t('games.lane') }} <span class="is-size-5 has-text-weight-bold">{{ displayLane }}</span>
+                    </template>
+                </span>
+            </span>
+            <div class="team-block team-block--right" :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">
+                <label :for="'opponent_' + gameIndex">{{ game.team_2 }}</label>
+                <input :id="'opponent_' + gameIndex" v-model="currentGame.team_2_score" class="input -small"
+                       type="number" min="0"
+                       :disabled="isInputDisabled"
+                       @input="onScoreInput('team_2_score')"
+                       @focus="onFocus"
+                       @blur="onBlur"
+                       v-if="!compactView">
+            </div>
+            <span v-if="!compactView" class="game-row__action">
+                <button v-if="canFinishGame" class="game-row__finish-btn" @click.stop="$emit('finish', gameIndex)">
+                    {{ $t('games.finish') }}
+                </button>
+            </span>
+            <div v-if="currentGame.score_history && currentGame.score_history.length && !compactView" class="game-row__history">
+                <span v-for="(entry, i) in currentGame.score_history" :key="i" class="game-row__history-chip">
+                    <span class="game-row__history-num">{{ i + 1 }}</span>
+                    <span class="game-row__history-score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                    <button class="game-row__history-remove" @click="removeScoreEntry(i)"><X :size="12"/></button>
+                </span>
+            </div>
+            <div v-if="showStreamInput" class="game-row__stream-row">
+                <input class="game-row__stream-input" type="url"
+                       v-model="currentGame.stream_url"
+                       :placeholder="$t('games.streamPlaceholder')"
+                       @input="$emit('update', gameIndex)">
+                <button v-if="currentGame.stream_url" class="game-row__stream-clear" @click="clearStream">
+                    <X :size="14"/>
+                </button>
+            </div>
         </div>
-        <span v-if="!compactView" class="game-row__action">
-            <button v-if="canFinishGame" class="game-row__finish-btn" @click.stop="$emit('finish', gameIndex)">
-                {{ $t('games.finish') }}
-            </button>
-        </span>
     </div>
 </template>
 
@@ -50,15 +71,18 @@
 import {gameHasError} from "@/helpers";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
+import {X} from "lucide-vue-next";
 
 export default {
     name: 'Game',
+    components: {X},
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
     emits: ['save', 'swapLane', 'update', 'finish'],
     data() {
         return {
             swapMode: false,
             swapTarget: null,
+            showStreamInput: false,
         }
     },
     methods: {
@@ -108,17 +132,30 @@ export default {
             });
         },
         confirmSwap() {
-            this._confirmed = true;
+            if (!this.swapMode) return;
+            this.swapMode = false;
             if (this.swapTarget && this.swapTarget !== this.displayLane) {
                 this.$emit('swapLane', { fromIndex: this.gameIndex, targetLane: this.swapTarget });
             }
-            this.swapMode = false;
         },
-        cancelSwap() {
-            setTimeout(() => {
-                if (!this._confirmed) this.swapMode = false;
-                this._confirmed = false;
-            }, 100);
+        clearStream() {
+            this.currentGame.stream_url = null;
+            this.$emit('update', this.gameIndex);
+        },
+        removeScoreEntry(index) {
+            this.currentGame.score_history.splice(index, 1);
+            if (this.currentGame.score_history.length === 0) {
+                this.currentGame.team_1_score = null;
+                this.currentGame.team_2_score = null;
+                this.currentGame.status = 'not_started';
+                this.currentGame.updated_at = null;
+                delete this.currentGame.score_history;
+            } else {
+                const last = this.currentGame.score_history[this.currentGame.score_history.length - 1];
+                this.currentGame.team_1_score = last.s1;
+                this.currentGame.team_2_score = last.s2;
+            }
+            this.$emit('update', this.gameIndex);
         },
     },
     computed: {
@@ -202,5 +239,133 @@ export default {
 
 .game-row__finish-btn:hover {
     opacity: 0.85;
+}
+
+.game-row__stream-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-text-muted, #bbb);
+    padding: 4px;
+    margin-left: 10px;
+    border-radius: 4px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+
+.game-row__stream-toggle:hover {
+    color: #ff0000;
+}
+
+.game-row__stream-toggle--active {
+    color: #ff0000;
+}
+
+.game-row__stream-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 8px;
+    width: 100%;
+}
+
+.game-row__stream-input {
+    flex: 1;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+    background: var(--color-surface, var(--color-white));
+    color: var(--color-text);
+}
+
+.game-row__stream-input:focus {
+    border-color: var(--color-primary);
+}
+
+.game-row__stream-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted, #999);
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.game-row__stream-clear:hover {
+    color: var(--color-danger, #e53935);
+}
+
+.game-row__history {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 12px;
+    margin: 6px 0;
+    width: 100%;
+}
+
+.game-row__history-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 5px 3px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface, var(--color-white));
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.game-row__history-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted, #999);
+    padding: 2px;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.game-row__history-remove:hover {
+    color: var(--color-danger, #e53935);
+    background: rgba(229, 57, 53, 0.1);
+}
+
+.game-row__history-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+@media all and (max-width: 768px) {
+    .game-row__stream-toggle {
+        margin-left: 0;
+    }
+
+    .game-row__history {
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        background: rgba(108, 92, 231, 0.08);
+    }
 }
 </style>

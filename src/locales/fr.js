@@ -348,7 +348,9 @@ export default {
         "tournamentUnpinned": "Tournoi désépinglé",
         "preferencesSaved": "Paramètres enregistrés",
         "warning": "Attention",
-        "constraintsNotSatisfied": "Impossible de trouver un calendrier satisfaisant toutes les contraintes (équipes du même club dans la première moitié)"
+        "constraintsNotSatisfied": "Impossible de trouver un calendrier satisfaisant toutes les contraintes (équipes du même club dans la première moitié)",
+        "redrawDone": "Tirage mis à jour",
+        "redrawDoneText": "Les tours ont été retirés avec succès"
     },
     "tir": {
         "participants": "Participants",

@@ -321,6 +321,7 @@
                    @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"
                    @startFirstRound="startFirstRound" @redraw="redrawRounds"/>
             <Results v-if="activeTab === 'results'"/>
+            <StreamPresets v-if="activeTab === 'streams'"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
                 <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
                 <!-- TODO: still working on cadrage/group B transition
@@ -472,7 +473,8 @@ import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio} from "lucide-vue-next";
+import StreamPresets from "@/components/partials/StreamPresets.vue";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
 
@@ -877,6 +879,7 @@ export default {
                 { id: 'games', label: this.$t('teams.games'), icon: 'Grid3x3' },
                 { id: 'results', label: this.$t('teams.results'), icon: 'List' },
                 { id: 'ranking', label: this.$t('teams.ranking'), icon: 'Trophy' },
+                { id: 'streams', label: this.$t('streams.title'), icon: 'Radio' },
             ];
         },
         isAllTeamsGroup() {
@@ -992,7 +995,9 @@ export default {
         Users,
         Grid3x3,
         List,
-        Trophy
+        Trophy,
+        Radio,
+        StreamPresets
     }
 }
 
@@ -1635,6 +1640,10 @@ export default {
 
 .tournament-nav__btn--ranking.tournament-nav__btn--active {
     color: var(--tir-touche, #ff9800);
+}
+
+.tournament-nav__btn--streams.tournament-nav__btn--active {
+    color: #e53935;
 }
 
 .tabs-content-area {

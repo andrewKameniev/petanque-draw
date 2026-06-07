@@ -101,6 +101,10 @@ export default {
         "live": "Наживо",
         "stream": "Трансляція"
     },
+    "streams": {
+        "title": "Трансляції",
+        "lanes": "Доріжки"
+    },
     "results": {
         "title": "Результати кожного раунду",
         "all": "Всі",

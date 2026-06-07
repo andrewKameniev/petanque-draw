@@ -86,9 +86,6 @@ export default {
             if (this.currentGame.status === 'not_started' || !this.currentGame.status) {
                 this.currentGame.status = 'in_progress';
                 this.currentGame.updated_at = new Date().toISOString();
-            } else if (this.currentGame.status === 'finished' && this.tournament.system === 'groups') {
-                this.currentGame.status = 'in_progress';
-                this.currentGame.updated_at = new Date().toISOString();
             }
             this.$emit('update', this.gameIndex);
             if (this.cochonettesEnabled && !isNaN(newVal) && newVal > 0 && newVal > prevVal) {
@@ -131,6 +128,9 @@ export default {
                 this.$refs.swapInput?.focus();
                 this.$refs.swapInput?.select();
             });
+        },
+        cancelSwap() {
+            this.swapMode = false;
         },
         confirmSwap() {
             if (!this.swapMode) return;

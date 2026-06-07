@@ -88,6 +88,10 @@ export default {
         "live": "Live",
         "stream": "Stream"
     },
+    "streams": {
+        "title": "Streams",
+        "lanes": "Lanes"
+    },
     "results": {
         "title": "Every round results",
         "all": "All",

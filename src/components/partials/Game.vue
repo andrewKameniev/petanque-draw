@@ -6,8 +6,8 @@
             'game-row--finished': effectiveStatus === 'finished',
             'game-row--in-progress': effectiveStatus === 'in_progress'
         }">
-            <span v-if="!compactView && !isPlayoff && !isCadrage && !isThird" class="game-row__stream-toggle" :class="{'game-row__stream-toggle--active': currentGame.stream_url}" @click="showStreamInput = !showStreamInput">
-                <svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><path d="M23.5 2.8c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.7c-1 .3-1.7 1.1-2 2.1C0 4.7 0 9 0 9s0 4.3.5 6.2c.3 1 1 1.8 2 2.1C4.4 18 12 18 12 18s7.6 0 9.5-.7c1-.3 1.7-1.1 2-2.1.5-1.9.5-6.2.5-6.2s0-4.3-.5-6.2zM9.6 12.8V5.2l6.4 3.8-6.4 3.8z"/></svg>
+            <span v-if="!compactView && !isPlayoff && !isCadrage && !isThird && hasStreams" class="game-row__stream-indicator">
+                <component :is="streamIcon" :size="20" />
             </span>
             <div class="text-right team-block team-block--left" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">
                 <label :for="'team_' + gameIndex">{{ game.team_1 }}</label>
@@ -54,42 +54,35 @@
                     <button class="game-row__history-remove" @click="removeScoreEntry(i)"><X :size="12"/></button>
                 </span>
             </div>
-            <div v-if="showStreamInput" class="game-row__stream-row">
-                <input class="game-row__stream-input" type="url"
-                       v-model="currentGame.stream_url"
-                       :placeholder="$t('games.streamPlaceholder')"
-                       @input="$emit('update', gameIndex)">
-                <button v-if="currentGame.stream_url" class="game-row__stream-clear" @click="clearStream">
-                    <X :size="14"/>
-                </button>
-            </div>
         </div>
     </div>
 </template>
 
 <script>
 import {gameHasError} from "@/helpers";
+import {getGameStreams, getStreamPlatform} from "@/services/streams";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {X} from "lucide-vue-next";
+import {X, Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
 
 export default {
     name: 'Game',
-    components: {X},
+    components: {X, Youtube, Twitch, Facebook, Instagram, Video},
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
     emits: ['save', 'swapLane', 'update', 'finish'],
     data() {
         return {
             swapMode: false,
             swapTarget: null,
-            showStreamInput: false,
         }
     },
     methods: {
         ...mapActions(useMainStore, ['updateGameScore', 'setActiveGameMatchPath']),
         gameHasError,
         onScoreInput(field) {
+            const prevVal = this._prevScores?.[field] ?? null;
             this.clampScore(field);
+            const newVal = Number(this.currentGame[field]);
             if (this.currentGame.status === 'not_started' || !this.currentGame.status) {
                 this.currentGame.status = 'in_progress';
                 this.currentGame.updated_at = new Date().toISOString();
@@ -98,9 +91,11 @@ export default {
                 this.currentGame.updated_at = new Date().toISOString();
             }
             this.$emit('update', this.gameIndex);
-            if (this.cochonettesEnabled) {
+            if (this.cochonettesEnabled && !isNaN(newVal) && newVal > 0 && newVal > prevVal) {
                 this.$nextTick(() => document.activeElement?.blur());
             }
+            if (!this._prevScores) this._prevScores = {};
+            this._prevScores[field] = isNaN(newVal) ? null : newVal;
         },
         clampScore(field) {
             const val = Number(this.currentGame[field]);
@@ -143,10 +138,6 @@ export default {
             if (this.swapTarget && this.swapTarget !== this.displayLane) {
                 this.$emit('swapLane', { fromIndex: this.gameIndex, targetLane: this.swapTarget });
             }
-        },
-        clearStream() {
-            this.currentGame.stream_url = null;
-            this.$emit('update', this.gameIndex);
         },
         removeScoreEntry(index) {
             this.currentGame.score_history.splice(index, 1);
@@ -220,6 +211,21 @@ export default {
         cochonettesEnabled() {
             return !!this.tournament.preferences.cochonettesEnabled
         },
+        resolvedStreams() {
+            return getGameStreams(this.game, this.tournament, this.gameIndex);
+        },
+        hasStreams() {
+            return this.resolvedStreams.length > 0;
+        },
+        streamIcon() {
+            if (!this.resolvedStreams.length) return 'Video';
+            const platform = getStreamPlatform(this.resolvedStreams[0]);
+            if (platform === 'youtube') return 'Youtube';
+            if (platform === 'twitch') return 'Twitch';
+            if (platform === 'facebook') return 'Facebook';
+            if (platform === 'instagram') return 'Instagram';
+            return 'Video';
+        },
     }
 }
 </script>
@@ -254,64 +260,14 @@ export default {
     opacity: 0.85;
 }
 
-.game-row__stream-toggle {
+.game-row__stream-indicator {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    color: var(--color-text-muted, #bbb);
+    color: #e53935;
     padding: 4px;
     margin-left: 10px;
-    border-radius: 4px;
-    transition: color 0.15s;
     flex-shrink: 0;
-}
-
-.game-row__stream-toggle:hover {
-    color: #ff0000;
-}
-
-.game-row__stream-toggle--active {
-    color: #ff0000;
-}
-
-.game-row__stream-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px 8px;
-    width: 100%;
-}
-
-.game-row__stream-input {
-    flex: 1;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
-    outline: none;
-    background: var(--color-surface, var(--color-white));
-    color: var(--color-text);
-}
-
-.game-row__stream-input:focus {
-    border-color: var(--color-primary);
-}
-
-.game-row__stream-clear {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--color-text-muted, #999);
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.game-row__stream-clear:hover {
-    color: var(--color-danger, #e53935);
 }
 
 .game-row__history {
@@ -370,7 +326,7 @@ export default {
 }
 
 @media all and (max-width: 768px) {
-    .game-row__stream-toggle {
+    .game-row__stream-indicator {
         margin-left: 0;
     }
 

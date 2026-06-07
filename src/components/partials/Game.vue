@@ -93,6 +93,9 @@ export default {
             if (this.currentGame.status === 'not_started' || !this.currentGame.status) {
                 this.currentGame.status = 'in_progress';
                 this.currentGame.updated_at = new Date().toISOString();
+            } else if (this.currentGame.status === 'finished' && this.tournament.system === 'groups') {
+                this.currentGame.status = 'in_progress';
+                this.currentGame.updated_at = new Date().toISOString();
             }
             this.$emit('update', this.gameIndex);
         },
@@ -167,7 +170,9 @@ export default {
             return this.game.status || 'not_started';
         },
         isInputDisabled() {
-            return this.game.team_2 === 'Technical' || this.effectiveStatus === 'finished';
+            if (this.game.team_2 === 'Technical') return true;
+            if (this.effectiveStatus === 'finished' && this.tournament.system === 'groups') return false;
+            return this.effectiveStatus === 'finished';
         },
         canFinishGame() {
             if (this.effectiveStatus === 'finished') return false;
@@ -180,7 +185,9 @@ export default {
             return s1 !== s2 && (s1 > 0 || s2 > 0);
         },
         canSwapLane() {
-            return !this.compactView && !this.isThird && this.game.team_2 !== 'Technical' && this.effectiveStatus !== 'finished';
+            if (this.compactView || this.isThird || this.game.team_2 === 'Technical') return false;
+            if (this.effectiveStatus === 'finished' && this.tournament.system !== 'groups') return false;
+            return true;
         },
         currentGame() {
             if (this.isThird) {

@@ -107,7 +107,8 @@
                          :class="{
                             'match-item--highlighted': isTeamHighlighted(game),
                             'match-item--in-progress': game.status === 'in_progress',
-                            'match-item--finished': game.status === 'finished'
+                            'match-item--finished': game.status === 'finished',
+                            'match-item--upcoming': !game.status || game.status === 'not_started'
                          }"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
                         <span class="match-team match-team-right" :class="{
@@ -126,11 +127,11 @@
                             'match-team--highlighted': isTeamNameHighlighted(game.team_2),
                             'match-team--winner': game.status === 'finished' && game.winner === game.team_2
                         }">{{ game.team_2 }}</span>
-                        <span v-if="game.stream_url && game.status === 'in_progress'" class="match-status-badge match-status-badge--live">
+                        <span v-if="game.stream_url" class="match-status-badge match-status-badge--live">
                             <a :href="game.stream_url" target="_blank" rel="noopener" class="match-live-link">
-                                <span class="match-live-dot"></span>
+                                <span v-if="game.status === 'in_progress'" class="match-live-dot"></span>
                                 <svg class="match-live-icon" width="16" height="12" viewBox="0 0 24 18" fill="#ff0000"><path d="M23.5 2.8c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.7c-1 .3-1.7 1.1-2 2.1C0 4.7 0 9 0 9s0 4.3.5 6.2c.3 1 1 1.8 2 2.1C4.4 18 12 18 12 18s7.6 0 9.5-.7c1-.3 1.7-1.1 2-2.1.5-1.9.5-6.2.5-6.2s0-4.3-.5-6.2zM9.6 12.8V5.2l6.4 3.8-6.4 3.8z"/></svg>
-                                <span>{{ $t('games.live') }}</span>
+                                <span>{{ game.status === 'in_progress' ? $t('games.live') : $t('games.stream') }}</span>
                             </a>
                         </span>
                         <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
@@ -849,6 +850,11 @@ export default {
 .match-item--finished {
     border-color: var(--tir-carreau, #4caf50);
     background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
+}
+
+.match-item--upcoming {
+    border-color: #bdbdbd;
+    background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
 }
 
 .match-team {

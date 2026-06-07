@@ -67,7 +67,7 @@
                 <div v-if="activeTournament.games && activeTournament.roundIsActive && !activeTournament.cadrage && !activeTournament.playOff" class="current-round-card mt-3 mb-3">
                     <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
                     <div class="match-list">
-                        <div class="match-item"
+                        <div class="match-item match-item--upcoming"
                              v-for="(game, index) in activeTournament.games[activeRound - 1]" :key="index">
                             <span class="match-team match-team-right">{{ game.team_1 }}</span>
                             <span class="match-vs">
@@ -717,6 +717,11 @@ export default {
 
 .match-item:hover {
     border-color: var(--tir-touche, #ff9800);
+}
+
+.match-item--upcoming {
+    border-color: #bdbdbd;
+    background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
 }
 
 .match-team {

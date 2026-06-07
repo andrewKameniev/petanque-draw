@@ -19,6 +19,13 @@ wins > directWins > directPoints > (pointsPlus - pointsMinus)
 - `directWins`: How many of the other tied teams this team beat directly
 - `directPoints`: Point difference in games between tied teams only
 
+## Editing Previous Round Results
+Admins can edit match results from any completed round via the Results tab (pencil icon). After saving:
+- The game score and winner are updated
+- All team stats (wins, points scored/conceded) are reset and recalculated from scratch across all rounds
+- Standings are immediately reflected in both admin and public views
+- The schedule is unaffected since all matches are pre-generated
+
 ## After Groups
 Top N teams from each group advance to [Playoff](./playoff.md) or [Cadrage](./cadrage.md).
 

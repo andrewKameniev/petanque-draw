@@ -85,11 +85,16 @@ export default {
         "finishAllGames": "Todos los partidos deben estar terminados antes de finalizar esta ronda",
         "noDrawsAllowed": "Los empates no están permitidos. Verifique el marcador",
         "streamPlaceholder": "Enlace de transmisión (YouTube, Twitch...)",
-        "live": "En vivo"
+        "live": "En vivo",
+        "stream": "Transmisión"
     },
     "results": {
         "title": "Resultados de cada ronda",
-        "all": "Todos"
+        "all": "Todos",
+        "editResult": "Editar resultado",
+        "editResultTitle": "Editar resultado del partido",
+        "saveResult": "Guardar",
+        "resultUpdated": "Resultado actualizado, clasificación recalculada"
     },
     "ranking": {
         "ranking": "Clasificación",

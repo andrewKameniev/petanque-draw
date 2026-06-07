@@ -187,6 +187,13 @@ export default {
             if (this.previewTournament) {
                 return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
             }
+            if (this.tournament.system === 'groups' && this.tournament.games?.length) {
+                return [...this.tournament.teams].sort((a, b) =>
+                    (b.wins || 0) - (a.wins || 0) ||
+                    ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
+                    (b.pointsPlus || 0) - (a.pointsPlus || 0)
+                );
+            }
             return this.tournament.teams;
         },
         hasRichData() {

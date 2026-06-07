@@ -6,7 +6,7 @@
                     <div class="round-tabs">
                         <button v-for="(round, index) in allDisplayRounds" :key="index"
                                 class="button is-small mr-1 mb-1"
-                                :class="{'is-purple': selectedRound === index, 'is-outlined': index >= tournament.games.length}"
+                                :class="{'is-purple': selectedRound === index, 'is-outlined': !isRoundPlayed(index)}"
                                 @click="selectedRound = index">
                             {{ getRoundLabel(index) }}
                         </button>
@@ -38,16 +38,17 @@
                             <div v-for="(game, i) in round" :key="i"
                                  class="match-item"
                                  :class="{
-                                    'match-item--finished': game.team_1_score != null && game.team_2_score != null,
-                                    'match-item--upcoming': game.team_1_score == null || game.team_2_score == null,
+                                    'match-item--finished': game.status === 'finished',
+                                    'match-item--in-progress': game.status === 'in_progress',
+                                    'match-item--upcoming': !game.status || game.status === 'not_started',
                                     'match-item--highlighted': isGameHighlighted(game)
                                  }">
                                 <span class="match-team match-team-right" :class="{
                                     'match-team--winner': game.team_1_score > game.team_2_score
                                 }">{{ game.team_1 }}</span>
                                 <span class="match-vs">
-                                    <template v-if="game.team_1_score != null && game.team_2_score != null">
-                                        <span class="match-score">{{ game.team_1_score }} : {{ game.team_2_score }}</span>
+                                    <template v-if="game.status === 'finished' || game.status === 'in_progress'">
+                                        <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
                                     </template>
                                     <template v-else>
                                         <span class="match-lane">vs</span>
@@ -206,12 +207,20 @@ export default {
             return this.tournament.games || [];
         },
         allSortedRounds() {
+            let rounds;
             if (this.tournament.groupSchedule) {
                 const played = this.sortedGames || [];
                 const scheduled = this.tournament.groupSchedule.slice(played.length);
-                return [...played, ...sortGamesByGroup(scheduled, this.hasGroupsColumn)];
+                rounds = [...played, ...sortGamesByGroup(scheduled, this.hasGroupsColumn)];
+            } else {
+                rounds = this.sortedGames;
             }
-            return this.sortedGames;
+            return (rounds || []).map(round => {
+                const finished = round.filter(g => g.status === 'finished');
+                const inProgress = round.filter(g => g.status === 'in_progress');
+                const upcoming = round.filter(g => !g.status || g.status === 'not_started');
+                return [...finished, ...inProgress, ...upcoming];
+            });
         },
         colCount() {
             return this.hasGroupsColumn ? 5 : 4
@@ -292,6 +301,11 @@ export default {
         },
         isGameHighlighted(game) {
             return this.isTeamHighlighted(game.team_1) || this.isTeamHighlighted(game.team_2);
+        },
+        isRoundPlayed(index) {
+            if (index >= this.tournament.games.length) return false;
+            const round = this.tournament.games[index];
+            return round && round.some(g => g.team_1_score != null && g.team_2_score != null);
         }
     }
 }

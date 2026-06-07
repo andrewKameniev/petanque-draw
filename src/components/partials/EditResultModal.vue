@@ -73,6 +73,13 @@ export default {
 .edit-result {
     display: flex;
     flex-direction: column;
+    min-width: 480px;
+}
+
+@media screen and (max-width: 520px) {
+    .edit-result {
+        min-width: auto;
+    }
 }
 
 .edit-result__header {
@@ -131,7 +138,14 @@ export default {
     font-weight: 600;
     font-size: 0.95rem;
     text-align: center;
-    word-break: break-word;
+    white-space: nowrap;
+}
+
+@media screen and (max-width: 520px) {
+    .edit-result__label {
+        white-space: normal;
+        word-break: break-word;
+    }
 }
 
 .edit-result__input {

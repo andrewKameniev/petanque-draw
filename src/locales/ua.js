@@ -98,7 +98,8 @@ export default {
         "finishAllGames": "Всі матчі повинні бути завершені перед закінченням раунду",
         "noDrawsAllowed": "Нічия неможлива. Перевірте рахунок",
         "streamPlaceholder": "Посилання на трансляцію (YouTube, Twitch...)",
-        "live": "Наживо"
+        "live": "Наживо",
+        "stream": "Трансляція"
     },
     "results": {
         "title": "Результати кожного раунду",

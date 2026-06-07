@@ -57,6 +57,25 @@
                     <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)"><GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;"/> {{ $t('games.showBracket') }}</button>
                 </div>
             </div>
+            <div v-if="isFinished && winnerTeam" class="winner-card">
+                <div class="winner-card__trophy">
+                    <TrophyIcon :size="36" />
+                </div>
+                <div class="winner-card__title">{{ $t('tir.tournamentWinner') }}</div>
+                <div class="winner-card__team-name">{{ winnerTeam.title }}</div>
+                <div v-if="winnerTeam.players && winnerTeam.players.length" class="winner-card__players">
+                    <div v-for="(player, pIdx) in winnerTeam.players" :key="pIdx" class="winner-card__player">
+                        <img v-if="player.avatar_url" :src="player.avatar_url" class="winner-card__avatar" alt="">
+                        <div v-else class="winner-card__avatar winner-card__avatar--placeholder">
+                            <Users :size="16" />
+                        </div>
+                        <div class="winner-card__player-info">
+                            <span class="winner-card__player-name">{{ player.surname }} {{ player.name }}</span>
+                            <span v-if="player.club" class="winner-card__player-club">{{ player.club }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <TeamPlayoff v-if="tournament.teamPlayoff" :read-only="true"/>
             <PlayOff v-else-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
             <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
@@ -127,12 +146,14 @@
                             'match-team--highlighted': isTeamNameHighlighted(game.team_2),
                             'match-team--winner': game.status === 'finished' && game.winner === game.team_2
                         }">{{ game.team_2 }}</span>
-                        <span v-if="game.stream_url" class="match-status-badge match-status-badge--live">
-                            <a :href="game.stream_url" target="_blank" rel="noopener" class="match-live-link">
-                                <span v-if="game.status === 'in_progress'" class="match-live-dot"></span>
-                                <svg class="match-live-icon" width="16" height="12" viewBox="0 0 24 18" fill="#ff0000"><path d="M23.5 2.8c-.3-1-1-1.8-2-2.1C19.6 0 12 0 12 0S4.4 0 2.5.7c-1 .3-1.7 1.1-2 2.1C0 4.7 0 9 0 9s0 4.3.5 6.2c.3 1 1 1.8 2 2.1C4.4 18 12 18 12 18s7.6 0 9.5-.7c1-.3 1.7-1.1 2-2.1.5-1.9.5-6.2.5-6.2s0-4.3-.5-6.2zM9.6 12.8V5.2l6.4 3.8-6.4 3.8z"/></svg>
-                                <span>{{ game.status === 'in_progress' ? $t('games.live') : $t('games.stream') }}</span>
+                        <span v-if="getGameStreams(game, index).length" class="match-status-badge match-status-badge--live">
+                            <a v-for="(streamUrl, si) in getGameStreams(game, index)" :key="si"
+                               :href="streamUrl" target="_blank" rel="noopener"
+                               class="match-live-link" :class="getStreamIconClass(streamUrl)">
+                                <span v-if="si === 0 && game.status === 'in_progress'" class="match-live-dot"></span>
+                                <component :is="getStreamIcon(streamUrl)" :size="16" />
                             </a>
+                            <span class="match-live-label">{{ game.status === 'in_progress' ? $t('games.live') : $t('games.stream') }}</span>
                         </span>
                         <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
                             <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
@@ -190,6 +211,8 @@ import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
+import {getGameStreams, getStreamPlatform} from "@/services/streams";
+import {Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
@@ -203,7 +226,7 @@ import RoundTimer from "@/components/partials/RoundTimer.vue";
 import {Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon},
+    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon, Youtube, Twitch, Facebook, Instagram, Video},
     data() {
         return {
             isLoading: false,
@@ -248,18 +271,26 @@ export default {
         tabs() {
             return [
                 { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-                { id: 'results', label: this.$t('teams.results'), icon: 'List' },
-                { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' }
+                { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' },
+                { id: 'results', label: this.$t('teams.results'), icon: 'List' }
             ];
         },
         showCurrentRound() {
-            return this.tournament.games && this.tournament.roundIsActive && !this.tournament.cadrage && !this.tournament.playOff && this.tournament.system !== 'tir';
+            return this.tournament.games && this.tournament.roundIsActive && !this.tournament.tournamentIsFinished && !this.tournament.cadrage && !this.tournament.playOff && this.tournament.system !== 'tir';
         },
         activeRound() {
             return this.tournament.games?.length ? this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1 : 1;
         },
         rankingTeams() {
             return getTeamsRanking(this.tournament, this.activeRound)
+        },
+        winnerTeam() {
+            if (!this.isFinished || !this.tournament?.teams) return null;
+            const ranking = this.rankingTeams;
+            if (!ranking || !ranking.length) return null;
+            const topTitle = Array.isArray(ranking[0]) ? ranking[0][0]?.title : ranking[0]?.title;
+            if (!topTitle) return null;
+            return this.tournament.teams.find(t => t.title === topTitle) || null;
         },
         userId() {
             if (this.$route.query.ref) {
@@ -409,6 +440,22 @@ export default {
         }
     },
     methods: {
+        getGameStreams(game, index) {
+            return getGameStreams(game, this.tournament, index);
+        },
+        getStreamPlatform,
+        getStreamIcon(url) {
+            const platform = getStreamPlatform(url);
+            if (platform === 'youtube') return 'Youtube';
+            if (platform === 'twitch') return 'Twitch';
+            if (platform === 'facebook') return 'Facebook';
+            if (platform === 'instagram') return 'Instagram';
+            return 'Video';
+        },
+        getStreamIconClass(url) {
+            const platform = getStreamPlatform(url);
+            return `stream-icon--${platform}`;
+        },
         isTeamNameHighlighted(teamName) {
             if (!this.highlightedTeam) return false;
             if (this.highlightedTeam === teamName) return true;
@@ -941,6 +988,10 @@ export default {
 
 .match-status-badge--live {
     color: #e53935;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
 }
 
 .match-live-link {
@@ -952,8 +1003,25 @@ export default {
     font-weight: 600;
 }
 
+.match-live-link.stream-icon--twitch {
+    color: #9146ff;
+}
+
+.match-live-link.stream-icon--facebook {
+    color: #1877f2;
+}
+
+.match-live-link.stream-icon--instagram {
+    color: #e4405f;
+}
+
 .match-live-link:hover {
-    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.match-live-label {
+    font-weight: 600;
+    margin-left: 2px;
 }
 
 .match-live-dot {
@@ -962,10 +1030,6 @@ export default {
     border-radius: 50%;
     background: #e53935;
     animation: live-pulse 1.5s ease-in-out infinite;
-}
-
-.match-live-icon {
-    flex-shrink: 0;
 }
 
 @keyframes live-pulse {
@@ -1022,5 +1086,121 @@ export default {
 
 .tabs-content-area :deep(table) {
     margin: 0 auto;
+}
+
+.winner-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+    border: 2px solid #d4a017;
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin: 12px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: winner-glow 3s ease-in-out infinite;
+}
+
+.winner-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(245, 200, 66, 0.05), transparent, rgba(245, 200, 66, 0.08), transparent);
+    animation: winner-shimmer 6s linear infinite;
+}
+
+@keyframes winner-glow {
+    0%, 100% { box-shadow: 0 4px 20px rgba(245, 200, 66, 0.15), inset 0 0 30px rgba(245, 200, 66, 0.03); }
+    50% { box-shadow: 0 4px 30px rgba(245, 200, 66, 0.3), inset 0 0 40px rgba(245, 200, 66, 0.06); }
+}
+
+@keyframes winner-shimmer {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.winner-card__trophy {
+    color: #f5c842;
+    margin-bottom: 8px;
+    position: relative;
+    filter: drop-shadow(0 0 8px rgba(245, 200, 66, 0.4));
+}
+
+.winner-card__title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #e8a620, #f5d442, #e8a620);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.winner-card__team-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 18px;
+    position: relative;
+    text-shadow: 0 0 20px rgba(245, 200, 66, 0.2);
+}
+
+.winner-card__players {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+}
+
+.winner-card__player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(245, 200, 66, 0.03));
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    border-radius: 12px;
+    padding: 10px 16px;
+    min-width: 180px;
+    backdrop-filter: blur(4px);
+}
+
+.winner-card__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(245, 200, 66, 0.3);
+}
+
+.winner-card__avatar--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 200, 66, 0.1);
+    color: #f5c842;
+}
+
+.winner-card__player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.winner-card__player-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #f0f0f0;
+}
+
+.winner-card__player-club {
+    font-size: 12px;
+    color: rgba(245, 200, 66, 0.7);
 }
 </style>

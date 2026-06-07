@@ -168,9 +168,9 @@ export default {
         this.selectedRound = getDefaultSelectedRound(t);
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'isAdmin']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'user']),
         canEditResults() {
-            return this.isAdmin && !this.isForProtocol && this.tournament.system === 'groups';
+            return !!this.user && !this.isForProtocol && this.tournament.system === 'groups';
         },
         tournament() {
             return this.previewTournament || this.currentTournament

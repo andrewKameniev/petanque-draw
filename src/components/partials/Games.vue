@@ -309,6 +309,10 @@ export default {
             game.updated_at = new Date().toISOString();
             this.syncGameMatch(this.activeRound - 1, idx, game);
             this.showFinishConfirmIndex = null;
+            const allFinished = this.tournament.games[this.activeRound - 1].every(g => g.status === 'finished');
+            if (allFinished && this.tournament.roundTimer?.timerStatus === 'running') {
+                this.endRoundTimer();
+            }
         },
         validateAndFinishRound() {
             const games = this.currentRoundGames;

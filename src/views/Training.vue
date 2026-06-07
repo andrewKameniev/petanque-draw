@@ -8,42 +8,40 @@
             <div class="stat-container">
                 <div v-if="user" class="mobile-stat-container">
                     <div class="mobile-stat-container">
-                        <div class="has-text-right mobile-stat-container-header">
-                            <div class="is-flex is-justify-content-space-between mb-3">
-                                <button v-if="!exerciseInProcess && !resultsOpen" @click="addExerciseOpen = !addExerciseOpen" class="button btn-primary">
-                                    <span v-if="addExerciseOpen">{{ $t('training.toList') }}</span>
-                                    <span v-else>{{ $t('training.addEx') }}</span>
-                                </button>
-                            </div>
+                        <div v-if="addExerciseOpen">
+                            <button @click="addExerciseOpen = false" class="button btn-primary-outline btn-sm mb-3">{{ $t('training.toList') }}</button>
+                            <TrainingAdd @add="addExToList"/>
                         </div>
-                        <TrainingAdd v-if="addExerciseOpen" @add="addExToList"/>
                         <TrainingItem v-else-if="exerciseInProcess" :data="exercise" :exid="exerciseInProcess" @end="exerciseInProcess = false"/>
                         <TrainingResult v-else-if="resultsOpen" :exid="resultsOpen" :exdata="exercisesList[resultsOpen]" @back="resultsOpen = false"/>
                         <div v-else>
                             <div v-if="exercisesList">
-                                <div class="is-size-4 mb-5">{{ $t('training.exList') }}</div>
-                                <div v-for="(item, key) in exercisesList" :key="key" class="exercise-item is-rounded mb-3 p-3">
-                                    <div>
-                                        <div class="mb-2">
-                                            <span class="is-size-5">{{item.name}}</span>
-                                            <span class="is-size-7"> ({{item.distances.length}} {{ $t('training.distances') }}, {{ $t('training.serieLength') }} - {{item.length}})</span>
-                                        </div>
-                                        <div class="is-flex is-align-items-center">
-                                            <div class="field is-grouped">
-                                                <div class="control">
-                                                    <button class="button btn-primary" @click="start(key)">{{ $t('training.startTraining') }}</button>
-                                                </div>
-                                                <div class="control">
-                                                    <button class="button btn-primary-outline" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
-                                                </div>
+                                <div class="exercise-list-header">
+                                    <div class="exercise-list-title">{{ $t('training.exList') }}</div>
+                                    <button @click="addExerciseOpen = true" class="button btn-primary btn-sm">{{ $t('training.addEx') }}</button>
+                                </div>
+                                <div v-for="(item, key) in exercisesList" :key="key" class="exercise-item">
+                                    <div class="exercise-item__top">
+                                        <div>
+                                            <div class="exercise-item__name">{{item.name}}</div>
+                                            <div class="exercise-item__meta">
+                                                <span class="exercise-item__badge">{{item.distances.length}} {{ $t('training.distances') }}</span>
+                                                <span class="exercise-item__badge">{{ $t('training.serieLength') }}: {{item.length}}</span>
                                             </div>
-                                            <button class="ml-auto delete" @click.stop="confirmRemoveId = key"></button>
                                         </div>
+                                        <button class="exercise-item__delete" @click.stop="confirmRemoveId = key">
+                                            <Trash2 :size="14"/>
+                                        </button>
+                                    </div>
+                                    <div class="exercise-item__actions">
+                                        <button class="button btn-primary btn-sm" @click="start(key)">{{ $t('training.startTraining') }}</button>
+                                        <button class="button btn-primary-outline btn-sm" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
                                     </div>
                                 </div>
                             </div>
-                            <div v-else>
-                                {{ $t('training.addExToBegin') }}
+                            <div v-else class="exercise-empty">
+                                <p>{{ $t('training.addExToBegin') }}</p>
+                                <button @click="addExerciseOpen = true" class="button btn-primary btn-sm mt-3">{{ $t('training.addEx') }}</button>
                             </div>
 
                         </div>
@@ -81,9 +79,10 @@ import TrainingItem from "@/components/training/TrainingItem.vue";
 import TrainingResult from "@/components/training/TrainingResult.vue";
 import TrainingAdd from "@/components/training/TrainingAdd.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
+import {Trash2} from "lucide-vue-next";
 export default {
     name: 'Training',
-    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, Footer},
+    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, Message, Menu, Navbar, Footer, Trash2},
     data() {
         return {
             resultsOpen: false,
@@ -166,32 +165,116 @@ export default {
 
 <style>
 
+.exercise-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.exercise-list-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+}
+
 .exercise-item {
-    background: var(--color-surface-semi);
-    border-radius: 0.5rem;
-    border: 2px solid var(--color-primary);
+    background: var(--color-surface);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.6rem;
+    transition: border-color 0.15s;
+}
+
+.exercise-item:hover {
+    border-color: var(--color-primary);
+}
+
+.exercise-item__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.exercise-item__name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.3;
+}
+
+.exercise-item__meta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+}
+
+.exercise-item__badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    color: var(--color-primary);
+}
+
+.exercise-item__delete {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
     cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 6px;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.exercise-item__delete:hover {
+    color: var(--color-error);
+}
+
+.exercise-item__actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
 }
 
 .btn-primary {
     background: var(--color-primary) !important;
     border-color: var(--color-primary) !important;
     color: var(--color-white) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: opacity 0.15s !important;
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 .btn-primary-outline {
     background: transparent !important;
-    border: 2px solid var(--color-primary) !important;
+    border: 1.5px solid var(--color-primary) !important;
     color: var(--color-primary) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.15s !important;
 }
 
 .btn-primary-outline:hover {
     background: var(--color-primary) !important;
     color: var(--color-white) !important;
+}
+
+.btn-sm {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.75rem !important;
 }
 
 </style>

@@ -753,6 +753,7 @@ export default {
 <style>
 .stat-container {
     flex: 1;
+    padding: 1rem;
 }
 
 @media screen and (max-width: 500px) {

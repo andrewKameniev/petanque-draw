@@ -332,6 +332,7 @@ export default {
     background: transparent;
     color: var(--color-error);
     border: 1px solid var(--color-error);
+    white-space: nowrap;
 }
 
 .tracking__btn--danger-outline:hover {

@@ -85,9 +85,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 const routeLocaleMap = {
-    Statistics: 'stat',
-    Documentation: 'help',
-    Training: 'training',
+    Statistics: ['stat'],
+    Documentation: ['help'],
+    Training: ['training', 'stat'],
 };
 
 router.beforeEach(async (to) => {
@@ -96,8 +96,8 @@ router.beforeEach(async (to) => {
         const store = useMainStore();
         if (!store.user) return '/';
     }
-    const module = routeLocaleMap[to.name];
-    if (module) await loadLocaleModule(module);
+    const modules = routeLocaleMap[to.name];
+    if (modules) await Promise.all(modules.map(m => loadLocaleModule(m)));
 });
 
 authReadyPromise.then(() => app.mount('#app'));

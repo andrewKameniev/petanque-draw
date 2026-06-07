@@ -86,7 +86,7 @@
                                 :class="{'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex), 'search-highlight': isTeamHighlighted(team.title)}">
                                 <td>{{ index + 1 }}</td>
                                 <td>{{ team.title }}</td>
-                                <td align="center">{{ team.wins }}</td>
+                                <td align="center" class="td-highlight">{{ team.wins }}</td>
                                 <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
@@ -128,7 +128,7 @@
                                         </div>
                                     </template>
                                 </td>
-                                <td align="center">{{ team.wins }}</td>
+                                <td align="center" class="td-highlight">{{ team.wins }}</td>
                                 <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
@@ -174,7 +174,7 @@
                             :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
                             <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
-                            <td align="center">{{ team.wins }}</td>
+                            <td align="center" class="td-highlight">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
                             <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
@@ -214,8 +214,8 @@
                             :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
                             <td>{{ team.title }}</td>
-                            <td align="center">{{ team.wins }}</td>
-                            <td align="center">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
+                            <td align="center" class="td-highlight">{{ team.wins }}</td>
+                            <td align="center" class="td-highlight">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
                             <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
                         </tr>
@@ -259,7 +259,7 @@
                                         </div>
                                     </template>
                                 </td>
-                                <td align="center">{{ team.wins }}</td>
+                                <td align="center" class="td-highlight">{{ team.wins }}</td>
                                 <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                             </tr>
                             </tbody>
@@ -757,6 +757,10 @@ export default {
     border-color: var(--color-primary-light);
 }
 
+.td-highlight {
+    font-weight: 500;
+}
+
 .nowrap {
     white-space: nowrap;
 }
@@ -766,5 +770,9 @@ export default {
     -webkit-overflow-scrolling: touch;
     max-width: 100%;
     min-width: 0;
+}
+
+.table-container .table {
+    margin: 0 auto;
 }
 </style>

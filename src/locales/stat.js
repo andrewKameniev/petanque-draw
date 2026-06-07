@@ -91,7 +91,7 @@ export default {
             "next": "Наступний",
             "newGame": "Нова гра",
             "finishGame": "Завершити гру",
-            "removeMan": "Видалити цей мен",
+            "removeMan": "Видалити мен",
             "score": "Рахунок",
             "man": "Мен",
             "back": "Назад",

@@ -157,6 +157,7 @@ import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 import {getDefaultSelectedRound, hasPlayOffResults as checkPlayOffResults, sortGamesByGroup} from "@/services/results";
 import {saveResultsForRound} from "@/services/draw";
+import {getDatabase, ref, update} from "firebase/database";
 import Bracket from "@/components/partials/Bracket";
 import EditResultModal from "@/components/partials/EditResultModal.vue";
 import {GitFork, Pencil} from "lucide-vue-next";
@@ -217,7 +218,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['syncToFirebase', 'showMessage']),
+        ...mapActions(useMainStore, ['showMessage']),
         openEditModal(game) {
             if (!this.canEditResults) return;
             this.editingGame = game;
@@ -230,24 +231,12 @@ export default {
             let gameIndex = -1;
             for (let r = 0; r < this.tournament.games.length; r++) {
                 const idx = this.tournament.games[r].findIndex(g =>
-                    g.team_1 === game.team_1 && g.team_2 === game.team_2 && g === game
+                    g.team_1 === game.team_1 && g.team_2 === game.team_2
                 );
                 if (idx !== -1) {
                     roundIndex = r;
                     gameIndex = idx;
                     break;
-                }
-            }
-            if (roundIndex === -1) {
-                for (let r = 0; r < this.tournament.games.length; r++) {
-                    const idx = this.tournament.games[r].findIndex(g =>
-                        g.team_1 === game.team_1 && g.team_2 === game.team_2
-                    );
-                    if (idx !== -1) {
-                        roundIndex = r;
-                        gameIndex = idx;
-                        break;
-                    }
                 }
             }
 
@@ -261,9 +250,22 @@ export default {
             actualGame.updated_at = new Date().toISOString();
 
             this.recalculateStandings();
-            this.syncToFirebase();
+            this.persistToFirebase();
             this.editingGame = null;
             this.showMessage({title: this.$t('messages.success'), text: this.$t('results.resultUpdated')});
+        },
+        persistToFirebase() {
+            const store = useMainStore();
+            if (!store.user || !store.user.uid || !store.currentTournamentIndex) return;
+            const db = getDatabase();
+            const tournament = store.tournaments[store.currentTournamentIndex];
+            const data = JSON.parse(JSON.stringify(tournament));
+            const path = `${store.user.uid}/tournaments/${store.currentTournamentIndex}`;
+            update(ref(db, `${store.user.uid}/tournaments/`), {
+                [store.currentTournamentIndex]: data
+            }).catch(error => {
+                console.error('Error persisting edited result:', error);
+            });
         },
         recalculateStandings() {
             this.tournament.teams.forEach(team => {

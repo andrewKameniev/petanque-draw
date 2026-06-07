@@ -200,6 +200,140 @@ function countBuhgolts(whereCount, whatBuhgolts) {
 function sortTeamsForSupermele(teamsToSort) {
     return teamsToSort.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus) || b.pointsPlus - a.pointsPlus || b.rating - a.rating);
 }
+
+function getH2HStats(games, teamNames) {
+    const stats = {};
+    teamNames.forEach(name => { stats[name] = { pointsPlus: 0, pointsMinus: 0 }; });
+    const nameSet = new Set(teamNames);
+    games.forEach(round => {
+        round.forEach(game => {
+            if (game.team_1_score == null || game.team_2_score == null) return;
+            if (game.status === 'in_progress' || game.status === 'not_started') return;
+            const t1 = game.team_1;
+            const t2 = game.team_2;
+            if (!nameSet.has(t1) || !nameSet.has(t2)) return;
+            const s1 = Number(game.team_1_score);
+            const s2 = Number(game.team_2_score);
+            stats[t1].pointsPlus += s1;
+            stats[t1].pointsMinus += s2;
+            stats[t2].pointsPlus += s2;
+            stats[t2].pointsMinus += s1;
+        });
+    });
+    return stats;
+}
+
+function splitByCriterion(teams, getValue) {
+    const groups = [];
+    let currentGroup = [teams[0]];
+    let currentVal = getValue(teams[0]);
+    for (let i = 1; i < teams.length; i++) {
+        const val = getValue(teams[i]);
+        if (val === currentVal) {
+            currentGroup.push(teams[i]);
+        } else {
+            groups.push(currentGroup);
+            currentGroup = [teams[i]];
+            currentVal = val;
+        }
+    }
+    groups.push(currentGroup);
+    return groups;
+}
+
+function rankGroupByRegulations(group, games) {
+    const sorted = group.slice().sort((a, b) => b.wins - a.wins);
+    const winClusters = splitByCriterion(sorted, t => t.wins);
+    const result = [];
+    winClusters.forEach(cluster => {
+        result.push(...rankCluster(cluster, games));
+    });
+    return result;
+}
+
+function rankCluster(cluster, games) {
+    if (cluster.length <= 1) return cluster;
+
+    const names = cluster.map(t => t.title);
+
+    if (cluster.length === 2) {
+        return rankTwoTeams(cluster, games);
+    }
+
+    const h2h = getH2HStats(games, names);
+    const withDiff = cluster.map(t => ({
+        team: t,
+        h2hDiff: h2h[t.title].pointsPlus - h2h[t.title].pointsMinus
+    }));
+    withDiff.sort((a, b) => b.h2hDiff - a.h2hDiff);
+
+    const diffGroups = splitByCriterion(withDiff, item => item.h2hDiff);
+    if (diffGroups.length > 1) {
+        const result = [];
+        diffGroups.forEach(g => {
+            result.push(...rankCluster(g.map(item => item.team), games));
+        });
+        return result;
+    }
+
+    const withPlus = cluster.map(t => ({
+        team: t,
+        h2hPlus: h2h[t.title].pointsPlus
+    }));
+    withPlus.sort((a, b) => b.h2hPlus - a.h2hPlus);
+
+    const plusGroups = splitByCriterion(withPlus, item => item.h2hPlus);
+    if (plusGroups.length > 1) {
+        const result = [];
+        plusGroups.forEach(g => {
+            result.push(...rankCluster(g.map(item => item.team), games));
+        });
+        return result;
+    }
+
+    const withOverall = cluster.slice().sort((a, b) =>
+        (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus)
+    );
+
+    const overallGroups = splitByCriterion(withOverall, t => t.pointsPlus - t.pointsMinus);
+    if (overallGroups.length > 1) {
+        const result = [];
+        overallGroups.forEach(g => {
+            result.push(...rankCluster(g, games));
+        });
+        return result;
+    }
+
+    return cluster;
+}
+
+function rankTwoTeams(pair, games) {
+    const [a, b] = pair;
+    const h2hResult = getGameResultBetween(games, a.title, b.title);
+    if (h2hResult > 0) return [a, b];
+    if (h2hResult < 0) return [b, a];
+    const diffA = a.pointsPlus - a.pointsMinus;
+    const diffB = b.pointsPlus - b.pointsMinus;
+    if (diffA !== diffB) return diffA > diffB ? [a, b] : [b, a];
+    return pair;
+}
+
+function getGameResultBetween(games, team1, team2) {
+    let diff = 0;
+    games.forEach(round => {
+        round.forEach(game => {
+            if (game.team_1_score == null || game.team_2_score == null) return;
+            if (game.status === 'in_progress' || game.status === 'not_started') return;
+            if (game.team_1 === team1 && game.team_2 === team2) {
+                diff += Number(game.team_1_score) - Number(game.team_2_score);
+            } else if (game.team_1 === team2 && game.team_2 === team1) {
+                diff += Number(game.team_2_score) - Number(game.team_1_score);
+            }
+        });
+    });
+    return diff;
+}
+
 function getTeamsRanking(tournament, activeRound) {
     if (tournament.teams) {
         if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
@@ -246,12 +380,10 @@ function getTeamsRanking(tournament, activeRound) {
                 const teamWins = {};
                 const teamPointsPlus = {};
                 const teamPointsMinus = {};
-                const teamOpponents = {};
                 group.forEach(t => {
                     teamWins[t.title] = 0;
                     teamPointsPlus[t.title] = 0;
                     teamPointsMinus[t.title] = 0;
-                    teamOpponents[t.title] = [];
                 });
 
                 if (tournament.games) {
@@ -268,35 +400,19 @@ function getTeamsRanking(tournament, activeRound) {
                             teamPointsMinus[t1] = (teamPointsMinus[t1] || 0) + s2;
                             teamPointsPlus[t2] = (teamPointsPlus[t2] || 0) + s2;
                             teamPointsMinus[t2] = (teamPointsMinus[t2] || 0) + s1;
-                            if (s1 > s2) { teamWins[t1]++; teamOpponents[t1].push(t2); teamOpponents[t2].push(t1); }
-                            else if (s2 > s1) { teamWins[t2]++; teamOpponents[t1].push(t2); teamOpponents[t2].push(t1); }
+                            if (s1 > s2) { teamWins[t1]++; }
+                            else if (s2 > s1) { teamWins[t2]++; }
                         });
                     });
                 }
 
                 group.forEach(team => {
                     team.wins = teamWins[team.title] || 0;
-                    team.opponents = teamOpponents[team.title] || [];
                     team.pointsPlus = teamPointsPlus[team.title] || 0;
                     team.pointsMinus = teamPointsMinus[team.title] || 0;
+                });
 
-                    let directPoints = 0;
-                    let directWins = 0;
-                    if (team.opponents) {
-                        team.opponents.forEach(opponent => {
-                            const opponentTeam = group.find(t => t.title === opponent);
-                            if (opponentTeam && team.wins === (teamWins[opponent] || 0)) {
-                                if (getGameResultInGroup(tournament.games, team.title, opponent, true) > 0) {
-                                    directWins++
-                                }
-                                directPoints += getGameResultInGroup(tournament.games, team.title, opponent, true)
-                            }
-                        })
-                        team.directWins = directWins;
-                        team.directPoints = directPoints;
-                    }
-                })
-                let groupRanking = group.slice().sort((a, b) => b.wins - a.wins || b.directWins - a.directWins || b.directPoints - a.directPoints || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus))
+                let groupRanking = rankGroupByRegulations(group, tournament.games || []);
                 sortedGroups.push(groupRanking);
             });
             return sortedGroups;
@@ -400,4 +516,4 @@ const shuffleArray = (array) => {
     return array;
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray}
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray, rankGroupByRegulations}

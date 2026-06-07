@@ -36,13 +36,22 @@
                         <template v-if="selectedRound === -1 || selectedRound === index">
                             <div v-if="selectedRound === -1" class="results-card-round-label">{{ getRoundLabel(index) }}</div>
                             <div v-for="(game, i) in round" :key="i"
-                                 class="match-item match-item--finished"
-                                 :class="{'match-item--highlighted': isGameHighlighted(game)}">
+                                 class="match-item"
+                                 :class="{
+                                    'match-item--finished': game.team_1_score != null && game.team_2_score != null,
+                                    'match-item--upcoming': game.team_1_score == null || game.team_2_score == null,
+                                    'match-item--highlighted': isGameHighlighted(game)
+                                 }">
                                 <span class="match-team match-team-right" :class="{
                                     'match-team--winner': game.team_1_score > game.team_2_score
                                 }">{{ game.team_1 }}</span>
                                 <span class="match-vs">
-                                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                                    <template v-if="game.team_1_score != null && game.team_2_score != null">
+                                        <span class="match-score">{{ game.team_1_score }} : {{ game.team_2_score }}</span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="match-lane">vs</span>
+                                    </template>
                                 </span>
                                 <span class="match-team" :class="{
                                     'match-team--winner': game.team_2_score > game.team_1_score
@@ -216,11 +225,41 @@ export default {
         saveEditedResult({score1, score2}) {
             const game = this.editingGame;
             if (!game) return;
-            game.team_1_score = score1;
-            game.team_2_score = score2;
-            game.winner = score1 > score2 ? game.team_1 : game.team_2;
-            game.status = 'finished';
-            game.updated_at = new Date().toISOString();
+
+            let roundIndex = -1;
+            let gameIndex = -1;
+            for (let r = 0; r < this.tournament.games.length; r++) {
+                const idx = this.tournament.games[r].findIndex(g =>
+                    g.team_1 === game.team_1 && g.team_2 === game.team_2 && g === game
+                );
+                if (idx !== -1) {
+                    roundIndex = r;
+                    gameIndex = idx;
+                    break;
+                }
+            }
+            if (roundIndex === -1) {
+                for (let r = 0; r < this.tournament.games.length; r++) {
+                    const idx = this.tournament.games[r].findIndex(g =>
+                        g.team_1 === game.team_1 && g.team_2 === game.team_2
+                    );
+                    if (idx !== -1) {
+                        roundIndex = r;
+                        gameIndex = idx;
+                        break;
+                    }
+                }
+            }
+
+            if (roundIndex === -1) return;
+
+            const actualGame = this.tournament.games[roundIndex][gameIndex];
+            actualGame.team_1_score = score1;
+            actualGame.team_2_score = score2;
+            actualGame.winner = score1 > score2 ? actualGame.team_1 : actualGame.team_2;
+            actualGame.status = 'finished';
+            actualGame.updated_at = new Date().toISOString();
+
             this.recalculateStandings();
             this.syncToFirebase();
             this.editingGame = null;

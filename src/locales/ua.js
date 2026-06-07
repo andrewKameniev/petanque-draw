@@ -102,7 +102,11 @@ export default {
     },
     "results": {
         "title": "Результати кожного раунду",
-        "all": "Всі"
+        "all": "Всі",
+        "editResult": "Редагувати результат",
+        "editResultTitle": "Редагувати результат матчу",
+        "saveResult": "Зберегти",
+        "resultUpdated": "Результат оновлено, таблицю перераховано"
     },
     "ranking": {
         "ranking": "Таблиця",

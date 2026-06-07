@@ -89,7 +89,11 @@ export default {
     },
     "results": {
         "title": "Resultados de cada ronda",
-        "all": "Todos"
+        "all": "Todos",
+        "editResult": "Editar resultado",
+        "editResultTitle": "Editar resultado del partido",
+        "saveResult": "Guardar",
+        "resultUpdated": "Resultado actualizado, clasificación recalculada"
     },
     "ranking": {
         "ranking": "Clasificación",

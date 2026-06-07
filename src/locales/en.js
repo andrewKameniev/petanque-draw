@@ -89,7 +89,11 @@ export default {
     },
     "results": {
         "title": "Every round results",
-        "all": "All"
+        "all": "All",
+        "editResult": "Edit result",
+        "editResultTitle": "Edit match result",
+        "saveResult": "Save",
+        "resultUpdated": "Result updated, standings recalculated"
     },
     "ranking": {
         "ranking": "Ranking",

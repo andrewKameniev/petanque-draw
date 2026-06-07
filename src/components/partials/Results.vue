@@ -47,6 +47,9 @@
                                 <span class="match-team" :class="{
                                     'match-team--winner': game.team_2_score > game.team_1_score
                                 }">{{ game.team_2 }}</span>
+                                <button v-if="canEditResults" class="edit-result-btn edit-result-btn--card" :title="$t('results.editResult')" @click="openEditModal(game)">
+                                    <Pencil :size="14"/>
+                                </button>
                                 <div v-if="game.score_history && game.score_history.length" class="score-history">
                                     <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
                                         <span class="score-history__num">{{ ei + 1 }}</span>
@@ -76,6 +79,11 @@
                                             <span v-else class="score-empty">-- : --</span>
                                         </td>
                                         <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                        <td v-if="canEditResults" class="is-narrow edit-cell">
+                                            <button class="edit-result-btn" :title="$t('results.editResult')" @click="openEditModal(game)">
+                                                <Pencil :size="14"/>
+                                            </button>
+                                        </td>
                                     </tr>
                                 </template>
                             </template>
@@ -129,26 +137,30 @@
             {{ $t('games.noGames') }}
         </div>
         <Bracket v-if="showBracket" :bracket="tournament.playOffBracket" @close-modal="showBracket = false"/>
+        <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null"/>
     </div>
 </template>
 
 
 <script>
-import {mapState} from "pinia";
+import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames} from "@/helpers";
 import {getDefaultSelectedRound, hasPlayOffResults as checkPlayOffResults, sortGamesByGroup} from "@/services/results";
+import {saveResultsForRound} from "@/services/draw";
 import Bracket from "@/components/partials/Bracket";
-import {GitFork} from "lucide-vue-next";
+import EditResultModal from "@/components/partials/EditResultModal.vue";
+import {GitFork, Pencil} from "lucide-vue-next";
 
 export default {
     name: 'Results',
-    components: {Bracket, GitFork},
+    components: {Bracket, EditResultModal, GitFork, Pencil},
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView'],
     data() {
         return {
             selectedRound: -1,
             showBracket: false,
+            editingGame: null,
         }
     },
     created() {
@@ -156,7 +168,10 @@ export default {
         this.selectedRound = getDefaultSelectedRound(t);
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'isAdmin']),
+        canEditResults() {
+            return this.isAdmin && !this.isForProtocol && this.tournament.system === 'groups';
+        },
         tournament() {
             return this.previewTournament || this.currentTournament
         },
@@ -193,6 +208,35 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useMainStore, ['syncToFirebase', 'showMessage']),
+        openEditModal(game) {
+            if (!this.canEditResults) return;
+            this.editingGame = game;
+        },
+        saveEditedResult({score1, score2}) {
+            const game = this.editingGame;
+            if (!game) return;
+            game.team_1_score = score1;
+            game.team_2_score = score2;
+            game.winner = score1 > score2 ? game.team_1 : game.team_2;
+            game.status = 'finished';
+            game.updated_at = new Date().toISOString();
+            this.recalculateStandings();
+            this.syncToFirebase();
+            this.editingGame = null;
+            this.showMessage({title: this.$t('messages.success'), text: this.$t('results.resultUpdated')});
+        },
+        recalculateStandings() {
+            this.tournament.teams.forEach(team => {
+                team.wins = 0;
+                team.opponents = [];
+                team.pointsPlus = 0;
+                team.pointsMinus = 0;
+            });
+            for (let i = 0; i < this.tournament.games.length; i++) {
+                saveResultsForRound(this.tournament, i);
+            }
+        },
         getRoundLabel(index) {
             const barrage = this.tournament.barrage;
             if (barrage && index >= barrage.startIndex) {
@@ -341,5 +385,33 @@ export default {
     color: var(--color-text-muted);
     padding: 0.5rem 0 0.2rem;
     text-transform: uppercase;
+}
+
+.edit-cell {
+    padding: 0 0.25rem;
+}
+
+.edit-result-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.edit-result-btn:hover {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.edit-result-btn--card {
+    flex-shrink: 0;
+    margin-left: auto;
 }
 </style>

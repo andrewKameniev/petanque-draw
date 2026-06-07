@@ -89,7 +89,11 @@ export default {
     },
     "results": {
         "title": "Résultats de chaque tour",
-        "all": "Tous"
+        "all": "Tous",
+        "editResult": "Modifier le résultat",
+        "editResultTitle": "Modifier le résultat du match",
+        "saveResult": "Enregistrer",
+        "resultUpdated": "Résultat mis à jour, classement recalculé"
     },
     "ranking": {
         "ranking": "Classement",

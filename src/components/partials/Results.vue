@@ -170,7 +170,7 @@ export default {
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'user']),
         canEditResults() {
-            return !!this.user && !this.isForProtocol && this.tournament.system === 'groups';
+            return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
         },
         tournament() {
             return this.previewTournament || this.currentTournament

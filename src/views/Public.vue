@@ -286,6 +286,18 @@ export default {
         },
         winnerTeam() {
             if (!this.isFinished || !this.tournament?.teams) return null;
+            if (this.tournament.system === 'tir') {
+                const playoff = this.tournament.tirPlayoff;
+                if (playoff?.final?.score1 != null && playoff?.final?.score2 != null) {
+                    const winnerName = playoff.final.score1 > playoff.final.score2 ? playoff.final.player1 : playoff.final.player2;
+                    if (winnerName) {
+                        const participants = this.tournament.tirParticipants || [];
+                        const winner = participants.find(p => p.name === winnerName);
+                        if (winner) return { title: winner.name, players: [winner] };
+                    }
+                }
+                return null;
+            }
             const ranking = this.rankingTeams;
             if (!ranking || !ranking.length) return null;
             const topTitle = Array.isArray(ranking[0]) ? ranking[0][0]?.title : ranking[0]?.title;
@@ -595,6 +607,7 @@ export default {
     border-radius: 8px;
     padding: 1rem 1.25rem;
     padding-right: 7rem;
+    background: var(--color-surface);
 }
 
 .tournament-info-card--inline {
@@ -787,9 +800,22 @@ export default {
 }
 
 .wrapper .container {
-    max-width: 800px;
+    max-width: 800px !important;
     margin: 0 auto;
     padding: 0 1rem;
+    padding-bottom: 2rem;
+}
+
+@media screen and (min-width: 1024px) {
+    .wrapper .container {
+        padding-bottom: 3rem;
+    }
+}
+
+@media screen and (min-width: 1408px) {
+    .wrapper .container {
+        max-width: 1100px !important;
+    }
 }
 
 .wrapper :deep(.navbar) {
@@ -874,6 +900,7 @@ export default {
 }
 
 .match-item {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
@@ -883,6 +910,13 @@ export default {
     background: var(--color-surface, var(--color-white));
     border: 1px solid var(--color-border);
     transition: background 0.15s, border-color 0.15s;
+}
+
+[data-theme="dark"] .match-item--finished,
+[data-theme="dark"] .match-item--in-progress,
+[data-theme="dark"] .match-item--upcoming {
+    background-color: var(--color-surface) !important;
+    background-blend-mode: soft-light;
 }
 
 .match-item:hover {
@@ -1053,7 +1087,8 @@ export default {
     gap: 4px;
     padding: 2px 8px 2px 4px;
     border-radius: 10px;
-    background: #fff;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
 }
 
 .score-history__num {
@@ -1080,6 +1115,7 @@ export default {
     border: 1px solid var(--color-border);
     border-radius: 0 0 12px 12px;
     padding: 16px;
+    padding-bottom: 24px;
     min-height: 200px;
     overflow-x: auto;
 }
@@ -1103,22 +1139,44 @@ export default {
 .winner-card::before {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg, transparent, rgba(245, 200, 66, 0.05), transparent, rgba(245, 200, 66, 0.08), transparent);
-    animation: winner-shimmer 6s linear infinite;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    margin-top: -100vmax;
+    margin-left: -100vmax;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(245, 200, 66, 0.15) 10%, transparent 20%, rgba(245, 200, 66, 0.2) 30%, transparent 40%, rgba(245, 200, 66, 0.1) 60%, transparent 70%);
+    animation: winner-shimmer 12s linear infinite;
+}
+
+.winner-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(245, 200, 66, 0.6), transparent 40%, transparent 60%, rgba(245, 200, 66, 0.6));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: winner-border-shift 3s ease-in-out infinite alternate;
+    pointer-events: none;
 }
 
 @keyframes winner-glow {
-    0%, 100% { box-shadow: 0 4px 20px rgba(245, 200, 66, 0.15), inset 0 0 30px rgba(245, 200, 66, 0.03); }
-    50% { box-shadow: 0 4px 30px rgba(245, 200, 66, 0.3), inset 0 0 40px rgba(245, 200, 66, 0.06); }
+    0%, 100% { box-shadow: 0 4px 20px rgba(245, 200, 66, 0.2), inset 0 0 30px rgba(245, 200, 66, 0.05); }
+    50% { box-shadow: 0 6px 35px rgba(245, 200, 66, 0.4), inset 0 0 50px rgba(245, 200, 66, 0.08); }
 }
 
 @keyframes winner-shimmer {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@keyframes winner-border-shift {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
 }
 
 .winner-card__trophy {

@@ -48,7 +48,10 @@
                     <tbody v-if="isTwoRoundSystem">
                         <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
                             <td class="tir-table__sticky-col">{{ index + 1 }}</td>
-                            <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">{{ row.name }}</td>
+                            <td class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable" @click="openFromTable(row.id)">
+                                <img v-if="getParticipantAvatar(row.name)" :src="getParticipantAvatar(row.name)" class="tir-table__avatar" alt="">
+                                <span>{{ row.name }}</span>
+                            </td>
                             <td :class="{'tir-table__muted': row.r1 === '—'}">{{ row.r1 }}</td>
                             <td v-for="i in tiebreakerCount" :key="'ex'+i">{{ getTiebreakerScoreForTable(row.id, i) }}</td>
                             <td v-if="currentRound >= 2" :class="{'tir-table__muted': row.r2 === '—'}">{{ row.r2 }}</td>
@@ -62,7 +65,10 @@
                     <tbody v-else>
                         <tr v-for="(participant, index) in rankedParticipants" :key="participant.id || index" :class="{'tir-table__row--qualified': isQualified(participant)}">
                             <td>{{ index + 1 }}</td>
-                            <td>{{ participant.name }}</td>
+                            <td class="tir-table__name-cell">
+                                <img v-if="getParticipantAvatar(participant.name)" :src="getParticipantAvatar(participant.name)" class="tir-table__avatar" alt="">
+                                <span>{{ participant.name }}</span>
+                            </td>
                             <td><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</td>
                             <td>{{ getThrows(participant) }} / {{ totalThrows }}</td>
                         </tr>
@@ -113,17 +119,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Winner block -->
-                <div v-if="champion" class="tir-playoff__champion">
-                    <div class="tir-playoff__champion-icon">
-                        <Trophy :size="28" color="#fff"/>
-                    </div>
-                    <div class="tir-playoff__champion-info">
-                        <span class="tir-playoff__champion-label">{{ $t('tir.tournamentWinner') }}</span>
-                        <span class="tir-playoff__champion-name">{{ champion }}</span>
                     </div>
                 </div>
 
@@ -548,6 +543,17 @@ export default {
         getScore(participant, atelierIdx, distance) {
             return participant[this.activeScoresKey]?.[atelierIdx]?.[distance] || null;
         },
+        getParticipantAvatar(name) {
+            if (!name || !this.tournament.teams) return null;
+            for (const team of this.tournament.teams) {
+                if (team.players) {
+                    const player = team.players.find(p => `${p.surname || ''} ${p.name || ''}`.trim() === name || `${p.name || ''} ${p.surname || ''}`.trim() === name);
+                    if (player?.avatar_url) return player.avatar_url;
+                }
+                if (team.title === name && team.players?.[0]?.avatar_url) return team.players[0].avatar_url;
+            }
+            return null;
+        },
         isQualified(participant) {
             return this.qualifiedNames.includes(participant.name);
         },
@@ -966,6 +972,22 @@ export default {
     z-index: 2;
 }
 
+.tir-table__avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.tir-table__name-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .tir-table__sticky-col--name {
     left: 32px;
     max-width: 160px;
@@ -1138,8 +1160,13 @@ td.tir-table__muted {
 
 .tir-playoff__match--complete {
     border-color: var(--tir-carreau);
-    background: rgba(76, 175, 80, 0.06);
+    background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
+    background-color: var(--color-surface) !important;
     border-width: 2px;
+}
+
+[data-theme="dark"] .tir-playoff__match--complete {
+    background-blend-mode: soft-light;
 }
 
 .tir-playoff__match--complete .tir-playoff__match-num {
@@ -1149,8 +1176,13 @@ td.tir-table__muted {
 
 .tir-playoff__match--in-progress {
     border-color: var(--color-primary);
-    background: var(--color-primary-bg);
+    background: url('@/assets/img/card-bg-active.png') center/cover no-repeat !important;
+    background-color: var(--color-surface) !important;
     border-width: 2px;
+}
+
+[data-theme="dark"] .tir-playoff__match--in-progress {
+    background-blend-mode: soft-light;
 }
 
 .tir-playoff__match--in-progress .tir-playoff__match-num {
@@ -1160,16 +1192,21 @@ td.tir-table__muted {
 
 .tir-playoff__match--final {
     border-color: var(--tir-touche);
-    background: var(--color-surface);
+    border-width: 2px;
 }
 
 .tir-playoff__match--pending {
     opacity: 0.5;
     cursor: default;
+    background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
+    background-color: var(--color-surface) !important;
+}
+
+[data-theme="dark"] .tir-playoff__match--pending {
+    background-blend-mode: soft-light;
 }
 
 .tir-playoff__match--pending:hover {
-    background: var(--color-surface);
     border-color: var(--color-border);
 }
 

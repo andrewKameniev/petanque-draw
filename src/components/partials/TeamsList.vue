@@ -1,7 +1,7 @@
 <template>
     <div v-if="(tournament.system === 'groups' || tournament.system === 'poules') && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
-        <div v-for="(group, index) in tournament.groups" :key="index">
-            <h4 class="mt-5 text-center" v-if="tournament.groups.length > 1">{{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}</h4>
+        <div v-for="(group, index) in sortedGroups" :key="index">
+            <h4 class="mt-5 text-center" v-if="sortedGroups.length > 1">{{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}</h4>
             <div v-if="hasRichData" class="teams-cards">
                 <div v-for="(team, teamIndex) in group" :key="team.title"
                      class="team-card" :class="{'team-card--highlighted': isTeamHighlighted(team.title)}">
@@ -167,7 +167,7 @@
 <script>
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {tournamentNames} from "@/helpers";
+import {tournamentNames, sortTeams, rankGroupByRegulations} from "@/helpers";
 import {X, Star, UserCircle, TrendingUp} from "lucide-vue-next";
 
 export default {
@@ -184,17 +184,74 @@ export default {
         },
         sortedTeams() {
             if (!this.tournament?.teams) return [];
-            if (this.previewTournament) {
+            if (!this.tournament.games?.length && !this.tournament.roundIsActive) {
                 return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
             }
-            if (this.tournament.system === 'groups' && this.tournament.games?.length) {
+            if (this.tournament.system === 'swiss') {
+                return sortTeams([...this.tournament.teams]);
+            }
+            if (this.tournament.system === 'supermele') {
+                return [...this.tournament.teams].sort((a, b) =>
+                    (b.wins || 0) - (a.wins || 0) ||
+                    ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
+                    (b.pointsPlus || 0) - (a.pointsPlus || 0) ||
+                    (b.rating || 0) - (a.rating || 0)
+                );
+            }
+            if ((this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament.games?.length) {
                 return [...this.tournament.teams].sort((a, b) =>
                     (b.wins || 0) - (a.wins || 0) ||
                     ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
                     (b.pointsPlus || 0) - (a.pointsPlus || 0)
                 );
             }
-            return this.tournament.teams;
+            return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
+        },
+        sortedGroups() {
+            if (!this.tournament.groups) return [];
+            if (!this.tournament.games?.length) return this.tournament.groups;
+            if (this.tournament.system === 'groups') {
+                return this.tournament.groups.map(group => {
+                    const teamWins = {};
+                    const teamPointsPlus = {};
+                    const teamPointsMinus = {};
+                    group.forEach(t => {
+                        teamWins[t.title] = 0;
+                        teamPointsPlus[t.title] = 0;
+                        teamPointsMinus[t.title] = 0;
+                    });
+                    this.tournament.games.forEach(roundGames => {
+                        roundGames.forEach(game => {
+                            if (game.team_1_score == null || game.team_2_score == null) return;
+                            if (game.status === 'in_progress' || game.status === 'not_started') return;
+                            const t1 = game.team_1;
+                            const t2 = game.team_2;
+                            if (!(t1 in teamWins) || !(t2 in teamWins)) return;
+                            const s1 = Number(game.team_1_score);
+                            const s2 = Number(game.team_2_score);
+                            teamPointsPlus[t1] = (teamPointsPlus[t1] || 0) + s1;
+                            teamPointsMinus[t1] = (teamPointsMinus[t1] || 0) + s2;
+                            teamPointsPlus[t2] = (teamPointsPlus[t2] || 0) + s2;
+                            teamPointsMinus[t2] = (teamPointsMinus[t2] || 0) + s1;
+                            if (s1 > s2) { teamWins[t1]++; }
+                            else if (s2 > s1) { teamWins[t2]++; }
+                        });
+                    });
+                    group.forEach(team => {
+                        team.wins = teamWins[team.title] || 0;
+                        team.pointsPlus = teamPointsPlus[team.title] || 0;
+                        team.pointsMinus = teamPointsMinus[team.title] || 0;
+                    });
+                    return rankGroupByRegulations(group, this.tournament.games || []);
+                });
+            }
+            return this.tournament.groups.map(group => {
+                return [...group].sort((a, b) =>
+                    (b.wins || 0) - (a.wins || 0) ||
+                    ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
+                    (b.pointsPlus || 0) - (a.pointsPlus || 0)
+                );
+            });
         },
         hasRichData() {
             if (!this.tournament?.teams?.length) return false;
@@ -473,7 +530,7 @@ export default {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #2e1065;
+    background: var(--color-primary);
     color: #fff;
     font-size: 0.6rem;
     font-weight: 700;

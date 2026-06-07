@@ -98,6 +98,9 @@ export default {
                 this.currentGame.updated_at = new Date().toISOString();
             }
             this.$emit('update', this.gameIndex);
+            if (this.cochonettesEnabled) {
+                this.$nextTick(() => document.activeElement?.blur());
+            }
         },
         clampScore(field) {
             const val = Number(this.currentGame[field]);
@@ -213,6 +216,9 @@ export default {
         },
         fieldsStart() {
             return this.tournament.preferences.fieldsStart
+        },
+        cochonettesEnabled() {
+            return !!this.tournament.preferences.cochonettesEnabled
         },
     }
 }

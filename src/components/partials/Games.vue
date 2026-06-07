@@ -338,9 +338,6 @@ export default {
                 else if (game.team_2_score > game.team_1_score) game.winner = game.team_2;
             });
             if (!this.tournament.barrage) {
-                this.saveResultsForRound(this.activeRound - 1);
-            }
-            if (this.isRestoredRound && !this.tournament.barrage) {
                 this.tournament.teams.forEach(team => {
                     team.wins = 0;
                     team.opponents = [];

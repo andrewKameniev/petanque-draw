@@ -88,6 +88,10 @@ export default {
         "live": "En vivo",
         "stream": "Transmisión"
     },
+    "streams": {
+        "title": "Transmisiones",
+        "lanes": "Pistas"
+    },
     "results": {
         "title": "Resultados de cada ronda",
         "all": "Todos",

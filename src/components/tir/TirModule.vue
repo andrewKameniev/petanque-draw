@@ -370,6 +370,18 @@
                 <button v-if="canFinishPlayoff" class="tir-playoff__advance-btn" @click="finishPlayoffTournament">
                     {{ $t('teams.finishTournament') }}
                 </button>
+
+                <!-- Export when finished -->
+                <div v-if="tournament.tournamentIsFinished" class="tir-playoff__export">
+                    <button class="tir-playoff__export-btn" @click="exportResults('csv')">
+                        <Download :size="16"/>
+                        CSV
+                    </button>
+                    <button class="tir-playoff__export-btn" @click="exportResults('json')">
+                        <Download :size="16"/>
+                        JSON
+                    </button>
+                </div>
             </template>
         </div>
     </div>
@@ -2158,6 +2170,35 @@ td.tir-table__muted {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
+}
+
+.tir-playoff__export {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+}
+
+.tir-playoff__export-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.tir-playoff__export-btn:hover {
+    background: var(--color-surface-alt);
 }
 
 /* Tiebreaker */

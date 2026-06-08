@@ -87,6 +87,7 @@ export default {
             startX: 0,
             startY: 0,
             swipeDirection: null,
+            isHorizontalSwipe: false,
             localManDistance: null,
         }
     },
@@ -121,29 +122,30 @@ export default {
         onTouchStart(event) {
             this.startX = event.touches[0].clientX;
             this.startY = event.touches[0].clientY;
+            this.isHorizontalSwipe = false;
         },
         onTouchMove(event) {
-            event.preventDefault();
+            const deltaX = Math.abs(event.touches[0].clientX - this.startX);
+            const deltaY = Math.abs(event.touches[0].clientY - this.startY);
+            if (deltaX > 10 && deltaX > deltaY) {
+                this.isHorizontalSwipe = true;
+                event.preventDefault();
+            }
         },
         onTouchEnd(event) {
-            const endX = event.changedTouches[0].clientX;
-            const endY = event.changedTouches[0].clientY;
-            const deltaX = endX - this.startX;
-            const deltaY = endY - this.startY;
+            if (!this.isHorizontalSwipe) return;
 
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                this.swipeDirection = deltaX > 0 ? "right" : "left";
-                if (Math.abs(endX - this.startX) > 50) {
-                    if (this.swipeDirection === 'right') {
-                        if (this.currentMan > 0) {
-                            this.$emit('prev');
-                        }
-                    } else {
-                        this.$emit('next');
+            const endX = event.changedTouches[0].clientX;
+            const deltaX = endX - this.startX;
+
+            if (Math.abs(deltaX) > 50) {
+                if (deltaX > 0) {
+                    if (this.currentMan > 0) {
+                        this.$emit('prev');
                     }
+                } else {
+                    this.$emit('next');
                 }
-            } else {
-                this.swipeDirection = deltaY > 0 ? "down" : "up";
             }
         },
     }

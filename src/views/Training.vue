@@ -5,7 +5,7 @@
             <Menu :active="menuOpen" @closeMenu="menuOpen = false"/>
             <div class="stat-container">
                 <div v-if="user" class="mobile-stat-container">
-                    <div class="mobile-stat-container">
+                    <div class="mobile-stat-container training-content">
                         <!-- Create new session -->
                         <TrainingCreate v-if="view === 'create'" @back="view = 'list'" @created="onSessionCreated"/>
 
@@ -286,6 +286,10 @@ export default {
 </script>
 
 <style>
+.training-content {
+    padding: 1rem 0.5rem;
+}
+
 .training-tabs {
     display: flex;
     gap: 0;

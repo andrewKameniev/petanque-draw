@@ -17,6 +17,7 @@
                             :asCouch="asCouch"
                             :isSaving="isSaving"
                             :gameName="gameName"
+                            :gameType="gameType"
                             @newGame="startNewGame"
                             @finishGame="finishGame"
                             @updateScore="updateTeamScore"
@@ -25,6 +26,7 @@
                             @x2Throw="doubleThrowResult"
                             @updateThrow="updateThrow"
                             @changePlayer="changePlayerInTeam"
+                            @replacePlayer="replacePlayerInTeam"
                             @next="currentMan++"
                             @prev="currentMan--"
                             @removeMan="removeMan"
@@ -367,7 +369,18 @@ export default {
         removeTag(id) {
             delete this.tags[id];
         },
+        trackPlayerUsage() {
+            const raw = localStorage.getItem('statPlayerUsage');
+            const usage = raw ? JSON.parse(raw) : {};
+            [...this.team1.players, ...this.team2.players].forEach(p => {
+                if (p.name.trim()) {
+                    usage[p.name.trim()] = (usage[p.name.trim()] || 0) + 1;
+                }
+            });
+            localStorage.setItem('statPlayerUsage', JSON.stringify(usage));
+        },
         finishGame() {
+            this.trackPlayerUsage();
             this.finishedGame = {
                 name: this.gameName,
                 system: this.statSystem,
@@ -415,6 +428,19 @@ export default {
         },
         changePlayerInTeam(teamIndex, playerIndex, playerName) {
             this['team' + teamIndex].players[playerIndex].name = playerName;
+        },
+        replacePlayerInTeam(teamIndex, playerIndex, newPlayerName) {
+            const team = this['team' + teamIndex];
+            team.players[playerIndex].wasChanged = true;
+
+            const newPlayer = {
+                name: newPlayerName,
+                stat: [],
+            };
+            for (let i = 0; i <= this.currentMan; i++) {
+                newPlayer.stat.push([]);
+            }
+            team.players.push(newPlayer);
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
             team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)

@@ -95,6 +95,13 @@
             <div class="setup__grid">
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.team') }} 1</span>
+                    <div v-if="topPlayersTeam1.length" class="setup__top-players">
+                        <button v-for="name in topPlayersTeam1" :key="name"
+                                class="setup__top-player-chip"
+                                @click="fillNextEmptyInTeam(team1, name)">
+                            + {{ name }}
+                        </button>
+                    </div>
                     <div class="setup__players">
                         <input v-for="(player, index) in team1.players" :key="index"
                                v-model="player.name" class="setup__input"
@@ -103,6 +110,13 @@
                 </div>
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.team') }} 2</span>
+                    <div v-if="topPlayersTeam2.length" class="setup__top-players">
+                        <button v-for="name in topPlayersTeam2" :key="name"
+                                class="setup__top-player-chip"
+                                @click="fillNextEmptyInTeam(team2, name)">
+                            + {{ name }}
+                        </button>
+                    </div>
                     <div class="setup__players">
                         <input v-for="(player, index) in team2.players" :key="index"
                                v-model="player.name" class="setup__input"
@@ -143,9 +157,33 @@ export default {
             gameTags: this.initialGameTags || [],
         }
     },
+    computed: {
+        allPlayersByUsage() {
+            const raw = localStorage.getItem('statPlayerUsage');
+            if (!raw) return [];
+            return Object.entries(JSON.parse(raw))
+                .sort((a, b) => b[1] - a[1])
+                .map(([name]) => name);
+        },
+        topPlayersTeam1() {
+            return this.allPlayersByUsage.slice(0, 3);
+        },
+        topPlayersTeam2() {
+            const usedInTeam1 = new Set(this.team1.players.map(p => p.name.trim()).filter(Boolean));
+            return this.allPlayersByUsage
+                .filter(name => !usedInTeam1.has(name))
+                .slice(0, 3);
+        },
+    },
     methods: {
         addTagToGame(tag) {
             this.gameTags.push(tag);
+        },
+        fillNextEmptyInTeam(team, name) {
+            const empty = team.players.find(p => !p.name.trim());
+            if (empty) {
+                empty.name = name;
+            }
         },
         tryStart() {
             if (!this.gameName.trim()) {
@@ -354,6 +392,32 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+}
+
+.setup__top-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.setup__top-player-chip {
+    padding: 0.25rem 0.6rem;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.setup__top-player-chip:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
 }
 
 .setup__start-btn {

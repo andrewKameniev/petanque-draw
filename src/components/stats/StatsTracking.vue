@@ -46,14 +46,14 @@
         </div>
 
         <div class="tracking__teams">
-            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch"
+            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch" :gameType="gameType"
                       @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
                       @x2throw="onX2Throw" @next="$emit('next')"
-                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer"/>
-            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch"
+                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer" @replacePlayer="onReplacePlayer"/>
+            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch" :gameType="gameType"
                       @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
                       @x2throw="onX2Throw" @next="$emit('next')"
-                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer"/>
+                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer" @replacePlayer="onReplacePlayer"/>
         </div>
 
         <div class="tracking__nav">
@@ -79,8 +79,8 @@ import {ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2} from "luci
 export default {
     name: 'StatsTracking',
     components: {Teaminfo, Loader, ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2},
-    props: ['team1', 'team2', 'currentMan', 'currentScore', 'manCount', 'statSystem', 'asCouch', 'isSaving', 'gameName'],
-    emits: ['newGame', 'finishGame', 'updateScore', 'removeThrow', 'addThrow', 'x2Throw', 'updateThrow', 'changePlayer', 'next', 'prev', 'removeMan', 'distanceChange', 'minimize'],
+    props: ['team1', 'team2', 'currentMan', 'currentScore', 'manCount', 'statSystem', 'asCouch', 'isSaving', 'gameName', 'gameType'],
+    emits: ['newGame', 'finishGame', 'updateScore', 'removeThrow', 'addThrow', 'x2Throw', 'updateThrow', 'changePlayer', 'replacePlayer', 'next', 'prev', 'removeMan', 'distanceChange', 'minimize'],
     data() {
         return {
             throwDistances,
@@ -118,6 +118,9 @@ export default {
         },
         onChangePlayer(iterator, playerIndex, playerName) {
             this.$emit('changePlayer', iterator, playerIndex, playerName);
+        },
+        onReplacePlayer(iterator, playerIndex, playerName) {
+            this.$emit('replacePlayer', iterator, playerIndex, playerName);
         },
         onTouchStart(event) {
             this.startX = event.touches[0].clientX;

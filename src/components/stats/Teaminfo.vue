@@ -26,18 +26,23 @@
                     </span>
                 </div>
             </div>
-            <div class="team-card__score">
-                <span class="team-card__score-label">{{ $t('stat.howManyPoints') }}</span>
-                <input type="number" class="team-card__score-input"
-                       min="0" max="6"
-                       :value="team.score[currentMan]" @keyup.enter="$emit('next')"
-                       @input="updateScore($event.target.value)">
+            <div class="team-card__score-row">
+                <button v-if="gameType > 1" class="team-card__replace-btn" @click="showReplacePlayerModal">
+                    <UserRoundPlus :size="12"/> {{ $t('stat.replacePlayer') }}
+                </button>
+                <div class="team-card__score">
+                    <span class="team-card__score-label">{{ $t('stat.howManyPoints') }}</span>
+                    <input type="number" class="team-card__score-input"
+                           min="0" max="6"
+                           :value="team.score[currentMan]" @keyup.enter="$emit('next')"
+                           @input="updateScore($event.target.value)">
+                </div>
             </div>
         </div>
 
         <div class="team-card__players">
             <template v-for="(player, index) in team.players" :key="index">
-            <div class="team-card__player">
+            <div v-if="!player.wasChanged" class="team-card__player">
                 <div class="team-card__player-info">
                     <button class="team-card__change-btn" @click="showChangePlayerModal(index)">
                         <UserRoundPen :size="12"/>
@@ -92,6 +97,28 @@
                 </button>
             </div>
         </Modal>
+
+        <Modal v-if="replacePlayerModalOpen" @close-modal="replacePlayerModalOpen = false">
+            <div class="team-card__modal">
+                <label class="team-card__modal-label">{{ $t('stat.replacePlayerTitle') }}</label>
+                <label class="team-card__modal-sublabel">{{ $t('stat.selectPlayerToReplace') }}</label>
+                <div class="team-card__modal-players">
+                    <button v-for="(player, index) in activePlayers" :key="index"
+                            class="team-card__modal-player-btn"
+                            :class="{'team-card__modal-player-btn--active': replacePlayerIndex === player.originalIndex}"
+                            @click="replacePlayerIndex = player.originalIndex">
+                        {{ player.name || $t('stat.playerName') + ' ' + (player.originalIndex + 1) }}
+                    </button>
+                </div>
+                <label class="team-card__modal-sublabel">{{ $t('stat.newPlayerName') }}</label>
+                <input type="text" class="team-card__modal-input" v-model="replacePlayerName"/>
+                <button class="team-card__modal-btn"
+                        :disabled="replacePlayerIndex === null || !replacePlayerName"
+                        @click="confirmReplacePlayer">
+                    {{ $t('stat.replacePlayer') }}
+                </button>
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -99,17 +126,20 @@
 import ThrowResult from "@/components/stats/ThrowResult.vue";
 import Modal from "@/components/Modal.vue";
 import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "@/helpers-stat";
-import {UserRoundPen} from "lucide-vue-next";
+import {UserRoundPen, UserRoundPlus} from "lucide-vue-next";
 
 export default {
-    components: {Modal, ThrowResult, UserRoundPen},
-    props: ['team', 'currentMan', 'iterator', 'showThrow', 'system', 'isCouch'],
-    emits: ['update-score', 'removethrow', 'addthrow', 'x2throw', 'updatethrow', 'next', 'changePlayer'],
+    components: {Modal, ThrowResult, UserRoundPen, UserRoundPlus},
+    props: ['team', 'currentMan', 'iterator', 'showThrow', 'system', 'isCouch', 'gameType'],
+    emits: ['update-score', 'removethrow', 'addthrow', 'x2throw', 'updatethrow', 'next', 'changePlayer', 'replacePlayer'],
     data() {
         return {
             changePlayerModalOpen: false,
             changePlayerName: '',
-            changePlayerIndex: null
+            changePlayerIndex: null,
+            replacePlayerModalOpen: false,
+            replacePlayerName: '',
+            replacePlayerIndex: null,
         }
     },
     computed: {
@@ -119,6 +149,11 @@ export default {
         commonTeamStat() {
             return calculateCommonTeamStat(this.teamsStat, this.system);
         },
+        activePlayers() {
+            return this.team.players
+                .map((p, i) => ({...p, originalIndex: i}))
+                .filter(p => !p.wasChanged);
+        },
     },
     methods: {
         getFrenchStat,
@@ -126,6 +161,15 @@ export default {
             this.changePlayerName = this.team.players[index].name || '';
             this.changePlayerModalOpen = true;
             this.changePlayerIndex = index;
+        },
+        showReplacePlayerModal() {
+            this.replacePlayerName = '';
+            this.replacePlayerIndex = null;
+            this.replacePlayerModalOpen = true;
+        },
+        confirmReplacePlayer() {
+            this.$emit('replacePlayer', this.iterator, this.replacePlayerIndex, this.replacePlayerName);
+            this.replacePlayerModalOpen = false;
         },
         updateScore(value) {
             this.$emit("update-score", this.team, parseInt(value, 10) || 0, this.currentMan);
@@ -184,10 +228,39 @@ export default {
     color: var(--color-stat-blue);
 }
 
+.team-card__score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .team-card__score {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.team-card__replace-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.team-card__replace-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
 }
 
 .team-card__score-label {
@@ -229,6 +302,10 @@ export default {
     padding: 0.5rem 0.6rem;
     background: var(--color-surface-alt);
     border-radius: 8px;
+}
+
+.team-card__player--replaced {
+    opacity: 0.5;
 }
 
 .team-card__player-info {
@@ -319,6 +396,46 @@ export default {
 
 .team-card__modal-btn:hover {
     background: var(--color-primary-light);
+}
+
+.team-card__modal-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.team-card__modal-sublabel {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.team-card__modal-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.team-card__modal-player-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.team-card__modal-player-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.team-card__modal-player-btn--active {
+    background: var(--color-primary);
+    color: var(--color-btn-text);
+    border-color: var(--color-primary);
 }
 
 @media screen and (max-width: 600px) {

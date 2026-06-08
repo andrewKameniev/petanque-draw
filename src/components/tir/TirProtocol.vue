@@ -90,8 +90,8 @@
                         <td contenteditable="true"></td>
                         <td contenteditable="true"></td>
                         <td class="has-text-centered">{{ getR1Score(p) }}</td>
-                        <td v-if="isTwoRound" class="has-text-centered">{{ getR2Score(p) }}</td>
-                        <td v-if="isTwoRound" class="has-text-centered has-text-weight-bold">{{ getCombined(p) }}</td>
+                        <td v-if="isTwoRound" class="has-text-centered">{{ hasR2Scores(p) ? getR2Score(p) : '—' }}</td>
+                        <td v-if="isTwoRound" class="has-text-centered has-text-weight-bold">{{ hasR2Scores(p) ? getCombined(p) : getR1Score(p) }}</td>
                         <td class="has-text-centered">{{ getPlace(index) }}</td>
                     </tr>
                     </tbody>
@@ -308,6 +308,9 @@ export default {
         },
         getR2Score(p) {
             return getScoreTotal(p, 'scores2');
+        },
+        hasR2Scores(p) {
+            return p.scores2 && Object.keys(p.scores2).length > 0;
         },
         getCombined(p) {
             return getCombinedTotal(p);

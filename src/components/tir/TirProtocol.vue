@@ -71,7 +71,7 @@
                 <table class="table is-bordered">
                     <thead>
                     <tr class="has-text-centered">
-                        <th>№ з/п</th>
+                        <th style="white-space: nowrap">№ з/п</th>
                         <th>ПІП</th>
                         <th>Місто/Регіон</th>
                         <th>Тренер(и)</th>
@@ -242,6 +242,43 @@ export default {
         playoff() {
             return this.tournament.tirPlayoff;
         },
+        playoffPlaces() {
+            const places = {};
+            if (!this.playoff) return places;
+            const final = this.playoff.final;
+            const thirdPlace = this.playoff.thirdPlace;
+            if (final?.winner) {
+                places[final.winner] = 1;
+                const loser = final.player1 === final.winner ? final.player2 : final.player1;
+                if (loser) places[loser] = 2;
+            }
+            if (thirdPlace?.winner) {
+                places[thirdPlace.winner] = 3;
+                const loser = thirdPlace.player1 === thirdPlace.winner ? thirdPlace.player2 : thirdPlace.player1;
+                if (loser) places[loser] = 4;
+            } else if (thirdPlace && !thirdPlace.winner) {
+                if (thirdPlace.player1) places[thirdPlace.player1] = '3-4';
+                if (thirdPlace.player2) places[thirdPlace.player2] = '3-4';
+            }
+            if (this.playoff.rounds) {
+                const qualifiedNames = this.playoff.qualified || [];
+                let nextPlace = Object.keys(places).length + 1;
+                const losersFromRounds = [];
+                for (let i = this.playoff.rounds.length - 1; i >= 0; i--) {
+                    const roundLosers = this.playoff.rounds[i].matches
+                        .filter(m => m.loser)
+                        .map(m => m.loser);
+                    losersFromRounds.push(roundLosers);
+                }
+                for (const group of losersFromRounds) {
+                    if (!group.length) continue;
+                    const placeLabel = group.length > 1 ? `${nextPlace}-${nextPlace + group.length - 1}` : nextPlace;
+                    group.forEach(name => { if (!places[name]) places[name] = placeLabel; });
+                    nextPlace += group.length;
+                }
+            }
+            return places;
+        },
         playoffRounds() {
             if (!this.playoff) return [];
             const rounds = [];
@@ -276,16 +313,9 @@ export default {
             return getCombinedTotal(p);
         },
         getPlace(index) {
-            if (!this.playoff) return index + 1;
-            const final = this.playoff.final;
-            const thirdPlace = this.playoff.thirdPlace;
             const name = this.rankedParticipants[index]?.name;
-            if (final?.winner === name) return 1;
-            if (final?.winner && final.player1 === name) return 2;
-            if (final?.winner && final.player2 === name) return 2;
-            if (thirdPlace?.winner === name) return 3;
-            if (thirdPlace?.winner && thirdPlace.player1 === name) return 4;
-            if (thirdPlace?.winner && thirdPlace.player2 === name) return 4;
+            if (!this.playoff) return index + 1;
+            if (this.playoffPlaces[name] !== undefined) return this.playoffPlaces[name];
             return index + 1;
         },
         formatDate(dateString) {

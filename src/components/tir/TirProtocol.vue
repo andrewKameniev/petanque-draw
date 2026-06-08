@@ -230,14 +230,23 @@ export default {
             return this.tournament.tirTiebreakerCount || 0;
         },
         rankedParticipants() {
+            let ranked;
             if (this.isTwoRound) {
-                return [...this.participants].sort((a, b) =>
+                ranked = [...this.participants].sort((a, b) =>
                     getCombinedTotal(b) - getCombinedTotal(a) ||
                     (getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2')) -
                     (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2'))
                 );
+            } else {
+                ranked = rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
             }
-            return rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
+            if (!this.playoff) return ranked;
+            const places = this.playoffPlaces;
+            return [...ranked].sort((a, b) => {
+                const pa = this._placeNum(places[a.name]);
+                const pb = this._placeNum(places[b.name]);
+                return pa - pb;
+            });
         },
         playoff() {
             return this.tournament.tirPlayoff;
@@ -261,20 +270,16 @@ export default {
                 if (thirdPlace.player2) places[thirdPlace.player2] = '3-4';
             }
             if (this.playoff.rounds) {
-                const qualifiedNames = this.playoff.qualified || [];
-                let nextPlace = Object.keys(places).length + 1;
-                const losersFromRounds = [];
+                let nextPlace = 5;
                 for (let i = this.playoff.rounds.length - 1; i >= 0; i--) {
                     const roundLosers = this.playoff.rounds[i].matches
-                        .filter(m => m.loser)
+                        .filter(m => m.loser && !places[m.loser])
                         .map(m => m.loser);
-                    losersFromRounds.push(roundLosers);
-                }
-                for (const group of losersFromRounds) {
-                    if (!group.length) continue;
-                    const placeLabel = group.length > 1 ? `${nextPlace}-${nextPlace + group.length - 1}` : nextPlace;
-                    group.forEach(name => { if (!places[name]) places[name] = placeLabel; });
-                    nextPlace += group.length;
+                    if (!roundLosers.length) continue;
+                    const endPlace = nextPlace + roundLosers.length - 1;
+                    const label = roundLosers.length > 1 ? `${nextPlace}-${endPlace}` : String(nextPlace);
+                    roundLosers.forEach(name => { places[name] = label; });
+                    nextPlace = endPlace + 1;
                 }
             }
             return places;
@@ -314,6 +319,11 @@ export default {
         },
         getCombined(p) {
             return getCombinedTotal(p);
+        },
+        _placeNum(place) {
+            if (place === undefined) return 9999;
+            if (typeof place === 'number') return place;
+            return parseInt(String(place).split('-')[0]) || 9999;
         },
         getPlace(index) {
             const name = this.rankedParticipants[index]?.name;

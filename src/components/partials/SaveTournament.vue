@@ -77,6 +77,11 @@ export default {
                     playOff: this.tournament.playOffBracket ? this.tournament.playOffBracket : null,
                     ranking: this.tournamentRanking
                 }
+                if (this.tournament.system === 'tir') {
+                    currentTournament.tirParticipants = this.tournament.tirParticipants;
+                    currentTournament.tirPlayoff = this.tournament.tirPlayoff;
+                    currentTournament.tirConfig = this.tournament.tirConfig;
+                }
                 this.addToSaved(currentTournament);
                 this.$emit('close-modal');
             }

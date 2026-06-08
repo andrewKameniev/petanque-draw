@@ -455,7 +455,8 @@ export default {
         "finishTiebreaker": "Finish tiebreaker",
         "tiebreakerInProgress": "Tiebreaker in progress — go to Scoring tab to enter results.",
         "tieAtTop4": "Tie at Top 4 boundary",
-        "tieAtR2": "Tie at Round 2 boundary (pos. 16)"
+        "tieAtR2": "Tie at Round 2 boundary (pos. 16)",
+        "exportResults": "Export results"
     },
     "timer": {
         "startTimer": "Start timer",

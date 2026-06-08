@@ -283,13 +283,28 @@
 
         <!-- POST-START: Tir module (no tabs) -->
         <template v-else-if="tournament.system === 'tir'">
-            <TirModule @finish="showFinishConfirm = true"/>
+            <TirModule ref="tirModule" @finish="showFinishConfirm = true"/>
             <div class="bottom-actions">
                 <div class="bottom-actions__row">
                     <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
                         <Trash2 :size="16"/>
                         {{ $t('teams.removeTournament') }}
                     </button>
+                    <template v-if="tournament.tournamentIsFinished">
+                        <span class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
+                            <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
+                                <IconArchive :size="16"/>
+                                {{ $t('teams.saveTournament') }}
+                            </button>
+                        </span>
+                        <button class="bottom-actions__btn bottom-actions__btn--success" @click="$refs.tirModule.exportResults('csv')">
+                            <Download :size="16"/>
+                            {{ $t('tir.exportResults') }}
+                        </button>
+                        <button v-if="tournament.portalIdTournament" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
+                            {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
+                        </button>
+                    </template>
                 </div>
             </div>
         </template>
@@ -473,7 +488,7 @@ import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download} from "lucide-vue-next";
 import StreamPresets from "@/components/partials/StreamPresets.vue";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
@@ -997,6 +1012,7 @@ export default {
         List,
         Trophy,
         Radio,
+        Download,
         StreamPresets
     }
 }

@@ -243,4 +243,7 @@ export default {
     border-radius: 0 0 5px 0;
 }
 
+.columns > .column {
+    min-width: 0;
+}
 </style>

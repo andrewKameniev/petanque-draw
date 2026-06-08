@@ -90,9 +90,13 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 export default {
     name: 'TrainingAdd',
+    props: {
+        editId: {type: [String, Number], default: null},
+        editData: {type: Object, default: null}
+    },
     data() {
         return {
-            exercise: {
+            exercise: this.editData ? {...this.editData, distances: [...this.editData.distances], points: [...(this.editData.points || [0,3,5])]} : {
                 complex: false,
                 value: false,
                 scenario: false,
@@ -112,7 +116,7 @@ export default {
     watch: {
         'exercise.complex'(newValue) {
             if (newValue) {
-                this.exercise.seriesNames = []
+                this.exercise.seriesNames = this.exercise.seriesNames || []
             } else {
                 delete this.exercise.seriesNames
             }
@@ -121,7 +125,7 @@ export default {
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
         saveExercise() {
-            const exerciseId = Date.now();
+            const exerciseId = this.editId || Date.now();
             trainingService.save(this.user.uid, exerciseId, this.exercise).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.exerciseSaved')});
                 this.$emit('add', exerciseId, this.exercise);

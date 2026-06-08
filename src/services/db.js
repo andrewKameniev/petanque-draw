@@ -88,4 +88,13 @@ export const trainingService = {
     saveTrainingResult(uid, exId, date, data) {
         return set(ref(db, `${uid}/training/${exId}/${date}`), data);
     },
+    getSessions(uid) {
+        return get(ref(db, `${uid}/training/sessions`));
+    },
+    saveSession(uid, id, data) {
+        return set(ref(db, `${uid}/training/sessions/${id}`), data);
+    },
+    removeSession(uid, id) {
+        return remove(ref(db, `${uid}/training/sessions/${id}`));
+    },
 };

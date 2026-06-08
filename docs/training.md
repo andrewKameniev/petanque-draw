@@ -6,9 +6,107 @@ A standalone tool for structured petanque practice sessions. Completely separate
 
 Create reusable training exercises with specific parameters. Track progress over time to measure improvement at different distances and scenarios.
 
-## Workflow
+## Tabs
 
-### 1. Exercise List
+The training page has two tabs:
+1. **Tir Training** — New session-based Tir precision shooting training with presets
+2. **Exercises** — Legacy exercise system (custom exercises with flexible scoring)
+
+---
+
+## Tir Training Sessions
+
+### Session Lifecycle
+
+Sessions have three statuses:
+- **Draft** — Created but no scores entered yet
+- **In Progress** — Scoring has started
+- **Completed** — All attempts recorded, session marked as finished
+
+Users can always:
+- Open and continue any session
+- Reopen completed sessions
+- Edit entered results (toggle scores)
+- Change training date and name
+- Save progress and return later (auto-saved to Firebase)
+
+### Presets
+
+| Preset | Exercises | Distances | Attempts |
+|--------|-----------|-----------|----------|
+| Full Tir | All 5 ateliers | 6m, 7m, 8m, 9m | 1 per distance |
+| Single Exercise | 1 chosen atelier | 6m, 7m, 8m, 9m | 1 per distance |
+| Single Distance | 1 atelier | 1 distance | 10 (configurable) |
+| Custom | User picks | User picks | User picks (1-50) |
+
+### Training Creation Flow
+
+1. Select preset type
+2. Configure exercises/distances/attempts (some locked by preset)
+3. Optionally set training name
+4. Start session → scoring view
+
+### Scoring UI
+
+Reuses the Tir scoring model (carreau/reussi/touche/manque):
+- Exercise tabs (numbered circles, green = complete)
+- Per-distance attempt grids
+- Each attempt shows 4 colored cells (one per score type)
+- Tap to set, tap same to clear
+- Real-time score totals and progress bar
+
+### Statistics
+
+Filterable analytics across all sessions:
+- **By Exercise** — Filter to a specific atelier
+- **By Distance** — Filter to a specific distance
+- **By Date Range** — From/to date picker
+- **Combined** — Exercise + Distance filter
+
+Metrics shown:
+- Average score per attempt
+- Best score
+- Total attempts count
+- Sessions count
+- Score distribution (carreau/reussi/touche/manque percentages)
+- Per-distance breakdown
+- Progress over time chart
+
+### Data Architecture
+
+Every attempt is stored individually with metadata:
+
+```ts
+{
+  exerciseIndex: number,  // 0-4 (which atelier)
+  distance: number,       // 6, 7, 8, 9, etc.
+  attemptNumber: number,  // 1-based within exercise+distance
+  score: string           // 'carreau' | 'reussi' | 'touche' | 'manque'
+}
+```
+
+```
+Firebase path: {uid}/training/sessions/{sessionId}
+  {
+    id: string,
+    name: string,
+    type: 'tir_full' | 'tir_single_exercise' | 'tir_single_distance' | 'tir_custom',
+    status: 'draft' | 'in_progress' | 'completed',
+    config: { exercises: number[], distances: number[], attempts: number },
+    attempts: Array<{exerciseIndex, distance, attemptNumber, score}>,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    completedAt: timestamp | null
+  }
+```
+
+---
+
+## Legacy Exercises
+
+### Workflow
+
+#### 1. Exercise List
 Main screen shows all created exercises with:
 - Exercise name
 - Distance count and series length
@@ -16,61 +114,28 @@ Main screen shows all created exercises with:
 - "View results" button → historical data
 - Delete button
 
-### 2. Create Exercise
+#### 2. Create Exercise
 Define a new exercise template:
-- **Name**: How it appears in the list (e.g., "Pointing 6-8m")
-- **Distances**: Which distances to practice (e.g., 6m, 7m, 8m)
+- **Name**: How it appears in the list
+- **Distances**: Which distances to practice
 - **Throws per distance**: How many throws at each distance
-- **Series**: Named groups of throws (e.g., "Pointing", "Shooting", "Carreau")
+- **Series**: Named groups of throws
 - **Scoring**: Logical (hit/miss) or Points (numeric)
-- **Scenario**: If logical — default positive (mark failures) or negative (mark successes)
-- **Order**: 
-  - Sequential: complete all throws at distance 1, then all at distance 2, etc.
-  - Rotation: one throw at each distance in turn, repeat
+- **Scenario**: If logical — default positive or negative
+- **Order**: Sequential or Rotation
 
-### 3. Training Session
-Execute the exercise:
-- Input result for each throw
-- Navigate forward/backward through throws
-- Distance label shows current target distance
-- When all throws complete → "Finish" to calculate
+#### 3. Training Session
+Execute the exercise and input results for each throw.
 
-### 4. Results
-Per-exercise result history:
-- **Average score**: Overall performance percentage or points
-- **By distance**: Breakdown showing strengths/weaknesses at each distance
-- **History**: Date-ordered list of all past sessions with scores
-- **Graph**: Visual trend over time (TrainingResultGraph component)
+#### 4. Results
+Per-exercise result history with averages, distance breakdowns, and graphs.
 
-## Exercise Example
-
-**"Shooting Competition"** (3 series):
-- Series 1: "Short range" — 6m, 7m × 10 throws each
-- Series 2: "Medium range" — 8m, 9m × 10 throws each  
-- Series 3: "Long range" — 10m, 11m × 10 throws each
-- Scoring: Logical (hit/miss)
-- Order: Sequential (finish each distance before moving to next)
-
-Total: 120 throws. Results show performance by distance band.
-
-## Data Storage
+### Data Storage
 
 ```
 Firebase path: {uid}/training/
   list/
-    {exerciseId}: {
-      name: string,
-      distances: number[],
-      length: number,        // throws per distance
-      series: string[],      // series names
-      scoring: string,       // "logical" | "points"
-      scenario: string,      // "positive" | "negative"
-      order: string          // "sequential" | "rotation"
-    }
+    {exerciseId}: { name, distances, length, complex, value, points, scenario, distanceFirst }
   {exerciseId}/
-    {dateISO}: {
-      results: [...],        // per-throw outcomes
-      score: number,         // calculated total
-      byDistance: {...}       // breakdown
-    }
+    {timestamp}: { date, distances: { [dist]: number[] } }
 ```

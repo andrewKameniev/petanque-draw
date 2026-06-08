@@ -301,6 +301,9 @@
                             <Download :size="16"/>
                             {{ $t('tir.exportResults') }}
                         </button>
+                        <button v-if="tournament.portalIdTournament" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
+                            {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
+                        </button>
                     </template>
                 </div>
             </div>
@@ -464,6 +467,7 @@
         </Modal>
         <Preferences v-if="showPreferences" @close-modal="showPreferences = false" @remove-tournament="removeConfirmId = 1"/>
         <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system !== 'tir'" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
+        <TirProtocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system === 'tir'" @close="showProtocol = false" :tournament="tournament"/>
     </div>
 </template>
 
@@ -489,6 +493,7 @@ import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, 
 import StreamPresets from "@/components/partials/StreamPresets.vue";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
+import TirProtocol from "@/components/tir/TirProtocol.vue";
 
 export default {
     name: 'Tournament',
@@ -1010,6 +1015,7 @@ export default {
         Trophy,
         Radio,
         Download,
+        TirProtocol,
         StreamPresets
     }
 }

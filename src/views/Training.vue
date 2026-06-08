@@ -16,9 +16,9 @@
                         <TrainingStats v-else-if="view === 'stats'" :sessions="sessionsList" @back="view = 'list'"/>
 
                         <!-- Old exercise system -->
-                        <div v-else-if="view === 'add-exercise'">
-                            <button @click="view = 'list'" class="button btn-primary-outline btn-sm mb-3">{{ $t('training.toList') }}</button>
-                            <TrainingAdd @add="addExToList"/>
+                        <div v-else-if="view === 'add-exercise' || view === 'edit-exercise'">
+                            <button @click="cancelEditExercise" class="button btn-primary-outline btn-sm mb-3">{{ $t('training.toList') }}</button>
+                            <TrainingAdd :edit-id="editExerciseId" :edit-data="editExerciseData" @add="addExToList"/>
                         </div>
                         <TrainingItem v-else-if="exerciseInProcess" :data="exercise" :exid="exerciseInProcess" @end="exerciseInProcess = false"/>
                         <TrainingResult v-else-if="resultsOpen" :exid="resultsOpen" :exdata="exercisesList[resultsOpen]" @back="resultsOpen = false"/>
@@ -113,6 +113,9 @@
                                         <div class="exercise-item__actions">
                                             <button class="button btn-primary btn-sm" @click="start(key)">{{ $t('training.startTraining') }}</button>
                                             <button class="button btn-primary-outline btn-sm" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
+                                            <button class="button btn-primary-outline btn-sm" @click="editExercise(key, item)">
+                                                <Pencil :size="14"/>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -159,13 +162,13 @@ import TrainingCreate from "@/components/training/TrainingCreate.vue";
 import TrainingSession from "@/components/training/TrainingSession.vue";
 import TrainingStats from "@/components/training/TrainingStats.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
-import {Trash2, Plus, BarChart3} from "lucide-vue-next";
+import {Trash2, Plus, BarChart3, Pencil} from "lucide-vue-next";
 import {TRAINING_STATUS, TRAINING_TYPE, getSessionProgress} from "@/services/training";
 import {SCORING} from "@/services/tir";
 
 export default {
     name: 'Training',
-    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, TrainingCreate, TrainingSession, TrainingStats, Message, Menu, Navbar, Footer, Trash2, Plus, BarChart3},
+    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, TrainingCreate, TrainingSession, TrainingStats, Message, Menu, Navbar, Footer, Trash2, Plus, BarChart3, Pencil},
     data() {
         return {
             view: 'list',
@@ -178,7 +181,9 @@ export default {
             confirmRemoveId: null,
             confirmDeleteId: null,
             sessionsList: [],
-            activeSession: null
+            activeSession: null,
+            editExerciseId: null,
+            editExerciseData: null
         }
     },
     mounted() {
@@ -213,9 +218,21 @@ export default {
         viewResults(id) {
             this.resultsOpen = id;
         },
-        addExToList(date, ex) {
+        addExToList(id, ex) {
+            this.exercisesList[id] = ex;
+            this.editExerciseId = null;
+            this.editExerciseData = null;
             this.view = 'list';
-            this.exercisesList[date] = ex;
+        },
+        editExercise(key, item) {
+            this.editExerciseId = key;
+            this.editExerciseData = item;
+            this.view = 'edit-exercise';
+        },
+        cancelEditExercise() {
+            this.editExerciseId = null;
+            this.editExerciseData = null;
+            this.view = 'list';
         },
         removeExercise(id) {
             trainingService.remove(this.user.uid, id).then(() => {

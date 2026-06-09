@@ -1,36 +1,61 @@
 <template>
     <div class="wrapper">
-        <Navbar @open-menu="menuOpen = !menuOpen"/>
+        <Navbar @open-menu="menuOpen = !menuOpen" />
         <div class="container">
-            <Menu :active="menuOpen" @closeMenu="menuOpen = false"/>
+            <Menu :active="menuOpen" @closeMenu="menuOpen = false" />
             <div class="stat-container">
                 <div v-if="user" class="mobile-stat-container">
                     <div class="mobile-stat-container training-content">
                         <!-- Create new session -->
-                        <TrainingCreate v-if="view === 'create'" @back="view = 'list'" @created="onSessionCreated"/>
+                        <TrainingCreate v-if="view === 'create'" @back="view = 'list'" @created="onSessionCreated" />
 
                         <!-- Active session scoring -->
-                        <TrainingSession v-else-if="view === 'session'" :session="activeSession" @back="backToList" @update="saveActiveSession"/>
+                        <TrainingSession
+                            v-else-if="view === 'session'"
+                            :session="activeSession"
+                            @back="backToList"
+                            @update="saveActiveSession"
+                        />
 
                         <!-- Session statistics -->
-                        <TrainingStats v-else-if="view === 'stats'" :sessions="sessionsList" @back="view = 'list'"/>
+                        <TrainingStats v-else-if="view === 'stats'" :sessions="sessionsList" @back="view = 'list'" />
 
                         <!-- Old exercise system -->
                         <div v-else-if="view === 'add-exercise' || view === 'edit-exercise'">
-                            <button @click="cancelEditExercise" class="button btn-primary-outline btn-sm mb-3">{{ $t('training.toList') }}</button>
-                            <TrainingAdd :edit-id="editExerciseId" :edit-data="editExerciseData" @add="addExToList"/>
+                            <button @click="cancelEditExercise" class="button btn-primary-outline btn-sm mb-3">
+                                {{ $t('training.toList') }}
+                            </button>
+                            <TrainingAdd :edit-id="editExerciseId" :edit-data="editExerciseData" @add="addExToList" />
                         </div>
-                        <TrainingItem v-else-if="exerciseInProcess" :data="exercise" :exid="exerciseInProcess" @end="exerciseInProcess = false"/>
-                        <TrainingResult v-else-if="resultsOpen" :exid="resultsOpen" :exdata="exercisesList[resultsOpen]" @back="resultsOpen = false"/>
+                        <TrainingItem
+                            v-else-if="exerciseInProcess"
+                            :data="exercise"
+                            :exid="exerciseInProcess"
+                            @end="exerciseInProcess = false"
+                        />
+                        <TrainingResult
+                            v-else-if="resultsOpen"
+                            :exid="resultsOpen"
+                            :exdata="exercisesList[resultsOpen]"
+                            @back="resultsOpen = false"
+                        />
 
                         <!-- Main list view -->
                         <div v-else>
                             <!-- Tabs -->
                             <div class="training-tabs">
-                                <button class="training-tab" :class="{'training-tab--active': tab === 'sessions'}" @click="tab = 'sessions'">
+                                <button
+                                    class="training-tab"
+                                    :class="{ 'training-tab--active': tab === 'sessions' }"
+                                    @click="tab = 'sessions'"
+                                >
                                     {{ $t('training.tirSessions') }}
                                 </button>
-                                <button class="training-tab" :class="{'training-tab--active': tab === 'exercises'}" @click="tab = 'exercises'">
+                                <button
+                                    class="training-tab"
+                                    :class="{ 'training-tab--active': tab === 'exercises' }"
+                                    @click="tab = 'exercises'"
+                                >
                                     {{ $t('training.exercises') }}
                                 </button>
                             </div>
@@ -41,50 +66,84 @@
                                     <div class="training-list-title">{{ $t('training.tirSessions') }}</div>
                                     <div v-if="sessionsList.length" class="training-list-actions">
                                         <button @click="view = 'stats'" class="button btn-primary-outline btn-sm">
-                                            <BarChart3 :size="14"/>
+                                            <BarChart3 :size="14" />
                                             {{ $t('training.statistics') }}
                                         </button>
                                         <button @click="view = 'create'" class="button btn-primary btn-sm">
-                                            <Plus :size="14"/>
+                                            <Plus :size="14" />
                                             {{ $t('training.newSession') }}
                                         </button>
                                     </div>
                                 </div>
 
                                 <div v-if="sessionsList.length" class="training-sessions">
-                                    <div v-for="session in sortedSessions" :key="session.id" class="session-card" @click="openSession(session)">
+                                    <div
+                                        v-for="session in sortedSessions"
+                                        :key="session.id"
+                                        class="session-card"
+                                        @click="openSession(session)"
+                                    >
                                         <div class="session-card__top">
                                             <div class="session-card__info">
                                                 <div class="session-card__name">{{ session.name }}</div>
                                                 <div class="session-card__meta">
-                                                    <span class="session-card__badge session-card__badge--type">{{ getTypeLabel(session.type) }}</span>
-                                                    <span class="session-card__badge" :class="'session-card__badge--' + session.status">
+                                                    <span class="session-card__badge session-card__badge--type">{{
+                                                        getTypeLabel(session.type)
+                                                    }}</span>
+                                                    <span
+                                                        class="session-card__badge"
+                                                        :class="'session-card__badge--' + session.status"
+                                                    >
                                                         {{ getStatusLabel(session.status) }}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <button class="session-card__delete" @click.stop="confirmDeleteId = session.id">
-                                                <Trash2 :size="14"/>
-                                            </button>
-                                        </div>
-                                        <div class="session-card__bottom">
-                                            <span class="session-card__date">{{ formatDate(session.updatedAt || session.createdAt) }}</span>
-                                            <div class="session-card__progress">
-                                                <div class="session-card__progress-bar">
-                                                    <div class="session-card__progress-fill" :style="{width: getProgress(session).percent + '%'}"></div>
-                                                </div>
-                                                <span class="session-card__progress-text">{{ getProgress(session).completed }}/{{ getProgress(session).total }}</span>
+                                            <div class="session-card__actions">
+                                                <button
+                                                    v-if="session.status === 'completed'"
+                                                    class="session-card__rerun"
+                                                    @click.stop="rerunSession(session)"
+                                                    :title="$t('training.rerun')"
+                                                >
+                                                    <RotateCcw :size="14" />
+                                                </button>
+                                                <button
+                                                    class="session-card__delete"
+                                                    @click.stop="confirmDeleteId = session.id"
+                                                >
+                                                    <Trash2 :size="14" />
+                                                </button>
                                             </div>
                                         </div>
-                                        <div v-if="session.attempts && session.attempts.length" class="session-card__result">
-                                            {{ $t('training.score') }}: {{ getSessionScore(session) }} {{ $t('ranking.points') }}
+                                        <div class="session-card__bottom">
+                                            <span class="session-card__date">{{ formatDate(session.createdAt) }}</span>
+                                            <div class="session-card__progress">
+                                                <div class="session-card__progress-bar">
+                                                    <div
+                                                        class="session-card__progress-fill"
+                                                        :style="{ width: getProgress(session).percent + '%' }"
+                                                    ></div>
+                                                </div>
+                                                <span class="session-card__progress-text"
+                                                    >{{ getProgress(session).completed }}/{{
+                                                        getProgress(session).total
+                                                    }}</span
+                                                >
+                                            </div>
+                                        </div>
+                                        <div
+                                            v-if="session.attempts && session.attempts.length"
+                                            class="session-card__result"
+                                        >
+                                            {{ $t('training.score') }}: {{ getSessionScore(session) }}
+                                            {{ $t('ranking.points') }}
                                         </div>
                                     </div>
                                 </div>
                                 <div v-else class="training-empty">
                                     <p>{{ $t('training.noSessions') }}</p>
                                     <button @click="view = 'create'" class="button btn-primary btn-sm mt-3">
-                                        <Plus :size="14"/>
+                                        <Plus :size="14" />
                                         {{ $t('training.newSession') }}
                                     </button>
                                 </div>
@@ -94,34 +153,50 @@
                             <div v-else-if="tab === 'exercises'">
                                 <div class="exercise-list-header">
                                     <div class="exercise-list-title">{{ $t('training.exList') }}</div>
-                                    <button @click="view = 'add-exercise'" class="button btn-primary btn-sm">{{ $t('training.addEx') }}</button>
+                                    <button @click="view = 'add-exercise'" class="button btn-primary btn-sm">
+                                        {{ $t('training.addEx') }}
+                                    </button>
                                 </div>
                                 <div v-if="exercisesList && Object.keys(exercisesList).length">
                                     <div v-for="(item, key) in exercisesList" :key="key" class="exercise-item">
                                         <div class="exercise-item__top">
                                             <div>
-                                                <div class="exercise-item__name">{{item.name}}</div>
+                                                <div class="exercise-item__name">{{ item.name }}</div>
                                                 <div class="exercise-item__meta">
-                                                    <span class="exercise-item__badge">{{item.distances.length}} {{ $t('training.distances') }}</span>
-                                                    <span class="exercise-item__badge">{{ $t('training.serieLength') }}: {{item.length}}</span>
+                                                    <span class="exercise-item__badge"
+                                                        >{{ item.distances.length }}
+                                                        {{ $t('training.distances') }}</span
+                                                    >
+                                                    <span class="exercise-item__badge"
+                                                        >{{ $t('training.serieLength') }}: {{ item.length }}</span
+                                                    >
                                                 </div>
                                             </div>
                                             <button class="exercise-item__delete" @click.stop="confirmRemoveId = key">
-                                                <Trash2 :size="14"/>
+                                                <Trash2 :size="14" />
                                             </button>
                                         </div>
                                         <div class="exercise-item__actions">
-                                            <button class="button btn-primary btn-sm" @click="start(key)">{{ $t('training.startTraining') }}</button>
-                                            <button class="button btn-primary-outline btn-sm" @click="viewResults(key)">{{ $t('training.viewResults') }}</button>
-                                            <button class="button btn-primary-outline btn-sm" @click="editExercise(key, item)">
-                                                <Pencil :size="14"/>
+                                            <button class="button btn-primary btn-sm" @click="start(key)">
+                                                {{ $t('training.startTraining') }}
+                                            </button>
+                                            <button class="button btn-primary-outline btn-sm" @click="viewResults(key)">
+                                                {{ $t('training.viewResults') }}
+                                            </button>
+                                            <button
+                                                class="button btn-primary-outline btn-sm"
+                                                @click="editExercise(key, item)"
+                                            >
+                                                <Pencil :size="14" />
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div v-else class="exercise-empty">
                                     <p>{{ $t('training.addExToBegin') }}</p>
-                                    <button @click="view = 'add-exercise'" class="button btn-primary btn-sm mt-3">{{ $t('training.addEx') }}</button>
+                                    <button @click="view = 'add-exercise'" class="button btn-primary btn-sm mt-3">
+                                        {{ $t('training.addEx') }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -132,43 +207,75 @@
                     <div class="mt-5">
                         <router-link to="/" class="btn-login-primary btn-login-primary--large">
                             <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                />
                             </svg>
                             {{ $t('common.loginUser') }}
                         </router-link>
                     </div>
                 </div>
             </div>
-            <Message v-if="message.show"/>
-            <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeExercise(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
-            <ConfirmRemoveModal :title="$t('messages.removeSession')" @remove="deleteSession(confirmDeleteId)" @close="confirmDeleteId = null" v-if="confirmDeleteId"/>
+            <Message v-if="message.show" />
+            <ConfirmRemoveModal
+                :title="$t('messages.removeExercise')"
+                @remove="removeExercise(confirmRemoveId)"
+                @close="confirmRemoveId = null"
+                v-if="confirmRemoveId"
+            />
+            <ConfirmRemoveModal
+                :title="$t('messages.removeSession')"
+                @remove="deleteSession(confirmDeleteId)"
+                @close="confirmDeleteId = null"
+                v-if="confirmDeleteId"
+            />
         </div>
-        <Footer/>
+        <Footer />
     </div>
 </template>
 
 <script>
-import Footer from "@/components/partials/Footer.vue";
-import Navbar from "@/components/Navbar.vue";
-import Menu from "@/components/Menu.vue";
-import {trainingService} from "@/services/db";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import Message from "@/components/Message.vue";
-import TrainingItem from "@/components/training/TrainingItem.vue";
-import TrainingResult from "@/components/training/TrainingResult.vue";
-import TrainingAdd from "@/components/training/TrainingAdd.vue";
-import TrainingCreate from "@/components/training/TrainingCreate.vue";
-import TrainingSession from "@/components/training/TrainingSession.vue";
-import TrainingStats from "@/components/training/TrainingStats.vue";
-import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
-import {Trash2, Plus, BarChart3, Pencil} from "lucide-vue-next";
-import {TRAINING_STATUS, TRAINING_TYPE, getSessionProgress} from "@/services/training";
-import {SCORING} from "@/services/tir";
+import Footer from '@/components/partials/Footer.vue';
+import Navbar from '@/components/Navbar.vue';
+import Menu from '@/components/Menu.vue';
+import { trainingService } from '@/services/db';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import Message from '@/components/Message.vue';
+import TrainingItem from '@/components/training/TrainingItem.vue';
+import TrainingResult from '@/components/training/TrainingResult.vue';
+import TrainingAdd from '@/components/training/TrainingAdd.vue';
+import TrainingCreate from '@/components/training/TrainingCreate.vue';
+import TrainingSession from '@/components/training/TrainingSession.vue';
+import TrainingStats from '@/components/training/TrainingStats.vue';
+import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
+import { Trash2, Plus, BarChart3, Pencil, RotateCcw } from 'lucide-vue-next';
+import { TRAINING_STATUS, TRAINING_TYPE, getSessionProgress, createSession } from '@/services/training';
+import { SCORING } from '@/services/tir';
 
 export default {
     name: 'Training',
-    components: {ConfirmRemoveModal, TrainingAdd, TrainingResult, TrainingItem, TrainingCreate, TrainingSession, TrainingStats, Message, Menu, Navbar, Footer, Trash2, Plus, BarChart3, Pencil},
+    components: {
+        ConfirmRemoveModal,
+        TrainingAdd,
+        TrainingResult,
+        TrainingItem,
+        TrainingCreate,
+        TrainingSession,
+        TrainingStats,
+        Message,
+        Menu,
+        Navbar,
+        Footer,
+        Trash2,
+        Plus,
+        BarChart3,
+        Pencil,
+        RotateCcw,
+    },
     data() {
         return {
             view: 'list',
@@ -183,8 +290,8 @@ export default {
             sessionsList: [],
             activeSession: null,
             editExerciseId: null,
-            editExerciseData: null
-        }
+            editExerciseData: null,
+        };
     },
     mounted() {
         this.loadData();
@@ -193,20 +300,20 @@ export default {
         ...mapState(useMainStore, ['user', 'message']),
         sortedSessions() {
             return [...this.sessionsList].sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
-        }
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
         loadData() {
-            trainingService.getAll(this.user.uid).then(snapshot => {
+            trainingService.getAll(this.user.uid).then((snapshot) => {
                 if (snapshot.exists()) this.exercisesList = snapshot.val();
             });
-            trainingService.getSessions(this.user.uid).then(snapshot => {
+            trainingService.getSessions(this.user.uid).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    this.sessionsList = Object.values(data).map(s => ({
+                    this.sessionsList = Object.values(data).map((s) => ({
                         ...s,
-                        attempts: s.attempts || []
+                        attempts: s.attempts || [],
                     }));
                 }
             });
@@ -238,7 +345,7 @@ export default {
             trainingService.remove(this.user.uid, id).then(() => {
                 delete this.exercisesList[id];
                 this.confirmRemoveId = null;
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.exerciseRemoved')});
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.exerciseRemoved') });
             });
         },
         onSessionCreated(session) {
@@ -255,15 +362,22 @@ export default {
             if (!this.activeSession) return;
             this.activeSession.updatedAt = Date.now();
             trainingService.saveSession(this.user.uid, this.activeSession.id, this.activeSession);
-            const idx = this.sessionsList.findIndex(s => s.id === this.activeSession.id);
-            if (idx !== -1) this.sessionsList[idx] = {...this.activeSession};
+            const idx = this.sessionsList.findIndex((s) => s.id === this.activeSession.id);
+            if (idx !== -1) this.sessionsList[idx] = { ...this.activeSession };
         },
         deleteSession(id) {
             trainingService.removeSession(this.user.uid, id).then(() => {
-                this.sessionsList = this.sessionsList.filter(s => s.id !== id);
+                this.sessionsList = this.sessionsList.filter((s) => s.id !== id);
                 this.confirmDeleteId = null;
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.sessionRemoved')});
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.sessionRemoved') });
             });
+        },
+        rerunSession(session) {
+            const newSession = createSession(session.type, session.config, session.name);
+            this.sessionsList.push(newSession);
+            this.activeSession = newSession;
+            this.view = 'session';
+            this.saveActiveSession();
         },
         backToList() {
             this.activeSession = null;
@@ -281,7 +395,7 @@ export default {
                 [TRAINING_TYPE.TIR_FULL]: this.$t('training.presetFull'),
                 [TRAINING_TYPE.TIR_SINGLE_EXERCISE]: this.$t('training.presetSingleEx'),
                 [TRAINING_TYPE.TIR_SINGLE_DISTANCE]: this.$t('training.presetSingleDist'),
-                [TRAINING_TYPE.TIR_CUSTOM]: this.$t('training.presetCustom')
+                [TRAINING_TYPE.TIR_CUSTOM]: this.$t('training.presetCustom'),
             };
             return labels[type] || type;
         },
@@ -289,17 +403,23 @@ export default {
             const labels = {
                 [TRAINING_STATUS.DRAFT]: this.$t('training.statusDraft'),
                 [TRAINING_STATUS.IN_PROGRESS]: this.$t('training.statusInProgress'),
-                [TRAINING_STATUS.COMPLETED]: this.$t('training.statusCompleted')
+                [TRAINING_STATUS.COMPLETED]: this.$t('training.statusCompleted'),
             };
             return labels[status] || status;
         },
         formatDate(ts) {
             if (!ts) return '';
             const d = new Date(ts);
-            return d.toLocaleDateString(undefined, {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
-        }
-    }
-}
+            return d.toLocaleDateString(undefined, {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        },
+    },
+};
 </script>
 
 <style>
@@ -435,6 +555,13 @@ export default {
     color: var(--tir-carreau);
 }
 
+.session-card__actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.session-card__rerun,
 .session-card__delete {
     background: transparent;
     border: none;
@@ -443,6 +570,11 @@ export default {
     padding: 0.3rem;
     border-radius: 6px;
     flex-shrink: 0;
+    transition: color 0.15s;
+}
+
+.session-card__rerun:hover {
+    color: var(--color-primary);
 }
 
 .session-card__delete:hover {

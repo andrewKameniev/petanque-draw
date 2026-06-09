@@ -2,12 +2,30 @@
     <div class="tstats">
         <div class="tstats__nav">
             <button class="tstats__back" @click="$emit('back')">
-                <ChevronLeft :size="18"/>
+                <ChevronLeft :size="18" />
                 {{ $t('stat.back') }}
             </button>
         </div>
 
-        <h3 class="tstats__title">{{ $t('training.statistics') }}</h3>
+        <div class="tstats__title-row">
+            <h3 class="tstats__title">{{ $t('training.statistics') }}</h3>
+            <div class="tstats__view-toggle">
+                <button
+                    class="tstats__view-btn"
+                    :class="{ 'tstats__view-btn--active': chartView === 'summary' }"
+                    @click="chartView = 'summary'"
+                >
+                    <LayoutList :size="16" />
+                </button>
+                <button
+                    class="tstats__view-btn"
+                    :class="{ 'tstats__view-btn--active': chartView === 'stacked' }"
+                    @click="chartView = 'stacked'"
+                >
+                    <BarChart3 :size="16" />
+                </button>
+            </div>
+        </div>
 
         <!-- Filters -->
         <div class="tstats__filters">
@@ -15,7 +33,9 @@
                 <label class="tstats__filter-label">{{ $t('training.filterExercise') }}</label>
                 <select v-model="filters.exerciseIndex" class="tstats__select">
                     <option :value="null">{{ $t('training.allExercises') }}</option>
-                    <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">{{ idx + 1 }}. {{ name }}</option>
+                    <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">
+                        {{ idx + 1 }}. {{ name }}
+                    </option>
                 </select>
             </div>
             <div class="tstats__filter">
@@ -27,16 +47,16 @@
             </div>
             <div class="tstats__filter">
                 <label class="tstats__filter-label">{{ $t('training.filterDateFrom') }}</label>
-                <input v-model="filters.dateFrom" type="date" class="tstats__date-input"/>
+                <input v-model="filters.dateFrom" type="date" class="tstats__date-input" />
             </div>
             <div class="tstats__filter">
                 <label class="tstats__filter-label">{{ $t('training.filterDateTo') }}</label>
-                <input v-model="filters.dateTo" type="date" class="tstats__date-input"/>
+                <input v-model="filters.dateTo" type="date" class="tstats__date-input" />
             </div>
         </div>
 
         <!-- Overall stats -->
-        <div v-if="stats" class="tstats__overview">
+        <div v-if="stats && chartView === 'summary'" class="tstats__overview">
             <div class="tstats__stat-cards">
                 <div class="tstats__card">
                     <div class="tstats__card-val">{{ stats.average }}</div>
@@ -66,7 +86,10 @@
                             {{ $t('tir.carreau') }}
                         </span>
                         <div class="tstats__dist-bar-wrap">
-                            <div class="tstats__dist-bar tstats__dist-bar--carreau" :style="{width: getPercent(stats.carreau) + '%'}"></div>
+                            <div
+                                class="tstats__dist-bar tstats__dist-bar--carreau"
+                                :style="{ width: getPercent(stats.carreau) + '%' }"
+                            ></div>
                         </div>
                         <span class="tstats__dist-count">{{ stats.carreau }} ({{ getPercent(stats.carreau) }}%)</span>
                     </div>
@@ -76,7 +99,10 @@
                             {{ $t('tir.reussi') }}
                         </span>
                         <div class="tstats__dist-bar-wrap">
-                            <div class="tstats__dist-bar tstats__dist-bar--reussi" :style="{width: getPercent(stats.reussi) + '%'}"></div>
+                            <div
+                                class="tstats__dist-bar tstats__dist-bar--reussi"
+                                :style="{ width: getPercent(stats.reussi) + '%' }"
+                            ></div>
                         </div>
                         <span class="tstats__dist-count">{{ stats.reussi }} ({{ getPercent(stats.reussi) }}%)</span>
                     </div>
@@ -86,7 +112,10 @@
                             {{ $t('tir.touche') }}
                         </span>
                         <div class="tstats__dist-bar-wrap">
-                            <div class="tstats__dist-bar tstats__dist-bar--touche" :style="{width: getPercent(stats.touche) + '%'}"></div>
+                            <div
+                                class="tstats__dist-bar tstats__dist-bar--touche"
+                                :style="{ width: getPercent(stats.touche) + '%' }"
+                            ></div>
                         </div>
                         <span class="tstats__dist-count">{{ stats.touche }} ({{ getPercent(stats.touche) }}%)</span>
                     </div>
@@ -96,7 +125,10 @@
                             {{ $t('tir.manque') }}
                         </span>
                         <div class="tstats__dist-bar-wrap">
-                            <div class="tstats__dist-bar tstats__dist-bar--manque" :style="{width: getPercent(stats.manque) + '%'}"></div>
+                            <div
+                                class="tstats__dist-bar tstats__dist-bar--manque"
+                                :style="{ width: getPercent(stats.manque) + '%' }"
+                            ></div>
                         </div>
                         <span class="tstats__dist-count">{{ stats.manque }} ({{ getPercent(stats.manque) }}%)</span>
                     </div>
@@ -121,103 +153,120 @@
                 <div class="tstats__dist-title">{{ $t('training.progressOverTime') }}</div>
                 <div class="tstats__chart">
                     <div v-for="(point, idx) in progressData" :key="idx" class="tstats__chart-bar-col">
-                        <div class="tstats__chart-bar" :style="{height: getBarHeight(point.average) + '%'}"></div>
+                        <div class="tstats__chart-bar" :style="{ height: getBarHeight(point.average) + '%' }"></div>
                         <div class="tstats__chart-label">{{ point.date }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div v-else class="tstats__empty">
+        <!-- Stacked bar chart view -->
+        <div v-if="chartView === 'stacked' && filteredSessions.length" class="tstats__stacked">
+            <TrainingStackedChart :sessions="sessions" :filters="computedFilters" />
+        </div>
+
+        <div v-else-if="!stats" class="tstats__empty">
             {{ $t('training.noStatsData') }}
         </div>
     </div>
 </template>
 
 <script>
-import {ChevronLeft} from "lucide-vue-next";
-import {ATELIER_KEYS, SCORING} from "@/services/tir";
-import {getMultiSessionStats} from "@/services/training";
+import { ChevronLeft, BarChart3, LayoutList } from 'lucide-vue-next';
+import { ATELIER_KEYS, SCORING } from '@/services/tir';
+import { getMultiSessionStats } from '@/services/training';
+import TrainingStackedChart from '@/components/training/TrainingStackedChart.vue';
 
 export default {
     name: 'TrainingStats',
-    components: {ChevronLeft},
+    components: { ChevronLeft, BarChart3, LayoutList, TrainingStackedChart },
     props: {
-        sessions: {type: Array, required: true}
+        sessions: { type: Array, required: true },
     },
     emits: ['back'],
     data() {
         return {
+            chartView: 'summary',
             filters: {
                 exerciseIndex: null,
                 distance: null,
                 dateFrom: '',
-                dateTo: ''
-            }
+                dateTo: '',
+            },
         };
     },
     computed: {
         atelierNames() {
-            return ATELIER_KEYS.map(key => this.$t(`tir.${key}`));
+            return ATELIER_KEYS.map((key) => this.$t(`tir.${key}`));
         },
         allDistances() {
             const distances = new Set();
-            this.sessions.forEach(s => {
+            this.sessions.forEach((s) => {
                 if (s.config && s.config.distances) {
-                    s.config.distances.forEach(d => distances.add(d));
+                    s.config.distances.forEach((d) => distances.add(d));
                 }
             });
             return [...distances].sort((a, b) => a - b);
         },
         filteredSessions() {
-            let list = this.sessions.filter(s => s.attempts && s.attempts.length > 0);
+            let list = this.sessions.filter((s) => s.attempts && s.attempts.length > 0);
             if (this.filters.dateFrom) {
                 const from = new Date(this.filters.dateFrom).getTime();
-                list = list.filter(s => s.createdAt >= from);
+                list = list.filter((s) => s.createdAt >= from);
             }
             if (this.filters.dateTo) {
                 const to = new Date(this.filters.dateTo).getTime() + 86400000;
-                list = list.filter(s => s.createdAt <= to);
+                list = list.filter((s) => s.createdAt <= to);
             }
             return list;
         },
         stats() {
             return getMultiSessionStats(this.filteredSessions, {
                 exerciseIndex: this.filters.exerciseIndex ?? undefined,
-                distance: this.filters.distance ?? undefined
+                distance: this.filters.distance ?? undefined,
             });
         },
         distanceStats() {
-            return this.allDistances.map(distance => {
-                const ds = getMultiSessionStats(this.filteredSessions, {
-                    exerciseIndex: this.filters.exerciseIndex ?? undefined,
-                    distance
-                });
-                return ds ? {distance, ...ds} : null;
-            }).filter(Boolean);
+            return this.allDistances
+                .map((distance) => {
+                    const ds = getMultiSessionStats(this.filteredSessions, {
+                        exerciseIndex: this.filters.exerciseIndex ?? undefined,
+                        distance,
+                    });
+                    return ds ? { distance, ...ds } : null;
+                })
+                .filter(Boolean);
+        },
+        computedFilters() {
+            return {
+                exerciseIndex: this.filters.exerciseIndex,
+                distance: this.filters.distance,
+                dateFrom: this.filters.dateFrom,
+                dateTo: this.filters.dateTo,
+            };
         },
         progressData() {
             return this.filteredSessions
                 .sort((a, b) => a.createdAt - b.createdAt)
-                .map(session => {
+                .map((session) => {
                     let attempts = session.attempts || [];
                     if (this.filters.exerciseIndex !== null) {
-                        attempts = attempts.filter(a => a.exerciseIndex === this.filters.exerciseIndex);
+                        attempts = attempts.filter((a) => a.exerciseIndex === this.filters.exerciseIndex);
                     }
                     if (this.filters.distance !== null) {
-                        attempts = attempts.filter(a => a.distance === this.filters.distance);
+                        attempts = attempts.filter((a) => a.distance === this.filters.distance);
                     }
                     if (!attempts.length) return null;
-                    const scores = attempts.map(a => SCORING[a.score] ?? 0);
+                    const scores = attempts.map((a) => SCORING[a.score] ?? 0);
                     const average = +(scores.reduce((s, v) => s + v, 0) / scores.length).toFixed(2);
                     const d = new Date(session.createdAt);
                     return {
                         average,
-                        date: `${d.getDate()}/${d.getMonth() + 1}`
+                        date: `${d.getDate()}/${d.getMonth() + 1}`,
                     };
                 })
                 .filter(Boolean);
-        }
+        },
     },
     methods: {
         getPercent(count) {
@@ -226,8 +275,8 @@ export default {
         },
         getBarHeight(average) {
             return Math.round((average / SCORING.carreau) * 100);
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -256,11 +305,48 @@ export default {
     color: var(--color-white);
 }
 
+.tstats__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
 .tstats__title {
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--color-text);
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+}
+
+.tstats__view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 2px;
+}
+
+.tstats__view-btn {
+    padding: 0.35rem 0.5rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+}
+
+.tstats__view-btn--active {
+    background: var(--color-primary);
+    color: var(--color-white, #fff);
+}
+
+.tstats__stacked {
+    margin-bottom: 1.25rem;
 }
 
 .tstats__filters {
@@ -362,10 +448,18 @@ export default {
     flex-shrink: 0;
 }
 
-.tstats__dot--carreau { background: var(--tir-carreau); }
-.tstats__dot--reussi { background: var(--tir-reussi); }
-.tstats__dot--touche { background: var(--tir-touche); }
-.tstats__dot--manque { background: var(--tir-manque); }
+.tstats__dot--carreau {
+    background: var(--tir-carreau);
+}
+.tstats__dot--reussi {
+    background: var(--tir-reussi);
+}
+.tstats__dot--touche {
+    background: var(--tir-touche);
+}
+.tstats__dot--manque {
+    background: var(--tir-manque);
+}
 
 .tstats__dist-bar-wrap {
     flex: 1;
@@ -381,10 +475,18 @@ export default {
     transition: width 0.3s;
 }
 
-.tstats__dist-bar--carreau { background: var(--tir-carreau); }
-.tstats__dist-bar--reussi { background: var(--tir-reussi); }
-.tstats__dist-bar--touche { background: var(--tir-touche); }
-.tstats__dist-bar--manque { background: var(--tir-manque); }
+.tstats__dist-bar--carreau {
+    background: var(--tir-carreau);
+}
+.tstats__dist-bar--reussi {
+    background: var(--tir-reussi);
+}
+.tstats__dist-bar--touche {
+    background: var(--tir-touche);
+}
+.tstats__dist-bar--manque {
+    background: var(--tir-manque);
+}
 
 .tstats__dist-count {
     font-size: 0.7rem;

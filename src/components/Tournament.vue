@@ -278,6 +278,12 @@
                 <div v-else class="setup-empty">
                     {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
                 </div>
+                <div v-if="!(tournament.teams?.length > 2)" class="setup-card__actions setup-card__actions--delete-only">
+                    <button class="setup-card__delete" @click="removeConfirmId = 1">
+                        <Trash2 :size="16"/>
+                        <span>{{ $t('teams.removeTournament') }}</span>
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -1524,6 +1530,10 @@ export default {
     align-items: center;
     gap: 0.5rem;
     margin-top: 1.25rem;
+}
+
+.setup-card__actions--delete-only {
+    justify-content: flex-end;
 }
 
 .setup-card__or {

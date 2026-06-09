@@ -2,7 +2,7 @@
     <div class="tcreate">
         <div class="tcreate__nav">
             <button class="tcreate__back" @click="$emit('back')">
-                <ChevronLeft :size="18"/>
+                <ChevronLeft :size="18" />
                 {{ $t('stat.back') }}
             </button>
         </div>
@@ -11,10 +11,13 @@
         <div v-if="step === 1" class="tcreate__step">
             <h3 class="tcreate__title">{{ $t('training.selectPreset') }}</h3>
             <div class="tcreate__presets">
-                <div v-for="preset in presets" :key="preset.type"
-                     class="tcreate__preset"
-                     :class="{'tcreate__preset--active': selectedType === preset.type}"
-                     @click="selectPreset(preset.type)">
+                <div
+                    v-for="preset in presets"
+                    :key="preset.type"
+                    class="tcreate__preset"
+                    :class="{ 'tcreate__preset--active': selectedType === preset.type }"
+                    @click="selectPreset(preset.type)"
+                >
                     <div class="tcreate__preset-name">{{ preset.name }}</div>
                     <div class="tcreate__preset-desc">{{ preset.description }}</div>
                 </div>
@@ -27,15 +30,24 @@
 
             <div class="tcreate__field">
                 <label class="tcreate__label">{{ $t('training.sessionName') }}</label>
-                <input v-model="config.name" class="tcreate__input" type="text" :placeholder="$t('training.sessionNamePlaceholder')"/>
+                <input
+                    v-model="config.name"
+                    class="tcreate__input"
+                    type="text"
+                    :placeholder="$t('training.sessionNamePlaceholder')"
+                />
             </div>
 
             <div class="tcreate__field">
                 <label class="tcreate__label">{{ $t('training.selectExercises') }}</label>
                 <div class="tcreate__checks">
                     <label v-for="(ex, idx) in atelierNames" :key="idx" class="tcreate__check">
-                        <input type="checkbox" :value="idx" v-model="config.exercises"
-                               :disabled="selectedType === 'tir_full'"/>
+                        <input
+                            type="checkbox"
+                            :value="idx"
+                            v-model="config.exercises"
+                            :disabled="selectedType === 'tir_full'"
+                        />
                         <span>{{ idx + 1 }}. {{ ex }}</span>
                     </label>
                 </div>
@@ -45,8 +57,12 @@
                 <label class="tcreate__label">{{ $t('training.selectDistances') }}</label>
                 <div class="tcreate__checks">
                     <label v-for="d in availableDistances" :key="d" class="tcreate__check">
-                        <input type="checkbox" :value="d" v-model="config.distances"
-                               :disabled="selectedType === 'tir_full'"/>
+                        <input
+                            type="checkbox"
+                            :value="d"
+                            v-model="config.distances"
+                            :disabled="selectedType === 'tir_full'"
+                        />
                         <span>{{ d }}m</span>
                     </label>
                 </div>
@@ -84,13 +100,13 @@
 </template>
 
 <script>
-import {ChevronLeft} from "lucide-vue-next";
-import {TRAINING_TYPE, PRESET_CONFIGS, createSession} from "@/services/training";
-import {ATELIER_KEYS, DISTANCES_FULL, SCORING} from "@/services/tir";
+import { ChevronLeft } from 'lucide-vue-next';
+import { TRAINING_TYPE, PRESET_CONFIGS, createSession } from '@/services/training';
+import { ATELIER_KEYS, DISTANCES_FULL, SCORING } from '@/services/tir';
 
 export default {
     name: 'TrainingCreate',
-    components: {ChevronLeft},
+    components: { ChevronLeft },
     emits: ['back', 'created'],
     data() {
         return {
@@ -101,8 +117,8 @@ export default {
                 name: '',
                 exercises: [],
                 distances: [],
-                attempts: 1
-            }
+                attempts: 1,
+            },
         };
     },
     computed: {
@@ -111,23 +127,23 @@ export default {
                 {
                     type: TRAINING_TYPE.TIR_FULL,
                     name: this.$t('training.presetFull'),
-                    description: this.$t('training.presetFullDesc')
+                    description: this.$t('training.presetFullDesc'),
                 },
                 {
                     type: TRAINING_TYPE.TIR_SINGLE_EXERCISE,
                     name: this.$t('training.presetSingleEx'),
-                    description: this.$t('training.presetSingleExDesc')
+                    description: this.$t('training.presetSingleExDesc'),
                 },
                 {
                     type: TRAINING_TYPE.TIR_SINGLE_DISTANCE,
                     name: this.$t('training.presetSingleDist'),
-                    description: this.$t('training.presetSingleDistDesc')
+                    description: this.$t('training.presetSingleDistDesc'),
                 },
                 {
                     type: TRAINING_TYPE.TIR_CUSTOM,
                     name: this.$t('training.presetCustom'),
-                    description: this.$t('training.presetCustomDesc')
-                }
+                    description: this.$t('training.presetCustomDesc'),
+                },
             ];
         },
         atelierNames() {
@@ -141,7 +157,7 @@ export default {
         },
         isValid() {
             return this.config.exercises.length > 0 && this.config.distances.length > 0 && this.config.attempts > 0;
-        }
+        },
     },
     methods: {
         selectPreset(type) {
@@ -159,16 +175,18 @@ export default {
             this.$emit('created', session);
         },
         getDefaultName() {
-            const typeNames = {
-                [TRAINING_TYPE.TIR_FULL]: this.$t('training.presetFull'),
-                [TRAINING_TYPE.TIR_SINGLE_EXERCISE]: this.$t('training.presetSingleEx'),
-                [TRAINING_TYPE.TIR_SINGLE_DISTANCE]: this.$t('training.presetSingleDist'),
-                [TRAINING_TYPE.TIR_CUSTOM]: this.$t('training.presetCustom')
-            };
-            const date = new Date().toLocaleDateString(undefined, {day: '2-digit', month: '2-digit'});
-            return `${typeNames[this.selectedType]} — ${date}`;
-        }
-    }
+            const exerciseNames = this.config.exercises.map((idx) => this.atelierNames[idx]);
+            const exercisePart =
+                exerciseNames.length === ATELIER_KEYS.length
+                    ? this.$t('training.allExercises')
+                    : exerciseNames.join(', ');
+            const distPart =
+                this.config.distances.length === DISTANCES_FULL.length
+                    ? this.$t('training.allDistances')
+                    : this.config.distances.map((d) => `${d}m`).join(', ');
+            return `${exercisePart}. ${distPart}.`;
+        },
+    },
 };
 </script>
 

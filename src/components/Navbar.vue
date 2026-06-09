@@ -2,14 +2,38 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <router-link class="navbar-item" to="/">
-                <img src="../assets/img/logo.webp" alt="logo">
+                <img src="../assets/img/logo.webp" alt="logo" />
             </router-link>
 
+            <div class="navbar-center-mobile" v-if="user">
+                <button class="navbar-icon-link navbar-icon-link--orange" @click="activeOverlayOpen = true">
+                    <Flame :size="18" />
+                </button>
+                <router-link class="navbar-icon-link navbar-icon-link--purple" to="/">
+                    <Shuffle :size="18" />
+                </router-link>
+                <router-link class="navbar-icon-link navbar-icon-link--blue" to="/stats">
+                    <BarChart3 :size="18" />
+                </router-link>
+                <router-link class="navbar-icon-link navbar-icon-link--green" to="/training">
+                    <Target :size="18" />
+                </router-link>
+            </div>
+
             <button class="menu-burger" @click="$emit('open-menu')" aria-label="menu" aria-expanded="false">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="12" x2="17" y2="12"/>
-                    <line x1="3" y1="18" x2="14" y2="18"/>
+                <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="17" y2="12" />
+                    <line x1="3" y1="18" x2="14" y2="18" />
                 </svg>
             </button>
         </div>
@@ -20,22 +44,101 @@
             <router-link class="navbar-nav-link" to="/training">{{ $t('common.training') }}</router-link>
         </div>
 
+        <!-- Active tournaments overlay -->
+        <Teleport to="body">
+            <div v-if="activeOverlayOpen" class="active-overlay" @click.self="activeOverlayOpen = false">
+                <div class="active-overlay__panel">
+                    <div class="active-overlay__header">
+                        <h2 class="active-overlay__title">
+                            <Flame :size="20" class="active-overlay__title-icon" />
+                            {{ $t('common.activeTournaments') }}
+                        </h2>
+                        <button class="active-overlay__close" @click="activeOverlayOpen = false">
+                            <X :size="20" />
+                        </button>
+                    </div>
+                    <div class="active-overlay__list" v-if="sortedTournaments.length">
+                        <div
+                            v-for="item in sortedTournaments"
+                            :key="item.id"
+                            class="active-overlay__item"
+                            :class="{
+                                'active-overlay__item--active': String(item.id) === String(currentTournamentIndex),
+                            }"
+                            @click="chooseTournamentFromOverlay(item.id)"
+                        >
+                            <div class="active-overlay__item-top">
+                                <Pin
+                                    v-if="String(pinnedId) === String(item.id)"
+                                    :size="14"
+                                    class="active-overlay__item-pin"
+                                />
+                                <span class="active-overlay__item-name">{{ item.name }}</span>
+                                <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
+                            </div>
+                            <div class="active-overlay__item-meta">
+                                <span v-if="item.teams">{{ item.teams.length }} {{ $t('common.teamsCount') }}</span>
+                                <span v-if="item.games">{{ item.games.length }} {{ $t('common.games') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="active-overlay__empty">
+                        {{ $t('training.noSessions') }}
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
         <div class="navbar-menu">
             <div class="navbar-start">
-                <div class="tournaments-dropdown" v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'" @click="tournamentsOpen = !tournamentsOpen" v-click-outside="closeTournaments">
+                <div
+                    class="tournaments-dropdown"
+                    v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'"
+                    @click="tournamentsOpen = !tournamentsOpen"
+                    v-click-outside="closeTournaments"
+                >
                     <a class="navbar-link navbar-link--custom">
                         <span class="navbar-link__current">{{ $t('common.activeTournaments') }}</span>
-                        <svg class="navbar-link__chevron" :class="{'navbar-link__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg
+                            class="navbar-link__chevron"
+                            :class="{ 'navbar-link__chevron--open': tournamentsOpen }"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </a>
                     <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
-                        <a class="tournaments-dropdown__item tournaments-dropdown__item--new" @click.stop="addNewTournamentFromDropdown">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <a
+                            class="tournaments-dropdown__item tournaments-dropdown__item--new"
+                            @click.stop="addNewTournamentFromDropdown"
+                        >
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
                             {{ $t('common.addTournament') }}
                         </a>
-                        <a class="tournaments-dropdown__item" :class="{'tournaments-dropdown__item--active': String(item.id) === String(currentTournamentIndex)}"
-                           v-for="item in tournaments" :key="item.id"
-                           @click.stop="chooseTournament(item.id)">
-                            <Pin v-if="String(pinnedId) === String(item.id)" :size="12" class="tournaments-dropdown__item-pin"/>
+                        <a
+                            class="tournaments-dropdown__item"
+                            :class="{
+                                'tournaments-dropdown__item--active':
+                                    String(item.id) === String(currentTournamentIndex),
+                            }"
+                            v-for="item in tournaments"
+                            :key="item.id"
+                            @click.stop="chooseTournament(item.id)"
+                        >
+                            <Pin
+                                v-if="String(pinnedId) === String(item.id)"
+                                :size="12"
+                                class="tournaments-dropdown__item-pin"
+                            />
                             {{ item.name }}
                         </a>
                     </div>
@@ -43,23 +146,57 @@
             </div>
             <div class="navbar-end">
                 <div class="navbar-item" v-if="user">
-                    <div class="user-dropdown" @click="userDropdownOpen = !userDropdownOpen" v-click-outside="closeDropdown">
+                    <div
+                        class="user-dropdown"
+                        @click="userDropdownOpen = !userDropdownOpen"
+                        v-click-outside="closeDropdown"
+                    >
                         <button class="btn-user">
                             <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
                             </svg>
                             <span class="btn-user__email">{{ user.email }}</span>
-                            <svg class="btn-icon btn-icon--chevron" :class="{'btn-icon--open': userDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            <svg
+                                class="btn-icon btn-icon--chevron"
+                                :class="{ 'btn-icon--open': userDropdownOpen }"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                />
                             </svg>
                         </button>
                         <div class="user-dropdown__menu" v-if="userDropdownOpen">
                             <a href="#" class="user-dropdown__item" @click.prevent="addNewTournament">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 4v16m8-8H4"
+                                    />
+                                </svg>
                                 {{ $t('common.addTournament') }}
                             </a>
                             <router-link class="user-dropdown__item" to="/archived" @click="userDropdownOpen = false">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                                    />
+                                </svg>
                                 {{ $t('common.archivedTournaments') }}
                             </router-link>
                             <div class="user-dropdown__theme-row">
@@ -67,35 +204,55 @@
                                 <ThemeSwitcher />
                             </div>
                             <a href="#" class="user-dropdown__item" @click.prevent="signOutUser">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    />
+                                </svg>
                                 {{ $t('common.logoutUser') }}
                             </a>
                         </div>
                     </div>
                 </div>
-                <LanguageSwitcher class="navbar-item"/>
+                <LanguageSwitcher class="navbar-item" />
             </div>
         </div>
     </nav>
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import { signOut } from "firebase/auth";
-import {auth} from "@/firebase";
-import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
-import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
-import {Pin} from "lucide-vue-next";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase';
+import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
+import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
+import { Pin, Flame, Shuffle, BarChart3, Target, X } from 'lucide-vue-next';
 
 export default {
-    name: "Navbar",
-    components: {LanguageSwitcher, ThemeSwitcher, Pin},
+    name: 'Navbar',
+    components: { LanguageSwitcher, ThemeSwitcher, Pin, Flame, Shuffle, BarChart3, Target, X },
     data() {
         return {
             userDropdownOpen: false,
             tournamentsOpen: false,
-        }
+            activeOverlayOpen: false,
+            pinnedIdLocal: localStorage.getItem('petanqueDrawPinned'),
+        };
+    },
+    watch: {
+        currentTournamentIndex() {
+            this.refreshPinned();
+        },
+        activeOverlayOpen(val) {
+            if (val) this.refreshPinned();
+        },
+        tournamentsOpen(val) {
+            if (val) this.refreshPinned();
+        },
     },
     directives: {
         'click-outside': {
@@ -107,20 +264,26 @@ export default {
             },
             unmounted(el) {
                 document.removeEventListener('click', el._clickOutside);
-            }
-        }
+            },
+        },
     },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
         pinnedId() {
-            return localStorage.getItem('petanqueDrawPinned');
+            return this.pinnedIdLocal;
+        },
+        sortedTournaments() {
+            return Object.values(this.tournaments).sort((a, b) => (b.id || 0) - (a.id || 0));
         },
     },
     methods: {
         ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
+        refreshPinned() {
+            this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
+        },
         closeDropdown() {
             this.userDropdownOpen = false;
         },
@@ -130,6 +293,13 @@ export default {
         chooseTournament(id) {
             this.setActiveTournament(id);
             this.tournamentsOpen = false;
+            if (this.$route.path !== '/') {
+                this.$router.push('/');
+            }
+        },
+        chooseTournamentFromOverlay(id) {
+            this.setActiveTournament(id);
+            this.activeOverlayOpen = false;
             if (this.$route.path !== '/') {
                 this.$router.push('/');
             }
@@ -156,14 +326,18 @@ export default {
                     this.$router.push('/');
                 })
                 .catch((error) => {
-                    console.error("Error during sign out:", error);
+                    console.error('Error during sign out:', error);
                 });
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
+.navbar {
+    position: relative;
+}
+
 .navbar-center {
     position: absolute;
     left: 50%;
@@ -208,6 +382,190 @@ export default {
     font-weight: bold;
 }
 
+.navbar-icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.navbar-icon-link--orange {
+    color: #e67e22;
+}
+
+.navbar-icon-link--purple {
+    color: #8e44ad;
+}
+
+.navbar-icon-link--purple.router-link-exact-active {
+    background: rgba(142, 68, 173, 0.12);
+}
+
+.navbar-icon-link--blue {
+    color: #2980b9;
+}
+
+.navbar-icon-link--blue.router-link-exact-active {
+    background: rgba(41, 128, 185, 0.12);
+}
+
+.navbar-icon-link--green {
+    color: #27ae60;
+}
+
+.navbar-icon-link--green.router-link-exact-active {
+    background: rgba(39, 174, 96, 0.12);
+}
+
+/* Active overlay */
+.active-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.4);
+    animation: overlay-fade-in 0.2s ease;
+}
+
+@keyframes overlay-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.active-overlay__panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-height: 80vh;
+    background: var(--color-white);
+    border-radius: 0 0 1rem 1rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    padding: 1.5rem;
+    overflow-y: auto;
+    animation: panel-slide-down 0.25s ease;
+}
+
+@keyframes panel-slide-down {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.active-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.active-overlay__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.active-overlay__title-icon {
+    color: #e67e22;
+}
+
+.active-overlay__close {
+    padding: 0.4rem;
+    border: none;
+    background: var(--color-surface);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: all 0.15s;
+}
+
+.active-overlay__close:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+}
+
+.active-overlay__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.active-overlay__item {
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.active-overlay__item:hover {
+    border-color: #e67e22;
+    background: rgba(230, 126, 34, 0.04);
+}
+
+.active-overlay__item--active {
+    border-color: #e67e22;
+    background: rgba(230, 126, 34, 0.08);
+}
+
+.active-overlay__item-top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.active-overlay__item-pin {
+    color: #e67e22;
+    flex-shrink: 0;
+}
+
+.active-overlay__item-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    flex: 1;
+}
+
+.active-overlay__item-badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    color: var(--color-primary);
+    text-transform: capitalize;
+}
+
+.active-overlay__item-meta {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.active-overlay__empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-muted);
+}
+
 .menu-burger {
     display: none;
     align-items: center;
@@ -232,9 +590,16 @@ export default {
     opacity: 0.7;
 }
 
+.navbar-center-mobile {
+    display: none;
+}
+
 @media (max-width: 1199px) {
     .navbar-brand {
         width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
     }
 
     .menu-burger {
@@ -247,6 +612,32 @@ export default {
 
     .navbar-menu {
         display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-brand .navbar-item {
+        flex: 1;
+    }
+
+    .menu-burger {
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .navbar-center-mobile {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .navbar-icon-link {
+        padding: 0.5rem;
+    }
+
+    .navbar-icon-link svg {
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -289,7 +680,9 @@ export default {
     left: 0;
     background: var(--color-white);
     border-radius: 0.5rem;
-    box-shadow: 0 8px 24px var(--color-dropdown-shadow), 0 2px 4px rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 8px 24px var(--color-dropdown-shadow),
+        0 2px 4px rgba(0, 0, 0, 0.04);
     min-width: 300px;
     padding: 0.35rem;
     z-index: 9999;
@@ -348,7 +741,9 @@ export default {
     right: 0;
     background: var(--color-white);
     border-radius: 0.5rem;
-    box-shadow: 0 8px 24px var(--color-dropdown-shadow), 0 2px 4px rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 8px 24px var(--color-dropdown-shadow),
+        0 2px 4px rgba(0, 0, 0, 0.04);
     min-width: 160px;
     padding: 0.35rem;
     z-index: 9999;
@@ -356,8 +751,14 @@ export default {
 }
 
 @keyframes dropdown-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .user-dropdown__item {

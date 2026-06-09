@@ -5,6 +5,21 @@
                 <img src="../assets/img/logo.webp" alt="logo" />
             </router-link>
 
+            <div class="navbar-center-mobile" v-if="user">
+                <button class="navbar-icon-link navbar-icon-link--orange" @click="activeOverlayOpen = true">
+                    <Flame :size="18" />
+                </button>
+                <router-link class="navbar-icon-link navbar-icon-link--purple" to="/">
+                    <Shuffle :size="18" />
+                </router-link>
+                <router-link class="navbar-icon-link navbar-icon-link--blue" to="/stats">
+                    <BarChart3 :size="18" />
+                </router-link>
+                <router-link class="navbar-icon-link navbar-icon-link--green" to="/training">
+                    <Target :size="18" />
+                </router-link>
+            </div>
+
             <button class="menu-burger" @click="$emit('open-menu')" aria-label="menu" aria-expanded="false">
                 <svg
                     width="22"
@@ -24,22 +39,9 @@
         </div>
 
         <div class="navbar-center" v-if="user">
-            <button class="navbar-icon-link navbar-icon-link--orange" @click="activeOverlayOpen = true">
-                <Flame :size="18" />
-                <span>{{ $t('common.activeTournaments') }}</span>
-            </button>
-            <router-link class="navbar-icon-link navbar-icon-link--purple" to="/">
-                <Shuffle :size="18" />
-                <span>{{ $t('common.draw') }}</span>
-            </router-link>
-            <router-link class="navbar-icon-link navbar-icon-link--blue" to="/stats">
-                <BarChart3 :size="18" />
-                <span>{{ $t('common.stat') }}</span>
-            </router-link>
-            <router-link class="navbar-icon-link navbar-icon-link--green" to="/training">
-                <Target :size="18" />
-                <span>{{ $t('common.training') }}</span>
-            </router-link>
+            <router-link class="navbar-nav-link" to="/">{{ $t('common.draw') }}</router-link>
+            <router-link class="navbar-nav-link" to="/stats">{{ $t('common.stat') }}</router-link>
+            <router-link class="navbar-nav-link" to="/training">{{ $t('common.training') }}</router-link>
         </div>
 
         <!-- Active tournaments overlay -->
@@ -317,6 +319,10 @@ export default {
 </script>
 
 <style scoped>
+.navbar {
+    position: relative;
+}
+
 .navbar-center {
     position: absolute;
     left: 50%;
@@ -324,64 +330,82 @@ export default {
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 1.5rem;
+}
+
+.navbar-nav-link {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0;
+    transition: color 0.2s;
+}
+
+.navbar-nav-link + .navbar-nav-link {
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.navbar-nav-link + .navbar-nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px;
+    width: 1px;
+    background: var(--color-border, #e0e0e0);
+}
+
+.navbar-nav-link:hover {
+    color: var(--color-primary);
+}
+
+.navbar-nav-link.router-link-exact-active {
+    color: var(--color-primary);
+    font-weight: bold;
 }
 
 .navbar-icon-link {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.75rem;
+    justify-content: center;
+    padding: 0.45rem;
     border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
     text-decoration: none;
     border: none;
     background: transparent;
     cursor: pointer;
     transition: all 0.15s;
-    color: var(--color-text-muted);
-}
-
-.navbar-icon-link:hover {
-    background: var(--color-surface);
 }
 
 .navbar-icon-link--orange {
     color: #e67e22;
 }
-.navbar-icon-link--orange:hover {
-    background: rgba(230, 126, 34, 0.1);
-}
+
 .navbar-icon-link--purple {
     color: #8e44ad;
 }
-.navbar-icon-link--purple:hover {
-    background: rgba(142, 68, 173, 0.1);
-}
+
 .navbar-icon-link--purple.router-link-exact-active {
     background: rgba(142, 68, 173, 0.12);
-    font-weight: 700;
 }
+
 .navbar-icon-link--blue {
     color: #2980b9;
 }
-.navbar-icon-link--blue:hover {
-    background: rgba(41, 128, 185, 0.1);
-}
+
 .navbar-icon-link--blue.router-link-exact-active {
     background: rgba(41, 128, 185, 0.12);
-    font-weight: 700;
 }
+
 .navbar-icon-link--green {
     color: #27ae60;
 }
-.navbar-icon-link--green:hover {
-    background: rgba(39, 174, 96, 0.1);
-}
+
 .navbar-icon-link--green.router-link-exact-active {
     background: rgba(39, 174, 96, 0.12);
-    font-weight: 700;
 }
 
 /* Active overlay */
@@ -551,9 +575,15 @@ export default {
     opacity: 0.7;
 }
 
+.navbar-center-mobile {
+    display: none;
+}
+
 @media (max-width: 1199px) {
     .navbar-brand {
         width: 100%;
+        display: flex;
+        align-items: center;
     }
 
     .menu-burger {
@@ -566,6 +596,16 @@ export default {
 
     .navbar-menu {
         display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-center-mobile {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-left: auto;
+        margin-right: 0.5rem;
     }
 }
 

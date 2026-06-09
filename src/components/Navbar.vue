@@ -599,6 +599,7 @@ export default {
         width: 100%;
         display: flex;
         align-items: center;
+        padding: 0 1rem;
     }
 
     .menu-burger {
@@ -615,12 +616,28 @@ export default {
 }
 
 @media (max-width: 767px) {
+    .navbar-brand .navbar-item {
+        flex: 1;
+    }
+
+    .menu-burger {
+        flex: 1;
+        justify-content: flex-end;
+    }
+
     .navbar-center-mobile {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
-        margin-left: auto;
-        margin-right: 0.5rem;
+        gap: 0.6rem;
+    }
+
+    .navbar-icon-link {
+        padding: 0.5rem;
+    }
+
+    .navbar-icon-link svg {
+        width: 20px;
+        height: 20px;
     }
 }
 

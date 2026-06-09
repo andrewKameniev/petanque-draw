@@ -240,7 +240,19 @@ export default {
             userDropdownOpen: false,
             tournamentsOpen: false,
             activeOverlayOpen: false,
+            pinnedIdLocal: localStorage.getItem('petanqueDrawPinned'),
         };
+    },
+    watch: {
+        currentTournamentIndex() {
+            this.refreshPinned();
+        },
+        activeOverlayOpen(val) {
+            if (val) this.refreshPinned();
+        },
+        tournamentsOpen(val) {
+            if (val) this.refreshPinned();
+        },
     },
     directives: {
         'click-outside': {
@@ -261,7 +273,7 @@ export default {
             return this.currentTournament;
         },
         pinnedId() {
-            return localStorage.getItem('petanqueDrawPinned');
+            return this.pinnedIdLocal;
         },
         sortedTournaments() {
             return Object.values(this.tournaments).sort((a, b) => (b.id || 0) - (a.id || 0));
@@ -269,6 +281,9 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
+        refreshPinned() {
+            this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
+        },
         closeDropdown() {
             this.userDropdownOpen = false;
         },

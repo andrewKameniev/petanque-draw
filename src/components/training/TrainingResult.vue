@@ -4,16 +4,19 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getDate} from "@/helpers-stat";
 import TrainingResultGraph from "@/components/training/TrainingResultGraph.vue";
-import {ChevronLeft} from "lucide-vue-next";
+import {ChevronLeft, Pencil, Trash2, Save, X} from "lucide-vue-next";
 
 export default {
     name: "TrainingResult",
-    components: {TrainingResultGraph, ChevronLeft},
+    components: {TrainingResultGraph, ChevronLeft, Pencil, Trash2, Save, X},
     props: ['exid', 'exdata'],
     data() {
         return{
             results: null,
             isLoading: false,
+            editingKey: null,
+            editData: null,
+            isSaving: false,
         }
     },
     mounted() {
@@ -108,6 +111,34 @@ export default {
             }
 
             return result
+        },
+        startEdit(key) {
+            this.editingKey = key;
+            this.editData = JSON.parse(JSON.stringify(this.results[key].distances));
+        },
+        cancelEdit() {
+            this.editingKey = null;
+            this.editData = null;
+        },
+        saveEdit() {
+            if (!this.editingKey || this.isSaving) return;
+            this.isSaving = true;
+            const updated = { ...this.results[this.editingKey], distances: this.editData };
+            trainingService.saveTrainingResult(this.user.uid, this.exid, this.editingKey, updated).then(() => {
+                this.results[this.editingKey].distances = this.editData;
+                this.editingKey = null;
+                this.editData = null;
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.exerciseSaved') });
+            }).finally(() => {
+                this.isSaving = false;
+            });
+        },
+        deleteResult(key) {
+            trainingService.saveTrainingResult(this.user.uid, this.exid, key, null).then(() => {
+                delete this.results[key];
+                if (!Object.keys(this.results).length) this.results = null;
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.exerciseRemoved') });
+            });
         }
     }
 }
@@ -147,9 +178,51 @@ export default {
             </div>
             <TrainingResultGraph v-if="exGraphData" :graph-data="exGraphData"/>
             <div class="result-view__history">
-                <div v-for="(item, key) in results" :key="key" class="result-view__history-item">
-                    <div class="result-view__history-date">{{getDate(item.date)}}</div>
-                    <div class="result-view__history-body">
+                <div v-for="(item, key) in results" :key="key" class="result-view__history-item" :class="{'result-view__history-item--editing': editingKey === key}">
+                    <div class="result-view__history-header">
+                        <div class="result-view__history-date">{{getDate(item.date)}}</div>
+                        <div v-if="editingKey !== key" class="result-view__history-actions">
+                            <button class="result-view__action-btn" @click="startEdit(key)" :title="$t('common.edit')">
+                                <Pencil :size="14"/>
+                            </button>
+                            <button class="result-view__action-btn result-view__action-btn--danger" @click="deleteResult(key)" :title="$t('common.remove')">
+                                <Trash2 :size="14"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Edit mode -->
+                    <div v-if="editingKey === key" class="result-view__edit">
+                        <div v-for="(dist, dKey) in editData" :key="dKey" class="result-view__edit-dist">
+                            <span class="result-view__edit-dist-label">{{dKey.replace('_', '.')}}m</span>
+                            <div class="result-view__edit-values">
+                                <input
+                                    v-for="(val, idx) in dist"
+                                    :key="idx"
+                                    type="number"
+                                    class="result-view__edit-input"
+                                    :value="val"
+                                    @input="editData[dKey][idx] = +$event.target.value"
+                                    min="0"
+                                    :max="exdata.value ? 999 : 1"
+                                    step="1"
+                                />
+                            </div>
+                        </div>
+                        <div class="result-view__edit-actions">
+                            <button class="button btn-primary btn-sm" @click="saveEdit" :disabled="isSaving">
+                                <Save :size="14"/>
+                                {{$t('common.save')}}
+                            </button>
+                            <button class="button btn-primary-outline btn-sm" @click="cancelEdit">
+                                <X :size="14"/>
+                                {{$t('common.cancel')}}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Read mode -->
+                    <div v-else class="result-view__history-body">
                         <div class="result-view__history-total">
                             {{$t('stat.total')}}:
                             <strong>{{getTotalResults(item.distances)}}</strong><span v-if="!exdata.value">/{{this.totalExLength}}</span>
@@ -158,14 +231,14 @@ export default {
                             </span>
                         </div>
                         <div v-if="exdata.complex" class="result-view__history-details">
-                            <span v-for="(item, key) in getStatComplex(item.distances)" :key="key" class="result-view__history-detail">
-                                <span>{{item.name}}</span>
-                                <strong> - {{item.result}}</strong>
+                            <span v-for="(s, sKey) in getStatComplex(item.distances)" :key="sKey" class="result-view__history-detail">
+                                <span>{{s.name}}</span>
+                                <strong> - {{s.result}}</strong>
                             </span>
                         </div>
                         <div v-else class="result-view__history-details">
-                            <span v-for="(dist, key) in item.distances" :key="key" class="result-view__history-detail">
-                                {{key.replace('_', '.')}}m - {{dist.reduce((acc, item) => acc + +item, 0)}}<span v-if="!exdata.value"> / {{this.exdata.length}}</span>
+                            <span v-for="(dist, dKey) in item.distances" :key="dKey" class="result-view__history-detail">
+                                {{dKey.replace('_', '.')}}m - {{dist.reduce((acc, v) => acc + +v, 0)}}<span v-if="!exdata.value"> / {{this.exdata.length}}</span>
                             </span>
                         </div>
                     </div>
@@ -342,5 +415,101 @@ export default {
     padding: 2rem;
     color: var(--color-text-muted);
     font-size: 1.1rem;
+}
+
+.result-view__history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.result-view__history-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.result-view__history-item:hover .result-view__history-actions {
+    opacity: 1;
+}
+
+.result-view__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.result-view__action-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.result-view__action-btn--danger:hover {
+    border-color: var(--color-danger, #e53935);
+    color: var(--color-danger, #e53935);
+}
+
+.result-view__history-item--editing {
+    border-color: var(--color-primary);
+}
+
+.result-view__edit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.result-view__edit-dist {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.result-view__edit-dist-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    min-width: 36px;
+}
+
+.result-view__edit-values {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.result-view__edit-input {
+    width: 38px;
+    height: 32px;
+    text-align: center;
+    border: 1.5px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--color-surface);
+    color: var(--color-text);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.result-view__edit-input:focus {
+    border-color: var(--color-primary);
+}
+
+.result-view__edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
 }
 </style>

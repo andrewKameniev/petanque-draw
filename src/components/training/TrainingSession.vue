@@ -77,100 +77,204 @@
             >
         </div>
 
-        <!-- Exercise tabs -->
-        <div v-if="session.config.exercises.length > 1" class="tir-pview__tabs">
-            <button
-                v-for="exIdx in session.config.exercises"
-                :key="exIdx"
-                class="tir-pview__tab"
-                :class="{
-                    'tir-pview__tab--active': activeExercise === exIdx,
-                    'tir-pview__tab--complete': isExerciseComplete(exIdx),
-                }"
-                @click="activeExercise = exIdx"
-            >
-                {{ exIdx + 1 }}
-            </button>
-        </div>
-
-        <!-- Active exercise scoring -->
-        <div class="tir-pview__atelier-card">
-            <div class="tir-pview__atelier-card-header">
-                <span class="tir-pview__atelier-card-num">{{ activeExercise + 1 }}</span>
-                <span class="tir-pview__atelier-card-name">{{ atelierNames[activeExercise] }}</span>
-                <span class="tir-pview__atelier-card-score"
-                    >{{ getExerciseScore(activeExercise) }}/{{ exerciseMaxScore }}</span
-                >
-            </div>
-
-            <!-- Circles grid: rows = score types, columns = attempts -->
-            <div v-for="distance in session.config.distances" :key="distance" class="tsession__distance-block">
-                <div class="tsession__distance-label">{{ distance }}m</div>
-                <div class="tsession__circles-table">
-                    <div v-for="opt in resultOptions" :key="opt.key" class="tsession__score-row">
-                        <span class="tsession__score-row-label" :class="`tsession__score-row-label--${opt.key}`">{{
-                            $t(`tir.${opt.key}`)
+        <!-- Compact all-on-one-page layout: all ateliers, all distances, <= 3 attempts -->
+        <template v-if="isCompactLayout">
+            <div v-for="exIdx in session.config.exercises" :key="exIdx" class="tsession__compact-card">
+                <div class="tsession__compact-card-header">
+                    <span class="tir-pview__atelier-card-num">{{ exIdx + 1 }}</span>
+                    <span class="tir-pview__atelier-card-name">{{ atelierNames[exIdx] }}</span>
+                    <span class="tir-pview__atelier-card-score"
+                        >{{ getExerciseScore(exIdx) }}/{{ exerciseMaxScore }}</span
+                    >
+                </div>
+                <div class="tsession__compact-grid">
+                    <div class="tsession__compact-grid-header">
+                        <span class="tsession__compact-grid-label"></span>
+                        <span
+                            v-for="distance in session.config.distances"
+                            :key="distance"
+                            class="tsession__compact-grid-dist"
+                        >{{ distance }}m</span>
+                    </div>
+                    <div v-for="opt in resultOptions" :key="opt.key" class="tsession__compact-grid-row">
+                        <span class="tsession__compact-grid-label" :class="`tsession__score-row-label--${opt.key}`">{{
+                            opt.key[0].toUpperCase()
                         }}</span>
-                        <div class="tsession__score-row-circles">
+                        <span
+                            v-for="distance in session.config.distances"
+                            :key="distance"
+                            class="tsession__compact-grid-cell"
+                        >
                             <span
                                 v-for="attemptNum in session.config.attempts"
                                 :key="attemptNum"
-                                class="tir-pview__circle"
+                                class="tir-pview__circle tir-pview__circle--sm"
                                 :class="[
                                     `tir-pview__circle--${opt.key}`,
                                     {
                                         'tir-pview__circle--active':
-                                            getAttemptScore(activeExercise, distance, attemptNum) === opt.key,
+                                            getAttemptScore(exIdx, distance, attemptNum) === opt.key,
                                     },
                                 ]"
-                                @click="setScore(activeExercise, distance, attemptNum, opt.key)"
+                                @click="setScore(exIdx, distance, attemptNum, opt.key)"
                             >
                             </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="tsession__nav">
+                <button
+                    v-if="session.status !== 'completed'"
+                    class="tir-pview__nav-btn tsession__fill-zeros"
+                    @click="fillAllZerosAll"
+                >
+                    <CircleOff :size="14" />
+                    {{ $t('training.fillZeros') }}
+                </button>
+                <div class="tsession__nav-spacer"></div>
+                <button
+                    v-if="session.status !== 'completed'"
+                    class="tir-pview__nav-btn tir-pview__nav-btn--primary"
+                    @click="completeSession"
+                >
+                    <CheckIcon :size="16" />
+                    {{ $t('training.complete') }}
+                </button>
+            </div>
+        </template>
+
+        <!-- Standard per-exercise layout -->
+        <template v-else>
+            <!-- Exercise tabs -->
+            <div v-if="session.config.exercises.length > 1" class="tir-pview__tabs">
+                <button
+                    v-for="exIdx in session.config.exercises"
+                    :key="exIdx"
+                    class="tir-pview__tab"
+                    :class="{
+                        'tir-pview__tab--active': activeExercise === exIdx,
+                        'tir-pview__tab--complete': isExerciseComplete(exIdx),
+                    }"
+                    @click="activeExercise = exIdx"
+                >
+                    {{ exIdx + 1 }}
+                </button>
+            </div>
+
+            <!-- Active exercise scoring -->
+            <div class="tir-pview__atelier-card">
+                <div class="tir-pview__atelier-card-header">
+                    <span class="tir-pview__atelier-card-num">{{ activeExercise + 1 }}</span>
+                    <span class="tir-pview__atelier-card-name">{{ atelierNames[activeExercise] }}</span>
+                    <span class="tir-pview__atelier-card-score"
+                        >{{ getExerciseScore(activeExercise) }}/{{ exerciseMaxScore }}</span
+                    >
+                </div>
+
+                <!-- Vertical layout: 1 distance + 1 exercise -->
+                <div v-if="isVerticalLayout" class="tsession__vertical">
+                    <div class="tsession__vertical-header">
+                        <span class="tsession__vertical-num-header">#</span>
+                        <span
+                            v-for="opt in resultOptions"
+                            :key="opt.key"
+                            class="tsession__vertical-col-header"
+                            :class="`tsession__score-row-label--${opt.key}`"
+                        >{{ opt.key[0].toUpperCase() }}</span>
+                    </div>
+                    <div
+                        v-for="attemptNum in session.config.attempts"
+                        :key="attemptNum"
+                        class="tsession__vertical-row"
+                    >
+                        <span class="tsession__vertical-num">{{ attemptNum }}</span>
+                        <span
+                            v-for="opt in resultOptions"
+                            :key="opt.key"
+                            class="tir-pview__circle"
+                            :class="[
+                                `tir-pview__circle--${opt.key}`,
+                                {
+                                    'tir-pview__circle--active':
+                                        getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key,
+                                },
+                            ]"
+                            @click="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
+                        >
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Default grid: rows = score types, columns = attempts -->
+                <div v-else v-for="distance in session.config.distances" :key="distance" class="tsession__distance-block">
+                    <div class="tsession__distance-label">{{ distance }}m</div>
+                    <div class="tsession__circles-table">
+                        <div v-for="opt in resultOptions" :key="opt.key" class="tsession__score-row">
+                            <span class="tsession__score-row-label" :class="`tsession__score-row-label--${opt.key}`">{{
+                                $t(`tir.${opt.key}`)
+                            }}</span>
+                            <div class="tsession__score-row-circles">
+                                <span
+                                    v-for="attemptNum in session.config.attempts"
+                                    :key="attemptNum"
+                                    class="tir-pview__circle"
+                                    :class="[
+                                        `tir-pview__circle--${opt.key}`,
+                                        {
+                                            'tir-pview__circle--active':
+                                                getAttemptScore(activeExercise, distance, attemptNum) === opt.key,
+                                        },
+                                    ]"
+                                    @click="setScore(activeExercise, distance, attemptNum, opt.key)"
+                                >
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Navigation and actions -->
-        <div class="tsession__nav">
-            <button
-                v-if="session.config.exercises.length > 1 && activeExercise > session.config.exercises[0]"
-                class="tir-pview__nav-btn"
-                @click="prevExercise"
-            >
-                <ChevronLeft :size="16" />
-                {{ $t('tir.prevAtelier') }}
-            </button>
-            <button
-                v-if="session.status !== 'completed'"
-                class="tir-pview__nav-btn tsession__fill-zeros"
-                @click="fillAllZeros"
-            >
-                <CircleOff :size="14" />
-                {{ $t('training.fillZeros') }}
-            </button>
-            <div class="tsession__nav-spacer"></div>
-            <button
-                v-if="
-                    session.config.exercises.length > 1 &&
-                    activeExercise < session.config.exercises[session.config.exercises.length - 1]
-                "
-                class="tir-pview__nav-btn"
-                @click="nextExercise"
-            >
-                {{ $t('tir.nextAtelier') }}
-                <ChevronRight :size="16" />
-            </button>
-            <button
-                v-if="session.status !== 'completed'"
-                class="tir-pview__nav-btn tir-pview__nav-btn--primary"
-                @click="completeSession"
-            >
-                <CheckIcon :size="16" />
-                {{ $t('training.complete') }}
-            </button>
-        </div>
+            <!-- Navigation and actions -->
+            <div class="tsession__nav">
+                <button
+                    v-if="session.config.exercises.length > 1 && activeExercise > session.config.exercises[0]"
+                    class="tir-pview__nav-btn"
+                    @click="prevExercise"
+                >
+                    <ChevronLeft :size="16" />
+                    {{ $t('tir.prevAtelier') }}
+                </button>
+                <button
+                    v-if="session.status !== 'completed'"
+                    class="tir-pview__nav-btn tsession__fill-zeros"
+                    @click="fillAllZeros"
+                >
+                    <CircleOff :size="14" />
+                    {{ $t('training.fillZeros') }}
+                </button>
+                <div class="tsession__nav-spacer"></div>
+                <button
+                    v-if="
+                        session.config.exercises.length > 1 &&
+                        activeExercise < session.config.exercises[session.config.exercises.length - 1]
+                    "
+                    class="tir-pview__nav-btn"
+                    @click="nextExercise"
+                >
+                    {{ $t('tir.nextAtelier') }}
+                    <ChevronRight :size="16" />
+                </button>
+                <button
+                    v-if="session.status !== 'completed'"
+                    class="tir-pview__nav-btn tir-pview__nav-btn--primary"
+                    @click="completeSession"
+                >
+                    <CheckIcon :size="16" />
+                    {{ $t('training.complete') }}
+                </button>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -194,6 +298,16 @@ export default {
         };
     },
     computed: {
+        isCompactLayout() {
+            return (
+                this.session.config.exercises.length > 1 &&
+                this.session.config.distances.length > 1 &&
+                this.session.config.attempts <= 3
+            );
+        },
+        isVerticalLayout() {
+            return this.session.config.distances.length === 1 && this.session.config.exercises.length === 1;
+        },
         atelierNames() {
             return ATELIER_KEYS.map((key) => this.$t(`tir.${key}`));
         },
@@ -302,6 +416,30 @@ export default {
                             attemptNumber: attemptNum,
                             score: 'manque',
                         });
+                    }
+                }
+            }
+            this.$emit('update');
+        },
+        fillAllZerosAll() {
+            if (!this.session.attempts) this.session.attempts = [];
+            if (this.session.status === 'draft') {
+                this.session.status = TRAINING_STATUS.IN_PROGRESS;
+            }
+            for (const exIdx of this.session.config.exercises) {
+                for (const distance of this.session.config.distances) {
+                    for (let attemptNum = 1; attemptNum <= this.session.config.attempts; attemptNum++) {
+                        const existing = this.session.attempts.find(
+                            (a) => a.exerciseIndex === exIdx && a.distance === distance && a.attemptNumber === attemptNum,
+                        );
+                        if (!existing) {
+                            this.session.attempts.push({
+                                exerciseIndex: exIdx,
+                                distance,
+                                attemptNumber: attemptNum,
+                                score: 'manque',
+                            });
+                        }
                     }
                 }
             }
@@ -717,5 +855,111 @@ export default {
     background: var(--tir-manque);
     color: var(--color-btn-text);
     border-color: var(--tir-manque);
+}
+
+/* Compact all-on-one-page layout */
+.tsession__compact-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+.tsession__compact-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.tsession__compact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.tsession__compact-grid-header {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-bottom: 2px;
+}
+
+.tsession__compact-grid-dist {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.tsession__compact-grid-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.tsession__compact-grid-label {
+    width: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tsession__compact-grid-cell {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+
+.tir-pview__circle--sm {
+    width: 22px;
+    height: 22px;
+}
+
+/* Vertical layout for single distance + single exercise */
+.tsession__vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tsession__vertical-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2px;
+}
+
+.tsession__vertical-num-header {
+    width: 28px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.tsession__vertical-col-header {
+    width: 28px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.tsession__vertical-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tsession__vertical-num {
+    width: 28px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
 }
 </style>

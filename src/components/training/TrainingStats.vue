@@ -1,13 +1,10 @@
 <template>
     <div class="tstats">
-        <div class="tstats__nav">
+        <div class="tstats__title-row">
             <button class="tstats__back" @click="$emit('back')">
                 <ChevronLeft :size="18" />
                 {{ $t('stat.back') }}
             </button>
-        </div>
-
-        <div class="tstats__title-row">
             <h3 class="tstats__title">{{ $t('training.statistics') }}</h3>
             <div class="tstats__view-toggle">
                 <button
@@ -29,29 +26,33 @@
 
         <!-- Filters -->
         <div class="tstats__filters">
-            <div class="tstats__filter">
-                <label class="tstats__filter-label">{{ $t('training.filterExercise') }}</label>
-                <select v-model="filters.exerciseIndex" class="tstats__select">
-                    <option :value="null">{{ $t('training.allExercises') }}</option>
-                    <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">
-                        {{ idx + 1 }}. {{ name }}
-                    </option>
-                </select>
+            <div class="tstats__filters-row">
+                <div class="tstats__filter tstats__filter--grow">
+                    <label class="tstats__filter-label">{{ $t('training.filterExercise') }}</label>
+                    <select v-model="filters.exerciseIndex" class="tstats__select">
+                        <option :value="null">{{ $t('training.allExercises') }}</option>
+                        <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">
+                            {{ idx + 1 }}. {{ name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="tstats__filter tstats__filter--grow">
+                    <label class="tstats__filter-label">{{ $t('training.filterDistance') }}</label>
+                    <select v-model="filters.distance" class="tstats__select">
+                        <option :value="null">{{ $t('training.allDistances') }}</option>
+                        <option v-for="d in allDistances" :key="d" :value="d">{{ d }}m</option>
+                    </select>
+                </div>
             </div>
-            <div class="tstats__filter">
-                <label class="tstats__filter-label">{{ $t('training.filterDistance') }}</label>
-                <select v-model="filters.distance" class="tstats__select">
-                    <option :value="null">{{ $t('training.allDistances') }}</option>
-                    <option v-for="d in allDistances" :key="d" :value="d">{{ d }}m</option>
-                </select>
-            </div>
-            <div class="tstats__filter">
-                <label class="tstats__filter-label">{{ $t('training.filterDateFrom') }}</label>
-                <input v-model="filters.dateFrom" type="date" class="tstats__date-input" />
-            </div>
-            <div class="tstats__filter">
-                <label class="tstats__filter-label">{{ $t('training.filterDateTo') }}</label>
-                <input v-model="filters.dateTo" type="date" class="tstats__date-input" />
+            <div class="tstats__filters-row">
+                <div class="tstats__filter tstats__filter--grow">
+                    <label class="tstats__filter-label">{{ $t('training.filterDateFrom') }}</label>
+                    <input v-model="filters.dateFrom" type="date" class="tstats__date-input" />
+                </div>
+                <div class="tstats__filter tstats__filter--grow">
+                    <label class="tstats__filter-label">{{ $t('training.filterDateTo') }}</label>
+                    <input v-model="filters.dateTo" type="date" class="tstats__date-input" />
+                </div>
             </div>
         </div>
 
@@ -59,12 +60,12 @@
         <div v-if="stats && chartView === 'summary'" class="tstats__overview">
             <div class="tstats__stat-cards">
                 <div class="tstats__card">
-                    <div class="tstats__card-val">{{ stats.average }}</div>
-                    <div class="tstats__card-label">{{ $t('training.avgScore') }}</div>
+                    <div class="tstats__card-val">{{ hitRatePercent }}%</div>
+                    <div class="tstats__card-label">{{ $t('training.hitRate') }}</div>
                 </div>
                 <div class="tstats__card">
-                    <div class="tstats__card-val">{{ stats.best }}</div>
-                    <div class="tstats__card-label">{{ $t('training.bestScore') }}</div>
+                    <div class="tstats__card-val">{{ stats.average }}</div>
+                    <div class="tstats__card-label">{{ $t('training.avgPerThrow') }}</div>
                 </div>
                 <div class="tstats__card">
                     <div class="tstats__card-val">{{ stats.count }}</div>
@@ -226,6 +227,10 @@ export default {
                 distance: this.filters.distance ?? undefined,
             });
         },
+        hitRatePercent() {
+            if (!this.stats || !this.stats.count) return 0;
+            return Math.round(((this.stats.count - this.stats.manque) / this.stats.count) * 100);
+        },
         distanceStats() {
             return this.allDistances
                 .map((distance) => {
@@ -281,17 +286,13 @@ export default {
 </script>
 
 <style scoped>
-.tstats__nav {
-    margin-bottom: 1.25rem;
-}
-
 .tstats__back {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.75rem;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 600;
     border: 1.5px solid var(--color-primary);
     background: transparent;
@@ -351,31 +352,42 @@ export default {
 
 .tstats__filters {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 1.25rem;
+}
+
+.tstats__filters-row {
+    display: flex;
+    gap: 0.75rem;
 }
 
 .tstats__filter {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.3rem;
+}
+
+.tstats__filter--grow {
+    flex: 1;
+    min-width: 0;
 }
 
 .tstats__filter-label {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text-muted);
 }
 
 .tstats__select,
 .tstats__date-input {
-    padding: 0.4rem 0.6rem;
+    padding: 0.6rem 0.75rem;
     border: 1.5px solid var(--color-border);
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     background: var(--color-surface);
     color: var(--color-text);
+    width: 100%;
 }
 
 .tstats__stat-cards {
@@ -400,7 +412,7 @@ export default {
 }
 
 .tstats__card-label {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: var(--color-text-muted);
     margin-top: 0.2rem;
 }
@@ -414,7 +426,7 @@ export default {
 }
 
 .tstats__dist-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 0.75rem;
@@ -436,7 +448,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--color-text);
     min-width: 80px;
 }
@@ -489,7 +501,7 @@ export default {
 }
 
 .tstats__dist-count {
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     color: var(--color-text-muted);
     min-width: 70px;
     text-align: right;
@@ -530,12 +542,12 @@ export default {
 }
 
 .tstats__breakdown-label {
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     color: var(--color-text-muted);
 }
 
 .tstats__breakdown-count {
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     color: var(--color-text-muted);
     margin-top: 0.15rem;
 }

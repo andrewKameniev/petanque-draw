@@ -60,10 +60,29 @@
                                 </button>
                             </div>
 
+                            <!-- Loading skeleton -->
+                            <div v-if="loading" class="training-skeleton">
+                                <div class="training-skeleton__row training-skeleton__row--short"></div>
+                                <div class="training-skeleton__card">
+                                    <div class="training-skeleton__line training-skeleton__line--title"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--meta"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--bar"></div>
+                                </div>
+                                <div class="training-skeleton__card">
+                                    <div class="training-skeleton__line training-skeleton__line--title"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--meta"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--bar"></div>
+                                </div>
+                                <div class="training-skeleton__card">
+                                    <div class="training-skeleton__line training-skeleton__line--title"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--meta"></div>
+                                    <div class="training-skeleton__line training-skeleton__line--bar"></div>
+                                </div>
+                            </div>
+
                             <!-- Tir Sessions Tab -->
-                            <div v-if="tab === 'sessions'">
+                            <div v-else-if="tab === 'sessions'">
                                 <div class="training-list-header">
-                                    <div class="training-list-title">{{ $t('training.tirSessions') }}</div>
                                     <div v-if="sessionsList.length" class="training-list-actions">
                                         <button @click="view = 'stats'" class="button btn-primary-outline btn-sm">
                                             <BarChart3 :size="14" />
@@ -280,6 +299,7 @@ export default {
         return {
             view: 'list',
             tab: 'sessions',
+            loading: true,
             resultsOpen: false,
             menuOpen: false,
             exerciseInProcess: false,
@@ -305,17 +325,22 @@ export default {
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
         loadData() {
-            trainingService.getAll(this.user.uid).then((snapshot) => {
-                if (snapshot.exists()) this.exercisesList = snapshot.val();
-            });
-            trainingService.getSessions(this.user.uid).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    this.sessionsList = Object.values(data).map((s) => ({
-                        ...s,
-                        attempts: s.attempts || [],
-                    }));
-                }
+            this.loading = true;
+            Promise.all([
+                trainingService.getAll(this.user.uid).then((snapshot) => {
+                    if (snapshot.exists()) this.exercisesList = snapshot.val();
+                }),
+                trainingService.getSessions(this.user.uid).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        this.sessionsList = Object.values(data).map((s) => ({
+                            ...s,
+                            attempts: s.attempts || [],
+                        }));
+                    }
+                }),
+            ]).finally(() => {
+                this.loading = false;
             });
         },
         start(id) {
@@ -424,7 +449,59 @@ export default {
 
 <style>
 .training-content {
-    padding: 1rem 0.5rem;
+    padding: 1rem;
+}
+
+/* Loading skeleton */
+.training-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.training-skeleton__row--short {
+    width: 40%;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--color-border-light, #eee);
+    animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.training-skeleton__card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.training-skeleton__line {
+    border-radius: 6px;
+    background: var(--color-border-light, #eee);
+    animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.training-skeleton__line--title {
+    width: 60%;
+    height: 16px;
+}
+
+.training-skeleton__line--meta {
+    width: 40%;
+    height: 12px;
+    animation-delay: 0.15s;
+}
+
+.training-skeleton__line--bar {
+    width: 100%;
+    height: 6px;
+    animation-delay: 0.3s;
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
 }
 
 .training-tabs {
@@ -459,12 +536,6 @@ export default {
     margin-bottom: 0.75rem;
     gap: 0.5rem;
     flex-wrap: wrap;
-}
-
-.training-list-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-text);
 }
 
 .training-list-actions {
@@ -527,9 +598,9 @@ export default {
 }
 
 .session-card__badge {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 500;
-    padding: 0.15rem 0.5rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 12px;
     background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
     color: var(--color-primary);
@@ -590,7 +661,7 @@ export default {
 }
 
 .session-card__date {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: var(--color-text-muted);
 }
 
@@ -622,7 +693,7 @@ export default {
 }
 
 .session-card__result {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--tir-carreau);
     margin-top: 0.4rem;

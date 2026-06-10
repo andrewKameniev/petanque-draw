@@ -1,6 +1,8 @@
 <template>
     <div class="stacked-chart">
         <apexchart type="bar" height="320" :options="chartOptions" :series="series" />
+        <div v-if="hasNonMissData" class="stacked-chart__divider"></div>
+        <apexchart v-if="hasNonMissData" type="bar" height="280" :options="percentChartOptions" :series="percentSeries" />
     </div>
 </template>
 
@@ -97,6 +99,62 @@ export default {
                 theme: { mode: 'light' },
             };
         },
+        hasNonMissData() {
+            return this.chartData.some((d) => d.carreau > 0 || d.reussi > 0 || d.touche > 0);
+        },
+        percentSeries() {
+            return [
+                { name: `Carreau (5)`, data: this.chartData.map((d) => d.total ? Math.round((d.carreau / d.total) * 100) : 0) },
+                { name: `Réussi (3)`, data: this.chartData.map((d) => d.total ? Math.round((d.reussi / d.total) * 100) : 0) },
+                { name: `Touché (1)`, data: this.chartData.map((d) => d.total ? Math.round((d.touche / d.total) * 100) : 0) },
+            ];
+        },
+        percentChartOptions() {
+            return {
+                chart: {
+                    type: 'bar',
+                    stacked: true,
+                    toolbar: { show: false },
+                    background: 'transparent',
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '60%',
+                        borderRadius: 3,
+                    },
+                },
+                colors: ['#4caf50', '#2196f3', '#f5a623'],
+                xaxis: {
+                    categories: this.chartData.map((d) => d.label),
+                    labels: { style: { fontSize: '11px' } },
+                },
+                yaxis: {
+                    title: { text: '% ' + this.$t('training.hitRate') },
+                    labels: {
+                        style: { fontSize: '11px' },
+                        formatter: (val) => Math.round(val) + '%',
+                    },
+                    min: 0,
+                    max: 100,
+                    tickAmount: 4,
+                },
+                legend: {
+                    position: 'top',
+                    fontSize: '12px',
+                },
+                dataLabels: { enabled: false },
+                tooltip: {
+                    y: {
+                        formatter: (val) => Math.round(val) + '%',
+                    },
+                },
+                grid: {
+                    borderColor: 'var(--color-border-light, #eee)',
+                },
+                theme: { mode: 'light' },
+            };
+        },
     },
 };
 </script>
@@ -105,5 +163,11 @@ export default {
 .stacked-chart {
     border-radius: 10px;
     overflow: hidden;
+}
+
+.stacked-chart__divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 1.5rem 0;
 }
 </style>

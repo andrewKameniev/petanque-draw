@@ -62,6 +62,7 @@ export default {
         ...mapState(useMainStore, ['user']),
         gameTypes() { return gameTypes; },
         filteredGames() {
+            if (!this.statsList) return [];
             let games = Object.values(this.statsList);
             if (this.filterGamesTag.length > 0) {
                 games = games.filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag)));

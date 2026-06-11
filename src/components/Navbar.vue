@@ -90,8 +90,8 @@
                                 <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
                             </div>
                             <div class="active-overlay__item-meta">
-                                <span v-if="item.teams">{{ item.teams.length }} {{ $t('common.teamsCount') }}</span>
-                                <span v-if="item.games">{{ item.games.length }} {{ $t('common.games') }}</span>
+                                <span v-if="item.teamsCount">{{ item.teamsCount }} {{ $t('common.teamsCount') }}</span>
+                                <span v-if="item.gamesCount">{{ item.gamesCount }} {{ $t('common.games') }}</span>
                             </div>
                         </div>
                     </div>
@@ -231,7 +231,13 @@ export default {
             return this.pinnedIdLocal;
         },
         sortedTournaments() {
-            return Object.values(this.tournaments).sort((a, b) => (b.id || 0) - (a.id || 0));
+            return Object.values(this.tournaments).map(t => ({
+                id: t.id,
+                name: t.name,
+                system: t.system,
+                teamsCount: t.teams?.length || 0,
+                gamesCount: t.games?.length || 0,
+            })).sort((a, b) => (b.id || 0) - (a.id || 0));
         },
     },
     methods: {

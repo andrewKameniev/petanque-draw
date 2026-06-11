@@ -388,13 +388,16 @@ export default {
     inset: 0;
     z-index: 99999;
     background: rgba(0, 0, 0, 0.4);
-    animation: overlay-fade-in 0.15s ease-out;
-    will-change: opacity;
+    animation: overlay-fade-in 0.2s ease;
 }
 
 @keyframes overlay-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .active-overlay__panel {
@@ -408,13 +411,16 @@ export default {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     padding: 1.5rem;
     overflow-y: auto;
-    animation: panel-slide-down 0.18s cubic-bezier(0.2, 0, 0.2, 1);
-    will-change: transform;
+    animation: panel-slide-down 0.25s ease;
 }
 
 @keyframes panel-slide-down {
-    from { transform: translate3d(0, -100%, 0); }
-    to { transform: translate3d(0, 0, 0); }
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
 }
 
 .active-overlay__header {

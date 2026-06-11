@@ -18,6 +18,7 @@ export default {
             statsList: null,
             showStatAnalysis: false,
             filterGamesTag: [],
+            filterGameType: null,
             editingGameKey: null,
             editName: '',
             editPlayers: {team1: [], team2: []}
@@ -59,10 +60,16 @@ export default {
     },
     computed: {
         ...mapState(useMainStore, ['user']),
+        gameTypes() { return gameTypes; },
         filteredGames() {
-            return (this.filterGamesTag.length > 0) ?
-                Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) :
-                this.statsList;
+            let games = Object.values(this.statsList);
+            if (this.filterGamesTag.length > 0) {
+                games = games.filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag)));
+            }
+            if (this.filterGameType) {
+                games = games.filter(game => this.getGameType(game) === this.filterGameType);
+            }
+            return games;
         },
         gamesCount() {
             if (!this.statsList) return 0;
@@ -207,6 +214,15 @@ export default {
                 </div>
             </div>
 
+            <div v-if="!showStatAnalysis" class="archive__type-filters">
+                <button v-for="gt in gameTypes" :key="gt.value"
+                        class="archive__type-btn"
+                        :class="{'archive__type-btn--active': filterGameType === gt.value}"
+                        @click="filterGameType = filterGameType === gt.value ? null : gt.value">
+                    {{ gt.label }}
+                </button>
+            </div>
+
             <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags"/>
 
             <div v-else-if="filteredGames && gamesCount > 0" class="archive__list">
@@ -347,6 +363,39 @@ export default {
 
 .archive__btn--analysis:hover {
     background: var(--color-primary-light);
+}
+
+.archive__type-filters {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.archive__type-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.archive__type-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.archive__type-btn--active {
+    background: var(--color-primary);
+    color: var(--color-btn-text);
+    border-color: var(--color-primary);
+}
+
+.archive__type-btn--active:hover {
+    background: var(--color-primary-light);
+    color: var(--color-btn-text);
 }
 
 .archive__skeleton {

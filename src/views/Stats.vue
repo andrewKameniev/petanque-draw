@@ -90,24 +90,58 @@
                                 </div>
                                 <div v-else class="stats-active__list">
                                     <div class="stats-active__card" v-for="(game, index) in savedGames" :key="index">
-                                        <div class="stats-active__card-info">
-                                            <span class="stats-active__card-name">{{ game.name || 'Game ' + (index + 1) }}</span>
-                                            <span class="stats-active__card-meta">
-                                                {{ $t('stat.round') }} {{ game.currentMan + 1 }} &middot;
-                                                {{ game.team1.score.reduce((a, b) => a + b, 0) }} : {{ game.team2.score.reduce((a, b) => a + b, 0) }}
-                                            </span>
+                                        <div v-if="editingActiveIndex === index" class="stats-active__edit">
+                                            <div class="stats-active__edit-field">
+                                                <label class="stats-active__edit-label">{{ $t('stat.enterName') }}</label>
+                                                <input class="stats-active__edit-input" v-model="editActiveName" />
+                                            </div>
+                                            <div class="stats-active__edit-field" v-if="game.team1?.players">
+                                                <label class="stats-active__edit-label">{{ $t('stat.team1Label') }}</label>
+                                                <div class="stats-active__edit-players">
+                                                    <input class="stats-active__edit-input" v-for="(p, i) in editActivePlayers.team1" :key="i" v-model="editActivePlayers.team1[i]" :placeholder="$t('stat.playerName') + ' ' + (i + 1)" />
+                                                </div>
+                                            </div>
+                                            <div class="stats-active__edit-field" v-if="game.team2?.players">
+                                                <label class="stats-active__edit-label">{{ $t('stat.team2Label') }}</label>
+                                                <div class="stats-active__edit-players">
+                                                    <input class="stats-active__edit-input" v-for="(p, i) in editActivePlayers.team2" :key="i" v-model="editActivePlayers.team2[i]" :placeholder="$t('stat.playerName') + ' ' + (i + 1)" />
+                                                </div>
+                                            </div>
+                                            <div class="stats-active__edit-actions">
+                                                <button class="stats-btn stats-btn--sm stats-btn--primary" @click="saveEditingActive">
+                                                    <Check :size="14" /> {{ $t('common.save') }}
+                                                </button>
+                                                <button class="stats-btn stats-btn--sm stats-btn--secondary" @click="cancelEditingActive">
+                                                    <X :size="14" /> {{ $t('common.cancel') }}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="stats-active__card-actions">
-                                            <button class="stats-btn stats-btn--sm stats-btn--primary" @click="loadGame(index)">
-                                                <Play :size="14"/> {{ $t('stat.continueGame') }}
-                                            </button>
-                                            <button v-if="confirmDeleteIndex === index" class="stats-btn stats-btn--sm stats-btn--danger-confirm" @click="deleteGame(index)">
-                                                {{ $t('stat.deleteGame') }}?
-                                            </button>
-                                            <button v-else class="stats-btn stats-btn--sm stats-btn--danger" @click="confirmDeleteIndex = index">
-                                                <Trash2 :size="14"/>
-                                            </button>
-                                        </div>
+                                        <template v-else>
+                                            <div class="stats-active__card-info">
+                                                <div class="stats-active__card-top">
+                                                    <span class="stats-active__card-name">{{ game.name || 'Game ' + (index + 1) }}</span>
+                                                    <span v-if="game.type" class="stats-active__card-type">{{ getGameTypeLabel(game.type) }}</span>
+                                                </div>
+                                                <span class="stats-active__card-meta">
+                                                    {{ $t('stat.round') }} {{ game.currentMan + 1 }} &middot;
+                                                    {{ game.team1.score.reduce((a, b) => a + b, 0) }} : {{ game.team2.score.reduce((a, b) => a + b, 0) }}
+                                                </span>
+                                            </div>
+                                            <div class="stats-active__card-actions">
+                                                <button class="stats-btn stats-btn--sm stats-btn--primary" @click="loadGame(index)">
+                                                    <Play :size="14"/> {{ $t('stat.continueGame') }}
+                                                </button>
+                                                <button class="stats-btn stats-btn--sm stats-btn--icon" @click="startEditingActive(index)">
+                                                    <Pencil :size="14"/>
+                                                </button>
+                                                <button v-if="confirmDeleteIndex === index" class="stats-btn stats-btn--sm stats-btn--danger-confirm" @click="deleteGame(index)">
+                                                    {{ $t('stat.deleteGame') }}?
+                                                </button>
+                                                <button v-else class="stats-btn stats-btn--sm stats-btn--danger" @click="confirmDeleteIndex = index">
+                                                    <Trash2 :size="14"/>
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -170,11 +204,11 @@ import StatsSetup from "@/components/stats/StatsSetup.vue";
 import StatsTracking from "@/components/stats/StatsTracking.vue";
 import {gameTypes, validateScore} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
-import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2} from "lucide-vue-next";
+import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2, Pencil, Check, X} from "lucide-vue-next";
 
 export default {
     name: 'Stats',
-    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2},
+    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2, Pencil, Check, X},
     data() {
         return {
             isSaving: false,
@@ -200,6 +234,9 @@ export default {
             manDistance: null,
             savedGames: [],
             confirmDeleteIndex: null,
+            editingActiveIndex: null,
+            editActiveName: '',
+            editActivePlayers: {team1: [], team2: []},
         }
     },
     mounted() {
@@ -329,6 +366,35 @@ export default {
             this.savedGames.splice(index, 1);
             this.persistGames();
         },
+        startEditingActive(index) {
+            const game = this.savedGames[index];
+            this.editingActiveIndex = index;
+            this.editActiveName = game.name || '';
+            this.editActivePlayers = {
+                team1: game.team1?.players?.map(p => p.name || '') || [],
+                team2: game.team2?.players?.map(p => p.name || '') || []
+            };
+        },
+        cancelEditingActive() {
+            this.editingActiveIndex = null;
+        },
+        saveEditingActive() {
+            const game = this.savedGames[this.editingActiveIndex];
+            game.name = this.editActiveName;
+            if (game.team1?.players) {
+                game.team1.players.forEach((p, i) => { p.name = this.editActivePlayers.team1[i] || p.name; });
+            }
+            if (game.team2?.players) {
+                game.team2.players.forEach((p, i) => { p.name = this.editActivePlayers.team2[i] || p.name; });
+            }
+            this.persistGames();
+            this.editingActiveIndex = null;
+            this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.saved')});
+        },
+        getGameTypeLabel(type) {
+            const found = gameTypes.find(t => t.value === type);
+            return found ? found.label : '';
+        },
         minimizeGame() {
             this.saveCurrentGame();
             this.activeGameIndex = null;
@@ -396,6 +462,7 @@ export default {
             this.showResults = true;
             let statResult = {
                 date: Date.now(),
+                type: this.gameType,
                 system: this.statSystem,
                 tags: this.gameTags,
                 name: this.gameName,
@@ -694,11 +761,13 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
     padding: 0.85rem 1rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 10px;
     transition: box-shadow 0.15s;
+    flex-wrap: wrap;
 }
 
 .stats-active__card:hover {
@@ -722,10 +791,74 @@ export default {
     color: var(--color-text-muted);
 }
 
+.stats-active__card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-active__card-type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    background: var(--color-surface-hover, #f0f0f0);
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+}
+
 .stats-active__card-actions {
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.stats-active__edit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.stats-active__edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stats-active__edit-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.stats-active__edit-players {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stats-active__edit-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--color-text);
+    background: var(--color-white);
+    transition: border-color 0.15s;
+}
+
+.stats-active__edit-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.stats-active__edit-actions {
+    display: flex;
+    gap: 0.5rem;
 }
 
 /* Shared button styles */
@@ -773,6 +906,19 @@ export default {
 
 .stats-btn--ghost:hover {
     color: var(--color-primary);
+}
+
+.stats-btn--icon {
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    padding: 0.4rem;
+}
+
+.stats-btn--icon:hover {
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+    border-color: var(--color-primary);
 }
 
 .stats-btn--danger {

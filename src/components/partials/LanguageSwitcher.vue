@@ -183,4 +183,10 @@ export default {
     height: 0.9rem;
     border-radius: 2px;
 }
+
+@media (max-width: 1300px) {
+    .lang-label {
+        display: none;
+    }
+}
 </style>

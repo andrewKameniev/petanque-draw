@@ -666,7 +666,7 @@ export default {
 }
 
 .btn-user__email {
-    max-width: 160px;
+    max-width: 210px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

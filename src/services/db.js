@@ -51,6 +51,9 @@ export const statsService = {
     getAll(uid) {
         return get(ref(db, `${uid}/stats/`));
     },
+    get(uid, key) {
+        return get(ref(db, `${uid}/stats/${key}`));
+    },
     save(uid, key, data) {
         return set(ref(db, `${uid}/stats/${key}`), data);
     },

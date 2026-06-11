@@ -93,8 +93,10 @@
                     <Results v-if="activeTab === 'results'" :previewTournament="activeTournament"/>
                     <div v-if="activeTab === 'ranking'">
                         <Ranking :tournament="activeTournament"
-                                 :rankingTeams="rankingTeams" :activeRound="activeRound"
-                                 :showInSaved="!!activeTournament.ranking"/>
+                                 :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                    </div>
+                    <div v-if="activeTab === 'protocol'">
+                        <Protocol :tournament="activeTournament" :rankingTeams="rankingTeams" :skipGate="true"/>
                     </div>
                 </div>
             </template>
@@ -106,6 +108,7 @@
 <script>
 import Ranking from "@/components/partials/Ranking";
 import Results from "@/components/partials/Results";
+import Protocol from "@/components/partials/Protocol";
 import TeamsList from "@/components/partials/TeamsList";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
@@ -117,11 +120,11 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getTeamsRanking} from "@/helpers";
 import {tournamentService} from "@/services/db";
-import {GitFork, Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
+import {GitFork, Users, List, Trophy as TrophyIcon, FileText} from "lucide-vue-next";
 
 export default {
     name: 'Archived',
-    components: {Footer, Navbar, Menu, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, Users, List, TrophyIcon},
+    components: {Footer, Navbar, Menu, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, Protocol, GitFork, Users, List, TrophyIcon, FileText},
     data() {
         return {
             activeTab: "ranking",
@@ -183,11 +186,15 @@ export default {
             return this.tournament;
         },
         tabs() {
-            return [
+            const tabs = [
                 { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
                 { id: 'results', label: this.$t('teams.results'), icon: 'List' },
                 { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' }
             ];
+            if (this.activeTournament?.tournamentIsFinished && this.activeTournament?.teams?.length) {
+                tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: 'FileText' });
+            }
+            return tabs;
         },
         activeRound() {
             if (!this.activeTournament?.games?.length) return 1;
@@ -486,6 +493,10 @@ export default {
 
 .tournament-nav__btn--ranking.tournament-nav__btn--active {
     color: var(--tir-touche, #ff9800);
+}
+
+.tournament-nav__btn--protocol.tournament-nav__btn--active {
+    color: var(--color-primary, #6c63ff);
 }
 
 .tabs-content-area {

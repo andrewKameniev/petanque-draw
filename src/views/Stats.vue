@@ -41,9 +41,14 @@
                             <button @click="showResults = false; currentTab = 'active'" class="stats-btn stats-btn--ghost">
                                 <ArrowLeft :size="16"/> {{ $t('stat.back') }}
                             </button>
-                            <button @click="startNewGame" class="stats-btn stats-btn--primary">
-                                <Plus :size="16"/> {{ $t('stat.newGame') }}
-                            </button>
+                            <div class="stats-page__results-header-right">
+                                <button v-if="finishedGameId" @click="shareFinishedGame" class="stats-btn stats-btn--secondary">
+                                    <Share2 :size="16"/> {{ $t('remote.copyLink') }}
+                                </button>
+                                <button @click="startNewGame" class="stats-btn stats-btn--primary">
+                                    <Plus :size="16"/> {{ $t('stat.newGame') }}
+                                </button>
+                            </div>
                         </div>
                         <h2 class="stats-page__results-title">{{ finishedGame.name }}</h2>
                         <div class="stats-page__results-grid">
@@ -165,11 +170,11 @@ import StatsSetup from "@/components/stats/StatsSetup.vue";
 import StatsTracking from "@/components/stats/StatsTracking.vue";
 import {gameTypes, validateScore} from "@/helpers-stat.js"
 import Message from "@/components/Message.vue";
-import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft} from "lucide-vue-next";
+import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2} from "lucide-vue-next";
 
 export default {
     name: 'Stats',
-    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft},
+    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2},
     data() {
         return {
             isSaving: false,
@@ -179,6 +184,7 @@ export default {
             menuOpen: false,
             showResults: false,
             finishedGame: null,
+            finishedGameId: null,
             currentTab: 'active',
             activeGameIndex: null,
             gameName: '',
@@ -396,6 +402,7 @@ export default {
                 team1: this.finishedGame.team1,
                 team2: this.finishedGame.team2
             }
+            this.finishedGameId = statResult.date;
             this.isSaving = true;
             statsService.save(this.user.uid, statResult.date, statResult).then(() => {
                 this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
@@ -419,6 +426,14 @@ export default {
             this.team1 = { score: [] };
             this.team2 = { score: [] };
             this.changePlayers();
+        },
+        shareFinishedGame() {
+            const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
+            const shareRef = `${this.user.uid}.${this.finishedGameId}`;
+            const link = `${window.location.origin}${domain}stats/share?ref=${shareRef}`;
+            navigator.clipboard.writeText(link).then(() => {
+                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('remote.copyLink')});
+            });
         },
         startNewGame() {
             this.showResults = false;
@@ -553,6 +568,13 @@ export default {
 }
 
 .stats-page__results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.stats-page__results-header-right {
     display: flex;
     align-items: center;
     gap: 0.5rem;

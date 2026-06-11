@@ -39,9 +39,22 @@
         </div>
 
         <div class="navbar-center" v-if="user">
-            <router-link class="navbar-nav-link" to="/">{{ $t('common.draw') }}</router-link>
-            <router-link class="navbar-nav-link" to="/stats">{{ $t('common.stat') }}</router-link>
-            <router-link class="navbar-nav-link" to="/training">{{ $t('common.training') }}</router-link>
+            <button class="navbar-nav-link navbar-nav-link--orange" @click="activeOverlayOpen = true">
+                <Flame :size="18" />
+                <span>{{ $t('common.activeTournaments') }}</span>
+            </button>
+            <router-link class="navbar-nav-link navbar-nav-link--purple" to="/">
+                <Shuffle :size="18" />
+                <span>{{ $t('common.draw') }}</span>
+            </router-link>
+            <router-link class="navbar-nav-link navbar-nav-link--blue" to="/stats">
+                <BarChart3 :size="18" />
+                <span>{{ $t('common.stat') }}</span>
+            </router-link>
+            <router-link class="navbar-nav-link navbar-nav-link--green" to="/training">
+                <Target :size="18" />
+                <span>{{ $t('common.training') }}</span>
+            </router-link>
         </div>
 
         <!-- Active tournaments overlay -->
@@ -90,60 +103,6 @@
         </Teleport>
 
         <div class="navbar-menu">
-            <div class="navbar-start">
-                <div
-                    class="tournaments-dropdown"
-                    v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'"
-                    @click="tournamentsOpen = !tournamentsOpen"
-                    v-click-outside="closeTournaments"
-                >
-                    <a class="navbar-link navbar-link--custom">
-                        <span class="navbar-link__current">{{ $t('common.activeTournaments') }}</span>
-                        <svg
-                            class="navbar-link__chevron"
-                            :class="{ 'navbar-link__chevron--open': tournamentsOpen }"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </a>
-                    <div class="tournaments-dropdown__menu" v-if="tournamentsOpen">
-                        <a
-                            class="tournaments-dropdown__item tournaments-dropdown__item--new"
-                            @click.stop="addNewTournamentFromDropdown"
-                        >
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 4v16m8-8H4"
-                                />
-                            </svg>
-                            {{ $t('common.addTournament') }}
-                        </a>
-                        <a
-                            class="tournaments-dropdown__item"
-                            :class="{
-                                'tournaments-dropdown__item--active':
-                                    String(item.id) === String(currentTournamentIndex),
-                            }"
-                            v-for="item in tournaments"
-                            :key="item.id"
-                            @click.stop="chooseTournament(item.id)"
-                        >
-                            <Pin
-                                v-if="String(pinnedId) === String(item.id)"
-                                :size="12"
-                                class="tournaments-dropdown__item-pin"
-                            />
-                            {{ item.name }}
-                        </a>
-                    </div>
-                </div>
-            </div>
             <div class="navbar-end">
                 <div class="navbar-item" v-if="user">
                     <div
@@ -238,7 +197,6 @@ export default {
     data() {
         return {
             userDropdownOpen: false,
-            tournamentsOpen: false,
             activeOverlayOpen: false,
             pinnedIdLocal: localStorage.getItem('petanqueDrawPinned'),
         };
@@ -248,9 +206,6 @@ export default {
             this.refreshPinned();
         },
         activeOverlayOpen(val) {
-            if (val) this.refreshPinned();
-        },
-        tournamentsOpen(val) {
             if (val) this.refreshPinned();
         },
     },
@@ -287,12 +242,8 @@ export default {
         closeDropdown() {
             this.userDropdownOpen = false;
         },
-        closeTournaments() {
-            this.tournamentsOpen = false;
-        },
         chooseTournament(id) {
             this.setActiveTournament(id);
-            this.tournamentsOpen = false;
             if (this.$route.path !== '/') {
                 this.$router.push('/');
             }
@@ -307,13 +258,6 @@ export default {
         addNewTournament() {
             this.addTournament();
             this.userDropdownOpen = false;
-            if (this.$route.path !== '/') {
-                this.$router.push('/');
-            }
-        },
-        addNewTournamentFromDropdown() {
-            this.addTournament();
-            this.tournamentsOpen = false;
             if (this.$route.path !== '/') {
                 this.$router.push('/');
             }
@@ -336,50 +280,59 @@ export default {
 <style scoped>
 .navbar {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .navbar-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    margin: 0 auto;
 }
 
 .navbar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 1rem;
     font-weight: 500;
     color: var(--color-text-muted);
     text-decoration: none;
-    padding: 0.3rem 0;
-    transition: color 0.2s;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
 }
 
-.navbar-nav-link + .navbar-nav-link {
-    padding-left: 1.5rem;
-    position: relative;
+.navbar-center .navbar-nav-link--orange {
+    color: #e67e22;
 }
 
-.navbar-nav-link + .navbar-nav-link::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 14px;
-    width: 1px;
-    background: var(--color-border, #e0e0e0);
+.navbar-center .navbar-nav-link--purple {
+    color: #8e44ad;
 }
 
-.navbar-nav-link:hover {
-    color: var(--color-primary);
+.navbar-center .navbar-nav-link--blue {
+    color: #2980b9;
 }
 
-.navbar-nav-link.router-link-exact-active {
-    color: var(--color-primary);
-    font-weight: bold;
+.navbar-center .navbar-nav-link--green {
+    color: #27ae60;
+}
+
+.navbar-center .navbar-nav-link--purple.router-link-exact-active {
+    background: rgba(142, 68, 173, 0.12);
+}
+
+.navbar-center .navbar-nav-link--blue.router-link-exact-active {
+    background: rgba(41, 128, 185, 0.12);
+}
+
+.navbar-center .navbar-nav-link--green.router-link-exact-active {
+    background: rgba(39, 174, 96, 0.12);
 }
 
 .navbar-icon-link {
@@ -395,31 +348,31 @@ export default {
     transition: all 0.15s;
 }
 
-.navbar-icon-link--orange {
+.navbar-icon-link.navbar-icon-link--orange {
     color: #e67e22;
 }
 
-.navbar-icon-link--purple {
+.navbar-icon-link.navbar-icon-link--purple {
     color: #8e44ad;
 }
 
-.navbar-icon-link--purple.router-link-exact-active {
+.navbar-icon-link.navbar-icon-link--purple.router-link-exact-active {
     background: rgba(142, 68, 173, 0.12);
 }
 
-.navbar-icon-link--blue {
+.navbar-icon-link.navbar-icon-link--blue {
     color: #2980b9;
 }
 
-.navbar-icon-link--blue.router-link-exact-active {
+.navbar-icon-link.navbar-icon-link--blue.router-link-exact-active {
     background: rgba(41, 128, 185, 0.12);
 }
 
-.navbar-icon-link--green {
+.navbar-icon-link.navbar-icon-link--green {
     color: #27ae60;
 }
 
-.navbar-icon-link--green.router-link-exact-active {
+.navbar-icon-link.navbar-icon-link--green.router-link-exact-active {
     background: rgba(39, 174, 96, 0.12);
 }
 
@@ -602,27 +555,18 @@ export default {
         padding: 0 1rem;
     }
 
-    .menu-burger {
-        display: flex;
-    }
-
-    .navbar-center {
-        display: none;
-    }
-
-    .navbar-menu {
-        display: none !important;
-    }
-}
-
-@media (max-width: 767px) {
     .navbar-brand .navbar-item {
         flex: 1;
     }
 
     .menu-burger {
+        display: flex;
         flex: 1;
         justify-content: flex-end;
+    }
+
+    .navbar-center {
+        display: none;
     }
 
     .navbar-center-mobile {
@@ -639,96 +583,21 @@ export default {
         width: 20px;
         height: 20px;
     }
+
+    .navbar-menu {
+        display: none !important;
+    }
 }
 
-.tournaments-dropdown {
-    position: relative;
-    cursor: pointer;
+
+.navbar-menu {
     display: flex;
     align-items: center;
 }
 
-.navbar-link--custom {
-    padding: 0 0 0 0.75rem !important;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-navbar-link);
+.navbar-end {
     display: flex;
     align-items: center;
-    background: none;
-    border: none;
-}
-
-.navbar-link--custom::after {
-    display: none !important;
-}
-
-.navbar-link__chevron {
-    width: 18px;
-    height: 18px;
-    margin-left: 0.3rem;
-    transition: transform 0.25s;
-}
-
-.navbar-link__chevron--open {
-    transform: rotate(180deg);
-}
-
-.tournaments-dropdown__menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    background: var(--color-white);
-    border-radius: 0.5rem;
-    box-shadow:
-        0 8px 24px var(--color-dropdown-shadow),
-        0 2px 4px rgba(0, 0, 0, 0.04);
-    min-width: 300px;
-    padding: 0.35rem;
-    z-index: 9999;
-    animation: dropdown-in 0.15s ease;
-}
-
-.tournaments-dropdown__item {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.55rem 0.75rem;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-text-secondary);
-    border-radius: 0.35rem;
-    text-decoration: none;
-    transition: background 0.15s;
-}
-
-.tournaments-dropdown__item:hover {
-    background: var(--color-primary-bg);
-    color: var(--color-primary);
-}
-
-.tournaments-dropdown__item--active {
-    background: var(--color-primary-bg);
-    color: var(--color-primary);
-    font-weight: 600;
-}
-
-.tournaments-dropdown__item--new {
-    color: var(--color-primary);
-    border-bottom: 1px solid var(--color-border-light);
-    margin-bottom: 0.2rem;
-}
-
-.tournaments-dropdown__item-pin {
-    color: var(--color-primary);
-    flex-shrink: 0;
-}
-
-.navbar-link__current {
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .user-dropdown {

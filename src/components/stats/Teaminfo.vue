@@ -1,7 +1,7 @@
 <template>
     <div class="team-card">
         <div class="team-card__header">
-            <div class="team-card__stats" v-if="isCouch">
+            <div class="team-card__stats">
                 <div v-if="system === 'simple'">
                     <div v-if="commonTeamStat && commonTeamStat.all.positive + commonTeamStat.all.negative > 0" class="team-card__stat-line">
                         <span class="team-card__stat-badge">{{ $t('stat.total') }}: {{ commonTeamStat.all.positive }}/{{ commonTeamStat.all.positive + commonTeamStat.all.negative }}
@@ -49,11 +49,19 @@
                     </button>
                     <div class="team-card__player-details">
                         <span class="team-card__player-name">{{ player.name || $t('stat.playerName') + ' ' + (index + 1) }}</span>
-                        <div class="team-card__player-stat" v-if="isCouch && system === 'simple' && teamsStat[index].all.positive + teamsStat[index].all.negative > 0">
+                        <div class="team-card__player-stat" v-if="system === 'simple' && teamsStat[index].all.positive + teamsStat[index].all.negative > 0">
                             {{ teamsStat[index].all.positive }}/{{ teamsStat[index].all.positive + teamsStat[index].all.negative }}
                             — <strong>{{ Math.round(teamsStat[index].all.positive/(teamsStat[index].all.positive + teamsStat[index].all.negative) * 100) }}%</strong>
+                            <template v-if="isCouch">
+                                <span class="team-card__player-stat--points" v-if="teamsStat[index].points.positive + teamsStat[index].points.negative > 0">
+                                    P: {{ teamsStat[index].points.positive }}/{{ teamsStat[index].points.positive + teamsStat[index].points.negative }}
+                                </span>
+                                <span class="team-card__player-stat--tirs" v-if="teamsStat[index].tirs.positive + teamsStat[index].tirs.negative > 0">
+                                    T: {{ teamsStat[index].tirs.positive }}/{{ teamsStat[index].tirs.positive + teamsStat[index].tirs.negative }}
+                                </span>
+                            </template>
                         </div>
-                        <div class="team-card__player-stat" v-else-if="isCouch && system !== 'simple'">
+                        <div class="team-card__player-stat" v-else-if="system !== 'simple'">
                             <span v-if="teamsStat[index].serie.filter(item => item.type === 'p').length">
                                 P: vol {{ getFrenchStat(teamsStat[index].points.volume, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%
                                 int {{ getFrenchStat(teamsStat[index].points.intensity, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%
@@ -346,6 +354,18 @@ export default {
 .team-card__player-stat {
     font-size: 1rem;
     color: var(--color-text-muted);
+}
+
+.team-card__player-stat--points {
+    color: var(--color-stat-green);
+    margin-left: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.team-card__player-stat--tirs {
+    color: var(--color-stat-blue);
+    margin-left: 0.4rem;
+    font-size: 0.85rem;
 }
 
 .team-card__throws {

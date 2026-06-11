@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import {createRouter, createWebHashHistory} from 'vue-router';
 const Public = () => import("@/views/Public.vue");
+const PublicStats = () => import("@/views/PublicStats.vue");
 const Help = () => import("@/components/Help.vue");
 const Stats = () => import("@/views/Stats.vue");
 const Training = () => import("@/views/Training.vue");
@@ -55,6 +56,11 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/stats/share',
+            name: 'PublicStats',
+            component: PublicStats
+        },
+        {
             path: '/training',
             name: 'Training',
             component: Training,
@@ -86,6 +92,7 @@ onAuthStateChanged(auth, async (user) => {
 
 const routeLocaleMap = {
     Statistics: ['stat'],
+    PublicStats: ['stat'],
     Documentation: ['help'],
     Training: ['training', 'stat'],
 };

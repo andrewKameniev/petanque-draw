@@ -1,6 +1,6 @@
 <template>
     <div class="container protocol-container">
-        <div class="protocol-gate" v-if="password !== 499">
+        <div class="protocol-gate" v-if="!skipGate && password !== 499">
             <div class="protocol-gate__card">
                 <div class="protocol-gate__badge">
                     <Star :size="14"/>
@@ -44,15 +44,15 @@
                     Підсумковий протокол <br>
                     {{ tournament.name }}
                 </h2>
-                <table class="table is-bordered">
+                <table class="table is-bordered protocol-info-table">
                     <tbody>
                     <tr>
                         <td>Дата початку змагань</td>
-                        <td contenteditable="true">{{ formatDateToHumanReadable(tournament.date) || '-' }}</td>
+                        <td contenteditable="true">{{ formatDateToHumanReadable(tournament.date) }}</td>
                     </tr>
                     <tr>
                         <td>Дата закінчення змагань</td>
-                        <td contenteditable="true">{{ formatDateToHumanReadable(tournament.date) || '-' }}</td>
+                        <td contenteditable="true">{{ formatDateToHumanReadable(tournament.date) }}</td>
                     </tr>
                     <tr>
                         <td>Місце/місто проведення</td>
@@ -101,7 +101,7 @@
                                 {{tournament.system === 'swiss' ? index + 1 : getTeamPlaceInGroups(team.place, rankingTeams.length)}}
                             </td>
                             <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
-                                {{tournamentRanking.find(item => item.title === team.title).place}}
+                                {{tournamentRanking.find(item => item.title === team.title)?.place}}
                             </td>
                         </tr>
                         <template v-if="team.players?.length > 1">
@@ -116,7 +116,7 @@
                 </table>
                 <br>
                 <h3 class="text-center is-size-4 mb-2">Результати кожного раунду</h3>
-                <Results :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles"/>
+                <Results :previewTournament="tournament" :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles"/>
                 <br>
                 <h3 class="text-center is-size-4 mb-2">Результати відбіркових ігор
                     <span class="is-size-5">({{tournament.system === 'swiss' ? 'швейцарська' : 'кругова'}} система ({{ tournament.games.length }} раундів))</span>
@@ -126,7 +126,7 @@
                 <div v-if="tournament.playOff?.length">
                     <div class="mt-3 mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
                     <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
-                    <Results :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
+                    <Results :previewTournament="tournament" :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
                 </div>
                 <br>
                 <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
@@ -217,7 +217,7 @@ import {Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown} fr
 export default {
     name: 'Protocol',
     components: {Ranking, Results, Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown},
-    props: ['tournament', 'rankingTeams'],
+    props: ['tournament', 'rankingTeams', 'skipGate'],
     data() {
         return {
             password: null,
@@ -285,10 +285,12 @@ export default {
 
         },
         formatDateToHumanReadable(dateString) {
+            if (!dateString) return '';
             const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
 
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            const formatter = new Intl.DateTimeFormat('uk-UA', options); // 'uk-UA' for Ukrainian locale
+            const formatter = new Intl.DateTimeFormat('uk-UA', options);
 
             const formattedParts = formatter.formatToParts(date);
 
@@ -307,10 +309,12 @@ export default {
             return name.substring(0,1).toUpperCase() + name.substring(1, name.length).toLowerCase()
         },
         getPlayerThirdName(surname, name) {
-            const playerInfo = playersNames.find(item => item.includes(surname.toUpperCase() + ' ' + name.toUpperCase()));
+            const s = surname.toUpperCase();
+            const n = name.toUpperCase();
+            const playerInfo = playersNames.find(item => item.includes(s + ' ' + n) || item.includes(n + ' ' + s));
             if (playerInfo) {
                 const playerInfoArray = playerInfo.split(' ');
-                if (playerInfoArray.length === 3) {
+                if (playerInfoArray.length >= 3) {
                     return this.formatName(playerInfoArray[2]);
                 } else {
                     return '!!! ДОПИШІТЬ МЕНЕ!!!'
@@ -624,5 +628,19 @@ export default {
 
 #protocol table td {
     padding: 0.2em 0.3em;
+}
+
+.protocol-info-table {
+    width: 100%;
+}
+
+.protocol-info-table td:first-child {
+    width: 40%;
+    white-space: nowrap;
+}
+
+.protocol-info-table td:last-child {
+    width: 60%;
+    min-width: 300px;
 }
 </style>

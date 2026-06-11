@@ -90,6 +90,11 @@ export default {
                 });
         },
         getDate,
+        getGameType(item) {
+            if (item.type) return item.type;
+            const playerCount = item.team1?.players?.filter(p => !p.wasChanged).length;
+            return playerCount || null;
+        },
         getGameTypeLabel(type) {
             const found = gameTypes.find(t => t.value === type);
             return found ? found.label : '';
@@ -176,7 +181,7 @@ export default {
         </div>
 
         <div v-if="isLoading" class="archive__skeleton">
-            <div class="archive__skeleton-card" v-for="n in 4" :key="n">
+            <div class="archive__skeleton-card" v-for="n in 8" :key="n">
                 <div class="archive__skeleton-line archive__skeleton-line--title"></div>
                 <div class="archive__skeleton-line archive__skeleton-line--date"></div>
             </div>
@@ -209,7 +214,7 @@ export default {
                     <div class="archive__game-header" @click="item.isOpen = !item.isOpen">
                         <div class="archive__game-info">
                             <span class="archive__game-name">{{ item.name || 'Unnamed game' }}</span>
-                            <span v-if="item.type" class="archive__game-type-badge">{{ getGameTypeLabel(item.type) }}</span>
+                            <span v-if="getGameType(item)" class="archive__game-type-badge">{{ getGameTypeLabel(getGameType(item)) }}</span>
                             <span class="archive__game-date">{{ getDate(item.date) }}</span>
                             <span v-if="item.tags?.length" class="archive__game-tags-inline">
                                 <span v-for="(tag, index) in item.tags" :key="index" class="archive__game-tag-badge">{{tag}}</span>

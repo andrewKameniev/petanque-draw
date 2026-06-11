@@ -909,26 +909,24 @@ export default {
 }
 
 .stats-btn--icon {
-    background: var(--color-surface);
+    background: none;
     color: var(--color-text-muted);
-    border: 1px solid var(--color-border);
     padding: 0.4rem;
 }
 
 .stats-btn--icon:hover {
     color: var(--color-primary);
-    background: var(--color-primary-bg);
-    border-color: var(--color-primary);
 }
 
 .stats-btn--danger {
-    background: var(--color-error-bg);
+    background: none;
     color: var(--color-error);
+    padding: 0.4rem;
 }
 
 .stats-btn--danger:hover {
-    background: var(--color-error);
-    color: var(--color-btn-text);
+    color: var(--color-error);
+    opacity: 0.7;
 }
 
 .stats-btn--danger-confirm {

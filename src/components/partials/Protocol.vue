@@ -525,7 +525,7 @@ export default {
 
 <style>
 .protocol-container {
-    background: var(--color-surface);
+    background: #e8e8e8;
     padding: 1.5rem;
     border-radius: 8px;
     margin-top: 1rem;
@@ -769,8 +769,17 @@ export default {
 }
 
 #protocol {
-    color: var(--color-text);
+    color: #000;
     font-family: 'Times New Roman';
+    background: #fff;
+    width: 210mm;
+    max-width: 100%;
+    min-height: 297mm;
+    padding: 15mm 15mm;
+    margin: 0 auto;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    border: 1px solid #ccc;
+    box-sizing: border-box;
 }
 
 #protocol h2, #protocol h3 {
@@ -781,8 +790,9 @@ export default {
 #protocol .pdf-page-break {
     page-break-before: always;
     break-before: page;
-    padding-top: 20px;
-    margin-top: 20px;
+    padding-top: 15mm;
+    margin-top: 10mm;
+    border-top: 2px dashed #bbb;
 }
 
 #protocol table tr,
@@ -791,12 +801,15 @@ export default {
     break-inside: avoid;
 }
 
+#protocol table {
+    width: 100%;
+}
 
 #protocol .content h3,
 #protocol .content h4,
 #protocol table th,
 #protocol table td {
-    color: var(--color-text);
+    color: #000;
 }
 
 #protocol table td {
@@ -808,6 +821,11 @@ export default {
     -webkit-user-select: text;
     cursor: text;
     min-height: 1.4em;
+}
+
+#protocol .table-container {
+    overflow: visible;
+    max-width: none;
 }
 
 .protocol-info-table {

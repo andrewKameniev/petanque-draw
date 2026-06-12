@@ -70,25 +70,50 @@
                         </template>
                     </template>
                 </div>
+                <template v-else-if="selectedRound !== 'playoff' && isForProtocol">
+                    <table v-for="(round, index) in allSortedRounds" :key="'pr'+index" class="table is-bordered round-chunk" :class="{'pdf-page-break': index > 0}">
+                        <thead>
+                        <tr>
+                            <th class="is-narrow">{{ getRoundLabel(index) }}</th>
+                            <th class="has-text-right">Команда 1</th>
+                            <th class="has-text-centered is-narrow">Рахунок</th>
+                            <th>Команда 2</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(game, i) in round" :key="i">
+                                <td class="is-narrow round-group-cell">
+                                    <small class="round-badge">{{ getRoundLabel(index) }}</small>
+                                </td>
+                                <td class="has-text-right">{{ teamTitles[game.team_1] }}</td>
+                                <td class="has-text-centered is-narrow">
+                                    <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                    <span v-else class="score-empty">-- : --</span>
+                                </td>
+                                <td>{{ teamTitles[game.team_2] }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
                 <div class="table-container" v-else-if="selectedRound !== 'playoff'">
                     <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
                         <tbody>
                             <template v-for="(round, index) in allSortedRounds" :key="index">
-                                <template v-if="isForProtocol || selectedRound === -1 || selectedRound === index">
+                                <template v-if="selectedRound === -1 || selectedRound === index">
                                     <tr v-for="(game, i) in round" :key="i" :class="{'search-highlight': isGameHighlighted(game)}">
-                                        <td v-if="selectedRound === -1 || isForProtocol" class="is-narrow round-group-cell">
+                                        <td v-if="selectedRound === -1" class="is-narrow round-group-cell">
                                             <small class="round-badge">{{ getRoundLabel(index) }}</small>
                                             <small v-if="hasGroupsColumn && game.group != null" class="group-label">{{ groupsNames[game.group] }}</small>
                                         </td>
                                         <td v-if="hasGroupsColumn" class="group-cell-desktop">
                                             <template v-if="game.group != null"><small>{{ $t('common.group') }}</small> {{ groupsNames[game.group] }}</template>
                                         </td>
-                                        <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</td>
+                                        <td class="has-text-right" :class="{'has-text-weight-bold': game.team_1_score > game.team_2_score}">{{ game.team_1}}</td>
                                         <td class="has-text-centered is-narrow">
                                             <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
                                             <span v-else class="score-empty">-- : --</span>
                                         </td>
-                                        <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{isForProtocol ? teamTitles[game.team_2] : game.team_2}}</td>
+                                        <td :class="{'has-text-weight-bold': game.team_2_score > game.team_1_score}">{{ game.team_2}}</td>
                                         <td v-if="canEditResults" class="is-narrow edit-cell">
                                             <button class="edit-result-btn" :title="$t('results.editResult')" @click="openEditModal(game)">
                                                 <Pencil :size="14"/>

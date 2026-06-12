@@ -138,8 +138,37 @@
             </div>
             <div v-else-if="tournament.system === 'swiss'">
                 <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">{{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}</div>
-                <div class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
-                    <table id="table-ranking" class="table" :class="{'is-bordered': isForProtocol}">
+                <template v-if="isForProtocol">
+                    <div v-for="(chunk, ci) in rankingChunks" :key="'rc'+ci" :class="{'pdf-page-break': ci > 0}">
+                    <table :id="ci === 0 ? 'table-ranking' : undefined" class="table is-bordered ranking-chunk">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{{ $t('ranking.team') }}</th>
+                            <th align="center">{{ $t('ranking.wins') }}</th>
+                            <th align="center">{{ $t('ranking.buh') }}</th>
+                            <th align="center">{{ $t('ranking.sbuh') }}</th>
+                            <th align="center">{{ $t('ranking.points') }}</th>
+                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(team, index) in chunk" :key="team.title"
+                            :class="{'place-gold': index === 0 && ci === 0, 'place-silver': index === 1 && ci === 0, 'place-bronze': index === 2 && ci === 0}">
+                            <td>{{ ci * rankingChunkSize + index + 1 }}</td>
+                            <td>{{ teamTitles[team.title] }}</td>
+                            <td align="center" class="td-highlight">{{ team.wins }}</td>
+                            <td align="center">{{ team.buhgolts }}</td>
+                            <td align="center">{{ team.smallBuhgolts }}</td>
+                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
+                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </template>
+                <div v-else class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
+                    <table id="table-ranking" class="table">
                         <thead>
                         <tr>
                             <th>#</th>
@@ -173,7 +202,7 @@
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
                             :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
                             <td><span class="team-count"></span></td>
-                            <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
+                            <td>{{ team.title }}</td>
                             <td align="center" class="td-highlight">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
@@ -307,6 +336,11 @@ export default {
             resultsCopied: false,
             isTournamentOrg: false,
             showExportConfirm: false,
+        }
+    },
+    created() {
+        if (this.isForProtocol) {
+            this.rankingSubtab = 'swiss';
         }
     },
     async mounted() {
@@ -489,13 +523,27 @@ export default {
             return getPlayOffTeamsPerGroup(this.tournament);
         },
         isSwissOnly() {
+            if (this.isForProtocol) return true;
             return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'swiss';
         },
         isResultOnly() {
+            if (this.isForProtocol) return false;
             return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'result';
         },
         isBarrageOnly() {
+            if (this.isForProtocol) return false;
             return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'barrage';
+        },
+        rankingChunkSize() {
+            return 28;
+        },
+        rankingChunks() {
+            if (!this.rankingTeams) return [];
+            const chunks = [];
+            for (let i = 0; i < this.rankingTeams.length; i += this.rankingChunkSize) {
+                chunks.push(this.rankingTeams.slice(i, i + this.rankingChunkSize));
+            }
+            return chunks;
         },
         barrageRankingTeams() {
             if (!this.tournament.barrage?.groups) return [];

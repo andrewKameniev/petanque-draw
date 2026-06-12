@@ -26,7 +26,7 @@ select:focus,
 .button:focus,
 .button.is-focused {
     border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 0.125em var(--color-primary-shadow) !important;
+    box-shadow: none !important;
     outline: none;
 }
 

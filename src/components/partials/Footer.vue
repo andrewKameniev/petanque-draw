@@ -15,19 +15,10 @@ export default {
 <template>
     <footer class="app-footer">
         <div class="app-footer__desktop">
-            <div v-if="user" class="app-footer__line">
-                <div class="app-footer__links">
-                    <router-link to="/">{{ $t('common.draw') }}</router-link>
-                    <router-link to="/stats">{{ $t('common.stat') }}</router-link>
-                    <router-link to="/training">{{ $t('common.training') }}</router-link>
-                </div>
-            </div>
             <div class="app-footer__line">
                 <div class="app-footer__links">
-                    <router-link to="/doc">{{ $t('common.howUse') }}</router-link>
+                    <router-link to="/docs">{{ $t('common.documentation') }}</router-link>
                     <a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a>
-                    <a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a>
-                    <a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a>
                 </div>
                 <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a> <span class="app-footer__version">ver: {{ appVersion }}</span></p>
             </div>

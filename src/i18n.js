@@ -18,6 +18,7 @@ export async function loadLocaleModule(module) {
         stat: () => import('@/locales/stat.js'),
         help: () => import('@/locales/help.js'),
         training: () => import('@/locales/training.js'),
+        docs: () => import('@/locales/docs.js'),
     };
     if (!loader[module]) return;
     const messages = await loader[module]();

@@ -245,6 +245,9 @@
                 </div>
             </div>
         </div>
+        <button class="protocol-back-top" @click="scrollToggle">
+            <ChevronUp :size="20" :class="{'protocol-back-top__icon--down': !showBackTop}"/>
+        </button>
     </div>
 </template>
 
@@ -256,11 +259,11 @@ import Ranking from "@/components/partials/Ranking";
 import playersNames from '../../data.json'
 import {mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown, RefreshCw, Eraser, RotateCcw} from "lucide-vue-next";
+import {Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown, RefreshCw, Eraser, RotateCcw, ChevronUp} from "lucide-vue-next";
 
 export default {
     name: 'Protocol',
-    components: {Ranking, Results, Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown, RefreshCw, Eraser, RotateCcw},
+    components: {Ranking, Results, Star, Copy, Check, Info, AlertTriangle, Plus, ExternalLink, FileDown, RefreshCw, Eraser, RotateCcw, ChevronUp},
     props: ['tournament', 'rankingTeams', 'skipGate'],
     data() {
         return {
@@ -274,6 +277,7 @@ export default {
             arbitr: '',
             refreshing: false,
             showArbitrCertificate: false,
+            showBackTop: false,
             arbitres: [
 
             ]
@@ -294,6 +298,10 @@ export default {
         this.$nextTick(() => {
             this.restoreProtocolFromStorage();
         });
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    beforeUnmount() {
+        window.removeEventListener('scroll', this.handleScroll);
     },
     computed: {
         protocolStorageKey() {
@@ -327,6 +335,16 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        handleScroll() {
+            this.showBackTop = window.scrollY > 400;
+        },
+        scrollToggle() {
+            if (this.showBackTop) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        },
         copyCard() {
             navigator.clipboard.writeText('5353542324470856');
             this.cardCopied = true;
@@ -962,5 +980,32 @@ export default {
 #protocol.is-exporting > .protocol-page::after,
 #protocol.is-exporting .pdf-page-break::after {
     display: none;
+}
+
+.protocol-back-top {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 12px var(--color-primary-shadow);
+    transition: transform 0.2s;
+    z-index: 50;
+}
+
+.protocol-back-top:hover {
+    transform: scale(1.1);
+}
+
+.protocol-back-top__icon--down {
+    transform: rotate(180deg);
 }
 </style>

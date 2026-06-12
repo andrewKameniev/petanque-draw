@@ -5,6 +5,7 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 const Public = () => import("@/views/Public.vue");
 const PublicStats = () => import("@/views/PublicStats.vue");
 const Help = () => import("@/components/Help.vue");
+const Docs = () => import("@/views/Docs.vue");
 const Stats = () => import("@/views/Stats.vue");
 const Training = () => import("@/views/Training.vue");
 const Archived = () => import("@/views/Archived.vue");
@@ -48,6 +49,11 @@ const router = createRouter({
             path: '/doc',
             name: 'Documentation',
             component: Help
+        },
+        {
+            path: '/docs',
+            name: 'Docs',
+            component: Docs
         },
         {
             path: '/stats',
@@ -94,6 +100,7 @@ const routeLocaleMap = {
     Statistics: ['stat'],
     PublicStats: ['stat'],
     Documentation: ['help'],
+    Docs: ['docs'],
     Training: ['training', 'stat'],
 };
 

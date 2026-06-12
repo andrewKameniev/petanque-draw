@@ -582,6 +582,12 @@ export const useMainStore = defineStore('main', {
                     this.showMessage({title: i18n.global.t('messages.error'), text: error, type: 'error'});
                 });
         },
+        renameSavedTournament(id, name) {
+            const db = getDatabase();
+            update(ref(db, `${this.user.uid}/saved/${id}`), { name }).then(() => {
+                this.savedTournaments[id].name = name;
+            });
+        },
         addBTournament(teams, name, isGroupB) {
             this.addTournament({teams: [...teams]});
             if (name) {

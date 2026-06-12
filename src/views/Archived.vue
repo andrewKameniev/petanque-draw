@@ -5,7 +5,23 @@
         <div class="container">
 
             <div v-if="activeKey && savedTournaments[activeKey]" class="tournament-selector" @click="selectorOpen = !selectorOpen" v-click-outside="closeSelector">
-                <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
+                <template v-if="editingName">
+                    <input
+                        ref="nameInput"
+                        class="tournament-selector__input"
+                        :value="savedTournaments[activeKey].name"
+                        @click.stop
+                        @keyup.enter="saveName($event.target.value)"
+                        @keyup.escape="editingName = false"
+                        @blur="saveName($event.target.value)"
+                    />
+                </template>
+                <template v-else>
+                    <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
+                    <button class="tournament-selector__edit" @click.stop="startEditName" :title="$t('common.edit')">
+                        <Pencil :size="16"/>
+                    </button>
+                </template>
                 <svg class="tournament-selector__arrow" :class="{'tournament-selector__arrow--open': selectorOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -120,11 +136,11 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getTeamsRanking} from "@/helpers";
 import {tournamentService} from "@/services/db";
-import {GitFork, Users, List, Trophy as TrophyIcon, FileText} from "lucide-vue-next";
+import {GitFork, Users, List, Trophy as TrophyIcon, FileText, Pencil} from "lucide-vue-next";
 
 export default {
     name: 'Archived',
-    components: {Footer, Navbar, Menu, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, Protocol, GitFork, Users, List, TrophyIcon, FileText},
+    components: {Footer, Navbar, Menu, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, Protocol, GitFork, Users, List, TrophyIcon, FileText, Pencil},
     data() {
         return {
             activeTab: "ranking",
@@ -133,6 +149,7 @@ export default {
             menuOpen: false,
             tournament: null,
             isLoading: false,
+            editingName: false,
         }
     },
     directives: {
@@ -292,7 +309,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['removeSavedTournament']),
+        ...mapActions(useMainStore, ['removeSavedTournament', 'renameSavedTournament']),
         selectTournament(key) {
             this.activeKey = key;
             this.selectorOpen = false;
@@ -300,6 +317,20 @@ export default {
         },
         closeSelector() {
             this.selectorOpen = false;
+        },
+        startEditName() {
+            this.editingName = true;
+            this.$nextTick(() => {
+                this.$refs.nameInput?.focus();
+                this.$refs.nameInput?.select();
+            });
+        },
+        saveName(value) {
+            const name = value.trim();
+            if (name && name !== this.savedTournaments[this.activeKey].name) {
+                this.renameSavedTournament(this.activeKey, name);
+            }
+            this.editingName = false;
         },
         removeTournament() {
             if (!window.confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')) return;
@@ -396,6 +427,40 @@ export default {
     color: var(--color-text);
     text-align: center;
     line-height: 1.2;
+}
+
+.tournament-selector__edit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.tournament-selector__edit:hover {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.tournament-selector__input {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text);
+    text-align: center;
+    line-height: 1.2;
+    border: none;
+    border-bottom: 2px solid var(--color-primary);
+    background: transparent;
+    outline: none;
+    width: 100%;
+    min-width: 200px;
 }
 
 .tournament-selector__arrow {

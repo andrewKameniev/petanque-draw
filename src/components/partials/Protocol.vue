@@ -40,6 +40,7 @@
                 <span>Протокол не є гарантовано вірним, може бути некоректна чи не вся інформація на порталі, може бути специфічний регламент, може не бути всіх даних по гравцям. Перевіряйте вручну, будь ласка!</span>
             </div>
             <div id="protocol" class="mb-3" @input="saveProtocolToStorage">
+                <div class="protocol-page">
                 <h2 class="text-center is-size-3 mb-2">
                     Підсумковий протокол <br>
                     {{ tournament.name }}
@@ -74,7 +75,7 @@
                 </table>
                 <br>
                 <h3 class="text-center is-size-4 mb-2">Учасники та результати</h3>
-                <table class="table is-bordered">
+                <table v-if="participantChunks.length" class="table is-bordered">
                     <thead>
                     <tr class="has-text-centered">
                         <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
@@ -86,7 +87,7 @@
                         <th style="width: 7%">Загальне підсумкове місце</th>
                     </tr>
                     </thead>
-                    <tbody v-for="(team, index) in tournament.system === 'swiss' ? rankingTeams : getAllTeams(rankingTeams)" :key="index" class="team-group">
+                    <tbody v-for="(team, index) in participantChunks[0]" :key="index" class="team-group">
                         <tr>
                             <td :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1" class="has-text-centered">{{ index + 1 }} </td>
                             <td class="has-text-weight-bold" :colspan="team.players?.length > 1 ? 2 : 1" contenteditable="plaintext-only">
@@ -112,6 +113,47 @@
                         </template>
                     </tbody>
                 </table>
+                </div>
+                <div v-for="(chunk, ci) in participantChunks.slice(1)" :key="'pc'+ci" class="pdf-page-break">
+                <table class="table is-bordered">
+                    <thead>
+                    <tr class="has-text-centered">
+                        <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
+                        <th>ПІП</th>
+                        <th style="width: 16%">Регіон</th>
+                        <th style="width: 18%">Тренер(и)</th>
+                        <th style="width: 10%">Спортивний розряд/звання</th>
+                        <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
+                        <th style="width: 7%">Загальне підсумкове місце</th>
+                    </tr>
+                    </thead>
+                    <tbody v-for="(team, index) in chunk" :key="index" class="team-group">
+                        <tr>
+                            <td :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1" class="has-text-centered">{{ (ci + 1) * participantChunkSize + index + 1 }} </td>
+                            <td class="has-text-weight-bold" :colspan="team.players?.length > 1 ? 2 : 1" contenteditable="plaintext-only">
+                                <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
+                                <span v-else-if="team.players">{{ formatName(team.players[0].surname) + ' ' + formatName(team.players[0].name) + ' ' + (team.players[0].second_name ? team.players[0].second_name : getPlayerThirdName(team.players[0].surname, team.players[0].name)) }}</span>
+                            </td>
+                            <td v-if="team.players?.length === 1">{{ regions[team.players[0].club_id] || '' }}</td>
+                            <td contenteditable="plaintext-only" :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"></td>
+                            <td contenteditable="plaintext-only">{{team.players?.length === 1 && team.players[0].sport_title === 'candidate' ? 'КМСУ' : ''}}</td>
+                            <td v-if="tournament.playOff?.length" class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
+                                {{tournament.system === 'swiss' ? ((ci + 1) * participantChunkSize + index + 1) : getTeamPlaceInGroups(team.place, rankingTeams.length)}}
+                            </td>
+                            <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
+                                {{tournament.playOff?.length ? tournamentRanking.find(item => item.title === team.title)?.place : ((ci + 1) * participantChunkSize + index + 1)}}
+                            </td>
+                        </tr>
+                        <template v-if="team.players?.length > 1">
+                            <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
+                                <td contenteditable="plaintext-only"><span class="is-capitalized">{{ formatName(player.surname) + ' ' + formatName(player.name) + ' ' + (player.second_name ? player.second_name.toLowerCase() : getPlayerThirdName(player.surname, player.name)) }}</span> </td>
+                                <td>{{ regions[player.club_id] || '' }} </td>
+                                <td contenteditable="plaintext-only">{{player.sport_title === 'candidate' ? 'КМСУ' : ''}}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                </div>
                 <div class="pdf-page-break">
                     <h3 class="text-center is-size-4 mb-2">Результати кожного раунду</h3>
                     <Results :previewTournament="tournament" :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles"/>
@@ -122,9 +164,8 @@
                     </h3>
                     <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :is-for-protocol="true" :team-titles="protocolTitles"/>
                 </div>
-                <br>
-                <div v-if="tournament.playOff?.length">
-                    <div class="mt-3 mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
+                <div v-if="tournament.playOff?.length" class="pdf-page-break">
+                    <div class="mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
                     <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
                     <Results :previewTournament="tournament" :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
                 </div>
@@ -279,6 +320,21 @@ export default {
         },
         tournamentRanking() {
             return getTournamentRanking(this.tournament, this.rankingTeams)
+        },
+        participantsList() {
+            return this.tournament.system === 'swiss' ? this.rankingTeams : this.getAllTeams(this.rankingTeams);
+        },
+        participantChunkSize() {
+            return 28;
+        },
+        participantChunks() {
+            const list = this.participantsList;
+            if (!list) return [];
+            const chunks = [];
+            for (let i = 0; i < list.length; i += this.participantChunkSize) {
+                chunks.push(list.slice(i, i + this.participantChunkSize));
+            }
+            return chunks;
         },
     },
     methods: {
@@ -456,6 +512,8 @@ export default {
             const { default: html2pdf } = await import("html2pdf.js");
             const el = document.getElementById("protocol");
 
+            el.classList.add('is-exporting');
+
             const overflows = [];
             el.querySelectorAll('.table-container').forEach(tc => {
                 overflows.push({ el: tc, overflow: tc.style.overflow, maxWidth: tc.style.maxWidth });
@@ -479,6 +537,8 @@ export default {
                 html2canvas: { scale: 2, scrollY: 0, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             }).from(el).save();
+
+            el.classList.remove('is-exporting');
 
             overflows.forEach(({ el: tc, overflow, maxWidth }) => {
                 tc.style.overflow = overflow;
@@ -771,28 +831,45 @@ export default {
 #protocol {
     color: #000;
     font-family: 'Times New Roman';
-    background: #fff;
     width: 210mm;
     max-width: 100%;
-    min-height: 297mm;
-    padding: 15mm 15mm;
     margin: 0 auto;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    border: 1px solid #ccc;
-    box-sizing: border-box;
+    counter-reset: protocol-page 1;
 }
 
-#protocol h2, #protocol h3 {
-    font-weight: bold;
-    page-break-after: avoid;
+#protocol > .protocol-page,
+#protocol > .pdf-page-break {
+    background: #fff;
+    border: 1px solid #bbb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    box-sizing: border-box;
+    padding: 15mm;
+    min-height: 297mm;
+    position: relative;
+    counter-increment: protocol-page;
+    margin-bottom: 24px;
+}
+
+#protocol > .protocol-page::after,
+#protocol > .pdf-page-break::after {
+    content: counter(protocol-page);
+    position: absolute;
+    bottom: 10mm;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10pt;
+    color: #aaa;
+    font-family: Arial, sans-serif;
 }
 
 #protocol .pdf-page-break {
     page-break-before: always;
     break-before: page;
-    padding-top: 15mm;
-    margin-top: 10mm;
-    border-top: 2px dashed #bbb;
+}
+
+#protocol h2, #protocol h3 {
+    font-weight: bold;
+    page-break-after: avoid;
 }
 
 #protocol table tr,
@@ -840,5 +917,19 @@ export default {
 .protocol-info-table td:last-child {
     width: 60%;
     min-width: 300px;
+}
+
+#protocol.is-exporting > .protocol-page,
+#protocol.is-exporting > .pdf-page-break {
+    border: none;
+    box-shadow: none;
+    min-height: auto;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+#protocol.is-exporting > .protocol-page::after,
+#protocol.is-exporting > .pdf-page-break::after {
+    display: none;
 }
 </style>

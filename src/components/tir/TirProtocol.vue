@@ -195,6 +195,9 @@
                 </div>
             </div>
         </div>
+        <button class="protocol-back-top" @click="scrollToggle">
+            <ChevronUp :size="20" :class="{'protocol-back-top__icon--down': !showBackTop}"/>
+        </button>
     </div>
 </template>
 
@@ -202,19 +205,26 @@
 import {mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {getScoreTotal, getScoreCarreauCount, getScoreReussiCount, rankWithTiebreakers, getCombinedTotal} from '@/services/tir';
-import {Star, Copy, Check, AlertTriangle, Plus, FileDown} from "lucide-vue-next";
+import {Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp} from "lucide-vue-next";
 
 export default {
     name: 'TirProtocol',
-    components: {Star, Copy, Check, AlertTriangle, Plus, FileDown},
+    components: {Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp},
     props: ['tournament'],
     emits: ['close'],
     data() {
         return {
             password: null,
             cardCopied: false,
+            showBackTop: false,
             arbitres: []
         }
+    },
+    mounted() {
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    beforeUnmount() {
+        window.removeEventListener('scroll', this.handleScroll);
     },
     computed: {
         participants() {
@@ -308,6 +318,16 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        handleScroll() {
+            this.showBackTop = window.scrollY > 400;
+        },
+        scrollToggle() {
+            if (this.showBackTop) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        },
         getR1Score(p) {
             return getScoreTotal(p, 'scores');
         },

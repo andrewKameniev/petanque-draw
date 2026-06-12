@@ -76,11 +76,19 @@
 
                     <!-- Info -->
                     <p class="sidebar__label">{{ $t('common.info') }}</p>
-                    <ul class="sidebar__list sidebar__list--plain">
-                        <li><router-link to="/doc" @click="$emit('closeMenu')">{{ $t('common.howUse') }}</router-link></li>
-                        <li><a href="https://en.wikipedia.org/wiki/Swiss-system_tournament" target="_blank">{{ $t('common.swissSystem') }}</a></li>
-                        <li><a href="https://mtg.cardsrealm.com/en-us/tools/swiss-tournament-top8-calculator" target="_blank">{{ $t('common.swissCalculator') }}</a></li>
-                        <li><a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a></li>
+                    <ul class="sidebar__list">
+                        <li><router-link to="/docs" @click="$emit('closeMenu')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            {{ $t('common.documentation') }}
+                        </router-link></li>
+                        <li><router-link to="/doc" @click="$emit('closeMenu')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01"/></svg>
+                            {{ $t('common.howUse') }}
+                        </router-link></li>
+                        <li><a href="http://portal.petanque.org.ua/" target="_blank">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+                            {{ $t('common.portal') }}
+                        </a></li>
                     </ul>
 
                     <!-- Settings -->

@@ -38,23 +38,23 @@
                     <tbody>
                     <tr>
                         <td>Дата початку змагань</td>
-                        <td contenteditable="true">{{ formatDate(tournament.date) || '-' }}</td>
+                        <td contenteditable="plaintext-only">{{ formatDate(tournament.date) || '-' }}</td>
                     </tr>
                     <tr>
                         <td>Дата закінчення змагань</td>
-                        <td contenteditable="true">{{ formatDate(tournament.date) || '-' }}</td>
+                        <td contenteditable="plaintext-only">{{ formatDate(tournament.date) || '-' }}</td>
                     </tr>
                     <tr>
                         <td>Місце/місто проведення</td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="plaintext-only"></td>
                     </tr>
                     <tr>
                         <td>Організатор</td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="plaintext-only"></td>
                     </tr>
                     <tr>
                         <td>Головний суддя</td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="plaintext-only"></td>
                     </tr>
                     <tr>
                         <td>Дисципліна</td>
@@ -85,10 +85,10 @@
                     <tbody>
                     <tr v-for="(p, index) in rankedParticipants" :key="p.id">
                         <td class="has-text-centered">{{ index + 1 }}</td>
-                        <td contenteditable="true">{{ p.name }}</td>
-                        <td contenteditable="true">{{ p.city || '' }}</td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="plaintext-only">{{ p.name }}</td>
+                        <td contenteditable="plaintext-only">{{ p.city || '' }}</td>
+                        <td contenteditable="plaintext-only"></td>
+                        <td contenteditable="plaintext-only"></td>
                         <td class="has-text-centered">{{ getR1Score(p) }}</td>
                         <td v-if="isTwoRound" class="has-text-centered">{{ hasR2Scores(p) ? getR2Score(p) : '—' }}</td>
                         <td v-if="isTwoRound" class="has-text-centered has-text-weight-bold">{{ hasR2Scores(p) ? getCombined(p) : getR1Score(p) }}</td>
@@ -130,10 +130,10 @@
                 <table class="table is-bordered">
                     <thead class="has-text-centered">
                     <tr>
-                        <th>№ з/п</th>
+                        <th style="width: 40px">№ з/п</th>
                         <th>Прізвище, ім'я, по батькові</th>
-                        <th>Посада</th>
-                        <th>Суддівська категорія</th>
+                        <th style="width: 22%">Посада</th>
+                        <th style="width: 14%">Суддівська категорія</th>
                         <th>№ посвідчення</th>
                         <th>Регіон</th>
                     </tr>
@@ -141,11 +141,11 @@
                     <tbody>
                     <tr v-for="(item, index) in arbitres" :key="index">
                         <td>{{ index + 1 }}</td>
-                        <td contenteditable="true">{{ item.name }}</td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
+                        <td contenteditable="plaintext-only">{{ item.name }}</td>
+                        <td contenteditable="plaintext-only"></td>
+                        <td contenteditable="plaintext-only"></td>
+                        <td contenteditable="plaintext-only"></td>
+                        <td contenteditable="plaintext-only"></td>
                     </tr>
                     </tbody>
                 </table>
@@ -155,17 +155,17 @@
                         <tr>
                             <td>Головний суддя змагань</td>
                             <td class="has-text-centered">___________________ <br> (печатка)</td>
-                            <td class="has-text-right" contenteditable="true"></td>
+                            <td class="has-text-right" contenteditable="plaintext-only"></td>
                         </tr>
                         <tr>
                             <td>Суддя</td>
                             <td class="has-text-centered">___________________ <br> (підпис)</td>
-                            <td class="has-text-right" contenteditable="true"></td>
+                            <td class="has-text-right" contenteditable="plaintext-only"></td>
                         </tr>
                         <tr>
                             <td>Головний секретар змагань</td>
                             <td class="has-text-centered">___________________ <br> (підпис)</td>
-                            <td class="has-text-right" contenteditable="true"></td>
+                            <td class="has-text-right" contenteditable="plaintext-only"></td>
                         </tr>
                         <tr>
                             <td>Президент ГС «Федерація петанку України»</td>

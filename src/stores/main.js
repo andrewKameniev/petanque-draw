@@ -378,6 +378,7 @@ export const useMainStore = defineStore('main', {
         },
         setTournamentIdFromPortal(value) {
             this.tournaments[this.currentTournamentIndex].portalIdTournament = value
+            this.syncToFirebase();
         },
         setTournamentInfoFromPortal(info) {
             this.tournaments[this.currentTournamentIndex].name = info.name

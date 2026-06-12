@@ -71,7 +71,9 @@
                     </template>
                 </div>
                 <template v-else-if="selectedRound !== 'playoff' && isForProtocol">
-                    <table v-for="(round, index) in allSortedRounds" :key="'pr'+index" class="table is-bordered round-chunk" :class="{'pdf-page-break': index > 0}">
+                    <div v-for="(round, index) in allSortedRounds" :key="'pr'+index" class="pdf-page-break">
+                    <h3 v-if="index === 0 && sectionTitle" class="text-center is-size-4 mb-2">{{ sectionTitle }}</h3>
+                    <table class="table is-bordered round-chunk">
                         <thead>
                         <tr>
                             <th class="is-narrow">{{ getRoundLabel(index) }}</th>
@@ -94,6 +96,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </template>
                 <div class="table-container" v-else-if="selectedRound !== 'playoff'">
                     <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol, 'is-fullwidth': !isForProtocol}">
@@ -125,7 +128,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div v-if="hasPlayOffResults && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" class="playoff-section">
+                <div v-if="hasPlayOffResults && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" :class="{'pdf-page-break': isForProtocol, 'playoff-section': true}">
+                    <h3 v-if="isForProtocol && sectionTitle" class="text-center is-size-4 mb-2">{{ sectionTitle }}</h3>
                     <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
                         <template v-if="stage.teams[0].team_1_score && stage.stageLabel !== 'cadrage'">
                             <div class="playoff-stage-label">
@@ -191,7 +195,7 @@ import {GitFork, Pencil} from "lucide-vue-next";
 export default {
     name: 'Results',
     components: {Bracket, EditResultModal, GitFork, Pencil},
-    props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView'],
+    props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView', 'sectionTitle'],
     data() {
         return {
             selectedRound: -1,

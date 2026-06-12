@@ -154,21 +154,11 @@
                     </tbody>
                 </table>
                 </div>
-                <div class="pdf-page-break">
-                    <h3 class="text-center is-size-4 mb-2">Результати кожного раунду</h3>
-                    <Results :previewTournament="tournament" :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles"/>
-                </div>
-                <div class="pdf-page-break">
-                    <h3 class="text-center is-size-4 mb-2">Результати відбіркових ігор
-                        <span class="is-size-5">({{tournament.system === 'swiss' ? 'швейцарська' : 'кругова'}} система ({{ tournament.games.length }} раундів))</span>
-                    </h3>
-                    <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :is-for-protocol="true" :team-titles="protocolTitles"/>
-                </div>
-                <div v-if="tournament.playOff?.length" class="pdf-page-break">
-                    <div class="mb-3 has-text-centered">{{ tournament.playOff.length * 2 }} кращих команд змагалися за чемпіонство по олімпійській системі</div>
-                    <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт</h3>
-                    <Results :previewTournament="tournament" :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles"/>
-                </div>
+                <Results :previewTournament="tournament" :only-qualifying="true" :is-for-protocol="true" :team-titles="protocolTitles" section-title="Результати кожного раунду"/>
+                <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :is-for-protocol="true" :team-titles="protocolTitles" :section-title="`Результати відбіркових ігор <span class='is-size-5'>(${tournament.system === 'swiss' ? 'швейцарська' : 'кругова'} система (${tournament.games.length} раундів))</span>`"/>
+                <template v-if="tournament.playOff?.length">
+                    <Results :previewTournament="tournament" :is-for-protocol="true" :only-play-off="true" :team-titles="protocolTitles" section-title="Результати ігор на виліт"/>
+                </template>
                 <div class="pdf-page-break">
                     <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
                     <table class="table is-bordered">
@@ -222,7 +212,18 @@
                 </div>
             </div>
             <div class="protocol-actions">
-                <div class="protocol-actions__row">
+                <div class="protocol-actions__primary">
+                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
+                        <FileDown :size="16"/> {{ $t('teams.exportPdf') }}
+                    </button>
+                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
+                        <Copy :size="16"/> {{ $t('teams.copyProtocol') }}
+                    </button>
+                    <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
+                        {{ $t('common.close') }}
+                    </button>
+                </div>
+                <div class="protocol-actions__secondary">
                     <button class="protocol-actions__btn protocol-actions__btn--success" @click="addArbitr">
                         <Plus :size="16"/> Додати суддю
                     </button>
@@ -235,25 +236,12 @@
                     <button class="protocol-actions__btn protocol-actions__btn--outline" @click="removeDopyshit">
                         <Eraser :size="16"/> Прибрати "ДОПИШІТЬ МЕНЕ"
                     </button>
-                </div>
-                <div class="protocol-actions__row">
+                    <button class="protocol-actions__btn protocol-actions__btn--ghost" @click="resetProtocol">
+                        <RotateCcw :size="16"/> Скинути зміни
+                    </button>
                     <label class="protocol-actions__checkbox">
                         <input type="checkbox" v-model="showArbitrCertificate"> № посвідчення суддів
                     </label>
-                </div>
-                <div class="protocol-actions__row">
-                    <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
-                        {{ $t('common.close') }}
-                    </button>
-                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
-                        <FileDown :size="16"/> {{ $t('teams.exportPdf') }}
-                    </button>
-                    <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
-                        <Copy :size="16"/> {{ $t('teams.copyProtocol') }}
-                    </button>
-                    <button class="protocol-actions__btn protocol-actions__btn--outline" @click="resetProtocol">
-                        <RotateCcw :size="16"/> Скинути зміни
-                    </button>
                 </div>
             </div>
         </div>
@@ -532,7 +520,7 @@ export default {
             await html2pdf().set({
                 margin: [10, 5, 10, 5],
                 filename: `${this.tournament.name}_protocol.pdf`,
-                pagebreak: { mode: ['css'], before: '.pdf-page-break', avoid: ['.team-group', 'tr'] },
+                pagebreak: { mode: ['avoid-all'], before: '.pdf-page-break', avoid: ['.team-group', 'tr'] },
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, scrollY: 0, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -750,16 +738,27 @@ export default {
 .protocol-actions {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
     margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+    padding: 1.25rem;
+    border-radius: 10px;
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
 }
 
-.protocol-actions__row {
+.protocol-actions__primary {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.protocol-actions__secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .protocol-actions__btn {
@@ -810,6 +809,18 @@ export default {
     background: var(--color-primary-bg);
 }
 
+.protocol-actions__btn--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-muted);
+}
+
+.protocol-actions__btn--ghost:hover {
+    color: var(--color-danger, #e53935);
+    background: rgba(229, 57, 53, 0.06);
+    border-color: transparent;
+}
+
 .protocol-actions__checkbox {
     display: inline-flex;
     align-items: center;
@@ -817,6 +828,7 @@ export default {
     font-size: 1rem;
     color: var(--color-text-secondary);
     cursor: pointer;
+    margin-left: auto;
 }
 
 .spin {
@@ -838,20 +850,29 @@ export default {
 }
 
 #protocol > .protocol-page,
-#protocol > .pdf-page-break {
+#protocol .pdf-page-break {
     background: #fff;
     border: 1px solid #bbb;
     box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     box-sizing: border-box;
     padding: 15mm;
+    padding-bottom: 20mm;
     min-height: 297mm;
     position: relative;
     counter-increment: protocol-page;
     margin-bottom: 24px;
+    page-break-before: always;
+    break-before: page;
+    overflow: hidden;
+}
+
+#protocol > .protocol-page {
+    page-break-before: auto;
+    break-before: auto;
 }
 
 #protocol > .protocol-page::after,
-#protocol > .pdf-page-break::after {
+#protocol .pdf-page-break::after {
     content: counter(protocol-page);
     position: absolute;
     bottom: 10mm;
@@ -860,11 +881,6 @@ export default {
     font-size: 10pt;
     color: #aaa;
     font-family: Arial, sans-serif;
-}
-
-#protocol .pdf-page-break {
-    page-break-before: always;
-    break-before: page;
 }
 
 #protocol h2, #protocol h3 {
@@ -920,16 +936,23 @@ export default {
 }
 
 #protocol.is-exporting > .protocol-page,
-#protocol.is-exporting > .pdf-page-break {
+#protocol.is-exporting .pdf-page-break {
     border: none;
     box-shadow: none;
     min-height: auto;
     padding: 0;
-    margin-bottom: 0;
+    margin: 0;
+    overflow: visible;
+    page-break-before: auto;
+    break-before: auto;
+}
+
+#protocol.is-exporting .pdf-page-break {
+    border-top: 40px solid #fff;
 }
 
 #protocol.is-exporting > .protocol-page::after,
-#protocol.is-exporting > .pdf-page-break::after {
+#protocol.is-exporting .pdf-page-break::after {
     display: none;
 }
 </style>

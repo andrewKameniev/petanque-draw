@@ -139,7 +139,8 @@
             <div v-else-if="tournament.system === 'swiss'">
                 <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">{{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}</div>
                 <template v-if="isForProtocol">
-                    <div v-for="(chunk, ci) in rankingChunks" :key="'rc'+ci" :class="{'pdf-page-break': ci > 0}">
+                    <div v-for="(chunk, ci) in rankingChunks" :key="'rc'+ci" class="pdf-page-break">
+                    <h3 v-if="ci === 0 && sectionTitle" class="text-center is-size-4 mb-2" v-html="sectionTitle"></h3>
                     <table :id="ci === 0 ? 'table-ranking' : undefined" class="table is-bordered ranking-chunk">
                         <thead>
                         <tr>
@@ -326,7 +327,7 @@ import Modal from "@/components/Modal";
 export default {
     name: 'Ranking',
     components: {Copy, Check, Upload, Trophy, Modal},
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'highlightedTeam', 'teamClubMap'],
+    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'sectionTitle'],
     emits: ['is-playoff'],
     data() {
         return {

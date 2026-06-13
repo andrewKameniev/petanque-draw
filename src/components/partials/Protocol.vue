@@ -129,7 +129,7 @@
                     </thead>
                     <tbody v-for="(team, index) in chunk" :key="index" class="team-group">
                         <tr>
-                            <td :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1" class="has-text-centered">{{ (ci + 1) * participantChunkSize + index + 1 }} </td>
+                            <td :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1" class="has-text-centered">{{ participantChunkOffsets[ci + 1] + index + 1 }} </td>
                             <td class="has-text-weight-bold" :colspan="team.players?.length > 1 ? 2 : 1" contenteditable="plaintext-only">
                                 <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
                                 <span v-else-if="team.players">{{ formatName(team.players[0].surname) + ' ' + formatName(team.players[0].name) + ' ' + (team.players[0].second_name ? team.players[0].second_name : getPlayerThirdName(team.players[0].surname, team.players[0].name)) }}</span>
@@ -138,10 +138,10 @@
                             <td contenteditable="plaintext-only" :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"></td>
                             <td contenteditable="plaintext-only">{{team.players?.length === 1 && team.players[0].sport_title === 'candidate' ? 'КМСУ' : ''}}</td>
                             <td v-if="tournament.playOff?.length" class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
-                                {{tournament.system === 'swiss' ? ((ci + 1) * participantChunkSize + index + 1) : getTeamPlaceInGroups(team.place, rankingTeams.length)}}
+                                {{tournament.system === 'swiss' ? (participantChunkOffsets[ci + 1] + index + 1) : getTeamPlaceInGroups(team.place, rankingTeams.length)}}
                             </td>
                             <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
-                                {{tournament.playOff?.length ? tournamentRanking.find(item => item.title === team.title)?.place : ((ci + 1) * participantChunkSize + index + 1)}}
+                                {{tournament.playOff?.length ? tournamentRanking.find(item => item.title === team.title)?.place : (participantChunkOffsets[ci + 1] + index + 1)}}
                             </td>
                         </tr>
                         <template v-if="team.players?.length > 1">
@@ -255,6 +255,7 @@
 
 import Results from "@/components/partials/Results";
 import {getTournamentRanking, regions} from "@/helpers";
+import {formatName, getPlayerThirdName, formatDateToHumanReadable, getTeamPlaceInGroups, getAllTeams, countPlayers, chunkParticipants, buildTeamTitle} from "@/protocol-helpers";
 import Ranking from "@/components/partials/Ranking";
 import playersNames from '../../data.json'
 import {mapActions} from "pinia";
@@ -303,34 +304,55 @@ export default {
     beforeUnmount() {
         window.removeEventListener('scroll', this.handleScroll);
     },
+    watch: {
+        'tournament.name'() {
+            this.updateProtocolTitle();
+        },
+    },
     computed: {
         protocolStorageKey() {
             return `protocol_${this.tournament.id}`;
         },
         playersCount() {
-            let playersCount = 0;
-            this.tournament.teams.forEach(team => {
-                playersCount = playersCount + team.players.length;
-            })
-            return playersCount
+            return countPlayers(this.tournament.teams);
         },
         tournamentRanking() {
             return getTournamentRanking(this.tournament, this.rankingTeams)
         },
         participantsList() {
-            return this.tournament.system === 'swiss' ? this.rankingTeams : this.getAllTeams(this.rankingTeams);
+            return this.tournament.system === 'swiss' ? this.rankingTeams : getAllTeams(this.rankingTeams);
         },
         participantChunkSize() {
             return 28;
         },
+        maxRowsPerPage() {
+            return 38;
+        },
         participantChunks() {
             const list = this.participantsList;
-            if (!list) return [];
+            if (!list || !list.length) return [];
             const chunks = [];
-            for (let i = 0; i < list.length; i += this.participantChunkSize) {
-                chunks.push(list.slice(i, i + this.participantChunkSize));
+            let chunk = [];
+            let rows = 0;
+            for (const team of list) {
+                const teamRows = team.players?.length > 1 ? team.players.length + 1 : 1;
+                if (chunk.length > 0 && rows + teamRows > this.maxRowsPerPage) {
+                    chunks.push(chunk);
+                    chunk = [];
+                    rows = 0;
+                }
+                chunk.push(team);
+                rows += teamRows;
             }
+            if (chunk.length) chunks.push(chunk);
             return chunks;
+        },
+        participantChunkOffsets() {
+            const offsets = [0];
+            for (let i = 0; i < this.participantChunks.length - 1; i++) {
+                offsets.push(offsets[i] + this.participantChunks[i].length);
+            }
+            return offsets;
         },
     },
     methods: {
@@ -351,40 +373,8 @@ export default {
             this.showMessage({title: 'Скопійовано', text: 'Номер картки скопійовано'});
             setTimeout(() => { this.cardCopied = false; }, 2000);
         },
-        getAllTeams(groups) {
-            let allTeams = [];
-            groups.forEach(group => {
-                group.map((team, index) => {
-                    team.place = index + 1
-                });
-                allTeams = [...allTeams, ...group];
-            });
-            return allTeams;
-        },
-        getTeamPlaceInGroups(place, groupsLength) {
-            if (+place === 1) {
-                return '1-' + (Number(place) + (groupsLength - 1))
-            } else {
-                return (+place * groupsLength - 1) + '-' + (Number(place) * groupsLength)
-            }
-
-        },
-        formatDateToHumanReadable(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return '';
-
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            const formatter = new Intl.DateTimeFormat('uk-UA', options);
-
-            const formattedParts = formatter.formatToParts(date);
-
-            const day = formattedParts.find(part => part.type === 'day').value;
-            const month = formattedParts.find(part => part.type === 'month').value;
-            const year = formattedParts.find(part => part.type === 'year').value;
-
-            return `${day} ${month} ${year} року`;
-        },
+        getTeamPlaceInGroups,
+        formatDateToHumanReadable,
         async refreshPlayersFromPortal() {
             let portalId = this.tournament.portalIdTournament;
             if (!portalId) {
@@ -448,6 +438,15 @@ export default {
             const el = document.getElementById('protocol');
             if (!el) return;
             el.innerHTML = saved;
+            this.updateProtocolTitle();
+        },
+        updateProtocolTitle() {
+            const el = document.getElementById('protocol');
+            if (!el) return;
+            const titleEl = el.querySelector('h2');
+            if (titleEl) {
+                titleEl.innerHTML = `Підсумковий протокол <br>\n${this.tournament.name}`;
+            }
         },
         resetProtocol() {
             localStorage.removeItem(this.protocolStorageKey);
@@ -473,23 +472,9 @@ export default {
                 name: ''
             })
         },
-        formatName(name) {
-            return name.substring(0,1).toUpperCase() + name.substring(1, name.length).toLowerCase()
-        },
+        formatName,
         getPlayerThirdName(surname, name) {
-            const s = surname.toUpperCase();
-            const n = name.toUpperCase();
-            const playerInfo = playersNames.find(item => item.includes(s + ' ' + n) || item.includes(n + ' ' + s));
-            if (playerInfo) {
-                const playerInfoArray = playerInfo.split(' ');
-                if (playerInfoArray.length >= 3) {
-                    return this.formatName(playerInfoArray[2]);
-                } else {
-                    return '!!! ДОПИШІТЬ МЕНЕ!!!'
-                }
-            } else {
-                return '!!! ДОПИШІТЬ МЕНЕ!!!'
-            }
+            return getPlayerThirdName(surname, name, playersNames);
         },
         copyProtocol() {
             const element = document.getElementById("protocol");
@@ -560,26 +545,9 @@ export default {
         setTeamTitle(team, players) {
             let title;
             if (players?.length > 1) {
-                const firstPlayerClubName = this.regions[players[0].club_id];
-                if (firstPlayerClubName){
-                    if (players.every(player => this.regions[player.club_id] === firstPlayerClubName)) {
-                        title = `Команда ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
-                        if (this.titleCounts[title]) {
-                            this.titleCounts[title]++;
-                        } else {
-                            this.titleCounts[title] = 1;
-                        }
-                        title += ` ${this.titleCounts[title]}`;
-                    } else {
-                        title = `Збірна команда ${this.mixedTeamCount}`;
-                        this.mixedTeamCount++;
-                    }
-                } else {
-                    const rawSurname = players[0].surname || players[0].name || '';
-                    const captainSurname = rawSurname.split('/')[0].trim();
-                    title = `Команда ${this.formatName(captainSurname)}`;
-                    this.noRegionTeamCount++
-                }
+                const result = buildTeamTitle(players, this.titleCounts, this.mixedTeamCount);
+                title = result.title;
+                this.mixedTeamCount = result.mixedTeamCount;
             } else {
                 title = team
             }
@@ -961,6 +929,11 @@ export default {
     min-width: 300px;
 }
 
+#protocol.is-exporting {
+    width: 200mm;
+    min-width: 200mm;
+}
+
 #protocol.is-exporting > .protocol-page,
 #protocol.is-exporting .pdf-page-break {
     border: none;
@@ -974,12 +947,22 @@ export default {
 }
 
 #protocol.is-exporting .pdf-page-break {
-    border-top: 40px solid #fff;
+    padding-top: 10mm;
 }
 
 #protocol.is-exporting > .protocol-page::after,
 #protocol.is-exporting .pdf-page-break::after {
     display: none;
+}
+
+#protocol.is-exporting table.is-bordered {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#protocol.is-exporting table.is-bordered td,
+#protocol.is-exporting table.is-bordered th {
+    border-top: none;
 }
 
 .protocol-back-top {

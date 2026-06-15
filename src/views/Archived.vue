@@ -27,7 +27,7 @@
                 </svg>
                 <button class="button btn-remove-archived" @click.stop="removeTournament">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    {{ $t('common.remove') }}
+                    <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
                 </button>
                 <div class="tournament-selector__dropdown" v-if="selectorOpen">
                     <a href="#" class="tournament-selector__option"
@@ -461,6 +461,13 @@ export default {
     outline: none;
     width: 100%;
     min-width: 200px;
+}
+
+@media screen and (max-width: 768px) {
+    .tournament-selector__input {
+        font-size: 1.2rem;
+        min-width: 0;
+    }
 }
 
 .tournament-selector__arrow {

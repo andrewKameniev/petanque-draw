@@ -206,6 +206,7 @@ export default {
         this.loadSavedGames();
         this.getTags();
         this.changePlayers();
+        this.syncPlayerUsageFromArchive();
         if (this.savedGames.length === 0) {
             this.currentTab = 'new';
         }
@@ -384,6 +385,25 @@ export default {
                 }
             });
             localStorage.setItem('statPlayerUsage', JSON.stringify(usage));
+        },
+        syncPlayerUsageFromArchive() {
+            if (!this.user) return;
+            statsService.getAll(this.user.uid).then(snapshot => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.val();
+                const usage = {};
+                Object.values(data).forEach(game => {
+                    if (!game?.team1?.players) return;
+                    [...(game.team1.players || []), ...(game.team2?.players || [])].forEach(p => {
+                        if (p.name?.trim()) {
+                            usage[p.name.trim()] = (usage[p.name.trim()] || 0) + 1;
+                        }
+                    });
+                });
+                if (Object.keys(usage).length) {
+                    localStorage.setItem('statPlayerUsage', JSON.stringify(usage));
+                }
+            });
         },
         finishGame() {
             this.trackPlayerUsage();

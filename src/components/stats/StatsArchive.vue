@@ -216,7 +216,7 @@ export default {
                             </span>
                         </div>
                         <div class="archive__game-actions">
-                            <button class="archive__game-edit" @click.stop="startEditing(gameKey)" :title="$t('common.editResult')">
+                            <button class="archive__game-edit" @click.stop="startEditing(gameKey)" :title="$t('results.editResult')">
                                 <Pencil :size="15"/>
                             </button>
                             <button class="archive__game-share" @click.stop="shareGame(item.date)" :title="$t('remote.copyLink')">

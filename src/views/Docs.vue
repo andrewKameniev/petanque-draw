@@ -720,14 +720,23 @@ export default {
         scrollToSection(id) {
             this.navOpen = false;
             const el = document.getElementById(id);
-            const container = this.$refs.content;
-            if (el && container) {
-                const top = el.offsetTop - container.offsetTop;
-                this.smoothScroll(container, top);
+            if (!el) return;
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                const container = this.$refs.content;
+                if (container) {
+                    const top = el.offsetTop - container.offsetTop;
+                    this.smoothScroll(container, top);
+                }
             }
         },
         scrollToTop() {
-            if (this.$refs.content) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (this.$refs.content) {
                 this.smoothScroll(this.$refs.content, 0);
             }
         },
@@ -871,7 +880,7 @@ export default {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--color-text);
-    margin: 0;
+    margin: 0 0 0.75rem;
     line-height: 1.3;
 }
 

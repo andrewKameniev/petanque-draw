@@ -39,38 +39,13 @@
                         </router-link></li>
                     </ul>
 
-                    <!-- Active tournaments -->
-                    <template v-if="user && Object.keys(tournaments).length > 1 && $route.name !== 'Statistics'">
-                        <p class="sidebar__label sidebar__label--toggle" @click="tournamentsOpen = !tournamentsOpen">
-                            <span>{{ $t('common.activeTournaments') }}</span>
-                            <svg class="sidebar__chevron" :class="{'sidebar__chevron--open': tournamentsOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </p>
-                        <ul class="sidebar__list sidebar__list--collapsible" :class="{'sidebar__list--expanded': tournamentsOpen}">
-                            <li v-for="(item, index) in tournaments" :key="index">
-                                <a href="#" :class="{'sidebar__link--active': index === currentTournamentIndex}" @click.prevent="chooseTournament(index)">
-                                    {{ item.name || 'Tournament ' + tournamentNames[index] }}
-                                </a>
-                            </li>
-                        </ul>
-                    </template>
-
-                    <!-- Saved tournaments -->
-                    <template v-if="$route.name !== 'Statistics' && Object.keys(savedTournaments).length">
-                        <p class="sidebar__label sidebar__label--toggle" @click="savedOpen = !savedOpen">
-                            <span>{{ $t('common.saved') }}</span>
-                            <svg class="sidebar__chevron" :class="{'sidebar__chevron--open': savedOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </p>
-                        <ul class="sidebar__list sidebar__list--collapsible" :class="{'sidebar__list--expanded': savedOpen}">
+                    <!-- Archive -->
+                    <template v-if="$route.name !== 'Statistics'">
+                        <ul class="sidebar__list">
                             <li><router-link to="/archived" @click="$emit('closeMenu')">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                 {{ $t('common.archivedTournaments') }}
                             </router-link></li>
-                            <li v-for="([key, item]) in Object.entries(savedTournaments).reverse()" :key="key">
-                                <a href="#" @click.prevent="$emit('openSavedTournament', key)">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                    {{ item.name }}
-                                </a>
-                            </li>
                         </ul>
                     </template>
 
@@ -132,7 +107,6 @@
 <script>
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {tournamentNames} from "../helpers";
 import {signOut} from "firebase/auth";
 import {auth} from "@/firebase";
 import {useTheme} from "@/composables/useTheme";
@@ -149,30 +123,20 @@ export default {
     },
     data() {
         return {
-            tournamentNames,
-            tournamentsOpen: false,
-            savedOpen: false,
             appVersion: version,
         }
     },
     props: ['active'],
-    emits: ['closeMenu', 'openSavedTournament'],
+    emits: ['closeMenu'],
     watch: {
         active(val) {
             document.documentElement.style.overflow = val ? 'hidden' : '';
             document.body.style.overflow = val ? 'hidden' : '';
         }
     },
-    computed: mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'isAdmin', 'user']),
+    computed: mapState(useMainStore, ['isAdmin', 'user']),
     methods: {
-        ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
-        chooseTournament(index) {
-            this.setActiveTournament(index);
-            this.$emit('closeMenu');
-            if (this.$route.path !== '/') {
-                this.$router.push('/');
-            }
-        },
+        ...mapActions(useMainStore, ['loginUser', 'addTournament']),
         addNewTournament() {
             this.addTournament();
             this.$emit('closeMenu');

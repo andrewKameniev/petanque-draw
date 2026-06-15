@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => ({
   },
   base: mode === 'production' ? '/petanque-draw/' : '/',
   optimizeDeps: {
-    include: ['qrcode.vue']
+    include: ['qrcode.vue', 'vue3-apexcharts', 'apexcharts']
   },
   build: {
     sourcemap: true

@@ -114,5 +114,15 @@ router.beforeEach(async (to) => {
     if (modules) await Promise.all(modules.map(m => loadLocaleModule(m)));
 });
 
+const zoomableRoutes = ['Statistics', 'PublicStats', 'Training'];
+router.afterEach((to) => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.content = zoomableRoutes.includes(to.name)
+            ? 'width=device-width,initial-scale=1.0'
+            : 'width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no';
+    }
+});
+
 authReadyPromise.then(() => app.mount('#app'));
 

@@ -91,7 +91,8 @@
                             </div>
                             <div class="active-overlay__item-meta">
                                 <span v-if="item.teams">{{ item.teams.length }} {{ $t('common.teamsCount') }}</span>
-                                <span v-if="item.games">{{ item.games.length }} {{ $t('common.games') }}</span>
+                                <span v-if="item.playOff">{{ $t('games.playOff') }}</span>
+                                <span v-else-if="item.games">{{ item.games.length }} {{ $t('common.round') }}</span>
                             </div>
                         </div>
                     </div>

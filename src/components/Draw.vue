@@ -84,10 +84,7 @@
             </div>
             <Message v-if="message.show"/>
             <Menu :active="menuOpen"
-                  @closeMenu="menuOpen = false"
-                  @openSavedTournament="openSavedTournament"/>
-            <SavedTournamentModal v-if="showSavedTournament" :tournament="savedTournaments[savedTournamentsActive]"
-                                  @close-modal="closeTournamentModal"/>
+                  @closeMenu="menuOpen = false"/>
             <Help v-if="helpOpen" @close-modal="helpOpen = false"/>
         </div>
         <Footer/>
@@ -97,7 +94,6 @@
 <script>
 import Message from './Message.vue';
 import Menu from './Menu';
-import SavedTournamentModal from './partials/SavedTournamentModal';
 import Tournament from "./Tournament";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main"
@@ -114,9 +110,7 @@ export default {
         return {
             showSaveTournament: false,
             menuOpen: false,
-            showSavedTournament: false,
             helpOpen: false,
-            savedTournamentsActive: false,
             isLoading: false,
             email: '',
             password: '',
@@ -133,19 +127,6 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'getTournaments', 'showMessage']),
-        openSavedTournament(index) {
-            this.savedTournamentsActive = index;
-            this.menuOpen = false;
-            this.openTournamentModal();
-        },
-        openTournamentModal() {
-            this.showSavedTournament = true;
-            document.querySelector('html').classList.add('is-clipped');
-        },
-        closeTournamentModal() {
-            this.showSavedTournament = false;
-            document.querySelector('html').classList.remove('is-clipped');
-        },
         async resetPassword() {
             try {
                 this.resetErrors();
@@ -215,7 +196,7 @@ export default {
         },
     },
     computed: {
-        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'savedTournaments', 'user', 'currentTournament']),
+        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'user', 'currentTournament']),
         tournament() {
             return this.currentTournament
         },
@@ -225,7 +206,6 @@ export default {
         Help,
         Navbar,
         Tournament,
-        SavedTournamentModal,
         Menu,
         Message,
     }

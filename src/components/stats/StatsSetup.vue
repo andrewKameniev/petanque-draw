@@ -234,11 +234,11 @@ export default {
 }
 
 .setup__input {
-    padding: 0.55rem 0.75rem;
+    padding: 0.75rem 0.85rem;
     border-radius: 8px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-input);
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: var(--color-text);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -319,7 +319,7 @@ export default {
     gap: 1rem;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
     .setup__grid {
         grid-template-columns: 1fr;
     }

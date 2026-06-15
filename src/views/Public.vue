@@ -213,7 +213,7 @@
                 </div>
                 <div class="tabs-content-area">
                     <div v-if="activeTab === 'teams'">
-                        <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
+                        <TeamsList :previewTournament="tournament" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap"/>
                     </div>
                     <Results v-if="activeTab === 'results'" :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap" :cardView="true"/>
                     <div v-if="activeTab === 'ranking'">

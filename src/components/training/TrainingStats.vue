@@ -29,19 +29,23 @@
             <div class="tstats__filters-row">
                 <div class="tstats__filter tstats__filter--grow">
                     <label class="tstats__filter-label">{{ $t('training.filterExercise') }}</label>
-                    <select v-model="filters.exerciseIndex" class="tstats__select">
-                        <option :value="null">{{ $t('training.allExercises') }}</option>
-                        <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">
-                            {{ idx + 1 }}. {{ name }}
-                        </option>
-                    </select>
+                    <div class="select is-fullwidth">
+                        <select v-model="filters.exerciseIndex">
+                            <option :value="null">{{ $t('training.allExercises') }}</option>
+                            <option v-for="(name, idx) in atelierNames" :key="idx" :value="idx">
+                                {{ idx + 1 }}. {{ name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="tstats__filter tstats__filter--grow">
                     <label class="tstats__filter-label">{{ $t('training.filterDistance') }}</label>
-                    <select v-model="filters.distance" class="tstats__select">
-                        <option :value="null">{{ $t('training.allDistances') }}</option>
-                        <option v-for="d in allDistances" :key="d" :value="d">{{ d }}m</option>
-                    </select>
+                    <div class="select is-fullwidth">
+                        <select v-model="filters.distance">
+                            <option :value="null">{{ $t('training.allDistances') }}</option>
+                            <option v-for="d in allDistances" :key="d" :value="d">{{ d }}m</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="tstats__filters-row">
@@ -379,7 +383,6 @@ export default {
     color: var(--color-text-muted);
 }
 
-.tstats__select,
 .tstats__date-input {
     padding: 0.6rem 0.75rem;
     border: 1.5px solid var(--color-border);

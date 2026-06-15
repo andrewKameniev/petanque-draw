@@ -11,7 +11,7 @@ async function login(page) {
     await emailInput.fill(TEST_EMAIL);
     await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
     await page.locator('[data-testid="btn-submit"]').click();
-    await page.locator('[data-testid="tournament-name-row"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]').first().waitFor({state: 'visible'});
 }
 
 async function register(page) {
@@ -107,7 +107,7 @@ async function fillScores(page) {
 }
 
 async function saveResults(page) {
-    await page.locator('[data-testid="btn-save-results"]').click();
+    await page.locator('[data-testid="btn-finish-round"]').click();
     await page.locator('[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"], [data-testid="link-play-next-circle"]').first().waitFor({state: 'visible'});
 }
 

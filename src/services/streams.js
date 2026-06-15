@@ -47,3 +47,16 @@ export function getStreamPlatform(url) {
     if (lower.includes('instagram')) return 'instagram';
     return 'default';
 }
+
+export function getStreamIconComponent(url) {
+    const platform = getStreamPlatform(url);
+    if (platform === 'youtube') return 'YoutubeIcon';
+    if (platform === 'twitch') return 'Twitch';
+    if (platform === 'facebook') return 'Facebook';
+    if (platform === 'instagram') return 'Instagram';
+    return 'Video';
+}
+
+export function getStreamIconClass(url) {
+    return `stream-icon--${getStreamPlatform(url)}`;
+}

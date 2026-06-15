@@ -58,11 +58,13 @@
 <script>
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {Plus, X, Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import {getStreamIconComponent, getStreamIconClass} from "@/services/streams";
+import {Plus, X, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import YoutubeIcon from "@/components/icons/YoutubeIcon.vue";
 
 export default {
     name: 'StreamPresets',
-    components: {Plus, X, Youtube, Twitch, Facebook, Instagram, Video},
+    components: {Plus, X, YoutubeIcon, Twitch, Facebook, Instagram, Video},
     data() {
         return {
             subtab: 'teams'
@@ -147,24 +149,8 @@ export default {
                 this.syncToFirebase();
             }
         },
-        getStreamIcon(url) {
-            if (!url) return 'Video';
-            const lower = url.toLowerCase();
-            if (lower.includes('youtube') || lower.includes('youtu.be')) return 'Youtube';
-            if (lower.includes('twitch')) return 'Twitch';
-            if (lower.includes('facebook') || lower.includes('fb.')) return 'Facebook';
-            if (lower.includes('instagram')) return 'Instagram';
-            return 'Video';
-        },
-        getStreamIconClass(url) {
-            if (!url) return 'stream-icon--default';
-            const lower = url.toLowerCase();
-            if (lower.includes('youtube') || lower.includes('youtu.be')) return 'stream-icon--youtube';
-            if (lower.includes('twitch')) return 'stream-icon--twitch';
-            if (lower.includes('facebook') || lower.includes('fb.')) return 'stream-icon--facebook';
-            if (lower.includes('instagram')) return 'stream-icon--instagram';
-            return 'stream-icon--default';
-        }
+        getStreamIcon: getStreamIconComponent,
+        getStreamIconClass,
     }
 }
 </script>

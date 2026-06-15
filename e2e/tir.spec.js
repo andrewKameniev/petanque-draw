@@ -118,9 +118,9 @@ test.describe('TIR Tournament', () => {
         await fillAllScoresViaJS(page, 'scores2');
         await page.locator('button:has-text("Таблиця")').click();
         await page.waitForTimeout(200);
-        await page.locator('button:has-text("Почати плей-офф")').click();
+        await page.locator('button:has-text("Почати плей-оф")').click();
         await page.waitForTimeout(300);
-        await expect(page.locator('button:has-text("Плей офф")')).toBeVisible();
+        await expect(page.locator('button:has-text("Плей-оф")')).toBeVisible();
     });
 
     test('playoff match opens comparison view', async ({page}) => {
@@ -128,7 +128,7 @@ test.describe('TIR Tournament', () => {
         await fillAllScoresViaJS(page);
         await page.locator('button:has-text("Таблиця")').click();
         await page.waitForTimeout(200);
-        await page.locator('button:has-text("Почати плей-офф")').click();
+        await page.locator('button:has-text("Почати плей-оф")').click();
         await page.waitForTimeout(300);
         const match = page.locator('.tir-playoff__match').first();
         await match.click();

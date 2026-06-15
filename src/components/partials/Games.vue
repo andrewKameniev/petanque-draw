@@ -334,6 +334,7 @@ export default {
         },
         finishRound() {
             this.scoreError = false;
+            this.tournament.tournamentIsStarted = true;
             this.tournament.games[this.activeRound - 1].forEach(game => {
                 game.team_1_score = Number(game.team_1_score);
                 game.team_2_score = Number(game.team_2_score);

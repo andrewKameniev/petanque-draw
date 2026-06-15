@@ -33,5 +33,7 @@ export default {
 
 .modal-content {
     max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 </style>

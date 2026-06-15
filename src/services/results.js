@@ -20,7 +20,7 @@ export function hasPlayOffResults(tournament) {
     const bracket = tournament?.playOffBracket;
     if (!bracket?.stages?.length) return false;
     return bracket.stages.some(stage =>
-        stage.stageLabel !== 'cadrage' && stage.teams?.some(g => g.team_1_score != null)
+        stage.stageLabel !== 'cadrage' && stage.teams?.some(g => g.team_1 || g.team_2)
     );
 }
 

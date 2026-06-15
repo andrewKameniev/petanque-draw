@@ -293,9 +293,11 @@
             <div v-else-if="canStartPlayoff && !tournament.tournamentIsFinished && !tournament.tirPlayoff" class="tir-table__actions">
                 <div v-if="!isTwoRoundSystem" class="tir-table__playoff-row">
                     <span class="tir-table__playoff-label">{{ $t('tir.qualifiedForPlayoff') }}:</span>
-                    <select class="tir-table__playoff-select" v-model.number="qualifyCount">
-                        <option v-for="v in qualifyOptions" :key="v" :value="v">{{ v }}</option>
-                    </select>
+                    <div class="select">
+                        <select v-model.number="qualifyCount">
+                            <option v-for="v in qualifyOptions" :key="v" :value="v">{{ v }}</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="tir-table__actions-row">
                     <button class="tir-table__playoff-btn" @click="startTirPlayoff">
@@ -1833,14 +1835,6 @@ td.tir-table__muted {
     color: var(--color-text);
 }
 
-.tir-table__playoff-select {
-    padding: 6px 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    font-size: 14px;
-    background: var(--color-surface);
-    color: var(--color-text);
-}
 
 .tir-table__actions-row {
     display: flex;

@@ -18,7 +18,7 @@ describe('getDefaultSelectedRound', () => {
             playOffBracket: {
                 stages: [{
                     stageLabel: 1,
-                    teams: [{ team_1_score: 13, team_2_score: 5 }]
+                    teams: [{ team_1: 'X', team_2: 'Y', team_1_score: 13, team_2_score: 5 }]
                 }]
             }
         };
@@ -80,7 +80,7 @@ describe('getDefaultSelectedRound', () => {
             playOffBracket: {
                 stages: [{
                     stageLabel: 'cadrage',
-                    teams: [{ team_1_score: 13, team_2_score: 5 }]
+                    teams: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 }]
                 }]
             }
         };
@@ -103,29 +103,29 @@ describe('hasPlayOffResults', () => {
         expect(hasPlayOffResults({ playOffBracket: { stages: [] } })).toBe(false);
     });
 
-    it('returns false when only cadrage stage has scores', () => {
+    it('returns false when only cadrage stage has teams', () => {
         expect(hasPlayOffResults({
             playOffBracket: {
-                stages: [{ stageLabel: 'cadrage', teams: [{ team_1_score: 13 }] }]
+                stages: [{ stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] }]
             }
         })).toBe(false);
     });
 
-    it('returns true when a non-cadrage stage has scores', () => {
+    it('returns true when a non-cadrage stage has teams assigned', () => {
         expect(hasPlayOffResults({
             playOffBracket: {
                 stages: [
-                    { stageLabel: 'cadrage', teams: [{ team_1_score: 13 }] },
-                    { stageLabel: 4, teams: [{ team_1_score: 13 }] },
+                    { stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] },
+                    { stageLabel: 4, teams: [{ team_1: 'C', team_2: 'D' }] },
                 ]
             }
         })).toBe(true);
     });
 
-    it('returns false when non-cadrage stages have no scores', () => {
+    it('returns false when non-cadrage stages have no teams assigned', () => {
         expect(hasPlayOffResults({
             playOffBracket: {
-                stages: [{ stageLabel: 4, teams: [{ team_1_score: null }] }]
+                stages: [{ stageLabel: 4, teams: [{ team_1: '', team_2: '' }] }]
             }
         })).toBe(false);
     });

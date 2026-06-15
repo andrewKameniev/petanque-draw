@@ -70,8 +70,8 @@
 
             <div class="tcreate__field">
                 <label class="tcreate__label">{{ $t('training.attemptsPerDistance') }}</label>
-                <div class="tcreate__select-wrap">
-                    <select v-model.number="config.attempts" class="tcreate__select">
+                <div class="select">
+                    <select v-model.number="config.attempts">
                         <option v-for="n in 50" :key="n" :value="n">{{ n }}</option>
                     </select>
                 </div>
@@ -304,18 +304,6 @@ export default {
     opacity: 0.5;
 }
 
-.tcreate__select-wrap {
-    display: inline-block;
-}
-
-.tcreate__select {
-    padding: 0.5rem 0.75rem;
-    border: 1.5px solid var(--color-border);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    background: var(--color-surface);
-    color: var(--color-text);
-}
 
 .tcreate__summary {
     background: var(--color-surface);

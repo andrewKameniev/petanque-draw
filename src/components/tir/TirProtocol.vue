@@ -99,7 +99,7 @@
 
                 <template v-if="playoff">
                     <br>
-                    <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт (плей-офф)</h3>
+                    <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт (плей-оф)</h3>
                     <template v-for="(round, rIdx) in playoffRounds" :key="rIdx">
                         <h4 class="is-size-5 mb-1">{{ round.title }}</h4>
                         <table class="table is-bordered mb-3">

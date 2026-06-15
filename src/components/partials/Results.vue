@@ -131,7 +131,7 @@
                 <div v-if="hasPlayOffResults && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" :class="{'pdf-page-break': isForProtocol, 'playoff-section': true}">
                     <h3 v-if="isForProtocol && sectionTitle" class="text-center is-size-4 mb-2">{{ sectionTitle }}</h3>
                     <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
-                        <template v-if="stage.teams[0].team_1_score && stage.stageLabel !== 'cadrage'">
+                        <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage'">
                             <div class="playoff-stage-label">
                                 {{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}
                             </div>
@@ -257,6 +257,9 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
+        stageHasContent(stage) {
+            return stage.teams?.some(g => g.team_1 || g.team_2);
+        },
         openEditModal(game) {
             if (!this.canEditResults) return;
             this.editingGame = game;

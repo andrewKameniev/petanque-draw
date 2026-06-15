@@ -181,7 +181,9 @@ export const useMainStore = defineStore('main', {
                     this._mergeGames(local, remote);
                 }
                 if (remote.roundIsActive !== undefined && !remote.roundIsActive && local.roundIsActive) {
-                    local.roundIsActive = remote.roundIsActive;
+                    if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
+                        local.roundIsActive = remote.roundIsActive;
+                    }
                 }
                 if (remote.roundTimer !== undefined) local.roundTimer = remote.roundTimer;
                 if (remote.tournamentIsFinished) local.tournamentIsFinished = remote.tournamentIsFinished;
@@ -434,6 +436,7 @@ export const useMainStore = defineStore('main', {
         },
         startRound() {
             this.tournaments[this.currentTournamentIndex].roundIsActive = true;
+            this._roundActivatedAt = Date.now();
             this.syncToFirebase();
         },
         endRound() {
@@ -491,6 +494,7 @@ export const useMainStore = defineStore('main', {
             }
             this.tournaments[this.currentTournamentIndex].games.push(round);
             this.tournaments[this.currentTournamentIndex].roundIsActive = true;
+            this._roundActivatedAt = Date.now();
             this.saveLanesToTeams(round);
             this.syncToFirebase();
         },

@@ -148,7 +148,7 @@ import RoundTimer from "@/components/partials/RoundTimer.vue";
 export default {
     name: 'Games',
     components: {Cadrage, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
-    props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
+    props: ['activeRound', 'teamsInGroup', 'rankingTeams', 'activeTournament'],
     data() {
         return {
             saveDisabled: false,
@@ -181,7 +181,7 @@ export default {
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament', 'allScoresFilled']),
         tournament() {
-            return this.currentTournament
+            return this.activeTournament || this.currentTournament;
         },
         teamsCount() {
             if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;

@@ -354,14 +354,15 @@
                 </div>
             </div>
             <Games ref="games" v-if="activeTab === 'games'"
-                   :rankingTeams="rankingTeams"
-                   :activeRound="activeRound" :teams-in-group="teamsInGroup"
+                   :active-tournament="activeTournamentView"
+                   :rankingTeams="activeViewRankingTeams"
+                   :activeRound="activeViewRound" :teams-in-group="teamsInGroup"
                    @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"
                    @startFirstRound="startFirstRound" @redraw="redrawRounds"/>
-            <Results v-if="activeTab === 'results'"/>
+            <Results v-if="activeTab === 'results'" :active-tournament="activeTournamentView"/>
             <StreamPresets v-if="activeTab === 'streams'"/>
             <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
+                <Ranking :tournament="activeTournamentView" :rankingTeams="activeViewRankingTeams" :activeRound="activeViewRound"/>
                 <!-- TODO: still working on cadrage/group B transition
                 <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished && tournament.games?.length">
                     <div class="mt-5">
@@ -505,7 +506,7 @@ import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
 import Modal from "@/components/Modal";
-import {getTeamsRanking, shuffleArray} from "@/helpers";
+import {getTeamsRanking, shuffleArray, buildGroupBView} from "@/helpers";
 import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
 import QrCode from "@/components/partials/QrCode";
 import Preferences from "@/components/partials/Preferences";
@@ -586,7 +587,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'initGroupB', 'setActiveGroup', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -744,20 +745,9 @@ export default {
 
             this.activeTab = 'games';
 
-            const playB = this.playB;
-            if (playB) {
-                const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
-                    .map(team => ({ ...team }));
-                tournamentBTeams.forEach(team => {
-                    team.wins = 0;
-                    team.buhgolts = 0;
-                    team.smallBuhgolts = 0;
-                    team.pointsPlus = 0;
-                    team.pointsMinus = 0;
-                    team.opponents = ['placeholder'];
-                    team.lanes = [];
-                })
-                this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
+            if (this.playB) {
+                const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length);
+                this.initGroupB(tournamentBTeams);
             }
         },
         restoreTeamsFromLocalStorage() {
@@ -906,6 +896,21 @@ export default {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'savedTournaments', 'allScoresFilled']),
         tournament() {
             return this.currentTournament
+        },
+        activeTournamentView() {
+            if (this.tournament.activeGroup === 'B' && this.tournament.groupB) {
+                return buildGroupBView(this.tournament);
+            }
+            return this.tournament;
+        },
+        activeViewRankingTeams() {
+            return getTeamsRanking(this.activeTournamentView, this.activeViewRound);
+        },
+        activeViewRound() {
+            const t = this.activeTournamentView;
+            return t.games?.length
+                ? (t.roundIsActive ? t.games.length : t.games.length + 1)
+                : 1;
         },
         tabs() {
             if (this.tournament.system === 'tir') {

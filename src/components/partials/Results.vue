@@ -195,7 +195,7 @@ import {GitFork, Pencil} from "lucide-vue-next";
 export default {
     name: 'Results',
     components: {Bracket, EditResultModal, GitFork, Pencil},
-    props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView', 'sectionTitle'],
+    props: ['activeTournament', 'previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView', 'sectionTitle'],
     data() {
         return {
             selectedRound: -1,
@@ -204,7 +204,7 @@ export default {
         }
     },
     created() {
-        const t = this.previewTournament || this.currentTournament;
+        const t = this.activeTournament || this.previewTournament || this.currentTournament;
         this.selectedRound = getDefaultSelectedRound(t);
     },
     computed: {
@@ -213,7 +213,7 @@ export default {
             return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
         },
         tournament() {
-            return this.previewTournament || this.currentTournament
+            return this.activeTournament || this.previewTournament || this.currentTournament;
         },
         hasPlayOffResults() {
             return checkPlayOffResults(this.tournament);

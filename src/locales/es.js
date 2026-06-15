@@ -65,6 +65,7 @@ export default {
         "seeResult": "Ver resultado",
         "showBracket": "Mostrar cuadro de play-off",
         "playOff": "Play-off",
+        "startPlayOff": "Iniciar play-off",
         "cadrage": "Cadrage",
         "someone": "Alguien",
         "lucky": "Afortunado",
@@ -143,7 +144,24 @@ export default {
         "chooseNumberTeams": "Elige el número de equipos",
         "go": "¡Vamos!",
         "alsoPlay": "Jugar también",
-        "tournamentB": "Torneo B"
+        "mainTournament": "Torneo principal",
+        "tournamentB": "Torneo B",
+        "withdrawTeam": "Retirar del playoff",
+        "restoreTeam": "Restaurar al playoff",
+        "withdrawn": "RT",
+        "eliminationRound": "Ronda de eliminación",
+        "startElimination": "Iniciar ronda de eliminación",
+        "eliminationHint": "Los equipos inferiores juegan una ronda eliminatoria para reducir al tamaño del cuadro",
+        "teamsToEliminate": "Equipos en eliminación",
+        "eliminationLegend": "equipos juegan, {eliminated} serán eliminados",
+        "targetBracketSize": "Tamaño objetivo del cuadro",
+        "cadrageLosersToB": "Perdedores del cadrage → Grupo B",
+        "cadrageLosersHint": "Los equipos que pierden el cadrage van al Grupo B en lugar de ser eliminados",
+        "groupBMode": "Formato del torneo B",
+        "directToA": "Directo a play-off A",
+        "directToB": "Directo a B",
+        "totalInB": "Total en B",
+        "waitCadrageFinish": "Esperando a que termine el cadrage"
     },
     "remote": {
         "remoteAvailabilities": "Opciones remotas",
@@ -207,6 +225,8 @@ export default {
         "timeLimitSwiss": "Rondas suizas",
         "timeLimitPlayoff": "Play-off",
         "noTimeLimitFinale": "Sin límite de tiempo en la final",
+        "perRoundScoring": "Puntuación por ronda",
+        "perRoundScoringHint": "Registrar puntuación de cada mini (cochonette) por separado",
         "cochonettes": "Cochonnettes adicionales",
         "cochonettesHint": "Número de cochonnettes adicionales por partida",
         "min": "min",
@@ -243,7 +263,10 @@ export default {
         "drawMethodBalancedBest2": "Evitar situaciones de \"grupo de la muerte\"",
         "drawMethodBalancedBest3": "Hacer que los grupos se sientan justos por fuerza total",
         "poulesInfo": "grupos × 4 equipos → {count} equipos de play-off",
-        "poulesHint": "Las poules funcionan mejor cuando el número total de equipos es divisible por 4"
+        "poulesHint": "Las poules funcionan mejor cuando el número total de equipos es divisible por 4",
+        "testTournament": "Torneo de prueba",
+        "testTournamentHint": "Activa el botón de llenado automático de puntuaciones. La exportación al portal será bloqueada.",
+        "autoFillScores": "Rellenar puntuaciones"
     },
     "common": {
         "updated": "se ha actualizado!",
@@ -300,6 +323,7 @@ export default {
         "cochonettes": "cochonnets",
         "places": "puestos",
         "teamsLabel": "equipos",
+        "noTeams": "sin equipos",
         "darkTheme": "Tema oscuro",
         "lightTheme": "Tema claro",
         "theme": "Tema"

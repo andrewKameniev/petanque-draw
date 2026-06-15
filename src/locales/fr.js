@@ -65,6 +65,7 @@ export default {
         "seeResult": "Voir le résultat",
         "showBracket": "Afficher le tableau de play-off",
         "playOff": "Play-off",
+        "startPlayOff": "Commencer le play-off",
         "cadrage": "Cadrage",
         "someone": "Quelqu'un",
         "lucky": "Chanceux",
@@ -143,7 +144,24 @@ export default {
         "chooseNumberTeams": "Choisir le nombre d'équipes",
         "go": "C'est parti !",
         "alsoPlay": "Jouer aussi",
-        "tournamentB": "Tournoi B"
+        "mainTournament": "Tournoi principal",
+        "tournamentB": "Tournoi B",
+        "withdrawTeam": "Retirer du playoff",
+        "restoreTeam": "Rétablir au playoff",
+        "withdrawn": "RT",
+        "eliminationRound": "Tour d'élimination",
+        "startElimination": "Démarrer le tour d'élimination",
+        "eliminationHint": "Les équipes en bas jouent un tour éliminatoire pour réduire au format du tableau",
+        "teamsToEliminate": "Équipes en élimination",
+        "eliminationLegend": "équipes jouent, {eliminated} seront éliminées",
+        "targetBracketSize": "Taille cible du tableau",
+        "cadrageLosersToB": "Perdants du cadrage → Groupe B",
+        "cadrageLosersHint": "Les équipes perdantes du cadrage vont au Groupe B au lieu d'être éliminées",
+        "groupBMode": "Format du tournoi B",
+        "directToA": "Direct en play-off A",
+        "directToB": "Direct en B",
+        "totalInB": "Total en B",
+        "waitCadrageFinish": "En attente de la fin du cadrage"
     },
     "remote": {
         "remoteAvailabilities": "Fonctionnalités à distance",
@@ -207,6 +225,8 @@ export default {
         "timeLimitSwiss": "Tours suisses",
         "timeLimitPlayoff": "Play-off",
         "noTimeLimitFinale": "Pas de limite de temps en finale",
+        "perRoundScoring": "Score par mène",
+        "perRoundScoringHint": "Suivre le score de chaque mène (cochonnet) séparément",
         "cochonettes": "Cochonnets supplémentaires",
         "cochonettesHint": "Nombre de cochonnets supplémentaires par partie",
         "min": "min",
@@ -243,7 +263,10 @@ export default {
         "drawMethodBalancedBest2": "Éviter les situations de « groupe de la mort »",
         "drawMethodBalancedBest3": "Rendre les groupes équitables par force totale",
         "poulesInfo": "groupes × 4 équipes → {count} équipes en play-off",
-        "poulesHint": "Les poules fonctionnent mieux lorsque le nombre total d'équipes est divisible par 4"
+        "poulesHint": "Les poules fonctionnent mieux lorsque le nombre total d'équipes est divisible par 4",
+        "testTournament": "Tournoi test",
+        "testTournamentHint": "Active le bouton de remplissage automatique des scores. L'export vers le portail sera bloqué.",
+        "autoFillScores": "Remplir les scores"
     },
     "common": {
         "updated": "a été mis à jour !",
@@ -300,6 +323,7 @@ export default {
         "cochonettes": "cochonnets",
         "places": "places",
         "teamsLabel": "équipes",
+        "noTeams": "pas d'équipes",
         "darkTheme": "Thème sombre",
         "lightTheme": "Thème clair",
         "theme": "Thème"

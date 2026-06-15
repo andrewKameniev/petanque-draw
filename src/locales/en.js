@@ -65,6 +65,7 @@ export default {
         "seeResult": "See result",
         "showBracket": "Show playoff bracket",
         "playOff": "PlayOff",
+        "startPlayOff": "Start playoff",
         "cadrage": "Cadrage",
         "someone": "Someone",
         "lucky": "Lucky guy",
@@ -143,7 +144,24 @@ export default {
         "chooseNumberTeams": "Choose number of teams",
         "go": "Go!",
         "alsoPlay": "Also play",
-        "tournamentB": "Tournament B"
+        "mainTournament": "Main tournament",
+        "tournamentB": "Tournament B",
+        "withdrawTeam": "Withdraw from playoff",
+        "restoreTeam": "Restore to playoff",
+        "withdrawn": "WD",
+        "eliminationRound": "Elimination round",
+        "startElimination": "Start elimination round",
+        "eliminationHint": "Bottom teams play one knockout round to reduce to bracket size",
+        "teamsToEliminate": "Teams in elimination",
+        "eliminationLegend": "teams play, {eliminated} will be eliminated",
+        "targetBracketSize": "Target bracket size",
+        "cadrageLosersToB": "Cadrage losers go to Group B",
+        "cadrageLosersHint": "Teams that lose cadrage go to Group B instead of being eliminated",
+        "groupBMode": "Tournament B format",
+        "directToA": "Direct to playoff A",
+        "directToB": "Direct to B",
+        "totalInB": "Total in B",
+        "waitCadrageFinish": "Waiting for cadrage to finish"
     },
     "remote": {
         "remoteAvailabilities": "Remote availabilities",
@@ -207,6 +225,8 @@ export default {
         "timeLimitSwiss": "Swiss rounds",
         "timeLimitPlayoff": "Playoff",
         "noTimeLimitFinale": "No time limit in finale",
+        "perRoundScoring": "Per-round scoring",
+        "perRoundScoringHint": "Track score per each mini (cochonette) separately",
         "cochonettes": "Additional cochonettes",
         "cochonettesHint": "Number of extra cochonettes per game",
         "min": "min",
@@ -243,7 +263,10 @@ export default {
         "drawMethodBalancedBest2": "Avoiding \"group of death\" situations",
         "drawMethodBalancedBest3": "Making groups feel fair by total strength",
         "poulesInfo": "groups × 4 teams → {count} playoff teams",
-        "poulesHint": "Poules work best when the total number of teams is divisible by 4"
+        "poulesHint": "Poules work best when the total number of teams is divisible by 4",
+        "testTournament": "Test tournament",
+        "testTournamentHint": "Enables auto-fill scores button. Export to portal will be blocked.",
+        "autoFillScores": "Auto-fill scores"
     },
     "common": {
         "updated": "has updated!",
@@ -300,6 +323,7 @@ export default {
         "cochonettes": "cochonettes",
         "places": "places",
         "teamsLabel": "teams",
+        "noTeams": "no teams",
         "darkTheme": "Dark theme",
         "lightTheme": "Light theme",
         "theme": "Theme"

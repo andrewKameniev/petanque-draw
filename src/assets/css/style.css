@@ -17,6 +17,12 @@ body {
     outline: none;
 }
 
+.select:not(.is-multiple):not(.is-loading)::after {
+    border-color: var(--color-text-secondary);
+    border-width: 2px;
+}
+
+
 input:focus,
 textarea:focus,
 select:focus,
@@ -575,33 +581,6 @@ footer {
         border-radius: 6px;
     }
 
-    .game-row.compact {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        padding: 5px 0;
-    }
-
-    .game-row.compact .team-block {
-        text-align: right;
-    }
-
-    .game-row.compact .text-right {
-        text-align: left;
-    }
-
-    .game-row.compact > div {
-        flex: 1;
-    }
-
-    .game-row.compact span.score-block {
-        margin: 0;
-        order: unset;
-    }
-
-    .game-row.compact span.team-block {
-        flex: 0 0 calc(50% - 40px);
-    }
 
     .container {
         padding: 10px;

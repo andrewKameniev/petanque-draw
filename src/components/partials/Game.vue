@@ -46,8 +46,11 @@
                 <button v-if="canFinishGame" class="game-row__finish-btn" @click.stop="$emit('finish', gameIndex)">
                     {{ $t('games.finish') }}
                 </button>
+                <button v-else-if="canEditGame" class="game-row__edit-btn" @click.stop="unfishGame">
+                    <Pencil :size="16"/>
+                </button>
             </span>
-            <div v-if="currentGame.score_history && currentGame.score_history.length && !compactView" class="game-row__history">
+            <div v-if="cochonettesEnabled && currentGame.score_history && currentGame.score_history.length && !compactView" class="game-row__history">
                 <span v-for="(entry, i) in currentGame.score_history" :key="i" class="game-row__history-chip">
                     <span class="game-row__history-num">{{ i + 1 }}</span>
                     <span class="game-row__history-score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -60,14 +63,15 @@
 
 <script>
 import {gameHasError} from "@/helpers";
-import {getGameStreams, getStreamPlatform} from "@/services/streams";
+import {getGameStreams, getStreamIconComponent} from "@/services/streams";
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {X, Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import {X, Pencil, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import YoutubeIcon from "@/components/icons/YoutubeIcon.vue";
 
 export default {
     name: 'Game',
-    components: {X, Youtube, Twitch, Facebook, Instagram, Video},
+    components: {X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video},
     props: ['activeTournament', 'gameIndex', 'game', 'activeRound', 'compactView', 'isPlayoff', 'isCadrage', 'isThird', 'laneNumber'],
     emits: ['save', 'swapLane', 'update', 'finish'],
     data() {
@@ -139,6 +143,11 @@ export default {
                 this.$emit('swapLane', { fromIndex: this.gameIndex, targetLane: this.swapTarget });
             }
         },
+        unfishGame() {
+            this.currentGame.status = 'in_progress';
+            delete this.currentGame.winner;
+            this.$emit('update', this.gameIndex);
+        },
         removeScoreEntry(index) {
             this.currentGame.score_history.splice(index, 1);
             if (this.currentGame.score_history.length === 0) {
@@ -170,13 +179,18 @@ export default {
         },
         canFinishGame() {
             if (this.effectiveStatus === 'finished') return false;
-            if (this.isPlayoff || this.isCadrage || this.isThird) return false;
             const s1 = Number(this.game.team_1_score);
             const s2 = Number(this.game.team_2_score);
             if (this.game.team_1_score === null || this.game.team_1_score === '' ||
                 this.game.team_2_score === null || this.game.team_2_score === '') return false;
             if (isNaN(s1) || isNaN(s2)) return false;
             return s1 !== s2 && (s1 > 0 || s2 > 0);
+        },
+        canEditGame() {
+            if (this.effectiveStatus !== 'finished') return false;
+            if (this.compactView || this.isThird) return false;
+            if (this.tournament.system === 'groups') return false;
+            return true;
         },
         canSwapLane() {
             if (this.compactView || this.isThird || this.game.team_2 === 'Technical') return false;
@@ -219,12 +233,7 @@ export default {
         },
         streamIcon() {
             if (!this.resolvedStreams.length) return 'Video';
-            const platform = getStreamPlatform(this.resolvedStreams[0]);
-            if (platform === 'youtube') return 'Youtube';
-            if (platform === 'twitch') return 'Twitch';
-            if (platform === 'facebook') return 'Facebook';
-            if (platform === 'instagram') return 'Instagram';
-            return 'Video';
+            return getStreamIconComponent(this.resolvedStreams[0]);
         },
     }
 }
@@ -258,6 +267,24 @@ export default {
 
 .game-row__finish-btn:hover {
     opacity: 0.85;
+}
+
+.game-row__edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-muted, #999);
+    transition: color 0.15s, background 0.15s;
+}
+
+.game-row__edit-btn:hover {
+    color: var(--color-primary);
+    background: rgba(108, 92, 231, 0.1);
 }
 
 .game-row__stream-indicator {

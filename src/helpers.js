@@ -516,4 +516,66 @@ const shuffleArray = (array) => {
     return array;
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray, rankGroupByRegulations}
+function updateScoreHistory(game) {
+    const s1 = Number(game.team_1_score) || 0;
+    const s2 = Number(game.team_2_score) || 0;
+    if (s1 === 0 && s2 === 0) {
+        if (game.score_history?.length) game.score_history = [];
+        return;
+    }
+    if (!game.score_history) game.score_history = [];
+    const last = game.score_history[game.score_history.length - 1];
+    if (!last) {
+        game.score_history.push({s1, s2});
+        return;
+    }
+    if (s1 === last.s1 && s2 === last.s2) {
+        return;
+    }
+    if (s1 < last.s1 || s2 < last.s2) {
+        return;
+    }
+    game.score_history.push({s1, s2});
+}
+
+function buildGroupBView(tournament) {
+    const gb = tournament?.groupB;
+    if (!gb) return null;
+    return {
+        ...tournament,
+        teams: gb.teams,
+        games: gb.games,
+        playOff: gb.playOff,
+        playOffBracket: gb.playOffBracket,
+        playOffStage: gb.playOffStage ?? (gb.playOff?.[0]?.stage ?? null),
+        cadrage: gb.cadrage,
+        barrage: gb.barrage,
+        eliminationRound: gb.eliminationRound,
+        roundIsActive: gb.roundIsActive,
+        tournamentIsFinished: gb.tournamentIsFinished,
+        system: gb.mode === 'playoff' ? 'playoff' : 'swiss',
+        isGroupB: true,
+    };
+}
+
+function buildEliminationGames(teams, elimCount) {
+    const pool = teams.slice(teams.length - elimCount);
+    const games = [];
+    const half = Math.floor(pool.length / 2);
+    for (let i = 0; i < half; i++) {
+        games.push({
+            team_1: pool[i].title,
+            team_2: pool[pool.length - 1 - i].title,
+            team_1_score: null,
+            team_2_score: null
+        });
+    }
+    return {
+        games,
+        qualifiedFrom: teams.length - elimCount,
+        bracketSize: teams.length - half,
+        completed: false
+    };
+}
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray, rankGroupByRegulations, updateScoreHistory, buildGroupBView, buildEliminationGames}

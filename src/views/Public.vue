@@ -240,8 +240,9 @@ import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
 import {getTeamsRanking} from "@/helpers";
-import {getGameStreams, getStreamPlatform} from "@/services/streams";
-import {Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import {getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass} from "@/services/streams";
+import {Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
+import YoutubeIcon from "@/components/icons/YoutubeIcon.vue";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
@@ -254,7 +255,7 @@ import RoundTimer from "@/components/partials/RoundTimer.vue";
 import {Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon, Youtube, Twitch, Facebook, Instagram, Video},
+    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon, YoutubeIcon, Twitch, Facebook, Instagram, Video},
     data() {
         return {
             isLoading: false,
@@ -481,18 +482,8 @@ export default {
             return getGameStreams(game, this.tournament, index);
         },
         getStreamPlatform,
-        getStreamIcon(url) {
-            const platform = getStreamPlatform(url);
-            if (platform === 'youtube') return 'Youtube';
-            if (platform === 'twitch') return 'Twitch';
-            if (platform === 'facebook') return 'Facebook';
-            if (platform === 'instagram') return 'Instagram';
-            return 'Video';
-        },
-        getStreamIconClass(url) {
-            const platform = getStreamPlatform(url);
-            return `stream-icon--${platform}`;
-        },
+        getStreamIcon: getStreamIconComponent,
+        getStreamIconClass,
         isTeamNameHighlighted(teamName) {
             if (!this.highlightedTeam) return false;
             if (this.highlightedTeam === teamName) return true;

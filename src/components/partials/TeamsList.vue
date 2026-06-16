@@ -78,7 +78,7 @@
     </div>
     <div v-else-if="hasRichData" class="teams-cards">
         <div v-for="(team, teamIndex) in sortedTeams" :key="team.title"
-             class="team-card" :class="{'team-card--highlighted': isTeamHighlighted(team.title)}">
+             class="team-card" :class="{'team-card--highlighted': isTeamHighlighted(team.title), 'team-card--eliminated': team.eliminated}">
             <div class="team-card__rank">{{ teamIndex + 1 }}</div>
             <div class="team-card__body">
                 <div class="team-card__header">
@@ -137,7 +137,7 @@
         </div>
     </div>
     <table v-else id="table-list" class="table is-fullwidth">
-        <tr v-for="team in sortedTeams" :key="team.title" :class="{'search-highlight': isTeamHighlighted(team.title)}">
+        <tr v-for="team in sortedTeams" :key="team.title" :class="{'search-highlight': isTeamHighlighted(team.title), 'team-row--eliminated': team.eliminated}">
             <td>{{team.title}}
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                     (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index">{{player.name}}
@@ -184,28 +184,28 @@ export default {
         },
         sortedTeams() {
             if (!this.tournament?.teams) return [];
+            let sorted;
             if (!this.tournament.games?.length && !this.tournament.roundIsActive) {
-                return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
-            }
-            if (this.tournament.system === 'swiss') {
-                return sortTeams([...this.tournament.teams]);
-            }
-            if (this.tournament.system === 'supermele') {
-                return [...this.tournament.teams].sort((a, b) =>
+                sorted = [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
+            } else if (this.tournament.system === 'swiss') {
+                sorted = sortTeams([...this.tournament.teams]);
+            } else if (this.tournament.system === 'supermele') {
+                sorted = [...this.tournament.teams].sort((a, b) =>
                     (b.wins || 0) - (a.wins || 0) ||
                     ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
                     (b.pointsPlus || 0) - (a.pointsPlus || 0) ||
                     (b.rating || 0) - (a.rating || 0)
                 );
-            }
-            if ((this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament.games?.length) {
-                return [...this.tournament.teams].sort((a, b) =>
+            } else if ((this.tournament.system === 'groups' || this.tournament.system === 'poules') && this.tournament.games?.length) {
+                sorted = [...this.tournament.teams].sort((a, b) =>
                     (b.wins || 0) - (a.wins || 0) ||
                     ((b.pointsPlus || 0) - (b.pointsMinus || 0)) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
                     (b.pointsPlus || 0) - (a.pointsPlus || 0)
                 );
+            } else {
+                sorted = [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
             }
-            return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
+            return sorted.sort((a, b) => (a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0));
         },
         sortedGroups() {
             if (!this.tournament.groups) return [];
@@ -289,7 +289,7 @@ export default {
             return team.players.length > 1 && pIdx === 0;
         },
         isSameClubTeam(team) {
-            if (!team.players || team.players.length <= 1) return false;
+            if (!team.players || !team.players.length) return false;
             const clubId = team.players[0].club_id;
             if (!clubId) return false;
             return team.players.every(p => p.club_id === clubId);
@@ -343,6 +343,15 @@ export default {
 .team-card--highlighted {
     border-color: var(--color-primary);
     background: var(--color-primary-light, rgba(139, 92, 246, 0.06));
+}
+
+.team-card--eliminated {
+    opacity: 0.45;
+}
+
+.team-row--eliminated td {
+    opacity: 0.45;
+    text-decoration: line-through;
 }
 
 .team-card__rank {

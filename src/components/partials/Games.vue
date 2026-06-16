@@ -1,5 +1,54 @@
 <template>
     <div class="content tabs-content">
+        <template v-if="tournament.activeGroup === 'B' && tournament.groupB">
+            <EliminationRound v-if="tournament.groupB.eliminationRound && !tournament.groupB.eliminationRound.completed"
+                              :teams="tournament.groupB.teams"
+                              :elimination-round="tournament.groupB.eliminationRound"
+                              @completed="onEliminationCompleted"/>
+            <PlayOff v-else-if="tournament.groupB.playOff" :active-tournament="groupBTournamentView" @openResults="$emit('openResults')"/>
+            <div v-else-if="tournament.cadrage && tournament.cadrage.length && !tournament.playOff" class="text-center mt-3">
+                <p class="has-text-grey">{{ $t('ranking.waitCadrageFinish') }}</p>
+            </div>
+            <div v-else-if="groupBMode === 'playoff' && !tournament.groupB.playOff && groupBEligibleTeams.length >= 2" class="draw-card">
+                <div class="draw-card__links">
+                    <a href="#" class="draw-card__link draw-card__link--draw" @click.prevent="startGroupBPlayOff">
+                        {{ $t('games.startPlayOff') }} {{ $t('ranking.tournamentB') }} ({{ groupBEligibleTeams.length }} {{ $t('common.teamsLabel') }})
+                    </a>
+                </div>
+            </div>
+            <div v-else-if="groupBMode === 'swiss'" class="group-b-swiss">
+                <div v-if="tournament.cadrage && tournament.cadrage.length && !tournament.playOff" class="text-center mt-3">
+                    <p class="has-text-grey">{{ $t('ranking.waitCadrageFinish') }}</p>
+                </div>
+                <div v-else-if="!tournament.groupB.games?.length || (!tournament.groupB.roundIsActive && !groupBFinished)" class="draw-card">
+                    <div class="draw-card__links">
+                        <a v-if="groupBEligibleTeams.length >= 4" href="#" class="draw-card__link draw-card__link--draw" @click.prevent="drawGroupBRound">
+                            {{ $t('games.draw') }} {{ groupBActiveRound }} {{ $t('common.round') }}
+                        </a>
+                    </div>
+                </div>
+                <div v-if="tournament.groupB.games?.length && tournament.groupB.roundIsActive">
+                    <h2 class="text-center">{{ $t('ranking.tournamentB') }} — {{ $t('common.round') }} {{ tournament.groupB.games.length }}</h2>
+                    <div class="games-list">
+                        <Game v-for="(game, index) in groupBCurrentRound" :key="'gb-'+index"
+                              :game="game" :activeRound="tournament.groupB.games.length - 1" :compactView="false" :game-index="index"
+                              @update="onGroupBGameUpdate(index)" @finish="onGroupBGameFinish(index)"/>
+                    </div>
+                    <div class="finish-round-section">
+                        <button class="finish-round-btn" @click="finishGroupBRound">
+                            {{ $t('games.finishRound') }}
+                        </button>
+                    </div>
+                </div>
+                <div v-else-if="groupBFinished">
+                    <FinishedBanner @openResults="$emit('openResults')"/>
+                </div>
+            </div>
+            <div v-else-if="!tournament.groupB.eliminationRound && groupBEligibleTeams.length < 2" class="text-center mt-3">
+                <p>{{ $t('ranking.tournamentB') }} — {{ $t('common.noTeams') }}</p>
+            </div>
+        </template>
+        <template v-else>
         <TeamPlayoff v-if="tournament.teamPlayoff"/>
         <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')"/>
         <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
@@ -51,17 +100,12 @@
                         {{ $t('timer.startTimer') }}
                     </button>
                 </div>
-                <div class="games-toolbar">
-                    <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
-                        {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
-                        <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
-                    </button>
-                </div>
+
                 <div class="games-list" v-if="tournament.barrage">
                     <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
                         <Game v-for="(game, index) in group" :key="index"
-                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
+                              :game="game" :activeRound="activeRound - 1" :compactView="false" :game-index="currentRoundGames.indexOf(game)"
                               @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
@@ -71,7 +115,7 @@
                     <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
                         <Game v-for="(game, index) in group" :key="index"
-                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
+                              :game="game" :activeRound="activeRound - 1" :compactView="false" :game-index="currentRoundGames.indexOf(game)"
                               @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     </div>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
@@ -79,7 +123,7 @@
                 </div>
                 <div class="games-list" v-else>
                     <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
-                          :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
+                          :game="game" :activeRound="activeRound - 1" :compactView="false" :game-index="index"
                           @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
                     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
                     </div>
@@ -115,6 +159,7 @@
             </div>
             <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'">{{ $t('games.quantityError') }}</div>
         </div>
+        </template>
         <ConfirmRemoveModal v-if="showRestoreConfirm"
             :hint="$t('games.restoreRound')"
             :message="$t('games.restoreRoundConfirm')"
@@ -136,25 +181,26 @@ import PlayOff from './PlayOff';
 import TeamPlayoff from './TeamPlayoff.vue';
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
-import {gameHasError, shuffleArray, tournamentNames} from '@/helpers'
+import {gameHasError, getTeamsRanking, shuffleArray, tournamentNames, updateScoreHistory, buildGroupBView} from '@/helpers'
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
+import {buildPlayOffScheme} from '@/services/playoff'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
-import {ChevronDown, Timer} from "lucide-vue-next";
+import EliminationRound from "@/components/partials/EliminationRound.vue";
+import {Timer} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 import RoundTimer from "@/components/partials/RoundTimer.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
+    components: {Cadrage, EliminationRound, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams', 'activeTournament'],
     data() {
         return {
             saveDisabled: false,
             scoreError: false,
             isRestoredRound: false,
-            compactView: false,
             showRestoreConfirm: false,
             showFinishConfirmIndex: null
         }
@@ -264,10 +310,31 @@ export default {
             const game = this.currentRoundGames[this.showFinishConfirmIndex];
             if (!game) return '';
             return `${game.team_1} ${game.team_1_score} : ${game.team_2_score} ${game.team_2}`;
+        },
+        groupBMode() {
+            return this.tournament.groupB?.mode || 'swiss';
+        },
+        groupBEligibleTeams() {
+            if (!this.tournament.groupB?.teams) return [];
+            return this.tournament.groupB.teams.filter(t => !t.eliminated);
+        },
+        groupBActiveRound() {
+            return (this.tournament.groupB?.games?.length || 0) + 1;
+        },
+        groupBCurrentRound() {
+            const gb = this.tournament.groupB;
+            if (!gb?.games?.length) return [];
+            return gb.games[gb.games.length - 1];
+        },
+        groupBFinished() {
+            return !!this.tournament.groupB?.tournamentIsFinished;
+        },
+        groupBTournamentView() {
+            return buildGroupBView(this.tournament);
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament', 'startGroupBRound', 'endGroupBRound', 'setGroupBPlayOff', 'completeGroupBElimination']),
         gameHasError,
         onTimerEnded() {
             this.endRoundTimer();
@@ -277,23 +344,7 @@ export default {
         },
         onGameUpdate(gameIndex) {
             const game = this.tournament.games[this.activeRound - 1][gameIndex];
-            const s1 = Number(game.team_1_score);
-            const s2 = Number(game.team_2_score);
-            if (!isNaN(s1) && !isNaN(s2) && (s1 > 0 || s2 > 0)) {
-                if (!game.score_history) game.score_history = [];
-                const now = Date.now();
-                const key = `${this.activeRound - 1}_${gameIndex}`;
-                if (!this._scoreHistoryTs) this._scoreHistoryTs = {};
-                const lastTs = this._scoreHistoryTs[key] || 0;
-                const last = game.score_history[game.score_history.length - 1];
-                if (last && (now - lastTs) < 2000) {
-                    last.s1 = s1;
-                    last.s2 = s2;
-                } else if (!last || last.s1 !== s1 || last.s2 !== s2) {
-                    game.score_history.push({s1, s2});
-                }
-                this._scoreHistoryTs[key] = now;
-            }
+            if (this.tournament.preferences.cochonettesEnabled) updateScoreHistory(game);
             this.syncGameMatch(this.activeRound - 1, gameIndex, game);
         },
         onGameFinish(gameIndex) {
@@ -724,6 +775,78 @@ export default {
         },
         saveResultsForRound(round) {
             saveResultsForRound(this.tournament, round);
+        },
+        onEliminationCompleted() {
+            const gb = this.tournament.groupB;
+            if (!gb) return;
+            if (gb.mode === 'playoff' && !this.tournament.preferences?.cadrageLosersToB) {
+                this.startGroupBPlayOff();
+            }
+        },
+        startGroupBPlayOff() {
+            const gb = this.tournament.groupB;
+            if (!gb) return;
+            const fakeT = { ...this.tournament, teams: gb.teams, games: gb.games || [], system: 'swiss', preferences: { ...this.tournament.preferences } };
+            const ranked = getTeamsRanking(fakeT).filter(t => !t.eliminated);
+            let size = 2;
+            while (size < ranked.length) size *= 2;
+            const playOffList = ranked.slice(0, size);
+            while (playOffList.length < size) {
+                playOffList.push({ title: 'BYE', isBye: true });
+            }
+            const scheme = buildPlayOffScheme(playOffList, false);
+            this.setGroupBPlayOff(scheme);
+            gb.playOffStage = scheme[0].stage;
+            this.syncToFirebase();
+        },
+        drawGroupBRound() {
+            const gb = this.tournament.groupB;
+            if (!gb) return;
+            const teams = gb.teams.filter(t => !t.eliminated);
+            const fakeT = { ...this.tournament, teams, games: gb.games, system: 'swiss', preferences: { ...this.tournament.preferences } };
+            const rankingTeams = getTeamsRanking(fakeT, this.groupBActiveRound);
+            const result = drawSwissRound(fakeT, rankingTeams, this.groupBActiveRound);
+            if (result.error) {
+                this.showMessage({ title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error' });
+                return;
+            }
+            const round = assignLanes(shuffleArray(result.round), this.tournament);
+            this.startGroupBRound(round);
+        },
+        onGroupBGameUpdate(gameIndex) {
+            const gb = this.tournament.groupB;
+            if (!gb?.games?.length) return;
+            const game = gb.games[gb.games.length - 1][gameIndex];
+            const s1 = Number(game.team_1_score) || 0;
+            const s2 = Number(game.team_2_score) || 0;
+            if (s1 > 0 || s2 > 0) {
+                if (!game.status || game.status === 'not_started') game.status = 'in_progress';
+            }
+            if (this.tournament.preferences.cochonettesEnabled) updateScoreHistory(game);
+            this.syncToFirebase();
+        },
+        onGroupBGameFinish(gameIndex) {
+            const gb = this.tournament.groupB;
+            if (!gb?.games?.length) return;
+            const game = gb.games[gb.games.length - 1][gameIndex];
+            if (game) {
+                game.team_1_score = Number(game.team_1_score);
+                game.team_2_score = Number(game.team_2_score);
+                game.status = 'finished';
+                game.winner = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2;
+                this.syncToFirebase();
+            }
+        },
+        finishGroupBRound() {
+            const gb = this.tournament.groupB;
+            if (!gb?.games?.length) return;
+            const round = gb.games[gb.games.length - 1];
+            if (round.some(g => g.status !== 'finished' && g.team_2 !== 'Technical')) {
+                this.showMessage({ title: this.$t('games.finishRound'), text: this.$t('games.resultsError'), type: 'error' });
+                return;
+            }
+            saveResultsForRound({ ...this.tournament, teams: gb.teams, games: gb.games }, gb.games.length - 1);
+            this.endGroupBRound();
         },
     },
 }

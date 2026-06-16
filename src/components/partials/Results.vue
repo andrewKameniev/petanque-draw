@@ -1,14 +1,19 @@
 <template>
     <div class="content tabs-content">
-        <div v-if="tournament.games?.length || hasPlayOffResults">
+        <div v-if="tournament.games?.length || hasPlayOffResults || tournament.eliminationRound?.games?.length">
             <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
-                <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || hasPlayOffResults)" class="round-tabs-row mb-4">
+                <div v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || tournament.eliminationRound?.games?.length || hasPlayOffResults)" class="round-tabs-row mb-4">
                     <div class="round-tabs">
                         <button v-for="(round, index) in allDisplayRounds" :key="index"
                                 class="button is-small mr-1 mb-1"
                                 :class="{'is-purple': selectedRound === index, 'is-outlined': !isRoundPlayed(index)}"
                                 @click="selectedRound = index">
                             {{ getRoundLabel(index) }}
+                        </button>
+                        <button v-if="tournament.eliminationRound?.games?.length" class="button is-small mr-1 mb-1"
+                                :class="{'is-purple': selectedRound === 'elimination'}"
+                                @click="selectedRound = 'elimination'">
+                            {{ $t('ranking.eliminationRound') }}
                         </button>
                         <button v-if="tournament.cadrage?.length" class="button is-small mr-1 mb-1"
                                 :class="{'is-purple': selectedRound === 'cadrage'}"
@@ -38,9 +43,9 @@
                             <div v-for="(game, i) in round" :key="i"
                                  class="match-item"
                                  :class="{
-                                    'match-item--finished': game.status === 'finished',
-                                    'match-item--in-progress': game.status === 'in_progress',
-                                    'match-item--upcoming': !game.status || game.status === 'not_started',
+                                    'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished',
+                                    'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress',
+                                    'match-item--upcoming': !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started'),
                                     'match-item--highlighted': isGameHighlighted(game)
                                  }">
                                 <span class="match-team match-team-right" :class="{
@@ -130,32 +135,146 @@
                 </div>
                 <div v-if="hasPlayOffResults && !onlyQualifying && (isForProtocol || selectedRound === -1 || selectedRound === 'playoff')" :class="{'pdf-page-break': isForProtocol, 'playoff-section': true}">
                     <h3 v-if="isForProtocol && sectionTitle" class="text-center is-size-4 mb-2">{{ sectionTitle }}</h3>
-                    <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
-                        <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage'">
-                            <div class="playoff-stage-label">
-                                {{stage.stageLabel === 1 ? $t('games.final') : '1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}
-                            </div>
-                            <div v-for="(game, i) in stage.teams" :key="'s'+index+'g'+i" class="playoff-game">
-                                <span class="playoff-team playoff-team-right" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_1_score) > Number(game.team_2_score)}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</span>
-                                <span class="playoff-score"><strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong></span>
-                                <span class="playoff-team" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_2_score) > Number(game.team_1_score)}">{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</span>
+                    <template v-if="cardView && !isForProtocol">
+                        <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
+                            <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage' && stage.stageLabel !== 1">
+                                <div class="results-card-round-label">
+                                    {{'1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}
+                                </div>
+                                <div class="results-card-list">
+                                    <div v-for="(game, i) in stage.teams.filter(g => !g.isBye)" :key="'s'+index+'g'+i"
+                                         class="match-item" :class="playoffGameClass(game)">
+                                        <span class="match-team match-team-right" :class="{'match-team--winner': Number(game.team_1_score) > Number(game.team_2_score)}">{{ game.team_1 }}</span>
+                                        <span class="match-vs">
+                                            <span class="match-score">{{ game.team_1_score ?? '--' }} : {{ game.team_2_score ?? '--' }}</span>
+                                        </span>
+                                        <span class="match-team" :class="{'match-team--winner': Number(game.team_2_score) > Number(game.team_1_score)}">{{ game.team_2 }}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                        <template v-if="tournament.playOffBracket.thirdPlace && Object.keys(tournament.playOffBracket.thirdPlace).length !== 0">
+                            <div class="results-card-round-label">{{$t('games.thirdPlace')}}</div>
+                            <div class="results-card-list">
+                                <div class="match-item" :class="playoffGameClass(tournament.playOffBracket.thirdPlace)">
+                                    <span class="match-team match-team-right" :class="{'match-team--winner': Number(tournament.playOffBracket.thirdPlace.team_1_score) > Number(tournament.playOffBracket.thirdPlace.team_2_score)}">{{ tournament.playOffBracket.thirdPlace.team_1 }}</span>
+                                    <span class="match-vs">
+                                        <span class="match-score">{{ tournament.playOffBracket.thirdPlace.team_1_score ?? '--' }} : {{ tournament.playOffBracket.thirdPlace.team_2_score ?? '--' }}</span>
+                                    </span>
+                                    <span class="match-team" :class="{'match-team--winner': Number(tournament.playOffBracket.thirdPlace.team_2_score) > Number(tournament.playOffBracket.thirdPlace.team_1_score)}">{{ tournament.playOffBracket.thirdPlace.team_2 }}</span>
+                                </div>
                             </div>
                         </template>
+                        <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po-final'+index">
+                            <template v-if="stageHasContent(stage) && stage.stageLabel === 1">
+                                <div class="results-card-round-label">{{$t('games.final')}}</div>
+                                <div class="results-card-list">
+                                    <div v-for="(game, i) in stage.teams.filter(g => !g.isBye)" :key="'sf'+index+'g'+i"
+                                         class="match-item" :class="playoffGameClass(game)">
+                                        <span class="match-team match-team-right" :class="{'match-team--winner': Number(game.team_1_score) > Number(game.team_2_score)}">{{ game.team_1 }}</span>
+                                        <span class="match-vs">
+                                            <span class="match-score">{{ game.team_1_score ?? '--' }} : {{ game.team_2_score ?? '--' }}</span>
+                                        </span>
+                                        <span class="match-team" :class="{'match-team--winner': Number(game.team_2_score) > Number(game.team_1_score)}">{{ game.team_2 }}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
                     </template>
-                    <template v-if="tournament.playOffBracket.thirdPlace && Object.keys(tournament.playOffBracket.thirdPlace).length !== 0">
-                        <div class="playoff-stage-label">{{$t('games.thirdPlace')}}</div>
-                        <div class="playoff-game">
-                            <span class="playoff-team playoff-team-right" :class="{'has-text-weight-bold': !isForProtocol && Number(tournament.playOffBracket.thirdPlace.team_1_score) > Number(tournament.playOffBracket.thirdPlace.team_2_score)}">{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_1] : tournament.playOffBracket.thirdPlace.team_1}}</span>
-                            <span class="playoff-score"><strong>{{ tournament.playOffBracket.thirdPlace.team_1_score != null ? tournament.playOffBracket.thirdPlace.team_1_score : '--' }} : {{ tournament.playOffBracket.thirdPlace.team_2_score != null ? tournament.playOffBracket.thirdPlace.team_2_score : '--' }}</strong></span>
-                            <span class="playoff-team" :class="{'has-text-weight-bold': !isForProtocol && Number(tournament.playOffBracket.thirdPlace.team_2_score) > Number(tournament.playOffBracket.thirdPlace.team_1_score)}">{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_2] : tournament.playOffBracket.thirdPlace.team_2}}</span>
+                    <template v-else>
+                        <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po'+index">
+                            <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage' && stage.stageLabel !== 1">
+                                <div class="playoff-stage-label">
+                                    {{'1/' + stage.stageLabel + ' ' + $t('games.ofFinal')}}
+                                </div>
+                                <div v-for="(game, i) in stage.teams" :key="'s'+index+'g'+i" class="playoff-game">
+                                    <span class="playoff-team playoff-team-right" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_1_score) > Number(game.team_2_score)}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</span>
+                                    <span class="playoff-score"><strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong></span>
+                                    <span class="playoff-team" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_2_score) > Number(game.team_1_score)}">{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</span>
+                                </div>
+                            </template>
+                        </template>
+                        <template v-if="tournament.playOffBracket.thirdPlace && Object.keys(tournament.playOffBracket.thirdPlace).length !== 0">
+                            <div class="playoff-stage-label">{{$t('games.thirdPlace')}}</div>
+                            <div class="playoff-game">
+                                <span class="playoff-team playoff-team-right" :class="{'has-text-weight-bold': !isForProtocol && Number(tournament.playOffBracket.thirdPlace.team_1_score) > Number(tournament.playOffBracket.thirdPlace.team_2_score)}">{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_1] : tournament.playOffBracket.thirdPlace.team_1}}</span>
+                                <span class="playoff-score"><strong>{{ tournament.playOffBracket.thirdPlace.team_1_score != null ? tournament.playOffBracket.thirdPlace.team_1_score : '--' }} : {{ tournament.playOffBracket.thirdPlace.team_2_score != null ? tournament.playOffBracket.thirdPlace.team_2_score : '--' }}</strong></span>
+                                <span class="playoff-team" :class="{'has-text-weight-bold': !isForProtocol && Number(tournament.playOffBracket.thirdPlace.team_2_score) > Number(tournament.playOffBracket.thirdPlace.team_1_score)}">{{isForProtocol ? teamTitles[tournament.playOffBracket.thirdPlace.team_2] : tournament.playOffBracket.thirdPlace.team_2}}</span>
+                            </div>
+                        </template>
+                        <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po-final'+index">
+                            <template v-if="stageHasContent(stage) && stage.stageLabel === 1">
+                                <div class="playoff-stage-label">{{$t('games.final')}}</div>
+                                <div v-for="(game, i) in stage.teams" :key="'sf'+index+'g'+i" class="playoff-game">
+                                    <span class="playoff-team playoff-team-right" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_1_score) > Number(game.team_2_score)}">{{ isForProtocol ? teamTitles[game.team_1] : game.team_1}}</span>
+                                    <span class="playoff-score"><strong>{{ game.team_1_score != null ? game.team_1_score : '--' }} : {{ game.team_2_score != null ? game.team_2_score : '--' }}</strong></span>
+                                    <span class="playoff-team" :class="{'has-text-weight-bold': !isForProtocol && Number(game.team_2_score) > Number(game.team_1_score)}">{{ isForProtocol ? teamTitles[game.team_2] : game.team_2}}</span>
+                                </div>
+                            </template>
+                        </template>
+                    </template>
+                </div>
+            </div>
+            <div v-if="tournament.eliminationRound?.games?.length && (isForProtocol || selectedRound === -1 || selectedRound === 'elimination') && selectedRound !== 'playoff' && selectedRound !== 'cadrage'">
+                <div class="mb-5">
+                    <h3 class="has-text-centered" v-if="selectedRound === -1 || isForProtocol">{{ $t('ranking.eliminationRound') }}</h3>
+                    <div v-if="cardView && !isForProtocol" class="results-card-list">
+                        <div v-for="(game, index) in tournament.eliminationRound.games" :key="'elim-'+index"
+                             class="match-item match-item--finished">
+                            <span class="match-team match-team-right" :class="{'match-team--winner': game.team_1_score > game.team_2_score}">{{ game.team_1 }}</span>
+                            <span class="match-vs">
+                                <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                            </span>
+                            <span class="match-team" :class="{'match-team--winner': game.team_2_score > game.team_1_score}">{{ game.team_2 }}</span>
                         </div>
-                    </template>
+                    </div>
+                    <div v-else class="table-container">
+                        <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
+                            <tbody>
+                                <tr v-for="(game, index) in tournament.eliminationRound.games" :key="index">
+                                    <td class="has-text-right" :class="{'has-text-weight-bold': !isForProtocol && game.team_1_score > game.team_2_score}">{{ game.team_1 }}</td>
+                                    <td class="has-text-centered is-narrow">
+                                        <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
+                                        <span v-else class="score-empty">-- : --</span>
+                                    </td>
+                                    <td :class="{'has-text-weight-bold': !isForProtocol && game.team_2_score > game.team_1_score}">{{ game.team_2 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div v-if="tournament.cadrage && (isForProtocol || selectedRound === -1 || selectedRound === 'cadrage') && selectedRound !== 'playoff'">
                 <div class="mb-5">
-                    <h3 class="has-text-centered">{{$t('games.cadrage')}}</h3>
-                    <div class="table-container">
+                    <h3 class="has-text-centered" v-if="selectedRound === -1 || isForProtocol">{{$t('games.cadrage')}}</h3>
+                    <div v-if="cardView && !isForProtocol" class="results-card-list">
+                        <div v-for="(game, index) in tournament.cadrage" :key="'cad-'+index"
+                             class="match-item"
+                             :class="{
+                                'match-item--finished': game.status === 'finished',
+                                'match-item--in-progress': game.status === 'in_progress',
+                                'match-item--upcoming': !game.status || game.status === 'not_started',
+                                'match-item--highlighted': isGameHighlighted(game)
+                             }">
+                            <span class="match-team match-team-right" :class="{'match-team--winner': game.status === 'finished' && game.team_1_score > game.team_2_score}">{{ game.team_1 }}</span>
+                            <span class="match-vs">
+                                <template v-if="game.status === 'in_progress' || game.status === 'finished'">
+                                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                                </template>
+                                <template v-else>
+                                    <span class="match-lane">– : –</span>
+                                </template>
+                            </span>
+                            <span class="match-team" :class="{'match-team--winner': game.status === 'finished' && game.team_2_score > game.team_1_score}">{{ game.team_2 }}</span>
+                            <div v-if="game.score_history && game.score_history.length" class="score-history">
+                                <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
+                                    <span class="score-history__num">{{ ei + 1 }}</span>
+                                    <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="table-container">
                         <table class="table" :class="{'is-striped': !isForProtocol, 'is-bordered': isForProtocol}">
                             <tbody>
                                 <tr v-for="(game, index) in tournament.cadrage" :key="index" :class="{'search-highlight': isGameHighlighted(game)}">
@@ -207,6 +326,11 @@ export default {
         const t = this.activeTournament || this.previewTournament || this.currentTournament;
         this.selectedRound = getDefaultSelectedRound(t);
     },
+    watch: {
+        previewTournament(newVal) {
+            this.selectedRound = getDefaultSelectedRound(newVal || this.currentTournament);
+        },
+    },
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'user']),
         canEditResults() {
@@ -257,9 +381,6 @@ export default {
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
-        stageHasContent(stage) {
-            return stage.teams?.some(g => g.team_1 || g.team_2);
-        },
         openEditModal(game) {
             if (!this.canEditResults) return;
             this.editingGame = game;
@@ -338,6 +459,14 @@ export default {
             if (index >= this.tournament.games.length) return false;
             const round = this.tournament.games[index];
             return round && round.some(g => g.team_1_score != null && g.team_2_score != null);
+        },
+        playoffGameClass(game) {
+            if (this.tournament.tournamentIsFinished || game.status === 'finished') return 'match-item--finished';
+            if (game.status === 'in_progress') return 'match-item--in-progress';
+            return 'match-item--upcoming';
+        },
+        stageHasContent(stage) {
+            return stage.teams?.some(g => g.team_1 || g.team_2);
         }
     }
 }
@@ -464,6 +593,56 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.results-card-list .match-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.results-card-list .match-team {
+    min-width: 0;
+    font-weight: 600;
+    font-size: 14px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.results-card-list .match-team-right {
+    text-align: right;
+}
+
+.results-card-list .match-vs {
+    text-align: center;
+}
+
+.results-card-list .match-score {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.results-card-list .match-team--winner {
+    color: var(--tir-winner, #2e7d32);
+}
+
+.results-card-list .edit-result-btn--card {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.results-card-list .score-history {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-top: 6px;
 }
 
 .results-card-round-label {

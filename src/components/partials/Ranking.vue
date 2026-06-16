@@ -21,7 +21,7 @@
             <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
                 <div class="ranking-header__actions">
-                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="showExportConfirm = true">
+                    <button v-if="isTournamentOrg && tournament.portalIdTournament && !tournament.preferences?.isTestTournament" class="button is-small btn-purple-outline" @click="showExportConfirm = true">
                         <Upload :size="18"/>
                         <span class="is-hidden-mobile">{{ $t('ranking.exportResults') }}</span>
                     </button>
@@ -201,9 +201,12 @@
                         </thead>
                         <tbody>
                         <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
+                            :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title), 'team-withdrawn': team.withdrawn}">
                             <td><span class="team-count"></span></td>
-                            <td>{{ team.title }}</td>
+                            <td>
+                                {{ team.title }}
+                                <span v-if="team.withdrawn" class="withdrawn-badge">WD</span>
+                            </td>
                             <td align="center" class="td-highlight">{{ team.wins }}</td>
                             <td align="center">{{ team.buhgolts }}</td>
                             <td align="center">{{ team.smallBuhgolts }}</td>
@@ -826,4 +829,28 @@ export default {
 .table-container .table {
     margin: 0 auto;
 }
+
+.team-withdrawn td {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.team-withdrawn td:last-child {
+    opacity: 1;
+    text-decoration: none;
+}
+
+.withdrawn-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: var(--color-error);
+    color: #fff;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
 </style>

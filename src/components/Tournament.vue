@@ -1371,14 +1371,14 @@ export default {
 }
 
 .bottom-actions__btn--test {
-    background: #ff9800;
-    border-color: #ff9800;
-    color: #fff;
+    background: var(--color-warning);
+    border-color: var(--color-warning);
+    color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--test:hover {
-    background: #f57c00;
-    border-color: #f57c00;
+    background: var(--color-warning-hover);
+    border-color: var(--color-warning-hover);
 }
 
 .pin-btn {

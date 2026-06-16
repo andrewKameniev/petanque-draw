@@ -78,7 +78,36 @@
             </div>
             <TeamPlayoff v-if="tournament.teamPlayoff" :read-only="true"/>
             <PlayOff v-else-if="tournament.playOff && tournament.system !== 'tir'" ref="playOff" :active-tournament="tournament" :is-public-view="true" :hide-header="true" @openResults="activeTab = 'ranking'" class="playoff-public-wrapper"/>
-            <Cadrage v-else-if="tournament.cadrage" :active-tournament="tournament" :is-public-view="true" class="playoff-public-wrapper"/>
+            <div v-else-if="tournament.cadrage" class="cadrage-public-section">
+                <h3 class="cadrage-public-section__title">{{ $t('games.cadrage') }}</h3>
+                <div class="match-list">
+                    <div class="match-item"
+                         :class="{
+                            'match-item--in-progress': game.status === 'in_progress',
+                            'match-item--finished': game.status === 'finished',
+                            'match-item--upcoming': !game.status || game.status === 'not_started'
+                         }"
+                         v-for="(game, index) in tournament.cadrage" :key="'cadrage-'+index">
+                        <span class="match-lane-left">{{ index + (tournament.preferences?.fieldsStart || 1) }}</span>
+                        <span class="match-team match-team-right" :class="{
+                            'match-team--winner': game.status === 'finished' && Number(game.team_1_score) > Number(game.team_2_score)
+                        }">{{ game.team_1 }}</span>
+                        <span class="match-vs">
+                            <span class="match-score">
+                                <template v-if="game.status === 'in_progress' || game.status === 'finished'">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</template>
+                                <template v-else>-- : --</template>
+                            </span>
+                        </span>
+                        <span class="match-team" :class="{
+                            'match-team--winner': game.status === 'finished' && Number(game.team_2_score) > Number(game.team_1_score)
+                        }">{{ game.team_2 }}</span>
+                        <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
+                            <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+                        </span>
+                        <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{ $t('teamPlayoff.matchFinished') }}</span>
+                    </div>
+                </div>
+            </div>
             <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
                 <span>{{ highlightedTeam }}</span>
                 <X :size="14"/>
@@ -215,7 +244,6 @@ import {getGameStreams, getStreamPlatform} from "@/services/streams";
 import {Youtube, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
 import PlayOff from "@/components/partials/PlayOff.vue";
 import TeamPlayoff from "@/components/partials/TeamPlayoff.vue";
-import Cadrage from "@/components/partials/Cadrage.vue";
 import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
 import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
 import Footer from "@/components/partials/Footer.vue";
@@ -226,7 +254,7 @@ import RoundTimer from "@/components/partials/RoundTimer.vue";
 import {Users, List, Trophy as TrophyIcon} from "lucide-vue-next";
 export default {
     name: 'Public',
-    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, Cadrage, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon, Youtube, Twitch, Facebook, Instagram, Video},
+    components: {Footer, LanguageSwitcher, ThemeSwitcher, PlayOff, TeamPlayoff, TeamsList, Results, Ranking, GitFork, X, TeamSearch, TirPublicView, RoundTimer, Users, List, TrophyIcon, Youtube, Twitch, Facebook, Instagram, Video},
     data() {
         return {
             isLoading: false,
@@ -880,6 +908,19 @@ export default {
     flex: 0 0 auto;
     min-width: 60px;
     padding: 0 0.5rem;
+}
+
+.cadrage-public-section {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cadrage-public-section__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    text-align: center;
 }
 
 .current-round-card {

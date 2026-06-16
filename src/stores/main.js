@@ -42,6 +42,7 @@ function createTournament(overrides = {}) {
             groupDrawMethod: 'seeded',
             swissRoundsCount: null,
             prizePlaces: null,
+            isTestTournament: false,
         },
         ...overrides
     };

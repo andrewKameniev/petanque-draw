@@ -396,6 +396,10 @@
             </div>
         <div class="bottom-actions" v-if="tournament.system !== 'tir'">
             <div class="bottom-actions__row">
+                <button v-if="tournament.preferences?.isTestTournament && !tournament.tournamentIsFinished && (tournament.roundIsActive || tournament.cadrage?.length || tournament.playOff?.length)" class="bottom-actions__btn bottom-actions__btn--test" @click="autoFillScores">
+                    <Zap :size="16"/>
+                    {{ $t('setup.autoFillScores') }}
+                </button>
                 <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="openPlayoffConfirm">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
@@ -512,7 +516,8 @@ import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap} from "lucide-vue-next";
+import {autoFillScores as autoFillScoresFn} from "@/services/testUtils";
 import StreamPresets from "@/components/partials/StreamPresets.vue";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
@@ -900,6 +905,10 @@ export default {
             this.tournament.tournamentIsStarted = false;
             this.syncToFirebase();
             this.showMessage({title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText')});
+        },
+        autoFillScores() {
+            autoFillScoresFn(this.tournament, this.activeRound);
+            this.syncToFirebase();
         }
     },
     computed: {
@@ -1039,7 +1048,8 @@ export default {
         Radio,
         Download,
         TirProtocol,
-        StreamPresets
+        StreamPresets,
+        Zap
     }
 }
 
@@ -1360,6 +1370,16 @@ export default {
     color: var(--color-btn-text);
 }
 
+.bottom-actions__btn--test {
+    background: #ff9800;
+    border-color: #ff9800;
+    color: #fff;
+}
+
+.bottom-actions__btn--test:hover {
+    background: #f57c00;
+    border-color: #f57c00;
+}
 
 .pin-btn {
     display: inline-flex;

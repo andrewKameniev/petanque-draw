@@ -59,6 +59,7 @@ export const useMainStore = defineStore('main', {
         },
         savedTournaments: {},
         currentTournamentIndex: null,
+        tournamentsReady: false,
         isAdmin: false,
         user: false,
         _activePlayoffMatchPath: null,
@@ -326,6 +327,7 @@ export const useMainStore = defineStore('main', {
             }
         },
         async getTournaments() {
+            this.tournamentsReady = false;
             const dbRef = ref(database, `${this.user.uid}/tournaments/`);
             const snapshot = await get(dbRef);
             if (snapshot.exists()) {
@@ -333,6 +335,7 @@ export const useMainStore = defineStore('main', {
             } else {
                 this.setTournaments({});
             }
+            this.tournamentsReady = true;
             const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
             const snapshotSaved = await get(dbRefSaved);
             if (snapshot.exists() && snapshotSaved.val() !== null) {

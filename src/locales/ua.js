@@ -158,6 +158,7 @@ export default {
         "go": "Погнали!",
         "alsoPlay": "Також зіграємо",
         "mainTournament": "Основний турнір",
+        "roundA": "Коло А",
         "tournamentB": "Турнір Б",
         "withdrawTeam": "Вилучити з турніру",
         "restoreTeam": "Повернути в плей-оф",

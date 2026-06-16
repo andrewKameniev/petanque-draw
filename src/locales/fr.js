@@ -145,6 +145,7 @@ export default {
         "go": "C'est parti !",
         "alsoPlay": "Jouer aussi",
         "mainTournament": "Tournoi principal",
+        "roundA": "Tour A",
         "tournamentB": "Tournoi B",
         "withdrawTeam": "Retirer du playoff",
         "restoreTeam": "Rétablir au playoff",

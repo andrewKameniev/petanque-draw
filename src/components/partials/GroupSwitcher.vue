@@ -1,7 +1,7 @@
 <template>
     <div class="group-switcher" :class="{'group-switcher--full': fullLabels}">
         <button class="group-switcher__btn" :class="{'group-switcher__btn--active': modelValue === 'A'}" @click="$emit('update:modelValue', 'A')">
-            <span v-if="fullLabels">{{ $t('common.round') }} A</span>
+            <span v-if="fullLabels">{{ $t('ranking.roundA') }}</span>
             <span v-else>A</span>
         </button>
         <button class="group-switcher__btn" :class="{'group-switcher__btn--active': modelValue === 'B'}" @click="$emit('update:modelValue', 'B')">
@@ -25,28 +25,35 @@ export default {
 <style scoped>
 .group-switcher {
     display: inline-flex;
-    border-radius: 8px;
+    border-radius: 24px;
     overflow: hidden;
     border: 1px solid var(--color-border);
 }
 
+.group-switcher--full {
+    display: flex;
+    width: 100%;
+}
+
 .group-switcher__btn {
-    padding: 4px 12px;
+    padding: 6px 16px;
     border: none;
     background: var(--color-surface);
     color: var(--color-text-muted);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
 
+.group-switcher--full .group-switcher__btn {
+    flex: 1;
+    padding: 10px 20px;
+    font-size: 15px;
+}
+
 .group-switcher__btn--active {
     background: var(--color-primary);
     color: var(--color-white);
-}
-
-.group-switcher--full .group-switcher__btn {
-    padding: 6px 16px;
 }
 </style>

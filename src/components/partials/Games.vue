@@ -187,7 +187,7 @@ import {buildPlayOffScheme} from '@/services/playoff'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import EliminationRound from "@/components/partials/EliminationRound.vue";
-import {Timer} from "lucide-vue-next";
+import {ChevronDown, Timer} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 import RoundTimer from "@/components/partials/RoundTimer.vue";

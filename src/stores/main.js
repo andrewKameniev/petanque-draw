@@ -59,7 +59,6 @@ export const useMainStore = defineStore('main', {
         },
         savedTournaments: {},
         currentTournamentIndex: null,
-        tournamentsReady: false,
         isAdmin: false,
         user: false,
         _activePlayoffMatchPath: null,
@@ -327,7 +326,6 @@ export const useMainStore = defineStore('main', {
             }
         },
         async getTournaments() {
-            this.tournamentsReady = false;
             const dbRef = ref(database, `${this.user.uid}/tournaments/`);
             const snapshot = await get(dbRef);
             if (snapshot.exists()) {
@@ -335,7 +333,6 @@ export const useMainStore = defineStore('main', {
             } else {
                 this.setTournaments({});
             }
-            this.tournamentsReady = true;
             const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
             const snapshotSaved = await get(dbRefSaved);
             if (snapshot.exists() && snapshotSaved.val() !== null) {
@@ -381,6 +378,11 @@ export const useMainStore = defineStore('main', {
             })
         },
         setTournaments(tournaments) {
+            Object.keys(tournaments).forEach(key => {
+                const defaults = createTournament();
+                const t = tournaments[key];
+                tournaments[key] = { ...defaults, ...t, preferences: { ...defaults.preferences, ...(t.preferences || {}) } };
+            });
             this.tournaments = tournaments;
             if (!Object.keys(this.tournaments).length) {
                 this.addTournament();
@@ -576,9 +578,10 @@ export const useMainStore = defineStore('main', {
             }
             const tournamentId = Date.now();
             const tournament = createTournament({id: tournamentId, createdAt: new Date().toISOString(), ...overrides});
+            tournament.name = `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`;
             this.tournaments[tournament.id] = tournament;
             this.currentTournamentIndex = tournamentId;
-            this.changeTournamentName(`Tournament ${tournamentNames[Object.keys(this.tournaments).length - 1]}`);
+            this.syncToFirebase();
         },
         addToSaved(tournament) {
             const db = getDatabase();

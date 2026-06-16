@@ -12,15 +12,7 @@
         <div class="container">
             <div class="columns">
                 <div class="column" v-if="user">
-                    <div v-if="!tournamentsReady" class="gooey">
-                        <span class="dot"></span>
-                        <div class="dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                    <Tournament v-else-if="tournament"/>
+                    <Tournament v-if="tournament"/>
                 </div>
                 <div v-else class="login-section">
                     <!-- Forgot password form -->
@@ -204,7 +196,7 @@ export default {
         },
     },
     computed: {
-        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'user', 'currentTournament', 'tournamentsReady']),
+        ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'user', 'currentTournament']),
         tournament() {
             return this.currentTournament
         },

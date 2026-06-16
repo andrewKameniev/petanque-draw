@@ -519,6 +519,26 @@ export const useMainStore = defineStore('main', {
             tournament.groupB.eliminationRound = eliminationRound;
             this.syncToFirebase();
         },
+        startGroupBRound(round) {
+            const tournament = this.tournaments[this.currentTournamentIndex];
+            if (!tournament.groupB) return;
+            if (!tournament.groupB.games) tournament.groupB.games = [];
+            tournament.groupB.games.push(round);
+            tournament.groupB.roundIsActive = true;
+            this.syncToFirebase();
+        },
+        endGroupBRound() {
+            const tournament = this.tournaments[this.currentTournamentIndex];
+            if (!tournament.groupB) return;
+            tournament.groupB.roundIsActive = false;
+            this.syncToFirebase();
+        },
+        setGroupBPlayOff(scheme) {
+            const tournament = this.tournaments[this.currentTournamentIndex];
+            if (!tournament.groupB) return;
+            tournament.groupB.playOff = scheme;
+            this.syncToFirebase();
+        },
         completeGroupBElimination() {
             const tournament = this.tournaments[this.currentTournamentIndex];
             if (!tournament.groupB?.eliminationRound) return;

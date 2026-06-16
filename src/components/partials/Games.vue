@@ -1,5 +1,5 @@
 <template>
-    <div class="content tabs-content">
+    <div v-if="tournament" class="content tabs-content">
         <template v-if="tournament.activeGroup === 'B' && tournament.groupB">
             <EliminationRound v-if="tournament.groupB.eliminationRound && !tournament.groupB.eliminationRound.completed"
                               :teams="tournament.groupB.teams"
@@ -187,14 +187,14 @@ import {buildPlayOffScheme} from '@/services/playoff'
 import Game from "@/components/partials/Game.vue";
 import Cadrage from "@/components/partials/Cadrage.vue";
 import EliminationRound from "@/components/partials/EliminationRound.vue";
-import {ChevronDown, Timer} from "lucide-vue-next";
+import {Timer} from "lucide-vue-next";
 import FinishedBanner from "@/components/partials/FinishedBanner.vue";
 import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
 import RoundTimer from "@/components/partials/RoundTimer.vue";
 
 export default {
     name: 'Games',
-    components: {Cadrage, EliminationRound, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
+    components: {Cadrage, EliminationRound, Game, PlayOff, TeamPlayoff, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
     props: ['activeRound', 'teamsInGroup', 'rankingTeams', 'activeTournament'],
     data() {
         return {

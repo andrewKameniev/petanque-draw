@@ -575,7 +575,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'initGroupB', 'setActiveGroup', 'setGroupBEliminationRound', 'toggleWithdrawn', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'initGroupB', 'setActiveGroup', 'setGroupBEliminationRound', 'toggleWithdrawn', 'finishTournament', 'showMessage', 'addTeamToStore', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;

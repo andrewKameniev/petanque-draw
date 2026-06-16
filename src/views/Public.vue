@@ -238,11 +238,10 @@ export default {
         }
     },
     mounted() {
+        this._unsubscribers = [];
         this.getInfo();
         this._onResume = () => {
-            if (this._unsubscribe) {
-                this._unsubscribe();
-            }
+            this._unsubscribeAll();
             this.getInfo();
         };
         this._onVisibilityChange = () => {
@@ -254,9 +253,7 @@ export default {
         window.addEventListener('online', this._onResume);
     },
     beforeUnmount() {
-        if (this._unsubscribe) {
-            this._unsubscribe();
-        }
+        this._unsubscribeAll();
         document.removeEventListener('visibilitychange', this._onVisibilityChange);
         window.removeEventListener('online', this._onResume);
     },
@@ -500,15 +497,16 @@ export default {
         async getInfo() {
             this.isLoading = true;
             if (this.$route.query) {
-                this._unsubscribe = tournamentService.subscribe(this.userId, this.tournamentId, (snapshot) => {
+                try {
+                    const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
                     if (snapshot.exists()) {
                         this.tournament = snapshot.val();
                     }
-                    this.isLoading = false;
-                }, (error) => {
+                } catch (error) {
                     console.error('Error fetching data:', error);
-                    this.isLoading = false;
-                });
+                }
+                this.isLoading = false;
+                this._subscribeDynamic();
             } else {
                 const id = this.$route.params.id;
                 fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`).then(response => {
@@ -522,6 +520,30 @@ export default {
                 }).catch(() => {
                     this.isLoading = false;
                 });
+            }
+        },
+        _subscribeDynamic() {
+            const paths = [
+                'games', 'roundIsActive', 'roundTimer', 'playOff', 'playOffBracket',
+                'playOffStage', 'cadrage', 'barrage', 'tournamentIsFinished',
+                'tournamentIsStarted', 'tournamentMessage',
+                'tirPlayoff', 'tirRound', 'tirStarted'
+            ];
+            for (const path of paths) {
+                const unsub = tournamentService.subscribePath(
+                    this.userId, this.tournamentId, path,
+                    (snapshot) => {
+                        if (!this.tournament) return;
+                        this.tournament[path] = snapshot.val();
+                    }
+                );
+                this._unsubscribers.push(unsub);
+            }
+        },
+        _unsubscribeAll() {
+            if (this._unsubscribers) {
+                this._unsubscribers.forEach(fn => fn());
+                this._unsubscribers = [];
             }
         },
     }

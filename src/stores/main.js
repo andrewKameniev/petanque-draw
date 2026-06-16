@@ -78,10 +78,19 @@ export const useMainStore = defineStore('main', {
         }
     },
     actions: {
+        _syncPath(path, data) {
+            if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
+            const db = getDatabase();
+            const fullPath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${path}`;
+            return set(ref(db, fullPath), data).catch(error => {
+                console.error('Error updating path:', path, error);
+            });
+        },
         syncToFirebase() {
             clearTimeout(this._syncTimeout);
             this._syncTimeout = setTimeout(() => {
                 if (this.user && this.user.uid && this.currentTournamentIndex) {
+                    this._lastFullSyncAt = Date.now();
                     const db = getDatabase();
                     update(ref(db, `${this.user.uid}/tournaments/`), {
                         [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex]
@@ -158,6 +167,10 @@ export const useMainStore = defineStore('main', {
             const dbRef = ref(db, `${this.user.uid}/tournaments/${this.currentTournamentIndex}`);
             this._tournamentUnsubscribe = onValue(dbRef, (snapshot) => {
                 if (!snapshot.exists()) return;
+                if (this._lastFullSyncAt && Date.now() - this._lastFullSyncAt < 2000) {
+                    this._lastFullSyncAt = null;
+                    return;
+                }
                 const remote = snapshot.val();
                 const local = this.tournaments[this.currentTournamentIndex];
                 if (!local) return;
@@ -328,7 +341,7 @@ export const useMainStore = defineStore('main', {
             }
         },
         savePreferences() {
-            this.syncToFirebase();
+            this._syncPath('preferences', this.tournaments[this.currentTournamentIndex].preferences);
         },
         shuffleLanesStore(games) {
             this.tournaments[this.currentTournamentIndex].games[this.tournaments[this.currentTournamentIndex].games.length - 1] = games;
@@ -379,8 +392,8 @@ export const useMainStore = defineStore('main', {
             this.savedTournaments = tournaments;
         },
         setTournamentIdFromPortal(value) {
-            this.tournaments[this.currentTournamentIndex].portalIdTournament = value
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].portalIdTournament = value;
+            this._syncPath('portalIdTournament', value);
         },
         setTournamentInfoFromPortal(info) {
             this.tournaments[this.currentTournamentIndex].name = info.name
@@ -393,8 +406,8 @@ export const useMainStore = defineStore('main', {
             this.currentTournamentIndex = index
         },
         changeTournamentName(name) {
-            this.tournaments[this.currentTournamentIndex].name = name
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].name = name;
+            this._syncPath('name', name);
         },
         removeTournament() {
             const db = getDatabase();
@@ -437,11 +450,11 @@ export const useMainStore = defineStore('main', {
         startRound() {
             this.tournaments[this.currentTournamentIndex].roundIsActive = true;
             this._roundActivatedAt = Date.now();
-            this.syncToFirebase();
+            this._syncPath('roundIsActive', true);
         },
         endRound() {
             this.tournaments[this.currentTournamentIndex].roundIsActive = false;
-            this.syncToFirebase();
+            this._syncPath('roundIsActive', false);
         },
         startRoundTimer() {
             const tournament = this.tournaments[this.currentTournamentIndex];
@@ -459,13 +472,13 @@ export const useMainStore = defineStore('main', {
                 timerStatus: 'running',
                 timeLimitMinutes: minutes
             };
-            this.syncToFirebase();
+            this._syncPath('roundTimer', tournament.roundTimer);
         },
         endRoundTimer() {
             const tournament = this.tournaments[this.currentTournamentIndex];
             if (tournament?.roundTimer) {
                 tournament.roundTimer.timerStatus = 'ended';
-                this.syncToFirebase();
+                this._syncPath('roundTimer', tournament.roundTimer);
             }
         },
         restartRoundTimer(minutes) {
@@ -479,13 +492,13 @@ export const useMainStore = defineStore('main', {
                 timerStatus: 'running',
                 timeLimitMinutes: minutes
             };
-            this.syncToFirebase();
+            this._syncPath('roundTimer', tournament.roundTimer);
         },
         clearRoundTimer() {
             const tournament = this.tournaments[this.currentTournamentIndex];
             if (tournament) {
                 tournament.roundTimer = null;
-                this.syncToFirebase();
+                this._syncPath('roundTimer', null);
             }
         },
         addRoundToGames(round) {
@@ -505,40 +518,41 @@ export const useMainStore = defineStore('main', {
             this.syncToFirebase();
         },
         setPlayOff(scheme) {
-            this.tournaments[this.currentTournamentIndex].playOff = scheme
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].playOff = scheme;
+            this._syncPath('playOff', scheme);
         },
         setCadrage(games) {
             this.tournaments[this.currentTournamentIndex].cadrage = games;
             this.tournaments[this.currentTournamentIndex].isCadrage = true;
-            this.syncToFirebase();
+            this._syncPath('cadrage', games);
+            this._syncPath('isCadrage', true);
         },
         setBarrage(barrage) {
             this.tournaments[this.currentTournamentIndex].barrage = barrage;
-            this.syncToFirebase();
+            this._syncPath('barrage', barrage);
         },
         setBarrageGames(games) {
             this.tournaments[this.currentTournamentIndex].games = games;
-            this.syncToFirebase();
+            this._syncPath('games', games);
         },
         saveCadrageScores() {
             this.tournaments[this.currentTournamentIndex].cadrage = [...this.tournaments[this.currentTournamentIndex].cadrage];
-            this.syncToFirebase();
+            this._syncPath('cadrage', this.tournaments[this.currentTournamentIndex].cadrage);
         },
         setPlayOffBracket(bracket) {
-            this.tournaments[this.currentTournamentIndex].playOffBracket = bracket
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].playOffBracket = bracket;
+            this._syncPath('playOffBracket', bracket);
         },
         setPlayOffStage(stage) {
-            this.tournaments[this.currentTournamentIndex].playOffStage = stage
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].playOffStage = stage;
+            this._syncPath('playOffStage', stage);
         },
         updateGameScore({activeRound, gameIndex, team, score}) {
             this.tournaments[this.currentTournamentIndex].games[activeRound][gameIndex][team] = score;
         },
         finishTournament() {
-            this.tournaments[this.currentTournamentIndex].tournamentIsFinished = true
-            this.syncToFirebase();
+            this.tournaments[this.currentTournamentIndex].tournamentIsFinished = true;
+            this._syncPath('tournamentIsFinished', true);
         },
         showMessage({title, text, type = 'success'}) {
             this.message = {
@@ -599,7 +613,7 @@ export const useMainStore = defineStore('main', {
             }
             if (isGroupB) {
                 this.tournaments[this.currentTournamentIndex].isGroupB = true;
-                this.syncToFirebase();
+                this._syncPath('isGroupB', true);
             }
         },
         saveTournamentData() {

@@ -21,6 +21,13 @@ export const tournamentService = {
         const dbRef = ref(db, `${uid}/tournaments/${tournamentId}`);
         return onValue(dbRef, callback, errorCallback);
     },
+    getOne(uid, tournamentId) {
+        return get(ref(db, `${uid}/tournaments/${tournamentId}`));
+    },
+    subscribePath(uid, tournamentId, path, callback, errorCallback) {
+        const dbRef = ref(db, `${uid}/tournaments/${tournamentId}/${path}`);
+        return onValue(dbRef, callback, errorCallback);
+    },
 };
 
 export const savedService = {

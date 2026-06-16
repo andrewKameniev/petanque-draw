@@ -547,7 +547,7 @@ export default {
                 'playOffStage', 'cadrage', 'barrage', 'tournamentIsFinished',
                 'tournamentIsStarted', 'tournamentMessage',
                 'tirPlayoff', 'tirRound', 'tirStarted',
-                'teams', 'preferences'
+                'teams', 'preferences', 'streamPresets'
             ];
             for (const path of paths) {
                 const unsub = tournamentService.subscribePath(

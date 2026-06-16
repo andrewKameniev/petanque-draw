@@ -78,17 +78,17 @@
                                 <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" style="margin-right: 0.5rem;">
                                 {{ $t('modals.noTimeLimitFinale') }}
                             </label>
-                            <div class="mt-5">
-                                <label class="prefs__label prefs__label--sub">{{ $t('modals.cochonettes') }}</label>
-                                <div class="select is-fullwidth">
-                                    <select v-model.number="tournament.preferences.cochonettes">
-                                        <option :value="1">1</option>
-                                        <option :value="2">2</option>
-                                    </select>
-                                </div>
-                                <span class="prefs__hint">{{ $t('modals.cochonettesHint') }}</span>
-                            </div>
                         </div>
+                    </div>
+                    <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__item">
+                        <label class="prefs__label">{{ $t('modals.cochonettes') }}</label>
+                        <div class="select is-fullwidth">
+                            <select v-model.number="tournament.preferences.cochonettes">
+                                <option :value="1">1</option>
+                                <option :value="2">2</option>
+                            </select>
+                        </div>
+                        <span class="prefs__hint">{{ $t('modals.cochonettesHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
@@ -96,6 +96,13 @@
                             {{ $t('modals.perRoundScoring') }}
                         </label>
                         <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
+                    </div>
+                    <div class="prefs__item">
+                        <label class="prefs__label">
+                            <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem;">
+                            {{ $t('setup.testTournament') }}
+                        </label>
+                        <span class="prefs__hint">{{ $t('setup.testTournamentHint') }}</span>
                     </div>
                 </div>
             </div>

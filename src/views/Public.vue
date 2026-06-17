@@ -239,7 +239,7 @@ import Ranking from "@/components/partials/Ranking";
 import Results from "@/components/partials/Results";
 import TeamsList from "@/components/partials/TeamsList";
 import {tournamentService} from "@/services/db";
-import {getTeamsRanking} from "@/helpers";
+import {getTeamsRanking, pluralizeRounds, formatSwissDescription} from "@/helpers";
 import {getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass} from "@/services/streams";
 import {Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
 import YoutubeIcon from "@/components/icons/YoutubeIcon.vue";
@@ -400,30 +400,12 @@ export default {
             if (this.tournament.system !== 'swiss') {
                 return this.$t('teams.' + this.tournament.system);
             }
-            let desc;
-            if (this.tournament.games?.length) {
-                const barrage = this.tournament.barrage;
-                const swissRounds = barrage ? barrage.startIndex : this.tournament.games.length;
-                const total = this.tournament.preferences?.swissRoundsCount;
-                if (total) {
-                    desc = swissRounds + '/' + total + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-                } else {
-                    desc = swissRounds + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-                }
-                if (barrage) {
-                    desc += ' + ' + this.$t('games.poulesBarrage').toLowerCase();
-                }
-            } else {
-                desc = this.$t('teams.' + this.tournament.system);
-                const total = this.tournament.preferences?.swissRoundsCount;
-                if (total) {
-                    desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
-                }
-            }
-            if (this.tournament.playOff || this.tournament.playoff || this.tournament.preferences?.playOffEnabled) {
-                desc += ' + ' + this.$t('games.playOff').toLowerCase();
-            }
-            return desc;
+            return formatSwissDescription(this.tournament, this.$i18n.locale, {
+                swiss: this.$t('ranking.swiss'),
+                playOff: this.$t('games.playOff').toLowerCase(),
+                poulesBarrage: this.$t('games.poulesBarrage').toLowerCase(),
+                systemLabel: this.$t('teams.' + this.tournament.system)
+            });
         },
         cadrageRange() {
             if (!this.tournament?.cadrage?.length) return '';
@@ -504,14 +486,7 @@ export default {
             return { userId, tournamentId };
         },
         pluralizeRounds(n) {
-            if (this.$i18n.locale === 'ua') {
-                const mod10 = n % 10;
-                const mod100 = n % 100;
-                if (mod10 === 1 && mod100 !== 11) return 'коло';
-                if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'кола';
-                return 'кіл';
-            }
-            return n === 1 ? 'round' : 'rounds';
+            return pluralizeRounds(n, this.$i18n.locale);
         },
         async getInfo() {
             this.isLoading = true;

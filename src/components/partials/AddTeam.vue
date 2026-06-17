@@ -6,6 +6,10 @@
                 <span v-if="importing" class="add-team-card__spinner"></span>
                 {{ importing ? $t('teams.importing') : $t('teams.importPortal') }}
             </button>
+            <button v-if="tournament.teams && tournament.teams.length" class="add-team-card__btn add-team-card__btn--clear" @click="onClearTeams">
+                <Trash2 :size="14"/>
+                {{ $t('teams.clearTeams') }}
+            </button>
         </div>
         <div class="add-team-card__row">
             <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--name" type="text" data-testid="input-team-title" :placeholder="$t('teams.teamTitle')">
@@ -25,9 +29,11 @@
 <script>
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
+import {Trash2} from "lucide-vue-next";
 
 export default {
     name: 'AddTeam',
+    components: {Trash2},
     props: ['importHidden', 'showRestore'],
     data(){
         return {
@@ -45,7 +51,7 @@ export default {
         },
     },
     methods: {
-        ...mapActions(useMainStore, ['addTeamToStore', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal']),
+        ...mapActions(useMainStore, ['addTeamToStore', 'clearTeams', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal', 'syncToFirebase']),
         addTeam(title, rating, players = false, portalTeamId = null, club = null){
             if(title !== null && title !== ''){
                 let teamExists = false;
@@ -73,6 +79,7 @@ export default {
                         lanes: [],
                     }
                     this.addTeamToStore(team)
+                    this.syncToFirebase();
                     this.teamTitle = null;
                     this.teamRating = null;
                 } else {
@@ -97,6 +104,7 @@ export default {
                     })
                     this.setTournamentInfoFromPortal(importedList.tournament);
                     this.setTournamentIdFromPortal(this.tournamentId);
+                    this.syncToFirebase();
                 } else {
                     this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.tournamentNotFound'), type: 'error'});
                 }
@@ -105,6 +113,9 @@ export default {
             } finally {
                 this.importing = false;
             }
+        },
+        onClearTeams() {
+            this.clearTeams();
         }
     },
 }
@@ -178,6 +189,21 @@ export default {
 .add-team-card__btn--import:hover:not(:disabled) {
     background: var(--color-primary-light);
     border-color: var(--color-primary-light);
+}
+
+.add-team-card__btn--clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.add-team-card__btn--clear:hover {
+    background: var(--color-danger, #e53e3e);
+    border-color: var(--color-danger, #e53e3e);
+    color: #fff;
 }
 
 .add-team-card__btn:disabled {

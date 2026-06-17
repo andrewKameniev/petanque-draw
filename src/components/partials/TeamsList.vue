@@ -1,5 +1,9 @@
 <template>
-    <div v-if="(tournament.system === 'groups' || tournament.system === 'poules') && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
+    <div v-if="!tournament.teams || !tournament.teams.length" class="teams-empty">
+        <Users :size="40" class="teams-empty__icon"/>
+        <p class="teams-empty__text">{{ $t('common.noTeams') }}</p>
+    </div>
+    <div v-else-if="(tournament.system === 'groups' || tournament.system === 'poules') && (activeRound > 1 || tournament.roundIsActive)" class="mb-5">
         <div v-for="(group, index) in sortedGroups" :key="index">
             <h4 class="mt-5 text-center" v-if="sortedGroups.length > 1">{{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}</h4>
             <div v-if="hasRichData" class="teams-cards">
@@ -18,7 +22,7 @@
                             </a>
                             <div class="team-card__title-block">
                                 <span class="team-card__name">{{ team.title }}</span>
-                                <a v-if="isSameClubTeam(team) && getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{ getTeamClub(team) }}</a>
+                                <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{ getTeamClub(team) }}</a>
                             </div>
                             <span v-if="tournament.useRating" class="rating-badge"><Star :size="12"/>{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span>
                         </div>
@@ -92,7 +96,7 @@
                     </a>
                     <div class="team-card__title-block">
                         <span class="team-card__name">{{ team.title }}</span>
-                        <a v-if="isSameClubTeam(team) && getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{ getTeamClub(team) }}</a>
+                        <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{ getTeamClub(team) }}</a>
                     </div>
                     <span v-if="tournament.useRating" class="rating-badge"><Star :size="12"/>{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span>
                     <button v-if="showRemove" class="team-remove-btn" @click.prevent="removeTeam(team.title)">
@@ -168,11 +172,11 @@
 import {mapState, mapActions} from "pinia";
 import {useMainStore} from "@/stores/main";
 import {tournamentNames, sortTeams, rankGroupByRegulations} from "@/helpers";
-import {X, Star, UserCircle, TrendingUp} from "lucide-vue-next";
+import {Users, X, Star, UserCircle, TrendingUp} from "lucide-vue-next";
 
 export default {
     name: "TeamsList",
-    components: {X, Star, UserCircle, TrendingUp},
+    components: {Users, X, Star, UserCircle, TrendingUp},
     props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
@@ -289,7 +293,7 @@ export default {
             return team.players.length > 1 && pIdx === 0;
         },
         isSameClubTeam(team) {
-            if (!team.players || team.players.length <= 1) return false;
+            if (!team.players || !team.players.length) return false;
             const clubId = team.players[0].club_id;
             if (!clubId) return false;
             return team.players.every(p => p.club_id === clubId);
@@ -617,5 +621,26 @@ export default {
     .player-chip__name {
         font-size: 0.78rem;
     }
+}
+
+.teams-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.teams-empty__icon {
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    margin-bottom: 0.75rem;
+}
+
+.teams-empty__text {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    margin: 0;
 }
 </style>

@@ -536,7 +536,8 @@ export const useMainStore = defineStore('main', {
       const prefs = tournament.preferences;
       const isPlayoff = !!(tournament.playOff || tournament.cadrage || tournament.teamPlayoff);
       const isFinale =
-        tournament.playOff?.length && tournament.playOff[tournament.playOff.length - 1].teams?.length === 1;
+        tournament.playOffStage === 1 ||
+        (tournament.playOff?.length && tournament.playOff[tournament.playOff.length - 1].teams?.length === 1);
       if (isFinale && prefs.noTimeLimitFinale) return;
       const minutes = isPlayoff && prefs.playoffTimeLimit ? prefs.playoffTimeLimit : prefs.timeLimit;
       const now = new Date().toISOString();

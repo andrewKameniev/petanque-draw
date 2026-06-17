@@ -90,17 +90,24 @@ export const useMainStore = defineStore('main', {
         syncToFirebase() {
             clearTimeout(this._syncTimeout);
             this._syncTimeout = setTimeout(() => {
-                if (this.user && this.user.uid && this.currentTournamentIndex) {
-                    this._lastFullSyncAt = Date.now();
-                    const db = getDatabase();
-                    update(ref(db, `${this.user.uid}/tournaments/`), {
-                        [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex]
-                    }).catch(error => {
-                        console.error('Error updating specific tournament:', error)
-                        this.showMessage({title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
-                    });
-                }
+                this._doSync();
             }, 300);
+        },
+        syncToFirebaseNow() {
+            clearTimeout(this._syncTimeout);
+            this._doSync();
+        },
+        _doSync() {
+            if (this.user && this.user.uid && this.currentTournamentIndex) {
+                this._lastFullSyncAt = Date.now();
+                const db = getDatabase();
+                update(ref(db, `${this.user.uid}/tournaments/`), {
+                    [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex]
+                }).catch(error => {
+                    console.error('Error updating specific tournament:', error)
+                    this.showMessage({title: i18n.global.t('messages.error'), text: i18n.global.t('messages.failedSaving'), type: 'error'});
+                });
+            }
         },
         setActivePlayoffMatchPath(path) {
             this._activePlayoffMatchPath = path;
@@ -404,6 +411,8 @@ export const useMainStore = defineStore('main', {
         setTournamentInfoFromPortal(info) {
             this.tournaments[this.currentTournamentIndex].name = info.name
             this.tournaments[this.currentTournamentIndex].date = info.start_date
+            this._syncPath('name', info.name);
+            this._syncPath('date', info.start_date);
         },
         loginUser(value) {
             this.user = value;
@@ -449,6 +458,11 @@ export const useMainStore = defineStore('main', {
         },
         removeTeam(titleToRemove) {
             this.tournaments[this.currentTournamentIndex].teams = this.tournaments[this.currentTournamentIndex].teams.filter(team => team.title !== titleToRemove);
+        },
+        clearTeams() {
+            this.tournaments[this.currentTournamentIndex].teams = [];
+            localStorage.removeItem('petanqueDrawTeamsRestore');
+            this._syncPath('teams', []);
         },
         changeDrawType(value) {
             this.tournaments[this.currentTournamentIndex].useRating = value;

@@ -172,8 +172,9 @@
                 </div>
             </div>
         </div>
-        <div v-else class="mb-5 mt-5">
-            {{ $t('games.noGames') }}
+        <div v-else class="results-empty">
+            <List :size="40" class="results-empty__icon"/>
+            <p class="results-empty__text">{{ $t('games.noGames') }}</p>
         </div>
         <Bracket v-if="showBracket" :bracket="tournament.playOffBracket" @close-modal="showBracket = false"/>
         <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null"/>
@@ -190,11 +191,11 @@ import {saveResultsForRound} from "@/services/draw";
 import {getDatabase, ref, update} from "firebase/database";
 import Bracket from "@/components/partials/Bracket";
 import EditResultModal from "@/components/partials/EditResultModal.vue";
-import {GitFork, Pencil} from "lucide-vue-next";
+import {GitFork, List, Pencil} from "lucide-vue-next";
 
 export default {
     name: 'Results',
-    components: {Bracket, EditResultModal, GitFork, Pencil},
+    components: {Bracket, EditResultModal, GitFork, List, Pencil},
     props: ['previewTournament', 'isForProtocol', 'onlyQualifying', 'onlyPlayOff', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'cardView', 'sectionTitle'],
     data() {
         return {
@@ -500,5 +501,26 @@ export default {
 .edit-result-btn--card {
     flex-shrink: 0;
     margin-left: auto;
+}
+
+.results-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.results-empty__icon {
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    margin-bottom: 0.75rem;
+}
+
+.results-empty__text {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    margin: 0;
 }
 </style>

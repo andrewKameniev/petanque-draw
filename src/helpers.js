@@ -578,4 +578,45 @@ function buildEliminationGames(teams, elimCount) {
     };
 }
 
-export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray, rankGroupByRegulations, updateScoreHistory, buildGroupBView, buildEliminationGames}
+function pluralizeRounds(n, locale) {
+    if (locale === 'ua') {
+        const mod10 = n % 10;
+        const mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return 'коло';
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'кола';
+        return 'кіл';
+    }
+    return n === 1 ? 'round' : 'rounds';
+}
+
+function formatSwissDescription(tournament, locale, labels) {
+    const { swiss, playOff, poulesBarrage, systemLabel } = labels;
+    let desc;
+    if (tournament.games?.length) {
+        const barrage = tournament.barrage;
+        const swissRounds = barrage ? barrage.startIndex : tournament.games.length;
+        const total = tournament.preferences?.swissRoundsCount;
+        if (total && swissRounds > 1) {
+            desc = swissRounds + '/' + total + ' ' + pluralizeRounds(swissRounds, locale) + ' ' + swiss;
+        } else if (total) {
+            desc = total + ' ' + pluralizeRounds(total, locale) + ' ' + swiss;
+        } else {
+            desc = swissRounds + ' ' + pluralizeRounds(swissRounds, locale) + ' ' + swiss;
+        }
+        if (barrage) {
+            desc += ' + ' + poulesBarrage;
+        }
+    } else {
+        desc = systemLabel;
+        const total = tournament.preferences?.swissRoundsCount;
+        if (total) {
+            desc += ' (' + total + ' ' + pluralizeRounds(total, locale) + ')';
+        }
+    }
+    if (tournament.playOff || tournament.playoff || tournament.preferences?.playOffEnabled) {
+        desc += ' + ' + playOff;
+    }
+    return desc;
+}
+
+export {tournamentNames, getGameResultInGroup, getTournamentRanking, getTeamsRanking, gameHasError, copyContent, regions, sortTeams, countBuhgolts, isScoreError, shuffleArray, rankGroupByRegulations, updateScoreHistory, buildGroupBView, buildEliminationGames, pluralizeRounds, formatSwissDescription}

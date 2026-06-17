@@ -49,6 +49,7 @@
                 <strong class="pointer" @click="startEditName"> {{ tournament.name }}</strong>
             </template>
             <span v-if="tournamentStarted" class="is-size-5 is-capitalized">({{tournament.system}})</span>
+            <span v-if="tournament.preferences?.isTestTournament" class="test-badge">Test</span>
         </div>
         <!-- PRE-START: Setup flow -->
         <template v-if="!tournamentStarted">
@@ -396,6 +397,10 @@
             </div>
         <div class="bottom-actions" v-if="tournament.system !== 'tir'">
             <div class="bottom-actions__row">
+                <button v-if="tournament.preferences?.isTestTournament && !tournament.tournamentIsFinished && (tournament.roundIsActive || tournament.cadrage?.length || tournament.playOff?.length)" class="bottom-actions__btn bottom-actions__btn--test" @click="autoFillScores">
+                    <Zap :size="16"/>
+                    {{ $t('setup.autoFillScores') }}
+                </button>
                 <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="openPlayoffConfirm">
                     {{ $t('ranking.goPlayOff') }}
                 </button>
@@ -409,6 +414,10 @@
                 <button v-if="tournamentStarted" data-testid="btn-preferences" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
                     <IconSettings :size="16"/>
                     {{ $t('teams.preferences') }}
+                </button>
+                <button v-if="tournament.games?.length === 1 && tournament.roundIsActive" class="bottom-actions__btn bottom-actions__btn--outline" @click="redrawRounds">
+                    <RefreshCw :size="16"/>
+                    {{ $t('setup.redraw') }}
                 </button>
                 <span v-if="canSaveTournament || tournament.tournamentIsFinished" class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
                     <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
@@ -512,7 +521,8 @@ import Preferences from "@/components/partials/Preferences";
 import Protocol from "@/components/partials/Protocol";
 import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
 import {IconPin, IconSettings, IconArchive} from "@/components/icons";
-import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download} from "lucide-vue-next";
+import {Play, Undo2, Trash2, ChevronDown, Link, MessageCircle, Check, X, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap} from "lucide-vue-next";
+import {autoFillScores as autoFillScoresFn} from "@/services/testUtils";
 import StreamPresets from "@/components/partials/StreamPresets.vue";
 import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
 import TirModule from "@/components/tir/TirModule.vue";
@@ -586,7 +596,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'addRoundToGames', 'savePreferences']),
+        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'syncToFirebaseNow', 'addRoundToGames', 'savePreferences', 'clearRoundTimer']),
         startEditName() {
             this.editNameValue = this.tournament.name;
             this.editingName = true;
@@ -859,7 +869,8 @@ export default {
         },
         redrawRounds() {
             if (!this.tournament.games?.length) return;
-            if (this.tournament.roundIsActive) return;
+            if (this.tournament.roundIsActive && this.tournament.games.length > 1) return;
+            this.clearRoundTimer();
             this.tournament.games = [];
             this.tournament.teams.forEach(team => {
                 team.lanes = [];
@@ -898,8 +909,12 @@ export default {
 
             this.tournament.roundIsActive = false;
             this.tournament.tournamentIsStarted = false;
-            this.syncToFirebase();
+            this.syncToFirebaseNow();
             this.showMessage({title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText')});
+        },
+        autoFillScores() {
+            autoFillScoresFn(this.tournament, this.activeRound);
+            this.syncToFirebase();
         }
     },
     computed: {
@@ -1011,6 +1026,7 @@ export default {
         Undo2,
         Trash2,
         RefreshCw,
+        Zap,
         IconPin,
         IconSettings,
         IconArchive,
@@ -1846,6 +1862,28 @@ export default {
 .confirm-playoff__btn--confirm:hover {
     background: var(--color-primary-light, #5b21b6);
     border-color: var(--color-primary-light, #5b21b6);
+}
+
+.test-badge {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 4px;
+    background: var(--color-warning, #f59e0b);
+    color: var(--color-btn-text, #fff);
+}
+
+.bottom-actions__btn--test {
+    background: var(--color-warning, #f59e0b);
+    color: var(--color-btn-text, #fff);
+    border-color: var(--color-warning, #f59e0b);
+}
+
+.bottom-actions__btn--test:hover {
+    background: var(--color-warning-hover, #d97706);
+    border-color: var(--color-warning-hover, #d97706);
 }
 </style>
 

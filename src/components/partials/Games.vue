@@ -366,8 +366,9 @@ export default {
       if (!this.tournament.roundIsActive) return false;
       const prefs = this.tournament.preferences;
       const isFinale =
-        this.tournament.playOff?.length &&
-        this.tournament.playOff[this.tournament.playOff.length - 1].teams?.length === 1;
+        this.tournament.playOffStage === 1 ||
+        (this.tournament.playOff?.length &&
+          this.tournament.playOff[this.tournament.playOff.length - 1].teams?.length === 1);
       if (isFinale && prefs.noTimeLimitFinale) return false;
       return true;
     },

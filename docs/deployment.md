@@ -17,6 +17,7 @@ Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and
 ## CI/CD
 
 `.github/workflows/deploy.yml` runs on push to `develop`:
+
 1. Checkout code
 2. `npm ci`
 3. `npm run build`

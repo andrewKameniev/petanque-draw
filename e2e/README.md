@@ -29,6 +29,7 @@ npx playwright test -g "8 teams — swiss + cadrage"
 ## Test Account
 
 Tests use a shared Firebase test account:
+
 - Email: `e2e-test-petanque@mailinator.com`
 - Password: `TestPass123!`
 
@@ -37,12 +38,15 @@ The `auth.spec.js` registers this account on first run. Subsequent runs login wi
 ## Test Structure
 
 ### auth.spec.js
+
 - Register new user
 - Login with correct credentials
 - Login with wrong password (error handling)
 
 ### swiss.spec.js
+
 Swiss system tournaments with various configurations:
+
 - 4 teams (uses supermele since Swiss needs 5+)
 - 8 teams — plain swiss, finish without playoff
 - 8 teams — swiss + playoff (top 4, no cadrage)
@@ -54,20 +58,26 @@ Swiss system tournaments with various configurations:
 - Swiss round limit enforcement (cannot draw beyond N/2)
 
 ### groups.spec.js
+
 Round-robin (groups) system:
+
 - 8 teams — 2 groups of 4, full round-robin, finish
 - 16 teams — 4 groups of 4
 - 8 teams — groups → playoff via ranking tab
 
 ### supermele.spec.js
+
 Supermele (random team formation):
+
 - 8 players — doubles, 3 rounds
 - 9 players — triples, 3 rounds
 - 16 players — doubles, 4 rounds
 - Adding players mid-tournament
 
 ### tournament-management.spec.js
+
 General tournament management:
+
 - Create and delete empty tournament
 - 10-tournament limit enforcement
 - Inline rename
@@ -80,35 +90,36 @@ General tournament management:
 Every test MUST delete its tournament after completion. This prevents hitting the 10-tournament Firebase limit and ensures tests are independent.
 
 Pattern:
+
 ```javascript
-test('my test', async ({page}) => {
-    // ... do test work ...
-    await deleteCurrentTournament(page);
+test('my test', async ({ page }) => {
+  // ... do test work ...
+  await deleteCurrentTournament(page);
 });
 ```
 
 ## Helpers (e2e/helpers.js)
 
-| Function | Description |
-|----------|-------------|
-| `register(page)` | Register test account |
-| `login(page)` | Login with test credentials |
-| `ensureLoggedIn(page)` | Login if not already authenticated |
-| `addTeams(page, count)` | Add N teams with generated names |
-| `selectSystem(page, system)` | Choose swiss/groups/supermele |
-| `drawFirstRound(page)` | Click "Draw first round" button |
-| `fillRandomScores(page)` | Fill all score inputs with random valid scores |
-| `saveResults(page)` | Click save results |
-| `drawNextRound(page)` | Click the "Draw N round" link |
-| `playRound(page)` | Fill scores + save (one round) |
-| `playMultipleRounds(page, n)` | Draw + play N additional rounds |
-| `goToPlayOff(page)` | Click "Go Playoff" bottom button |
-| `clickFinishTournament(page)` | Click "Finish Tournament" |
-| `enablePlayOff(page)` | Check playoff checkbox in setup |
-| `enableCadrage(page)` | Check cadrage checkbox |
-| `setPlayOffTeams(page, n)` | Select playoff team count |
-| `fillCadrageScores(page)` | Fill cadrage game scores |
-| `saveCadrageAndStartPlayOff(page)` | Save cadrage → auto starts playoff |
-| `deleteTournament(page)` | Delete via preferences |
-| `deleteCurrentTournament(page)` | Delete (tries empty button first, then preferences) |
-| `deleteAllTournaments(page)` | Delete all tournaments (cleanup) |
+| Function                           | Description                                         |
+| ---------------------------------- | --------------------------------------------------- |
+| `register(page)`                   | Register test account                               |
+| `login(page)`                      | Login with test credentials                         |
+| `ensureLoggedIn(page)`             | Login if not already authenticated                  |
+| `addTeams(page, count)`            | Add N teams with generated names                    |
+| `selectSystem(page, system)`       | Choose swiss/groups/supermele                       |
+| `drawFirstRound(page)`             | Click "Draw first round" button                     |
+| `fillRandomScores(page)`           | Fill all score inputs with random valid scores      |
+| `saveResults(page)`                | Click save results                                  |
+| `drawNextRound(page)`              | Click the "Draw N round" link                       |
+| `playRound(page)`                  | Fill scores + save (one round)                      |
+| `playMultipleRounds(page, n)`      | Draw + play N additional rounds                     |
+| `goToPlayOff(page)`                | Click "Go Playoff" bottom button                    |
+| `clickFinishTournament(page)`      | Click "Finish Tournament"                           |
+| `enablePlayOff(page)`              | Check playoff checkbox in setup                     |
+| `enableCadrage(page)`              | Check cadrage checkbox                              |
+| `setPlayOffTeams(page, n)`         | Select playoff team count                           |
+| `fillCadrageScores(page)`          | Fill cadrage game scores                            |
+| `saveCadrageAndStartPlayOff(page)` | Save cadrage → auto starts playoff                  |
+| `deleteTournament(page)`           | Delete via preferences                              |
+| `deleteCurrentTournament(page)`    | Delete (tries empty button first, then preferences) |
+| `deleteAllTournaments(page)`       | Delete all tournaments (cleanup)                    |

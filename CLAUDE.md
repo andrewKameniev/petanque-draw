@@ -22,6 +22,7 @@ npm run test:run   # single run
 ### E2E Tests (Playwright)
 
 **IMPORTANT:** Read `e2e/README.md` before running e2e tests. It contains:
+
 - Test account credentials (do NOT ask the user for them)
 - Helper functions API
 - Cleanup requirements (every test must delete its tournament)
@@ -33,6 +34,7 @@ npm run e2e:ui       # interactive UI
 ```
 
 **When using Playwright MCP (`playwright-cli` skill):**
+
 - Base URL: `http://localhost:5173`
 - Test account: see `e2e/README.md` for credentials
 - Always use the `playwright-cli` skill, not raw bash commands

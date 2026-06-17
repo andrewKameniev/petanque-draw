@@ -14,6 +14,7 @@ tournament.streamPresets = {
 ## Resolution Order
 
 For each game, streams are resolved in this order (deduplicated by URL):
+
 1. Manual `game.stream_url` (set per-game in admin)
 2. Team presets (both team_1 and team_2 URLs)
 3. Lane presets (based on `gameIndex + fieldsStart`)
@@ -21,6 +22,7 @@ For each game, streams are resolved in this order (deduplicated by URL):
 ## Platform Detection
 
 URLs are matched to platforms by content:
+
 - `youtube` / `youtu.be` -> YouTube (red icon)
 - `twitch` -> Twitch (purple icon)
 - `facebook` / `fb.` -> Facebook (blue icon)
@@ -30,6 +32,7 @@ URLs are matched to platforms by content:
 ## Admin Tab
 
 The "Streams" tab (Radio icon, always red) has two subtabs:
+
 - **Teams**: assign stream URLs per team
 - **Lanes**: assign stream URLs per lane number
 

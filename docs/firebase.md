@@ -64,6 +64,7 @@ root/
 ## Realtime Sync
 
 The Vuex store uses `store.subscribe()` to auto-save after specific mutations:
+
 - `savePreferences`, `saveTournamentData`, `finishTournament`
 - `changeTournamentName`, `setPlayOffStage`, `setPlayOffBracket`
 - `setPlayOff`, `setCadrage`, `saveCadrageScores`

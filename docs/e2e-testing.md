@@ -22,9 +22,9 @@ document.querySelectorAll('input[id^="opponent_"]').forEach((opponentInput) => {
 
 Use these IDs in the "Import from portal" input to quickly populate teams:
 
-| ID  | Teams | Format |
-|-----|-------|--------|
-| 474 | 48    | —      |
-| 23  | 32    | Triples |
-| 717 | 16    | Doubles |
+| ID  | Teams | Format      |
+| --- | ----- | ----------- |
+| 474 | 48    | —           |
+| 23  | 32    | Triples     |
+| 717 | 16    | Doubles     |
 | 508 | 41    | Tete-a-tete |

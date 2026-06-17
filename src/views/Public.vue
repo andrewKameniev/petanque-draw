@@ -145,10 +145,6 @@
           </div>
         </div>
       </div>
-      <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
-        <span>{{ highlightedTeam }}</span>
-        <X :size="14" />
-      </div>
       <div v-if="showCurrentRound" class="current-round-card mt-3 mb-3">
         <div class="tournament-info-card tournament-info-card--inline">
           <span class="badge badge-corner" :class="badgeClass">
@@ -191,6 +187,10 @@
             ></span
           >
           <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
+        </div>
+        <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
+          <span>{{ highlightedTeam }}</span>
+          <X :size="14" />
         </div>
         <RoundTimer
           v-if="showPublicTimer"
@@ -746,8 +746,9 @@ export default {
 }
 
 .search-filter-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: fit-content;
   gap: 0.3rem;
   padding: 0.25rem 0.6rem;
   background: var(--color-primary);
@@ -756,7 +757,7 @@ export default {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 0.5rem auto;
+  margin: -0.25rem auto 0.5rem;
   transition: opacity 0.15s;
 }
 

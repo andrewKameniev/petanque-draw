@@ -267,7 +267,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncToFirebaseNow', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncToFirebaseNow', 'syncGameMatch', 'syncGames', 'syncTeams', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
         gameHasError,
         onTimerEnded() {
             this.endRoundTimer();
@@ -450,6 +450,7 @@ export default {
             this.finishRound();
         },
         restoreRoundGames(){
+            this.clearRoundTimer();
             this.isRestoredRound = true;
             if (this.tournament.playOff || this.tournament.cadrage?.length) {
                 const bracket = this.tournament.playOffBracket;

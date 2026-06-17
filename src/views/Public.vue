@@ -88,23 +88,24 @@
                             'match-item--upcoming': !game.status || game.status === 'not_started'
                          }"
                          v-for="(game, index) in tournament.cadrage" :key="'cadrage-'+index">
-                        <span class="match-lane-left">{{ index + (tournament.preferences?.fieldsStart || 1) }}</span>
+                        <span class="match-lane-left" :class="{
+                            'match-lane-left--active': game.status === 'in_progress',
+                            'match-lane-left--finished': game.status === 'finished'
+                        }">{{ index + (tournament.preferences?.fieldsStart || 1) }}</span>
                         <span class="match-team match-team-right" :class="{
                             'match-team--winner': game.status === 'finished' && Number(game.team_1_score) > Number(game.team_2_score)
                         }">{{ game.team_1 }}</span>
                         <span class="match-vs">
-                            <span class="match-score">
-                                <template v-if="game.status === 'in_progress' || game.status === 'finished'">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</template>
-                                <template v-else>-- : --</template>
-                            </span>
+                            <template v-if="game.status === 'in_progress' || game.status === 'finished'">
+                                <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                            </template>
+                            <template v-else>
+                                <span class="match-score match-score--pending">-- : --</span>
+                            </template>
                         </span>
                         <span class="match-team" :class="{
                             'match-team--winner': game.status === 'finished' && Number(game.team_2_score) > Number(game.team_1_score)
                         }">{{ game.team_2 }}</span>
-                        <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
-                            <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-                        </span>
-                        <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{ $t('teamPlayoff.matchFinished') }}</span>
                     </div>
                 </div>
             </div>
@@ -159,6 +160,10 @@
                             'match-item--upcoming': !game.status || game.status === 'not_started'
                          }"
                          v-for="(game, index) in tournament.games[activeRound - 1]" :key="index">
+                        <span class="match-lane-left" :class="{
+                            'match-lane-left--active': game.status === 'in_progress',
+                            'match-lane-left--finished': game.status === 'finished'
+                        }">{{ index + tournament.preferences.fieldsStart }}</span>
                         <span class="match-team match-team-right" :class="{
                             'match-team--highlighted': isTeamNameHighlighted(game.team_1),
                             'match-team--winner': game.status === 'finished' && game.winner === game.team_1
@@ -168,7 +173,7 @@
                                 <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
                             </template>
                             <template v-else>
-                                <span class="match-lane">{{ index + tournament.preferences.fieldsStart }}</span>
+                                <span class="match-score match-score--pending">-- : --</span>
                             </template>
                         </span>
                         <span class="match-team" :class="{
@@ -367,6 +372,8 @@ export default {
             if (this.tournament?.system === 'tir') {
                 return this.tirPhaseLabel;
             }
+            if (this.tournament?.playOff || this.tournament?.playOffBracket) return this.$t('games.playOff');
+            if (this.tournament?.cadrage) return this.$t('games.cadrage');
             const round = this.tournament?.games?.length || 0;
             if (round) return `${this.$t('common.round')} ${round}`;
             return this.$t('common.active');
@@ -522,7 +529,7 @@ export default {
                 'playOffStage', 'cadrage', 'barrage', 'tournamentIsFinished',
                 'tournamentIsStarted', 'tournamentMessage',
                 'tirPlayoff', 'tirRound', 'tirStarted',
-                'teams', 'preferences'
+                'teams', 'preferences', 'streamPresets'
             ];
             for (const path of paths) {
                 const unsub = tournamentService.subscribePath(
@@ -876,6 +883,39 @@ export default {
     padding: 0 0.5rem;
 }
 
+@media screen and (max-width: 768px) {
+    .wrapper .container.playoff-public-wrapper {
+        padding: 0 0 8px 0;
+    }
+}
+
+.match-lane-left {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    background: var(--color-white, #fff);
+    border: 1px solid var(--color-text-muted);
+    line-height: 1;
+}
+
+.match-lane-left--active,
+.match-lane-left--finished {
+    top: 8px;
+    transform: none;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
 .cadrage-public-section {
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -935,7 +975,7 @@ export default {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 8px;
-    padding: 12px 14px;
+    padding: 12px 14px 12px 42px;
     border-radius: 14px;
     background: var(--color-surface, var(--color-white));
     border: 1px solid var(--color-border);
@@ -971,8 +1011,8 @@ export default {
 .match-team {
     min-width: 0;
     font-weight: 600;
-    font-size: 14px;
-    color: var(--color-text);
+    font-size: 13px;
+    color: #333;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1011,10 +1051,15 @@ export default {
 }
 
 .match-score {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--color-text);
     white-space: nowrap;
+}
+
+.match-score--pending {
+    color: #999;
+    font-weight: 400;
 }
 
 .match-team--winner {

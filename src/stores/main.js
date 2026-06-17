@@ -83,7 +83,8 @@ export const useMainStore = defineStore('main', {
             if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
             const db = getDatabase();
             const fullPath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${path}`;
-            return set(ref(db, fullPath), data).catch(error => {
+            const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
+            return set(ref(db, fullPath), plain).catch(error => {
                 console.error('Error updating path:', path, error);
             });
         },
@@ -475,6 +476,12 @@ export const useMainStore = defineStore('main', {
         endRound() {
             this.tournaments[this.currentTournamentIndex].roundIsActive = false;
             this._syncPath('roundIsActive', false);
+        },
+        syncGames() {
+            this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+        },
+        syncTeams() {
+            this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
         },
         startRoundTimer() {
             const tournament = this.tournaments[this.currentTournamentIndex];

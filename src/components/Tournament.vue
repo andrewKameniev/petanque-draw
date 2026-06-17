@@ -403,6 +403,7 @@ export default {
 
             const playB = this.playB;
             if (playB) {
+                const currentIndex = this.currentTournamentIndex;
                 const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
                     .map(team => ({ ...team }));
                 tournamentBTeams.forEach(team => {
@@ -415,6 +416,7 @@ export default {
                     team.lanes = [];
                 })
                 this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
+                this.currentTournamentIndex = currentIndex;
             }
         },
         restoreTeamsFromLocalStorage() {
@@ -425,6 +427,7 @@ export default {
             })
         },
         drawFirstRound() {
+            console.log('Tournament ID:', this.currentTournamentIndex);
             if (this.tournament.system === 'tir') {
                 this.tournament.tirStarted = true;
                 if (!this.tournament.tirParticipants) {

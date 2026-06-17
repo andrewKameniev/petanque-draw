@@ -1,12 +1,12 @@
-import {get, ref, set, remove, update, onValue} from "firebase/database";
-import {database as db} from "@/firebase";
+import { get, ref, set, remove, update, onValue } from 'firebase/database';
+import { database as db } from '@/firebase';
 
 export const tournamentService = {
     getAll(uid) {
         return get(ref(db, `${uid}/tournaments/`));
     },
     update(uid, tournamentId, data) {
-        return update(ref(db, `${uid}/tournaments/`), {[tournamentId]: data});
+        return update(ref(db, `${uid}/tournaments/`), { [tournamentId]: data });
     },
     updatePath(uid, tournamentId, path, data) {
         return set(ref(db, `${uid}/tournaments/${tournamentId}/${path}`), data);

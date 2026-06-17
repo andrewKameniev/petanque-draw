@@ -11,11 +11,11 @@
         <div v-if="statData" class="container">
             <div class="is-flex is-justify-content-space-between is-align-items-center">
                 <router-link class="navbar-item" to="/">
-                    <img src="../assets/img/logo.webp" alt="logo">
+                    <img src="../assets/img/logo.webp" alt="logo" />
                 </router-link>
-                <div class="is-flex is-align-items-center" style="gap: 4px;">
-                    <LanguageSwitcher/>
-                    <ThemeSwitcher/>
+                <div class="is-flex is-align-items-center" style="gap: 4px">
+                    <LanguageSwitcher />
+                    <ThemeSwitcher />
                 </div>
             </div>
 
@@ -23,46 +23,48 @@
                 <h2 class="public-stats__title">{{ statData.name }}</h2>
                 <div class="public-stats__meta">
                     <span class="public-stats__date">{{ formatDate(statData.date) }}</span>
-                    <span class="public-stats__system">{{ statData.system === 'simple' ? $t('stat.simple') : $t('stat.french') }}</span>
+                    <span class="public-stats__system">{{
+                        statData.system === 'simple' ? $t('stat.simple') : $t('stat.french')
+                    }}</span>
                 </div>
                 <div class="public-stats__score">
                     {{ countTeamScore(statData.team1.score) }} : {{ countTeamScore(statData.team2.score) }}
                 </div>
                 <div class="public-stats__grid">
-                    <StatResult :label="$t('stat.team1Label')" :team="statData.team1" :system="statData.system"/>
-                    <StatResult :label="$t('stat.team2Label')" :team="statData.team2" :system="statData.system"/>
+                    <StatResult :label="$t('stat.team1Label')" :team="statData.team1" :system="statData.system" />
+                    <StatResult :label="$t('stat.team2Label')" :team="statData.team2" :system="statData.system" />
                 </div>
             </div>
         </div>
         <div v-else class="container">
             <div class="is-flex is-justify-content-space-between is-align-items-center">
                 <router-link class="navbar-item" to="/">
-                    <img src="../assets/img/logo.webp" alt="logo">
+                    <img src="../assets/img/logo.webp" alt="logo" />
                 </router-link>
             </div>
             <div class="public-stats__empty">
                 <h2>{{ $t('messages.tournamentNotActive') }}</h2>
             </div>
         </div>
-        <Footer/>
+        <Footer />
     </div>
 </template>
 
 <script>
-import StatResult from "@/components/stats/StatResult.vue";
-import {statsService} from "@/services/db";
-import LanguageSwitcher from "@/components/partials/LanguageSwitcher.vue";
-import ThemeSwitcher from "@/components/partials/ThemeSwitcher.vue";
-import Footer from "@/components/partials/Footer.vue";
+import StatResult from '@/components/stats/StatResult.vue';
+import { statsService } from '@/services/db';
+import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
+import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
+import Footer from '@/components/partials/Footer.vue';
 
 export default {
     name: 'PublicStats',
-    components: {Footer, LanguageSwitcher, ThemeSwitcher, StatResult},
+    components: { Footer, LanguageSwitcher, ThemeSwitcher, StatResult },
     data() {
         return {
             isLoading: false,
             statData: null,
-        }
+        };
     },
     mounted() {
         this.loadStat();
@@ -93,15 +95,15 @@ export default {
         countTeamScore(scores) {
             if (!scores) return 0;
             const arr = Array.isArray(scores) ? scores : Object.values(scores);
-            return arr.filter(v => v !== undefined).reduce((a, b) => a + b, 0);
+            return arr.filter((v) => v !== undefined).reduce((a, b) => a + b, 0);
         },
         formatDate(timestamp) {
             if (!timestamp) return '';
             const d = new Date(timestamp);
             return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -112,17 +114,17 @@ export default {
 }
 
 .wrapper::before {
-    content: "";
+    content: '';
     position: fixed;
     inset: 0;
-    background: url("@/assets/img/bg-petanque.avif") repeat;
+    background: url('@/assets/img/bg-petanque.avif') repeat;
     background-size: 800px;
     opacity: 0.5;
     z-index: 0;
     pointer-events: none;
 }
 
-[data-theme="dark"] .wrapper::before {
+[data-theme='dark'] .wrapper::before {
     display: none;
 }
 

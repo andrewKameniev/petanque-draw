@@ -43,19 +43,17 @@ describe('getPoulesQualifiedTeams', () => {
                     { group: 0, team_1: 'D', team_2: 'C', team_1_score: 13, team_2_score: 7 },
                 ],
                 // R3 (barrage): B vs D (both have 1 win) → B wins
-                [
-                    { group: 0, team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 8 },
-                ],
+                [{ group: 0, team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 8 }],
             ],
         };
 
         const qualified = getPoulesQualifiedTeams(tournament);
-        const realTeams = qualified.filter(t => !t.isBye);
+        const realTeams = qualified.filter((t) => !t.isBye);
 
         // A has 2 wins (won R1 and R2, didn't play R3)
         // B has 2 wins (won R1, lost R2, won barrage R3)
         expect(realTeams).toHaveLength(2);
-        expect(realTeams.map(t => t.title).sort()).toEqual(['A', 'B']);
+        expect(realTeams.map((t) => t.title).sort()).toEqual(['A', 'B']);
     });
 
     it('qualifies group winner with 3 wins in full round-robin', () => {
@@ -79,18 +77,15 @@ describe('getPoulesQualifiedTeams', () => {
         };
 
         const qualified = getPoulesQualifiedTeams(tournament);
-        const realTeams = qualified.filter(t => !t.isBye);
-        expect(realTeams.map(t => t.title).sort()).toEqual(['A', 'C']);
+        const realTeams = qualified.filter((t) => !t.isBye);
+        expect(realTeams.map((t) => t.title).sort()).toEqual(['A', 'C']);
     });
 
     it('handles multiple groups and interleaves winners', () => {
         const teamsList = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         const tournament = {
             teams: teamsList.map(makeTeam),
-            groups: [
-                teamsList.slice(0, 4).map(makeTeam),
-                teamsList.slice(4, 8).map(makeTeam),
-            ],
+            groups: [teamsList.slice(0, 4).map(makeTeam), teamsList.slice(4, 8).map(makeTeam)],
             games: [
                 [
                     { group: 0, team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 4 },
@@ -112,13 +107,13 @@ describe('getPoulesQualifiedTeams', () => {
         };
 
         const qualified = getPoulesQualifiedTeams(tournament);
-        const realTeams = qualified.filter(t => !t.isBye);
+        const realTeams = qualified.filter((t) => !t.isBye);
         // Group 0: A(2 wins), B(2 wins) qualify
         // Group 1: E(2 wins), F(2 wins) qualify
         expect(realTeams).toHaveLength(4);
         // Interleaved: all index-0 from each group, then all index-1
         // Within each group, sorted by wins desc then points desc
-        const titles = realTeams.map(t => t.title);
+        const titles = realTeams.map((t) => t.title);
         expect(titles).toContain('A');
         expect(titles).toContain('B');
         expect(titles).toContain('E');
@@ -163,8 +158,8 @@ describe('getPoulesQualifiedTeams', () => {
         const qualified = getPoulesQualifiedTeams(tournament);
         // 6 real teams + 2 byes = 8 (next power of 2)
         expect(qualified).toHaveLength(8);
-        expect(qualified.filter(t => t.isBye)).toHaveLength(2);
-        expect(qualified.filter(t => !t.isBye)).toHaveLength(6);
+        expect(qualified.filter((t) => t.isBye)).toHaveLength(2);
+        expect(qualified.filter((t) => !t.isBye)).toHaveLength(6);
     });
 
     it('does NOT qualify teams with exactly 1 win', () => {
@@ -188,10 +183,10 @@ describe('getPoulesQualifiedTeams', () => {
         };
 
         const qualified = getPoulesQualifiedTeams(tournament);
-        const realTeams = qualified.filter(t => !t.isBye);
+        const realTeams = qualified.filter((t) => !t.isBye);
         // A has 2 wins, B has 2 wins. C only has 1 win.
-        expect(realTeams.map(t => t.title)).not.toContain('C');
-        expect(realTeams.map(t => t.title)).not.toContain('D');
+        expect(realTeams.map((t) => t.title)).not.toContain('C');
+        expect(realTeams.map((t) => t.title)).not.toContain('D');
     });
 });
 
@@ -211,10 +206,12 @@ describe('drawPoulesRound', () => {
     it('round 2: winners play winners, losers play losers', () => {
         const tournament = makePoules4Teams(['A', 'B', 'C', 'D']);
         tournament.poulesRound = 2;
-        tournament.games = [[
-            { group: 0, team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 4 },
-            { group: 0, team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 6 },
-        ]];
+        tournament.games = [
+            [
+                { group: 0, team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 4 },
+                { group: 0, team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 6 },
+            ],
+        ];
 
         const round = drawPoulesRound(tournament);
 
@@ -253,10 +250,7 @@ describe('drawPoulesRound', () => {
         const tournament = {
             teams: teams.map(makeTeam),
             system: 'poules',
-            groups: [
-                teams.slice(0, 4).map(makeTeam),
-                teams.slice(4, 8).map(makeTeam),
-            ],
+            groups: [teams.slice(0, 4).map(makeTeam), teams.slice(4, 8).map(makeTeam)],
             games: [],
             poulesRound: 1,
             preferences: { fieldsStart: 1, maxScore: 13 },

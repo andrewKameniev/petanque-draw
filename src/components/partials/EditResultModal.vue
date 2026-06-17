@@ -4,48 +4,63 @@
             <div class="edit-result__header">
                 <span class="edit-result__title">{{ $t('results.editResultTitle') }}</span>
                 <button class="edit-result__close" @click="$emit('close')">
-                    <X :size="18"/>
+                    <X :size="18" />
                 </button>
             </div>
             <div class="edit-result__body">
                 <div class="edit-result__teams">
                     <div class="edit-result__team">
                         <label class="edit-result__label">{{ game.team_1 }}</label>
-                        <input ref="score1" class="edit-result__input" type="number" min="0"
-                               v-model.number="score1" @keydown.enter="save">
+                        <input
+                            ref="score1"
+                            class="edit-result__input"
+                            type="number"
+                            min="0"
+                            v-model.number="score1"
+                            @keydown.enter="save"
+                        />
                     </div>
                     <span class="edit-result__separator">:</span>
                     <div class="edit-result__team">
                         <label class="edit-result__label">{{ game.team_2 }}</label>
-                        <input class="edit-result__input" type="number" min="0"
-                               v-model.number="score2" @keydown.enter="save">
+                        <input
+                            class="edit-result__input"
+                            type="number"
+                            min="0"
+                            v-model.number="score2"
+                            @keydown.enter="save"
+                        />
                     </div>
                 </div>
                 <p v-if="error" class="edit-result__error">{{ error }}</p>
             </div>
             <div class="edit-result__footer">
-                <button class="edit-result__btn edit-result__btn--cancel" @click="$emit('close')">{{ $t('common.cancel') }}</button>
-                <button class="edit-result__btn edit-result__btn--save" @click="save">{{ $t('results.saveResult') }}</button>
+                <button class="edit-result__btn edit-result__btn--cancel" @click="$emit('close')">
+                    {{ $t('common.cancel') }}
+                </button>
+                <button class="edit-result__btn edit-result__btn--save" @click="save">
+                    {{ $t('results.saveResult') }}
+                </button>
             </div>
         </div>
     </Modal>
 </template>
 
 <script>
-import Modal from "@/components/Modal";
-import {X} from "lucide-vue-next";
+import Modal from '@/components/Modal';
+import { X } from 'lucide-vue-next';
 
 export default {
     name: 'EditResultModal',
-    components: {Modal, X},
+    components: { Modal, X },
     props: ['game'],
     emits: ['close', 'save'],
     data() {
         return {
             score1: this.game.team_1_score,
             score2: this.game.team_2_score,
-            error: ''
-        }
+            error: '',
+        };
     },
     mounted() {
         this.$nextTick(() => this.$refs.score1?.focus());
@@ -63,10 +78,10 @@ export default {
                 this.error = this.$t('games.noDrawsAllowed');
                 return;
             }
-            this.$emit('save', {score1: s1, score2: s2});
-        }
-    }
-}
+            this.$emit('save', { score1: s1, score2: s2 });
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -107,7 +122,9 @@ export default {
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
 }
 
 .edit-result__close:hover {

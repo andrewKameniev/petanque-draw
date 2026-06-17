@@ -1,66 +1,71 @@
 <script>
-import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "@/helpers-stat";
+import { calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat } from '@/helpers-stat';
 
 export default {
-    name: "StatResult",
+    name: 'StatResult',
     props: ['team', 'system', 'label'],
     computed: {
         teamStats() {
-            return calculateTeamPlayersStat(this.team, this.system)
+            return calculateTeamPlayersStat(this.team, this.system);
         },
         commonStat() {
-            return calculateCommonTeamStat(this.teamStats, this.system)
+            return calculateCommonTeamStat(this.teamStats, this.system);
         },
         boulesOnMan() {
             const infoEveryMan = [];
-            this.team.players.forEach(player => {
+            this.team.players.forEach((player) => {
                 const playerStat = !Array.isArray(player.stat) ? Array.from(player.stat) : player.stat;
                 playerStat.forEach((man, index) => {
                     if (man) {
-                        infoEveryMan[index] = (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0)
+                        infoEveryMan[index] =
+                            (infoEveryMan[index] || 0) + man.reduce((acc, item) => acc + Number(item.success), 0);
                     }
-                })
-            })
-            return infoEveryMan
+                });
+            });
+            return infoEveryMan;
         },
         filledScores() {
             let fillScoresArray = [];
             for (let i = 0; i < this.boulesOnMan.length; i++) {
-                fillScoresArray.push(this.team.score ? this.team.score[i] || 0 : 0)
+                fillScoresArray.push(this.team.score ? this.team.score[i] || 0 : 0);
             }
-            return fillScoresArray
+            return fillScoresArray;
         },
         hasData() {
-            return this.teamStats.some(s => s.serie.length > 0);
-        }
+            return this.teamStats.some((s) => s.serie.length > 0);
+        },
     },
     methods: {
         getFrenchStat,
         countTeamScore(scores) {
             if (scores) {
                 if (!Array.isArray(scores)) {
-                    const tempArray = []
-                    Object.values(scores).forEach(value => tempArray.push(value))
+                    const tempArray = [];
+                    Object.values(scores).forEach((value) => tempArray.push(value));
                     scores = tempArray;
                 }
 
-                return scores
-                    .filter(value => value !== undefined)
-                    .reduce((acc, value) => acc + value, 0);
+                return scores.filter((value) => value !== undefined).reduce((acc, value) => acc + value, 0);
             } else {
-                return '0'
+                return '0';
             }
         },
         pct(positive, negative) {
             const total = positive + negative;
             if (total === 0) return 0;
-            return Math.round(positive / total * 100);
+            return Math.round((positive / total) * 100);
         },
         isImportantPresent(index) {
-            return this.teamStats[index].important.points.positive + this.teamStats[index].important.points.negative + this.teamStats[index].important.tirs.positive + this.teamStats[index].important.tirs.negative > 0
-        }
-    }
-}
+            return (
+                this.teamStats[index].important.points.positive +
+                    this.teamStats[index].important.points.negative +
+                    this.teamStats[index].important.tirs.positive +
+                    this.teamStats[index].important.tirs.negative >
+                0
+            );
+        },
+    },
+};
 </script>
 
 <template>
@@ -80,30 +85,66 @@ export default {
                 <div v-if="system === 'simple'" class="stat-result__stats-grid">
                     <div class="stat-result__stat-row">
                         <span class="stat-result__stat-label">{{ $t('stat.total') }}</span>
-                        <span class="stat-result__stat-value">{{commonStat.all.positive}}/{{commonStat.all.positive + commonStat.all.negative}}</span>
-                        <span class="stat-result__stat-pct">{{pct(commonStat.all.positive, commonStat.all.negative)}}%</span>
+                        <span class="stat-result__stat-value"
+                            >{{ commonStat.all.positive }}/{{ commonStat.all.positive + commonStat.all.negative }}</span
+                        >
+                        <span class="stat-result__stat-pct"
+                            >{{ pct(commonStat.all.positive, commonStat.all.negative) }}%</span
+                        >
                     </div>
                     <div class="stat-result__stat-row">
                         <span class="stat-result__stat-label">{{ $t('stat.points') }}</span>
-                        <span class="stat-result__stat-value">{{commonStat.points.positive}}/{{commonStat.points.positive + commonStat.points.negative}}</span>
-                        <span class="stat-result__stat-pct" v-if="commonStat.points.positive + commonStat.points.negative > 0">{{pct(commonStat.points.positive, commonStat.points.negative)}}%</span>
+                        <span class="stat-result__stat-value"
+                            >{{ commonStat.points.positive }}/{{
+                                commonStat.points.positive + commonStat.points.negative
+                            }}</span
+                        >
+                        <span
+                            class="stat-result__stat-pct"
+                            v-if="commonStat.points.positive + commonStat.points.negative > 0"
+                            >{{ pct(commonStat.points.positive, commonStat.points.negative) }}%</span
+                        >
                         <span class="stat-result__stat-pct stat-result__stat-pct--empty" v-else>-</span>
                     </div>
                     <div class="stat-result__stat-row">
                         <span class="stat-result__stat-label">{{ $t('stat.tirs') }}</span>
-                        <span class="stat-result__stat-value">{{commonStat.tirs.positive}}/{{commonStat.tirs.positive + commonStat.tirs.negative}}</span>
-                        <span class="stat-result__stat-pct" v-if="commonStat.tirs.positive + commonStat.tirs.negative > 0">{{pct(commonStat.tirs.positive, commonStat.tirs.negative)}}%</span>
+                        <span class="stat-result__stat-value"
+                            >{{ commonStat.tirs.positive }}/{{
+                                commonStat.tirs.positive + commonStat.tirs.negative
+                            }}</span
+                        >
+                        <span
+                            class="stat-result__stat-pct"
+                            v-if="commonStat.tirs.positive + commonStat.tirs.negative > 0"
+                            >{{ pct(commonStat.tirs.positive, commonStat.tirs.negative) }}%</span
+                        >
                         <span class="stat-result__stat-pct stat-result__stat-pct--empty" v-else>-</span>
                     </div>
                 </div>
                 <div v-else class="stat-result__stats-grid">
                     <div class="stat-result__stat-row">
                         <span class="stat-result__stat-label">{{ $t('stat.points') }}</span>
-                        <span class="stat-result__stat-value">vol. {{ Math.round(commonStat.points.volume / team.players.length) }}% | int. {{ Math.round(commonStat.points.intensity / team.players.length) }}% | eff. {{ Math.round(((commonStat.points.volume + commonStat.points.intensity) / 2) / team.players.length) }}%</span>
+                        <span class="stat-result__stat-value"
+                            >vol. {{ Math.round(commonStat.points.volume / team.players.length) }}% | int.
+                            {{ Math.round(commonStat.points.intensity / team.players.length) }}% | eff.
+                            {{
+                                Math.round(
+                                    (commonStat.points.volume + commonStat.points.intensity) / 2 / team.players.length,
+                                )
+                            }}%</span
+                        >
                     </div>
                     <div class="stat-result__stat-row">
                         <span class="stat-result__stat-label">{{ $t('stat.tirs') }}</span>
-                        <span class="stat-result__stat-value">vol. {{ Math.round(commonStat.tirs.volume / team.players.length) }}% | int. {{ Math.round(commonStat.tirs.intensity / team.players.length) }}% | eff. {{ Math.round(((commonStat.tirs.volume + commonStat.tirs.intensity) / 2) / team.players.length) }}%</span>
+                        <span class="stat-result__stat-value"
+                            >vol. {{ Math.round(commonStat.tirs.volume / team.players.length) }}% | int.
+                            {{ Math.round(commonStat.tirs.intensity / team.players.length) }}% | eff.
+                            {{
+                                Math.round(
+                                    (commonStat.tirs.volume + commonStat.tirs.intensity) / 2 / team.players.length,
+                                )
+                            }}%</span
+                        >
                     </div>
                 </div>
             </div>
@@ -113,23 +154,31 @@ export default {
                 <div class="stat-result__table-wrap">
                     <table class="stat-result__table">
                         <thead>
-                        <tr>
-                            <th></th>
-                            <th v-for="(item, index) in boulesOnMan" :key="index">{{index + 1}}</th>
-                            <th>Av</th>
-                        </tr>
+                            <tr>
+                                <th></th>
+                                <th v-for="(item, index) in boulesOnMan" :key="index">{{ index + 1 }}</th>
+                                <th>Av</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td class="stat-result__table-label">Res.</td>
-                            <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
-                            <td class="stat-result__table-avg">{{ (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(1) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="stat-result__table-label">Win</td>
-                            <td v-for="(score, index) in filledScores" :key="index">{{ score || 0 }}</td>
-                            <td class="stat-result__table-avg">{{ filledScores.reduce((acc, item) => acc + item, 0) }}</td>
-                        </tr>
+                            <tr>
+                                <td class="stat-result__table-label">Res.</td>
+                                <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
+                                <td class="stat-result__table-avg">
+                                    {{
+                                        (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(
+                                            1,
+                                        )
+                                    }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="stat-result__table-label">Win</td>
+                                <td v-for="(score, index) in filledScores" :key="index">{{ score || 0 }}</td>
+                                <td class="stat-result__table-avg">
+                                    {{ filledScores.reduce((acc, item) => acc + item, 0) }}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -137,66 +186,187 @@ export default {
 
             <div class="stat-result__players">
                 <div class="stat-result__player" v-for="(player, index) in team.players" :key="index">
-                    <div class="stat-result__player-name">{{ player.name || $t('stat.playerName') + ' ' + (index + 1) }}</div>
+                    <div class="stat-result__player-name">
+                        {{ player.name || $t('stat.playerName') + ' ' + (index + 1) }}
+                    </div>
                     <div v-if="system === 'simple'">
                         <div class="stat-result__series">
                             <div class="stat-result__series-row">
                                 <span class="stat-result__series-label">{{ $t('stat.series') }}:</span>
-                                <span class="throw-result" :class="{'-success': item.success}"
-                                      v-for="(item, itemIndex) in teamStats[index].serie"
-                                      :key="itemIndex"></span>
+                                <span
+                                    class="throw-result"
+                                    :class="{ '-success': item.success }"
+                                    v-for="(item, itemIndex) in teamStats[index].serie"
+                                    :key="itemIndex"
+                                ></span>
                             </div>
-                            <div class="stat-result__series-row" v-if="teamStats[index].serie.filter(i => i.type === 'p').length">
+                            <div
+                                class="stat-result__series-row"
+                                v-if="teamStats[index].serie.filter((i) => i.type === 'p').length"
+                            >
                                 <span class="stat-result__series-label">{{ $t('stat.points') }}:</span>
-                                <span class="throw-result" :class="{'-success': item.success}"
-                                      v-for="(item, itemIndex) in teamStats[index].serie.filter(i => i.type === 'p')"
-                                      :key="itemIndex"></span>
+                                <span
+                                    class="throw-result"
+                                    :class="{ '-success': item.success }"
+                                    v-for="(item, itemIndex) in teamStats[index].serie.filter((i) => i.type === 'p')"
+                                    :key="itemIndex"
+                                ></span>
                             </div>
-                            <div class="stat-result__series-row" v-if="teamStats[index].serie.filter(i => i.type === 't').length">
+                            <div
+                                class="stat-result__series-row"
+                                v-if="teamStats[index].serie.filter((i) => i.type === 't').length"
+                            >
                                 <span class="stat-result__series-label">{{ $t('stat.tirs') }}:</span>
-                                <span class="throw-result" :class="{'-success': item.success, '-carro': item.x2 && item.type === 't' && item.success}"
-                                      v-for="(item, itemIndex) in teamStats[index].serie.filter(i => i.type === 't')"
-                                      :key="itemIndex"></span>
+                                <span
+                                    class="throw-result"
+                                    :class="{
+                                        '-success': item.success,
+                                        '-carro': item.x2 && item.type === 't' && item.success,
+                                    }"
+                                    v-for="(item, itemIndex) in teamStats[index].serie.filter((i) => i.type === 't')"
+                                    :key="itemIndex"
+                                ></span>
                             </div>
                         </div>
-                        <div v-if="isImportantPresent(index)" class="stat-result__important-label">{{ $t('stat.important') }}</div>
+                        <div v-if="isImportantPresent(index)" class="stat-result__important-label">
+                            {{ $t('stat.important') }}
+                        </div>
                         <div class="stat-result__stats-grid">
                             <div class="stat-result__stat-row">
                                 <span class="stat-result__stat-label">{{ $t('stat.total') }}</span>
-                                <span class="stat-result__stat-value">{{teamStats[index].all.positive}}/{{teamStats[index].all.positive + teamStats[index].all.negative}}</span>
-                                <span class="stat-result__stat-pct">{{pct(teamStats[index].all.positive, teamStats[index].all.negative)}}%</span>
+                                <span class="stat-result__stat-value"
+                                    >{{ teamStats[index].all.positive }}/{{
+                                        teamStats[index].all.positive + teamStats[index].all.negative
+                                    }}</span
+                                >
+                                <span class="stat-result__stat-pct"
+                                    >{{ pct(teamStats[index].all.positive, teamStats[index].all.negative) }}%</span
+                                >
                                 <span class="stat-result__stat-important" v-if="isImportantPresent(index)">
-                                    {{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive }}/{{ teamStats[index].important.points.positive + teamStats[index].important.tirs.positive + teamStats[index].important.points.negative + teamStats[index].important.tirs.negative }}
-                                    ({{ pct(teamStats[index].important.points.positive + teamStats[index].important.tirs.positive, teamStats[index].important.points.negative + teamStats[index].important.tirs.negative) }}%)
+                                    {{
+                                        teamStats[index].important.points.positive +
+                                        teamStats[index].important.tirs.positive
+                                    }}/{{
+                                        teamStats[index].important.points.positive +
+                                        teamStats[index].important.tirs.positive +
+                                        teamStats[index].important.points.negative +
+                                        teamStats[index].important.tirs.negative
+                                    }}
+                                    ({{
+                                        pct(
+                                            teamStats[index].important.points.positive +
+                                                teamStats[index].important.tirs.positive,
+                                            teamStats[index].important.points.negative +
+                                                teamStats[index].important.tirs.negative,
+                                        )
+                                    }}%)
                                 </span>
                             </div>
                             <div class="stat-result__stat-row">
                                 <span class="stat-result__stat-label">{{ $t('stat.points') }}</span>
-                                <span class="stat-result__stat-value">{{teamStats[index].points.positive}}/{{teamStats[index].points.positive + teamStats[index].points.negative}}</span>
-                                <span class="stat-result__stat-pct" v-if="teamStats[index].points.positive + teamStats[index].points.negative > 0">{{pct(teamStats[index].points.positive, teamStats[index].points.negative)}}%</span>
+                                <span class="stat-result__stat-value"
+                                    >{{ teamStats[index].points.positive }}/{{
+                                        teamStats[index].points.positive + teamStats[index].points.negative
+                                    }}</span
+                                >
+                                <span
+                                    class="stat-result__stat-pct"
+                                    v-if="teamStats[index].points.positive + teamStats[index].points.negative > 0"
+                                    >{{
+                                        pct(teamStats[index].points.positive, teamStats[index].points.negative)
+                                    }}%</span
+                                >
                                 <span class="stat-result__stat-pct stat-result__stat-pct--empty" v-else>-</span>
-                                <span class="stat-result__stat-extra" v-if="teamStats[index].x2?.points.positive">({{ teamStats[index].x2.points.positive }} x2)</span>
+                                <span class="stat-result__stat-extra" v-if="teamStats[index].x2?.points.positive"
+                                    >({{ teamStats[index].x2.points.positive }} x2)</span
+                                >
                             </div>
                             <div class="stat-result__stat-row">
                                 <span class="stat-result__stat-label">{{ $t('stat.tirs') }}</span>
-                                <span class="stat-result__stat-value">{{teamStats[index].tirs.positive}}/{{teamStats[index].tirs.positive + teamStats[index].tirs.negative}}</span>
-                                <span class="stat-result__stat-pct" v-if="teamStats[index].tirs.positive + teamStats[index].tirs.negative > 0">{{pct(teamStats[index].tirs.positive, teamStats[index].tirs.negative)}}%</span>
+                                <span class="stat-result__stat-value"
+                                    >{{ teamStats[index].tirs.positive }}/{{
+                                        teamStats[index].tirs.positive + teamStats[index].tirs.negative
+                                    }}</span
+                                >
+                                <span
+                                    class="stat-result__stat-pct"
+                                    v-if="teamStats[index].tirs.positive + teamStats[index].tirs.negative > 0"
+                                    >{{ pct(teamStats[index].tirs.positive, teamStats[index].tirs.negative) }}%</span
+                                >
                                 <span class="stat-result__stat-pct stat-result__stat-pct--empty" v-else>-</span>
-                                <span class="stat-result__stat-extra" v-if="teamStats[index].x2?.tirs.positive">({{ teamStats[index].x2.tirs.positive }} carro)</span>
+                                <span class="stat-result__stat-extra" v-if="teamStats[index].x2?.tirs.positive"
+                                    >({{ teamStats[index].x2.tirs.positive }} carro)</span
+                                >
                             </div>
                         </div>
                     </div>
                     <div v-else>
-                        <div class="stat-result__stats-grid" v-if="teamStats[index].serie.filter(item => item.type === 'p').length">
+                        <div
+                            class="stat-result__stats-grid"
+                            v-if="teamStats[index].serie.filter((item) => item.type === 'p').length"
+                        >
                             <div class="stat-result__stat-row">
                                 <span class="stat-result__stat-label">Point</span>
-                                <span class="stat-result__stat-value">vol: {{ getFrenchStat(teamStats[index].points.volume, teamStats[index].serie.filter(item => item.type === 'p').length) }}% | int: {{ getFrenchStat(teamStats[index].points.intensity, teamStats[index].serie.filter(item => item.type === 'p').length) }}% | eff: {{ (getFrenchStat(teamStats[index].points.volume, teamStats[index].serie.filter(item => item.type === 'p').length) + getFrenchStat(teamStats[index].points.intensity, teamStats[index].serie.filter(item => item.type === 'p').length)) / 2 }}%</span>
+                                <span class="stat-result__stat-value"
+                                    >vol:
+                                    {{
+                                        getFrenchStat(
+                                            teamStats[index].points.volume,
+                                            teamStats[index].serie.filter((item) => item.type === 'p').length,
+                                        )
+                                    }}% | int:
+                                    {{
+                                        getFrenchStat(
+                                            teamStats[index].points.intensity,
+                                            teamStats[index].serie.filter((item) => item.type === 'p').length,
+                                        )
+                                    }}% | eff:
+                                    {{
+                                        (getFrenchStat(
+                                            teamStats[index].points.volume,
+                                            teamStats[index].serie.filter((item) => item.type === 'p').length,
+                                        ) +
+                                            getFrenchStat(
+                                                teamStats[index].points.intensity,
+                                                teamStats[index].serie.filter((item) => item.type === 'p').length,
+                                            )) /
+                                        2
+                                    }}%</span
+                                >
                             </div>
                         </div>
-                        <div class="stat-result__stats-grid" v-if="teamStats[index].serie.filter(item => item.type === 't').length">
+                        <div
+                            class="stat-result__stats-grid"
+                            v-if="teamStats[index].serie.filter((item) => item.type === 't').length"
+                        >
                             <div class="stat-result__stat-row">
                                 <span class="stat-result__stat-label">Tir</span>
-                                <span class="stat-result__stat-value">vol: {{ getFrenchStat(teamStats[index].tirs.volume, teamStats[index].serie.filter(item => item.type === 't').length) }}% | int: {{ getFrenchStat(teamStats[index].tirs.intensity, teamStats[index].serie.filter(item => item.type === 't').length) }}% | eff: {{ (getFrenchStat(teamStats[index].tirs.volume, teamStats[index].serie.filter(item => item.type === 't').length) + getFrenchStat(teamStats[index].tirs.intensity, teamStats[index].serie.filter(item => item.type === 't').length)) / 2 }}%</span>
+                                <span class="stat-result__stat-value"
+                                    >vol:
+                                    {{
+                                        getFrenchStat(
+                                            teamStats[index].tirs.volume,
+                                            teamStats[index].serie.filter((item) => item.type === 't').length,
+                                        )
+                                    }}% | int:
+                                    {{
+                                        getFrenchStat(
+                                            teamStats[index].tirs.intensity,
+                                            teamStats[index].serie.filter((item) => item.type === 't').length,
+                                        )
+                                    }}% | eff:
+                                    {{
+                                        (getFrenchStat(
+                                            teamStats[index].tirs.volume,
+                                            teamStats[index].serie.filter((item) => item.type === 't').length,
+                                        ) +
+                                            getFrenchStat(
+                                                teamStats[index].tirs.intensity,
+                                                teamStats[index].serie.filter((item) => item.type === 't').length,
+                                            )) /
+                                        2
+                                    }}%</span
+                                >
                             </div>
                         </div>
                     </div>

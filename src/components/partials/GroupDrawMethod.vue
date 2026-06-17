@@ -2,11 +2,14 @@
     <div class="draw-method">
         <label class="draw-method__label">{{ $t('setup.drawMethod') }}</label>
         <div class="draw-method__options">
-            <button v-for="option in options" :key="option.value"
-                    class="draw-method__option"
-                    :class="{'draw-method__option--active': modelValue === option.value}"
-                    @click="$emit('update:modelValue', option.value)">
-                <component :is="option.icon" :size="18" class="draw-method__icon"/>
+            <button
+                v-for="option in options"
+                :key="option.value"
+                class="draw-method__option"
+                :class="{ 'draw-method__option--active': modelValue === option.value }"
+                @click="$emit('update:modelValue', option.value)"
+            >
+                <component :is="option.icon" :size="18" class="draw-method__icon" />
                 <span class="draw-method__option-label">{{ option.label }}</span>
                 <span class="draw-method__option-desc">{{ option.description }}</span>
             </button>
@@ -21,7 +24,7 @@
 
                 <div v-for="method in modalMethods" :key="method.key" class="draw-method-modal__method">
                     <h4 class="draw-method-modal__method-title">
-                        <component :is="method.icon" :size="16"/>
+                        <component :is="method.icon" :size="16" />
                         {{ method.title }}
                     </h4>
                     <p class="draw-method-modal__method-desc">{{ method.description }}</p>
@@ -39,21 +42,21 @@
 
 <script>
 import Modal from '@/components/Modal.vue';
-import {Layers, ArrowDownUp, Shuffle} from 'lucide-vue-next';
+import { Layers, ArrowDownUp, Shuffle } from 'lucide-vue-next';
 
 export default {
     name: 'GroupDrawMethod',
-    components: {Modal, Layers, ArrowDownUp, Shuffle},
+    components: { Modal, Layers, ArrowDownUp, Shuffle },
     props: {
         modelValue: {
             type: String,
-            default: 'seeded'
-        }
+            default: 'seeded',
+        },
     },
     emits: ['update:modelValue'],
     data() {
         return {
-            showModal: false
+            showModal: false,
         };
     },
     computed: {
@@ -63,20 +66,20 @@ export default {
                     value: 'seeded',
                     label: this.$t('setup.drawMethodSeeded'),
                     description: this.$t('setup.drawMethodSeededDesc'),
-                    icon: 'Layers'
+                    icon: 'Layers',
                 },
                 {
                     value: 'snake',
                     label: this.$t('setup.drawMethodSnake'),
                     description: this.$t('setup.drawMethodSnakeDesc'),
-                    icon: 'ArrowDownUp'
+                    icon: 'ArrowDownUp',
                 },
                 {
                     value: 'balanced_random',
                     label: this.$t('setup.drawMethodBalanced'),
                     description: this.$t('setup.drawMethodBalancedDesc'),
-                    icon: 'Shuffle'
-                }
+                    icon: 'Shuffle',
+                },
             ];
         },
         modalMethods() {
@@ -89,8 +92,8 @@ export default {
                     bestFor: [
                         this.$t('setup.drawMethodSeededBest1'),
                         this.$t('setup.drawMethodSeededBest2'),
-                        this.$t('setup.drawMethodSeededBest3')
-                    ]
+                        this.$t('setup.drawMethodSeededBest3'),
+                    ],
                 },
                 {
                     key: 'snake',
@@ -100,8 +103,8 @@ export default {
                     bestFor: [
                         this.$t('setup.drawMethodSnakeBest1'),
                         this.$t('setup.drawMethodSnakeBest2'),
-                        this.$t('setup.drawMethodSnakeBest3')
-                    ]
+                        this.$t('setup.drawMethodSnakeBest3'),
+                    ],
                 },
                 {
                     key: 'balanced_random',
@@ -111,12 +114,12 @@ export default {
                     bestFor: [
                         this.$t('setup.drawMethodBalancedBest1'),
                         this.$t('setup.drawMethodBalancedBest2'),
-                        this.$t('setup.drawMethodBalancedBest3')
-                    ]
-                }
+                        this.$t('setup.drawMethodBalancedBest3'),
+                    ],
+                },
             ];
-        }
-    }
+        },
+    },
 };
 </script>
 

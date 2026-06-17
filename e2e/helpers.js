@@ -1,4 +1,4 @@
-import {expect} from '@playwright/test';
+import { expect } from '@playwright/test';
 const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
 const TEST_PASSWORD = 'TestPass123!';
 
@@ -11,7 +11,10 @@ async function login(page) {
     await emailInput.fill(TEST_EMAIL);
     await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
     await page.locator('[data-testid="btn-submit"]').click();
-    await page.locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]').first().waitFor({state: 'visible'});
+    await page
+        .locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]')
+        .first()
+        .waitFor({ state: 'visible' });
 }
 
 async function register(page) {
@@ -22,7 +25,7 @@ async function register(page) {
     await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
     await page.locator('[data-testid="input-password-confirm"]').fill(TEST_PASSWORD);
     await page.locator('[data-testid="btn-submit"]').click();
-    await page.locator('[data-testid="tournament-name-row"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="tournament-name-row"]').waitFor({ state: 'visible' });
 }
 
 // --- Tournament setup flows ---
@@ -31,8 +34,15 @@ async function ensureCleanTournament(page) {
     await login(page);
     await dismissModals(page);
     for (let i = 0; i < 5; i++) {
-        const started = await page.locator('[data-testid="btn-preferences"]').isVisible().catch(() => false);
-        const hasTeams = await page.locator('table tr td').first().isVisible().catch(() => false);
+        const started = await page
+            .locator('[data-testid="btn-preferences"]')
+            .isVisible()
+            .catch(() => false);
+        const hasTeams = await page
+            .locator('table tr td')
+            .first()
+            .isVisible()
+            .catch(() => false);
         if (!started && !hasTeams) break;
         await deleteCurrentTournament(page);
         await page.waitForTimeout(300);
@@ -52,7 +62,7 @@ async function addTeams(page, count) {
 async function importTeamsFromPortal(page, portalId) {
     await page.locator('[data-testid="input-portal-id"]').fill(String(portalId));
     await page.locator('[data-testid="btn-import-portal"]').click();
-    await page.locator('table tr td').first().waitFor({state: 'visible'});
+    await page.locator('table tr td').first().waitFor({ state: 'visible' });
 }
 
 async function selectSystem(page, system) {
@@ -62,7 +72,7 @@ async function selectSystem(page, system) {
 async function enablePlayOff(page) {
     const checkbox = page.locator('[data-testid="checkbox-playoff"]');
     if (!(await checkbox.isChecked())) await checkbox.click();
-    await page.locator('[data-testid="select-playoff-teams"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="select-playoff-teams"]').waitFor({ state: 'visible' });
     const cadrage = page.locator('[data-testid="checkbox-cadrage"]');
     if (await cadrage.isChecked()) await cadrage.click();
 }
@@ -89,26 +99,31 @@ async function setTeamsInGroup(page, count) {
 
 async function drawFirstRound(page) {
     await page.locator('[data-testid="btn-draw-first-round"]').click();
-    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
 }
 
 async function fillScores(page) {
-    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
     await page.evaluate(() => {
         document.querySelectorAll('input[id^="team_"]').forEach((input) => {
             input.value = 13;
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
         document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
             input.value = Math.floor(Math.random() * 13);
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
     });
 }
 
 async function saveResults(page) {
     await page.locator('[data-testid="btn-finish-round"]').click();
-    await page.locator('[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"], [data-testid="link-play-next-circle"]').first().waitFor({state: 'visible'});
+    await page
+        .locator(
+            '[data-testid="link-draw-next-round"], [data-testid="btn-go-playoff"], [data-testid="btn-finish-tournament"], [data-testid="link-play-next-circle"]',
+        )
+        .first()
+        .waitFor({ state: 'visible' });
 }
 
 async function playRound(page) {
@@ -118,7 +133,7 @@ async function playRound(page) {
 
 async function drawNextRound(page) {
     await page.locator('[data-testid="link-draw-next-round"]').click();
-    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
 }
 
 async function playMultipleRounds(page, rounds) {
@@ -130,14 +145,14 @@ async function playMultipleRounds(page, rounds) {
 
 async function playNextCircle(page) {
     await page.locator('[data-testid="link-play-next-circle"]').click();
-    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
 }
 
 // --- Transition flows ---
 
-async function goToPlayOff(page, {playOffTeams, cadrage, playB} = {}) {
+async function goToPlayOff(page, { playOffTeams, cadrage, playB } = {}) {
     await page.locator('[data-testid="btn-go-playoff"]').click();
-    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({ state: 'visible' });
     if (playOffTeams) {
         await page.locator('[data-testid="confirm-playoff-teams"]').selectOption(String(playOffTeams));
     }
@@ -159,45 +174,45 @@ async function goToPlayOff(page, {playOffTeams, cadrage, playB} = {}) {
     if (playB) {
         await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
     } else {
-        await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+        await page.locator('[data-testid="playoff-wrapper"]').waitFor({ state: 'visible' });
     }
 }
 
 async function goToCadrage(page) {
     await page.locator('[data-testid="btn-go-playoff"]').click();
-    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({ state: 'visible' });
     await page.locator('[data-testid="btn-confirm-playoff"]').click();
-    await page.locator('[data-testid="cadrage-heading"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="cadrage-heading"]').waitFor({ state: 'visible' });
 }
 
 async function fillCadrageScores(page) {
     await page.evaluate(() => {
         document.querySelectorAll('input[id^="team_"]').forEach((input) => {
             input.value = 13;
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
         document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
             input.value = Math.floor(Math.random() * 13);
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
     });
 }
 
 async function saveCadrageAndStartPlayOff(page) {
     await page.locator('[data-testid="btn-save-cadrage"]').click();
-    await page.locator('[data-testid="playoff-wrapper"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="playoff-wrapper"]').waitFor({ state: 'visible' });
 }
 
 async function fillPlayoffScores(page) {
-    await page.locator('[data-testid="game-row"]').first().waitFor({state: 'visible'});
+    await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
     await page.evaluate(() => {
         document.querySelectorAll('input[id^="team_"]').forEach((input) => {
             input.value = 13;
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
         document.querySelectorAll('input[id^="opponent_"]').forEach((input) => {
             input.value = Math.floor(Math.random() * 13);
-            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
     });
 }
@@ -213,18 +228,18 @@ async function playPlayoffRound(page) {
 
 async function playEntirePlayoff(page) {
     const heading = page.locator('[data-testid="playoff-stage-heading"]');
-    await heading.waitFor({state: 'visible'});
+    await heading.waitFor({ state: 'visible' });
     while (await heading.isVisible().catch(() => false)) {
         await playPlayoffRound(page);
         await page.waitForTimeout(300);
     }
-    await page.locator('[data-testid="finished-banner"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="finished-banner"]').waitFor({ state: 'visible' });
 }
 
 async function clickFinishTournament(page) {
     await page.locator('[data-testid="btn-finish-tournament"]').click();
     await page.locator('[data-testid="btn-confirm-finish"]').click();
-    await page.locator('[data-testid="finished-banner"]').waitFor({state: 'visible'});
+    await page.locator('[data-testid="finished-banner"]').waitFor({ state: 'visible' });
 }
 
 // --- Cleanup flows ---
@@ -232,7 +247,7 @@ async function clickFinishTournament(page) {
 async function dismissModals(page) {
     const modal = page.locator('.modal-background');
     if (await modal.isVisible().catch(() => false)) {
-        await modal.click({force: true});
+        await modal.click({ force: true });
         await page.waitForTimeout(200);
     }
 }
@@ -250,7 +265,7 @@ async function deleteCurrentTournament(page) {
     if (await prefsBtn.isVisible().catch(() => false)) {
         await prefsBtn.click();
         const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
-        await removeBtn.waitFor({state: 'visible'});
+        await removeBtn.waitFor({ state: 'visible' });
         await removeBtn.click();
         await page.locator('[data-testid="btn-confirm-remove"]').click();
         await page.waitForTimeout(300);
@@ -259,7 +274,10 @@ async function deleteCurrentTournament(page) {
 
 async function deleteAllTournaments(page) {
     for (let i = 0; i < 12; i++) {
-        const hasRow = await page.locator('[data-testid="tournament-name-row"]').isVisible().catch(() => false);
+        const hasRow = await page
+            .locator('[data-testid="tournament-name-row"]')
+            .isVisible()
+            .catch(() => false);
         if (!hasRow) break;
         await deleteCurrentTournament(page);
     }

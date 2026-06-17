@@ -1,7 +1,7 @@
 <script>
 export default {
-    name: "DocsDraw"
-}
+    name: 'DocsDraw',
+};
 </script>
 
 <template>
@@ -16,7 +16,7 @@ export default {
             <li>{{ $t('help.feature5') }}</li>
         </ul>
         <h2 class="has-text-centered">{{ $t('help.howToUseTitle') }}</h2>
-        <img src="@/assets/img/docs/Doc13.png" alt="Interface" class="image">
+        <img src="@/assets/img/docs/Doc13.png" alt="Interface" class="image" />
         <ol>
             <li>{{ $t('help.howToUse1') }}</li>
             <li>{{ $t('help.howToUse2') }}</li>
@@ -36,7 +36,7 @@ export default {
         </ol>
         <p>{{ $t('help.shortSummary') }}</p>
         <h2>{{ $t('help.interfaceTitle') }}</h2>
-        <img src="@/assets/img/docs/Doc1.png" alt="Interface" class="image">
+        <img src="@/assets/img/docs/Doc1.png" alt="Interface" class="image" />
         <ol>
             <li>{{ $t('help.interface1') }}</li>
             <li>{{ $t('help.interface2') }}</li>
@@ -66,7 +66,7 @@ export default {
             </div>
         </div>
         <h2>{{ $t('help.mainTabs') }}</h2>
-        <img src="@/assets/img/docs/Doc2.png" alt="Tabs" class="image">
+        <img src="@/assets/img/docs/Doc2.png" alt="Tabs" class="image" />
         <ol>
             <li>{{ $t('help.mainTabs1') }}</li>
             <li>{{ $t('help.mainTabs2') }}</li>
@@ -78,7 +78,7 @@ export default {
             <button class="button is-info">{{ $t('teams.preferences') }}</button>
         </p>
         <p>{{ $t('help.pressBtnSeeInterface') }}</p>
-        <img src="@/assets/img/docs/Doc10.png" alt="Preferences" class="image">
+        <img src="@/assets/img/docs/Doc10.png" alt="Preferences" class="image" />
         <p>{{ $t('help.preferences1') }}</p>
         <ol>
             <li>{{ $t('help.preferences2') }}</li>
@@ -86,19 +86,17 @@ export default {
         </ol>
         <h2>{{ $t('help.drawResults') }}</h2>
         <p>
-            <button class="button is-info">
-                {{$t('games.draw')}} N {{ $t('common.round') }}
-            </button>
+            <button class="button is-info">{{ $t('games.draw') }} N {{ $t('common.round') }}</button>
         </p>
         <p>{{ $t('help.drawResultsText') }}</p>
-        <img src="@/assets/img/docs/Doc3.png" alt="Draw" class="image">
+        <img src="@/assets/img/docs/Doc3.png" alt="Draw" class="image" />
         <ol>
             <li>{{ $t('help.drawResults1') }}</li>
             <li>{{ $t('help.drawResults2') }}</li>
             <li>{{ $t('help.drawResults3') }}</li>
         </ol>
         <h2>{{ $t('help.ranking') }}</h2>
-        <img src="@/assets/img/docs/Doc4.png" alt="Ranking" class="image">
+        <img src="@/assets/img/docs/Doc4.png" alt="Ranking" class="image" />
         <p>{{ $t('help.rankingSwiss1') }}</p>
         <ol>
             <li>{{ $t('help.rankingSwiss2') }}</li>
@@ -127,22 +125,22 @@ export default {
             <button class="button is-info">{{ $t('games.showBracket') }}</button>
         </p>
         <p>{{ $t('help.pressBtnSeeInterface') }}</p>
-        <img src="@/assets/img/docs/Doc5.png" alt="Play Off" class="image">
+        <img src="@/assets/img/docs/Doc5.png" alt="Play Off" class="image" />
         <h2>{{ $t('help.roundSystem') }}</h2>
         <p>{{ $t('help.roundSystemText') }}</p>
         <p>{{ $t('help.roundSystemText1') }}</p>
-        <img src="@/assets/img/docs/Doc11.png" alt="Groups" class="image">
+        <img src="@/assets/img/docs/Doc11.png" alt="Groups" class="image" />
         <h2>{{ $t('help.remoteControl') }}</h2>
         <p>{{ $t('help.remoteControl1') }}</p>
         <ol>
             <li>{{ $t('help.remoteControl2') }}</li>
             <li>{{ $t('help.remoteControl3') }}</li>
         </ol>
-        <img src="@/assets/img/docs/Doc6.png" alt="Remote" class="image">
-        <img src="@/assets/img/docs/Doc7.png" alt="Remote" class="image">
+        <img src="@/assets/img/docs/Doc6.png" alt="Remote" class="image" />
+        <img src="@/assets/img/docs/Doc7.png" alt="Remote" class="image" />
         <h2>{{ $t('help.remoteView') }}</h2>
         <p>{{ $t('help.remoteViewText') }}</p>
-        <img src="@/assets/img/docs/Doc8.png" alt="Remote" class="image">
+        <img src="@/assets/img/docs/Doc8.png" alt="Remote" class="image" />
         <ol>
             <li>{{ $t('help.remoteView1') }}</li>
             <li>{{ $t('help.remoteView2') }}</li>
@@ -151,19 +149,25 @@ export default {
         </ol>
         <h2>{{ $t('help.finishedTournament') }}</h2>
         <p>{{ $t('help.finishedTournament1') }}</p>
-        <img src="@/assets/img/docs/Doc9.png" alt="Results" class="image">
+        <img src="@/assets/img/docs/Doc9.png" alt="Results" class="image" />
         <p>{{ $t('help.finishedTournament3') }}</p>
         <p>{{ $t('help.finishedTournament2') }}</p>
         <h2>{{ $t('help.tournamentsControlsTitle') }}</h2>
-        <img src="@/assets/img/docs/Doc12.png" alt="Active tournaments choosing" class="image">
+        <img src="@/assets/img/docs/Doc12.png" alt="Active tournaments choosing" class="image" />
         <ol>
             <li>{{ $t('help.tournamentsControls1') }}</li>
             <li>{{ $t('help.tournamentsControls2') }}</li>
         </ol>
         <p>{{ $t('help.tournamentsControls3') }}</p>
-        <br>
-        <p>{{ $t('help.thanksMessage') }} <a href="mailto:ancam1987@gmail.com">{{ $t('help.thanksMessagePost') }}</a> {{ $t('help.thanksMessageOr') }}
-            <a href="https://www.facebook.com/profile.php?id=100001747232897" target="_blank">{{ $t('help.thanksMessageMessenger') }}</a>.</p>
+        <br />
+        <p>
+            {{ $t('help.thanksMessage') }} <a href="mailto:ancam1987@gmail.com">{{ $t('help.thanksMessagePost') }}</a>
+            {{ $t('help.thanksMessageOr') }}
+            <a href="https://www.facebook.com/profile.php?id=100001747232897" target="_blank">{{
+                $t('help.thanksMessageMessenger')
+            }}</a
+            >.
+        </p>
         <div class="has-text-centered">
             <router-link class="button is-success" to="/">Let's start</router-link>
         </div>

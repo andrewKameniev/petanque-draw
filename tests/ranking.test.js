@@ -15,56 +15,37 @@ function makeGroupsTournament(groups, games) {
         system: 'groups',
         teams: allTeams,
         groups,
-        games: games.map(round => Array.isArray(round) ? round : [round]),
-        groupSchedule: null
+        games: games.map((round) => (Array.isArray(round) ? round : [round])),
+        groupSchedule: null,
     };
 }
 
 describe('rankGroupByRegulations', () => {
     describe('Rule 1: sort by wins', () => {
         it('ranks teams by wins descending', () => {
-            const group = [
-                makeTeam('A', 3, 30, 10),
-                makeTeam('B', 1, 15, 25),
-                makeTeam('C', 2, 20, 15),
-            ];
+            const group = [makeTeam('A', 3, 30, 10), makeTeam('B', 1, 15, 25), makeTeam('C', 2, 20, 15)];
             const result = rankGroupByRegulations(group, []);
-            expect(result.map(t => t.title)).toEqual(['A', 'C', 'B']);
+            expect(result.map((t) => t.title)).toEqual(['A', 'C', 'B']);
         });
 
         it('single team cluster needs no tiebreaker', () => {
-            const group = [
-                makeTeam('A', 3, 30, 10),
-                makeTeam('B', 2, 20, 15),
-                makeTeam('C', 1, 10, 25),
-            ];
+            const group = [makeTeam('A', 3, 30, 10), makeTeam('B', 2, 20, 15), makeTeam('C', 1, 10, 25)];
             const result = rankGroupByRegulations(group, []);
-            expect(result.map(t => t.title)).toEqual(['A', 'B', 'C']);
+            expect(result.map((t) => t.title)).toEqual(['A', 'B', 'C']);
         });
     });
 
     describe('Rule 2: two teams tied — head-to-head', () => {
         it('uses h2h result when two teams have same wins', () => {
-            const group = [
-                makeTeam('A', 2, 20, 15),
-                makeTeam('B', 2, 22, 12),
-                makeTeam('C', 0, 5, 30),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 10),
-                makeGame('A', 'C', 7, 5),
-                makeGame('B', 'C', 12, 0),
-            ]];
+            const group = [makeTeam('A', 2, 20, 15), makeTeam('B', 2, 22, 12), makeTeam('C', 0, 5, 30)];
+            const games = [[makeGame('A', 'B', 13, 10), makeGame('A', 'C', 7, 5), makeGame('B', 'C', 12, 0)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('uses h2h when A beat B directly despite B having better overall diff', () => {
-            const group = [
-                makeTeam('A', 3, 40, 30),
-                makeTeam('B', 3, 50, 20),
-            ];
+            const group = [makeTeam('A', 3, 40, 30), makeTeam('B', 3, 50, 20)];
             const games = [[makeGame('A', 'B', 13, 12)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
@@ -72,10 +53,7 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('falls back to overall point diff when teams have not played each other', () => {
-            const group = [
-                makeTeam('A', 2, 20, 15),
-                makeTeam('B', 2, 25, 10),
-            ];
+            const group = [makeTeam('A', 2, 20, 15), makeTeam('B', 2, 25, 10)];
             const games = [[]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('B');
@@ -83,24 +61,15 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('falls back to overall point diff when h2h is a draw (multi-leg)', () => {
-            const group = [
-                makeTeam('A', 2, 30, 20),
-                makeTeam('B', 2, 25, 22),
-            ];
-            const games = [
-                [makeGame('A', 'B', 13, 10)],
-                [makeGame('B', 'A', 13, 10)],
-            ];
+            const group = [makeTeam('A', 2, 30, 20), makeTeam('B', 2, 25, 22)];
+            const games = [[makeGame('A', 'B', 13, 10)], [makeGame('B', 'A', 13, 10)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('handles reversed game order (team is team_2 in game data)', () => {
-            const group = [
-                makeTeam('A', 2, 20, 15),
-                makeTeam('B', 2, 22, 12),
-            ];
+            const group = [makeTeam('A', 2, 20, 15), makeTeam('B', 2, 22, 12)];
             const games = [[makeGame('B', 'A', 10, 13)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
@@ -110,16 +79,8 @@ describe('rankGroupByRegulations', () => {
 
     describe('Rule 3: three+ teams tied — h2h point differential', () => {
         it('uses h2h point diff among three tied teams', () => {
-            const group = [
-                makeTeam('A', 2, 30, 20),
-                makeTeam('B', 2, 28, 22),
-                makeTeam('C', 2, 25, 25),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 5),
-                makeGame('B', 'C', 13, 7),
-                makeGame('C', 'A', 13, 8),
-            ]];
+            const group = [makeTeam('A', 2, 30, 20), makeTeam('B', 2, 28, 22), makeTeam('C', 2, 25, 25)];
+            const games = [[makeGame('A', 'B', 13, 5), makeGame('B', 'C', 13, 7), makeGame('C', 'A', 13, 8)]];
             // h2h diff: A = (13-5)+(8-13) = +3, B = (5-13)+(13-7) = -2, C = (7-13)+(13-8) = -1
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
@@ -129,16 +90,8 @@ describe('rankGroupByRegulations', () => {
 
         it('circular three-way tie breaks correctly by h2h diff', () => {
             // A beat B 13-0, B beat C 13-0, C beat A 13-12
-            const group = [
-                makeTeam('A', 1, 25, 13),
-                makeTeam('B', 1, 13, 26),
-                makeTeam('C', 1, 13, 12),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 0),
-                makeGame('B', 'C', 13, 0),
-                makeGame('C', 'A', 13, 12),
-            ]];
+            const group = [makeTeam('A', 1, 25, 13), makeTeam('B', 1, 13, 26), makeTeam('C', 1, 13, 12)];
+            const games = [[makeGame('A', 'B', 13, 0), makeGame('B', 'C', 13, 0), makeGame('C', 'A', 13, 12)]];
             // h2h diff: A = 13 + (-1) = 12, B = -13 + 13 = 0, C = -13 + 1 = -12
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
@@ -153,14 +106,16 @@ describe('rankGroupByRegulations', () => {
                 makeTeam('C', 3, 45, 35),
                 makeTeam('D', 3, 40, 40),
             ];
-            const games = [[
-                makeGame('A', 'B', 13, 10),
-                makeGame('A', 'C', 13, 11),
-                makeGame('A', 'D', 5, 13),
-                makeGame('B', 'C', 13, 8),
-                makeGame('B', 'D', 10, 13),
-                makeGame('C', 'D', 13, 12),
-            ]];
+            const games = [
+                [
+                    makeGame('A', 'B', 13, 10),
+                    makeGame('A', 'C', 13, 11),
+                    makeGame('A', 'D', 5, 13),
+                    makeGame('B', 'C', 13, 8),
+                    makeGame('B', 'D', 10, 13),
+                    makeGame('C', 'D', 13, 12),
+                ],
+            ];
             // h2h diffs:
             // A: (13-10)+(13-11)+(5-13) = 3+2-8 = -3
             // B: (10-13)+(13-8)+(10-13) = -3+5-3 = -1
@@ -174,19 +129,11 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('three teams with equal h2h diff — falls to h2h points scored', () => {
-            const group = [
-                makeTeam('A', 2, 30, 20),
-                makeTeam('B', 2, 28, 22),
-                makeTeam('C', 2, 25, 25),
-            ];
+            const group = [makeTeam('A', 2, 30, 20), makeTeam('B', 2, 28, 22), makeTeam('C', 2, 25, 25)];
             // A beat B 8-5, B beat C 10-7, C beat A 9-6
             // h2h diff: A = 3+(-3)=0, B = (-3)+3=0, C = (-3)+3=0 — all equal
             // h2h pointsPlus: A = 8+6=14, B = 5+10=15, C = 7+9=16
-            const games = [[
-                makeGame('A', 'B', 8, 5),
-                makeGame('B', 'C', 10, 7),
-                makeGame('C', 'A', 9, 6),
-            ]];
+            const games = [[makeGame('A', 'B', 8, 5), makeGame('B', 'C', 10, 7), makeGame('C', 'A', 9, 6)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('C');
             expect(result[1].title).toBe('B');
@@ -194,18 +141,10 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('three teams equal h2h diff and points — falls to overall point diff', () => {
-            const group = [
-                makeTeam('A', 2, 30, 15),
-                makeTeam('B', 2, 25, 20),
-                makeTeam('C', 2, 20, 25),
-            ];
+            const group = [makeTeam('A', 2, 30, 15), makeTeam('B', 2, 25, 20), makeTeam('C', 2, 20, 25)];
             // A beat B 10-7, B beat C 10-7, C beat A 10-7
             // h2h diff: all 0, h2h plus: all 17
-            const games = [[
-                makeGame('A', 'B', 10, 7),
-                makeGame('B', 'C', 10, 7),
-                makeGame('C', 'A', 10, 7),
-            ]];
+            const games = [[makeGame('A', 'B', 10, 7), makeGame('B', 'C', 10, 7), makeGame('C', 'A', 10, 7)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
@@ -224,14 +163,16 @@ describe('rankGroupByRegulations', () => {
                 makeTeam('C', 3, 40, 35),
                 makeTeam('D', 3, 50, 20),
             ];
-            const games = [[
-                makeGame('A', 'B', 13, 10),
-                makeGame('A', 'C', 10, 13),
-                makeGame('A', 'D', 5, 13),
-                makeGame('B', 'C', 10, 13),
-                makeGame('B', 'D', 5, 13),
-                makeGame('C', 'D', 5, 13),
-            ]];
+            const games = [
+                [
+                    makeGame('A', 'B', 13, 10),
+                    makeGame('A', 'C', 10, 13),
+                    makeGame('A', 'D', 5, 13),
+                    makeGame('B', 'C', 10, 13),
+                    makeGame('B', 'D', 5, 13),
+                    makeGame('C', 'D', 5, 13),
+                ],
+            ];
             // h2h diff in full cluster:
             // A: 3+(-3)+(-8) = -8
             // B: (-3)+(-3)+(-8) = -14
@@ -254,14 +195,16 @@ describe('rankGroupByRegulations', () => {
                 makeTeam('C', 2, 26, 27),
                 makeTeam('D', 2, 20, 35),
             ];
-            const games = [[
-                makeGame('A', 'B', 13, 10),
-                makeGame('A', 'C', 13, 10),
-                makeGame('A', 'D', 13, 5),
-                makeGame('B', 'C', 10, 13),
-                makeGame('B', 'D', 13, 5),
-                makeGame('C', 'D', 13, 5),
-            ]];
+            const games = [
+                [
+                    makeGame('A', 'B', 13, 10),
+                    makeGame('A', 'C', 13, 10),
+                    makeGame('A', 'D', 13, 5),
+                    makeGame('B', 'C', 10, 13),
+                    makeGame('B', 'D', 13, 5),
+                    makeGame('C', 'D', 13, 5),
+                ],
+            ];
             // h2h diff (full 4-team):
             // A: 3+3+8 = 14
             // B: -3+(-3)+8 = 2
@@ -279,34 +222,6 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('B and C form sub-cluster, resolved by direct h2h', () => {
-            const group = [
-                makeTeam('A', 2, 35, 20),
-                makeTeam('B', 2, 28, 25),
-                makeTeam('C', 2, 30, 23),
-                makeTeam('D', 2, 20, 35),
-            ];
-            // Design: B and C have same h2h diff in full cluster,
-            // sub-cluster B vs C: C won directly
-            const games = [[
-                makeGame('A', 'B', 13, 7),
-                makeGame('A', 'C', 13, 7),
-                makeGame('A', 'D', 13, 5),
-                makeGame('B', 'C', 7, 13),
-                makeGame('B', 'D', 13, 5),
-                makeGame('C', 'D', 13, 5),
-            ]];
-            // h2h diff (full 4-team):
-            // A: 6+6+8 = 20
-            // B: -6+(-6)+8 = -4
-            // C: -6+6+8 = 8  — nope wait
-            // B: vs A = 7-13(-6), vs C = 7-13(-6), vs D = 13-5(+8) → B = -4
-            // C: vs A = 7-13(-6), vs B = 13-7(+6), vs D = 13-5(+8) → C = +8
-            // These are different (-4 vs +8). Let me make them equal.
-            // Let me redesign: need B and C to have same h2h diff in full cluster.
-            // B: vs A(-6), vs C(x), vs D(+8) = 2+x
-            // C: vs A(-6), vs B(-x), vs D(+8) = 2-x
-            // For equal: 2+x = 2-x → x=0. So B vs C must be a zero-diff.
-            // But that means they drew or split legs. Let me use two legs.
             const games2 = [
                 [
                     makeGame('A', 'B', 13, 7),
@@ -316,9 +231,7 @@ describe('rankGroupByRegulations', () => {
                     makeGame('B', 'D', 13, 5),
                     makeGame('C', 'D', 13, 5),
                 ],
-                [
-                    makeGame('C', 'B', 13, 10),
-                ]
+                [makeGame('C', 'B', 13, 10)],
             ];
             // B vs C: first leg 13-10(+3), second leg 10-13(-3) = 0 net
             // h2h diff (full 4-team):
@@ -351,88 +264,52 @@ describe('rankGroupByRegulations', () => {
         it('handles single team group', () => {
             const group = [makeTeam('A', 0, 0, 0)];
             const result = rankGroupByRegulations(group, []);
-            expect(result.map(t => t.title)).toEqual(['A']);
+            expect(result.map((t) => t.title)).toEqual(['A']);
         });
 
         it('handles empty games array', () => {
-            const group = [
-                makeTeam('A', 2, 20, 10),
-                makeTeam('B', 2, 15, 15),
-            ];
+            const group = [makeTeam('A', 2, 20, 10), makeTeam('B', 2, 15, 15)];
             const result = rankGroupByRegulations(group, []);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('ignores in-progress games', () => {
-            const group = [
-                makeTeam('A', 1, 13, 10),
-                makeTeam('B', 1, 10, 13),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 10, 'finished'),
-                makeGame('B', 'A', 5, 3, 'in_progress'),
-            ]];
+            const group = [makeTeam('A', 1, 13, 10), makeTeam('B', 1, 10, 13)];
+            const games = [[makeGame('A', 'B', 13, 10, 'finished'), makeGame('B', 'A', 5, 3, 'in_progress')]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('ignores not_started games', () => {
-            const group = [
-                makeTeam('A', 1, 13, 10),
-                makeTeam('B', 1, 10, 13),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 10, 'finished'),
-                makeGame('B', 'A', null, null, 'not_started'),
-            ]];
+            const group = [makeTeam('A', 1, 13, 10), makeTeam('B', 1, 10, 13)];
+            const games = [[makeGame('A', 'B', 13, 10, 'finished'), makeGame('B', 'A', null, null, 'not_started')]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('ignores games with null scores', () => {
-            const group = [
-                makeTeam('A', 1, 13, 10),
-                makeTeam('B', 1, 10, 13),
-            ];
-            const games = [[
-                makeGame('A', 'B', 13, 10),
-                makeGame('B', 'A', null, null),
-            ]];
+            const group = [makeTeam('A', 1, 13, 10), makeTeam('B', 1, 10, 13)];
+            const games = [[makeGame('A', 'B', 13, 10), makeGame('B', 'A', null, null)]];
             const result = rankGroupByRegulations(group, games);
             expect(result[0].title).toBe('A');
             expect(result[1].title).toBe('B');
         });
 
         it('all teams completely tied remains in original order', () => {
-            const group = [
-                makeTeam('A', 1, 10, 10),
-                makeTeam('B', 1, 10, 10),
-                makeTeam('C', 1, 10, 10),
-            ];
-            const games = [[
-                makeGame('A', 'B', 5, 5),
-                makeGame('B', 'C', 5, 5),
-                makeGame('C', 'A', 5, 5),
-            ]];
+            const group = [makeTeam('A', 1, 10, 10), makeTeam('B', 1, 10, 10), makeTeam('C', 1, 10, 10)];
+            const games = [[makeGame('A', 'B', 5, 5), makeGame('B', 'C', 5, 5), makeGame('C', 'A', 5, 5)]];
             // All have 0 h2h diff, 10 h2h plus, 10 overall diff — fully tied
             const result = rankGroupByRegulations(group, games);
             expect(result).toHaveLength(3);
         });
 
         it('only counts games between teams in the group', () => {
-            const group = [
-                makeTeam('A', 2, 26, 15),
-                makeTeam('B', 2, 23, 18),
-            ];
+            const group = [makeTeam('A', 2, 26, 15), makeTeam('B', 2, 23, 18)];
             // Game between A and outsider X should be ignored for h2h
-            const games = [[
-                makeGame('A', 'B', 10, 13),
-                makeGame('A', 'X', 13, 5),
-                makeGame('B', 'X', 13, 8),
-            ]];
+            const games = [[makeGame('A', 'B', 10, 13), makeGame('A', 'X', 13, 5), makeGame('B', 'X', 13, 8)]];
             const result = rankGroupByRegulations(group, games);
             // h2h: B beat A → B first
             expect(result[0].title).toBe('B');
@@ -543,20 +420,18 @@ describe('rankGroupByRegulations', () => {
     describe('Integration with getTeamsRanking', () => {
         it('groups system uses cluster-based ranking', () => {
             const tournament = makeGroupsTournament(
-                [[
-                    { title: 'A', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                    { title: 'B', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                    { title: 'C', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                ]],
-                [[
-                    makeGame('A', 'B', 13, 10),
-                    makeGame('B', 'C', 13, 7),
-                    makeGame('C', 'A', 13, 8),
-                ]]
+                [
+                    [
+                        { title: 'A', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                        { title: 'B', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                        { title: 'C', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                    ],
+                ],
+                [[makeGame('A', 'B', 13, 10), makeGame('B', 'C', 13, 7), makeGame('C', 'A', 13, 8)]],
             );
             const result = getTeamsRanking(tournament, 2);
             // h2h diff: A=(13-10)+(8-13)=-2, B=(10-13)+(13-7)=+3, C=(7-13)+(13-8)=-1
-            expect(result[0].map(t => t.title)).toEqual(['B', 'C', 'A']);
+            expect(result[0].map((t) => t.title)).toEqual(['B', 'C', 'A']);
         });
 
         it('multiple groups ranked independently', () => {
@@ -569,12 +444,9 @@ describe('rankGroupByRegulations', () => {
                     [
                         { title: 'X', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
                         { title: 'Y', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                    ]
+                    ],
                 ],
-                [[
-                    makeGame('A', 'B', 13, 10),
-                    makeGame('Y', 'X', 13, 5),
-                ]]
+                [[makeGame('A', 'B', 13, 10), makeGame('Y', 'X', 13, 5)]],
             );
             const result = getTeamsRanking(tournament, 2);
             expect(result[0][0].title).toBe('A');
@@ -584,15 +456,9 @@ describe('rankGroupByRegulations', () => {
 
     describe('Double round-robin (multi-circle)', () => {
         it('correctly accumulates h2h across multiple legs', () => {
-            const group = [
-                makeTeam('A', 2, 26, 20),
-                makeTeam('B', 2, 24, 22),
-            ];
+            const group = [makeTeam('A', 2, 26, 20), makeTeam('B', 2, 24, 22)];
             // A wins first leg, B wins second with bigger margin
-            const games = [
-                [makeGame('A', 'B', 13, 10)],
-                [makeGame('B', 'A', 13, 7)],
-            ];
+            const games = [[makeGame('A', 'B', 13, 10)], [makeGame('B', 'A', 13, 7)]];
             // h2h total: A scored 13+7=20, conceded 10+13=23, diff=-3
             // B scored 10+13=23, conceded 13+7=20, diff=+3 → B ranks higher
             const result = rankGroupByRegulations(group, games);
@@ -601,22 +467,10 @@ describe('rankGroupByRegulations', () => {
         });
 
         it('three teams double round-robin uses combined h2h', () => {
-            const group = [
-                makeTeam('A', 2, 40, 35),
-                makeTeam('B', 2, 38, 37),
-                makeTeam('C', 2, 35, 40),
-            ];
+            const group = [makeTeam('A', 2, 40, 35), makeTeam('B', 2, 38, 37), makeTeam('C', 2, 35, 40)];
             const games = [
-                [
-                    makeGame('A', 'B', 13, 10),
-                    makeGame('B', 'C', 13, 7),
-                    makeGame('C', 'A', 13, 8),
-                ],
-                [
-                    makeGame('B', 'A', 13, 5),
-                    makeGame('C', 'B', 13, 10),
-                    makeGame('A', 'C', 13, 8),
-                ],
+                [makeGame('A', 'B', 13, 10), makeGame('B', 'C', 13, 7), makeGame('C', 'A', 13, 8)],
+                [makeGame('B', 'A', 13, 5), makeGame('C', 'B', 13, 10), makeGame('A', 'C', 13, 8)],
             ];
             // h2h stats (among all three):
             // A: (13-10)+(5-13)+(8-13)+(13-8) = 3-8-5+5 = -5

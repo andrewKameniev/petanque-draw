@@ -1,10 +1,18 @@
 <template>
     <div class="content tabs-content">
         <div class="stream-subtabs">
-            <button class="stream-subtabs__btn" :class="{'stream-subtabs__btn--active': subtab === 'teams'}" @click="subtab = 'teams'">
+            <button
+                class="stream-subtabs__btn"
+                :class="{ 'stream-subtabs__btn--active': subtab === 'teams' }"
+                @click="subtab = 'teams'"
+            >
                 {{ $t('teams.teams') }}
             </button>
-            <button class="stream-subtabs__btn" :class="{'stream-subtabs__btn--active': subtab === 'lanes'}" @click="subtab = 'lanes'">
+            <button
+                class="stream-subtabs__btn"
+                :class="{ 'stream-subtabs__btn--active': subtab === 'lanes' }"
+                @click="subtab = 'lanes'"
+            >
                 {{ $t('streams.lanes') }}
             </button>
         </div>
@@ -14,17 +22,21 @@
                 <div class="stream-preset__header">
                     <span class="stream-preset__name">{{ team.title }}</span>
                     <button class="stream-preset__add" @click="addTeamStream(team.title)">
-                        <Plus :size="14"/>
+                        <Plus :size="14" />
                     </button>
                 </div>
                 <div v-if="teamStreams[team.title] && teamStreams[team.title].length" class="stream-preset__links">
                     <div v-for="(url, idx) in teamStreams[team.title]" :key="idx" class="stream-preset__link">
-                        <component :is="getStreamIcon(url)" :size="16" :class="getStreamIconClass(url)"/>
-                        <input class="stream-preset__input" type="url" :value="url"
-                               :placeholder="$t('games.streamPlaceholder')"
-                               @change="updateTeamStream(team.title, idx, $event.target.value)">
+                        <component :is="getStreamIcon(url)" :size="16" :class="getStreamIconClass(url)" />
+                        <input
+                            class="stream-preset__input"
+                            type="url"
+                            :value="url"
+                            :placeholder="$t('games.streamPlaceholder')"
+                            @change="updateTeamStream(team.title, idx, $event.target.value)"
+                        />
                         <button class="stream-preset__remove" @click="removeTeamStream(team.title, idx)">
-                            <X :size="14"/>
+                            <X :size="14" />
                         </button>
                     </div>
                 </div>
@@ -36,17 +48,21 @@
                 <div class="stream-preset__header">
                     <span class="stream-preset__name">{{ $t('games.lane') }} {{ lane }}</span>
                     <button class="stream-preset__add" @click="addLaneStream(lane)">
-                        <Plus :size="14"/>
+                        <Plus :size="14" />
                     </button>
                 </div>
                 <div v-if="laneStreams[lane] && laneStreams[lane].length" class="stream-preset__links">
                     <div v-for="(url, idx) in laneStreams[lane]" :key="idx" class="stream-preset__link">
-                        <component :is="getStreamIcon(url)" :size="16" :class="getStreamIconClass(url)"/>
-                        <input class="stream-preset__input" type="url" :value="url"
-                               :placeholder="$t('games.streamPlaceholder')"
-                               @change="updateLaneStream(lane, idx, $event.target.value)">
+                        <component :is="getStreamIcon(url)" :size="16" :class="getStreamIconClass(url)" />
+                        <input
+                            class="stream-preset__input"
+                            type="url"
+                            :value="url"
+                            :placeholder="$t('games.streamPlaceholder')"
+                            @change="updateLaneStream(lane, idx, $event.target.value)"
+                        />
                         <button class="stream-preset__remove" @click="removeLaneStream(lane, idx)">
-                            <X :size="14"/>
+                            <X :size="14" />
                         </button>
                     </div>
                 </div>
@@ -56,19 +72,19 @@
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {getStreamIconComponent, getStreamIconClass} from "@/services/streams";
-import {Plus, X, Twitch, Facebook, Instagram, Video} from "lucide-vue-next";
-import YoutubeIcon from "@/components/icons/YoutubeIcon.vue";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { getStreamIconComponent, getStreamIconClass } from '@/services/streams';
+import { Plus, X, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
+import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 
 export default {
     name: 'StreamPresets',
-    components: {Plus, X, YoutubeIcon, Twitch, Facebook, Instagram, Video},
+    components: { Plus, X, YoutubeIcon, Twitch, Facebook, Instagram, Video },
     data() {
         return {
-            subtab: 'teams'
-        }
+            subtab: 'teams',
+        };
     },
     computed: {
         ...mapState(useMainStore, ['currentTournament']),
@@ -84,14 +100,14 @@ export default {
         lanesList() {
             const start = this.tournament.preferences?.fieldsStart || 1;
             const count = Math.max(this.tournament.teams?.length ? Math.floor(this.tournament.teams.length / 2) : 4, 1);
-            return Array.from({length: count}, (_, i) => i + start);
-        }
+            return Array.from({ length: count }, (_, i) => i + start);
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['syncToFirebase']),
         ensurePresets() {
             if (!this.tournament.streamPresets) {
-                this.tournament.streamPresets = {teams: {}, lanes: {}};
+                this.tournament.streamPresets = { teams: {}, lanes: {} };
             }
             if (!this.tournament.streamPresets.teams) this.tournament.streamPresets.teams = {};
             if (!this.tournament.streamPresets.lanes) this.tournament.streamPresets.lanes = {};
@@ -151,8 +167,8 @@ export default {
         },
         getStreamIcon: getStreamIconComponent,
         getStreamIconClass,
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -266,12 +282,26 @@ export default {
 
 .stream-preset__remove:hover {
     color: var(--color-danger, #e53935);
-    background: rgba(229, 57, 53, 0.1);
+    background: rgb(229 57 53 / 10%);
 }
 
-.stream-icon--youtube { color: #ff0000; }
-.stream-icon--twitch { color: #9146ff; }
-.stream-icon--facebook { color: #1877f2; }
-.stream-icon--instagram { color: #e4405f; }
-.stream-icon--default { color: var(--color-text-muted); }
+.stream-icon--youtube {
+    color: #f00;
+}
+
+.stream-icon--twitch {
+    color: #9146ff;
+}
+
+.stream-icon--facebook {
+    color: #1877f2;
+}
+
+.stream-icon--instagram {
+    color: #e4405f;
+}
+
+.stream-icon--default {
+    color: var(--color-text-muted);
+}
 </style>

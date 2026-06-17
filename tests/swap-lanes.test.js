@@ -12,7 +12,7 @@ function makeTeam(title, lanes = []) {
         pointsPlus: 0,
         pointsMinus: 0,
         lanes,
-        players: []
+        players: [],
     };
 }
 
@@ -25,7 +25,7 @@ function makeTournament(teams, options = {}) {
         preferences: {
             fieldsStart: options.fieldsStart || 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
         games: options.games || [],
     };
@@ -52,11 +52,11 @@ function swapLanes(games, teams, indexA, indexB) {
     const tempLane = games[indexA].lane;
     games[indexA].lane = games[indexB].lane;
     games[indexB].lane = tempLane;
-    teams.forEach(team => {
+    teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
     });
-    games.forEach(game => {
-        teams.forEach(team => {
+    games.forEach((game) => {
+        teams.forEach((team) => {
             if (!team.lanes) team.lanes = [];
             if (team.title === game.team_1 && game.lane != null) {
                 team.lanes.push(game.lane);
@@ -107,18 +107,18 @@ describe('swap lanes', () => {
         const tournament = makeTournament(teams);
         const games = makeGames(tournament);
 
-        const teamA = teams.find(t => t.title === 'A');
-        const teamC = teams.find(t => t.title === 'C');
-        const laneOfA = games.find(g => g.team_1 === 'A' || g.team_2 === 'A').lane;
-        const laneOfC = games.find(g => g.team_1 === 'C' || g.team_2 === 'C').lane;
+        const teamA = teams.find((t) => t.title === 'A');
+        const teamC = teams.find((t) => t.title === 'C');
+        const laneOfA = games.find((g) => g.team_1 === 'A' || g.team_2 === 'A').lane;
+        const laneOfC = games.find((g) => g.team_1 === 'C' || g.team_2 === 'C').lane;
 
-        const indexA = games.findIndex(g => g.team_1 === 'A' || g.team_2 === 'A');
-        const indexC = games.findIndex(g => g.team_1 === 'C' || g.team_2 === 'C');
+        const indexA = games.findIndex((g) => g.team_1 === 'A' || g.team_2 === 'A');
+        const indexC = games.findIndex((g) => g.team_1 === 'C' || g.team_2 === 'C');
 
         swapLanes(games, teams, indexA, indexC);
 
-        const newLaneOfA = games.find(g => g.team_1 === 'A' || g.team_2 === 'A').lane;
-        const newLaneOfC = games.find(g => g.team_1 === 'C' || g.team_2 === 'C').lane;
+        const newLaneOfA = games.find((g) => g.team_1 === 'A' || g.team_2 === 'A').lane;
+        const newLaneOfC = games.find((g) => g.team_1 === 'C' || g.team_2 === 'C').lane;
 
         expect(newLaneOfA).toBe(laneOfC);
         expect(newLaneOfC).toBe(laneOfA);
@@ -165,12 +165,12 @@ describe('swap lanes', () => {
         const tournament = makeTournament(teams);
         const games = makeGames(tournament);
 
-        const originalOrder = games.map(g => g.team_1);
+        const originalOrder = games.map((g) => g.team_1);
 
         swapLanes(games, teams, 0, 1);
         swapLanes(games, teams, 0, 1);
 
-        expect(games.map(g => g.team_1)).toEqual(originalOrder);
+        expect(games.map((g) => g.team_1)).toEqual(originalOrder);
     });
 
     it('works with 6 teams and non-adjacent swap', () => {

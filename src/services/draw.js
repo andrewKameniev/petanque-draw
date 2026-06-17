@@ -1,7 +1,7 @@
-import {sortTeams} from '@/helpers';
+import { sortTeams } from '@/helpers';
 
 export function getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) {
-    const exclusions = [indexToExclude1, indexToExclude2].filter(v => v !== null);
+    const exclusions = [indexToExclude1, indexToExclude2].filter((v) => v !== null);
     const validCount = lengthOfArray - exclusions.length;
     if (validCount <= 0) return 0;
     let rand;
@@ -16,7 +16,7 @@ export function generateCompetitors(teamList, activeRound, useRating) {
     if (activeRound === 1 && !useRating) {
         teamIndex = getRandomWithOneExclusion(teamList.length);
         opponentIndex = getRandomWithOneExclusion(teamList.length, teamIndex);
-        return {teamIndex, opponentIndex};
+        return { teamIndex, opponentIndex };
     } else {
         teamIndex = 0;
         const defaultOpponentIndex = activeRound === 1 ? teamList.length / 2 : 1;
@@ -25,10 +25,10 @@ export function generateCompetitors(teamList, activeRound, useRating) {
             opponentIndex++;
             if (!teamList[opponentIndex]) {
                 opponentIndex = -1;
-                return {teamIndex, opponentIndex};
+                return { teamIndex, opponentIndex };
             }
         }
-        return {teamIndex, opponentIndex};
+        return { teamIndex, opponentIndex };
     }
 }
 
@@ -37,14 +37,14 @@ export function generateCompetitorsFirstLast(teamList, activeRound, useRating, r
     if (activeRound === 1 && !useRating) {
         teamIndex = getRandomWithOneExclusion(teamList.length);
         opponentIndex = getRandomWithOneExclusion(teamList.length, teamIndex);
-        return {teamIndex, opponentIndex};
+        return { teamIndex, opponentIndex };
     } else {
         let teamsWithSameWins, isOneTeamWithSameWins;
         if (reverse) {
             teamIndex = 0;
             opponentIndex = iteration % 2 === 0 ? teamList.length - 1 : teamIndex + 1;
         } else {
-            teamsWithSameWins = teamList.filter(team => team.wins === teamList[0].wins);
+            teamsWithSameWins = teamList.filter((team) => team.wins === teamList[0].wins);
             isOneTeamWithSameWins = teamsWithSameWins.length === 1;
             if (isOneTeamWithSameWins) {
                 teamsWithSameWins.push(teamList[1]);
@@ -57,10 +57,14 @@ export function generateCompetitorsFirstLast(teamList, activeRound, useRating, r
         }
         if (reverse) {
             while (teamList[teamIndex].opponents.includes(teamList[opponentIndex]?.title)) {
-                opponentIndex = iteration ? iteration % 2 === 0 ? opponentIndex - 1 : opponentIndex + 1 : opponentIndex + 1;
+                opponentIndex = iteration
+                    ? iteration % 2 === 0
+                        ? opponentIndex - 1
+                        : opponentIndex + 1
+                    : opponentIndex + 1;
                 if (!teamList[opponentIndex]) {
                     opponentIndex = -1;
-                    return {teamIndex, opponentIndex};
+                    return { teamIndex, opponentIndex };
                 }
             }
         } else {
@@ -68,11 +72,11 @@ export function generateCompetitorsFirstLast(teamList, activeRound, useRating, r
                 isOneTeamWithSameWins || teamsWithSameWins.length < 3 ? opponentIndex++ : opponentIndex--;
                 if (!teamList[opponentIndex] || teamIndex === opponentIndex) {
                     opponentIndex = -1;
-                    return {teamIndex, opponentIndex};
+                    return { teamIndex, opponentIndex };
                 }
             }
         }
-        return {teamIndex, opponentIndex};
+        return { teamIndex, opponentIndex };
     }
 }
 
@@ -88,7 +92,10 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
     const isTechnical = teamsToDraw.length % 2 !== 0;
 
     if (isTechnical) {
-        let technicalTeamIndex = tournament.useRating || activeRound !== 1 ? teamsToDraw.length - 1 : getRandomWithOneExclusion(teamsToDraw.length);
+        let technicalTeamIndex =
+            tournament.useRating || activeRound !== 1
+                ? teamsToDraw.length - 1
+                : getRandomWithOneExclusion(teamsToDraw.length);
         let technicalTeam = teamsToDraw[technicalTeamIndex];
         if (technicalTeam.opponents.includes('Technical')) {
             for (let i = 2; i < teamsToDraw.length; i++) {
@@ -105,7 +112,7 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
             team_2: 'Technical',
             team_2_score: tournament.preferences.technical.technicalSecond,
             status: 'finished',
-            winner: technicalTeam.title
+            winner: technicalTeam.title,
         });
         teamsToDraw.splice(technicalTeamIndex, 1);
     }
@@ -119,26 +126,35 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
                 for (let k = 1; k <= expandListIteration * 2; k++) {
                     teamsToDraw.unshift(teamsDrawed[teamsDrawed.length - k]);
                 }
-                teamsDrawed.splice(teamsDrawed.length - (expandListIteration * 2), expandListIteration * 2);
+                teamsDrawed.splice(teamsDrawed.length - expandListIteration * 2, expandListIteration * 2);
             }
-            competitors = generateCompetitorsFirstLast(teamsToDraw, activeRound, tournament.useRating, true, expandListIteration);
+            competitors = generateCompetitorsFirstLast(
+                teamsToDraw,
+                activeRound,
+                tournament.useRating,
+                true,
+                expandListIteration,
+            );
         }
         if (expandListIteration === stopExpandIndex && competitors.opponentIndex === -1) {
-            return {round: null, error: 'cantDraw'};
+            return { round: null, error: 'cantDraw' };
         }
         round.push({
             team_1: teamsToDraw[competitors.teamIndex].title,
             team_1_score: null,
             team_2: teamsToDraw[Math.floor(competitors.opponentIndex)].title,
             team_2_score: null,
-            status: 'not_started'
+            status: 'not_started',
         });
         teamsDrawed.push(teamsToDraw[competitors.teamIndex], teamsToDraw[Math.floor(competitors.opponentIndex)]);
-        const teamsToRemove = [teamsToDraw[competitors.teamIndex].title, teamsToDraw[Math.floor(competitors.opponentIndex)].title];
-        teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+        const teamsToRemove = [
+            teamsToDraw[competitors.teamIndex].title,
+            teamsToDraw[Math.floor(competitors.opponentIndex)].title,
+        ];
+        teamsToDraw = teamsToDraw.filter((team) => !teamsToRemove.includes(team.title));
     }
 
-    return {round, error: null};
+    return { round, error: null };
 }
 
 export function drawSupermeleRound(tournament, rankingTeams) {
@@ -154,7 +170,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
 
     let superMeleScheme = {
         doubles: tournament.supermelePlayers == 2 ? gamesCount : 0,
-        triples: tournament.supermelePlayers == 3 ? gamesCount : 0
+        triples: tournament.supermelePlayers == 3 ? gamesCount : 0,
     };
     let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
 
@@ -188,10 +204,10 @@ export function drawSupermeleRound(tournament, rankingTeams) {
         }
         teamsForRound.push({
             title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title,
-            players: [teamsToDraw[player1].title, teamsToDraw[player2].title]
+            players: [teamsToDraw[player1].title, teamsToDraw[player2].title],
         });
         const teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title];
-        teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+        teamsToDraw = teamsToDraw.filter((team) => !teamsToRemove.includes(team.title));
     }
 
     for (let j = 1; j <= superMeleScheme.triples; j++) {
@@ -205,16 +221,20 @@ export function drawSupermeleRound(tournament, rankingTeams) {
             tryToFindOpponent++;
         }
         let tryToFindOpponent2 = 1;
-        while (tryToFindOpponent2 < 100 && teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) && teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)) {
+        while (
+            tryToFindOpponent2 < 100 &&
+            teamsToDraw[player1].opponents.includes(teamsToDraw[player3].title) &&
+            teamsToDraw[player2].opponents.includes(teamsToDraw[player3].title)
+        ) {
             player3 = getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
             tryToFindOpponent2++;
         }
         teamsForRound.push({
             title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title + ', ' + teamsToDraw[player3].title,
-            players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title]
+            players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title],
         });
         const teamsToRemove = [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title];
-        teamsToDraw = teamsToDraw.filter(team => !teamsToRemove.includes(team.title));
+        teamsToDraw = teamsToDraw.filter((team) => !teamsToRemove.includes(team.title));
     }
 
     while (teamsForRound.length >= 2) {
@@ -225,7 +245,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
             team_2: teamsForRound[1].title,
             team_2_players: teamsForRound[1].players,
             team_2_score: null,
-            status: 'not_started'
+            status: 'not_started',
         });
         teamsForRound.splice(0, 2);
     }
@@ -236,7 +256,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
 export function assignLanes(games, tournament) {
     let technicalGame = null;
     if (tournament.system === 'swiss' && tournament.teams.length % 2 !== 0) {
-        const technicalGameIndex = games.findIndex(game => game.team_2 === 'Technical');
+        const technicalGameIndex = games.findIndex((game) => game.team_2 === 'Technical');
         if (technicalGameIndex !== -1) {
             technicalGame = games[technicalGameIndex];
             games = games.filter((_, i) => i !== technicalGameIndex);
@@ -248,13 +268,13 @@ export function assignLanes(games, tournament) {
     const firstLane = tournament.preferences.fieldsStart - 1;
     const laneCount = Math.floor(tournament.teams.length / 2);
 
-    tournament.teams.forEach(team => {
+    tournament.teams.forEach((team) => {
         teamsMatrix[team.title] = {};
         for (let i = firstLane; i < firstLane + laneCount; i++) {
             teamsMatrix[team.title][i] = 0;
         }
         if (team.lanes && team.lanes.length) {
-            team.lanes.forEach(lane => {
+            team.lanes.forEach((lane) => {
                 if (teamsMatrix[team.title][lane] !== undefined) {
                     teamsMatrix[team.title][lane]++;
                 }
@@ -263,7 +283,7 @@ export function assignLanes(games, tournament) {
     });
 
     function getLastLane(teamTitle) {
-        const team = tournament.teams.find(t => t.title === teamTitle);
+        const team = tournament.teams.find((t) => t.title === teamTitle);
         if (team?.lanes?.length) return team.lanes[team.lanes.length - 1];
         return null;
     }
@@ -272,7 +292,7 @@ export function assignLanes(games, tournament) {
         if (isSupermele) {
             const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
             let weight = players.reduce((sum, p) => sum + (teamsMatrix[p]?.[lane] || 0), 0);
-            if (players.some(p => getLastLane(p) === lane)) weight += laneCount;
+            if (players.some((p) => getLastLane(p) === lane)) weight += laneCount;
             return weight;
         }
         let weight = (teamsMatrix[game.team_1]?.[lane] || 0) + (teamsMatrix[game.team_2]?.[lane] || 0);
@@ -284,24 +304,26 @@ export function assignLanes(games, tournament) {
         if (isSupermele) {
             const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
             const lanes = new Set();
-            players.forEach(p => {
-                const team = tournament.teams.find(t => t.title === p);
-                if (team?.lanes) team.lanes.forEach(l => lanes.add(l));
+            players.forEach((p) => {
+                const team = tournament.teams.find((t) => t.title === p);
+                if (team?.lanes) team.lanes.forEach((l) => lanes.add(l));
             });
             return lanes;
         }
         const lanes = new Set();
-        const team1 = tournament.teams.find(t => t.title === game.team_1);
-        const team2 = tournament.teams.find(t => t.title === game.team_2);
-        if (team1?.lanes) team1.lanes.forEach(l => lanes.add(l));
-        if (team2?.lanes) team2.lanes.forEach(l => lanes.add(l));
+        const team1 = tournament.teams.find((t) => t.title === game.team_1);
+        const team2 = tournament.teams.find((t) => t.title === game.team_2);
+        if (team1?.lanes) team1.lanes.forEach((l) => lanes.add(l));
+        if (team2?.lanes) team2.lanes.forEach((l) => lanes.add(l));
         return lanes;
     }
 
     function updateMatrix(game, lane) {
         if (isSupermele) {
             const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
-            players.forEach(p => { if (teamsMatrix[p]?.[lane] !== undefined) teamsMatrix[p][lane]++; });
+            players.forEach((p) => {
+                if (teamsMatrix[p]?.[lane] !== undefined) teamsMatrix[p][lane]++;
+            });
         } else {
             if (teamsMatrix[game.team_1]) teamsMatrix[game.team_1][lane]++;
             if (teamsMatrix[game.team_2]) teamsMatrix[game.team_2][lane]++;
@@ -309,7 +331,7 @@ export function assignLanes(games, tournament) {
     }
 
     const scheduledMatches = [];
-    let availableLanes = Array.from({length: laneCount}, (_, i) => i + firstLane);
+    let availableLanes = Array.from({ length: laneCount }, (_, i) => i + firstLane);
 
     games.forEach((game) => {
         if (game.team_2 !== 'Technical') {
@@ -317,10 +339,10 @@ export function assignLanes(games, tournament) {
             let minWeight = Infinity;
             const playedLanes = getPlayedLanes(game);
 
-            const freshLanes = availableLanes.filter(i => !playedLanes.has(i));
+            const freshLanes = availableLanes.filter((i) => !playedLanes.has(i));
             const candidates = freshLanes.length > 0 ? freshLanes : availableLanes;
 
-            candidates.forEach(i => {
+            candidates.forEach((i) => {
                 const weight = getWeight(game, i);
                 if (weight < minWeight) {
                     minWeight = weight;
@@ -329,7 +351,7 @@ export function assignLanes(games, tournament) {
             });
             game.lane = bestLane;
             updateMatrix(game, bestLane);
-            availableLanes = availableLanes.filter(lane => lane !== bestLane);
+            availableLanes = availableLanes.filter((lane) => lane !== bestLane);
             scheduledMatches.push(game);
         }
     });
@@ -342,7 +364,7 @@ export function assignLanes(games, tournament) {
 
 export function resetGroupsScheme(tournament) {
     const schemas = [];
-    tournament.groups.forEach(group => {
+    tournament.groups.forEach((group) => {
         let groupIndexes = [];
         group.forEach((_, index) => {
             groupIndexes.push(index);
@@ -350,7 +372,7 @@ export function resetGroupsScheme(tournament) {
         if (group.length % 2 !== 0) {
             groupIndexes.push(group.length);
         }
-        const scheme = {top: [], bottom: []};
+        const scheme = { top: [], bottom: [] };
         for (let i = 0; i < groupIndexes.length / 2; i++) {
             scheme.top.push(i);
         }
@@ -366,11 +388,13 @@ function createGroupsSeeded(tournament, teamsToDraw, groups, groupsQuantity) {
     if (groupsQuantity === 2 && teamsToDraw.length < 33) {
         const indexesScheme = {
             0: [1, 32, 16, 17, 9, 24, 8, 25, 5, 28, 12, 21, 13, 20, 4, 29],
-            1: [3, 30, 14, 19, 11, 22, 6, 27, 7, 26, 10, 23, 15, 18, 2, 31]
+            1: [3, 30, 14, 19, 11, 22, 6, 27, 7, 26, 10, 23, 15, 18, 2, 31],
         };
-        Object.keys(indexesScheme).forEach(key => {
-            indexesScheme[key].forEach(item => {
-                const teamIndexInList = teamsToDraw[item - 1] ? tournament.teams.findIndex(team => team.title === teamsToDraw[item - 1].title) : -1;
+        Object.keys(indexesScheme).forEach((key) => {
+            indexesScheme[key].forEach((item) => {
+                const teamIndexInList = teamsToDraw[item - 1]
+                    ? tournament.teams.findIndex((team) => team.title === teamsToDraw[item - 1].title)
+                    : -1;
                 if (teamIndexInList !== -1) {
                     groups[key].push(tournament.teams[teamIndexInList]);
                 }
@@ -382,11 +406,11 @@ function createGroupsSeeded(tournament, teamsToDraw, groups, groupsQuantity) {
         for (let i = 0; i < teamsToDraw.length; i += teamsPerPot) {
             pots.push(teamsToDraw.slice(i, i + teamsPerPot));
         }
-        pots.forEach(pot => {
+        pots.forEach((pot) => {
             const shuffled = [...pot].sort(() => Math.random() - 0.5);
             shuffled.forEach((team, i) => {
                 const groupIdx = i % groupsQuantity;
-                const teamIndexInList = tournament.teams.findIndex(t => t.title === team.title);
+                const teamIndexInList = tournament.teams.findIndex((t) => t.title === team.title);
                 if (teamIndexInList !== -1) {
                     groups[groupIdx].push(tournament.teams[teamIndexInList]);
                 }
@@ -399,7 +423,7 @@ function createGroupsSnake(tournament, teamsToDraw, groups, groupsQuantity) {
     let direction = 1;
     let groupIdx = 0;
     for (let i = 0; i < teamsToDraw.length; i++) {
-        const teamIndexInList = tournament.teams.findIndex(t => t.title === teamsToDraw[i].title);
+        const teamIndexInList = tournament.teams.findIndex((t) => t.title === teamsToDraw[i].title);
         if (teamIndexInList !== -1) {
             groups[groupIdx].push(tournament.teams[teamIndexInList]);
         }
@@ -427,7 +451,7 @@ function createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuant
             candidate[i % groupsQuantity].push(team);
         });
 
-        const totals = candidate.map(g => g.reduce((sum, t) => sum + (t.rating || 0), 0));
+        const totals = candidate.map((g) => g.reduce((sum, t) => sum + (t.rating || 0), 0));
         const diff = Math.max(...totals) - Math.min(...totals);
 
         if (diff < bestDiff) {
@@ -437,8 +461,8 @@ function createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuant
     }
 
     bestGroups.forEach((group, gIdx) => {
-        group.forEach(team => {
-            const teamIndexInList = tournament.teams.findIndex(t => t.title === team.title);
+        group.forEach((team) => {
+            const teamIndexInList = tournament.teams.findIndex((t) => t.title === team.title);
             if (teamIndexInList !== -1) {
                 groups[gIdx].push(tournament.teams[teamIndexInList]);
             }
@@ -448,7 +472,7 @@ function createGroupsBalancedRandom(tournament, teamsToDraw, groups, groupsQuant
 
 function computeRoundRobinSchedule(n) {
     const rounds = [];
-    const positions = Array.from({length: n}, (_, i) => i);
+    const positions = Array.from({ length: n }, (_, i) => i);
     for (let r = 0; r < n - 1; r++) {
         const pairs = [];
         for (let i = 0; i < n / 2; i++) {
@@ -476,7 +500,7 @@ function getTeamClub(team) {
 
 function buildClubMap(teams) {
     const map = {};
-    teams.forEach(t => {
+    teams.forEach((t) => {
         const club = getTeamClub(t);
         if (club) {
             if (!map[club]) map[club] = [];
@@ -489,7 +513,7 @@ function buildClubMap(teams) {
 function findSameClubPairs(teams) {
     const clubMap = buildClubMap(teams);
     const pairs = [];
-    Object.values(clubMap).forEach(members => {
+    Object.values(clubMap).forEach((members) => {
         if (members.length >= 2) {
             for (let i = 0; i < members.length; i++) {
                 for (let j = i + 1; j < members.length; j++) {
@@ -503,7 +527,9 @@ function findSameClubPairs(teams) {
 
 function scoreConstraints(orderedTeams, schedule) {
     const titleToPos = {};
-    orderedTeams.forEach((t, i) => { titleToPos[t.title] = i; });
+    orderedTeams.forEach((t, i) => {
+        titleToPos[t.title] = i;
+    });
 
     const sameClubPairs = findSameClubPairs(orderedTeams);
     if (!sameClubPairs.length) return 0;
@@ -547,11 +573,11 @@ export function generateConstrainedGroups(tournament, teamsInGroup) {
         }
     }
 
-    const group = bestResult.map(t => tournament.teams.find(orig => orig.title === t.title));
+    const group = bestResult.map((t) => tournament.teams.find((orig) => orig.title === t.title));
 
-    let groupIndexes = Array.from({length: n}, (_, i) => i);
+    let groupIndexes = Array.from({ length: n }, (_, i) => i);
     if (n % 2 !== 0) groupIndexes.push(n);
-    const scheme = {top: [], bottom: []};
+    const scheme = { top: [], bottom: [] };
     for (let i = 0; i < groupIndexes.length / 2; i++) {
         scheme.top.push(i);
     }
@@ -559,7 +585,7 @@ export function generateConstrainedGroups(tournament, teamsInGroup) {
         scheme.bottom.push(i);
     }
 
-    return {groups: [group], schemas: [scheme], warning: null};
+    return { groups: [group], schemas: [scheme], warning: null };
 }
 
 export function createGroups(tournament, teamsInGroup) {
@@ -570,7 +596,7 @@ export function createGroups(tournament, teamsInGroup) {
     }
     let teamsToDraw = JSON.parse(JSON.stringify([...tournament.teams].sort((a, b) => b.rating - a.rating)));
 
-    const drawMethod = tournament.useRating ? (tournament.preferences?.groupDrawMethod || 'seeded') : null;
+    const drawMethod = tournament.useRating ? tournament.preferences?.groupDrawMethod || 'seeded' : null;
 
     if (!tournament.useRating) {
         while (teamsToDraw.length >= 1) {
@@ -578,7 +604,9 @@ export function createGroups(tournament, teamsInGroup) {
                 for (let i = 0; i < groupsQuantity; i++) {
                     const teamIndex = getRandomWithOneExclusion(teamsToDraw.length);
                     if (teamIndex !== -1 && teamsToDraw.length >= 1) {
-                        const teamIndexInList = tournament.teams.findIndex(team => team.title === teamsToDraw[teamIndex].title);
+                        const teamIndexInList = tournament.teams.findIndex(
+                            (team) => team.title === teamsToDraw[teamIndex].title,
+                        );
                         groups[i].push(tournament.teams[teamIndexInList]);
                         teamsToDraw.splice(teamIndex, 1);
                     }
@@ -594,7 +622,7 @@ export function createGroups(tournament, teamsInGroup) {
     }
 
     const schemas = [];
-    groups.forEach(group => {
+    groups.forEach((group) => {
         group.sort((a, b) => b.rating - a.rating);
         let groupIndexes = [];
         group.forEach((_, index) => {
@@ -603,7 +631,7 @@ export function createGroups(tournament, teamsInGroup) {
         if (group.length % 2 !== 0) {
             groupIndexes.push(group.length);
         }
-        const scheme = {top: [], bottom: []};
+        const scheme = { top: [], bottom: [] };
         for (let i = 0; i < groupIndexes.length / 2; i++) {
             scheme.top.push(i);
         }
@@ -613,7 +641,7 @@ export function createGroups(tournament, teamsInGroup) {
         schemas.push(scheme);
     });
 
-    return {groups, schemas};
+    return { groups, schemas };
 }
 
 export function drawGroupsRound(tournament) {
@@ -626,18 +654,24 @@ export function drawGroupsRound(tournament) {
             return;
         }
         for (let i = 0; i < tournament.groupsScheme[index].top.length; i++) {
-            if (!isTechnical || (tournament.groupsScheme[index].top[i] !== group.length && tournament.groupsScheme[index].bottom[i] !== group.length)) {
+            if (
+                !isTechnical ||
+                (tournament.groupsScheme[index].top[i] !== group.length &&
+                    tournament.groupsScheme[index].bottom[i] !== group.length)
+            ) {
                 round.push({
                     group: index,
                     team_1: group[tournament.groupsScheme[index].top[i]].title,
                     team_1_score: null,
                     team_2: group[tournament.groupsScheme[index].bottom[i]].title,
                     team_2_score: null,
-                    status: 'not_started'
+                    status: 'not_started',
                 });
             }
         }
-        tournament.groupsScheme[index].bottom.push(tournament.groupsScheme[index].top[tournament.groupsScheme[index].top.length - 1]);
+        tournament.groupsScheme[index].bottom.push(
+            tournament.groupsScheme[index].top[tournament.groupsScheme[index].top.length - 1],
+        );
         tournament.groupsScheme[index].top.unshift(tournament.groupsScheme[index].bottom[0]);
         tournament.groupsScheme[index].top.splice(tournament.groupsScheme[index].top.length - 1, 1);
         tournament.groupsScheme[index].top.splice(1, 1);
@@ -652,15 +686,15 @@ export function reshuffleGroupSchedule(tournament) {
     const newGroups = [];
     const schemas = [];
 
-    groups.forEach(group => {
+    groups.forEach((group) => {
         const n = group.length;
         const schedule = computeRoundRobinSchedule(n % 2 === 0 ? n : n + 1);
         const shuffled = findBalancedOrder(group, schedule);
         newGroups.push(shuffled);
 
-        let groupIndexes = Array.from({length: n}, (_, i) => i);
+        let groupIndexes = Array.from({ length: n }, (_, i) => i);
         if (n % 2 !== 0) groupIndexes.push(n);
-        const scheme = {top: [], bottom: []};
+        const scheme = { top: [], bottom: [] };
         for (let i = 0; i < groupIndexes.length / 2; i++) {
             scheme.top.push(i);
         }
@@ -670,7 +704,7 @@ export function reshuffleGroupSchedule(tournament) {
         schemas.push(scheme);
     });
 
-    return {groups: newGroups, schemas};
+    return { groups: newGroups, schemas };
 }
 
 function scoreRatingBalance(orderedTeams, schedule) {
@@ -726,7 +760,7 @@ export function createPoules(tournament) {
     let direction = 1;
     let groupIdx = 0;
     for (let i = 0; i < teamsCount; i++) {
-        const teamIndexInList = tournament.teams.findIndex(t => t.title === teamsSorted[i].title);
+        const teamIndexInList = tournament.teams.findIndex((t) => t.title === teamsSorted[i].title);
         groups[groupIdx].push(tournament.teams[teamIndexInList]);
 
         if (direction === 1 && groupIdx === groupsQuantity - 1) {
@@ -738,7 +772,7 @@ export function createPoules(tournament) {
         }
     }
 
-    return {groups};
+    return { groups };
 }
 
 export function drawPoulesRound(tournament) {
@@ -753,7 +787,7 @@ export function drawPoulesRound(tournament) {
                 team_1_score: null,
                 team_2: group[2].title,
                 team_2_score: null,
-                status: 'not_started'
+                status: 'not_started',
             });
             round.push({
                 group: groupIndex,
@@ -761,11 +795,11 @@ export function drawPoulesRound(tournament) {
                 team_1_score: null,
                 team_2: group[3].title,
                 team_2_score: null,
-                status: 'not_started'
+                status: 'not_started',
             });
         } else if (poulesRound === 2) {
             // Round 2: winners play winners, losers play losers
-            const r1Games = tournament.games[tournament.games.length - 1].filter(g => g.group === groupIndex);
+            const r1Games = tournament.games[tournament.games.length - 1].filter((g) => g.group === groupIndex);
             const game1 = r1Games[0];
             const game2 = r1Games[1];
 
@@ -780,7 +814,7 @@ export function drawPoulesRound(tournament) {
                 team_1_score: null,
                 team_2: winner2,
                 team_2_score: null,
-                status: 'not_started'
+                status: 'not_started',
             });
             round.push({
                 group: groupIndex,
@@ -788,21 +822,25 @@ export function drawPoulesRound(tournament) {
                 team_1_score: null,
                 team_2: loser2,
                 team_2_score: null,
-                status: 'not_started'
+                status: 'not_started',
             });
         } else if (poulesRound === 3) {
             // Round 3 (barrage): two teams with exactly 1 win play each other
             const teamWins = {};
-            group.forEach(t => { teamWins[t.title] = 0; });
+            group.forEach((t) => {
+                teamWins[t.title] = 0;
+            });
 
-            tournament.games.forEach(roundGames => {
-                roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                    if (game.team_1_score > game.team_2_score) {
-                        teamWins[game.team_1]++;
-                    } else if (game.team_2_score > game.team_1_score) {
-                        teamWins[game.team_2]++;
-                    }
-                });
+            tournament.games.forEach((roundGames) => {
+                roundGames
+                    .filter((g) => g.group === groupIndex)
+                    .forEach((game) => {
+                        if (game.team_1_score > game.team_2_score) {
+                            teamWins[game.team_1]++;
+                        } else if (game.team_2_score > game.team_1_score) {
+                            teamWins[game.team_2]++;
+                        }
+                    });
             });
 
             const oneWinTeams = Object.entries(teamWins)
@@ -816,7 +854,7 @@ export function drawPoulesRound(tournament) {
                     team_1_score: null,
                     team_2: oneWinTeams[1],
                     team_2_score: null,
-                    status: 'not_started'
+                    status: 'not_started',
                 });
             }
         }
@@ -829,36 +867,38 @@ export function getPoulesQualifiedTeams(tournament) {
     tournament.groups.forEach((group, groupIndex) => {
         const teamWins = {};
         const teamPoints = {};
-        group.forEach(t => {
+        group.forEach((t) => {
             teamWins[t.title] = 0;
             teamPoints[t.title] = 0;
         });
 
-        tournament.games.forEach(roundGames => {
-            roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                if (game.team_1_score > game.team_2_score) {
-                    teamWins[game.team_1]++;
-                } else if (game.team_2_score > game.team_1_score) {
-                    teamWins[game.team_2]++;
-                }
-                teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
-                teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
-            });
+        tournament.games.forEach((roundGames) => {
+            roundGames
+                .filter((g) => g.group === groupIndex)
+                .forEach((game) => {
+                    if (game.team_1_score > game.team_2_score) {
+                        teamWins[game.team_1]++;
+                    } else if (game.team_2_score > game.team_1_score) {
+                        teamWins[game.team_2]++;
+                    }
+                    teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
+                    teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
+                });
         });
 
         const qualifiedFromGroup = Object.entries(teamWins)
             .filter(([, wins]) => wins >= 2)
             .sort((a, b) => b[1] - a[1] || (teamPoints[b[0]] || 0) - (teamPoints[a[0]] || 0))
-            .map(([title]) => tournament.teams.find(t => t.title === title));
+            .map(([title]) => tournament.teams.find((t) => t.title === title));
 
         groupQualified.push(qualifiedFromGroup);
     });
 
     // Interleave: all group winners first, then all runners-up
     const qualified = [];
-    const maxPerGroup = Math.max(...groupQualified.map(g => g.length));
+    const maxPerGroup = Math.max(...groupQualified.map((g) => g.length));
     for (let i = 0; i < maxPerGroup; i++) {
-        groupQualified.forEach(group => {
+        groupQualified.forEach((group) => {
             if (group[i]) qualified.push(group[i]);
         });
     }
@@ -874,18 +914,18 @@ export function getPoulesQualifiedTeams(tournament) {
 
 export function saveResultsForRound(tournament, round) {
     if (tournament.games.length <= 2) {
-        tournament.teams.forEach(team => {
-            team.opponents = (team.opponents || []).filter(item => item !== 'placeholder');
+        tournament.teams.forEach((team) => {
+            team.opponents = (team.opponents || []).filter((item) => item !== 'placeholder');
         });
     }
     if (tournament.system === 'supermele') {
-        tournament.games[round].forEach(game => {
-            game.team_1_players.forEach(player => {
-                const playerIndex = tournament.teams.findIndex(item => item.title === player);
+        tournament.games[round].forEach((game) => {
+            game.team_1_players.forEach((player) => {
+                const playerIndex = tournament.teams.findIndex((item) => item.title === player);
                 if (playerIndex !== -1) {
                     if (!tournament.teams[playerIndex].opponents) tournament.teams[playerIndex].opponents = [];
-                    const partners = game.team_1_players.filter(item => item !== player);
-                    partners.forEach(item => tournament.teams[playerIndex].opponents.push(item));
+                    const partners = game.team_1_players.filter((item) => item !== player);
+                    partners.forEach((item) => tournament.teams[playerIndex].opponents.push(item));
                     tournament.teams[playerIndex].pointsPlus += game.team_1_score;
                     tournament.teams[playerIndex].pointsMinus += game.team_2_score;
                     if (game.team_1_score > game.team_2_score) {
@@ -893,12 +933,12 @@ export function saveResultsForRound(tournament, round) {
                     }
                 }
             });
-            game.team_2_players.forEach(player => {
-                const playerIndex = tournament.teams.findIndex(item => item.title === player);
+            game.team_2_players.forEach((player) => {
+                const playerIndex = tournament.teams.findIndex((item) => item.title === player);
                 if (playerIndex !== -1) {
                     if (!tournament.teams[playerIndex].opponents) tournament.teams[playerIndex].opponents = [];
-                    const partners = game.team_2_players.filter(item => item !== player);
-                    partners.forEach(item => tournament.teams[playerIndex].opponents.push(item));
+                    const partners = game.team_2_players.filter((item) => item !== player);
+                    partners.forEach((item) => tournament.teams[playerIndex].opponents.push(item));
                     tournament.teams[playerIndex].pointsPlus += game.team_2_score;
                     tournament.teams[playerIndex].pointsMinus += game.team_1_score;
                     if (game.team_2_score > game.team_1_score) {
@@ -908,15 +948,15 @@ export function saveResultsForRound(tournament, round) {
             });
         });
     } else {
-        tournament.games[round].forEach(game => {
-            const firstTeamIndex = tournament.teams.findIndex(item => item.title === game.team_1);
+        tournament.games[round].forEach((game) => {
+            const firstTeamIndex = tournament.teams.findIndex((item) => item.title === game.team_1);
             if (firstTeamIndex !== -1) {
                 if (!tournament.teams[firstTeamIndex].opponents) tournament.teams[firstTeamIndex].opponents = [];
                 tournament.teams[firstTeamIndex].opponents.push(game.team_2);
                 tournament.teams[firstTeamIndex].pointsPlus += game.team_1_score;
                 tournament.teams[firstTeamIndex].pointsMinus += game.team_2_score;
             }
-            const secondTeamIndex = tournament.teams.findIndex(item => item.title === game.team_2);
+            const secondTeamIndex = tournament.teams.findIndex((item) => item.title === game.team_2);
             if (secondTeamIndex !== -1) {
                 if (!tournament.teams[secondTeamIndex].opponents) tournament.teams[secondTeamIndex].opponents = [];
                 tournament.teams[secondTeamIndex].opponents.push(game.team_1);
@@ -927,7 +967,7 @@ export function saveResultsForRound(tournament, round) {
                 if (firstTeamIndex !== -1) {
                     tournament.teams[firstTeamIndex].wins++;
                 }
-            } else if (game.team_2_score > game.team_1_score && secondTeamIndex !== -1 && game.team_2 !== "Technical") {
+            } else if (game.team_2_score > game.team_1_score && secondTeamIndex !== -1 && game.team_2 !== 'Technical') {
                 tournament.teams[secondTeamIndex].wins++;
             }
         });

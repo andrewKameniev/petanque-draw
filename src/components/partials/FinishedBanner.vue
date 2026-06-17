@@ -1,6 +1,6 @@
 <template>
     <div class="finished-banner" data-testid="finished-banner">
-        <Trophy :size="20" class="finished-banner__icon"/>
+        <Trophy :size="20" class="finished-banner__icon" />
         <span class="finished-banner__text">{{ $t('games.tournamentFinished') }}</span>
         <span class="finished-banner__dot">&middot;</span>
         <a href="#" class="finished-banner__link" @click.prevent="$emit('openResults')">{{ $t('games.seeResult') }}</a>
@@ -8,13 +8,13 @@
 </template>
 
 <script>
-import {Trophy} from "lucide-vue-next";
+import { Trophy } from 'lucide-vue-next';
 
 export default {
     name: 'FinishedBanner',
-    components: {Trophy},
+    components: { Trophy },
     emits: ['openResults'],
-}
+};
 </script>
 
 <style scoped>

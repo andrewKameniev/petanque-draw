@@ -1,8 +1,8 @@
 <template>
     <div class="wrapper">
-        <Navbar @open-menu="menuOpen = !menuOpen"/>
+        <Navbar @open-menu="menuOpen = !menuOpen" />
         <div class="container">
-            <Menu :active="menuOpen" @closeMenu="menuOpen = false"/>
+            <Menu :active="menuOpen" @closeMenu="menuOpen = false" />
             <div class="stat-container">
                 <div v-if="user" class="stats-page">
                     <!-- Active game tracking view -->
@@ -38,45 +38,69 @@
                     <!-- Results view after finishing -->
                     <div v-else-if="showResults && finishedGame" class="stats-page__results">
                         <div class="stats-page__results-header">
-                            <button @click="showResults = false; currentTab = 'active'" class="stats-btn stats-btn--ghost">
-                                <ArrowLeft :size="16"/> {{ $t('stat.back') }}
+                            <button
+                                @click="
+                                    showResults = false;
+                                    currentTab = 'active';
+                                "
+                                class="stats-btn stats-btn--ghost"
+                            >
+                                <ArrowLeft :size="16" /> {{ $t('stat.back') }}
                             </button>
                             <div class="stats-page__results-header-right">
-                                <button v-if="finishedGameId" @click="shareFinishedGame" class="stats-btn stats-btn--secondary">
-                                    <Share2 :size="16"/> {{ $t('remote.copyLink') }}
+                                <button
+                                    v-if="finishedGameId"
+                                    @click="shareFinishedGame"
+                                    class="stats-btn stats-btn--secondary"
+                                >
+                                    <Share2 :size="16" /> {{ $t('remote.copyLink') }}
                                 </button>
                                 <button @click="startNewGame" class="stats-btn stats-btn--primary">
-                                    <Plus :size="16"/> {{ $t('stat.newGame') }}
+                                    <Plus :size="16" /> {{ $t('stat.newGame') }}
                                 </button>
                             </div>
                         </div>
                         <h2 class="stats-page__results-title">{{ finishedGame.name }}</h2>
                         <div class="stats-page__results-grid">
-                            <StatResult :label="$t('stat.team1Label')" :team="finishedGame.team1" :system="finishedGame.system"/>
-                            <StatResult :label="$t('stat.team2Label')" :team="finishedGame.team2" :system="finishedGame.system"/>
+                            <StatResult
+                                :label="$t('stat.team1Label')"
+                                :team="finishedGame.team1"
+                                :system="finishedGame.system"
+                            />
+                            <StatResult
+                                :label="$t('stat.team2Label')"
+                                :team="finishedGame.team2"
+                                :system="finishedGame.system"
+                            />
                         </div>
                     </div>
 
                     <!-- Main tabbed view -->
                     <div v-else class="stats-page__main">
                         <div class="stats-tabs">
-                            <button class="stats-tabs__btn"
-                                    :class="{'stats-tabs__btn--active': currentTab === 'active'}"
-                                    @click="currentTab = 'active'">
-                                <Play :size="15"/>
+                            <button
+                                class="stats-tabs__btn"
+                                :class="{ 'stats-tabs__btn--active': currentTab === 'active' }"
+                                @click="currentTab = 'active'"
+                            >
+                                <Play :size="15" />
                                 {{ $t('stat.activeGames') }}
                                 <span class="stats-tabs__badge" v-if="savedGames.length">{{ savedGames.length }}</span>
                             </button>
-                            <button class="stats-tabs__btn"
-                                    :class="{'stats-tabs__btn--active': currentTab === 'new'}"
-                                    @click="currentTab = 'new'">
-                                <Plus :size="15"/>
+                            <button
+                                class="stats-tabs__btn"
+                                :class="{ 'stats-tabs__btn--active': currentTab === 'new' }"
+                                @click="currentTab = 'new'"
+                            >
+                                <Plus :size="15" />
                                 {{ $t('stat.newGameTab') }}
                             </button>
-                            <button class="stats-tabs__btn"
-                                    :class="{'stats-tabs__btn--active': currentTab === 'history'}"
-                                    @click="currentTab = 'history'">
-                                <Archive :size="15"/>
+                            <button
+                                class="stats-tabs__btn"
+                                :class="{ 'stats-tabs__btn--active': currentTab === 'history' }"
+                                @click="currentTab = 'history'"
+                            >
+                                <Archive :size="15" />
                                 {{ $t('stat.history') }}
                             </button>
                         </div>
@@ -85,27 +109,41 @@
                             <!-- Active Games Tab -->
                             <div v-if="currentTab === 'active'" class="stats-active">
                                 <div v-if="savedGames.length === 0" class="stats-active__empty">
-                                    <CircleOff :size="32" class="stats-active__empty-icon"/>
+                                    <CircleOff :size="32" class="stats-active__empty-icon" />
                                     <span>{{ $t('stat.noActiveGames') }}</span>
                                 </div>
                                 <div v-else class="stats-active__list">
                                     <div class="stats-active__card" v-for="(game, index) in savedGames" :key="index">
                                         <div class="stats-active__card-info">
-                                            <span class="stats-active__card-name">{{ game.name || 'Game ' + (index + 1) }}</span>
+                                            <span class="stats-active__card-name">{{
+                                                game.name || 'Game ' + (index + 1)
+                                            }}</span>
                                             <span class="stats-active__card-meta">
                                                 {{ $t('stat.round') }} {{ game.currentMan + 1 }} &middot;
-                                                {{ game.team1.score.reduce((a, b) => a + b, 0) }} : {{ game.team2.score.reduce((a, b) => a + b, 0) }}
+                                                {{ game.team1.score.reduce((a, b) => a + b, 0) }} :
+                                                {{ game.team2.score.reduce((a, b) => a + b, 0) }}
                                             </span>
                                         </div>
                                         <div class="stats-active__card-actions">
-                                            <button class="stats-btn stats-btn--sm stats-btn--primary" @click="loadGame(index)">
-                                                <Play :size="14"/> {{ $t('stat.continueGame') }}
+                                            <button
+                                                class="stats-btn stats-btn--sm stats-btn--primary"
+                                                @click="loadGame(index)"
+                                            >
+                                                <Play :size="14" /> {{ $t('stat.continueGame') }}
                                             </button>
-                                            <button v-if="confirmDeleteIndex === index" class="stats-btn stats-btn--sm stats-btn--danger-confirm" @click="deleteGame(index)">
+                                            <button
+                                                v-if="confirmDeleteIndex === index"
+                                                class="stats-btn stats-btn--sm stats-btn--danger-confirm"
+                                                @click="deleteGame(index)"
+                                            >
                                                 {{ $t('stat.deleteGame') }}?
                                             </button>
-                                            <button v-else class="stats-btn stats-btn--sm stats-btn--danger" @click="confirmDeleteIndex = index">
-                                                <Trash2 :size="14"/>
+                                            <button
+                                                v-else
+                                                class="stats-btn stats-btn--sm stats-btn--danger"
+                                                @click="confirmDeleteIndex = index"
+                                            >
+                                                <Trash2 :size="14" />
                                             </button>
                                         </div>
                                     </div>
@@ -134,7 +172,7 @@
 
                             <!-- History Tab -->
                             <div v-if="currentTab === 'history'">
-                                <StatsArchive :tags="tags"/>
+                                <StatsArchive :tags="tags" />
                             </div>
                         </div>
                     </div>
@@ -144,37 +182,58 @@
                     <div class="mt-5">
                         <router-link to="/" class="btn-login-primary btn-login-primary--large">
                             <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                />
                             </svg>
                             {{ $t('common.loginUser') }}
                         </router-link>
                     </div>
                 </div>
             </div>
-            <Message v-if="message.show"/>
+            <Message v-if="message.show" />
         </div>
-        <Footer/>
+        <Footer />
     </div>
 </template>
 
 <script>
-import Footer from "@/components/partials/Footer.vue";
-import Navbar from "@/components/Navbar.vue";
-import Menu from "@/components/Menu.vue";
-import {statsService} from "@/services/db";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import StatsArchive from "@/components/stats/StatsArchive.vue";
-import StatResult from "@/components/stats/StatResult.vue";
-import StatsSetup from "@/components/stats/StatsSetup.vue";
-import StatsTracking from "@/components/stats/StatsTracking.vue";
-import {gameTypes, validateScore} from "@/helpers-stat.js"
-import Message from "@/components/Message.vue";
-import {Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2} from "lucide-vue-next";
+import Footer from '@/components/partials/Footer.vue';
+import Navbar from '@/components/Navbar.vue';
+import Menu from '@/components/Menu.vue';
+import { statsService } from '@/services/db';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import StatsArchive from '@/components/stats/StatsArchive.vue';
+import StatResult from '@/components/stats/StatResult.vue';
+import StatsSetup from '@/components/stats/StatsSetup.vue';
+import StatsTracking from '@/components/stats/StatsTracking.vue';
+import { gameTypes, validateScore } from '@/helpers-stat.js';
+import Message from '@/components/Message.vue';
+import { Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2 } from 'lucide-vue-next';
 
 export default {
     name: 'Stats',
-    components: {Message, StatResult, StatsArchive, StatsSetup, StatsTracking, Menu, Navbar, Footer, Plus, Play, Archive, CircleOff, Trash2, ArrowLeft, Share2},
+    components: {
+        Message,
+        StatResult,
+        StatsArchive,
+        StatsSetup,
+        StatsTracking,
+        Menu,
+        Navbar,
+        Footer,
+        Plus,
+        Play,
+        Archive,
+        CircleOff,
+        Trash2,
+        ArrowLeft,
+        Share2,
+    },
     data() {
         return {
             isSaving: false,
@@ -200,7 +259,7 @@ export default {
             manDistance: null,
             savedGames: [],
             confirmDeleteIndex: null,
-        }
+        };
     },
     mounted() {
         this.loadSavedGames();
@@ -216,8 +275,8 @@ export default {
         currentScore() {
             return {
                 team1: this.team1.score.reduce((a, b) => a + b, 0),
-                team2: this.team2.score.reduce((a, b) => a + b, 0)
-            }
+                team2: this.team2.score.reduce((a, b) => a + b, 0),
+            };
         },
         manCount() {
             return this.team1.players?.[0]?.stat?.length || 0;
@@ -230,27 +289,31 @@ export default {
                 french: 'D',
                 distance: this.manDistance,
                 important: this.currentScore.team1 > 9 && this.currentScore.team2 > 9,
-            }
+            };
         },
     },
     watch: {
         currentMan() {
             if (this.currentMan !== null && (this.currentScore.team1 < 13 || this.currentScore.team2 < 13)) {
-                this.nextMan()
+                this.nextMan();
             }
         },
         manDistance(newValue) {
             if (this.team1.players) {
-                this.team1.players.forEach(player => player.stat[this.currentMan]?.forEach(item => {
-                    item.distance = newValue
-                }));
+                this.team1.players.forEach((player) =>
+                    player.stat[this.currentMan]?.forEach((item) => {
+                        item.distance = newValue;
+                    }),
+                );
             }
             if (this.team2.players) {
-                this.team2.players.forEach(player => player.stat[this.currentMan]?.forEach(item => {
-                    item.distance = newValue
-                }));
+                this.team2.players.forEach((player) =>
+                    player.stat[this.currentMan]?.forEach((item) => {
+                        item.distance = newValue;
+                    }),
+                );
             }
-        }
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
@@ -283,7 +346,8 @@ export default {
         },
         getTags() {
             this.tagsLoading = true;
-            statsService.getTags(this.user.uid)
+            statsService
+                .getTags(this.user.uid)
                 .then((snapshot) => {
                     this.tags = snapshot.exists() ? snapshot.val() : null;
                 })
@@ -291,7 +355,9 @@ export default {
                     console.error('Error loading tags:', error);
                     this.tags = null;
                 })
-                .finally(() => { this.tagsLoading = false; });
+                .finally(() => {
+                    this.tagsLoading = false;
+                });
         },
         saveCurrentGame() {
             if (this.activeGameIndex === null || !this.team1.players?.length) return;
@@ -302,8 +368,8 @@ export default {
                 scenario: this.statScenario,
                 mode: this.statMode,
                 asCouch: this.asCouch,
-                team1: {...this.team1},
-                team2: {...this.team2},
+                team1: { ...this.team1 },
+                team2: { ...this.team2 },
                 currentMan: this.currentMan,
                 manDistance: this.manDistance,
                 tags: this.gameTags,
@@ -318,8 +384,8 @@ export default {
             this.statScenario = game.scenario;
             this.statMode = game.mode;
             this.asCouch = game.asCouch;
-            this.team1 = {...game.team1};
-            this.team2 = {...game.team2};
+            this.team1 = { ...game.team1 };
+            this.team2 = { ...game.team2 };
             this.currentMan = game.currentMan;
             this.manDistance = game.manDistance || null;
             this.gameTags = game.tags || [];
@@ -354,8 +420,8 @@ export default {
                 scenario: statScenario,
                 mode: statMode,
                 asCouch,
-                team1: {...this.team1},
-                team2: {...this.team2},
+                team1: { ...this.team1 },
+                team2: { ...this.team2 },
                 currentMan: 0,
                 tags: gameTags,
             });
@@ -379,7 +445,7 @@ export default {
         trackPlayerUsage() {
             const raw = localStorage.getItem('statPlayerUsage');
             const usage = raw ? JSON.parse(raw) : {};
-            [...this.team1.players, ...this.team2.players].forEach(p => {
+            [...this.team1.players, ...this.team2.players].forEach((p) => {
                 if (p.name.trim()) {
                     usage[p.name.trim()] = (usage[p.name.trim()] || 0) + 1;
                 }
@@ -388,13 +454,13 @@ export default {
         },
         syncPlayerUsageFromArchive() {
             if (!this.user) return;
-            statsService.getAll(this.user.uid).then(snapshot => {
+            statsService.getAll(this.user.uid).then((snapshot) => {
                 if (!snapshot.exists()) return;
                 const data = snapshot.val();
                 const usage = {};
-                Object.values(data).forEach(game => {
+                Object.values(data).forEach((game) => {
                     if (!game?.team1?.players) return;
-                    [...(game.team1.players || []), ...(game.team2?.players || [])].forEach(p => {
+                    [...(game.team1.players || []), ...(game.team2?.players || [])].forEach((p) => {
                         if (p.name?.trim()) {
                             usage[p.name.trim()] = (usage[p.name.trim()] || 0) + 1;
                         }
@@ -411,7 +477,7 @@ export default {
                 name: this.gameName,
                 system: this.statSystem,
                 team1: JSON.parse(JSON.stringify(this.team1)),
-                team2: JSON.parse(JSON.stringify(this.team2))
+                team2: JSON.parse(JSON.stringify(this.team2)),
             };
             this.showResults = true;
             let statResult = {
@@ -420,24 +486,27 @@ export default {
                 tags: this.gameTags,
                 name: this.gameName,
                 team1: this.finishedGame.team1,
-                team2: this.finishedGame.team2
-            }
+                team2: this.finishedGame.team2,
+            };
             this.finishedGameId = statResult.date;
             this.isSaving = true;
-            statsService.save(this.user.uid, statResult.date, statResult).then(() => {
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved')});
-                if (this.activeGameIndex !== null) {
-                    this.savedGames.splice(this.activeGameIndex, 1);
-                    this.persistGames();
-                }
-                this.activeGameIndex = null;
-                this.isSaving = false;
-                this.resetGameState();
-            }).catch((error) => {
-                console.error('Error save:', error);
-                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
-                this.isSaving = false;
-            });
+            statsService
+                .save(this.user.uid, statResult.date, statResult)
+                .then(() => {
+                    this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.statsSaved') });
+                    if (this.activeGameIndex !== null) {
+                        this.savedGames.splice(this.activeGameIndex, 1);
+                        this.persistGames();
+                    }
+                    this.activeGameIndex = null;
+                    this.isSaving = false;
+                    this.resetGameState();
+                })
+                .catch((error) => {
+                    console.error('Error save:', error);
+                    this.showMessage({ title: this.$t('messages.error'), text: error, type: 'error' });
+                    this.isSaving = false;
+                });
         },
         resetGameState() {
             this.currentMan = null;
@@ -452,7 +521,7 @@ export default {
             const shareRef = `${this.user.uid}.${this.finishedGameId}`;
             const link = `${window.location.origin}${domain}stats/share?ref=${shareRef}`;
             navigator.clipboard.writeText(link).then(() => {
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('remote.copyLink')});
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('remote.copyLink') });
             });
         },
         startNewGame() {
@@ -478,16 +547,16 @@ export default {
             team.players.push(newPlayer);
         },
         removeThrow(team, playerIndex, manIndex, throwIndex) {
-            team.players[playerIndex].stat[manIndex].splice(throwIndex, 1)
+            team.players[playerIndex].stat[manIndex].splice(throwIndex, 1);
         },
         addThrow(team, playerIndex, manIndex, throwIndex) {
-            team.players[playerIndex].stat[manIndex][throwIndex].isMade = true
+            team.players[playerIndex].stat[manIndex][throwIndex].isMade = true;
         },
         doubleThrowResult(team, playerIndex, manIndex, throwIndex, res) {
-            team.players[playerIndex].stat[manIndex][throwIndex].x2 = res
+            team.players[playerIndex].stat[manIndex][throwIndex].x2 = res;
         },
         updateThrow(team, playerIndex, manIndex, throwIndex, type, value) {
-            team.players[playerIndex].stat[manIndex][throwIndex][type] = value
+            team.players[playerIndex].stat[manIndex][throwIndex][type] = value;
         },
         updateTeamScore(team, newScore, manIndex) {
             const otherTeam = team === this.team1 ? this.team2 : this.team1;
@@ -500,29 +569,26 @@ export default {
             team.score[manIndex] = score;
         },
         removeMan() {
-            this.team1.players.forEach(player => {
+            this.team1.players.forEach((player) => {
                 player.stat.splice(this.currentMan, 1);
             });
-            this.team2.players.forEach(player => {
+            this.team2.players.forEach((player) => {
                 player.stat.splice(this.currentMan, 1);
             });
-            this.currentMan--
+            this.currentMan--;
         },
         addPlayersStats(players) {
             players.forEach((player, index) => {
                 if (index === 2) {
-                    this.throwInfo.type = 't'
+                    this.throwInfo.type = 't';
                 } else {
-                    this.throwInfo.type = 'p'
+                    this.throwInfo.type = 'p';
                 }
                 this.addPlayerStats(player);
             });
         },
         addPlayerStats(player) {
-            const statEntry = [
-                JSON.parse(JSON.stringify(this.throwInfo)),
-                JSON.parse(JSON.stringify(this.throwInfo)),
-            ];
+            const statEntry = [JSON.parse(JSON.stringify(this.throwInfo)), JSON.parse(JSON.stringify(this.throwInfo))];
             if (this.gameType === 1 || this.gameType === 2) {
                 statEntry.push(JSON.parse(JSON.stringify(this.throwInfo)));
             }
@@ -550,9 +616,9 @@ export default {
         addPlayer(team, name = '') {
             const playerInfo = { name: name, stat: [] };
             team.players.push({ ...JSON.parse(JSON.stringify(playerInfo)) });
-        }
+        },
     },
-}
+};
 </script>
 
 <style scoped>
@@ -619,6 +685,7 @@ export default {
 }
 
 /* Tabs */
+
 .stats-tabs {
     display: flex;
     gap: 0.25rem;
@@ -675,7 +742,7 @@ export default {
 }
 
 .stats-tabs__btn--active .stats-tabs__badge {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 30%);
     color: var(--color-btn-text);
 }
 
@@ -686,6 +753,7 @@ export default {
 }
 
 /* Active games */
+
 .stats-active__empty {
     display: flex;
     flex-direction: column;
@@ -749,6 +817,7 @@ export default {
 }
 
 /* Shared button styles */
+
 .stats-btn {
     display: inline-flex;
     align-items: center;
@@ -759,7 +828,9 @@ export default {
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s;
 }
 
 .stats-btn--sm {
@@ -812,9 +883,17 @@ export default {
 }
 
 @keyframes pulse-danger {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 </style>
 

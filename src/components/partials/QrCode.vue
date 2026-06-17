@@ -6,12 +6,12 @@
                 <qrcode-vue :value="tournamentLink" :size="size" level="H" />
             </div>
             <div class="qr-modal__link-box">
-                <a :href="tournamentLink" target="_blank" class="qr-modal__link">{{tournamentLink}}</a>
+                <a :href="tournamentLink" target="_blank" class="qr-modal__link">{{ tournamentLink }}</a>
             </div>
             <div class="qr-modal__actions">
-                <button class="button qr-modal__btn" :class="{'qr-modal__btn--copied': linkCopied}" @click="copyLink">
-                    <Check v-if="linkCopied" :size="16"/>
-                    <Copy v-else :size="16"/>
+                <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': linkCopied }" @click="copyLink">
+                    <Check v-if="linkCopied" :size="16" />
+                    <Copy v-else :size="16" />
                     {{ linkCopied ? $t('messages.success') : $t('remote.copyLink') }}
                 </button>
             </div>
@@ -20,30 +20,30 @@
 </template>
 
 <script>
-import QrcodeVue from 'qrcode.vue'
-import Modal from "@/components/Modal";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {Copy, Check} from "lucide-vue-next";
+import QrcodeVue from 'qrcode.vue';
+import Modal from '@/components/Modal';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { Copy, Check } from 'lucide-vue-next';
 
 export default {
     name: 'QrCode',
-    components: {Modal, QrcodeVue, Copy, Check},
+    components: { Modal, QrcodeVue, Copy, Check },
     data() {
         return {
             size: 300,
             linkCopied: false,
-        }
+        };
     },
     computed: {
         ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament']),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
         tournamentLink() {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
             const shortRef = `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
-            return `${window.location.origin}${domain}tournament?ref=${shortRef}`
+            return `${window.location.origin}${domain}tournament?ref=${shortRef}`;
         },
     },
     methods: {
@@ -51,10 +51,12 @@ export default {
         copyLink() {
             navigator.clipboard.writeText(this.tournamentLink);
             this.linkCopied = true;
-            setTimeout(() => { this.linkCopied = false; }, 2000);
-        }
-    }
-}
+            setTimeout(() => {
+                this.linkCopied = false;
+            }, 2000);
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -74,7 +76,7 @@ export default {
     background: var(--color-qr-bg);
     border-radius: 12px;
     border: 1px solid var(--color-qr-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
 }
 
 .qr-modal__link-box {

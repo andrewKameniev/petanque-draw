@@ -1,18 +1,18 @@
 <script>
-import {mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import VueSelect from "vue3-select-component";
-import "vue3-select-component/dist/styles.css";
+import { mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import VueSelect from 'vue3-select-component';
+import 'vue3-select-component/dist/styles.css';
 import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'
-import {calculatePlayerStat, getDate, extractPlayers} from "@/helpers-stat";
-import {defineAsyncComponent} from 'vue';
-import {gameTypes, throwDistances} from "@/helpers-stat.js"
-import {X} from "lucide-vue-next";
+import '@vuepic/vue-datepicker/dist/main.css';
+import { calculatePlayerStat, getDate, extractPlayers } from '@/helpers-stat';
+import { defineAsyncComponent } from 'vue';
+import { gameTypes, throwDistances } from '@/helpers-stat.js';
+import { X } from 'lucide-vue-next';
 
 export default {
-    name: "StatsAnalysis",
-    components: {VueSelect, VueDatePicker, apexchart: defineAsyncComponent(() => import('vue3-apexcharts')), X},
+    name: 'StatsAnalysis',
+    components: { VueSelect, VueDatePicker, apexchart: defineAsyncComponent(() => import('vue3-apexcharts')), X },
     props: ['stats', 'tags'],
     data() {
         return {
@@ -28,18 +28,18 @@ export default {
             showSinusoids: false,
             chartData: [
                 {
-                    name: "Points",
-                    data: []
+                    name: 'Points',
+                    data: [],
                 },
                 {
-                    name: "Tirs",
-                    data: []
-                }
+                    name: 'Tirs',
+                    data: [],
+                },
             ],
             chartOptions: {
                 chart: {
                     id: 'vuechart-example',
-                    background: '#fff'
+                    background: '#fff',
                 },
                 dropShadow: {
                     enabled: true,
@@ -47,29 +47,32 @@ export default {
                     top: 18,
                     left: 7,
                     blur: 10,
-                    opacity: 0.5
+                    opacity: 0.5,
                 },
                 stroke: {
-                    curve: 'smooth'
+                    curve: 'smooth',
                 },
                 xaxis: {
-                    categories: []
+                    categories: [],
                 },
-            }
-        }
+            },
+        };
     },
     computed: {
         allPeriodStat() {
             const getThrowTotal = (key) => {
                 const positive = this.playerStatList.reduce((acc, game) => acc + game.stat[key].positive, 0);
-                const total = this.playerStatList.reduce((acc, game) => acc + game.stat[key].negative + game.stat[key].positive, 0);
+                const total = this.playerStatList.reduce(
+                    (acc, game) => acc + game.stat[key].negative + game.stat[key].positive,
+                    0,
+                );
                 return {
                     positive,
-                    total
-                }
-            }
+                    total,
+                };
+            };
 
-            const pct = (pos, total) => total === 0 ? '-' : (pos / total * 100).toFixed(1) + '%';
+            const pct = (pos, total) => (total === 0 ? '-' : ((pos / total) * 100).toFixed(1) + '%');
             const pts = getThrowTotal('points');
             const trs = getThrowTotal('tirs');
 
@@ -99,8 +102,8 @@ export default {
             };
         },
         playersList() {
-            return extractPlayers(this.stats).map(name => ({ label: name, value: name }));
-        }
+            return extractPlayers(this.stats).map((name) => ({ label: name, value: name }));
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
@@ -120,16 +123,21 @@ export default {
                 if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
 
                 if (this.filterGamesTag.length) {
-                    const hasMatchingTag = game.tags?.some(tag => this.filterGamesTag.includes(tag.trim()));
+                    const hasMatchingTag = game.tags?.some((tag) => this.filterGamesTag.includes(tag.trim()));
                     if (!hasMatchingTag) return;
                 }
 
                 const checkAndAddStat = (team) => {
-                    const player = team.players.find(player => player?.name.trim() === this.player.trim());
+                    const player = team.players.find((player) => player?.name.trim() === this.player.trim());
                     if (player) {
                         this.playerStatList.push({
                             date: key,
-                            stat: calculatePlayerStat(player.stat, 'simple', this.filterThrowDistance, this.onlyImportant)
+                            stat: calculatePlayerStat(
+                                player.stat,
+                                'simple',
+                                this.filterThrowDistance,
+                                this.onlyImportant,
+                            ),
                         });
                     }
                 };
@@ -137,7 +145,7 @@ export default {
                 checkAndAddStat(game.team1);
                 checkAndAddStat(game.team2);
             });
-            this.playerStatList.forEach(game => {
+            this.playerStatList.forEach((game) => {
                 const { pointsPercent, tirsPercent } = game.stat;
                 if (pointsPercent && tirsPercent) {
                     this.chartOptions.xaxis.categories.push(getDate(+game.date));
@@ -159,14 +167,14 @@ export default {
         },
         toggleTagFilter(tag) {
             if (this.filterGamesTag.includes(tag)) {
-                this.filterGamesTag = this.filterGamesTag.filter(item => item !== tag)
+                this.filterGamesTag = this.filterGamesTag.filter((item) => item !== tag);
             } else {
                 this.filterGamesTag.push(tag);
             }
-            this.showPlayerStat()
-        }
-    }
-}
+            this.showPlayerStat();
+        },
+    },
+};
 </script>
 
 <template>
@@ -175,11 +183,16 @@ export default {
             <div class="analysis__search-row">
                 <div class="analysis__field analysis__field--player">
                     <label class="analysis__label">{{ $t('stat.findPlayer') }}</label>
-                    <VueSelect v-model="player" :options="playersList" :placeholder="$t('stat.findPlayer')" @option-selected="showPlayerStat"/>
+                    <VueSelect
+                        v-model="player"
+                        :options="playersList"
+                        :placeholder="$t('stat.findPlayer')"
+                        @option-selected="showPlayerStat"
+                    />
                 </div>
                 <div class="analysis__field analysis__field--date" v-if="player">
                     <label class="analysis__label">{{ $t('stat.choosePeriod') }}</label>
-                    <VueDatePicker v-model="date" range multi-calendars @update:model-value="showPlayerStat"/>
+                    <VueDatePicker v-model="date" range multi-calendars @update:model-value="showPlayerStat" />
                 </div>
             </div>
         </div>
@@ -188,14 +201,20 @@ export default {
             <div class="analysis__filter-section">
                 <span class="analysis__filter-label">{{ $t('stat.format') }}</span>
                 <div class="analysis__filter-pills">
-                    <button v-for="item in gameTypes" :key="item.id"
-                            class="analysis__pill"
-                            :class="{'analysis__pill--active': filterGamesType === item.value}"
-                            @click="filterGamesType = item.value; showPlayerStat()">
+                    <button
+                        v-for="item in gameTypes"
+                        :key="item.id"
+                        class="analysis__pill"
+                        :class="{ 'analysis__pill--active': filterGamesType === item.value }"
+                        @click="
+                            filterGamesType = item.value;
+                            showPlayerStat();
+                        "
+                    >
                         {{ item.label }}
                     </button>
                     <button class="analysis__pill-clear" v-if="filterGamesType" @click="clearGameType">
-                        <X :size="12"/> {{ $t('stat.clear') }}
+                        <X :size="12" /> {{ $t('stat.clear') }}
                     </button>
                 </div>
             </div>
@@ -203,14 +222,24 @@ export default {
             <div class="analysis__filter-section" v-if="tags && Object.keys(tags).length">
                 <span class="analysis__filter-label">{{ $t('stat.gameTags') }}</span>
                 <div class="analysis__filter-pills">
-                    <button v-for="(tag, key) in tags" :key="key"
-                            class="analysis__pill"
-                            :class="{'analysis__pill--active': filterGamesTag.includes(tag)}"
-                            @click="toggleTagFilter(tag)">
+                    <button
+                        v-for="(tag, key) in tags"
+                        :key="key"
+                        class="analysis__pill"
+                        :class="{ 'analysis__pill--active': filterGamesTag.includes(tag) }"
+                        @click="toggleTagFilter(tag)"
+                    >
                         {{ tag }}
                     </button>
-                    <button class="analysis__pill-clear" v-if="filterGamesTag.length" @click="filterGamesTag = []; showPlayerStat();">
-                        <X :size="12"/> {{ $t('stat.clear') }}
+                    <button
+                        class="analysis__pill-clear"
+                        v-if="filterGamesTag.length"
+                        @click="
+                            filterGamesTag = [];
+                            showPlayerStat();
+                        "
+                    >
+                        <X :size="12" /> {{ $t('stat.clear') }}
                     </button>
                 </div>
             </div>
@@ -218,21 +247,27 @@ export default {
             <div class="analysis__filter-section">
                 <span class="analysis__filter-label">{{ $t('stat.whatDistance') }}</span>
                 <div class="analysis__filter-pills">
-                    <button v-for="dist in throwDistances" :key="dist"
-                            class="analysis__pill"
-                            :class="{'analysis__pill--active': filterThrowDistance === dist}"
-                            @click="filterThrowDistance = dist; showPlayerStat()">
+                    <button
+                        v-for="dist in throwDistances"
+                        :key="dist"
+                        class="analysis__pill"
+                        :class="{ 'analysis__pill--active': filterThrowDistance === dist }"
+                        @click="
+                            filterThrowDistance = dist;
+                            showPlayerStat();
+                        "
+                    >
                         {{ dist === 11 ? '>10m' : '~' + dist + 'm' }}
                     </button>
                     <button class="analysis__pill-clear" v-if="filterThrowDistance" @click="clearFilterDistance">
-                        <X :size="12"/> {{ $t('stat.clear') }}
+                        <X :size="12" /> {{ $t('stat.clear') }}
                     </button>
                 </div>
             </div>
 
             <div class="analysis__filter-section analysis__filter-section--toggle">
                 <label class="analysis__toggle">
-                    <input type="checkbox" v-model="onlyImportant" @change="showPlayerStat">
+                    <input type="checkbox" v-model="onlyImportant" @change="showPlayerStat" />
                     <span class="analysis__toggle-label">{{ $t('stat.important') }}</span>
                 </label>
             </div>
@@ -262,12 +297,7 @@ export default {
             </div>
 
             <div v-if="showSinusoids" class="analysis__chart">
-                <apexchart
-                    type="line"
-                    height="300"
-                    :options="themedChartOptions"
-                    :series="chartData"
-                />
+                <apexchart type="line" height="300" :options="themedChartOptions" :series="chartData" />
             </div>
         </div>
 
@@ -507,6 +537,7 @@ export default {
 }
 
 /* Vue Select overrides */
+
 .analysis :deep(.vue-select) {
     --vs-border: 1px solid var(--color-border);
     --vs-border-radius: 8px;
@@ -527,6 +558,7 @@ export default {
 }
 
 /* DatePicker overrides */
+
 .analysis :deep(.dp__input) {
     border-radius: 8px;
     border: 1px solid var(--color-border);

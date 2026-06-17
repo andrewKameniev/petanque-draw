@@ -19,8 +19,8 @@ export function getDefaultSelectedRound(tournament) {
 export function hasPlayOffResults(tournament) {
     const bracket = tournament?.playOffBracket;
     if (!bracket?.stages?.length) return false;
-    return bracket.stages.some(stage =>
-        stage.stageLabel !== 'cadrage' && stage.teams?.some(g => g.team_1 || g.team_2)
+    return bracket.stages.some(
+        (stage) => stage.stageLabel !== 'cadrage' && stage.teams?.some((g) => g.team_1 || g.team_2),
     );
 }
 
@@ -30,9 +30,7 @@ export function hasPlayOffResults(tournament) {
  */
 export function sortGamesByGroup(games, hasGroups) {
     if (!hasGroups || !games) return games;
-    return games.map(round =>
-        [...round].sort((a, b) => (a.group ?? 0) - (b.group ?? 0))
-    );
+    return games.map((round) => [...round].sort((a, b) => (a.group ?? 0) - (b.group ?? 0)));
 }
 
 /**
@@ -42,9 +40,7 @@ export function sortGamesByGroup(games, hasGroups) {
 export function getPoulesQualifiedPerGroup(rankingTeams, totalRounds) {
     if (!rankingTeams?.length) return [];
     const minWins = totalRounds >= 3 ? 2 : 1;
-    return rankingTeams.map(group =>
-        group.filter(team => team.wins >= minWins).length
-    );
+    return rankingTeams.map((group) => group.filter((team) => team.wins >= minWins).length);
 }
 
 /**
@@ -79,38 +75,38 @@ export function computePoulesGroupRankings(tournament) {
         const teamWins = {};
         const teamPointsPlus = {};
         const teamPointsMinus = {};
-        group.forEach(t => {
+        group.forEach((t) => {
             teamWins[t.title] = 0;
             teamPointsPlus[t.title] = 0;
             teamPointsMinus[t.title] = 0;
         });
 
-        tournament.games.forEach(roundGames => {
-            roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                if (game.team_1_score != null && game.team_2_score != null) {
-                    teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
-                    teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
-                    teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
-                    teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
-                    if (game.team_1_score > game.team_2_score) {
-                        teamWins[game.team_1]++;
-                    } else if (game.team_2_score > game.team_1_score) {
-                        teamWins[game.team_2]++;
+        tournament.games.forEach((roundGames) => {
+            roundGames
+                .filter((g) => g.group === groupIndex)
+                .forEach((game) => {
+                    if (game.team_1_score != null && game.team_2_score != null) {
+                        teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
+                        teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
+                        teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
+                        teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
+                        if (game.team_1_score > game.team_2_score) {
+                            teamWins[game.team_1]++;
+                        } else if (game.team_2_score > game.team_1_score) {
+                            teamWins[game.team_2]++;
+                        }
                     }
-                }
-            });
+                });
         });
 
-        const ranked = group.map(team => ({
+        const ranked = group.map((team) => ({
             ...team,
             wins: teamWins[team.title] || 0,
             pointsPlus: teamPointsPlus[team.title] || 0,
             pointsMinus: teamPointsMinus[team.title] || 0,
         }));
 
-        return ranked.sort((a, b) =>
-            b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus)
-        );
+        return ranked.sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
     });
 }
 
@@ -118,10 +114,10 @@ export function computePoulesGroupRankings(tournament) {
  * Assigns sequential lane numbers to playoff bracket stages, skipping bye games.
  */
 export function assignPlayoffLanes(stages) {
-    stages.forEach(stage => {
+    stages.forEach((stage) => {
         const laneOrder = [];
         let lane = 0;
-        stage.teams.forEach(game => {
+        stage.teams.forEach((game) => {
             if (game.isBye) {
                 laneOrder.push(null);
             } else {

@@ -9,7 +9,9 @@ Track throw-by-throw statistics during petanque games. Analyze player performanc
 ## Workflow
 
 ### 1. Setup
+
 Before starting tracking:
+
 - **Game name**: Label for this recording (e.g., "Semi-final vs Team X")
 - **Tags**: Categorize games for later filtering (e.g., "tournament", "practice", "rain")
 - **Teams**: Define team 1 and team 2 with player names
@@ -19,7 +21,9 @@ Before starting tracking:
 - **As coach**: Track from spectator perspective
 
 ### 2. Tracking (During Game)
+
 Per-throw recording interface:
+
 - Select current player (mene/round rotation)
 - Record throw result (tap to mark success/failure or enter score)
 - Track distance (6m-11m typically)
@@ -29,24 +33,29 @@ Per-throw recording interface:
 - x2 shortcut for double results
 
 ### 3. Results (After Game)
+
 Automatic calculations:
+
 - Final score
 - Team performance comparison
 - Per-player statistics:
-  - Hit rate (percentage)
-  - Shots per round
-  - Series analysis (consecutive successes/failures)
+    - Hit rate (percentage)
+    - Shots per round
+    - Series analysis (consecutive successes/failures)
 - Round-by-round point breakdown
 - Visual charts (ApexCharts)
 
 ## Scoring Systems
 
 ### Simple System
+
 Binary: each throw is either a success (1) or failure (0).
+
 - Separate tracking for "point" throws and "tir" (shooting) throws
 - Performance = successes / total throws
 
 ### French System
+
 Granular grading using letters A through I:
 | Grade | Volume | Intensity | Meaning |
 |-------|--------|-----------|---------|
@@ -65,6 +74,7 @@ Volume = contribution to scoring. Intensity = effort/engagement level.
 ## Archive
 
 All completed games stored in Firebase under `stats/{gameKey}`.
+
 - Filter by tags
 - Filter by date range
 - View any past game's full results
@@ -73,6 +83,7 @@ All completed games stored in Firebase under `stats/{gameKey}`.
 ## Analysis
 
 Aggregated statistics across multiple games:
+
 - **Select player**: Analyze one player's performance
 - **Select period**: Date range filter
 - **Select format**: Doublet/Triplet/All

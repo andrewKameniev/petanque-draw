@@ -11,10 +11,16 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(participant, index) in rankedParticipants" :key="participant.id || index" :class="{'tir-public__row--qualified': isQualified(participant)}">
+                <tr
+                    v-for="(participant, index) in rankedParticipants"
+                    :key="participant.id || index"
+                    :class="{ 'tir-public__row--qualified': isQualified(participant) }"
+                >
                     <td class="tir-public__rank">{{ index + 1 }}</td>
                     <td>{{ participant.name }}</td>
-                    <td><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</td>
+                    <td>
+                        <strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}
+                    </td>
                     <td>{{ getThrows(participant) }} / {{ totalThrows }}</td>
                 </tr>
             </tbody>
@@ -24,14 +30,30 @@
         <!-- Playoff bracket -->
         <div v-if="tournament.tirPlayoff" class="tir-public__playoff">
             <h3 class="tir-public__title">{{ $t('games.playOff') }}</h3>
-            <div v-for="(round, rIdx) in playoffDisplayRounds" :key="rIdx" class="tir-public__round" :class="{'tir-public__round--final': round.isFinal}">
+            <div
+                v-for="(round, rIdx) in playoffDisplayRounds"
+                :key="rIdx"
+                class="tir-public__round"
+                :class="{ 'tir-public__round--final': round.isFinal }"
+            >
                 <h4 class="tir-public__round-title">{{ round.title }}</h4>
-                <div v-for="(match, mIdx) in round.matches" :key="mIdx" class="tir-public__match" :class="{'tir-public__match--complete': match.complete}">
-                    <div class="tir-public__match-player" :class="{'tir-public__match-player--winner': match.winner === match.player1}">
+                <div
+                    v-for="(match, mIdx) in round.matches"
+                    :key="mIdx"
+                    class="tir-public__match"
+                    :class="{ 'tir-public__match--complete': match.complete }"
+                >
+                    <div
+                        class="tir-public__match-player"
+                        :class="{ 'tir-public__match-player--winner': match.winner === match.player1 }"
+                    >
                         <span>{{ match.player1 || '—' }}</span>
                         <span class="tir-public__match-score" v-if="match.score1 !== null">{{ match.score1 }}</span>
                     </div>
-                    <div class="tir-public__match-player" :class="{'tir-public__match-player--winner': match.winner === match.player2}">
+                    <div
+                        class="tir-public__match-player"
+                        :class="{ 'tir-public__match-player--winner': match.winner === match.player2 }"
+                    >
                         <span>{{ match.player2 || '—' }}</span>
                         <span class="tir-public__match-score" v-if="match.score2 !== null">{{ match.score2 }}</span>
                     </div>
@@ -50,12 +72,12 @@
 </template>
 
 <script>
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+const SCORING = { carreau: 5, reussi: 3, touche: 1, manque: 0 };
 
 export default {
     name: 'TirPublicResults',
     props: {
-        tournament: {type: Object, required: true}
+        tournament: { type: Object, required: true },
     },
     computed: {
         isJunior() {
@@ -74,7 +96,9 @@ export default {
             return this.tournament.tirParticipants || [];
         },
         rankedParticipants() {
-            return [...this.participants].sort((a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a));
+            return [...this.participants].sort(
+                (a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a),
+            );
         },
         qualifiedNames() {
             return this.tournament.tirPlayoff?.qualified || [];
@@ -92,7 +116,7 @@ export default {
                     rounds.push({
                         title: this.getRoundTitle(matchCount, playoffSize),
                         matches: round.matches,
-                        isFinal: false
+                        isFinal: false,
                     });
                 });
             }
@@ -101,7 +125,7 @@ export default {
                 rounds.push({
                     title: this.$t('tir.thirdPlaceMatch'),
                     matches: [playoff.thirdPlace],
-                    isFinal: false
+                    isFinal: false,
                 });
             }
 
@@ -109,7 +133,7 @@ export default {
                 rounds.push({
                     title: this.$t('games.final'),
                     matches: [playoff.final],
-                    isFinal: true
+                    isFinal: true,
                 });
             }
 
@@ -120,21 +144,21 @@ export default {
             if (!playoff || !this.tournament.tournamentIsFinished) return [];
             const places = [];
             if (playoff.final && playoff.final.winner) {
-                places.push({medal: '🥇', name: playoff.final.winner});
-                places.push({medal: '🥈', name: playoff.final.loser});
+                places.push({ medal: '🥇', name: playoff.final.winner });
+                places.push({ medal: '🥈', name: playoff.final.loser });
             }
             if (playoff.thirdPlace && playoff.thirdPlace.winner) {
-                places.push({medal: '🥉', name: playoff.thirdPlace.winner});
+                places.push({ medal: '🥉', name: playoff.thirdPlace.winner });
             }
             return places;
-        }
+        },
     },
     methods: {
         getTotal(participant) {
             if (!participant.scores) return 0;
             let total = 0;
-            Object.values(participant.scores).forEach(atelier => {
-                Object.values(atelier).forEach(val => {
+            Object.values(participant.scores).forEach((atelier) => {
+                Object.values(atelier).forEach((val) => {
                     total += SCORING[val] || 0;
                 });
             });
@@ -143,7 +167,7 @@ export default {
         getThrows(participant) {
             if (!participant.scores) return 0;
             let count = 0;
-            Object.values(participant.scores).forEach(atelier => {
+            Object.values(participant.scores).forEach((atelier) => {
                 count += Object.keys(atelier).length;
             });
             return count;
@@ -151,8 +175,8 @@ export default {
         getCarreauCount(participant) {
             if (!participant.scores) return 0;
             let count = 0;
-            Object.values(participant.scores).forEach(atelier => {
-                Object.values(atelier).forEach(val => {
+            Object.values(participant.scores).forEach((atelier) => {
+                Object.values(atelier).forEach((val) => {
                     if (val === 'carreau') count++;
                 });
             });
@@ -168,9 +192,9 @@ export default {
             if (matchCount === 8) return this.$t('tir.eighthFinal');
             if (matchCount === 16) return this.$t('tir.sixteenthFinal');
             return this.$t('tir.round') + ' ' + matchCount;
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -212,7 +236,7 @@ export default {
 }
 
 .tir-public__row--qualified {
-    background: rgba(76, 175, 80, 0.05);
+    background: rgb(76 175 80 / 5%);
 }
 
 .tir-public__empty {
@@ -222,6 +246,7 @@ export default {
 }
 
 /* Playoff */
+
 .tir-public__playoff {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
@@ -237,7 +262,7 @@ export default {
 
 .tir-public__round--final {
     border-color: var(--tir-touche);
-    background: rgba(245, 166, 35, 0.03);
+    background: rgb(245 166 35 / 3%);
 }
 
 .tir-public__round-title {
@@ -260,8 +285,8 @@ export default {
 }
 
 .tir-public__match--complete {
-    background: rgba(76, 175, 80, 0.04);
-    border-color: rgba(76, 175, 80, 0.2);
+    background: rgb(76 175 80 / 4%);
+    border-color: rgb(76 175 80 / 20%);
 }
 
 .tir-public__match-player {
@@ -283,6 +308,7 @@ export default {
 }
 
 /* Final places */
+
 .tir-public__places {
     margin-top: 1rem;
     display: flex;

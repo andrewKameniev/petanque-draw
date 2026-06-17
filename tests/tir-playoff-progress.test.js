@@ -1,11 +1,11 @@
-import {describe, it, expect} from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
-    SCORING, DISTANCES_FULL, DISTANCES_JUNIOR,
+    DISTANCES_FULL,
+    DISTANCES_JUNIOR,
     createMatch,
     findPlayoffMatchForParticipant,
     getPlayoffMatchThrowsForParticipant,
     getPlayoffMatchAtelierPercent,
-    getMatchPlayerThrows, getMatchPlayerScore
 } from '@/services/tir';
 
 function makeMatch(player1, player2, scores1 = {}, scores2 = {}) {
@@ -53,8 +53,8 @@ describe('getPlayoffMatchThrowsForParticipant', () => {
     it('counts throws for player1', () => {
         const match = makeMatch('Alice', 'Bob');
         match.scores1 = {
-            0: {6: 'carreau', 7: 'reussi'},
-            1: {6: 'touche'}
+            0: { 6: 'carreau', 7: 'reussi' },
+            1: { 6: 'touche' },
         };
         expect(getPlayoffMatchThrowsForParticipant('Alice', [match])).toBe(3);
     });
@@ -62,8 +62,8 @@ describe('getPlayoffMatchThrowsForParticipant', () => {
     it('counts throws for player2', () => {
         const match = makeMatch('Alice', 'Bob');
         match.scores2 = {
-            0: {6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque'},
-            1: {6: 'reussi'}
+            0: { 6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque' },
+            1: { 6: 'reussi' },
         };
         expect(getPlayoffMatchThrowsForParticipant('Bob', [match])).toBe(5);
     });
@@ -73,7 +73,9 @@ describe('getPlayoffMatchThrowsForParticipant', () => {
         match.scores1 = {};
         for (let i = 0; i < 5; i++) {
             match.scores1[i] = {};
-            DISTANCES_FULL.forEach(d => { match.scores1[i][d] = 'carreau'; });
+            DISTANCES_FULL.forEach((d) => {
+                match.scores1[i][d] = 'carreau';
+            });
         }
         expect(getPlayoffMatchThrowsForParticipant('Alice', [match])).toBe(20);
     });
@@ -83,7 +85,9 @@ describe('getPlayoffMatchThrowsForParticipant', () => {
         match.scores2 = {};
         for (let i = 0; i < 5; i++) {
             match.scores2[i] = {};
-            DISTANCES_JUNIOR.forEach(d => { match.scores2[i][d] = 'reussi'; });
+            DISTANCES_JUNIOR.forEach((d) => {
+                match.scores2[i][d] = 'reussi';
+            });
         }
         expect(getPlayoffMatchThrowsForParticipant('Bob', [match])).toBe(15);
     });
@@ -109,34 +113,31 @@ describe('getPlayoffMatchAtelierPercent', () => {
 
     it('returns 50% for 2 out of 4 distances completed', () => {
         const match = makeMatch('Alice', 'Bob');
-        match.scores1 = {0: {6: 'carreau', 7: 'reussi'}};
+        match.scores1 = { 0: { 6: 'carreau', 7: 'reussi' } };
         expect(getPlayoffMatchAtelierPercent('Alice', [match], 0, 4)).toBe(50);
     });
 
     it('returns 100% for fully completed atelier', () => {
         const match = makeMatch('Alice', 'Bob');
-        match.scores1 = {2: {6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque'}};
+        match.scores1 = { 2: { 6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque' } };
         expect(getPlayoffMatchAtelierPercent('Alice', [match], 2, 4)).toBe(100);
     });
 
     it('works for player2', () => {
         const match = makeMatch('Alice', 'Bob');
-        match.scores2 = {1: {6: 'touche', 7: 'manque', 8: 'reussi'}};
+        match.scores2 = { 1: { 6: 'touche', 7: 'manque', 8: 'reussi' } };
         expect(getPlayoffMatchAtelierPercent('Bob', [match], 1, 4)).toBe(75);
     });
 
     it('works with junior distances (3 per atelier)', () => {
         const match = makeMatch('Alice', 'Bob');
-        match.scores1 = {0: {6: 'carreau', 7: 'reussi'}};
+        match.scores1 = { 0: { 6: 'carreau', 7: 'reussi' } };
         expect(getPlayoffMatchAtelierPercent('Alice', [match], 0, 3)).toBe(67);
     });
 
     it('handles multiple matches correctly', () => {
-        const matches = [
-            makeMatch('Alice', 'Bob'),
-            makeMatch('Carol', 'Dave')
-        ];
-        matches[1].scores2 = {3: {6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque'}};
+        const matches = [makeMatch('Alice', 'Bob'), makeMatch('Carol', 'Dave')];
+        matches[1].scores2 = { 3: { 6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque' } };
         expect(getPlayoffMatchAtelierPercent('Dave', matches, 3, 4)).toBe(100);
         expect(getPlayoffMatchAtelierPercent('Alice', matches, 3, 4)).toBe(0);
     });
@@ -144,27 +145,22 @@ describe('getPlayoffMatchAtelierPercent', () => {
 
 describe('playoff progress: integration scenario', () => {
     it('shows correct progress for QF with two simultaneous matches', () => {
-        const matches = [
-            makeMatch('P1', 'P8'),
-            makeMatch('P4', 'P5'),
-            makeMatch('P2', 'P7'),
-            makeMatch('P3', 'P6')
-        ];
+        const matches = [makeMatch('P1', 'P8'), makeMatch('P4', 'P5'), makeMatch('P2', 'P7'), makeMatch('P3', 'P6')];
 
         // Device A enters scores for Match 0 (P1 vs P8)
         matches[0].scores1 = {
-            0: {6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque'},
-            1: {6: 'reussi', 7: 'carreau'}
+            0: { 6: 'carreau', 7: 'reussi', 8: 'touche', 9: 'manque' },
+            1: { 6: 'reussi', 7: 'carreau' },
         };
         matches[0].scores2 = {
-            0: {6: 'manque', 7: 'touche'}
+            0: { 6: 'manque', 7: 'touche' },
         };
 
         // Device B enters scores for Match 1 (P4 vs P5)
         matches[1].scores1 = {
-            0: {6: 'carreau', 7: 'carreau', 8: 'carreau', 9: 'carreau'},
-            1: {6: 'reussi', 7: 'reussi', 8: 'reussi', 9: 'reussi'},
-            2: {6: 'touche', 7: 'touche', 8: 'touche', 9: 'touche'}
+            0: { 6: 'carreau', 7: 'carreau', 8: 'carreau', 9: 'carreau' },
+            1: { 6: 'reussi', 7: 'reussi', 8: 'reussi', 9: 'reussi' },
+            2: { 6: 'touche', 7: 'touche', 8: 'touche', 9: 'touche' },
         };
 
         // P1 has 6 throws entered
@@ -191,13 +187,14 @@ describe('playoff progress: integration scenario', () => {
     it('does not confuse qualification scores with playoff match scores', () => {
         // Participant has R1 qualification scores
         const participant = {
-            id: 1, name: 'Alice',
-            scores: {0: {6: 'carreau', 7: 'carreau', 8: 'carreau', 9: 'carreau'}}
+            id: 1,
+            name: 'Alice',
+            scores: { 0: { 6: 'carreau', 7: 'carreau', 8: 'carreau', 9: 'carreau' } },
         };
 
         // But in the playoff match, Alice has only 1 throw
         const matches = [makeMatch('Alice', 'Bob')];
-        matches[0].scores1 = {0: {6: 'touche'}};
+        matches[0].scores1 = { 0: { 6: 'touche' } };
 
         // Progress should reflect the playoff match (1 throw), not qualification (4 throws)
         expect(getPlayoffMatchThrowsForParticipant('Alice', matches)).toBe(1);

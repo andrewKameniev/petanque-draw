@@ -11,10 +11,7 @@ export function getGameStreams(game, tournament, gameIndex) {
     if (!presets) return streams;
 
     if (presets.teams) {
-        const teamUrls = [
-            ...(presets.teams[game.team_1] || []),
-            ...(presets.teams[game.team_2] || [])
-        ];
+        const teamUrls = [...(presets.teams[game.team_1] || []), ...(presets.teams[game.team_2] || [])];
         for (const url of teamUrls) {
             if (url && !seen.has(url)) {
                 streams.push(url);

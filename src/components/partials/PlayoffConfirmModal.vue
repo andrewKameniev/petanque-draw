@@ -5,7 +5,11 @@
 
             <div v-if="!localWithBarrage" class="confirm-playoff__field">
                 <label class="confirm-playoff__label">{{ $t('modals.playOffTeams') }}</label>
-                <select class="confirm-playoff__select" data-testid="confirm-playoff-teams" v-model.number="localPlayOffTeams">
+                <select
+                    class="confirm-playoff__select"
+                    data-testid="confirm-playoff-teams"
+                    v-model.number="localPlayOffTeams"
+                >
                     <template v-for="value in teamToPlayOffValues" :key="value">
                         <option :value="value" v-if="teamsCount >= value">{{ value }}</option>
                     </template>
@@ -14,48 +18,64 @@
 
             <div v-if="isSwiss" class="confirm-playoff__field">
                 <label class="confirm-playoff__checkbox">
-                    <input type="checkbox" v-model="localWithCadrage" data-testid="confirm-cadrage">
+                    <input type="checkbox" v-model="localWithCadrage" data-testid="confirm-cadrage" />
                     {{ $t('ranking.withCadrage') }}
                 </label>
                 <span class="confirm-playoff__hint">{{ $t('ranking.cadrageHint') }}</span>
-                <span v-if="localWithCadrage && localPlayOffTeams" class="confirm-playoff__hint">{{ localPlayOffTeams / 2 }} + {{ localPlayOffTeams }} {{ $t('teams.teams').toLowerCase() }}</span>
+                <span v-if="localWithCadrage && localPlayOffTeams" class="confirm-playoff__hint"
+                    >{{ localPlayOffTeams / 2 }} + {{ localPlayOffTeams }} {{ $t('teams.teams').toLowerCase() }}</span
+                >
             </div>
 
             <div v-if="isSwiss" class="confirm-playoff__field">
                 <label class="confirm-playoff__checkbox">
-                    <input type="checkbox" v-model="localWithBarrage" data-testid="confirm-barrage">
+                    <input type="checkbox" v-model="localWithBarrage" data-testid="confirm-barrage" />
                     {{ $t('ranking.withBarrage') }}
                 </label>
                 <span class="confirm-playoff__hint">{{ $t('ranking.barrageHint') }}</span>
                 <div v-if="localWithBarrage" class="mt-2">
                     <label class="confirm-playoff__label">{{ $t('ranking.barrageTeams') }}</label>
-                    <select class="confirm-playoff__select" v-model.number="localBarrageTeams" data-testid="confirm-barrage-teams">
+                    <select
+                        class="confirm-playoff__select"
+                        v-model.number="localBarrageTeams"
+                        data-testid="confirm-barrage-teams"
+                    >
                         <template v-for="value in barrageTeamValues" :key="value">
                             <option :value="value">{{ value }}</option>
                         </template>
                     </select>
                     <span class="confirm-playoff__hint">{{ $t('ranking.barrageTeamsHint') }}</span>
-                    <span class="confirm-playoff__hint">{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span>
+                    <span class="confirm-playoff__hint"
+                        >{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span
+                    >
                 </div>
             </div>
 
             <div v-if="isSwiss && !isGroupB" class="confirm-playoff__field">
                 <label class="confirm-playoff__checkbox">
-                    <input type="checkbox" v-model="localPlayB" data-testid="confirm-play-b">
+                    <input type="checkbox" v-model="localPlayB" data-testid="confirm-play-b" />
                     {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
                 </label>
             </div>
 
             <div class="confirm-playoff__actions">
-                <button class="confirm-playoff__btn confirm-playoff__btn--cancel" @click="$emit('cancel')">{{ $t('common.cancel') }}</button>
-                <button class="confirm-playoff__btn confirm-playoff__btn--confirm" data-testid="btn-confirm-playoff" @click="onConfirm">{{ $t('ranking.go') }}</button>
+                <button class="confirm-playoff__btn confirm-playoff__btn--cancel" @click="$emit('cancel')">
+                    {{ $t('common.cancel') }}
+                </button>
+                <button
+                    class="confirm-playoff__btn confirm-playoff__btn--confirm"
+                    data-testid="btn-confirm-playoff"
+                    @click="onConfirm"
+                >
+                    {{ $t('ranking.go') }}
+                </button>
             </div>
         </div>
     </Modal>
 </template>
 
 <script>
-import Modal from "@/components/Modal";
+import Modal from '@/components/Modal';
 
 export default {
     name: 'PlayoffConfirmModal',
@@ -69,7 +89,7 @@ export default {
         withCadrage: { type: Boolean, default: false },
         withBarrage: { type: Boolean, default: false },
         playB: { type: Boolean, default: false },
-        barrageTeams: { type: Number, default: 8 }
+        barrageTeams: { type: Number, default: 8 },
     },
     data() {
         return {
@@ -77,8 +97,8 @@ export default {
             localWithBarrage: this.withBarrage,
             localPlayB: this.playB,
             localPlayOffTeams: this.playOffTeams,
-            localBarrageTeams: this.barrageTeams
-        }
+            localBarrageTeams: this.barrageTeams,
+        };
     },
     watch: {
         localWithCadrage(val) {
@@ -86,7 +106,7 @@ export default {
         },
         localWithBarrage(val) {
             if (val) this.localWithCadrage = false;
-        }
+        },
     },
     computed: {
         teamToPlayOffValues() {
@@ -111,7 +131,7 @@ export default {
             const groups = barrageTeams / 4;
             const estimated = groups * 2;
             return Math.pow(2, Math.ceil(Math.log2(estimated)));
-        }
+        },
     },
     methods: {
         onConfirm() {
@@ -120,11 +140,11 @@ export default {
                 withBarrage: this.localWithBarrage,
                 playB: this.localPlayB,
                 playOffTeams: this.localPlayOffTeams,
-                barrageTeams: this.localBarrageTeams
+                barrageTeams: this.localBarrageTeams,
             });
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>

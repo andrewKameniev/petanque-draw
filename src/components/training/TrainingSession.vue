@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
     <div class="tsession">
         <div class="tsession__header">
@@ -94,7 +95,8 @@
                             v-for="distance in session.config.distances"
                             :key="distance"
                             class="tsession__compact-grid-dist"
-                        >{{ distance }}m</span>
+                            >{{ distance }}m</span
+                        >
                     </div>
                     <div v-for="opt in resultOptions" :key="opt.key" class="tsession__compact-grid-row">
                         <span class="tsession__compact-grid-label" :class="`tsession__score-row-label--${opt.key}`">{{
@@ -181,13 +183,10 @@
                             :key="opt.key"
                             class="tsession__vertical-col-header"
                             :class="`tsession__score-row-label--${opt.key}`"
-                        >{{ opt.key[0].toUpperCase() }}</span>
+                            >{{ opt.key[0].toUpperCase() }}</span
+                        >
                     </div>
-                    <div
-                        v-for="attemptNum in session.config.attempts"
-                        :key="attemptNum"
-                        class="tsession__vertical-row"
-                    >
+                    <div v-for="attemptNum in session.config.attempts" :key="attemptNum" class="tsession__vertical-row">
                         <span class="tsession__vertical-num">{{ attemptNum }}</span>
                         <span
                             v-for="opt in resultOptions"
@@ -197,7 +196,8 @@
                                 `tir-pview__circle--${opt.key}`,
                                 {
                                     'tir-pview__circle--active':
-                                        getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key,
+                                        getAttemptScore(activeExercise, session.config.distances[0], attemptNum) ===
+                                        opt.key,
                                 },
                             ]"
                             @click="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
@@ -207,7 +207,12 @@
                 </div>
 
                 <!-- Default grid: rows = score types, columns = attempts -->
-                <div v-else v-for="distance in session.config.distances" :key="distance" class="tsession__distance-block">
+                <div
+                    v-else
+                    v-for="distance in session.config.distances"
+                    :key="distance"
+                    class="tsession__distance-block"
+                >
                     <div class="tsession__distance-label">{{ distance }}m</div>
                     <div class="tsession__circles-table">
                         <div v-for="opt in resultOptions" :key="opt.key" class="tsession__score-row">
@@ -279,6 +284,7 @@
 </template>
 
 <script>
+/* eslint-disable vue/no-mutating-props */
 import { ChevronLeft, ChevronRight, Pencil, Check as CheckIcon, RotateCcw, CircleOff } from 'lucide-vue-next';
 import { SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
 import { TRAINING_STATUS, getSessionProgress } from '@/services/training';
@@ -430,7 +436,8 @@ export default {
                 for (const distance of this.session.config.distances) {
                     for (let attemptNum = 1; attemptNum <= this.session.config.attempts; attemptNum++) {
                         const existing = this.session.attempts.find(
-                            (a) => a.exerciseIndex === exIdx && a.distance === distance && a.attemptNumber === attemptNum,
+                            (a) =>
+                                a.exerciseIndex === exIdx && a.distance === distance && a.attemptNumber === attemptNum,
                         );
                         if (!existing) {
                             this.session.attempts.push({
@@ -504,12 +511,12 @@ export default {
 }
 
 .tsession__badge--in_progress {
-    background: rgba(245, 166, 35, 0.15);
+    background: rgb(245 166 35 / 15%);
     color: var(--tir-touche);
 }
 
 .tsession__badge--completed {
-    background: rgba(76, 175, 80, 0.15);
+    background: rgb(76 175 80 / 15%);
     color: var(--tir-carreau);
 }
 
@@ -627,6 +634,7 @@ export default {
 }
 
 /* Reuse TirParticipantView circle styles */
+
 .tir-pview__legend {
     display: flex;
     flex-wrap: wrap;
@@ -652,12 +660,15 @@ export default {
 .tir-pview__legend-dot--carreau {
     background: var(--tir-carreau);
 }
+
 .tir-pview__legend-dot--reussi {
     background: var(--tir-reussi);
 }
+
 .tir-pview__legend-dot--touche {
     background: var(--tir-touche);
 }
+
 .tir-pview__legend-dot--manque {
     background: var(--tir-manque);
 }
@@ -769,12 +780,15 @@ export default {
 .tsession__score-row-label--carreau {
     color: var(--tir-carreau);
 }
+
 .tsession__score-row-label--reussi {
     color: var(--tir-reussi);
 }
+
 .tsession__score-row-label--touche {
     color: var(--tir-touche);
 }
+
 .tsession__score-row-label--manque {
     color: var(--tir-manque);
 }
@@ -803,18 +817,22 @@ export default {
 .tir-pview__circle--active {
     opacity: 1;
 }
+
 .tir-pview__circle--active.tir-pview__circle--carreau {
     border-color: var(--tir-carreau);
     background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
 }
+
 .tir-pview__circle--active.tir-pview__circle--reussi {
     border-color: var(--tir-reussi);
     background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
 }
+
 .tir-pview__circle--active.tir-pview__circle--touche {
     border-color: var(--tir-touche);
     background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
 }
+
 .tir-pview__circle--active.tir-pview__circle--manque {
     border-color: var(--tir-manque);
     background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
@@ -858,6 +876,7 @@ export default {
 }
 
 /* Compact all-on-one-page layout */
+
 .tsession__compact-card {
     border: 1px solid var(--color-border);
     border-radius: 10px;
@@ -919,6 +938,7 @@ export default {
 }
 
 /* Vertical layout for single distance + single exercise */
+
 .tsession__vertical {
     display: flex;
     flex-direction: column;

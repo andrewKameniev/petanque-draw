@@ -1,11 +1,34 @@
 <template>
-    <div class="toast" :class="{'toast--error': message.type === 'error'}">
+    <div class="toast" :class="{ 'toast--error': message.type === 'error' }">
         <div class="toast__icon">
-            <svg v-if="message.type === 'error'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            <svg
+                v-if="message.type === 'error'"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
             </svg>
-            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            <svg
+                v-else
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
         </div>
         <div class="toast__body">
@@ -13,16 +36,26 @@
             <p class="toast__text" v-if="message.text">{{ message.text }}</p>
         </div>
         <button class="toast__close" @click="hideMessage" aria-label="close">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
         </button>
     </div>
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
 
 export default {
     name: 'Message',
@@ -33,7 +66,7 @@ export default {
     methods: {
         ...mapActions(useMainStore, ['hideMessage']),
     },
-}
+};
 </script>
 
 <style scoped>
@@ -96,7 +129,9 @@ export default {
     color: var(--color-message-muted);
     padding: 2px;
     border-radius: 4px;
-    transition: color 0.2s, background 0.2s;
+    transition:
+        color 0.2s,
+        background 0.2s;
 }
 
 .toast__close:hover {
@@ -109,6 +144,7 @@ export default {
         opacity: 0;
         transform: translateX(20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);

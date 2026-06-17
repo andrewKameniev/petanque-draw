@@ -9,7 +9,7 @@ import {
     createGroups,
     drawGroupsRound,
     resetGroupsScheme,
-    saveResultsForRound
+    saveResultsForRound,
 } from '@/services/draw';
 
 function makeTeam(title, wins = 0, opponents = [], rating = 0) {
@@ -23,7 +23,7 @@ function makeTeam(title, wins = 0, opponents = [], rating = 0) {
         pointsPlus: 0,
         pointsMinus: 0,
         lanes: [],
-        players: []
+        players: [],
     };
 }
 
@@ -36,10 +36,10 @@ function makeTournament(teams, options = {}) {
         preferences: {
             fieldsStart: options.fieldsStart || 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
         games: options.games || [],
-        ...options
+        ...options,
     };
 }
 
@@ -85,35 +85,21 @@ describe('generateCompetitors', () => {
     });
 
     it('returns first team vs second for round > 1', () => {
-        const teams = [
-            makeTeam('A', 2),
-            makeTeam('B', 1),
-            makeTeam('C', 0),
-            makeTeam('D', 0),
-        ];
+        const teams = [makeTeam('A', 2), makeTeam('B', 1), makeTeam('C', 0), makeTeam('D', 0)];
         const result = generateCompetitors(teams, 2, true);
         expect(result.teamIndex).toBe(0);
         expect(result.opponentIndex).toBe(1);
     });
 
     it('skips already-played opponents', () => {
-        const teams = [
-            makeTeam('A', 2, ['B']),
-            makeTeam('B', 1),
-            makeTeam('C', 0),
-            makeTeam('D', 0),
-        ];
+        const teams = [makeTeam('A', 2, ['B']), makeTeam('B', 1), makeTeam('C', 0), makeTeam('D', 0)];
         const result = generateCompetitors(teams, 2, true);
         expect(result.teamIndex).toBe(0);
         expect(result.opponentIndex).toBe(2);
     });
 
     it('returns -1 when no valid opponent found', () => {
-        const teams = [
-            makeTeam('A', 2, ['B', 'C']),
-            makeTeam('B', 1),
-            makeTeam('C', 0),
-        ];
+        const teams = [makeTeam('A', 2, ['B', 'C']), makeTeam('B', 1), makeTeam('C', 0)];
         const result = generateCompetitors(teams, 2, true);
         expect(result.opponentIndex).toBe(-1);
     });
@@ -129,24 +115,14 @@ describe('generateCompetitorsFirstLast', () => {
     });
 
     it('pairs first with last among same-win teams', () => {
-        const teams = [
-            makeTeam('A', 2),
-            makeTeam('B', 2),
-            makeTeam('C', 2),
-            makeTeam('D', 2),
-        ];
+        const teams = [makeTeam('A', 2), makeTeam('B', 2), makeTeam('C', 2), makeTeam('D', 2)];
         const result = generateCompetitorsFirstLast(teams, 2, true);
         expect(result.teamIndex).toBe(0);
         expect(result.opponentIndex).toBe(3);
     });
 
     it('returns -1 when all same-win opponents already played', () => {
-        const teams = [
-            makeTeam('A', 2, ['B', 'C', 'D']),
-            makeTeam('B', 2),
-            makeTeam('C', 2),
-            makeTeam('D', 2),
-        ];
+        const teams = [makeTeam('A', 2, ['B', 'C', 'D']), makeTeam('B', 2), makeTeam('C', 2), makeTeam('D', 2)];
         const result = generateCompetitorsFirstLast(teams, 2, true);
         expect(result.opponentIndex).toBe(-1);
     });
@@ -180,7 +156,7 @@ describe('drawSwissRound', () => {
         const { round, error } = drawSwissRound(tournament, teams, 1);
         expect(error).toBeNull();
         expect(round).toHaveLength(3);
-        const technicalGame = round.find(g => g.team_2 === 'Technical');
+        const technicalGame = round.find((g) => g.team_2 === 'Technical');
         expect(technicalGame).toBeDefined();
         expect(technicalGame.team_1_score).toBe(13);
         expect(technicalGame.team_2_score).toBe(0);
@@ -198,9 +174,9 @@ describe('drawSwissRound', () => {
         const tournament = makeTournament(teams, { useRating: true });
         const { round, error } = drawSwissRound(tournament, teams, 2);
         expect(error).toBeNull();
-        round.forEach(game => {
+        round.forEach((game) => {
             if (game.team_2 !== 'Technical') {
-                const team = teams.find(t => t.title === game.team_1);
+                const team = teams.find((t) => t.title === game.team_1);
                 expect(team.opponents).not.toContain(game.team_2);
             }
         });
@@ -231,7 +207,7 @@ describe('drawSwissRound', () => {
         ];
         const tournament = makeTournament(teams, { useRating: true });
         const { round } = drawSwissRound(tournament, teams, 2);
-        const technicalGame = round.find(g => g.team_2 === 'Technical');
+        const technicalGame = round.find((g) => g.team_2 === 'Technical');
         expect(technicalGame.team_1).not.toBe('A');
         expect(technicalGame.team_1).not.toBe('D');
     });
@@ -243,7 +219,7 @@ describe('drawSupermeleRound', () => {
         const tournament = makeTournament(teams, { system: 'supermele', supermelePlayers: 2 });
         const round = drawSupermeleRound(tournament, teams);
         expect(round.length).toBeGreaterThan(0);
-        const allPlayers = round.flatMap(g => [...g.team_1_players, ...g.team_2_players]);
+        const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
         expect(allPlayers).toHaveLength(8);
     });
 
@@ -252,7 +228,7 @@ describe('drawSupermeleRound', () => {
         const tournament = makeTournament(teams, { system: 'supermele', supermelePlayers: 3 });
         const round = drawSupermeleRound(tournament, teams);
         expect(round.length).toBeGreaterThan(0);
-        const allPlayers = round.flatMap(g => [...g.team_1_players, ...g.team_2_players]);
+        const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
         expect(allPlayers).toHaveLength(12);
     });
 
@@ -260,7 +236,7 @@ describe('drawSupermeleRound', () => {
         const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`P${i + 1}`));
         const tournament = makeTournament(teams, { system: 'supermele', supermelePlayers: 2 });
         const round = drawSupermeleRound(tournament, teams);
-        const allPlayers = round.flatMap(g => [...g.team_1_players, ...g.team_2_players]);
+        const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
         const uniquePlayers = new Set(allPlayers);
         expect(uniquePlayers.size).toBe(allPlayers.length);
     });
@@ -268,10 +244,7 @@ describe('drawSupermeleRound', () => {
 
 describe('assignLanes', () => {
     it('assigns unique lanes to each game', () => {
-        const teams = [
-            makeTeam('A'), makeTeam('B'), makeTeam('C'),
-            makeTeam('D'), makeTeam('E'), makeTeam('F'),
-        ];
+        const teams = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'), makeTeam('E'), makeTeam('F')];
         const tournament = makeTournament(teams, { fieldsStart: 1 });
         const games = [
             { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
@@ -279,16 +252,13 @@ describe('assignLanes', () => {
             { team_1: 'E', team_1_score: null, team_2: 'F', team_2_score: null },
         ];
         const result = assignLanes(games, tournament);
-        const lanes = result.map(g => g.lane);
+        const lanes = result.map((g) => g.lane);
         const uniqueLanes = new Set(lanes);
         expect(uniqueLanes.size).toBe(3);
     });
 
     it('returns games sorted by lane', () => {
-        const teams = [
-            makeTeam('A'), makeTeam('B'), makeTeam('C'),
-            makeTeam('D'), makeTeam('E'), makeTeam('F'),
-        ];
+        const teams = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'), makeTeam('E'), makeTeam('F')];
         const tournament = makeTournament(teams, { fieldsStart: 1 });
         const games = [
             { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
@@ -316,7 +286,7 @@ describe('assignLanes', () => {
             { team_1: 'C', team_1_score: null, team_2: 'D', team_2_score: null },
         ];
         const result = assignLanes(games, tournament);
-        const gameAB = result.find(g => g.team_1 === 'A');
+        const gameAB = result.find((g) => g.team_1 === 'A');
         // A and B played lanes 0 and 1 — should get lane 2
         expect(gameAB.lane).not.toBe(0);
         expect(gameAB.lane).not.toBe(1);
@@ -330,19 +300,14 @@ describe('assignLanes', () => {
             { ...makeTeam('D'), lanes: [1] },
         ];
         const tournament = makeTournament(teams, { fieldsStart: 1 });
-        const games = [
-            { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
-        ];
+        const games = [{ team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null }];
         const result = assignLanes(games, tournament);
         // All lanes used — should pick minimum weight (each used once, so any is valid)
         expect(result[0].lane).toBeDefined();
     });
 
     it('handles technical game in swiss with odd teams', () => {
-        const teams = [
-            makeTeam('A'), makeTeam('B'), makeTeam('C'),
-            makeTeam('D'), makeTeam('E'),
-        ];
+        const teams = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'), makeTeam('E')];
         const tournament = makeTournament(teams, { system: 'swiss', fieldsStart: 1 });
         const games = [
             { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
@@ -351,21 +316,19 @@ describe('assignLanes', () => {
         ];
         const result = assignLanes(games, tournament);
         expect(result).toHaveLength(3);
-        const technical = result.find(g => g.team_2 === 'Technical');
+        const technical = result.find((g) => g.team_2 === 'Technical');
         expect(technical).toBeDefined();
     });
 
     it('respects fieldsStart offset', () => {
-        const teams = [
-            makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'),
-        ];
+        const teams = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D')];
         const tournament = makeTournament(teams, { fieldsStart: 3 });
         const games = [
             { team_1: 'A', team_1_score: null, team_2: 'B', team_2_score: null },
             { team_1: 'C', team_1_score: null, team_2: 'D', team_2_score: null },
         ];
         const result = assignLanes(games, tournament);
-        result.forEach(g => {
+        result.forEach((g) => {
             expect(g.lane).toBeGreaterThanOrEqual(2);
         });
     });
@@ -384,7 +347,7 @@ describe('createGroups', () => {
         const tournament = makeTournament(teams, { useRating: true });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(3);
-        groups.forEach(group => {
+        groups.forEach((group) => {
             expect(group).toHaveLength(4);
         });
     });
@@ -394,7 +357,7 @@ describe('createGroups', () => {
         const tournament = makeTournament(teams, { useRating: true });
         const { schemas } = createGroups(tournament, 4);
         expect(schemas).toHaveLength(2);
-        schemas.forEach(scheme => {
+        schemas.forEach((scheme) => {
             expect(scheme.top).toBeDefined();
             expect(scheme.bottom).toBeDefined();
             expect(scheme.top.length).toBe(scheme.bottom.length);
@@ -413,7 +376,7 @@ describe('createGroups', () => {
         const teams = Array.from({ length: 9 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
         const tournament = makeTournament(teams, { useRating: true });
         const { groups, schemas } = createGroups(tournament, 5);
-        const oddGroup = groups.find(g => g.length % 2 !== 0);
+        const oddGroup = groups.find((g) => g.length % 2 !== 0);
         if (oddGroup) {
             const idx = groups.indexOf(oddGroup);
             expect(schemas[idx].top.length + schemas[idx].bottom.length).toBe(oddGroup.length + 1);
@@ -434,11 +397,16 @@ describe('createGroups - seeded method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'seeded',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(3);
-        groups.forEach(group => {
+        groups.forEach((group) => {
             expect(group).toHaveLength(4);
         });
     });
@@ -447,13 +415,18 @@ describe('createGroups - seeded method', () => {
         const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'seeded',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(4);
 
-        const topTeamTitles = teams.slice(0, 4).map(t => t.title);
-        const groupsWithTopTeams = groups.filter(g => g.some(t => topTeamTitles.includes(t.title)));
+        const topTeamTitles = teams.slice(0, 4).map((t) => t.title);
+        const groupsWithTopTeams = groups.filter((g) => g.some((t) => topTeamTitles.includes(t.title)));
         expect(groupsWithTopTeams.length).toBe(4);
     });
 
@@ -461,10 +434,15 @@ describe('createGroups - seeded method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'seeded', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'seeded',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
-        const allTeams = groups.flat().map(t => t.title);
+        const allTeams = groups.flat().map((t) => t.title);
         expect(allTeams).toHaveLength(12);
         expect(new Set(allTeams).size).toBe(12);
     });
@@ -473,7 +451,7 @@ describe('createGroups - seeded method', () => {
         const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: { fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(2);
@@ -486,14 +464,19 @@ describe('createGroups - snake method', () => {
         const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(2);
 
         // Snake for 8 teams, 2 groups: A gets 1,4,5,8 and B gets 2,3,6,7
-        const groupATitles = groups[0].map(t => t.title);
-        const groupBTitles = groups[1].map(t => t.title);
+        const groupATitles = groups[0].map((t) => t.title);
+        const groupBTitles = groups[1].map((t) => t.title);
 
         expect(groupATitles).toContain('T1'); // rank 1 → A
         expect(groupBTitles).toContain('T2'); // rank 2 → B
@@ -505,12 +488,17 @@ describe('createGroups - snake method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(3);
 
-        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const groupTotals = groups.map((g) => g.reduce((sum, t) => sum + t.rating, 0));
         const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
         expect(maxDiff).toBeLessThanOrEqual(20);
     });
@@ -519,10 +507,15 @@ describe('createGroups - snake method', () => {
         const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
-        const allTeams = groups.flat().map(t => t.title);
+        const allTeams = groups.flat().map((t) => t.title);
         expect(allTeams).toHaveLength(16);
         expect(new Set(allTeams).size).toBe(16);
     });
@@ -531,11 +524,16 @@ describe('createGroups - snake method', () => {
         const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 5);
         expect(groups).toHaveLength(2);
-        const allTeams = groups.flat().map(t => t.title);
+        const allTeams = groups.flat().map((t) => t.title);
         expect(new Set(allTeams).size).toBe(10);
     });
 
@@ -543,18 +541,28 @@ describe('createGroups - snake method', () => {
         const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 80 - i * 10));
         const tournament1 = makeTournament(JSON.parse(JSON.stringify(teams)), {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const tournament2 = makeTournament(JSON.parse(JSON.stringify(teams)), {
             useRating: true,
-            preferences: { groupDrawMethod: 'snake', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'snake',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups: groups1 } = createGroups(tournament1, 4);
         const { groups: groups2 } = createGroups(tournament2, 4);
 
         groups1.forEach((group, i) => {
-            const titles1 = group.map(t => t.title).sort();
-            const titles2 = groups2[i].map(t => t.title).sort();
+            const titles1 = group.map((t) => t.title).sort();
+            const titles2 = groups2[i].map((t) => t.title).sort();
             expect(titles1).toEqual(titles2);
         });
     });
@@ -565,12 +573,17 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(3);
 
-        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const groupTotals = groups.map((g) => g.reduce((sum, t) => sum + t.rating, 0));
         const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
         expect(maxDiff).toBeLessThanOrEqual(40);
     });
@@ -579,10 +592,15 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
-        const allTeams = groups.flat().map(t => t.title);
+        const allTeams = groups.flat().map((t) => t.title);
         expect(allTeams).toHaveLength(16);
         expect(new Set(allTeams).size).toBe(16);
     });
@@ -591,10 +609,15 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
-        groups.forEach(group => {
+        groups.forEach((group) => {
             expect(group).toHaveLength(4);
         });
     });
@@ -603,10 +626,15 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 16 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 160 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
-        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const groupTotals = groups.map((g) => g.reduce((sum, t) => sum + t.rating, 0));
         const maxDiff = Math.max(...groupTotals) - Math.min(...groupTotals);
 
         // With 1000 iterations and 16 teams, balanced_random should achieve tight balance
@@ -618,7 +646,12 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 6 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 60 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 3);
         expect(groups).toHaveLength(2);
@@ -629,11 +662,16 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 50));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups } = createGroups(tournament, 4);
         expect(groups).toHaveLength(2);
-        const groupTotals = groups.map(g => g.reduce((sum, t) => sum + t.rating, 0));
+        const groupTotals = groups.map((g) => g.reduce((sum, t) => sum + t.rating, 0));
         expect(groupTotals[0]).toBe(groupTotals[1]);
     });
 
@@ -641,7 +679,12 @@ describe('createGroups - balanced_random method', () => {
         const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 120 - i * 10));
         const tournament = makeTournament(teams, {
             useRating: true,
-            preferences: { groupDrawMethod: 'balanced_random', fieldsStart: 1, technical: { technicalFirst: 13, technicalSecond: 0 }, maxScore: 13 }
+            preferences: {
+                groupDrawMethod: 'balanced_random',
+                fieldsStart: 1,
+                technical: { technicalFirst: 13, technicalSecond: 0 },
+                maxScore: 13,
+            },
         });
         const { groups, schemas } = createGroups(tournament, 4);
         expect(schemas).toHaveLength(groups.length);
@@ -654,28 +697,28 @@ describe('createGroups - balanced_random method', () => {
 
 describe('saveResultsForRound', () => {
     it('updates wins for swiss tournament', () => {
-        const teams = [
-            makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'),
-        ];
+        const teams = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[
-                { team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 },
-                { team_1: 'C', team_1_score: 7, team_2: 'D', team_2_score: 13 },
-            ]]
+            games: [
+                [
+                    { team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 },
+                    { team_1: 'C', team_1_score: 7, team_2: 'D', team_2_score: 13 },
+                ],
+            ],
         });
         saveResultsForRound(tournament, 0);
-        expect(tournament.teams.find(t => t.title === 'A').wins).toBe(1);
-        expect(tournament.teams.find(t => t.title === 'B').wins).toBe(0);
-        expect(tournament.teams.find(t => t.title === 'C').wins).toBe(0);
-        expect(tournament.teams.find(t => t.title === 'D').wins).toBe(1);
+        expect(tournament.teams.find((t) => t.title === 'A').wins).toBe(1);
+        expect(tournament.teams.find((t) => t.title === 'B').wins).toBe(0);
+        expect(tournament.teams.find((t) => t.title === 'C').wins).toBe(0);
+        expect(tournament.teams.find((t) => t.title === 'D').wins).toBe(1);
     });
 
     it('updates opponents list', () => {
         const teams = [makeTeam('A'), makeTeam('B')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 }]]
+            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].opponents).toContain('B');
@@ -686,7 +729,7 @@ describe('saveResultsForRound', () => {
         const teams = [makeTeam('A'), makeTeam('B')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 7 }]]
+            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 7 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].pointsPlus).toBe(13);
@@ -699,7 +742,7 @@ describe('saveResultsForRound', () => {
         const teams = [makeTeam('A'), makeTeam('B')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 0, team_2: 'Technical', team_2_score: 13 }]]
+            games: [[{ team_1: 'A', team_1_score: 0, team_2: 'Technical', team_2_score: 13 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].wins).toBe(0);
@@ -709,38 +752,46 @@ describe('saveResultsForRound', () => {
         const teams = [makeTeam('P1'), makeTeam('P2'), makeTeam('P3'), makeTeam('P4')];
         const tournament = makeTournament(teams, {
             system: 'supermele',
-            games: [[{
-                team_1: 'P1, P2',
-                team_1_players: ['P1', 'P2'],
-                team_1_score: 13,
-                team_2: 'P3, P4',
-                team_2_players: ['P3', 'P4'],
-                team_2_score: 5
-            }]]
+            games: [
+                [
+                    {
+                        team_1: 'P1, P2',
+                        team_1_players: ['P1', 'P2'],
+                        team_1_score: 13,
+                        team_2: 'P3, P4',
+                        team_2_players: ['P3', 'P4'],
+                        team_2_score: 5,
+                    },
+                ],
+            ],
         });
         saveResultsForRound(tournament, 0);
-        expect(tournament.teams.find(t => t.title === 'P1').wins).toBe(1);
-        expect(tournament.teams.find(t => t.title === 'P2').wins).toBe(1);
-        expect(tournament.teams.find(t => t.title === 'P3').wins).toBe(0);
-        expect(tournament.teams.find(t => t.title === 'P4').wins).toBe(0);
+        expect(tournament.teams.find((t) => t.title === 'P1').wins).toBe(1);
+        expect(tournament.teams.find((t) => t.title === 'P2').wins).toBe(1);
+        expect(tournament.teams.find((t) => t.title === 'P3').wins).toBe(0);
+        expect(tournament.teams.find((t) => t.title === 'P4').wins).toBe(0);
     });
 
     it('records partners as opponents in supermele', () => {
         const teams = [makeTeam('P1'), makeTeam('P2'), makeTeam('P3'), makeTeam('P4')];
         const tournament = makeTournament(teams, {
             system: 'supermele',
-            games: [[{
-                team_1: 'P1, P2',
-                team_1_players: ['P1', 'P2'],
-                team_1_score: 13,
-                team_2: 'P3, P4',
-                team_2_players: ['P3', 'P4'],
-                team_2_score: 5
-            }]]
+            games: [
+                [
+                    {
+                        team_1: 'P1, P2',
+                        team_1_players: ['P1', 'P2'],
+                        team_1_score: 13,
+                        team_2: 'P3, P4',
+                        team_2_players: ['P3', 'P4'],
+                        team_2_score: 5,
+                    },
+                ],
+            ],
         });
         saveResultsForRound(tournament, 0);
-        expect(tournament.teams.find(t => t.title === 'P1').opponents).toContain('P2');
-        expect(tournament.teams.find(t => t.title === 'P3').opponents).toContain('P4');
+        expect(tournament.teams.find((t) => t.title === 'P1').opponents).toContain('P2');
+        expect(tournament.teams.find((t) => t.title === 'P3').opponents).toContain('P4');
     });
 
     it('clears placeholder opponents for early rounds', () => {
@@ -750,7 +801,7 @@ describe('saveResultsForRound', () => {
         ];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 }]]
+            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 5 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].opponents).not.toContain('placeholder');
@@ -759,9 +810,9 @@ describe('saveResultsForRound', () => {
 
 describe('resetGroupsScheme', () => {
     it('generates correct rotation scheme for even-sized group', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`));
-        const tournament = makeTournament(teams, {system: 'groups'});
-        const {groups} = createGroups(tournament, 4);
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i + 1}`));
+        const tournament = makeTournament(teams, { system: 'groups' });
+        const { groups } = createGroups(tournament, 4);
         tournament.groups = groups;
         const schemas = resetGroupsScheme(tournament);
         expect(schemas).toHaveLength(1);
@@ -770,9 +821,9 @@ describe('resetGroupsScheme', () => {
     });
 
     it('generates correct rotation scheme for odd-sized group', () => {
-        const teams = Array.from({length: 5}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
-        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
-        const {groups} = createGroups(tournament, 5);
+        const teams = Array.from({ length: 5 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { system: 'groups', useRating: true });
+        const { groups } = createGroups(tournament, 5);
         tournament.groups = groups;
         const schemas = resetGroupsScheme(tournament);
         expect(schemas).toHaveLength(1);
@@ -780,9 +831,9 @@ describe('resetGroupsScheme', () => {
     });
 
     it('resets scheme back to initial state after rotation', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
-        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
-        const {groups, schemas} = createGroups(tournament, 4);
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { system: 'groups', useRating: true });
+        const { groups, schemas } = createGroups(tournament, 4);
         tournament.groups = groups;
         tournament.groupsScheme = schemas;
         const initialTop = [...schemas[0].top];
@@ -798,9 +849,9 @@ describe('resetGroupsScheme', () => {
 
 describe('drawGroupsRound - multi-circle', () => {
     it('generates a round when roundRobinCircle allows it', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
-        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
-        const {groups, schemas} = createGroups(tournament, 4);
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { system: 'groups', useRating: true });
+        const { groups, schemas } = createGroups(tournament, 4);
         tournament.groups = groups;
         tournament.groupsScheme = schemas;
 
@@ -822,9 +873,9 @@ describe('drawGroupsRound - multi-circle', () => {
     });
 
     it('allows new round after incrementing roundRobinCircle', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
-        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
-        const {groups, schemas} = createGroups(tournament, 4);
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { system: 'groups', useRating: true });
+        const { groups, schemas } = createGroups(tournament, 4);
         tournament.groups = groups;
         tournament.groupsScheme = schemas;
 
@@ -844,9 +895,9 @@ describe('drawGroupsRound - multi-circle', () => {
     });
 
     it('accumulates results across multiple circles', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
-        const tournament = makeTournament(teams, {system: 'groups', useRating: true});
-        const {groups, schemas} = createGroups(tournament, 4);
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i + 1}`, 0, [], 100 - i * 10));
+        const tournament = makeTournament(teams, { system: 'groups', useRating: true });
+        const { groups, schemas } = createGroups(tournament, 4);
         tournament.groups = groups;
         tournament.groupsScheme = schemas;
         tournament.games = [];
@@ -854,7 +905,7 @@ describe('drawGroupsRound - multi-circle', () => {
         // Circle 1: play 3 rounds
         for (let i = 0; i < 3; i++) {
             const round = drawGroupsRound(tournament);
-            round.forEach(g => {
+            round.forEach((g) => {
                 g.team_1_score = 13;
                 g.team_2_score = 7;
             });
@@ -862,7 +913,7 @@ describe('drawGroupsRound - multi-circle', () => {
             saveResultsForRound(tournament, tournament.games.length - 1);
         }
 
-        const winsAfterCircle1 = tournament.teams.map(t => t.wins);
+        const winsAfterCircle1 = tournament.teams.map((t) => t.wins);
         const totalWins1 = winsAfterCircle1.reduce((a, b) => a + b, 0);
         expect(totalWins1).toBe(6); // 3 rounds × 2 games per round, team_1 always wins
 
@@ -871,7 +922,7 @@ describe('drawGroupsRound - multi-circle', () => {
         tournament.groupsScheme = resetGroupsScheme(tournament);
         for (let i = 0; i < 3; i++) {
             const round = drawGroupsRound(tournament);
-            round.forEach(g => {
+            round.forEach((g) => {
                 g.team_1_score = 13;
                 g.team_2_score = 7;
             });

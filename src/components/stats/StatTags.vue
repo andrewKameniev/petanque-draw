@@ -1,31 +1,38 @@
 <template>
     <div class="stat-tags">
         <div class="stat-tags__form">
-            <input v-model="tagName" class="stat-tags__input" type="text" id="tagName" :placeholder="$t('stat.tagName')" @keyup.enter="addTag">
+            <input
+                v-model="tagName"
+                class="stat-tags__input"
+                type="text"
+                id="tagName"
+                :placeholder="$t('stat.tagName')"
+                @keyup.enter="addTag"
+            />
             <button class="stat-tags__add-btn" @click="addTag">{{ $t('stat.addTag') }}</button>
         </div>
         <div class="stat-tags__list" v-if="tags && Object.keys(tags).length > 0">
             <span class="stat-tags__chip" v-for="(tag, key) in tags" :key="key">
-              {{ tag }}
-              <button class="stat-tags__remove" @click="removeTag(key)"><X :size="10"/></button>
+                {{ tag }}
+                <button class="stat-tags__remove" @click="removeTag(key)"><X :size="10" /></button>
             </span>
         </div>
     </div>
 </template>
 <script>
-import {statsService} from "@/services/db";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {X} from "lucide-vue-next";
+import { statsService } from '@/services/db';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { X } from 'lucide-vue-next';
 
 export default {
-    name: "StatTags",
-    components: {X},
+    name: 'StatTags',
+    components: { X },
     props: ['tags'],
     data() {
         return {
-            tagName: ''
-        }
+            tagName: '',
+        };
     },
     computed: {
         ...mapState(useMainStore, ['user', 'message']),
@@ -34,19 +41,23 @@ export default {
         ...mapActions(useMainStore, ['showMessage']),
         addTag() {
             const tagId = Date.now();
-            statsService.addTag(this.user.uid, tagId, this.tagName.trim()).then(() => {
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagSaved')});
-                this.$emit('addtag', tagId, this.tagName);
-                this.tagName = '';
-            }).catch((error) => {
-                console.error('Error save:', error);
-                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
-            });
+            statsService
+                .addTag(this.user.uid, tagId, this.tagName.trim())
+                .then(() => {
+                    this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.tagSaved') });
+                    this.$emit('addtag', tagId, this.tagName);
+                    this.tagName = '';
+                })
+                .catch((error) => {
+                    console.error('Error save:', error);
+                    this.showMessage({ title: this.$t('messages.error'), text: error, type: 'error' });
+                });
         },
         removeTag(id) {
-            statsService.removeTag(this.user.uid, id)
+            statsService
+                .removeTag(this.user.uid, id)
                 .then(() => {
-                    this.$emit('removetag', id)
+                    this.$emit('removetag', id);
                     this.showMessage({
                         title: this.$t('messages.awesome'),
                         text: this.$t('messages.tagRemoved'),
@@ -60,9 +71,9 @@ export default {
                         type: 'error',
                     });
                 });
-        }
-    }
-}
+        },
+    },
+};
 </script>
 <style scoped>
 .stat-tags {

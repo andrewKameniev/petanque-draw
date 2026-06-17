@@ -9,7 +9,7 @@ import {
     getSessionStats,
     getMultiSessionStats,
 } from '@/services/training';
-import { SCORING, ATELIER_KEYS, DISTANCES_FULL } from '@/services/tir';
+import { ATELIER_KEYS, DISTANCES_FULL } from '@/services/tir';
 
 describe('Training Service', () => {
     describe('Constants', () => {

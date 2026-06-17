@@ -1,11 +1,18 @@
 <template>
     <div class="checkbox-wrapper-44">
         <label class="toggleButton">
-            <input type="checkbox" :checked="checkedValue" @change="$emit('changeval', $event.target.checked)"
-                   @click="$emit('click')">
+            <input
+                type="checkbox"
+                :checked="checkedValue"
+                @change="$emit('changeval', $event.target.checked)"
+                @click="$emit('click')"
+            />
             <span>
                 <svg viewBox="0 0 44 44">
-                    <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2.000000, -2.000000)"></path>
+                    <path
+                        d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758"
+                        transform="translate(-2.000000, -2.000000)"
+                    ></path>
                 </svg>
             </span>
         </label>
@@ -13,13 +20,12 @@
 </template>
 <script>
 export default {
-    name: "StatCheckbox",
-    props: ['checkedValue']
-}
+    name: 'StatCheckbox',
+    props: ['checkedValue'],
+};
 </script>
 <style>
-
-.checkbox-wrapper-44 input[type="checkbox"] {
+.checkbox-wrapper-44 input[type='checkbox'] {
     display: none;
     visibility: hidden;
 }
@@ -37,9 +43,11 @@ export default {
     transform-style: preserve-3d;
     transition: transform 0.05s ease;
 }
+
 .checkbox-wrapper-44 .toggleButton:active {
     transform: rotateX(30deg);
 }
+
 .checkbox-wrapper-44 .toggleButton input + span {
     display: block;
     border: 2px solid var(--color-text);
@@ -48,9 +56,11 @@ export default {
     width: 32px;
     height: 32px;
 }
+
 .checkbox-wrapper-44 .toggleButton input:checked + span {
     border-color: var(--color-success);
 }
+
 .checkbox-wrapper-44 .toggleButton input + span svg {
     fill: none;
     stroke-width: 3.6;
@@ -61,18 +71,16 @@ export default {
     height: 32px;
     display: block;
     position: absolute;
-    left: -2px;
-    top: -2px;
-    right: -2px;
-    bottom: -2px;
+    inset: -2px;
     z-index: 1;
     stroke-dashoffset: 124.6;
     stroke-dasharray: 0 162.6 133 29.6;
     transition: all 0.13s ease 0s;
 }
-.checkbox-wrapper-44 .toggleButton input + span:before,
-.checkbox-wrapper-44 .toggleButton input + span:after {
-    content: "";
+
+.checkbox-wrapper-44 .toggleButton input + span::before,
+.checkbox-wrapper-44 .toggleButton input + span::after {
+    content: '';
     width: 3px;
     height: 14px;
     background: var(--color-error);
@@ -81,26 +89,30 @@ export default {
     top: 50%;
     border-radius: 5px;
 }
-.checkbox-wrapper-44 .toggleButton input + span:before {
+
+.checkbox-wrapper-44 .toggleButton input + span::before {
     opacity: 1;
     transform: scale(1) translate(-50%, -50%) rotate(45deg);
 }
-.checkbox-wrapper-44 .toggleButton input + span:after {
+
+.checkbox-wrapper-44 .toggleButton input + span::after {
     opacity: 1;
     transform: scale(1) translate(-50%, -50%) rotate(-45deg);
 }
+
 .checkbox-wrapper-44 .toggleButton input:checked + span svg {
     stroke-dashoffset: 162.6;
     stroke-dasharray: 0 162.6 28 134.6;
     transition: all 0.13s ease 0.07s;
 }
-.checkbox-wrapper-44 .toggleButton input:checked + span:before {
+
+.checkbox-wrapper-44 .toggleButton input:checked + span::before {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
 }
-.checkbox-wrapper-44 .toggleButton input:checked + span:after {
+
+.checkbox-wrapper-44 .toggleButton input:checked + span::after {
     opacity: 0;
     transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
 }
-
 </style>

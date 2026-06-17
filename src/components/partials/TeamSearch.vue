@@ -1,39 +1,58 @@
 <template>
     <div class="team-search-wrapper" ref="wrapper">
-        <button class="team-search-btn" @click="showSearch = !showSearch" :class="{'team-search-btn--active': modelValue}">
-            <Search :size="16"/>
-            <UserRound :size="16"/>
+        <button
+            class="team-search-btn"
+            @click="showSearch = !showSearch"
+            :class="{ 'team-search-btn--active': modelValue }"
+        >
+            <Search :size="16" />
+            <UserRound :size="16" />
         </button>
         <div v-if="showSearch" class="team-search-popover">
-            <input ref="searchInput" v-model="searchQuery" class="team-search-input" :placeholder="$t('teams.searchTeam')" @keydown.escape="showSearch = false" @keydown.enter="applySearch"/>
+            <input
+                ref="searchInput"
+                v-model="searchQuery"
+                class="team-search-input"
+                :placeholder="$t('teams.searchTeam')"
+                @keydown.escape="showSearch = false"
+                @keydown.enter="applySearch"
+            />
             <ul v-if="filteredClubs.length" class="team-search-list team-search-clubs">
-                <li v-for="club in filteredClubs" :key="'club-'+club"
+                <li
+                    v-for="club in filteredClubs"
+                    :key="'club-' + club"
                     class="team-search-item team-search-item--club"
-                    :class="{'team-search-item--active': modelValue === club}"
-                    @click="selectTeam(club)">
-                    <Building2 :size="12"/>
+                    :class="{ 'team-search-item--active': modelValue === club }"
+                    @click="selectTeam(club)"
+                >
+                    <Building2 :size="12" />
                     {{ club }}
                 </li>
             </ul>
             <ul class="team-search-list">
-                <li v-for="team in filteredTeams" :key="team"
+                <li
+                    v-for="team in filteredTeams"
+                    :key="team"
                     class="team-search-item"
-                    :class="{'team-search-item--active': isHighlighted(team)}"
-                    @click="selectTeam(team)">
+                    :class="{ 'team-search-item--active': isHighlighted(team) }"
+                    @click="selectTeam(team)"
+                >
                     {{ team }}
                 </li>
-                <li v-if="!filteredTeams.length && !filteredClubs.length" class="team-search-empty">{{ $t('teams.noResults') }}</li>
+                <li v-if="!filteredTeams.length && !filteredClubs.length" class="team-search-empty">
+                    {{ $t('teams.noResults') }}
+                </li>
             </ul>
         </div>
     </div>
 </template>
 
 <script>
-import {Search, UserRound, Building2} from "lucide-vue-next";
+import { Search, UserRound, Building2 } from 'lucide-vue-next';
 
 export default {
     name: 'TeamSearch',
-    components: {Search, UserRound, Building2},
+    components: { Search, UserRound, Building2 },
     props: {
         teams: { type: Array, default: () => [] },
         teamClubMap: { type: Object, default: () => ({}) },
@@ -44,7 +63,7 @@ export default {
         return {
             showSearch: false,
             searchQuery: '',
-        }
+        };
     },
     watch: {
         showSearch(val) {
@@ -54,7 +73,7 @@ export default {
             } else {
                 document.removeEventListener('click', this._onClickOutside);
             }
-        }
+        },
     },
     created() {
         this._onClickOutside = (e) => {
@@ -69,22 +88,25 @@ export default {
     computed: {
         allClubs() {
             const clubs = new Set();
-            Object.values(this.teamClubMap).forEach(c => { if (c) clubs.add(c); });
+            Object.values(this.teamClubMap).forEach((c) => {
+                if (c) clubs.add(c);
+            });
             return [...clubs].sort();
         },
         filteredClubs() {
             if (!this.searchQuery.trim()) return this.allClubs;
             const q = this.searchQuery.toLowerCase();
-            return this.allClubs.filter(c => c.toLowerCase().includes(q));
+            return this.allClubs.filter((c) => c.toLowerCase().includes(q));
         },
         filteredTeams() {
             if (!this.searchQuery.trim()) return this.teams;
             const q = this.searchQuery.toLowerCase();
-            return this.teams.filter(t =>
-                t.toLowerCase().includes(q) ||
-                (this.teamClubMap[t] && this.teamClubMap[t].toLowerCase().includes(q))
+            return this.teams.filter(
+                (t) =>
+                    t.toLowerCase().includes(q) ||
+                    (this.teamClubMap[t] && this.teamClubMap[t].toLowerCase().includes(q)),
             );
-        }
+        },
     },
     methods: {
         selectTeam(team) {
@@ -107,8 +129,8 @@ export default {
             if (this.modelValue === team) return true;
             return this.teamClubMap[team] === this.modelValue;
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -134,7 +156,7 @@ export default {
     cursor: pointer;
     transition: background 0.15s;
     -webkit-tap-highlight-color: transparent;
-    -webkit-appearance: none;
+    appearance: none;
     appearance: none;
 }
 
@@ -169,7 +191,7 @@ export default {
     background: var(--color-surface, #fff);
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
     z-index: 100;
     padding: 0.5rem;
 }

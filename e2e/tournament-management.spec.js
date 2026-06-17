@@ -1,21 +1,26 @@
-import {test, expect} from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import {
-    login, ensureCleanTournament, addTeams, drawFirstRound, playRound,
-    deleteCurrentTournament, dismissModals,
+    login,
+    ensureCleanTournament,
+    addTeams,
+    drawFirstRound,
+    playRound,
+    deleteCurrentTournament,
+    dismissModals,
 } from './helpers';
 
 test.describe('Tournament Management', () => {
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({ page }) => {
         await login(page);
     });
 
-    test('create and delete empty tournament', async ({page}) => {
+    test('create and delete empty tournament', async ({ page }) => {
         await dismissModals(page);
         await deleteCurrentTournament(page);
         await expect(page.locator('[data-testid="tournament-name-row"]')).toBeVisible();
     });
 
-    test('rename tournament inline', async ({page}) => {
+    test('rename tournament inline', async ({ page }) => {
         await ensureCleanTournament(page);
         await page.locator('[data-testid="tournament-name-row"] strong').click();
         const input = page.locator('.inline-name-input');
@@ -26,7 +31,7 @@ test.describe('Tournament Management', () => {
         await deleteCurrentTournament(page);
     });
 
-    test('restore round requires confirmation', async ({page}) => {
+    test('restore round requires confirmation', async ({ page }) => {
         await ensureCleanTournament(page);
         await addTeams(page, 8);
         await drawFirstRound(page);
@@ -41,7 +46,7 @@ test.describe('Tournament Management', () => {
         await deleteCurrentTournament(page);
     });
 
-    test('delete from preferences in started tournament', async ({page}) => {
+    test('delete from preferences in started tournament', async ({ page }) => {
         await ensureCleanTournament(page);
         await addTeams(page, 6);
         await drawFirstRound(page);
@@ -49,7 +54,7 @@ test.describe('Tournament Management', () => {
 
         await page.locator('[data-testid="btn-preferences"]').click();
         const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
-        await removeBtn.waitFor({state: 'visible'});
+        await removeBtn.waitFor({ state: 'visible' });
         await removeBtn.click();
         await page.locator('[data-testid="btn-confirm-remove"]').click();
         await page.waitForTimeout(500);

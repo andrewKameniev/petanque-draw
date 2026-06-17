@@ -453,6 +453,7 @@ export default {
 }
 
 /* Loading skeleton */
+
 .training-skeleton {
     display: flex;
     flex-direction: column;
@@ -500,8 +501,14 @@ export default {
 }
 
 @keyframes skeleton-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .training-tabs {
@@ -602,12 +609,12 @@ export default {
     font-weight: 500;
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
-    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    background: var(--color-primary-bg, rgb(124 58 237 / 10%));
     color: var(--color-primary);
 }
 
 .session-card__badge--type {
-    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    background: var(--color-primary-bg, rgb(124 58 237 / 10%));
     color: var(--color-primary);
 }
 
@@ -617,12 +624,12 @@ export default {
 }
 
 .session-card__badge--in_progress {
-    background: rgba(245, 166, 35, 0.15);
+    background: rgb(245 166 35 / 15%);
     color: var(--tir-touche);
 }
 
 .session-card__badge--completed {
-    background: rgba(76, 175, 80, 0.15);
+    background: rgb(76 175 80 / 15%);
     color: var(--tir-carreau);
 }
 
@@ -750,7 +757,7 @@ export default {
     font-weight: 500;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
-    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    background: var(--color-primary-bg, rgb(124 58 237 / 10%));
     color: var(--color-primary);
 }
 

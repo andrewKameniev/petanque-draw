@@ -1,12 +1,28 @@
 <template>
     <div class="content tabs-content">
-        <TeamPlayoff v-if="tournament.teamPlayoff"/>
-        <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')"/>
-        <Cadrage v-else-if="tournament.cadrage && tournament.cadrage.length" @startPlayOff="$emit('startPlayOff', $event)"/>
+        <TeamPlayoff v-if="tournament.teamPlayoff" />
+        <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')" />
+        <Cadrage
+            v-else-if="tournament.cadrage && tournament.cadrage.length"
+            @startPlayOff="$emit('startPlayOff', $event)"
+        />
         <div v-else>
-            <div v-if="tournament.games?.length && !tournament.tournamentIsStarted && !tournament.roundIsActive && tournament.games.length === 1 && !hasAnyFinishedGame" class="draw-card">
+            <div
+                v-if="
+                    tournament.games?.length &&
+                    !tournament.tournamentIsStarted &&
+                    !tournament.roundIsActive &&
+                    tournament.games.length === 1 &&
+                    !hasAnyFinishedGame
+                "
+                class="draw-card"
+            >
                 <div class="draw-card__links">
-                    <a href="#" class="draw-card__link draw-card__link--start" @click.prevent="$emit('startFirstRound')">
+                    <a
+                        href="#"
+                        class="draw-card__link draw-card__link--start"
+                        @click.prevent="$emit('startFirstRound')"
+                    >
                         {{ $t('setup.startRound') }}
                     </a>
                     <span class="draw-card__or">{{ $t('common.or') }}</span>
@@ -17,71 +33,139 @@
             </div>
             <div v-else-if="tournament.games?.length && showDrawLinks" class="draw-card">
                 <div class="draw-card__links">
-                    <a v-if="!tournament.playOff && !tournament.roundIsActive
-                        && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)"
-                       href="#" class="draw-card__link draw-card__link--draw" data-testid="link-draw-next-round" @click.prevent="drawRound">
+                    <a
+                        v-if="
+                            !tournament.playOff &&
+                            !tournament.roundIsActive &&
+                            tournament.games.length < teamsCount &&
+                            (tournament.system === 'swiss' ? activeRound <= maxSwissRounds : true)
+                        "
+                        href="#"
+                        class="draw-card__link draw-card__link--draw"
+                        data-testid="link-draw-next-round"
+                        @click.prevent="drawRound"
+                    >
                         {{ `${$t('games.draw')} ${activeRound}` }} {{ $t('common.round') }}
                     </a>
-                    <template v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound
-                        && !tournament.playOff
-                        && (tournament.games.length < teamsCount) && (tournament.system === 'swiss' ? (activeRound <= maxSwissRounds) : true)">
+                    <template
+                        v-if="
+                            tournament.games.length &&
+                            !tournament.roundIsActive &&
+                            !isRestoredRound &&
+                            !tournament.playOff &&
+                            tournament.games.length < teamsCount &&
+                            (tournament.system === 'swiss' ? activeRound <= maxSwissRounds : true)
+                        "
+                    >
                         <span class="draw-card__or">{{ $t('common.or') }}</span>
                     </template>
-                    <a v-if="tournament.games.length && !tournament.roundIsActive && !isRestoredRound && !tournament.playOff"
-                       href="#" class="draw-card__link draw-card__link--restore" data-testid="link-restore-round" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
+                    <a
+                        v-if="
+                            tournament.games.length &&
+                            !tournament.roundIsActive &&
+                            !isRestoredRound &&
+                            !tournament.playOff
+                        "
+                        href="#"
+                        class="draw-card__link draw-card__link--restore"
+                        data-testid="link-restore-round"
+                        @click.prevent="showRestoreConfirm = true"
+                        >{{ $t('games.restoreRound') }}</a
+                    >
                 </div>
             </div>
             <div v-if="tournament.games && tournament.games.length && tournament.roundIsActive">
                 <h2 class="text-center">
                     <template v-if="tournament.barrage">{{ barrageRoundLabel }}</template>
                     <template v-else-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
-                    <template v-else>{{ $t('common.round') }} {{ activeRound }}<template v-if="tournament.preferences?.groupTotalRounds">/{{ tournament.preferences.groupTotalRounds }}</template></template>
+                    <template v-else
+                        >{{ $t('common.round') }} {{ activeRound
+                        }}<template v-if="tournament.preferences?.groupTotalRounds"
+                            >/{{ tournament.preferences.groupTotalRounds }}</template
+                        ></template
+                    >
                 </h2>
                 <div v-if="showTimerSection" class="round-timer-section">
-                    <RoundTimer v-if="tournament.roundTimer?.timerStatus === 'running' || tournament.roundTimer?.timerStatus === 'ended'"
+                    <RoundTimer
+                        v-if="
+                            tournament.roundTimer?.timerStatus === 'running' ||
+                            tournament.roundTimer?.timerStatus === 'ended'
+                        "
                         :timer-started-at="tournament.roundTimer.timerStartedAt"
                         :timer-ends-at="tournament.roundTimer.timerEndsAt"
                         :timer-status="tournament.roundTimer.timerStatus"
                         :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
                         :cochonettes="tournament.preferences.cochonettes || 1"
                         @timer-ended="onTimerEnded"
-                        @restart="onTimerRestart"/>
+                        @restart="onTimerRestart"
+                    />
                     <button v-else class="start-timer-btn" @click="startRoundTimer">
-                        <Timer :size="16"/>
+                        <Timer :size="16" />
                         {{ $t('timer.startTimer') }}
                     </button>
                 </div>
                 <div class="games-toolbar">
                     <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
                         {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
-                        <ChevronDown :size="16" class="games-toolbar__arrow" :class="{'games-toolbar__arrow--up': !compactView}"/>
+                        <ChevronDown
+                            :size="16"
+                            class="games-toolbar__arrow"
+                            :class="{ 'games-toolbar__arrow--up': !compactView }"
+                        />
                     </button>
                 </div>
                 <div class="games-list" v-if="tournament.barrage">
                     <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
-                        <Game v-for="(game, index) in group" :key="index"
-                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
-                              @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
+                        <Game
+                            v-for="(game, index) in group"
+                            :key="index"
+                            :game="game"
+                            :activeRound="activeRound - 1"
+                            :compactView="compactView"
+                            :game-index="currentRoundGames.indexOf(game)"
+                            @update="onGameUpdate"
+                            @finish="onGameFinish"
+                            @swapLane="swapLane"
+                        />
                     </div>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">
+                        {{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="games-list" v-else-if="tournament.system === 'poules'">
                     <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
                         <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
-                        <Game v-for="(game, index) in group" :key="index"
-                              :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="currentRoundGames.indexOf(game)"
-                              @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
+                        <Game
+                            v-for="(game, index) in group"
+                            :key="index"
+                            :game="game"
+                            :activeRound="activeRound - 1"
+                            :compactView="compactView"
+                            :game-index="currentRoundGames.indexOf(game)"
+                            @update="onGameUpdate"
+                            @finish="onGameFinish"
+                            @swapLane="swapLane"
+                        />
                     </div>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">
+                        {{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="games-list" v-else>
-                    <Game v-for="(game, index) in tournament.games[activeRound - 1]" :key="index"
-                          :game="game" :activeRound="activeRound - 1" :compactView="compactView" :game-index="index"
-                          @update="onGameUpdate" @finish="onGameFinish" @swapLane="swapLane"/>
-                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">{{ $t('games.resultsError') }}
+                    <Game
+                        v-for="(game, index) in tournament.games[activeRound - 1]"
+                        :key="index"
+                        :game="game"
+                        :activeRound="activeRound - 1"
+                        :compactView="compactView"
+                        :game-index="index"
+                        @update="onGameUpdate"
+                        @finish="onGameFinish"
+                        @swapLane="swapLane"
+                    />
+                    <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">
+                        {{ $t('games.resultsError') }}
                     </div>
                 </div>
                 <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
@@ -89,65 +173,116 @@
                     <button class="finish-round-btn" data-testid="btn-finish-round" @click="validateAndFinishRound">
                         {{ $t('games.finishRound') }}
                     </button>
-                    <a v-if="!tournament.playOff && tournament.system !== 'swiss'" href="#" class="restore-round-link" @click.prevent="showRestoreConfirm = true">
+                    <a
+                        v-if="!tournament.playOff && tournament.system !== 'swiss'"
+                        href="#"
+                        class="restore-round-link"
+                        @click.prevent="showRestoreConfirm = true"
+                    >
                         {{ $t('games.restoreRound') }}
                     </a>
                 </div>
             </div>
             <div v-else-if="tournament.tournamentIsFinished">
-                <FinishedBanner @openResults="$emit('openResults')"/>
+                <FinishedBanner @openResults="$emit('openResults')" />
             </div>
-            <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system === 'groups'" class="draw-card">
+            <div
+                v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system === 'groups'"
+                class="draw-card"
+            >
                 <div class="draw-card__links">
-                    <a href="#" class="draw-card__link draw-card__link--draw" data-testid="link-start-team-playoff" @click.prevent="startTeamPlayoff">
+                    <a
+                        href="#"
+                        class="draw-card__link draw-card__link--draw"
+                        data-testid="link-start-team-playoff"
+                        @click.prevent="startTeamPlayoff"
+                    >
                         {{ $t('teamPlayoff.startPlayoff') }}
                     </a>
                     <span class="draw-card__or">{{ $t('common.or') }}</span>
-                    <a href="#" class="draw-card__link draw-card__link--draw" data-testid="link-play-next-circle" @click.prevent="playNextCircle">
+                    <a
+                        href="#"
+                        class="draw-card__link draw-card__link--draw"
+                        data-testid="link-play-next-circle"
+                        @click.prevent="playNextCircle"
+                    >
                         {{ $t('games.playNextCircle') }}
                     </a>
                     <span class="draw-card__or">{{ $t('common.or') }}</span>
-                    <a href="#" class="draw-card__link draw-card__link--restore" data-testid="link-restore-round-circle" @click.prevent="showRestoreConfirm = true">{{ $t('games.restoreRound') }}</a>
+                    <a
+                        href="#"
+                        class="draw-card__link draw-card__link--restore"
+                        data-testid="link-restore-round-circle"
+                        @click.prevent="showRestoreConfirm = true"
+                        >{{ $t('games.restoreRound') }}</a
+                    >
                 </div>
                 <div v-if="tournament.roundRobinCircle > 1" class="draw-card__circle-info">
                     {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle || 1 }}
                 </div>
             </div>
-            <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'">{{ $t('games.quantityError') }}</div>
+            <div
+                v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'"
+            >
+                {{ $t('games.quantityError') }}
+            </div>
         </div>
-        <ConfirmRemoveModal v-if="showRestoreConfirm"
+        <ConfirmRemoveModal
+            v-if="showRestoreConfirm"
             :hint="$t('games.restoreRound')"
             :message="$t('games.restoreRoundConfirm')"
             :confirm-label="$t('games.restoreRound')"
             @confirm="restoreRoundGames()"
-            @close="showRestoreConfirm = false"/>
-        <ConfirmRemoveModal v-if="showFinishConfirmIndex !== null"
+            @close="showRestoreConfirm = false"
+        />
+        <ConfirmRemoveModal
+            v-if="showFinishConfirmIndex !== null"
             :hint="$t('teamPlayoff.finishMatch')"
             :message="finishConfirmMessage"
             :confirm-label="$t('teamPlayoff.finishMatch')"
             @confirm="confirmFinishMatch()"
-            @close="showFinishConfirmIndex = null"/>
+            @close="showFinishConfirmIndex = null"
+        />
     </div>
 </template>
 
 <script>
-
 import PlayOff from './PlayOff';
 import TeamPlayoff from './TeamPlayoff.vue';
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {gameHasError, shuffleArray, tournamentNames} from '@/helpers'
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, createGroups, generateConstrainedGroups, saveResultsForRound, resetGroupsScheme, drawPoulesRound, getPoulesQualifiedTeams} from '@/services/draw'
-import Game from "@/components/partials/Game.vue";
-import Cadrage from "@/components/partials/Cadrage.vue";
-import {ChevronDown, Timer} from "lucide-vue-next";
-import FinishedBanner from "@/components/partials/FinishedBanner.vue";
-import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
-import RoundTimer from "@/components/partials/RoundTimer.vue";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { gameHasError, shuffleArray, tournamentNames } from '@/helpers';
+import {
+    drawSwissRound,
+    drawSupermeleRound,
+    drawGroupsRound,
+    assignLanes,
+    generateConstrainedGroups,
+    saveResultsForRound,
+    resetGroupsScheme,
+    drawPoulesRound,
+    getPoulesQualifiedTeams,
+} from '@/services/draw';
+import Game from '@/components/partials/Game.vue';
+import Cadrage from '@/components/partials/Cadrage.vue';
+import { ChevronDown, Timer } from 'lucide-vue-next';
+import FinishedBanner from '@/components/partials/FinishedBanner.vue';
+import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
+import RoundTimer from '@/components/partials/RoundTimer.vue';
 
 export default {
     name: 'Games',
-    components: {Cadrage, Game, PlayOff, TeamPlayoff, ChevronDown, Timer, ConfirmRemoveModal, FinishedBanner, RoundTimer},
+    components: {
+        Cadrage,
+        Game,
+        PlayOff,
+        TeamPlayoff,
+        ChevronDown,
+        Timer,
+        ConfirmRemoveModal,
+        FinishedBanner,
+        RoundTimer,
+    },
     props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
     data() {
         return {
@@ -156,8 +291,8 @@ export default {
             isRestoredRound: false,
             compactView: false,
             showRestoreConfirm: false,
-            showFinishConfirmIndex: null
-        }
+            showFinishConfirmIndex: null,
+        };
     },
     mounted() {
         this._onTab = (e) => {
@@ -166,7 +301,12 @@ export default {
                 if (!inputs.length) return;
                 const currentIndex = inputs.indexOf(e.target);
                 e.preventDefault();
-                const nextIndex = currentIndex === -1 ? 0 : e.shiftKey ? (currentIndex - 1 + inputs.length) % inputs.length : (currentIndex + 1) % inputs.length;
+                const nextIndex =
+                    currentIndex === -1
+                        ? 0
+                        : e.shiftKey
+                          ? (currentIndex - 1 + inputs.length) % inputs.length
+                          : (currentIndex + 1) % inputs.length;
                 inputs[nextIndex].focus();
                 inputs[nextIndex].select();
             }
@@ -179,9 +319,15 @@ export default {
         this.unsubscribeTournament();
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'currentTournament', 'allScoresFilled']),
+        ...mapState(useMainStore, [
+            'tournaments',
+            'currentTournamentIndex',
+            'isAdmin',
+            'currentTournament',
+            'allScoresFilled',
+        ]),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
         teamsCount() {
             if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
@@ -189,16 +335,17 @@ export default {
                 if (this.tournament.preferences?.groupTotalRounds) {
                     return this.tournament.preferences.groupTotalRounds;
                 }
-                const roundsPerCircle = this.tournament.groups[0].length % 2 !== 0
-                    ? this.tournament.groups[0].length
-                    : this.tournament.groups[0].length - 1;
+                const roundsPerCircle =
+                    this.tournament.groups[0].length % 2 !== 0
+                        ? this.tournament.groups[0].length
+                        : this.tournament.groups[0].length - 1;
                 const circles = this.tournament.roundRobinCircle || 1;
                 return roundsPerCircle * circles;
             }
             return this.tournament.teams.length - 1;
         },
         maxSwissRounds() {
-            return Math.ceil(Math.log2(this.tournament.teams?.length))
+            return Math.ceil(Math.log2(this.tournament.teams?.length));
         },
         poulesRoundLabel() {
             const round = this.tournament.poulesRound || 1;
@@ -219,18 +366,22 @@ export default {
         poulesGroupedGames() {
             const games = this.currentRoundGames;
             const grouped = {};
-            games.forEach(game => {
+            games.forEach((game) => {
                 const g = game.group ?? 0;
                 if (!grouped[g]) grouped[g] = [];
                 grouped[g].push(game);
             });
-            return Object.keys(grouped).sort((a, b) => a - b).map(k => grouped[k]);
+            return Object.keys(grouped)
+                .sort((a, b) => a - b)
+                .map((k) => grouped[k]);
         },
         showTimerSection() {
             if (!this.tournament.preferences?.timeLimitEnabled) return false;
             if (!this.tournament.roundIsActive) return false;
             const prefs = this.tournament.preferences;
-            const isFinale = this.tournament.playOff?.length && this.tournament.playOff[this.tournament.playOff.length - 1].teams?.length === 1;
+            const isFinale =
+                this.tournament.playOff?.length &&
+                this.tournament.playOff[this.tournament.playOff.length - 1].teams?.length === 1;
             if (isFinale && prefs.noTimeLimitFinale) return false;
             return true;
         },
@@ -240,34 +391,70 @@ export default {
             if (this.tournament.system === 'poules') return false;
             if (this.tournament.system === 'tir') return false;
             if (this.tournament.barrage) return false;
-            if (this.tournament.system === 'groups' && this.tournament.games.length >= this.teamsCount && !this.tournament.roundIsActive) return false;
-            const hasDrawLink = !this.tournament.playOff && !this.tournament.roundIsActive
-                && (this.tournament.games.length < this.teamsCount)
-                && (this.tournament.system === 'swiss' ? (this.activeRound <= this.maxSwissRounds) : true);
-            const hasRestoreLink = this.tournament.games.length && !this.tournament.roundIsActive && !this.isRestoredRound && !this.tournament.playOff;
+            if (
+                this.tournament.system === 'groups' &&
+                this.tournament.games.length >= this.teamsCount &&
+                !this.tournament.roundIsActive
+            )
+                return false;
+            const hasDrawLink =
+                !this.tournament.playOff &&
+                !this.tournament.roundIsActive &&
+                this.tournament.games.length < this.teamsCount &&
+                (this.tournament.system === 'swiss' ? this.activeRound <= this.maxSwissRounds : true);
+            const hasRestoreLink =
+                this.tournament.games.length &&
+                !this.tournament.roundIsActive &&
+                !this.isRestoredRound &&
+                !this.tournament.playOff;
             return hasDrawLink || hasRestoreLink;
         },
         canRestoreRound() {
-            return !!(this.tournament.playOff || (this.tournament.cadrage && this.tournament.cadrage.length))
-                && this.tournament.games?.length && !this.isRestoredRound;
+            return (
+                !!(this.tournament.playOff || (this.tournament.cadrage && this.tournament.cadrage.length)) &&
+                this.tournament.games?.length &&
+                !this.isRestoredRound
+            );
         },
         allGamesFinished() {
             const games = this.currentRoundGames;
             if (!games.length) return false;
-            return games.every(g => g.status === 'finished' || g.team_2 === 'Technical');
+            return games.every((g) => g.status === 'finished' || g.team_2 === 'Technical');
         },
         hasAnyFinishedGame() {
-            return this.currentRoundGames.some(g => g.status === 'finished' || g.status === 'in_progress');
+            return this.currentRoundGames.some((g) => g.status === 'finished' || g.status === 'in_progress');
         },
         finishConfirmMessage() {
             if (this.showFinishConfirmIndex === null) return '';
             const game = this.currentRoundGames[this.showFinishConfirmIndex];
             if (!game) return '';
             return `${game.team_1} ${game.team_1_score} : ${game.team_2_score} ${game.team_2}`;
-        }
+        },
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncToFirebaseNow', 'syncGameMatch', 'syncGames', 'syncTeams', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, [
+            'startRound',
+            'endRound',
+            'addRoundToGames',
+            'restoreRound',
+            'showMessage',
+            'shuffleLanesStore',
+            'swapLanesStore',
+            'setPlayOffStage',
+            'setPlayOffBracket',
+            'setBarrage',
+            'syncToFirebase',
+            'syncToFirebaseNow',
+            'syncGameMatch',
+            'syncGames',
+            'syncTeams',
+            'startRoundTimer',
+            'endRoundTimer',
+            'clearRoundTimer',
+            'restartRoundTimer',
+            'subscribeTournament',
+            'unsubscribeTournament',
+        ]),
         gameHasError,
         onTimerEnded() {
             this.endRoundTimer();
@@ -286,11 +473,11 @@ export default {
                 if (!this._scoreHistoryTs) this._scoreHistoryTs = {};
                 const lastTs = this._scoreHistoryTs[key] || 0;
                 const last = game.score_history[game.score_history.length - 1];
-                if (last && (now - lastTs) < 2000) {
+                if (last && now - lastTs < 2000) {
                     last.s1 = s1;
                     last.s2 = s2;
                 } else if (!last || last.s1 !== s1 || last.s2 !== s2) {
-                    game.score_history.push({s1, s2});
+                    game.score_history.push({ s1, s2 });
                 }
                 this._scoreHistoryTs[key] = now;
             }
@@ -309,7 +496,7 @@ export default {
             game.updated_at = new Date().toISOString();
             this.syncGameMatch(this.activeRound - 1, idx, game);
             this.showFinishConfirmIndex = null;
-            const allFinished = this.tournament.games[this.activeRound - 1].every(g => g.status === 'finished');
+            const allFinished = this.tournament.games[this.activeRound - 1].every((g) => g.status === 'finished');
             if (allFinished && this.tournament.roundTimer?.timerStatus === 'running') {
                 this.endRoundTimer();
             }
@@ -320,13 +507,25 @@ export default {
                 if (game.team_2 === 'Technical') continue;
                 const s1 = Number(game.team_1_score);
                 const s2 = Number(game.team_2_score);
-                if (game.team_1_score == null || game.team_1_score === '' ||
-                    game.team_2_score == null || game.team_2_score === '') {
-                    this.showMessage({title: this.$t('messages.error'), text: this.$t('games.finishAllGames'), type: 'error'});
+                if (
+                    game.team_1_score == null ||
+                    game.team_1_score === '' ||
+                    game.team_2_score == null ||
+                    game.team_2_score === ''
+                ) {
+                    this.showMessage({
+                        title: this.$t('messages.error'),
+                        text: this.$t('games.finishAllGames'),
+                        type: 'error',
+                    });
                     return;
                 }
                 if (isNaN(s1) || isNaN(s2) || s1 === s2) {
-                    this.showMessage({title: this.$t('messages.error'), text: this.$t('games.noDrawsAllowed'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.error'),
+                        text: this.$t('games.noDrawsAllowed'),
+                        type: 'error',
+                    });
                     return;
                 }
             }
@@ -335,7 +534,7 @@ export default {
         finishRound() {
             this.scoreError = false;
             this.tournament.tournamentIsStarted = true;
-            this.tournament.games[this.activeRound - 1].forEach(game => {
+            this.tournament.games[this.activeRound - 1].forEach((game) => {
                 game.team_1_score = Number(game.team_1_score);
                 game.team_2_score = Number(game.team_2_score);
                 game.status = 'finished';
@@ -343,7 +542,7 @@ export default {
                 else if (game.team_2_score > game.team_1_score) game.winner = game.team_2;
             });
             if (!this.tournament.barrage) {
-                this.tournament.teams.forEach(team => {
+                this.tournament.teams.forEach((team) => {
                     team.wins = 0;
                     team.opponents = [];
                     team.buhgolts = 0;
@@ -361,27 +560,27 @@ export default {
 
             if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
                 this.drawBarrageRound();
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
                 return;
             }
             if (this.tournament.barrage && this.tournament.barrage.barrageRound === 3) {
                 const qualified = this.getBarrageQualifiedTeams();
                 this.$emit('startPlayOff', qualified);
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
                 return;
             }
             if (this.tournament.system === 'poules' && this.tournament.poulesRound < 3) {
                 this.drawRound();
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
                 return;
             }
             if (this.tournament.system === 'poules' && this.tournament.poulesRound === 3) {
                 const qualified = getPoulesQualifiedTeams(this.tournament);
                 this.$emit('startPlayOff', qualified);
-                this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+                this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
                 return;
             }
-            this.showMessage({title: this.$t('messages.success'), text: this.$t('messages.resultsSaved')});
+            this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
         },
         shuffleLanes() {
             const currentRound = this.tournament.games[this.tournament.games.length - 1];
@@ -397,7 +596,11 @@ export default {
         },
         drawRound() {
             if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
-                this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
+                this.showMessage({
+                    title: this.$t('games.chooseSystem'),
+                    text: this.$t('games.chooseSystemText'),
+                    type: 'error',
+                });
                 return;
             }
             let round = [];
@@ -406,7 +609,11 @@ export default {
                 const result = drawSwissRound(this.tournament, this.rankingTeams, this.activeRound);
                 if (result.error) {
                     this.saveDisabled = true;
-                    this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.cantDrawRound'),
+                        text: this.$t('messages.tooManyGames'),
+                        type: 'error',
+                    });
                     return;
                 }
                 round = result.round;
@@ -415,7 +622,10 @@ export default {
                     this.createGroups();
                 }
                 if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
-                    round = this.tournament.groupSchedule[this.activeRound - 1].map(g => ({...g, status: g.status || 'not_started'}));
+                    round = this.tournament.groupSchedule[this.activeRound - 1].map((g) => ({
+                        ...g,
+                        status: g.status || 'not_started',
+                    }));
                     this.addRoundToGames(round);
                     this.startRound();
                     this.isRestoredRound = false;
@@ -436,33 +646,41 @@ export default {
         },
         createGroups() {
             if (this.teamsInGroup < 3) {
-                this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
+                this.showMessage({
+                    title: this.$t('messages.cantDraw'),
+                    text: this.$t('messages.chooseCorrectTeams'),
+                    type: 'error',
+                });
                 return false;
             }
             const result = generateConstrainedGroups(this.tournament, this.teamsInGroup);
             this.tournament.groups = result.groups;
             this.tournament.groupsScheme = result.schemas;
             if (result.warning) {
-                this.showMessage({title: this.$t('messages.warning'), text: this.$t('messages.constraintsNotSatisfied'), type: 'error'});
+                this.showMessage({
+                    title: this.$t('messages.warning'),
+                    text: this.$t('messages.constraintsNotSatisfied'),
+                    type: 'error',
+                });
             }
         },
         saveResults() {
             this.finishRound();
         },
-        restoreRoundGames(){
+        restoreRoundGames() {
             this.clearRoundTimer();
             this.isRestoredRound = true;
             if (this.tournament.playOff || this.tournament.cadrage?.length) {
                 const bracket = this.tournament.playOffBracket;
                 const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
-                const firstPlayoffStageLabel = bracket?.stages?.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
+                const firstPlayoffStageLabel = bracket?.stages?.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
 
                 if (bracket && currentStage && currentStage < firstPlayoffStageLabel) {
                     const previousStage = currentStage * 2;
                     const restoredBracket = JSON.parse(JSON.stringify(bracket));
-                    const currentIndex = restoredBracket.stages.findIndex(s => s.stageLabel === currentStage);
+                    const currentIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === currentStage);
                     if (currentIndex !== -1) {
-                        restoredBracket.stages[currentIndex].teams.forEach(game => {
+                        restoredBracket.stages[currentIndex].teams.forEach((game) => {
                             game.team_1 = null;
                             game.team_2 = null;
                             game.team_1_score = null;
@@ -513,7 +731,7 @@ export default {
                     if (this.tournament.poulesRound > 1) {
                         this.tournament.poulesRound--;
                     }
-                    this.tournament.teams.forEach(team => {
+                    this.tournament.teams.forEach((team) => {
                         team.opponents = [];
                         team.pointsPlus = 0;
                         team.pointsMinus = 0;
@@ -523,12 +741,12 @@ export default {
                         this.saveResultsForRound(i);
                     }
                 } else if (this.tournament.system === 'groups') {
-                    this.tournament.teams.forEach(team => {
+                    this.tournament.teams.forEach((team) => {
                         team.opponents = ['placeholder'];
                         team.pointsPlus = 0;
                         team.pointsMinus = 0;
                         team.wins = 0;
-                    })
+                    });
                     for (let i = 0; i < this.activeRound - 2; i++) {
                         this.saveResultsForRound(i);
                     }
@@ -540,8 +758,8 @@ export default {
         startTeamPlayoff() {
             const teams = [...this.tournament.teams].sort((a, b) => {
                 if (b.wins !== a.wins) return b.wins - a.wins;
-                if ((b.pointsPlus - b.pointsMinus) !== (a.pointsPlus - a.pointsMinus)) {
-                    return (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus);
+                if (b.pointsPlus - b.pointsMinus !== a.pointsPlus - a.pointsMinus) {
+                    return b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus);
                 }
                 return b.pointsPlus - a.pointsPlus;
             });
@@ -551,7 +769,7 @@ export default {
             const size = Math.pow(2, Math.ceil(Math.log2(qualified.length)));
 
             while (qualified.length < size) {
-                qualified.push({title: null, isBye: true});
+                qualified.push({ title: null, isBye: true });
             }
 
             const createMatch = (t1, t2) => ({
@@ -562,16 +780,16 @@ export default {
                 status: 'not_started',
                 winner: null,
                 updatedAt: null,
-                updatedBy: null
+                updatedBy: null,
             });
 
             if (size === 2) {
                 this.tournament.teamPlayoff = {
                     rounds: [],
-                    qualified: qualified.filter(t => t.title).map(t => t.title),
+                    qualified: qualified.filter((t) => t.title).map((t) => t.title),
                     size,
                     thirdPlace: null,
-                    final: createMatch(qualified[0].title, qualified[1].title)
+                    final: createMatch(qualified[0].title, qualified[1].title),
                 };
             } else {
                 const matches = [];
@@ -582,11 +800,11 @@ export default {
                     matches.push(createMatch(t1.title, t2.title));
                 }
                 this.tournament.teamPlayoff = {
-                    rounds: [{matches}],
-                    qualified: qualified.filter(t => t.title).map(t => t.title),
+                    rounds: [{ matches }],
+                    qualified: qualified.filter((t) => t.title).map((t) => t.title),
                     size,
                     thirdPlace: null,
-                    final: null
+                    final: null,
                 };
             }
             this.syncToFirebase();
@@ -610,7 +828,7 @@ export default {
             if (nextRound === 2) {
                 // Round 2: winners play winners, losers play losers
                 groups.forEach((group, groupIndex) => {
-                    const r1Games = barrageGames[0].filter(g => g.group === groupIndex);
+                    const r1Games = barrageGames[0].filter((g) => g.group === groupIndex);
                     const game1 = r1Games[0];
                     const game2 = r1Games[1];
 
@@ -625,7 +843,7 @@ export default {
                         team_1_score: null,
                         team_2: winner2,
                         team_2_score: null,
-                        status: 'not_started'
+                        status: 'not_started',
                     });
                     round.push({
                         group: groupIndex,
@@ -633,22 +851,26 @@ export default {
                         team_1_score: null,
                         team_2: loser2,
                         team_2_score: null,
-                        status: 'not_started'
+                        status: 'not_started',
                     });
                 });
             } else if (nextRound === 3) {
                 groups.forEach((group, groupIndex) => {
                     const teamWins = {};
-                    group.forEach(t => { teamWins[t.title] = 0; });
+                    group.forEach((t) => {
+                        teamWins[t.title] = 0;
+                    });
 
-                    barrageGames.forEach(roundGames => {
-                        roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                            if (game.team_1_score > game.team_2_score) {
-                                teamWins[game.team_1]++;
-                            } else if (game.team_2_score > game.team_1_score) {
-                                teamWins[game.team_2]++;
-                            }
-                        });
+                    barrageGames.forEach((roundGames) => {
+                        roundGames
+                            .filter((g) => g.group === groupIndex)
+                            .forEach((game) => {
+                                if (game.team_1_score > game.team_2_score) {
+                                    teamWins[game.team_1]++;
+                                } else if (game.team_2_score > game.team_1_score) {
+                                    teamWins[game.team_2]++;
+                                }
+                            });
                     });
 
                     const oneWinTeams = Object.entries(teamWins)
@@ -662,7 +884,7 @@ export default {
                             team_1_score: null,
                             team_2: oneWinTeams[1],
                             team_2_score: null,
-                            status: 'not_started'
+                            status: 'not_started',
                         });
                     }
                 });
@@ -682,36 +904,40 @@ export default {
             groups.forEach((group, groupIndex) => {
                 const teamWins = {};
                 const teamPoints = {};
-                group.forEach(t => {
+                group.forEach((t) => {
                     teamWins[t.title] = 0;
                     teamPoints[t.title] = 0;
                 });
 
-                barrageGames.forEach(roundGames => {
-                    roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                        if (game.team_1_score > game.team_2_score) {
-                            teamWins[game.team_1]++;
-                        } else if (game.team_2_score > game.team_1_score) {
-                            teamWins[game.team_2]++;
-                        }
-                        teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
-                        teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
-                    });
+                barrageGames.forEach((roundGames) => {
+                    roundGames
+                        .filter((g) => g.group === groupIndex)
+                        .forEach((game) => {
+                            if (game.team_1_score > game.team_2_score) {
+                                teamWins[game.team_1]++;
+                            } else if (game.team_2_score > game.team_1_score) {
+                                teamWins[game.team_2]++;
+                            }
+                            teamPoints[game.team_1] =
+                                (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
+                            teamPoints[game.team_2] =
+                                (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
+                        });
                 });
 
                 const qualifiedFromGroup = Object.entries(teamWins)
                     .filter(([, wins]) => wins >= 2)
                     .sort((a, b) => b[1] - a[1] || (teamPoints[b[0]] || 0) - (teamPoints[a[0]] || 0))
-                    .map(([title]) => this.tournament.teams.find(t => t.title === title));
+                    .map(([title]) => this.tournament.teams.find((t) => t.title === title));
 
                 groupQualified.push(qualifiedFromGroup);
             });
 
             // Interleave: all group winners first, then all runners-up
             const qualified = [];
-            const maxPerGroup = Math.max(...groupQualified.map(g => g.length));
+            const maxPerGroup = Math.max(...groupQualified.map((g) => g.length));
             for (let i = 0; i < maxPerGroup; i++) {
-                groupQualified.forEach(group => {
+                groupQualified.forEach((group) => {
                     if (group[i]) qualified.push(group[i]);
                 });
             }
@@ -728,7 +954,7 @@ export default {
             saveResultsForRound(this.tournament, round);
         },
     },
-}
+};
 </script>
 
 <style scoped>
@@ -860,7 +1086,7 @@ export default {
 }
 
 .games-list > :deep(.game-row-wrapper:nth-child(odd) .game-row) {
-    background: rgba(108, 92, 231, 0.06);
+    background: rgb(108 92 231 / 6%);
 }
 
 .poules-group :deep(.game-row) {
@@ -868,7 +1094,7 @@ export default {
 }
 
 .poules-group :deep(.game-row-wrapper:nth-child(odd) .game-row) {
-    background: rgba(108, 92, 231, 0.06);
+    background: rgb(108 92 231 / 6%);
 }
 
 .poules-group__title {
@@ -914,5 +1140,4 @@ export default {
     color: var(--color-text-muted);
     text-decoration: underline;
 }
-
 </style>

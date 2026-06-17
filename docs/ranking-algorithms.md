@@ -3,11 +3,13 @@
 ## Swiss Ranking (sortTeams)
 
 Tiebreakers applied in strict order:
+
 ```
 wins > buchholz > smallBuchholz > (pointsPlus - pointsMinus) > pointsPlus > rating
 ```
 
 ### Buchholz Calculation
+
 ```
 For each team:
   buchholz = sum of (each opponent's wins)
@@ -27,11 +29,13 @@ Both are recalculated before every draw because opponents' wins change after eac
 ## Groups Ranking (getTeamsRanking for groups)
 
 Within each group:
+
 ```
 wins > directWins > directPoints > (pointsPlus - pointsMinus)
 ```
 
 **Direct encounters:** When 2+ teams are tied on wins, only their head-to-head results matter:
+
 - `directWins`: How many of the other tied teams this team beat directly
 - `directPoints`: Point difference in games between tied teams only
 
@@ -80,6 +84,7 @@ Output: array of game pairings OR error
 ```
 
 ### Backtracking Detail
+
 When team A can't find an opponent, the algorithm undoes the most recent pairing(s) and tries different combinations. This handles edge cases where a "greedy" first choice blocks later pairings.
 
 ---
@@ -111,6 +116,7 @@ Output: games with lane property set, sorted by lane
 ```
 
 ### Supermele Lane Assignment
+
 Same algorithm but counts ALL individual players' lane history (since "teams" change each round).
 
 ---
@@ -129,7 +135,9 @@ Then reorder using BRACKET_ORDERS for proper bracket positioning.
 ```
 
 ### Bracket Reordering
+
 Ensures top seeds are distributed so they meet latest possible:
+
 - 8 teams: swap positions [2↔4] and [3↔5]
 - 16/32/64/128 teams: predefined position arrays
 
@@ -150,6 +158,7 @@ For i = 0 to playOffList.length/2:
 ```
 
 Example: playOffTeams=16, cadrage pool = ranks 9-24:
+
 - Game 1: rank 9 vs rank 24
 - Game 2: rank 10 vs rank 23
 - ...
@@ -159,14 +168,14 @@ Example: playOffTeams=16, cadrage pool = ranks 9-24:
 
 ## Important Constraints
 
-| Rule | Reason |
-|------|--------|
-| Never play same opponent twice | Swiss fundamental |
-| Max rounds ~ N/2 | Pairing becomes impossible beyond this |
-| Restore only once between draws | Protects Buchholz integrity |
-| No tied scores | Petanque always has a winner |
-| Max score validation | Prevents invalid data (default 13) |
-| Playoff teams = power of 2 | Required for bracket structure |
-| Technical score is fixed | Walkover uses configured score |
-| Up to 10 tournaments | Firebase per-user limit |
+| Rule                            | Reason                                     |
+| ------------------------------- | ------------------------------------------ |
+| Never play same opponent twice  | Swiss fundamental                          |
+| Max rounds ~ N/2                | Pairing becomes impossible beyond this     |
+| Restore only once between draws | Protects Buchholz integrity                |
+| No tied scores                  | Petanque always has a winner               |
+| Max score validation            | Prevents invalid data (default 13)         |
+| Playoff teams = power of 2      | Required for bracket structure             |
+| Technical score is fixed        | Walkover uses configured score             |
+| Up to 10 tournaments            | Firebase per-user limit                    |
 | Cadrage doubles qualifying pool | If playoff=8, cadrage handles 8 more teams |

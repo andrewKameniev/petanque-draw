@@ -1,19 +1,38 @@
 <template>
     <div class="text-center is-size-3 tournament-name-row" data-testid="tournament-name-row">
-        <button class="pin-btn" :class="{'pin-btn--active': isPinned}" @click.stop="togglePin" :title="isPinned ? $t('common.unpin') : $t('common.pin')">
-            <IconPin :size="22" :fill="isPinned ? 'currentColor' : 'none'"/>
+        <button
+            class="pin-btn"
+            :class="{ 'pin-btn--active': isPinned }"
+            @click.stop="togglePin"
+            :title="isPinned ? $t('common.unpin') : $t('common.pin')"
+        >
+            <IconPin :size="22" :fill="isPinned ? 'currentColor' : 'none'" />
         </button>
         <template v-if="editing">
             <div class="inline-name-edit-wrapper">
                 <div class="inline-name-edit">
-                    <input ref="nameInput" class="inline-name-input" :class="{'inline-name-input--error': nameError}"
-                           v-model="editValue" @keyup.enter="saveName" @keyup.escape="cancelEdit"
-                           @input="nameError = false">
-                    <button class="inline-name-btn inline-name-btn--save" @click="saveName" :title="$t('common.change')">
-                        <Check :size="18"/>
+                    <input
+                        ref="nameInput"
+                        class="inline-name-input"
+                        :class="{ 'inline-name-input--error': nameError }"
+                        v-model="editValue"
+                        @keyup.enter="saveName"
+                        @keyup.escape="cancelEdit"
+                        @input="nameError = false"
+                    />
+                    <button
+                        class="inline-name-btn inline-name-btn--save"
+                        @click="saveName"
+                        :title="$t('common.change')"
+                    >
+                        <Check :size="18" />
                     </button>
-                    <button class="inline-name-btn inline-name-btn--cancel" @click="cancelEdit" :title="$t('common.cancel')">
-                        <X :size="18"/>
+                    <button
+                        class="inline-name-btn inline-name-btn--cancel"
+                        @click="cancelEdit"
+                        :title="$t('common.cancel')"
+                    >
+                        <X :size="18" />
                     </button>
                 </div>
                 <span v-if="nameError" class="inline-name-error">{{ $t('modals.tournamentNameRequired') }}</span>
@@ -22,14 +41,14 @@
         <template v-else>
             <strong class="pointer" @click="startEdit"> {{ name }}</strong>
         </template>
-        <span v-if="tournamentStarted" class="is-size-5 is-capitalized">({{system}})</span>
+        <span v-if="tournamentStarted" class="is-size-5 is-capitalized">({{ system }})</span>
         <span v-if="isTest" class="test-badge">Test</span>
     </div>
 </template>
 
 <script>
-import {IconPin} from "@/components/icons";
-import {Check, X} from "lucide-vue-next";
+import { IconPin } from '@/components/icons';
+import { Check, X } from 'lucide-vue-next';
 
 export default {
     name: 'TournamentHeader',
@@ -40,14 +59,14 @@ export default {
         system: { type: String, default: '' },
         tournamentStarted: { type: Boolean, default: false },
         isTest: { type: Boolean, default: false },
-        isPinned: { type: Boolean, default: false }
+        isPinned: { type: Boolean, default: false },
     },
     data() {
         return {
             editing: false,
             editValue: '',
-            nameError: false
-        }
+            nameError: false,
+        };
     },
     methods: {
         startEdit() {
@@ -72,9 +91,9 @@ export default {
         },
         togglePin() {
             this.$emit(this.isPinned ? 'unpin' : 'pin');
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -120,7 +139,9 @@ export default {
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
+    transition:
+        background 0.15s,
+        transform 0.1s;
 }
 
 .inline-name-btn:active {
@@ -171,7 +192,9 @@ export default {
     color: var(--color-grey);
     padding: 0.2rem;
     border-radius: 4px;
-    transition: color 0.2s, transform 0.2s;
+    transition:
+        color 0.2s,
+        transform 0.2s;
 }
 
 .pin-btn:hover {

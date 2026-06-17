@@ -2,7 +2,7 @@
     <div class="team-playoff-match">
         <div class="team-playoff-match__header">
             <button class="team-playoff-match__back" @click="$emit('back')">
-                <ArrowLeft :size="18"/>
+                <ArrowLeft :size="18" />
                 {{ roundLabel }}
             </button>
         </div>
@@ -10,27 +10,33 @@
         <div class="team-playoff-match__card">
             <div class="team-playoff-match__team">
                 <span class="team-playoff-match__team-name">{{ match.team1 }}</span>
-                <input type="number" class="team-playoff-match__score-input"
-                       :value="match.team1Score"
-                       :disabled="match.status === 'finished'"
-                       min="0"
-                       @input="updateScore('team1Score', $event)"/>
+                <input
+                    type="number"
+                    class="team-playoff-match__score-input"
+                    :value="match.team1Score"
+                    :disabled="match.status === 'finished'"
+                    min="0"
+                    @input="updateScore('team1Score', $event)"
+                />
             </div>
 
             <div class="team-playoff-match__divider">vs</div>
 
             <div class="team-playoff-match__team">
                 <span class="team-playoff-match__team-name">{{ match.team2 }}</span>
-                <input type="number" class="team-playoff-match__score-input"
-                       :value="match.team2Score"
-                       :disabled="match.status === 'finished'"
-                       min="0"
-                       @input="updateScore('team2Score', $event)"/>
+                <input
+                    type="number"
+                    class="team-playoff-match__score-input"
+                    :value="match.team2Score"
+                    :disabled="match.status === 'finished'"
+                    min="0"
+                    @input="updateScore('team2Score', $event)"
+                />
             </div>
         </div>
 
         <div v-if="match.status === 'finished'" class="team-playoff-match__finished">
-            <Trophy :size="16"/>
+            <Trophy :size="16" />
             {{ match.winner }}
         </div>
 
@@ -45,15 +51,15 @@
 </template>
 
 <script>
-import {ArrowLeft, Trophy} from "lucide-vue-next";
+import { ArrowLeft, Trophy } from 'lucide-vue-next';
 
 export default {
     name: 'TeamPlayoffMatch',
-    components: {ArrowLeft, Trophy},
+    components: { ArrowLeft, Trophy },
     props: {
         match: { type: Object, required: true },
         maxScore: { type: Number, default: 13 },
-        roundLabel: { type: String, default: '' }
+        roundLabel: { type: String, default: '' },
     },
     emits: ['back', 'update', 'finish'],
     computed: {
@@ -71,19 +77,22 @@ export default {
             if (this.match.team1Score === null || this.match.team2Score === null) return false;
             if (isNaN(s1) || isNaN(s2)) return false;
             return s1 === s2 && s1 > 0;
-        }
+        },
     },
     methods: {
         updateScore(field, event) {
             const val = event.target.value === '' ? null : Number(event.target.value);
+            // eslint-disable-next-line vue/no-mutating-props
             this.match[field] = val;
             if (this.match.status === 'not_started' && val !== null) {
+                // eslint-disable-next-line vue/no-mutating-props
                 this.match.status = 'in_progress';
+                // eslint-disable-next-line vue/no-mutating-props
                 this.match.updatedAt = new Date().toISOString();
             }
             this.$emit('update');
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -175,7 +184,7 @@ export default {
     justify-content: center;
     gap: 8px;
     padding: 12px;
-    background: rgba(76, 175, 80, 0.08);
+    background: rgb(76 175 80 / 8%);
     border-radius: 8px;
     font-weight: 600;
     color: var(--tir-winner, #2e7d32);

@@ -6,33 +6,63 @@
                 <div class="prefs__list">
                     <div class="prefs__item">
                         <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
-                        <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number">
+                        <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number" />
                         <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
-                            <input type="checkbox" v-model="tournament.preferences.playOffEnabled" :disabled="!!tournament.playOff" style="margin-right: 0.5rem;">
+                            <input
+                                type="checkbox"
+                                v-model="tournament.preferences.playOffEnabled"
+                                :disabled="!!tournament.playOff"
+                                style="margin-right: 0.5rem"
+                            />
                             {{ $t('setup.enablePlayOff') }}
                         </label>
                         <div v-if="tournament.preferences.playOffEnabled" class="prefs__nested">
                             <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
-                            <input class="prefs__input" :class="{'prefs__input--disabled': tournament.playOff}" v-model="tournament.preferences.playOffTeams" type="number" :disabled="!!tournament.playOff">
-                            <span class="prefs__hint">{{ tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint') }}</span>
+                            <input
+                                class="prefs__input"
+                                :class="{ 'prefs__input--disabled': tournament.playOff }"
+                                v-model="tournament.preferences.playOffTeams"
+                                type="number"
+                                :disabled="!!tournament.playOff"
+                            />
+                            <span class="prefs__hint">{{
+                                tournament.playOff ? $t('modals.playOffAlreadyStarted') : $t('modals.playOffTeamsHint')
+                            }}</span>
                         </div>
                     </div>
                     <div class="prefs__item" v-if="tournament.system === 'swiss'">
                         <label class="prefs__label">{{ $t('modals.swissRoundsCount') }}</label>
-                        <input class="prefs__input" v-model.number="tournament.preferences.swissRoundsCount" type="number" min="1">
+                        <input
+                            class="prefs__input"
+                            v-model.number="tournament.preferences.swissRoundsCount"
+                            type="number"
+                            min="1"
+                        />
                         <span class="prefs__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
                     </div>
-                    <div class="prefs__item" v-if="tournament.system === 'swiss' && !tournament.preferences.playOffEnabled && !tournament.playOff">
+                    <div
+                        class="prefs__item"
+                        v-if="
+                            tournament.system === 'swiss' &&
+                            !tournament.preferences.playOffEnabled &&
+                            !tournament.playOff
+                        "
+                    >
                         <label class="prefs__label">{{ $t('modals.prizePlaces') }}</label>
-                        <input class="prefs__input" v-model.number="tournament.preferences.prizePlaces" type="number" min="1">
+                        <input
+                            class="prefs__input"
+                            v-model.number="tournament.preferences.prizePlaces"
+                            type="number"
+                            min="1"
+                        />
                         <span class="prefs__hint">{{ $t('modals.prizePlacesHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
-                        <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number">
+                        <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number" />
                         <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
                     </div>
                     <div class="prefs__item">
@@ -40,42 +70,71 @@
                         <div class="prefs__inputs prefs__inputs--double">
                             <div class="prefs__input-group">
                                 <span class="prefs__input-label">{{ $t('games.first') }}</span>
-                                <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number">
+                                <input
+                                    class="prefs__input"
+                                    v-model="tournament.preferences.technical.technicalFirst"
+                                    type="number"
+                                />
                             </div>
                             <div class="prefs__input-group">
                                 <span class="prefs__input-label">{{ $t('games.technical') }} 2</span>
-                                <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number">
+                                <input
+                                    class="prefs__input"
+                                    v-model="tournament.preferences.technical.technicalSecond"
+                                    type="number"
+                                />
                             </div>
                         </div>
                         <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
-                            <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem;">
+                            <input
+                                type="checkbox"
+                                v-model="tournament.preferences.timeLimitEnabled"
+                                style="margin-right: 0.5rem"
+                            />
                             {{ $t('modals.timeLimit') }}
                         </label>
                         <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
                         <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__nested">
-                            <div class="prefs__inputs" :class="{'prefs__inputs--double': tournament.preferences.playOffEnabled}">
+                            <div
+                                class="prefs__inputs"
+                                :class="{ 'prefs__inputs--double': tournament.preferences.playOffEnabled }"
+                            >
                                 <div class="prefs__input-group">
-                                    <label class="prefs__label prefs__label--sub">{{ tournament.preferences.playOffEnabled ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit') }}</label>
+                                    <label class="prefs__label prefs__label--sub">{{
+                                        tournament.preferences.playOffEnabled
+                                            ? $t('modals.timeLimitSwiss')
+                                            : $t('modals.timeLimit')
+                                    }}</label>
                                     <div class="select is-fullwidth">
                                         <select v-model.number="tournament.preferences.timeLimit">
-                                            <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                            <option v-for="t in timeLimitOptions" :key="t" :value="t">
+                                                {{ t }} {{ $t('modals.min') }}
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
                                 <div v-if="tournament.preferences.playOffEnabled" class="prefs__input-group">
-                                    <label class="prefs__label prefs__label--sub">{{ $t('modals.timeLimitPlayoff') }}</label>
+                                    <label class="prefs__label prefs__label--sub">{{
+                                        $t('modals.timeLimitPlayoff')
+                                    }}</label>
                                     <div class="select is-fullwidth">
                                         <select v-model.number="tournament.preferences.playoffTimeLimit">
-                                            <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                            <option v-for="t in timeLimitOptions" :key="t" :value="t">
+                                                {{ t }} {{ $t('modals.min') }}
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
                             <label v-if="tournament.preferences.playOffEnabled" class="prefs__label prefs__label--sub">
-                                <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" style="margin-right: 0.5rem;">
+                                <input
+                                    type="checkbox"
+                                    v-model="tournament.preferences.noTimeLimitFinale"
+                                    style="margin-right: 0.5rem"
+                                />
                                 {{ $t('modals.noTimeLimitFinale') }}
                             </label>
                         </div>
@@ -92,14 +151,22 @@
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
-                            <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem;">
+                            <input
+                                type="checkbox"
+                                v-model="tournament.preferences.cochonettesEnabled"
+                                style="margin-right: 0.5rem"
+                            />
                             {{ $t('modals.perRoundScoring') }}
                         </label>
                         <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
                     </div>
                     <div class="prefs__item">
                         <label class="prefs__label">
-                            <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem;">
+                            <input
+                                type="checkbox"
+                                v-model="tournament.preferences.isTestTournament"
+                                style="margin-right: 0.5rem"
+                            />
                             {{ $t('setup.testTournament') }}
                         </label>
                         <span class="prefs__hint">{{ $t('setup.testTournamentHint') }}</span>
@@ -107,12 +174,18 @@
                 </div>
             </div>
             <div class="prefs__footer">
-                <button class="prefs__btn prefs__btn--danger" data-testid="btn-remove-tournament" @click="$emit('remove-tournament')">
-                    <Trash2 :size="16"/>
+                <button
+                    class="prefs__btn prefs__btn--danger"
+                    data-testid="btn-remove-tournament"
+                    @click="$emit('remove-tournament')"
+                >
+                    <Trash2 :size="16" />
                     <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
                 </button>
                 <div class="prefs__footer-right">
-                    <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">{{ $t('common.cancel') }}</button>
+                    <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">
+                        {{ $t('common.cancel') }}
+                    </button>
                     <button class="prefs__btn" @click="save">{{ $t('common.save') }}</button>
                 </div>
             </div>
@@ -121,19 +194,19 @@
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import Modal from "@/components/Modal";
-import {Trash2} from "lucide-vue-next";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import Modal from '@/components/Modal';
+import { Trash2 } from 'lucide-vue-next';
 
 export default {
     name: 'Preferences',
-    components: {Modal, Trash2},
+    components: { Modal, Trash2 },
     emits: ['close-modal', 'remove-tournament'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
         timeLimitOptions() {
             const options = [];
@@ -145,11 +218,11 @@ export default {
         ...mapActions(useMainStore, ['savePreferences', 'showMessage']),
         save() {
             this.savePreferences();
-            this.showMessage({title: this.$t('messages.preferencesSaved')});
+            this.showMessage({ title: this.$t('messages.preferencesSaved') });
             this.$emit('close-modal');
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>

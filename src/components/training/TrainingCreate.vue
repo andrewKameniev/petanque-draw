@@ -147,7 +147,7 @@ export default {
             ];
         },
         atelierNames() {
-            return ATELIER_KEYS.map((key, i) => this.$t(`tir.${key}`));
+            return ATELIER_KEYS.map((key) => this.$t(`tir.${key}`));
         },
         totalAttempts() {
             return this.config.exercises.length * this.config.distances.length * this.config.attempts;
@@ -243,7 +243,7 @@ export default {
 
 .tcreate__preset--active {
     border-color: var(--color-primary);
-    background: var(--color-primary-bg, rgba(124, 58, 237, 0.05));
+    background: var(--color-primary-bg, rgb(124 58 237 / 5%));
 }
 
 .tcreate__preset-name {
@@ -303,7 +303,6 @@ export default {
 .tcreate__check input:disabled + span {
     opacity: 0.5;
 }
-
 
 .tcreate__summary {
     background: var(--color-surface);

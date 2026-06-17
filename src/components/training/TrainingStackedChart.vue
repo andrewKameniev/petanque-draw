@@ -2,7 +2,13 @@
     <div class="stacked-chart">
         <apexchart type="bar" height="320" :options="chartOptions" :series="series" />
         <div v-if="hasNonMissData" class="stacked-chart__divider"></div>
-        <apexchart v-if="hasNonMissData" type="bar" height="280" :options="percentChartOptions" :series="percentSeries" />
+        <apexchart
+            v-if="hasNonMissData"
+            type="bar"
+            height="280"
+            :options="percentChartOptions"
+            :series="percentSeries"
+        />
     </div>
 </template>
 
@@ -104,9 +110,18 @@ export default {
         },
         percentSeries() {
             return [
-                { name: `Carreau (5)`, data: this.chartData.map((d) => d.total ? Math.round((d.carreau / d.total) * 100) : 0) },
-                { name: `Réussi (3)`, data: this.chartData.map((d) => d.total ? Math.round((d.reussi / d.total) * 100) : 0) },
-                { name: `Touché (1)`, data: this.chartData.map((d) => d.total ? Math.round((d.touche / d.total) * 100) : 0) },
+                {
+                    name: `Carreau (5)`,
+                    data: this.chartData.map((d) => (d.total ? Math.round((d.carreau / d.total) * 100) : 0)),
+                },
+                {
+                    name: `Réussi (3)`,
+                    data: this.chartData.map((d) => (d.total ? Math.round((d.reussi / d.total) * 100) : 0)),
+                },
+                {
+                    name: `Touché (1)`,
+                    data: this.chartData.map((d) => (d.total ? Math.round((d.touche / d.total) * 100) : 0)),
+                },
             ];
         },
         percentChartOptions() {

@@ -3,33 +3,41 @@
         <div class="setup__card">
             <div class="setup__field">
                 <label class="setup__label">{{ $t('stat.enterName') }}</label>
-                <input v-model="gameName" class="setup__input" type="text" :placeholder="$t('stat.enterName')">
+                <input v-model="gameName" class="setup__input" type="text" :placeholder="$t('stat.enterName')" />
             </div>
 
             <div v-if="gameTags.length > 0" class="setup__current-tags">
-                <Tag :size="14"/>
+                <Tag :size="14" />
                 <span class="setup__tag-chip" v-for="(tag, index) in gameTags" :key="index">
                     {{ tag }}
-                    <button class="setup__tag-remove" @click="gameTags.splice(index, 1)"><X :size="10"/></button>
+                    <button class="setup__tag-remove" @click="gameTags.splice(index, 1)"><X :size="10" /></button>
                 </span>
             </div>
 
             <div v-if="tags" class="setup__tags-add">
                 <span class="setup__label">{{ $t('stat.addTag') }}</span>
                 <div class="setup__pills">
-                    <button class="setup__pill" v-for="(tag, key) in tags" :key="key"
-                            :class="{'setup__pill--hidden': gameTags.includes(tag)}"
-                            @click="addTagToGame(tag)">
+                    <button
+                        class="setup__pill"
+                        v-for="(tag, key) in tags"
+                        :key="key"
+                        :class="{ 'setup__pill--hidden': gameTags.includes(tag) }"
+                        @click="addTagToGame(tag)"
+                    >
                         + {{ tag }}
                     </button>
                 </div>
             </div>
 
             <div v-if="showTags" class="setup__tags-manage">
-                <StatTags :tags="tags" @addtag="(id, name) => $emit('addTag', id, name)" @removetag="(id) => $emit('removeTag', id)"/>
+                <StatTags
+                    :tags="tags"
+                    @addtag="(id, name) => $emit('addTag', id, name)"
+                    @removetag="(id) => $emit('removeTag', id)"
+                />
             </div>
             <button class="setup__link-btn" @click="showTags = !showTags">
-                <Settings :size="14"/>
+                <Settings :size="14" />
                 {{ showTags ? $t('stat.hideTags') : $t('stat.manageTags') }}
             </button>
         </div>
@@ -39,10 +47,16 @@
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.format') }}</span>
                     <div class="setup__pills">
-                        <button v-for="item in gameTypes" :key="item.id"
-                                class="setup__pill"
-                                :class="{'setup__pill--active': gameType === item.value}"
-                                @click="gameType = item.value; $emit('changeType', gameType)">
+                        <button
+                            v-for="item in gameTypes"
+                            :key="item.id"
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': gameType === item.value }"
+                            @click="
+                                gameType = item.value;
+                                $emit('changeType', gameType);
+                            "
+                        >
                             {{ item.label }}
                         </button>
                     </div>
@@ -51,10 +65,18 @@
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.mode') }}</span>
                     <div class="setup__pills">
-                        <button class="setup__pill" :class="{'setup__pill--active': !statMode}" @click="statMode = false">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': !statMode }"
+                            @click="statMode = false"
+                        >
                             {{ $t('stat.classic') }}
                         </button>
-                        <button class="setup__pill" :class="{'setup__pill--active': statMode}" @click="statMode = true">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': statMode }"
+                            @click="statMode = true"
+                        >
                             {{ $t('stat.fast') }}
                         </button>
                     </div>
@@ -63,10 +85,18 @@
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.system') }}</span>
                     <div class="setup__pills">
-                        <button class="setup__pill" :class="{'setup__pill--active': statSystem === 'simple'}" @click="statSystem = 'simple'">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': statSystem === 'simple' }"
+                            @click="statSystem = 'simple'"
+                        >
                             {{ $t('stat.simple') }}
                         </button>
-                        <button class="setup__pill" :class="{'setup__pill--active': statSystem === 'french'}" @click="statSystem = 'french'">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': statSystem === 'french' }"
+                            @click="statSystem = 'french'"
+                        >
                             {{ $t('stat.french') }}
                         </button>
                     </div>
@@ -75,10 +105,18 @@
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.scenario') }}</span>
                     <div class="setup__pills">
-                        <button class="setup__pill" :class="{'setup__pill--active': !statScenario}" @click="statScenario = false">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': !statScenario }"
+                            @click="statScenario = false"
+                        >
                             {{ $t('stat.negative') }}
                         </button>
-                        <button class="setup__pill" :class="{'setup__pill--active': statScenario}" @click="statScenario = true">
+                        <button
+                            class="setup__pill"
+                            :class="{ 'setup__pill--active': statScenario }"
+                            @click="statScenario = true"
+                        >
                             {{ $t('stat.positive') }}
                         </button>
                     </div>
@@ -86,7 +124,7 @@
             </div>
 
             <label class="setup__toggle">
-                <input type="checkbox" v-model="asCouch">
+                <input type="checkbox" v-model="asCouch" />
                 <span>{{ $t('stat.asCoach') }}</span>
             </label>
         </div>
@@ -96,52 +134,75 @@
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.team') }} 1</span>
                     <div v-if="topPlayersTeam1.length" class="setup__top-players">
-                        <button v-for="name in topPlayersTeam1" :key="name"
-                                class="setup__top-player-chip"
-                                @click="fillNextEmptyInTeam(team1, name)">
+                        <button
+                            v-for="name in topPlayersTeam1"
+                            :key="name"
+                            class="setup__top-player-chip"
+                            @click="fillNextEmptyInTeam(team1, name)"
+                        >
                             + {{ name }}
                         </button>
                     </div>
                     <div class="setup__players">
-                        <input v-for="(player, index) in team1.players" :key="index"
-                               v-model="player.name" class="setup__input"
-                               :placeholder="$t('stat.playerName') + ' ' + (index + 1)">
+                        <input
+                            v-for="(player, index) in team1.players"
+                            :key="index"
+                            v-model="player.name"
+                            class="setup__input"
+                            :placeholder="$t('stat.playerName') + ' ' + (index + 1)"
+                        />
                     </div>
                 </div>
                 <div class="setup__section">
                     <span class="setup__label">{{ $t('stat.team') }} 2</span>
                     <div v-if="topPlayersTeam2.length" class="setup__top-players">
-                        <button v-for="name in topPlayersTeam2" :key="name"
-                                class="setup__top-player-chip"
-                                @click="fillNextEmptyInTeam(team2, name)">
+                        <button
+                            v-for="name in topPlayersTeam2"
+                            :key="name"
+                            class="setup__top-player-chip"
+                            @click="fillNextEmptyInTeam(team2, name)"
+                        >
                             + {{ name }}
                         </button>
                     </div>
                     <div class="setup__players">
-                        <input v-for="(player, index) in team2.players" :key="index"
-                               v-model="player.name" class="setup__input"
-                               :placeholder="$t('stat.playerName') + ' ' + (index + 1)">
+                        <input
+                            v-for="(player, index) in team2.players"
+                            :key="index"
+                            v-model="player.name"
+                            class="setup__input"
+                            :placeholder="$t('stat.playerName') + ' ' + (index + 1)"
+                        />
                     </div>
                 </div>
             </div>
         </div>
 
         <div v-if="validationError" class="setup__error">{{ validationError }}</div>
-        <button class="setup__start-btn" @click="tryStart">
-            <Play :size="16"/> {{ $t('stat.start') }}
-        </button>
+        <button class="setup__start-btn" @click="tryStart"><Play :size="16" /> {{ $t('stat.start') }}</button>
     </div>
 </template>
 
 <script>
-import StatTags from "@/components/stats/StatTags.vue";
-import {gameTypes} from "@/helpers-stat.js";
-import {Tag, X, Settings, Play} from "lucide-vue-next";
+import StatTags from '@/components/stats/StatTags.vue';
+import { gameTypes } from '@/helpers-stat.js';
+import { Tag, X, Settings, Play } from 'lucide-vue-next';
 
 export default {
     name: 'StatsSetup',
-    components: {StatTags, Tag, X, Settings, Play},
-    props: ['tags', 'team1', 'team2', 'initialGameType', 'initialStatMode', 'initialStatScenario', 'initialStatSystem', 'initialAsCouch', 'initialGameName', 'initialGameTags'],
+    components: { StatTags, Tag, X, Settings, Play },
+    props: [
+        'tags',
+        'team1',
+        'team2',
+        'initialGameType',
+        'initialStatMode',
+        'initialStatScenario',
+        'initialStatSystem',
+        'initialAsCouch',
+        'initialGameName',
+        'initialGameTags',
+    ],
     emits: ['start', 'changeType', 'addTag', 'removeTag'],
     data() {
         return {
@@ -155,7 +216,7 @@ export default {
             statSystem: this.initialStatSystem || 'simple',
             asCouch: this.initialAsCouch || false,
             gameTags: this.initialGameTags || [],
-        }
+        };
     },
     computed: {
         allPlayersByUsage() {
@@ -169,10 +230,8 @@ export default {
             return this.allPlayersByUsage.slice(0, 3);
         },
         topPlayersTeam2() {
-            const usedInTeam1 = new Set(this.team1.players.map(p => p.name.trim()).filter(Boolean));
-            return this.allPlayersByUsage
-                .filter(name => !usedInTeam1.has(name))
-                .slice(0, 3);
+            const usedInTeam1 = new Set(this.team1.players.map((p) => p.name.trim()).filter(Boolean));
+            return this.allPlayersByUsage.filter((name) => !usedInTeam1.has(name)).slice(0, 3);
         },
     },
     methods: {
@@ -180,7 +239,7 @@ export default {
             this.gameTags.push(tag);
         },
         fillNextEmptyInTeam(team, name) {
-            const empty = team.players.find(p => !p.name.trim());
+            const empty = team.players.find((p) => !p.name.trim());
             if (empty) {
                 empty.name = name;
             }
@@ -190,16 +249,24 @@ export default {
                 this.validationError = this.$t('stat.fillAllNames');
                 return;
             }
-            const allFilled = [...this.team1.players, ...this.team2.players].every(p => p.name.trim());
+            const allFilled = [...this.team1.players, ...this.team2.players].every((p) => p.name.trim());
             if (!allFilled) {
                 this.validationError = this.$t('stat.fillAllNames');
                 return;
             }
             this.validationError = '';
-            this.$emit('start', { gameName: this.gameName, gameType: this.gameType, statMode: this.statMode, statScenario: this.statScenario, statSystem: this.statSystem, asCouch: this.asCouch, gameTags: this.gameTags });
-        }
-    }
-}
+            this.$emit('start', {
+                gameName: this.gameName,
+                gameType: this.gameType,
+                statMode: this.statMode,
+                statScenario: this.statScenario,
+                statSystem: this.statSystem,
+                asCouch: this.asCouch,
+                gameTags: this.gameTags,
+            });
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -241,7 +308,9 @@ export default {
     font-size: 1.1rem;
     color: var(--color-text);
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     width: 100%;
 }
 

@@ -4,35 +4,53 @@
             <div class="confirm-remove__header">
                 <div class="confirm-remove__header-left">
                     <span class="confirm-remove__icon">
-                        <AlertTriangle :size="16"/>
+                        <AlertTriangle :size="16" />
                     </span>
                     <span class="confirm-remove__header-hint">{{ hint || $t('modals.removeHint') }}</span>
                 </div>
                 <button class="confirm-remove__close" @click="$emit('close')">
-                    <X :size="18"/>
+                    <X :size="18" />
                 </button>
             </div>
             <div class="confirm-remove__body">
-                <p class="confirm-remove__question"><template v-if="message">{{ message }}</template><template v-else>{{ $t('modals.sureRemove') }} <strong>{{ name }}</strong>?</template></p>
+                <p class="confirm-remove__question">
+                    <template v-if="message">{{ message }}</template
+                    ><template v-else
+                        >{{ $t('modals.sureRemove') }} <strong>{{ name }}</strong
+                        >?</template
+                    >
+                </p>
             </div>
             <div class="confirm-remove__footer">
-                <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="$emit('close')">{{ $t('common.cancel') }}</button>
-                <button class="confirm-remove__btn confirm-remove__btn--danger" data-testid="btn-confirm-remove" @click="$emit('confirm'); $emit('remove'); $emit('close')">{{ confirmLabel || $t('common.remove') }}</button>
+                <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="$emit('close')">
+                    {{ $t('common.cancel') }}
+                </button>
+                <button
+                    class="confirm-remove__btn confirm-remove__btn--danger"
+                    data-testid="btn-confirm-remove"
+                    @click="
+                        $emit('confirm');
+                        $emit('remove');
+                        $emit('close');
+                    "
+                >
+                    {{ confirmLabel || $t('common.remove') }}
+                </button>
             </div>
         </div>
     </Modal>
 </template>
 
 <script>
-import Modal from "@/components/Modal";
-import {AlertTriangle, X} from "lucide-vue-next";
+import Modal from '@/components/Modal';
+import { AlertTriangle, X } from 'lucide-vue-next';
 
 export default {
     name: 'ConfirmRemoveModal',
     props: ['title', 'name', 'hint', 'message', 'confirmLabel'],
     emits: ['confirm', 'remove', 'close'],
-    components: {Modal, AlertTriangle, X},
-}
+    components: { Modal, AlertTriangle, X },
+};
 </script>
 
 <style scoped>
@@ -83,7 +101,9 @@ export default {
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
 }
 
 .confirm-remove__close:hover {

@@ -2,7 +2,7 @@
     <div class="tir-pview">
         <div class="tir-pview__header">
             <button class="tir-pview__back" @click="$emit('back')">
-                <ChevronLeft :size="20"/>
+                <ChevronLeft :size="20" />
             </button>
             <div class="tir-pview__info">
                 <h3 class="tir-pview__name">{{ participant.name }}</h3>
@@ -16,10 +16,22 @@
 
         <!-- Legend -->
         <div class="tir-pview__legend">
-            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span>
-            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span>
-            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span>
-            <span class="tir-pview__legend-item"><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span>
+            <span class="tir-pview__legend-item"
+                ><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span
+                >{{ $t('tir.carreau') }} (5)</span
+            >
+            <span class="tir-pview__legend-item"
+                ><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span
+                >{{ $t('tir.reussi') }} (3)</span
+            >
+            <span class="tir-pview__legend-item"
+                ><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span
+                >{{ $t('tir.touche') }} (1)</span
+            >
+            <span class="tir-pview__legend-item"
+                ><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span
+                >{{ $t('tir.manque') }} (0)</span
+            >
         </div>
 
         <!-- All ateliers stacked (readOnly) -->
@@ -33,9 +45,15 @@
                 <div class="tir-pview__circles-grid">
                     <div v-for="distance in distances" :key="distance" class="tir-pview__circles-row">
                         <span class="tir-pview__circles-dist">{{ distance }}m</span>
-                        <span v-for="opt in resultOptions" :key="opt.key"
-                              class="tir-pview__circle"
-                              :class="[`tir-pview__circle--${opt.key}`, {'tir-pview__circle--active': getScoreAt(aIdx, distance) === opt.key}]">
+                        <span
+                            v-for="opt in resultOptions"
+                            :key="opt.key"
+                            class="tir-pview__circle"
+                            :class="[
+                                `tir-pview__circle--${opt.key}`,
+                                { 'tir-pview__circle--active': getScoreAt(aIdx, distance) === opt.key },
+                            ]"
+                        >
                         </span>
                     </div>
                 </div>
@@ -45,10 +63,16 @@
         <!-- Atelier tabs (scoring mode) -->
         <template v-else>
             <div class="tir-pview__tabs">
-                <button v-for="(atelier, index) in ateliers" :key="index"
-                        class="tir-pview__tab"
-                        :class="{'tir-pview__tab--active': activeAtelierIndex === index, 'tir-pview__tab--complete': isAtelierComplete(index)}"
-                        @click="activeAtelierIndex = index">
+                <button
+                    v-for="(atelier, index) in ateliers"
+                    :key="index"
+                    class="tir-pview__tab"
+                    :class="{
+                        'tir-pview__tab--active': activeAtelierIndex === index,
+                        'tir-pview__tab--complete': isAtelierComplete(index),
+                    }"
+                    @click="activeAtelierIndex = index"
+                >
                     {{ index + 1 }}
                 </button>
             </div>
@@ -73,23 +97,39 @@
                     </div>
                     <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
                         <div class="tir-pview__grid-distance">{{ distance }}m</div>
-                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getDistanceValue(distance) === 'carreau'}" @click="setScore(distance, 'carreau')">
-                            <CheckIcon v-if="getDistanceValue(distance) === 'carreau'" :size="14"/>
+                        <div
+                            class="tir-pview__grid-cell"
+                            :class="{ 'tir-pview__grid-cell--carreau': getDistanceValue(distance) === 'carreau' }"
+                            @click="setScore(distance, 'carreau')"
+                        >
+                            <CheckIcon v-if="getDistanceValue(distance) === 'carreau'" :size="14" />
                         </div>
-                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getDistanceValue(distance) === 'reussi'}" @click="setScore(distance, 'reussi')">
-                            <CheckIcon v-if="getDistanceValue(distance) === 'reussi'" :size="14"/>
+                        <div
+                            class="tir-pview__grid-cell"
+                            :class="{ 'tir-pview__grid-cell--reussi': getDistanceValue(distance) === 'reussi' }"
+                            @click="setScore(distance, 'reussi')"
+                        >
+                            <CheckIcon v-if="getDistanceValue(distance) === 'reussi'" :size="14" />
                         </div>
-                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getDistanceValue(distance) === 'touche'}" @click="setScore(distance, 'touche')">
-                            <CheckIcon v-if="getDistanceValue(distance) === 'touche'" :size="14"/>
+                        <div
+                            class="tir-pview__grid-cell"
+                            :class="{ 'tir-pview__grid-cell--touche': getDistanceValue(distance) === 'touche' }"
+                            @click="setScore(distance, 'touche')"
+                        >
+                            <CheckIcon v-if="getDistanceValue(distance) === 'touche'" :size="14" />
                         </div>
-                        <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getDistanceValue(distance) === 'manque'}" @click="setScore(distance, 'manque')">
-                            <CheckIcon v-if="getDistanceValue(distance) === 'manque'" :size="14"/>
+                        <div
+                            class="tir-pview__grid-cell"
+                            :class="{ 'tir-pview__grid-cell--manque': getDistanceValue(distance) === 'manque' }"
+                            @click="setScore(distance, 'manque')"
+                        >
+                            <CheckIcon v-if="getDistanceValue(distance) === 'manque'" :size="14" />
                         </div>
                     </div>
                 </div>
 
                 <div v-if="lastSaved" class="tir-pview__saved">
-                    <CheckCircle :size="14"/>
+                    <CheckCircle :size="14" />
                     {{ lastSaved }}
                 </div>
             </div>
@@ -98,42 +138,42 @@
         <!-- Navigation (scoring mode only) -->
         <div v-if="!readOnly" class="tir-pview__nav">
             <button class="tir-pview__nav-btn" @click="prevAtelier" :disabled="activeAtelierIndex === 0">
-                <ChevronLeft :size="16"/>
+                <ChevronLeft :size="16" />
                 {{ $t('tir.prevAtelier') }}
             </button>
             <button v-if="activeAtelierIndex < ateliers.length - 1" class="tir-pview__nav-btn" @click="nextAtelier">
                 {{ $t('tir.nextAtelier') }}
-                <ChevronRight :size="16"/>
+                <ChevronRight :size="16" />
             </button>
             <button v-else class="tir-pview__nav-btn tir-pview__nav-btn--primary" @click="$emit('next')">
                 {{ $t('tir.nextParticipant') }}
-                <ChevronRight :size="16"/>
+                <ChevronRight :size="16" />
             </button>
         </div>
     </div>
 </template>
 
 <script>
-import {ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon} from "lucide-vue-next";
+import { ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon } from 'lucide-vue-next';
 
-import {SCORING} from '@/services/tir';
+import { SCORING } from '@/services/tir';
 
 export default {
     name: 'TirParticipantView',
-    components: {ChevronLeft, ChevronRight, CheckCircle, CheckIcon},
+    components: { ChevronLeft, ChevronRight, CheckCircle, CheckIcon },
     props: {
-        participant: {type: Object, required: true},
-        ateliers: {type: Array, required: true},
-        distances: {type: Array, required: true},
-        scoresKey: {type: String, default: 'scores'},
-        readOnly: {type: Boolean, default: false}
+        participant: { type: Object, required: true },
+        ateliers: { type: Array, required: true },
+        distances: { type: Array, required: true },
+        scoresKey: { type: String, default: 'scores' },
+        readOnly: { type: Boolean, default: false },
     },
     emits: ['back', 'update', 'next'],
     data() {
         return {
             activeAtelierIndex: 0,
-            lastSaved: null
-        }
+            lastSaved: null,
+        };
     },
     created() {
         this.goToFirstIncomplete();
@@ -141,14 +181,14 @@ export default {
     watch: {
         participant() {
             this.goToFirstIncomplete();
-        }
+        },
     },
     computed: {
         scoring() {
             return SCORING;
         },
         resultOptions() {
-            return [{key: 'carreau'}, {key: 'reussi'}, {key: 'touche'}, {key: 'manque'}];
+            return [{ key: 'carreau' }, { key: 'reussi' }, { key: 'touche' }, { key: 'manque' }];
         },
         isAllComplete() {
             return this.throwsCompleted >= this.totalThrows;
@@ -168,8 +208,8 @@ export default {
         participantTotal() {
             let total = 0;
             if (!this.participant[this.scoresKey]) return 0;
-            Object.values(this.participant[this.scoresKey]).forEach(atelier => {
-                Object.values(atelier).forEach(val => {
+            Object.values(this.participant[this.scoresKey]).forEach((atelier) => {
+                Object.values(atelier).forEach((val) => {
                     total += this.scoring[val] || 0;
                 });
             });
@@ -178,11 +218,11 @@ export default {
         throwsCompleted() {
             if (!this.participant[this.scoresKey]) return 0;
             let count = 0;
-            Object.values(this.participant[this.scoresKey]).forEach(atelier => {
+            Object.values(this.participant[this.scoresKey]).forEach((atelier) => {
                 count += Object.keys(atelier).length;
             });
             return count;
-        }
+        },
     },
     methods: {
         goToFirstIncomplete() {
@@ -240,9 +280,9 @@ export default {
         },
         nextAtelier() {
             if (this.activeAtelierIndex < this.ateliers.length - 1) this.activeAtelierIndex++;
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -291,6 +331,7 @@ export default {
 }
 
 /* Tabs */
+
 .tir-pview__tabs {
     display: flex;
     gap: 6px;
@@ -343,6 +384,7 @@ export default {
 }
 
 /* Atelier */
+
 .tir-pview__atelier {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -390,6 +432,7 @@ export default {
 }
 
 /* Legend */
+
 .tir-pview__legend {
     display: flex;
     flex-wrap: wrap;
@@ -412,12 +455,24 @@ export default {
     border-radius: 50%;
 }
 
-.tir-pview__legend-dot--carreau { background: var(--tir-carreau); }
-.tir-pview__legend-dot--reussi { background: var(--tir-reussi); }
-.tir-pview__legend-dot--touche { background: var(--tir-touche); }
-.tir-pview__legend-dot--manque { background: var(--tir-manque); }
+.tir-pview__legend-dot--carreau {
+    background: var(--tir-carreau);
+}
+
+.tir-pview__legend-dot--reussi {
+    background: var(--tir-reussi);
+}
+
+.tir-pview__legend-dot--touche {
+    background: var(--tir-touche);
+}
+
+.tir-pview__legend-dot--manque {
+    background: var(--tir-manque);
+}
 
 /* Grid */
+
 .tir-pview__grid {
     margin-bottom: 12px;
 }
@@ -440,10 +495,21 @@ export default {
     padding: 2px;
 }
 
-.tir-pview__grid-th--carreau { color: var(--tir-carreau); }
-.tir-pview__grid-th--reussi { color: var(--tir-reussi); }
-.tir-pview__grid-th--touche { color: var(--tir-touche); }
-.tir-pview__grid-th--manque { color: var(--tir-manque); }
+.tir-pview__grid-th--carreau {
+    color: var(--tir-carreau);
+}
+
+.tir-pview__grid-th--reussi {
+    color: var(--tir-reussi);
+}
+
+.tir-pview__grid-th--touche {
+    color: var(--tir-touche);
+}
+
+.tir-pview__grid-th--manque {
+    color: var(--tir-manque);
+}
 
 .tir-pview__grid-row {
     display: flex;
@@ -501,6 +567,7 @@ export default {
 }
 
 /* Saved indicator */
+
 .tir-pview__saved {
     display: flex;
     align-items: center;
@@ -511,6 +578,7 @@ export default {
 }
 
 /* Navigation */
+
 .tir-pview__nav {
     display: flex;
     justify-content: space-between;
@@ -542,6 +610,7 @@ export default {
 }
 
 /* Score badges */
+
 .tir-score-badge {
     display: inline-flex;
     align-items: center;
@@ -571,6 +640,7 @@ export default {
 }
 
 /* Stacked ateliers (complete/readOnly) */
+
 .tir-pview__atelier-card {
     border: 1px solid var(--color-border);
     border-radius: 10px;
@@ -634,11 +704,29 @@ export default {
     transition: all 0.15s;
 }
 
-.tir-pview__circle--active { opacity: 1; }
-.tir-pview__circle--active.tir-pview__circle--carreau { border-color: var(--tir-carreau); background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--reussi { border-color: var(--tir-reussi); background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--touche { border-color: var(--tir-touche); background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%); }
-.tir-pview__circle--active.tir-pview__circle--manque { border-color: var(--tir-manque); background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%); }
+.tir-pview__circle--active {
+    opacity: 1;
+}
+
+.tir-pview__circle--active.tir-pview__circle--carreau {
+    border-color: var(--tir-carreau);
+    background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
+}
+
+.tir-pview__circle--active.tir-pview__circle--reussi {
+    border-color: var(--tir-reussi);
+    background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
+}
+
+.tir-pview__circle--active.tir-pview__circle--touche {
+    border-color: var(--tir-touche);
+    background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
+}
+
+.tir-pview__circle--active.tir-pview__circle--manque {
+    border-color: var(--tir-manque);
+    background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
+}
 
 .tir-pview__circles-dist {
     font-size: 12px;

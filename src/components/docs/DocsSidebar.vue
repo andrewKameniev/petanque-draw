@@ -1,7 +1,7 @@
 <template>
-    <aside class="docs__sidebar" :class="{'docs__sidebar--open': open}">
+    <aside class="docs__sidebar" :class="{ 'docs__sidebar--open': open }">
         <div class="docs__search">
-            <Search :size="16"/>
+            <Search :size="16" />
             <input
                 type="text"
                 :placeholder="$t('docs.search')"
@@ -9,7 +9,7 @@
                 @input="$emit('update:searchQuery', $event.target.value)"
             />
             <button v-if="searchQuery" class="docs__search-clear" @click="$emit('update:searchQuery', '')">
-                <X :size="14"/>
+                <X :size="14" />
             </button>
         </div>
         <nav class="docs__nav">
@@ -19,10 +19,10 @@
                     <li v-for="item in group.items" :key="item.id">
                         <a
                             href="#"
-                            :class="{'docs__nav-active': activeSection === item.id}"
+                            :class="{ 'docs__nav-active': activeSection === item.id }"
                             @click.prevent="$emit('navigate', item.id)"
                         >
-                            <component :is="item.icon" :size="16"/>
+                            <component :is="item.icon" :size="16" />
                             {{ item.label }}
                         </a>
                     </li>
@@ -34,13 +34,38 @@
 
 <script>
 import {
-    Search, X, Shuffle, Grid3x3, Users, Target, Trophy,
-    GitBranch, Layers, Copy, BarChart3, HelpCircle, BookOpen
+    Search,
+    X,
+    Shuffle,
+    Grid3x3,
+    Users,
+    Target,
+    Trophy,
+    GitBranch,
+    Layers,
+    Copy,
+    BarChart3,
+    HelpCircle,
+    BookOpen,
 } from 'lucide-vue-next';
 
 export default {
     name: 'DocsSidebar',
-    components: { Search, X, Shuffle, Grid3x3, Users, Target, Trophy, GitBranch, Layers, Copy, BarChart3, HelpCircle, BookOpen },
+    components: {
+        Search,
+        X,
+        Shuffle,
+        Grid3x3,
+        Users,
+        Target,
+        Trophy,
+        GitBranch,
+        Layers,
+        Copy,
+        BarChart3,
+        HelpCircle,
+        BookOpen,
+    },
     props: {
         open: Boolean,
         activeSection: String,
@@ -74,8 +99,8 @@ export default {
                 { label: this.$t('docs.faq'), items: this.sections.slice(12) },
             ];
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -162,7 +187,9 @@ export default {
     font-size: 0.85rem;
     color: var(--color-text-secondary);
     text-decoration: none;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     border-left: 3px solid transparent;
 }
 
@@ -182,10 +209,7 @@ export default {
     .docs__sidebar {
         display: none;
         position: fixed;
-        top: 52px;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 52px 0 0;
         width: 100%;
         z-index: 200;
         border-right: none;

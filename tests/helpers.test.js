@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { sortTeams, countBuhgolts, gameHasError, isScoreError, shuffleArray, getGameResultInGroup, getTeamsRanking, getTournamentRanking } from '@/helpers';
+import {
+    sortTeams,
+    countBuhgolts,
+    gameHasError,
+    isScoreError,
+    shuffleArray,
+    getGameResultInGroup,
+    getTeamsRanking,
+    getTournamentRanking,
+} from '@/helpers';
 
 function makeTeam(title, wins = 0, opponents = [], pointsPlus = 0, pointsMinus = 0, rating = 0) {
     return { title, wins, opponents, pointsPlus, pointsMinus, rating, buhgolts: 0, smallBuhgolts: 0 };
@@ -7,11 +16,7 @@ function makeTeam(title, wins = 0, opponents = [], pointsPlus = 0, pointsMinus =
 
 describe('sortTeams', () => {
     it('sorts by wins descending', () => {
-        const teams = [
-            makeTeam('A', 1),
-            makeTeam('B', 3),
-            makeTeam('C', 2),
-        ];
+        const teams = [makeTeam('A', 1), makeTeam('B', 3), makeTeam('C', 2)];
         const sorted = sortTeams(teams);
         expect(sorted[0].title).toBe('B');
         expect(sorted[1].title).toBe('C');
@@ -19,11 +24,7 @@ describe('sortTeams', () => {
     });
 
     it('breaks ties by buchholz', () => {
-        const teams = [
-            makeTeam('A', 2, ['B']),
-            makeTeam('B', 1, ['A']),
-            makeTeam('C', 2, ['B']),
-        ];
+        const teams = [makeTeam('A', 2, ['B']), makeTeam('B', 1, ['A']), makeTeam('C', 2, ['B'])];
         const sorted = sortTeams(teams);
         expect(sorted[0].wins).toBe(2);
         expect(sorted[1].wins).toBe(2);
@@ -31,11 +32,7 @@ describe('sortTeams', () => {
     });
 
     it('breaks ties by point difference', () => {
-        const teams = [
-            makeTeam('A', 2, [], 10, 5),
-            makeTeam('B', 2, [], 13, 3),
-            makeTeam('C', 2, [], 8, 8),
-        ];
+        const teams = [makeTeam('A', 2, [], 10, 5), makeTeam('B', 2, [], 13, 3), makeTeam('C', 2, [], 8, 8)];
         const sorted = sortTeams(teams);
         expect(sorted[0].title).toBe('B');
         expect(sorted[1].title).toBe('A');
@@ -43,20 +40,14 @@ describe('sortTeams', () => {
     });
 
     it('breaks ties by pointsPlus when difference is equal', () => {
-        const teams = [
-            makeTeam('A', 2, [], 10, 5),
-            makeTeam('B', 2, [], 12, 7),
-        ];
+        const teams = [makeTeam('A', 2, [], 10, 5), makeTeam('B', 2, [], 12, 7)];
         const sorted = sortTeams(teams);
         expect(sorted[0].title).toBe('B');
         expect(sorted[1].title).toBe('A');
     });
 
     it('breaks ties by rating as last resort', () => {
-        const teams = [
-            makeTeam('A', 2, [], 10, 5, 100),
-            makeTeam('B', 2, [], 10, 5, 200),
-        ];
+        const teams = [makeTeam('A', 2, [], 10, 5, 100), makeTeam('B', 2, [], 10, 5, 200)];
         const sorted = sortTeams(teams);
         expect(sorted[0].title).toBe('B');
         expect(sorted[1].title).toBe('A');
@@ -65,36 +56,25 @@ describe('sortTeams', () => {
 
 describe('countBuhgolts', () => {
     it('calculates buchholz as sum of opponents wins', () => {
-        const teams = [
-            makeTeam('A', 3, ['B', 'C']),
-            makeTeam('B', 2, ['A']),
-            makeTeam('C', 1, ['A']),
-        ];
+        const teams = [makeTeam('A', 3, ['B', 'C']), makeTeam('B', 2, ['A']), makeTeam('C', 1, ['A'])];
         const result = countBuhgolts(teams, 'buhgolts');
-        expect(result.find(t => t.title === 'A').buhgolts).toBe(3); // B(2) + C(1)
-        expect(result.find(t => t.title === 'B').buhgolts).toBe(3); // A(3)
-        expect(result.find(t => t.title === 'C').buhgolts).toBe(3); // A(3)
+        expect(result.find((t) => t.title === 'A').buhgolts).toBe(3); // B(2) + C(1)
+        expect(result.find((t) => t.title === 'B').buhgolts).toBe(3); // A(3)
+        expect(result.find((t) => t.title === 'C').buhgolts).toBe(3); // A(3)
     });
 
     it('handles placeholder opponents', () => {
-        const teams = [
-            makeTeam('A', 2, ['placeholder']),
-            makeTeam('B', 1, ['A']),
-        ];
+        const teams = [makeTeam('A', 2, ['placeholder']), makeTeam('B', 1, ['A'])];
         const result = countBuhgolts(teams, 'buhgolts');
-        expect(result.find(t => t.title === 'A').buhgolts).toBe(0);
+        expect(result.find((t) => t.title === 'A').buhgolts).toBe(0);
     });
 
     it('calculates smallBuhgolts as sum of opponents buchholz', () => {
-        const teams = [
-            makeTeam('A', 3, ['B', 'C']),
-            makeTeam('B', 2, ['A', 'C']),
-            makeTeam('C', 1, ['A', 'B']),
-        ];
+        const teams = [makeTeam('A', 3, ['B', 'C']), makeTeam('B', 2, ['A', 'C']), makeTeam('C', 1, ['A', 'B'])];
         countBuhgolts(teams, 'buhgolts');
         countBuhgolts(teams, 'smallBuhgolts');
-        expect(teams.find(t => t.title === 'A').smallBuhgolts).toBe(
-            teams.find(t => t.title === 'B').buhgolts + teams.find(t => t.title === 'C').buhgolts
+        expect(teams.find((t) => t.title === 'A').smallBuhgolts).toBe(
+            teams.find((t) => t.title === 'B').buhgolts + teams.find((t) => t.title === 'C').buhgolts,
         );
     });
 });
@@ -164,10 +144,12 @@ describe('shuffleArray', () => {
 });
 
 describe('getGameResultInGroup', () => {
-    const games = [[
-        { team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 },
-        { team_1: 'C', team_2: 'D', team_1_score: 10, team_2_score: 8 },
-    ]];
+    const games = [
+        [
+            { team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 },
+            { team_1: 'C', team_2: 'D', team_1_score: 10, team_2_score: 8 },
+        ],
+    ];
 
     it('returns dash for same team', () => {
         expect(getGameResultInGroup(games, 'A', 'A', false)).toBe('-');
@@ -223,11 +205,7 @@ describe('getTeamsRanking', () => {
     it('returns sorted teams for swiss system', () => {
         const tournament = {
             system: 'swiss',
-            teams: [
-                makeTeam('A', 1, [], 10, 5),
-                makeTeam('B', 2, [], 13, 3),
-                makeTeam('C', 0, [], 5, 10),
-            ]
+            teams: [makeTeam('A', 1, [], 10, 5), makeTeam('B', 2, [], 13, 3), makeTeam('C', 0, [], 5, 10)],
         };
         const result = getTeamsRanking(tournament, 2);
         expect(result[0].title).toBe('B');
@@ -237,11 +215,7 @@ describe('getTeamsRanking', () => {
     it('returns sorted teams for supermele system', () => {
         const tournament = {
             system: 'supermele',
-            teams: [
-                makeTeam('P1', 1, [], 10, 5),
-                makeTeam('P2', 3, [], 20, 8),
-                makeTeam('P3', 2, [], 15, 7),
-            ]
+            teams: [makeTeam('P1', 1, [], 10, 5), makeTeam('P2', 3, [], 20, 8), makeTeam('P3', 2, [], 15, 7)],
         };
         const result = getTeamsRanking(tournament, 2);
         expect(result[0].title).toBe('P2');
@@ -264,15 +238,21 @@ describe('getTeamsRanking', () => {
                 makeTeam('D', 1, ['C'], 8, 10),
             ],
             groups: [
-                [{ title: 'A', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                 { title: 'B', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 }],
-                [{ title: 'C', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
-                 { title: 'D', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 }],
+                [
+                    { title: 'A', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                    { title: 'B', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                ],
+                [
+                    { title: 'C', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                    { title: 'D', wins: 0, opponents: [], pointsPlus: 0, pointsMinus: 0 },
+                ],
             ],
-            games: [[
-                { team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 },
-                { team_1: 'C', team_2: 'D', team_1_score: 10, team_2_score: 8 },
-            ]]
+            games: [
+                [
+                    { team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 },
+                    { team_1: 'C', team_2: 'D', team_1_score: 10, team_2_score: 8 },
+                ],
+            ],
         };
         const result = getTeamsRanking(tournament, 2);
         expect(result).toHaveLength(2);
@@ -305,20 +285,29 @@ describe('getTournamentRanking', () => {
     });
 
     it('returns playoff-based ranking with bracket', () => {
-        const teams = [
-            makeTeam('A', 3), makeTeam('B', 2), makeTeam('C', 1), makeTeam('D', 0),
-        ];
+        const teams = [makeTeam('A', 3), makeTeam('B', 2), makeTeam('C', 1), makeTeam('D', 0)];
         const tournament = {
             system: 'swiss',
             teams,
             games: [[]],
             playOffBracket: {
                 stages: [
-                    { stageLabel: 2, teamsCount: 4, teams: [{ team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 5 }, { team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 3 }] },
-                    { stageLabel: 1, teamsCount: 4, teams: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 }] },
+                    {
+                        stageLabel: 2,
+                        teamsCount: 4,
+                        teams: [
+                            { team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 5 },
+                            { team_1: 'B', team_2: 'D', team_1_score: 13, team_2_score: 3 },
+                        ],
+                    },
+                    {
+                        stageLabel: 1,
+                        teamsCount: 4,
+                        teams: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 7 }],
+                    },
                 ],
-                thirdPlace: { team_1: 'C', team_2: 'D', team_1_score: 13, team_2_score: 8 }
-            }
+                thirdPlace: { team_1: 'C', team_2: 'D', team_1_score: 13, team_2_score: 8 },
+            },
         };
         const rankingTeams = [teams[0], teams[1], teams[2], teams[3]];
         const result = getTournamentRanking(tournament, rankingTeams);
@@ -334,9 +323,16 @@ describe('getTournamentRanking', () => {
 
     it('cadrage losers get shared range place, remaining teams get individual places', () => {
         const teams = [
-            makeTeam('T1', 4), makeTeam('T2', 4), makeTeam('T3', 3), makeTeam('T4', 3),
-            makeTeam('T5', 2), makeTeam('T6', 2), makeTeam('T7', 1), makeTeam('T8', 1),
-            makeTeam('T9', 0), makeTeam('T10', 0),
+            makeTeam('T1', 4),
+            makeTeam('T2', 4),
+            makeTeam('T3', 3),
+            makeTeam('T4', 3),
+            makeTeam('T5', 2),
+            makeTeam('T6', 2),
+            makeTeam('T7', 1),
+            makeTeam('T8', 1),
+            makeTeam('T9', 0),
+            makeTeam('T10', 0),
         ];
         const tournament = {
             system: 'swiss',
@@ -345,24 +341,59 @@ describe('getTournamentRanking', () => {
             playOffBracket: {
                 stages: [
                     // cadrage: 4 teams (2 games), losers are T4 and T6
-                    { stageLabel: 'cadrage', teamsCount: 4, teams: [
-                        { team_1: 'T3', team_2: 'T4', team_1_score: 13, team_2_score: 5, team_1_place: 3, team_2_place: 4 },
-                        { team_1: 'T5', team_2: 'T6', team_1_score: 13, team_2_score: 7, team_1_place: 5, team_2_place: 6 },
-                    ]},
+                    {
+                        stageLabel: 'cadrage',
+                        teamsCount: 4,
+                        teams: [
+                            {
+                                team_1: 'T3',
+                                team_2: 'T4',
+                                team_1_score: 13,
+                                team_2_score: 5,
+                                team_1_place: 3,
+                                team_2_place: 4,
+                            },
+                            {
+                                team_1: 'T5',
+                                team_2: 'T6',
+                                team_1_score: 13,
+                                team_2_score: 7,
+                                team_1_place: 5,
+                                team_2_place: 6,
+                            },
+                        ],
+                    },
                     // 1/2 final: T1 vs T3, T2 vs T5
-                    { stageLabel: 2, teamsCount: 4, teams: [
-                        { team_1: 'T1', team_2: 'T3', team_1_score: 13, team_2_score: 5 },
-                        { team_1: 'T2', team_2: 'T5', team_1_score: 13, team_2_score: 3 },
-                    ]},
+                    {
+                        stageLabel: 2,
+                        teamsCount: 4,
+                        teams: [
+                            { team_1: 'T1', team_2: 'T3', team_1_score: 13, team_2_score: 5 },
+                            { team_1: 'T2', team_2: 'T5', team_1_score: 13, team_2_score: 3 },
+                        ],
+                    },
                     // final: T1 vs T2
-                    { stageLabel: 1, teamsCount: 4, teams: [
-                        { team_1: 'T1', team_2: 'T2', team_1_score: 13, team_2_score: 7 },
-                    ]},
+                    {
+                        stageLabel: 1,
+                        teamsCount: 4,
+                        teams: [{ team_1: 'T1', team_2: 'T2', team_1_score: 13, team_2_score: 7 }],
+                    },
                 ],
-                thirdPlace: { team_1: 'T3', team_2: 'T5', team_1_score: 13, team_2_score: 8 }
-            }
+                thirdPlace: { team_1: 'T3', team_2: 'T5', team_1_score: 13, team_2_score: 8 },
+            },
         };
-        const rankingTeams = [teams[0], teams[1], teams[2], teams[3], teams[4], teams[5], teams[6], teams[7], teams[8], teams[9]];
+        const rankingTeams = [
+            teams[0],
+            teams[1],
+            teams[2],
+            teams[3],
+            teams[4],
+            teams[5],
+            teams[6],
+            teams[7],
+            teams[8],
+            teams[9],
+        ];
         const result = getTournamentRanking(tournament, rankingTeams);
 
         // 1st-4th from playoff
@@ -372,13 +403,13 @@ describe('getTournamentRanking', () => {
         expect(result[3]).toMatchObject({ place: '4', title: 'T5' });
 
         // Cadrage losers get shared range
-        const cadrageLosers = result.filter(r => r.title === 'T4' || r.title === 'T6');
+        const cadrageLosers = result.filter((r) => r.title === 'T4' || r.title === 'T6');
         expect(cadrageLosers).toHaveLength(2);
         expect(cadrageLosers[0].place).toBe('5-6');
         expect(cadrageLosers[1].place).toBe('5-6');
 
         // Remaining teams get individual sequential places
-        const remaining = result.filter(r => ['T7', 'T8', 'T9', 'T10'].includes(r.title));
+        const remaining = result.filter((r) => ['T7', 'T8', 'T9', 'T10'].includes(r.title));
         expect(remaining).toHaveLength(4);
         expect(remaining[0].place).toBe(7);
         expect(remaining[1].place).toBe(8);

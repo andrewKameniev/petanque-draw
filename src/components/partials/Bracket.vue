@@ -1,173 +1,213 @@
 <template>
     <Teleport to="body">
-    <div class="modal is-active">
-        <div class="modal-background" @click.self="$emit('close-modal')"></div>
-        <div class="modal-content bracket-modal">
-            <div class="bracket-container" ref="container">
-                <svg :width="svgWidth" :height="svgHeight" class="bracket-svg">
-                    <g v-for="(stage, si) in stages" :key="si">
-                        <g v-for="(game, gi) in stage.games" :key="gi">
+        <div class="modal is-active">
+            <div class="modal-background" @click.self="$emit('close-modal')"></div>
+            <div class="modal-content bracket-modal">
+                <div class="bracket-container" ref="container">
+                    <svg :width="svgWidth" :height="svgHeight" class="bracket-svg">
+                        <g v-for="(stage, si) in stages" :key="si">
+                            <g v-for="(game, gi) in stage.games" :key="gi">
+                                <rect
+                                    :x="game.x"
+                                    :y="game.y"
+                                    :width="boxWidth"
+                                    :height="boxHeight"
+                                    rx="6"
+                                    ry="6"
+                                    class="game-box"
+                                />
+                                <line
+                                    :x1="game.x + 1"
+                                    :y1="game.y + boxHeight / 2"
+                                    :x2="game.x + boxWidth - 1"
+                                    :y2="game.y + boxHeight / 2"
+                                    class="game-divider"
+                                />
+                                <!-- Team 1 background (rounded top, flat bottom) -->
+                                <path
+                                    v-if="teamBg(game.data, 1, stage.stageLabel)"
+                                    :d="topHalfPath(game.x, game.y)"
+                                    :class="teamBg(game.data, 1, stage.stageLabel)"
+                                />
+                                <!-- Team 2 background (flat top, rounded bottom) -->
+                                <path
+                                    v-if="teamBg(game.data, 2, stage.stageLabel)"
+                                    :d="bottomHalfPath(game.x, game.y)"
+                                    :class="teamBg(game.data, 2, stage.stageLabel)"
+                                />
+                                <!-- Team 1 place badge -->
+                                <g v-if="game.data.team_1_place">
+                                    <rect
+                                        :x="game.x + 6"
+                                        :y="game.y + boxHeight / 4 - 7"
+                                        width="18"
+                                        height="14"
+                                        rx="2"
+                                        class="place-badge"
+                                    />
+                                    <text :x="game.x + 15" :y="game.y + boxHeight / 4" class="place-text">
+                                        {{ game.data.team_1_place }}
+                                    </text>
+                                </g>
+                                <!-- Team 1 name -->
+                                <text
+                                    :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
+                                    :y="game.y + boxHeight / 4 + 4"
+                                    class="team-name"
+                                    :class="{ 'team-winner': isWinner(game.data, 1) }"
+                                >
+                                    {{
+                                        truncName(game.data.team_1, game.data.team_1_place || game.data.team_2_place) ||
+                                        (game.data.isBye ? $t('games.exempt') : $t('games.someone'))
+                                    }}
+                                </text>
+                                <!-- Team 1 score -->
+                                <path
+                                    v-if="teamBg(game.data, 1, stage.stageLabel)"
+                                    :d="scoreTopPath(game.x, game.y)"
+                                    :class="'score-bg-' + teamBg(game.data, 1, stage.stageLabel)"
+                                />
+                                <text :x="game.x + boxWidth - 18" :y="game.y + boxHeight / 4 + 4" class="team-score">
+                                    {{ game.data.team_1_score }}
+                                </text>
+                                <!-- Team 2 place badge -->
+                                <g v-if="game.data.team_2_place">
+                                    <rect
+                                        :x="game.x + 6"
+                                        :y="game.y + (boxHeight * 3) / 4 - 7"
+                                        width="18"
+                                        height="14"
+                                        rx="2"
+                                        class="place-badge"
+                                    />
+                                    <text :x="game.x + 15" :y="game.y + (boxHeight * 3) / 4" class="place-text">
+                                        {{ game.data.team_2_place }}
+                                    </text>
+                                </g>
+                                <!-- Team 2 name -->
+                                <text
+                                    :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
+                                    :y="game.y + (boxHeight * 3) / 4 + 4"
+                                    class="team-name"
+                                    :class="{ 'team-winner': isWinner(game.data, 2) }"
+                                >
+                                    {{
+                                        truncName(game.data.team_2, game.data.team_1_place || game.data.team_2_place) ||
+                                        (game.data.isBye ? $t('games.exempt') : $t('games.lucky'))
+                                    }}
+                                </text>
+                                <!-- Team 2 score -->
+                                <path
+                                    v-if="teamBg(game.data, 2, stage.stageLabel)"
+                                    :d="scoreBottomPath(game.x, game.y)"
+                                    :class="'score-bg-' + teamBg(game.data, 2, stage.stageLabel)"
+                                />
+                                <text
+                                    :x="game.x + boxWidth - 18"
+                                    :y="game.y + (boxHeight * 3) / 4 + 4"
+                                    class="team-score"
+                                >
+                                    {{ game.data.team_2_score }}
+                                </text>
+                            </g>
+                        </g>
+                        <!-- Third place game -->
+                        <g v-if="thirdPlaceGame">
+                            <text :x="thirdPlaceGame.x + boxWidth / 2" :y="thirdPlaceGame.y - 8" class="round-header">
+                                {{ $t('games.thirdPlace') }}
+                            </text>
                             <rect
-                                :x="game.x" :y="game.y"
-                                :width="boxWidth" :height="boxHeight"
-                                rx="6" ry="6"
+                                :x="thirdPlaceGame.x"
+                                :y="thirdPlaceGame.y"
+                                :width="boxWidth"
+                                :height="boxHeight"
+                                rx="6"
+                                ry="6"
                                 class="game-box"
                             />
                             <line
-                                :x1="game.x + 1" :y1="game.y + boxHeight / 2"
-                                :x2="game.x + boxWidth - 1" :y2="game.y + boxHeight / 2"
+                                :x1="thirdPlaceGame.x + 1"
+                                :y1="thirdPlaceGame.y + boxHeight / 2"
+                                :x2="thirdPlaceGame.x + boxWidth - 1"
+                                :y2="thirdPlaceGame.y + boxHeight / 2"
                                 class="game-divider"
                             />
-                            <!-- Team 1 background (rounded top, flat bottom) -->
                             <path
-                                v-if="teamBg(game.data, 1, stage.stageLabel)"
-                                :d="topHalfPath(game.x, game.y)"
-                                :class="teamBg(game.data, 1, stage.stageLabel)"
+                                v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
+                                :d="topHalfPath(thirdPlaceGame.x, thirdPlaceGame.y)"
+                                :class="teamBg(thirdPlaceGame.data, 1, 'third')"
                             />
-                            <!-- Team 2 background (flat top, rounded bottom) -->
                             <path
-                                v-if="teamBg(game.data, 2, stage.stageLabel)"
-                                :d="bottomHalfPath(game.x, game.y)"
-                                :class="teamBg(game.data, 2, stage.stageLabel)"
-                            />
-                            <!-- Team 1 place badge -->
-                            <g v-if="game.data.team_1_place">
-                                <rect
-                                    :x="game.x + 6" :y="game.y + boxHeight / 4 - 7"
-                                    width="18" height="14" rx="2"
-                                    class="place-badge"
-                                />
-                                <text
-                                    :x="game.x + 15" :y="game.y + boxHeight / 4"
-                                    class="place-text"
-                                >{{ game.data.team_1_place }}</text>
-                            </g>
-                            <!-- Team 1 name -->
-                            <text
-                                :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
-                                :y="game.y + boxHeight / 4 + 4"
-                                class="team-name" :class="{'team-winner': isWinner(game.data, 1)}"
-                            >{{ truncName(game.data.team_1, game.data.team_1_place || game.data.team_2_place) || (game.data.isBye ? $t('games.exempt') : $t('games.someone')) }}</text>
-                            <!-- Team 1 score -->
-                            <path
-                                v-if="teamBg(game.data, 1, stage.stageLabel)"
-                                :d="scoreTopPath(game.x, game.y)"
-                                :class="'score-bg-' + teamBg(game.data, 1, stage.stageLabel)"
+                                v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
+                                :d="bottomHalfPath(thirdPlaceGame.x, thirdPlaceGame.y)"
+                                :class="teamBg(thirdPlaceGame.data, 2, 'third')"
                             />
                             <text
-                                :x="game.x + boxWidth - 18"
-                                :y="game.y + boxHeight / 4 + 4"
+                                :x="thirdPlaceGame.x + 10"
+                                :y="thirdPlaceGame.y + boxHeight / 4 + 4"
+                                class="team-name"
+                                :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 1) }"
+                            >
+                                {{ truncName(thirdPlaceGame.data.team_1, false) || $t('games.someone') }}
+                            </text>
+                            <path
+                                v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
+                                :d="scoreTopPath(thirdPlaceGame.x, thirdPlaceGame.y)"
+                                :class="'score-bg-' + teamBg(thirdPlaceGame.data, 1, 'third')"
+                            />
+                            <text
+                                :x="thirdPlaceGame.x + boxWidth - 18"
+                                :y="thirdPlaceGame.y + boxHeight / 4 + 4"
                                 class="team-score"
-                            >{{ game.data.team_1_score }}</text>
-                            <!-- Team 2 place badge -->
-                            <g v-if="game.data.team_2_place">
-                                <rect
-                                    :x="game.x + 6" :y="game.y + boxHeight * 3 / 4 - 7"
-                                    width="18" height="14" rx="2"
-                                    class="place-badge"
-                                />
-                                <text
-                                    :x="game.x + 15" :y="game.y + boxHeight * 3 / 4"
-                                    class="place-text"
-                                >{{ game.data.team_2_place }}</text>
-                            </g>
-                            <!-- Team 2 name -->
+                            >
+                                {{ thirdPlaceGame.data.team_1_score }}
+                            </text>
                             <text
-                                :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
-                                :y="game.y + boxHeight * 3 / 4 + 4"
-                                class="team-name" :class="{'team-winner': isWinner(game.data, 2)}"
-                            >{{ truncName(game.data.team_2, game.data.team_1_place || game.data.team_2_place) || (game.data.isBye ? $t('games.exempt') : $t('games.lucky')) }}</text>
-                            <!-- Team 2 score -->
+                                :x="thirdPlaceGame.x + 10"
+                                :y="thirdPlaceGame.y + (boxHeight * 3) / 4 + 4"
+                                class="team-name"
+                                :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 2) }"
+                            >
+                                {{ truncName(thirdPlaceGame.data.team_2, false) || $t('games.lucky') }}
+                            </text>
                             <path
-                                v-if="teamBg(game.data, 2, stage.stageLabel)"
-                                :d="scoreBottomPath(game.x, game.y)"
-                                :class="'score-bg-' + teamBg(game.data, 2, stage.stageLabel)"
+                                v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
+                                :d="scoreBottomPath(thirdPlaceGame.x, thirdPlaceGame.y)"
+                                :class="'score-bg-' + teamBg(thirdPlaceGame.data, 2, 'third')"
                             />
                             <text
-                                :x="game.x + boxWidth - 18"
-                                :y="game.y + boxHeight * 3 / 4 + 4"
+                                :x="thirdPlaceGame.x + boxWidth - 18"
+                                :y="thirdPlaceGame.y + (boxHeight * 3) / 4 + 4"
                                 class="team-score"
-                            >{{ game.data.team_2_score }}</text>
+                            >
+                                {{ thirdPlaceGame.data.team_2_score }}
+                            </text>
                         </g>
-                    </g>
-                    <!-- Third place game -->
-                    <g v-if="thirdPlaceGame">
-                        <text
-                            :x="thirdPlaceGame.x + boxWidth / 2"
-                            :y="thirdPlaceGame.y - 8"
-                            class="round-header"
-                        >{{ $t('games.thirdPlace') }}</text>
-                        <rect
-                            :x="thirdPlaceGame.x" :y="thirdPlaceGame.y"
-                            :width="boxWidth" :height="boxHeight"
-                            rx="6" ry="6"
-                            class="game-box"
-                        />
-                        <line
-                            :x1="thirdPlaceGame.x + 1" :y1="thirdPlaceGame.y + boxHeight / 2"
-                            :x2="thirdPlaceGame.x + boxWidth - 1" :y2="thirdPlaceGame.y + boxHeight / 2"
-                            class="game-divider"
-                        />
-                        <path
-                            v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
-                            :d="topHalfPath(thirdPlaceGame.x, thirdPlaceGame.y)"
-                            :class="teamBg(thirdPlaceGame.data, 1, 'third')"
-                        />
-                        <path
-                            v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
-                            :d="bottomHalfPath(thirdPlaceGame.x, thirdPlaceGame.y)"
-                            :class="teamBg(thirdPlaceGame.data, 2, 'third')"
-                        />
-                        <text
-                            :x="thirdPlaceGame.x + 10"
-                            :y="thirdPlaceGame.y + boxHeight / 4 + 4"
-                            class="team-name" :class="{'team-winner': isWinner(thirdPlaceGame.data, 1)}"
-                        >{{ truncName(thirdPlaceGame.data.team_1, false) || $t('games.someone') }}</text>
-                        <path
-                            v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
-                            :d="scoreTopPath(thirdPlaceGame.x, thirdPlaceGame.y)"
-                            :class="'score-bg-' + teamBg(thirdPlaceGame.data, 1, 'third')"
-                        />
-                        <text
-                            :x="thirdPlaceGame.x + boxWidth - 18"
-                            :y="thirdPlaceGame.y + boxHeight / 4 + 4"
-                            class="team-score"
-                        >{{ thirdPlaceGame.data.team_1_score }}</text>
-                        <text
-                            :x="thirdPlaceGame.x + 10"
-                            :y="thirdPlaceGame.y + boxHeight * 3 / 4 + 4"
-                            class="team-name" :class="{'team-winner': isWinner(thirdPlaceGame.data, 2)}"
-                        >{{ truncName(thirdPlaceGame.data.team_2, false) || $t('games.lucky') }}</text>
-                        <path
-                            v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
-                            :d="scoreBottomPath(thirdPlaceGame.x, thirdPlaceGame.y)"
-                            :class="'score-bg-' + teamBg(thirdPlaceGame.data, 2, 'third')"
-                        />
-                        <text
-                            :x="thirdPlaceGame.x + boxWidth - 18"
-                            :y="thirdPlaceGame.y + boxHeight * 3 / 4 + 4"
-                            class="team-score"
-                        >{{ thirdPlaceGame.data.team_2_score }}</text>
-                    </g>
-                    <!-- Connectors -->
-                    <g class="connectors">
-                        <path v-for="(path, i) in connectorPaths" :key="'c'+i"
-                            :d="path" class="connector-line"
-                        />
-                    </g>
-                    <!-- Round headers -->
-                    <g class="round-headers">
-                        <text v-for="(stage, si) in stages" :key="'h'+si"
-                            :x="stage.x + boxWidth / 2"
-                            :y="20"
-                            class="round-header"
-                        >{{ stage.label }}</text>
-                    </g>
-                </svg>
+                        <!-- Connectors -->
+                        <g class="connectors">
+                            <path v-for="(path, i) in connectorPaths" :key="'c' + i" :d="path" class="connector-line" />
+                        </g>
+                        <!-- Round headers -->
+                        <g class="round-headers">
+                            <text
+                                v-for="(stage, si) in stages"
+                                :key="'h' + si"
+                                :x="stage.x + boxWidth / 2"
+                                :y="20"
+                                class="round-header"
+                            >
+                                {{ stage.label }}
+                            </text>
+                        </g>
+                    </svg>
+                </div>
             </div>
+            <button
+                class="modal-close is-large bracket-close"
+                aria-label="close"
+                @click="$emit('close-modal')"
+            ></button>
         </div>
-        <button class="modal-close is-large bracket-close" aria-label="close" @click="$emit('close-modal')"></button>
-    </div>
     </Teleport>
 </template>
 
@@ -189,8 +229,8 @@ export default {
             colGap: 40,
             rowGap: 16,
             headerHeight: 36,
-            padding: 20
-        }
+            padding: 20,
+        };
     },
     computed: {
         stages() {
@@ -202,7 +242,7 @@ export default {
                 const games = stage.teams.map((game, gi) => ({
                     x,
                     y: this.headerHeight + this.padding + gi * spacing + (spacing - this.boxHeight) / 2,
-                    data: game
+                    data: game,
                 }));
                 let label;
                 if (stage.stageLabel === 'cadrage') {
@@ -220,7 +260,11 @@ export default {
             return firstStage.teams.length * (this.boxHeight + this.rowGap);
         },
         svgWidth() {
-            return this.padding * 2 + this.bracket.stages.length * this.boxWidth + (this.bracket.stages.length - 1) * this.colGap;
+            return (
+                this.padding * 2 +
+                this.bracket.stages.length * this.boxWidth +
+                (this.bracket.stages.length - 1) * this.colGap
+            );
         },
         svgHeight() {
             const base = this.headerHeight + this.padding * 2 + this.firstStageHeight;
@@ -237,7 +281,7 @@ export default {
             return {
                 x: finalStage.x,
                 y: finalGame.y + this.boxHeight + this.rowGap + 170,
-                data: tp
+                data: tp,
             };
         },
         connectorPaths() {
@@ -279,7 +323,7 @@ export default {
                 }
             }
             return paths;
-        }
+        },
     },
     methods: {
         truncName(name, hasPlace) {
@@ -334,9 +378,9 @@ export default {
             const y0 = y + this.boxHeight / 2;
             const y1 = y + this.boxHeight - 1;
             return `M${x0},${y0} H${x1} V${y1 - r} Q${x1},${y1} ${x1 - r},${y1} H${x0} Z`;
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>

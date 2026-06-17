@@ -1,41 +1,73 @@
 <template>
     <div class="team-playoff" v-if="tournament.teamPlayoff">
-        <TeamPlayoffMatch v-if="activeMatch"
+        <TeamPlayoffMatch
+            v-if="activeMatch"
             :match="activeMatch"
             :max-score="tournament.preferences.maxScore"
             :round-label="activeMatchLabel"
             @back="closeMatch"
             @update="onMatchScoreChange"
-            @finish="finishMatch"/>
+            @finish="finishMatch"
+        />
 
         <template v-else>
-            <div v-for="(round, rIdx) in displayRounds" :key="rIdx" class="team-playoff__round" :class="{'team-playoff__round--final': round.isFinal}">
+            <div
+                v-for="(round, rIdx) in displayRounds"
+                :key="rIdx"
+                class="team-playoff__round"
+                :class="{ 'team-playoff__round--final': round.isFinal }"
+            >
                 <h4 class="team-playoff__round-title">{{ round.title }}</h4>
-                <div v-for="(match, mIdx) in round.matches" :key="mIdx"
-                     class="team-playoff__match"
-                     :class="{
-                         'team-playoff__match--complete': match.status === 'finished',
-                         'team-playoff__match--in-progress': match.status === 'in_progress',
-                         'team-playoff__match--pending': !match.team1 || !match.team2
-                     }"
-                     @click="openMatch(match, round.title, round.path, mIdx)">
+                <div
+                    v-for="(match, mIdx) in round.matches"
+                    :key="mIdx"
+                    class="team-playoff__match"
+                    :class="{
+                        'team-playoff__match--complete': match.status === 'finished',
+                        'team-playoff__match--in-progress': match.status === 'in_progress',
+                        'team-playoff__match--pending': !match.team1 || !match.team2,
+                    }"
+                    @click="openMatch(match, round.title, round.path, mIdx)"
+                >
                     <div class="team-playoff__match-top">
                         <span class="team-playoff__match-num">{{ mIdx + 1 }}</span>
-                        <span v-if="match.status === 'finished'" class="team-playoff__match-status team-playoff__match-status--complete">{{ $t('teamPlayoff.matchFinished') }}</span>
-                        <span v-else-if="match.status === 'in_progress'" class="team-playoff__match-status team-playoff__match-status--progress">{{ $t('teamPlayoff.matchInProgress') }}</span>
-                        <Pencil :size="14" v-if="match.team1 && match.team2" class="team-playoff__match-edit"/>
+                        <span
+                            v-if="match.status === 'finished'"
+                            class="team-playoff__match-status team-playoff__match-status--complete"
+                            >{{ $t('teamPlayoff.matchFinished') }}</span
+                        >
+                        <span
+                            v-else-if="match.status === 'in_progress'"
+                            class="team-playoff__match-status team-playoff__match-status--progress"
+                            >{{ $t('teamPlayoff.matchInProgress') }}</span
+                        >
+                        <Pencil :size="14" v-if="match.team1 && match.team2" class="team-playoff__match-edit" />
                     </div>
                     <div class="team-playoff__match-row">
-                        <span class="team-playoff__team-name" :class="{'team-playoff__team-name--winner': match.winner === match.team1}">
-                            <Trophy v-if="match.winner === match.team1" :size="12" class="team-playoff__winner-icon"/>
+                        <span
+                            class="team-playoff__team-name"
+                            :class="{ 'team-playoff__team-name--winner': match.winner === match.team1 }"
+                        >
+                            <Trophy v-if="match.winner === match.team1" :size="12" class="team-playoff__winner-icon" />
                             {{ match.team1 || '—' }}
                         </span>
-                        <span class="team-playoff__score" :class="{'team-playoff__score--winner': match.winner === match.team1}">{{ match.team1Score !== null ? match.team1Score : '—' }}</span>
+                        <span
+                            class="team-playoff__score"
+                            :class="{ 'team-playoff__score--winner': match.winner === match.team1 }"
+                            >{{ match.team1Score !== null ? match.team1Score : '—' }}</span
+                        >
                         <span class="team-playoff__vs">vs</span>
-                        <span class="team-playoff__score" :class="{'team-playoff__score--winner': match.winner === match.team2}">{{ match.team2Score !== null ? match.team2Score : '—' }}</span>
-                        <span class="team-playoff__team-name team-playoff__team-name--right" :class="{'team-playoff__team-name--winner': match.winner === match.team2}">
+                        <span
+                            class="team-playoff__score"
+                            :class="{ 'team-playoff__score--winner': match.winner === match.team2 }"
+                            >{{ match.team2Score !== null ? match.team2Score : '—' }}</span
+                        >
+                        <span
+                            class="team-playoff__team-name team-playoff__team-name--right"
+                            :class="{ 'team-playoff__team-name--winner': match.winner === match.team2 }"
+                        >
                             {{ match.team2 || '—' }}
-                            <Trophy v-if="match.winner === match.team2" :size="12" class="team-playoff__winner-icon"/>
+                            <Trophy v-if="match.winner === match.team2" :size="12" class="team-playoff__winner-icon" />
                         </span>
                     </div>
                 </div>
@@ -51,7 +83,11 @@
                     {{ $t('teamPlayoff.finishAllMatches') }}
                 </div>
 
-                <button v-if="canFinishTournament" class="team-playoff__advance-btn team-playoff__advance-btn--finish" @click="finishPlayoffTournament">
+                <button
+                    v-if="canFinishTournament"
+                    class="team-playoff__advance-btn team-playoff__advance-btn--finish"
+                    @click="finishPlayoffTournament"
+                >
                     {{ $t('teams.finishTournament') }}
                 </button>
             </template>
@@ -60,22 +96,22 @@
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {Trophy, Pencil} from "lucide-vue-next";
-import TeamPlayoffMatch from "./TeamPlayoffMatch.vue";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { Trophy, Pencil } from 'lucide-vue-next';
+import TeamPlayoffMatch from './TeamPlayoffMatch.vue';
 
 export default {
     name: 'TeamPlayoff',
-    components: {TeamPlayoffMatch, Trophy, Pencil},
+    components: { TeamPlayoffMatch, Trophy, Pencil },
     props: {
-        readOnly: { type: Boolean, default: false }
+        readOnly: { type: Boolean, default: false },
     },
     data() {
         return {
             activeMatch: null,
             activeMatchLabel: '',
-            activeMatchPath: null
+            activeMatchPath: null,
         };
     },
     mounted() {
@@ -102,7 +138,7 @@ export default {
                         title: this.getRoundTitle(rIdx, round.matches.length),
                         matches: round.matches,
                         path: `rounds/${rIdx}`,
-                        isFinal: false
+                        isFinal: false,
                     });
                 });
             }
@@ -112,7 +148,7 @@ export default {
                     title: this.$t('games.thirdPlace'),
                     matches: [this.playoff.thirdPlace],
                     path: 'thirdPlace',
-                    isFinal: false
+                    isFinal: false,
                 });
             }
 
@@ -121,7 +157,7 @@ export default {
                     title: this.$t('games.final'),
                     matches: [this.playoff.final],
                     path: 'final',
-                    isFinal: true
+                    isFinal: true,
                 });
             }
 
@@ -136,7 +172,7 @@ export default {
         },
         allCurrentRoundFinished() {
             if (!this.currentRound) return false;
-            return this.currentRound.matches.every(m => m.status === 'finished');
+            return this.currentRound.matches.every((m) => m.status === 'finished');
         },
         canFinishRound() {
             if (!this.currentRound) return false;
@@ -149,10 +185,17 @@ export default {
             const finalDone = this.playoff.final && this.playoff.final.status === 'finished';
             const thirdDone = !this.playoff.thirdPlace || this.playoff.thirdPlace.status === 'finished';
             return finalDone && thirdDone;
-        }
+        },
     },
     methods: {
-        ...mapActions(useMainStore, ['syncTeamPlayoffMatch', 'setActiveTeamPlayoffMatchPath', 'syncToFirebase', 'finishTournament', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, [
+            'syncTeamPlayoffMatch',
+            'setActiveTeamPlayoffMatchPath',
+            'syncToFirebase',
+            'finishTournament',
+            'subscribeTournament',
+            'unsubscribeTournament',
+        ]),
         createMatch(team1, team2) {
             return {
                 team1,
@@ -162,7 +205,7 @@ export default {
                 status: 'not_started',
                 winner: null,
                 updatedAt: null,
-                updatedBy: null
+                updatedBy: null,
             };
         },
         getRoundTitle(roundIndex, matchCount) {
@@ -215,12 +258,12 @@ export default {
         finishRound() {
             if (!this.canFinishRound) return;
             const lastRound = this.playoff.rounds[this.playoff.rounds.length - 1];
-            const winners = lastRound.matches.map(m => m.winner);
+            const winners = lastRound.matches.map((m) => m.winner);
 
             if (winners.length === 2) {
                 this.playoff.final = this.createMatch(winners[0], winners[1]);
                 if (this.playoff.size >= 4) {
-                    const losers = lastRound.matches.map(m => m.team1 === m.winner ? m.team2 : m.team1);
+                    const losers = lastRound.matches.map((m) => (m.team1 === m.winner ? m.team2 : m.team1));
                     this.playoff.thirdPlace = this.createMatch(losers[0], losers[1]);
                 }
             } else if (winners.length > 2) {
@@ -228,14 +271,14 @@ export default {
                 for (let i = 0; i < winners.length; i += 2) {
                     nextMatches.push(this.createMatch(winners[i], winners[i + 1]));
                 }
-                this.playoff.rounds.push({matches: nextMatches});
+                this.playoff.rounds.push({ matches: nextMatches });
             }
             this.syncTeamPlayoffMatch(null, null);
         },
         finishPlayoffTournament() {
             this.finishTournament();
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -269,7 +312,9 @@ export default {
     margin-bottom: 8px;
     cursor: pointer;
     background: var(--color-surface);
-    transition: background 0.15s, border-color 0.15s;
+    transition:
+        background 0.15s,
+        border-color 0.15s;
 }
 
 .team-playoff__match:last-child {
@@ -283,13 +328,13 @@ export default {
 
 .team-playoff__match--complete {
     border-color: var(--tir-carreau, #4caf50);
-    background: rgba(76, 175, 80, 0.06);
+    background: rgb(76 175 80 / 6%);
     border-width: 2px;
     cursor: default;
 }
 
 .team-playoff__match--complete:hover {
-    background: rgba(76, 175, 80, 0.06);
+    background: rgb(76 175 80 / 6%);
     border-color: var(--tir-carreau, #4caf50);
 }
 
@@ -348,12 +393,12 @@ export default {
 
 .team-playoff__match-status--complete {
     color: var(--tir-winner-text, #2e7d32);
-    background: rgba(76, 175, 80, 0.12);
+    background: rgb(76 175 80 / 12%);
 }
 
 .team-playoff__match-status--progress {
     color: var(--tir-in-progress, #1976d2);
-    background: var(--tir-in-progress-bg, rgba(25, 118, 210, 0.08));
+    background: var(--tir-in-progress-bg, rgb(25 118 210 / 8%));
 }
 
 .team-playoff__match-edit {

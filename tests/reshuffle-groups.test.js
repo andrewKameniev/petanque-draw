@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reshuffleGroupSchedule, drawGroupsRound, resetGroupsScheme } from '@/services/draw';
+import { reshuffleGroupSchedule, drawGroupsRound } from '@/services/draw';
 
 function makeTeam(title, rating = 0, club = null) {
     return {
@@ -12,16 +12,16 @@ function makeTeam(title, rating = 0, club = null) {
         pointsPlus: 0,
         pointsMinus: 0,
         lanes: [],
-        players: club ? [{ club }] : []
+        players: club ? [{ club }] : [],
     };
 }
 
 function makeTournament(teams, groups) {
-    const schemas = groups.map(group => {
+    const schemas = groups.map((group) => {
         const n = group.length;
-        let groupIndexes = Array.from({length: n}, (_, i) => i);
+        let groupIndexes = Array.from({ length: n }, (_, i) => i);
         if (n % 2 !== 0) groupIndexes.push(n);
-        const scheme = {top: [], bottom: []};
+        const scheme = { top: [], bottom: [] };
         for (let i = 0; i < groupIndexes.length / 2; i++) {
             scheme.top.push(i);
         }
@@ -42,9 +42,9 @@ function makeTournament(teams, groups) {
         preferences: {
             fieldsStart: 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
-        games: []
+        games: [],
     };
 }
 
@@ -61,7 +61,7 @@ function generateFullSchedule(tournament) {
 
 describe('reshuffleGroupSchedule', () => {
     it('produces a valid round-robin: every team plays once per round, every pair plays exactly once', () => {
-        const teams = Array.from({length: 10}, (_, i) => makeTeam(`Team ${i}`, 100 - i * 10));
+        const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`Team ${i}`, 100 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
@@ -73,9 +73,9 @@ describe('reshuffleGroupSchedule', () => {
         expect(rounds).toHaveLength(9);
 
         const allPairs = new Set();
-        rounds.forEach(round => {
+        rounds.forEach((round) => {
             const teamsInRound = new Set();
-            round.forEach(game => {
+            round.forEach((game) => {
                 expect(teamsInRound.has(game.team_1)).toBe(false);
                 expect(teamsInRound.has(game.team_2)).toBe(false);
                 teamsInRound.add(game.team_1);
@@ -91,25 +91,25 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('keeps the same teams in the group (no teams lost or added)', () => {
-        const teams = Array.from({length: 8}, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
         const result = reshuffleGroupSchedule(tournament);
-        const resultTitles = result.groups[0].map(t => t.title).sort();
-        const originalTitles = teams.map(t => t.title).sort();
+        const resultTitles = result.groups[0].map((t) => t.title).sort();
+        const originalTitles = teams.map((t) => t.title).sort();
         expect(resultTitles).toEqual(originalTitles);
     });
 
     it('produces different orderings on consecutive calls (randomness)', () => {
-        const teams = Array.from({length: 10}, (_, i) => makeTeam(`T${i}`, 100 - i * 10));
+        const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`T${i}`, 100 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
         const orderings = new Set();
         for (let i = 0; i < 10; i++) {
             const result = reshuffleGroupSchedule(tournament);
-            orderings.add(result.groups[0].map(t => t.title).join(','));
+            orderings.add(result.groups[0].map((t) => t.title).join(','));
         }
         expect(orderings.size).toBeGreaterThan(1);
     });
@@ -152,7 +152,7 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('spreads high-rating matchups across rounds', () => {
-        const teams = Array.from({length: 8}, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
@@ -165,11 +165,11 @@ describe('reshuffleGroupSchedule', () => {
             t.groupsScheme = result.schemas;
 
             const rounds = generateFullSchedule(t);
-            const roundMaxRatings = rounds.map(round => {
+            const roundMaxRatings = rounds.map((round) => {
                 let max = 0;
-                round.forEach(game => {
-                    const r1 = teams.find(tm => tm.title === game.team_1)?.rating || 0;
-                    const r2 = teams.find(tm => tm.title === game.team_2)?.rating || 0;
+                round.forEach((game) => {
+                    const r1 = teams.find((tm) => tm.title === game.team_1)?.rating || 0;
+                    const r2 = teams.find((tm) => tm.title === game.team_2)?.rating || 0;
                     if (r1 + r2 > max) max = r1 + r2;
                 });
                 return max;
@@ -188,7 +188,7 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('handles odd number of teams (with technical bye)', () => {
-        const teams = Array.from({length: 9}, (_, i) => makeTeam(`T${i}`, 90 - i * 10));
+        const teams = Array.from({ length: 9 }, (_, i) => makeTeam(`T${i}`, 90 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
@@ -202,9 +202,9 @@ describe('reshuffleGroupSchedule', () => {
         expect(rounds).toHaveLength(9);
 
         const allPairs = new Set();
-        rounds.forEach(round => {
+        rounds.forEach((round) => {
             const teamsInRound = new Set();
-            round.forEach(game => {
+            round.forEach((game) => {
                 expect(teamsInRound.has(game.team_1)).toBe(false);
                 expect(teamsInRound.has(game.team_2)).toBe(false);
                 teamsInRound.add(game.team_1);
@@ -221,7 +221,7 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('works with multiple groups', () => {
-        const teams = Array.from({length: 12}, (_, i) => makeTeam(`T${i}`, 120 - i * 10));
+        const teams = Array.from({ length: 12 }, (_, i) => makeTeam(`T${i}`, 120 - i * 10));
         const group1 = teams.slice(0, 6);
         const group2 = teams.slice(6, 12);
         const tournament = makeTournament(teams, [group1, group2]);
@@ -231,14 +231,14 @@ describe('reshuffleGroupSchedule', () => {
         expect(result.groups[0]).toHaveLength(6);
         expect(result.groups[1]).toHaveLength(6);
 
-        const group1Titles = result.groups[0].map(t => t.title).sort();
-        const group2Titles = result.groups[1].map(t => t.title).sort();
-        expect(group1Titles).toEqual(group1.map(t => t.title).sort());
-        expect(group2Titles).toEqual(group2.map(t => t.title).sort());
+        const group1Titles = result.groups[0].map((t) => t.title).sort();
+        const group2Titles = result.groups[1].map((t) => t.title).sort();
+        expect(group1Titles).toEqual(group1.map((t) => t.title).sort());
+        expect(group2Titles).toEqual(group2.map((t) => t.title).sort());
     });
 
     it('generates valid schemas for each group', () => {
-        const teams = Array.from({length: 8}, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
+        const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`T${i}`, 80 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
@@ -249,7 +249,7 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('handles minimum group size of 4', () => {
-        const teams = Array.from({length: 4}, (_, i) => makeTeam(`T${i}`, 40 - i * 10));
+        const teams = Array.from({ length: 4 }, (_, i) => makeTeam(`T${i}`, 40 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
@@ -263,18 +263,18 @@ describe('reshuffleGroupSchedule', () => {
     });
 
     it('handles group of 3 teams', () => {
-        const teams = Array.from({length: 3}, (_, i) => makeTeam(`T${i}`, 30 - i * 10));
+        const teams = Array.from({ length: 3 }, (_, i) => makeTeam(`T${i}`, 30 - i * 10));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 
         const result = reshuffleGroupSchedule(tournament);
         expect(result.groups[0]).toHaveLength(3);
-        const resultTitles = result.groups[0].map(t => t.title).sort();
+        const resultTitles = result.groups[0].map((t) => t.title).sort();
         expect(resultTitles).toEqual(['T0', 'T1', 'T2']);
     });
 
     it('teams with zero rating still produce valid schedule', () => {
-        const teams = Array.from({length: 6}, (_, i) => makeTeam(`T${i}`, 0));
+        const teams = Array.from({ length: 6 }, (_, i) => makeTeam(`T${i}`, 0));
         const groups = [teams];
         const tournament = makeTournament(teams, groups);
 

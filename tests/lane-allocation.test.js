@@ -12,7 +12,7 @@ function makeTeam(title) {
         pointsPlus: 0,
         pointsMinus: 0,
         lanes: [],
-        players: []
+        players: [],
     };
 }
 
@@ -29,11 +29,11 @@ function makeTournament(teamCount) {
         preferences: {
             fieldsStart: 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
         games: [],
         groups: [],
-        groupsScheme: []
+        groupsScheme: [],
     };
 }
 
@@ -42,9 +42,9 @@ function simulateRounds(tournament, roundCount) {
     for (let r = 0; r < roundCount; r++) {
         const games = drawGroupsRound(tournament);
         const scheduled = assignLanes(games, tournament);
-        scheduled.forEach(game => {
-            const t1 = tournament.teams.find(t => t.title === game.team_1);
-            const t2 = tournament.teams.find(t => t.title === game.team_2);
+        scheduled.forEach((game) => {
+            const t1 = tournament.teams.find((t) => t.title === game.team_1);
+            const t2 = tournament.teams.find((t) => t.title === game.team_2);
             if (t1 && game.lane != null) t1.lanes.push(game.lane);
             if (t2 && game.lane != null) t2.lanes.push(game.lane);
         });
@@ -60,7 +60,7 @@ describe('assignLanes - consecutive lane avoidance', () => {
         tournament.groups = result.groups;
         tournament.groupsScheme = result.schemas;
 
-        const rounds = simulateRounds(tournament, 5);
+        simulateRounds(tournament, 5);
 
         let consecutiveCount = 0;
         let totalChecks = 0;
@@ -85,8 +85,8 @@ describe('assignLanes - consecutive lane avoidance', () => {
 
         const rounds = simulateRounds(tournament, 3);
 
-        rounds.forEach(round => {
-            round.forEach(game => {
+        rounds.forEach((round) => {
+            round.forEach((game) => {
                 expect(game.lane).toBeDefined();
                 expect(game.lane).not.toBeNull();
             });
@@ -103,7 +103,7 @@ describe('assignLanes - consecutive lane avoidance', () => {
 
         for (const team of tournament.teams) {
             const laneCounts = {};
-            team.lanes.forEach(lane => {
+            team.lanes.forEach((lane) => {
                 laneCounts[lane] = (laneCounts[lane] || 0) + 1;
             });
             const counts = Object.values(laneCounts);

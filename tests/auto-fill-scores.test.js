@@ -10,7 +10,7 @@ function makeTournament(overrides = {}) {
         roundIsActive: true,
         games: [[makeGame('A', 'B'), makeGame('C', 'D')]],
         preferences: { maxScore: 13 },
-        ...overrides
+        ...overrides,
     };
 }
 
@@ -19,7 +19,7 @@ describe('autoFillScores', () => {
         const t = makeTournament();
         autoFillScores(t, 1);
 
-        t.games[0].forEach(game => {
+        t.games[0].forEach((game) => {
             expect(game.team_1_score).toBeTypeOf('number');
             expect(game.team_2_score).toBeTypeOf('number');
             expect(game.team_1_score >= 0).toBe(true);
@@ -31,7 +31,7 @@ describe('autoFillScores', () => {
         const t = makeTournament();
         autoFillScores(t, 1);
 
-        t.games[0].forEach(game => {
+        t.games[0].forEach((game) => {
             const max = Math.max(game.team_1_score, game.team_2_score);
             expect(max).toBe(13);
         });
@@ -41,7 +41,7 @@ describe('autoFillScores', () => {
         const t = makeTournament({ preferences: { maxScore: 7 } });
         autoFillScores(t, 1);
 
-        t.games[0].forEach(game => {
+        t.games[0].forEach((game) => {
             const max = Math.max(game.team_1_score, game.team_2_score);
             expect(max).toBe(7);
             const min = Math.min(game.team_1_score, game.team_2_score);
@@ -51,7 +51,7 @@ describe('autoFillScores', () => {
 
     it('does not overwrite already filled scores', () => {
         const t = makeTournament({
-            games: [[makeGame('A', 'B', 13, 5), makeGame('C', 'D')]]
+            games: [[makeGame('A', 'B', 13, 5), makeGame('C', 'D')]],
         });
         autoFillScores(t, 1);
 
@@ -62,7 +62,7 @@ describe('autoFillScores', () => {
 
     it('skips Technical games', () => {
         const t = makeTournament({
-            games: [[makeGame('A', 'Technical'), makeGame('C', 'D')]]
+            games: [[makeGame('A', 'Technical'), makeGame('C', 'D')]],
         });
         autoFillScores(t, 1);
 
@@ -73,7 +73,7 @@ describe('autoFillScores', () => {
 
     it('skips bye games', () => {
         const t = makeTournament({
-            games: [[{ ...makeGame('A', 'B'), isBye: true }, makeGame('C', 'D')]]
+            games: [[{ ...makeGame('A', 'B'), isBye: true }, makeGame('C', 'D')]],
         });
         autoFillScores(t, 1);
 
@@ -85,7 +85,7 @@ describe('autoFillScores', () => {
         const t = makeTournament({ roundIsActive: false });
         autoFillScores(t, 1);
 
-        t.games[0].forEach(game => {
+        t.games[0].forEach((game) => {
             expect(game.team_1_score).toBeNull();
         });
     });
@@ -94,11 +94,11 @@ describe('autoFillScores', () => {
         const t = makeTournament({
             roundIsActive: false,
             cadrage: [makeGame('A', 'B'), makeGame('C', 'D')],
-            playOff: null
+            playOff: null,
         });
         autoFillScores(t, 1);
 
-        t.cadrage.forEach(game => {
+        t.cadrage.forEach((game) => {
             expect(game.team_1_score).toBeTypeOf('number');
             expect(game.team_2_score).toBeTypeOf('number');
         });
@@ -109,16 +109,14 @@ describe('autoFillScores', () => {
             roundIsActive: false,
             playOff: [{}],
             playOffBracket: {
-                stages: [
-                    { stageLabel: 'Semi', teams: [makeGame('A', 'B'), makeGame('C', 'D')] }
-                ],
-                thirdPlace: null
+                stages: [{ stageLabel: 'Semi', teams: [makeGame('A', 'B'), makeGame('C', 'D')] }],
+                thirdPlace: null,
             },
-            playOffStage: 'Semi'
+            playOffStage: 'Semi',
         });
         autoFillScores(t, 1);
 
-        t.playOffBracket.stages[0].teams.forEach(game => {
+        t.playOffBracket.stages[0].teams.forEach((game) => {
             expect(game.team_1_score).toBeTypeOf('number');
         });
     });
@@ -128,12 +126,10 @@ describe('autoFillScores', () => {
             roundIsActive: false,
             playOff: [{}],
             playOffBracket: {
-                stages: [
-                    { stageLabel: 'Final', teams: [makeGame('A', 'B', 13, 10)] }
-                ],
-                thirdPlace: makeGame('C', 'D')
+                stages: [{ stageLabel: 'Final', teams: [makeGame('A', 'B', 13, 10)] }],
+                thirdPlace: makeGame('C', 'D'),
             },
-            playOffStage: 'Final'
+            playOffStage: 'Final',
         });
         autoFillScores(t, 1);
 
@@ -143,10 +139,7 @@ describe('autoFillScores', () => {
 
     it('handles multi-round correctly (fills only active round)', () => {
         const t = makeTournament({
-            games: [
-                [makeGame('A', 'B', 13, 5)],
-                [makeGame('C', 'D')]
-            ]
+            games: [[makeGame('A', 'B', 13, 5)], [makeGame('C', 'D')]],
         });
         autoFillScores(t, 2);
 

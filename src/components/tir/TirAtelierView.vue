@@ -2,7 +2,7 @@
     <div class="tir-aview">
         <div class="tir-aview__header">
             <button class="tir-aview__back" @click="$emit('back')">
-                <ChevronLeft :size="20"/>
+                <ChevronLeft :size="20" />
             </button>
             <div class="tir-aview__info">
                 <h3 class="tir-aview__name">{{ $t('tir.atelier') }} {{ atelierIndex + 1 }}</h3>
@@ -28,16 +28,24 @@
                 <div class="tir-aview__row-info">
                     <span class="tir-aview__row-rank">{{ index + 1 }}</span>
                     <span class="tir-aview__row-name">{{ participant.name }}</span>
-                    <span class="tir-aview__row-score">{{ getAtelierScore(participant) }}/{{ maxAtelierScore }} {{ $t('ranking.points') }}</span>
-                    <span class="tir-aview__row-throws">{{ getAtelierThrows(participant) }} / {{ distances.length }} {{ $t('tir.throws') }}</span>
+                    <span class="tir-aview__row-score"
+                        >{{ getAtelierScore(participant) }}/{{ maxAtelierScore }} {{ $t('ranking.points') }}</span
+                    >
+                    <span class="tir-aview__row-throws"
+                        >{{ getAtelierThrows(participant) }} / {{ distances.length }} {{ $t('tir.throws') }}</span
+                    >
                 </div>
                 <div class="tir-aview__row-status">
-                    <CheckCircle v-if="isComplete(participant)" :size="16" class="tir-aview__icon--complete"/>
-                    <AlertCircle v-else-if="getAtelierThrows(participant) > 0" :size="16" class="tir-aview__icon--partial"/>
-                    <Circle v-else :size="16" class="tir-aview__icon--empty"/>
+                    <CheckCircle v-if="isComplete(participant)" :size="16" class="tir-aview__icon--complete" />
+                    <AlertCircle
+                        v-else-if="getAtelierThrows(participant) > 0"
+                        :size="16"
+                        class="tir-aview__icon--partial"
+                    />
+                    <Circle v-else :size="16" class="tir-aview__icon--empty" />
                 </div>
                 <button class="tir-aview__row-expand" @click="toggleExpand(participant.id)">
-                    <ChevronDown :size="16" :class="{'tir-aview__chevron--open': expandedId === participant.id}"/>
+                    <ChevronDown :size="16" :class="{ 'tir-aview__chevron--open': expandedId === participant.id }" />
                 </button>
                 <!-- Inline scoring grid -->
                 <div v-if="expandedId === participant.id" class="tir-aview__row-grid">
@@ -51,17 +59,45 @@
                         </div>
                         <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
                             <div class="tir-pview__grid-distance">{{ distance }}m</div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--carreau': getDistanceValue(participant, distance) === 'carreau'}" @click="setScore(participant, distance, 'carreau')">
-                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'carreau'" :size="14"/>
+                            <div
+                                class="tir-pview__grid-cell"
+                                :class="{
+                                    'tir-pview__grid-cell--carreau':
+                                        getDistanceValue(participant, distance) === 'carreau',
+                                }"
+                                @click="setScore(participant, distance, 'carreau')"
+                            >
+                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'carreau'" :size="14" />
                             </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--reussi': getDistanceValue(participant, distance) === 'reussi'}" @click="setScore(participant, distance, 'reussi')">
-                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'reussi'" :size="14"/>
+                            <div
+                                class="tir-pview__grid-cell"
+                                :class="{
+                                    'tir-pview__grid-cell--reussi':
+                                        getDistanceValue(participant, distance) === 'reussi',
+                                }"
+                                @click="setScore(participant, distance, 'reussi')"
+                            >
+                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'reussi'" :size="14" />
                             </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--touche': getDistanceValue(participant, distance) === 'touche'}" @click="setScore(participant, distance, 'touche')">
-                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'touche'" :size="14"/>
+                            <div
+                                class="tir-pview__grid-cell"
+                                :class="{
+                                    'tir-pview__grid-cell--touche':
+                                        getDistanceValue(participant, distance) === 'touche',
+                                }"
+                                @click="setScore(participant, distance, 'touche')"
+                            >
+                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'touche'" :size="14" />
                             </div>
-                            <div class="tir-pview__grid-cell" :class="{'tir-pview__grid-cell--manque': getDistanceValue(participant, distance) === 'manque'}" @click="setScore(participant, distance, 'manque')">
-                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'manque'" :size="14"/>
+                            <div
+                                class="tir-pview__grid-cell"
+                                :class="{
+                                    'tir-pview__grid-cell--manque':
+                                        getDistanceValue(participant, distance) === 'manque',
+                                }"
+                                @click="setScore(participant, distance, 'manque')"
+                            >
+                                <CheckIcon v-if="getDistanceValue(participant, distance) === 'manque'" :size="14" />
                             </div>
                         </div>
                     </div>
@@ -80,8 +116,15 @@
                 <h4 class="tir-aview__confirm-title">{{ $t('tir.finishAtelier') }}</h4>
                 <p class="tir-aview__confirm-text">{{ $t('tir.finishAtelierConfirm') }}</p>
                 <div class="tir-aview__confirm-actions">
-                    <button class="tir-aview__confirm-btn tir-aview__confirm-btn--cancel" @click="showFinishConfirm = false">{{ $t('common.cancel') }}</button>
-                    <button class="tir-aview__confirm-btn tir-aview__confirm-btn--confirm" @click="confirmFinish">{{ $t('common.confirm') }}</button>
+                    <button
+                        class="tir-aview__confirm-btn tir-aview__confirm-btn--cancel"
+                        @click="showFinishConfirm = false"
+                    >
+                        {{ $t('common.cancel') }}
+                    </button>
+                    <button class="tir-aview__confirm-btn tir-aview__confirm-btn--confirm" @click="confirmFinish">
+                        {{ $t('common.confirm') }}
+                    </button>
                 </div>
             </div>
         </Modal>
@@ -89,28 +132,28 @@
 </template>
 
 <script>
-import {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon} from "lucide-vue-next";
-import Modal from "@/components/Modal";
+import { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon } from 'lucide-vue-next';
+import Modal from '@/components/Modal';
 
-import {SCORING} from '@/services/tir';
+import { SCORING } from '@/services/tir';
 
 export default {
     name: 'TirAtelierView',
-    components: {ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal},
+    components: { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal },
     props: {
-        atelierIndex: {type: Number, required: true},
-        atelier: {type: Object, required: true},
-        participants: {type: Array, required: true},
-        distances: {type: Array, required: true},
-        scoresKey: {type: String, default: 'scores'},
-        readOnly: {type: Boolean, default: false}
+        atelierIndex: { type: Number, required: true },
+        atelier: { type: Object, required: true },
+        participants: { type: Array, required: true },
+        distances: { type: Array, required: true },
+        scoresKey: { type: String, default: 'scores' },
+        readOnly: { type: Boolean, default: false },
     },
     emits: ['back', 'update', 'finish'],
     data() {
         return {
             expandedId: null,
-            showFinishConfirm: false
-        }
+            showFinishConfirm: false,
+        };
     },
     computed: {
         scoring() {
@@ -120,8 +163,8 @@ export default {
             return this.distances.length * SCORING.carreau;
         },
         allComplete() {
-            return this.participants.every(p => this.isComplete(p));
-        }
+            return this.participants.every((p) => this.isComplete(p));
+        },
     },
     methods: {
         toggleExpand(id) {
@@ -160,10 +203,10 @@ export default {
             this.$emit('update');
         },
         confirmFinish() {
-            this.participants.forEach(p => {
+            this.participants.forEach((p) => {
                 if (!p[this.scoresKey]) p[this.scoresKey] = {};
                 if (!p[this.scoresKey][this.atelierIndex]) p[this.scoresKey][this.atelierIndex] = {};
-                this.distances.forEach(distance => {
+                this.distances.forEach((distance) => {
                     if (!p[this.scoresKey][this.atelierIndex][distance]) {
                         p[this.scoresKey][this.atelierIndex][distance] = 'manque';
                     }
@@ -172,9 +215,9 @@ export default {
             this.showFinishConfirm = false;
             this.$emit('update');
             this.$emit('finish');
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -360,27 +403,126 @@ export default {
 }
 
 /* Grid styles */
-.tir-pview__grid { margin-bottom: 0; }
-.tir-pview__grid-header { display: flex; gap: 3px; margin-bottom: 4px; }
-.tir-pview__grid-corner { width: 32px; }
-.tir-pview__grid-th { flex: 1; text-align: center; font-size: 10px; font-weight: 700; padding: 2px; }
-.tir-pview__grid-th--carreau { color: var(--tir-carreau); }
-.tir-pview__grid-th--reussi { color: var(--tir-reussi); }
-.tir-pview__grid-th--touche { color: var(--tir-touche); }
-.tir-pview__grid-th--manque { color: var(--tir-manque); }
-.tir-pview__grid-row { display: flex; gap: 3px; margin-bottom: 3px; }
-.tir-pview__grid-distance { width: 32px; display: flex; align-items: center; font-size: 12px; font-weight: 600; }
-.tir-pview__grid-cell { flex: 1; height: 32px; border: 2px solid var(--color-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
-.tir-pview__grid-cell:hover { border-color: var(--tir-touche); }
-.tir-pview__grid-cell--carreau { background: var(--tir-carreau); border-color: var(--tir-carreau); color: var(--color-btn-text); }
-.tir-pview__grid-cell--reussi { background: var(--tir-reussi); border-color: var(--tir-reussi); color: var(--color-btn-text); }
-.tir-pview__grid-cell--touche { background: var(--tir-touche); border-color: var(--tir-touche); color: var(--color-btn-text); }
-.tir-pview__grid-cell--manque { background: var(--tir-manque); border-color: var(--tir-manque); color: var(--color-btn-text); }
+
+.tir-pview__grid {
+    margin-bottom: 0;
+}
+
+.tir-pview__grid-header {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 4px;
+}
+
+.tir-pview__grid-corner {
+    width: 32px;
+}
+
+.tir-pview__grid-th {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px;
+}
+
+.tir-pview__grid-th--carreau {
+    color: var(--tir-carreau);
+}
+
+.tir-pview__grid-th--reussi {
+    color: var(--tir-reussi);
+}
+
+.tir-pview__grid-th--touche {
+    color: var(--tir-touche);
+}
+
+.tir-pview__grid-th--manque {
+    color: var(--tir-manque);
+}
+
+.tir-pview__grid-row {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 3px;
+}
+
+.tir-pview__grid-distance {
+    width: 32px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tir-pview__grid-cell {
+    flex: 1;
+    height: 32px;
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tir-pview__grid-cell:hover {
+    border-color: var(--tir-touche);
+}
+
+.tir-pview__grid-cell--carreau {
+    background: var(--tir-carreau);
+    border-color: var(--tir-carreau);
+    color: var(--color-btn-text);
+}
+
+.tir-pview__grid-cell--reussi {
+    background: var(--tir-reussi);
+    border-color: var(--tir-reussi);
+    color: var(--color-btn-text);
+}
+
+.tir-pview__grid-cell--touche {
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
+}
+
+.tir-pview__grid-cell--manque {
+    background: var(--tir-manque);
+    border-color: var(--tir-manque);
+    color: var(--color-btn-text);
+}
 
 /* Score badges */
-.tir-score-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; color: var(--color-btn-text); }
-.tir-score-badge--carreau { background: var(--tir-carreau); }
-.tir-score-badge--reussi { background: var(--tir-reussi); }
-.tir-score-badge--touche { background: var(--tir-touche); }
-.tir-score-badge--manque { background: var(--tir-manque); }
+
+.tir-score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-btn-text);
+}
+
+.tir-score-badge--carreau {
+    background: var(--tir-carreau);
+}
+
+.tir-score-badge--reussi {
+    background: var(--tir-reussi);
+}
+
+.tir-score-badge--touche {
+    background: var(--tir-touche);
+}
+
+.tir-score-badge--manque {
+    background: var(--tir-manque);
+}
 </style>

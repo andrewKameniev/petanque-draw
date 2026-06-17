@@ -14,13 +14,15 @@ describe('getDefaultSelectedRound', () => {
     it('selects playoff when playoff results exist', () => {
         const tournament = {
             games: [[], [], []],
-            cadrage: [{team_1: 'A', team_2: 'B'}],
+            cadrage: [{ team_1: 'A', team_2: 'B' }],
             playOffBracket: {
-                stages: [{
-                    stageLabel: 1,
-                    teams: [{ team_1: 'X', team_2: 'Y', team_1_score: 13, team_2_score: 5 }]
-                }]
-            }
+                stages: [
+                    {
+                        stageLabel: 1,
+                        teams: [{ team_1: 'X', team_2: 'Y', team_1_score: 13, team_2_score: 5 }],
+                    },
+                ],
+            },
         };
         expect(getDefaultSelectedRound(tournament)).toBe('playoff');
     });
@@ -29,7 +31,7 @@ describe('getDefaultSelectedRound', () => {
         const tournament = {
             games: [[], []],
             cadrage: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 }],
-            playOffBracket: null
+            playOffBracket: null,
         };
         expect(getDefaultSelectedRound(tournament)).toBe('cadrage');
     });
@@ -78,11 +80,13 @@ describe('getDefaultSelectedRound', () => {
         const tournament = {
             games: [[], []],
             playOffBracket: {
-                stages: [{
-                    stageLabel: 'cadrage',
-                    teams: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 }]
-                }]
-            }
+                stages: [
+                    {
+                        stageLabel: 'cadrage',
+                        teams: [{ team_1: 'A', team_2: 'B', team_1_score: 13, team_2_score: 5 }],
+                    },
+                ],
+            },
         };
         expect(getDefaultSelectedRound(tournament)).toBe(1);
     });
@@ -104,30 +108,36 @@ describe('hasPlayOffResults', () => {
     });
 
     it('returns false when only cadrage stage has teams', () => {
-        expect(hasPlayOffResults({
-            playOffBracket: {
-                stages: [{ stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] }]
-            }
-        })).toBe(false);
+        expect(
+            hasPlayOffResults({
+                playOffBracket: {
+                    stages: [{ stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] }],
+                },
+            }),
+        ).toBe(false);
     });
 
     it('returns true when a non-cadrage stage has teams assigned', () => {
-        expect(hasPlayOffResults({
-            playOffBracket: {
-                stages: [
-                    { stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] },
-                    { stageLabel: 4, teams: [{ team_1: 'C', team_2: 'D' }] },
-                ]
-            }
-        })).toBe(true);
+        expect(
+            hasPlayOffResults({
+                playOffBracket: {
+                    stages: [
+                        { stageLabel: 'cadrage', teams: [{ team_1: 'A', team_2: 'B' }] },
+                        { stageLabel: 4, teams: [{ team_1: 'C', team_2: 'D' }] },
+                    ],
+                },
+            }),
+        ).toBe(true);
     });
 
     it('returns false when non-cadrage stages have no teams assigned', () => {
-        expect(hasPlayOffResults({
-            playOffBracket: {
-                stages: [{ stageLabel: 4, teams: [{ team_1: '', team_2: '' }] }]
-            }
-        })).toBe(false);
+        expect(
+            hasPlayOffResults({
+                playOffBracket: {
+                    stages: [{ stageLabel: 4, teams: [{ team_1: '', team_2: '' }] }],
+                },
+            }),
+        ).toBe(false);
     });
 });
 
@@ -143,14 +153,16 @@ describe('sortGamesByGroup', () => {
     });
 
     it('sorts games by group within each round', () => {
-        const games = [[
-            { team_1: 'D', group: 2 },
-            { team_1: 'A', group: 0 },
-            { team_1: 'C', group: 1 },
-            { team_1: 'B', group: 0 },
-        ]];
+        const games = [
+            [
+                { team_1: 'D', group: 2 },
+                { team_1: 'A', group: 0 },
+                { team_1: 'C', group: 1 },
+                { team_1: 'B', group: 0 },
+            ],
+        ];
         const sorted = sortGamesByGroup(games, true);
-        expect(sorted[0].map(g => g.group)).toEqual([0, 0, 1, 2]);
+        expect(sorted[0].map((g) => g.group)).toEqual([0, 0, 1, 2]);
     });
 
     it('handles games without group property (defaults to 0)', () => {
@@ -182,23 +194,17 @@ describe('getPoulesQualifiedPerGroup', () => {
     });
 
     it('uses >= 1 win threshold for fewer than 3 rounds', () => {
-        const rankings = [
-            [{ wins: 1 }, { wins: 1 }, { wins: 0 }, { wins: 0 }],
-        ];
+        const rankings = [[{ wins: 1 }, { wins: 1 }, { wins: 0 }, { wins: 0 }]];
         expect(getPoulesQualifiedPerGroup(rankings, 2)).toEqual([2]);
     });
 
     it('handles group where all teams qualify', () => {
-        const rankings = [
-            [{ wins: 3 }, { wins: 2 }, { wins: 2 }, { wins: 2 }],
-        ];
+        const rankings = [[{ wins: 3 }, { wins: 2 }, { wins: 2 }, { wins: 2 }]];
         expect(getPoulesQualifiedPerGroup(rankings, 3)).toEqual([4]);
     });
 
     it('handles group where no teams qualify', () => {
-        const rankings = [
-            [{ wins: 1 }, { wins: 1 }, { wins: 1 }, { wins: 0 }],
-        ];
+        const rankings = [[{ wins: 1 }, { wins: 1 }, { wins: 1 }, { wins: 0 }]];
         expect(getPoulesQualifiedPerGroup(rankings, 3)).toEqual([0]);
     });
 });
@@ -213,19 +219,23 @@ describe('getPlayOffTeamsPerGroup', () => {
     });
 
     it('calculates correctly', () => {
-        expect(getPlayOffTeamsPerGroup({
-            playOff: [{}],
-            groups: [[], [], [], []],
-            preferences: { playOffTeams: 8 }
-        })).toBe(2);
+        expect(
+            getPlayOffTeamsPerGroup({
+                playOff: [{}],
+                groups: [[], [], [], []],
+                preferences: { playOffTeams: 8 },
+            }),
+        ).toBe(2);
     });
 
     it('rounds up for uneven division', () => {
-        expect(getPlayOffTeamsPerGroup({
-            playOff: [{}],
-            groups: [[], [], []],
-            preferences: { playOffTeams: 8 }
-        })).toBe(3);
+        expect(
+            getPlayOffTeamsPerGroup({
+                playOff: [{}],
+                groups: [[], [], []],
+                preferences: { playOffTeams: 8 },
+            }),
+        ).toBe(3);
     });
 });
 
@@ -276,9 +286,7 @@ describe('computePoulesGroupRankings', () => {
                     { group: 0, team_1: 'C', team_2: 'D', team_1_score: 13, team_2_score: 7 },
                 ],
                 // R3 (barrage): A vs C (A wins 13:1)
-                [
-                    { group: 0, team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 1 },
-                ],
+                [{ group: 0, team_1: 'A', team_2: 'C', team_1_score: 13, team_2_score: 1 }],
             ],
         };
 
@@ -286,10 +294,10 @@ describe('computePoulesGroupRankings', () => {
         expect(rankings).toHaveLength(1);
 
         const group = rankings[0];
-        const teamA = group.find(t => t.title === 'A');
-        const teamB = group.find(t => t.title === 'B');
-        const teamC = group.find(t => t.title === 'C');
-        const teamD = group.find(t => t.title === 'D');
+        const teamA = group.find((t) => t.title === 'A');
+        const teamB = group.find((t) => t.title === 'B');
+        const teamC = group.find((t) => t.title === 'C');
+        const teamD = group.find((t) => t.title === 'D');
 
         expect(teamA.wins).toBe(2);
         expect(teamB.wins).toBe(2);
@@ -318,7 +326,7 @@ describe('computePoulesGroupRankings', () => {
         };
 
         const rankings = computePoulesGroupRankings(tournament);
-        const mushchynka = rankings[0].find(t => t.title === 'МУЩИНКА');
+        const mushchynka = rankings[0].find((t) => t.title === 'МУЩИНКА');
         expect(mushchynka.wins).toBe(2);
         expect(mushchynka.pointsPlus).toBe(32);
         expect(mushchynka.pointsMinus).toBe(18);
@@ -365,9 +373,7 @@ describe('computePoulesGroupRankings', () => {
     it('ignores games with null scores (not yet played)', () => {
         const tournament = {
             groups: [[{ title: 'A' }, { title: 'B' }]],
-            games: [
-                [{ group: 0, team_1: 'A', team_2: 'B', team_1_score: null, team_2_score: null }],
-            ],
+            games: [[{ group: 0, team_1: 'A', team_2: 'B', team_1_score: null, team_2_score: null }]],
         };
 
         const rankings = computePoulesGroupRankings(tournament);
@@ -378,40 +384,43 @@ describe('computePoulesGroupRankings', () => {
 
 describe('assignPlayoffLanes', () => {
     it('assigns sequential lanes to non-bye games', () => {
-        const stages = [{
-            teams: [
-                { team_1: 'A', team_2: 'B' },
-                { team_1: 'C', isBye: true },
-                { team_1: 'D', team_2: 'E' },
-                { team_1: 'F', isBye: true },
-                { team_1: 'G', team_2: 'H' },
-            ]
-        }];
+        const stages = [
+            {
+                teams: [
+                    { team_1: 'A', team_2: 'B' },
+                    { team_1: 'C', isBye: true },
+                    { team_1: 'D', team_2: 'E' },
+                    { team_1: 'F', isBye: true },
+                    { team_1: 'G', team_2: 'H' },
+                ],
+            },
+        ];
 
         assignPlayoffLanes(stages);
         expect(stages[0].laneOrder).toEqual([0, null, 1, null, 2]);
     });
 
     it('handles stage with no byes', () => {
-        const stages = [{
-            teams: [
-                { team_1: 'A', team_2: 'B' },
-                { team_1: 'C', team_2: 'D' },
-                { team_1: 'E', team_2: 'F' },
-            ]
-        }];
+        const stages = [
+            {
+                teams: [
+                    { team_1: 'A', team_2: 'B' },
+                    { team_1: 'C', team_2: 'D' },
+                    { team_1: 'E', team_2: 'F' },
+                ],
+            },
+        ];
 
         assignPlayoffLanes(stages);
         expect(stages[0].laneOrder).toEqual([0, 1, 2]);
     });
 
     it('handles stage with all byes', () => {
-        const stages = [{
-            teams: [
-                { isBye: true },
-                { isBye: true },
-            ]
-        }];
+        const stages = [
+            {
+                teams: [{ isBye: true }, { isBye: true }],
+            },
+        ];
 
         assignPlayoffLanes(stages);
         expect(stages[0].laneOrder).toEqual([null, null]);
@@ -420,7 +429,12 @@ describe('assignPlayoffLanes', () => {
     it('processes multiple stages independently', () => {
         const stages = [
             { teams: [{ isBye: true }, { team_1: 'A', team_2: 'B' }] },
-            { teams: [{ team_1: 'C', team_2: 'D' }, { team_1: 'E', team_2: 'F' }] },
+            {
+                teams: [
+                    { team_1: 'C', team_2: 'D' },
+                    { team_1: 'E', team_2: 'F' },
+                ],
+            },
         ];
 
         assignPlayoffLanes(stages);

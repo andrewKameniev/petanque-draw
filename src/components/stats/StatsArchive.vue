@@ -1,16 +1,16 @@
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {getDate, gameTypes} from "@/helpers-stat";
-import {statsService} from "@/services/db";
-import StatResult from "@/components/stats/StatResult.vue";
-import StatsAnalysis from "@/components/stats/StatsAnalysis.vue";
-import ConfirmRemoveModal from "@/components/ConfirmRemoveModal.vue";
-import {BarChart3, Trash2, Tag, X, Share2, Pencil, Check} from "lucide-vue-next";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { getDate, gameTypes } from '@/helpers-stat';
+import { statsService } from '@/services/db';
+import StatResult from '@/components/stats/StatResult.vue';
+import StatsAnalysis from '@/components/stats/StatsAnalysis.vue';
+import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
+import { BarChart3, Trash2, Tag, X, Share2, Pencil, Check } from 'lucide-vue-next';
 export default {
-    name: "StatsArchive",
+    name: 'StatsArchive',
     props: ['tags'],
-    components: {ConfirmRemoveModal, StatsAnalysis, StatResult, BarChart3, Trash2, Tag, X, Share2, Pencil, Check},
+    components: { ConfirmRemoveModal, StatsAnalysis, StatResult, BarChart3, Trash2, Tag, X, Share2, Pencil, Check },
     data() {
         return {
             isLoading: false,
@@ -20,25 +20,25 @@ export default {
             filterGamesTag: [],
             editingGameKey: null,
             editName: '',
-            editPlayers: {team1: [], team2: []}
-        }
+            editPlayers: { team1: [], team2: [] },
+        };
     },
     mounted() {
         this.isLoading = true;
 
-        statsService.getAll(this.user.uid)
+        statsService
+            .getAll(this.user.uid)
             .then((snapshot) => {
                 if (snapshot.exists()) {
-                    this.statsList = Object.keys(snapshot.val()).reverse().reduce(
-                        (obj, key) => {
+                    this.statsList = Object.keys(snapshot.val())
+                        .reverse()
+                        .reduce((obj, key) => {
                             obj[key] = snapshot.val()[key];
                             return obj;
-                        },
-                        {}
-                    );
-                    Object.keys(this.statsList).forEach(key => {
-                        this.statsList[key].isOpen = false
-                    })
+                        }, {});
+                    Object.keys(this.statsList).forEach((key) => {
+                        this.statsList[key].isOpen = false;
+                    });
                     delete this.statsList['tags'];
                 } else {
                     this.statsList = null;
@@ -60,19 +60,22 @@ export default {
     computed: {
         ...mapState(useMainStore, ['user']),
         filteredGames() {
-            return (this.filterGamesTag.length > 0) ?
-                Object.values(this.statsList).filter(game => game.tags?.some(tag => this.filterGamesTag.includes(tag))) :
-                this.statsList;
+            return this.filterGamesTag.length > 0
+                ? Object.values(this.statsList).filter((game) =>
+                      game.tags?.some((tag) => this.filterGamesTag.includes(tag)),
+                  )
+                : this.statsList;
         },
         gamesCount() {
             if (!this.statsList) return 0;
             return Object.keys(this.statsList).length;
-        }
+        },
     },
     methods: {
         ...mapActions(useMainStore, ['showMessage']),
         removeGame(id) {
-            statsService.remove(this.user.uid, id)
+            statsService
+                .remove(this.user.uid, id)
                 .then(() => {
                     delete this.statsList[id];
                     this.showMessage({
@@ -91,41 +94,44 @@ export default {
         },
         getDate,
         getGameTypeLabel(type) {
-            const found = gameTypes.find(t => t.value === type);
+            const found = gameTypes.find((t) => t.value === type);
             return found ? found.label : '';
         },
         toggleTagFilter(tag) {
             if (this.filterGamesTag.includes(tag)) {
-                this.filterGamesTag = this.filterGamesTag.filter(item => item !== tag)
+                this.filterGamesTag = this.filterGamesTag.filter((item) => item !== tag);
             } else {
                 this.filterGamesTag.push(tag);
             }
         },
         addTagToGame(game, tag) {
             if (!this.statsList[game].tags) {
-                this.statsList[game].tags = []
+                this.statsList[game].tags = [];
             }
             this.statsList[game].tags.push(tag);
             this.saveGame(game, this.statsList[game].tags);
         },
         removeTagFromGame(game, tag) {
-            this.statsList[game].tags = this.statsList[game].tags.filter(item => item !== tag);
+            this.statsList[game].tags = this.statsList[game].tags.filter((item) => item !== tag);
             this.saveGame(game, this.statsList[game].tags);
         },
         saveGame(game, tags) {
-            statsService.update(this.user.uid, game, {tags}).then(() => {
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.tagUpdated')});
-            }).catch((error) => {
-                console.error('Error save:', error);
-                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
-            });
+            statsService
+                .update(this.user.uid, game, { tags })
+                .then(() => {
+                    this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.tagUpdated') });
+                })
+                .catch((error) => {
+                    console.error('Error save:', error);
+                    this.showMessage({ title: this.$t('messages.error'), text: error, type: 'error' });
+                });
         },
         shareGame(statId) {
             const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
             const shareRef = `${this.user.uid}.${statId}`;
             const link = `${window.location.origin}${domain}stats/share?ref=${shareRef}`;
             navigator.clipboard.writeText(link).then(() => {
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('remote.copyLink')});
+                this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('remote.copyLink') });
             });
         },
         startEditing(gameKey) {
@@ -133,8 +139,8 @@ export default {
             this.editingGameKey = gameKey;
             this.editName = game.name || '';
             this.editPlayers = {
-                team1: game.team1?.players?.map(p => p.name || '') || [],
-                team2: game.team2?.players?.map(p => p.name || '') || []
+                team1: game.team1?.players?.map((p) => p.name || '') || [],
+                team2: game.team2?.players?.map((p) => p.name || '') || [],
             };
         },
         cancelEditing() {
@@ -142,36 +148,50 @@ export default {
         },
         saveEditing() {
             const game = this.statsList[this.editingGameKey];
-            const updatedData = {name: this.editName};
+            const updatedData = { name: this.editName };
             if (game.team1?.players) {
-                updatedData.team1 = {...game.team1, players: game.team1.players.map((p, i) => ({...p, name: this.editPlayers.team1[i] || p.name}))};
+                updatedData.team1 = {
+                    ...game.team1,
+                    players: game.team1.players.map((p, i) => ({ ...p, name: this.editPlayers.team1[i] || p.name })),
+                };
             }
             if (game.team2?.players) {
-                updatedData.team2 = {...game.team2, players: game.team2.players.map((p, i) => ({...p, name: this.editPlayers.team2[i] || p.name}))};
+                updatedData.team2 = {
+                    ...game.team2,
+                    players: game.team2.players.map((p, i) => ({ ...p, name: this.editPlayers.team2[i] || p.name })),
+                };
             }
-            statsService.update(this.user.uid, this.editingGameKey, updatedData).then(() => {
-                this.statsList[this.editingGameKey].name = this.editName;
-                if (updatedData.team1) this.statsList[this.editingGameKey].team1 = updatedData.team1;
-                if (updatedData.team2) this.statsList[this.editingGameKey].team2 = updatedData.team2;
-                this.editingGameKey = null;
-                this.showMessage({title: this.$t('messages.awesome'), text: this.$t('messages.saved')});
-            }).catch((error) => {
-                console.error('Error saving:', error);
-                this.showMessage({title: this.$t('messages.error'), text: error, type: 'error'});
-            });
-        }
-    }
-}
+            statsService
+                .update(this.user.uid, this.editingGameKey, updatedData)
+                .then(() => {
+                    this.statsList[this.editingGameKey].name = this.editName;
+                    if (updatedData.team1) this.statsList[this.editingGameKey].team1 = updatedData.team1;
+                    if (updatedData.team2) this.statsList[this.editingGameKey].team2 = updatedData.team2;
+                    this.editingGameKey = null;
+                    this.showMessage({ title: this.$t('messages.awesome'), text: this.$t('messages.saved') });
+                })
+                .catch((error) => {
+                    console.error('Error saving:', error);
+                    this.showMessage({ title: this.$t('messages.error'), text: error, type: 'error' });
+                });
+        },
+    },
+};
 </script>
 
 <template>
     <div class="archive">
-        <ConfirmRemoveModal :title="$t('messages.removeExercise')" @remove="removeGame(confirmRemoveId)" @close="confirmRemoveId = null" v-if="confirmRemoveId"/>
+        <ConfirmRemoveModal
+            :title="$t('messages.removeExercise')"
+            @remove="removeGame(confirmRemoveId)"
+            @close="confirmRemoveId = null"
+            v-if="confirmRemoveId"
+        />
 
         <div class="archive__header">
             <button class="archive__btn archive__btn--analysis" @click="showStatAnalysis = !showStatAnalysis">
-                <BarChart3 :size="16"/>
-                {{ showStatAnalysis ? $t('common.hide') : $t('common.show')}} {{ $t('stat.analysis') }}
+                <BarChart3 :size="16" />
+                {{ showStatAnalysis ? $t('common.hide') : $t('common.show') }} {{ $t('stat.analysis') }}
             </button>
         </div>
 
@@ -185,45 +205,60 @@ export default {
         <template v-else>
             <div v-if="tags && Object.keys(tags).length && !showStatAnalysis" class="archive__filters">
                 <div class="archive__filters-label">
-                    <Tag :size="14"/>
+                    <Tag :size="14" />
                     {{ $t('stat.chooseOnly') }}
                 </div>
                 <div class="archive__filters-tags">
-                    <button v-for="(tag, key) in tags" :key="key"
-                            class="archive__filter-tag"
-                            :class="{'archive__filter-tag--active': filterGamesTag.includes(tag)}"
-                            @click="toggleTagFilter(tag)">
+                    <button
+                        v-for="(tag, key) in tags"
+                        :key="key"
+                        class="archive__filter-tag"
+                        :class="{ 'archive__filter-tag--active': filterGamesTag.includes(tag) }"
+                        @click="toggleTagFilter(tag)"
+                    >
                         {{ tag }}
                     </button>
                     <button class="archive__filter-clear" v-if="filterGamesTag.length" @click="filterGamesTag = []">
-                        <X :size="12"/>
+                        <X :size="12" />
                         {{ $t('stat.clear') }}
                     </button>
                 </div>
             </div>
 
-            <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags"/>
+            <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags" />
 
             <div v-else-if="filteredGames && gamesCount > 0" class="archive__list">
                 <div class="archive__game" v-for="(item, gameKey) in filteredGames" :key="item.date">
                     <div class="archive__game-header" @click="item.isOpen = !item.isOpen">
                         <div class="archive__game-info">
                             <span class="archive__game-name">{{ item.name || 'Unnamed game' }}</span>
-                            <span v-if="item.type" class="archive__game-type-badge">{{ getGameTypeLabel(item.type) }}</span>
+                            <span v-if="item.type" class="archive__game-type-badge">{{
+                                getGameTypeLabel(item.type)
+                            }}</span>
                             <span class="archive__game-date">{{ getDate(item.date) }}</span>
                             <span v-if="item.tags?.length" class="archive__game-tags-inline">
-                                <span v-for="(tag, index) in item.tags" :key="index" class="archive__game-tag-badge">{{tag}}</span>
+                                <span v-for="(tag, index) in item.tags" :key="index" class="archive__game-tag-badge">{{
+                                    tag
+                                }}</span>
                             </span>
                         </div>
                         <div class="archive__game-actions">
-                            <button class="archive__game-edit" @click.stop="startEditing(gameKey)" :title="$t('results.editResult')">
-                                <Pencil :size="15"/>
+                            <button
+                                class="archive__game-edit"
+                                @click.stop="startEditing(gameKey)"
+                                :title="$t('results.editResult')"
+                            >
+                                <Pencil :size="15" />
                             </button>
-                            <button class="archive__game-share" @click.stop="shareGame(item.date)" :title="$t('remote.copyLink')">
-                                <Share2 :size="15"/>
+                            <button
+                                class="archive__game-share"
+                                @click.stop="shareGame(item.date)"
+                                :title="$t('remote.copyLink')"
+                            >
+                                <Share2 :size="15" />
                             </button>
                             <button class="archive__game-delete" @click.stop="confirmRemoveId = item.date">
-                                <Trash2 :size="15"/>
+                                <Trash2 :size="15" />
                             </button>
                         </div>
                     </div>
@@ -237,13 +272,25 @@ export default {
                             <div class="archive__edit-field" v-if="item.team1?.players">
                                 <label class="archive__edit-label">{{ $t('stat.team1Label') || 'Team 1' }}</label>
                                 <div class="archive__edit-players">
-                                    <input class="archive__edit-input" v-for="(p, i) in editPlayers.team1" :key="i" v-model="editPlayers.team1[i]" :placeholder="$t('stat.playerName') + ' ' + (i + 1)" />
+                                    <input
+                                        class="archive__edit-input"
+                                        v-for="(p, i) in editPlayers.team1"
+                                        :key="i"
+                                        v-model="editPlayers.team1[i]"
+                                        :placeholder="$t('stat.playerName') + ' ' + (i + 1)"
+                                    />
                                 </div>
                             </div>
                             <div class="archive__edit-field" v-if="item.team2?.players">
                                 <label class="archive__edit-label">{{ $t('stat.team2Label') || 'Team 2' }}</label>
                                 <div class="archive__edit-players">
-                                    <input class="archive__edit-input" v-for="(p, i) in editPlayers.team2" :key="i" v-model="editPlayers.team2[i]" :placeholder="$t('stat.playerName') + ' ' + (i + 1)" />
+                                    <input
+                                        class="archive__edit-input"
+                                        v-for="(p, i) in editPlayers.team2"
+                                        :key="i"
+                                        v-model="editPlayers.team2[i]"
+                                        :placeholder="$t('stat.playerName') + ' ' + (i + 1)"
+                                    />
                                 </div>
                             </div>
                             <div class="archive__edit-actions">
@@ -264,26 +311,39 @@ export default {
                             <div class="archive__game-tags-row" v-if="item.tags?.length">
                                 <span class="archive__game-tag-chip" v-for="(tag, key) in item.tags" :key="key">
                                     {{ tag }}
-                                    <button class="archive__game-tag-remove" @click="removeTagFromGame(gameKey, tag)"><X :size="10"/></button>
+                                    <button class="archive__game-tag-remove" @click="removeTagFromGame(gameKey, tag)">
+                                        <X :size="10" />
+                                    </button>
                                 </span>
                             </div>
                             <div class="archive__game-tags-add">
                                 <span class="archive__game-tags-add-label">{{ $t('stat.addTag') }}:</span>
-                                <button class="archive__game-tag-add-btn"
-                                        v-for="(tag, key) in tags" :key="key"
-                                        :class="{'is-hidden': item.tags?.includes(tag)}"
-                                        @click="addTagToGame(gameKey, tag)">
-                                    + {{tag}}
+                                <button
+                                    class="archive__game-tag-add-btn"
+                                    v-for="(tag, key) in tags"
+                                    :key="key"
+                                    :class="{ 'is-hidden': item.tags?.includes(tag) }"
+                                    @click="addTagToGame(gameKey, tag)"
+                                >
+                                    + {{ tag }}
                                 </button>
                             </div>
                         </div>
 
                         <div class="archive__game-results">
                             <div class="archive__game-result">
-                                <StatResult :team="item.team1" :system="item.system" :label="$t('stat.team1Label') || 'Team 1'"/>
+                                <StatResult
+                                    :team="item.team1"
+                                    :system="item.system"
+                                    :label="$t('stat.team1Label') || 'Team 1'"
+                                />
                             </div>
                             <div class="archive__game-result">
-                                <StatResult :team="item.team2" :system="item.system" :label="$t('stat.team2Label') || 'Team 2'"/>
+                                <StatResult
+                                    :team="item.team2"
+                                    :system="item.system"
+                                    :label="$t('stat.team2Label') || 'Team 2'"
+                                />
                             </div>
                         </div>
                     </div>
@@ -322,7 +382,9 @@ export default {
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s;
 }
 
 .archive__btn--back {
@@ -377,8 +439,14 @@ export default {
 }
 
 @keyframes skeleton-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .archive__filters {
@@ -530,7 +598,9 @@ export default {
     cursor: pointer;
     padding: 0.3rem;
     border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 
 .archive__game-share:hover {
@@ -545,7 +615,9 @@ export default {
     cursor: pointer;
     padding: 0.3rem;
     border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 
 .archive__game-delete:hover {
@@ -644,7 +716,9 @@ export default {
     cursor: pointer;
     padding: 0.3rem;
     border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 
 .archive__game-edit:hover {

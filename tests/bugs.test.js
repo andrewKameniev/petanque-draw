@@ -5,15 +5,21 @@ import {
     drawSupermeleRound,
     assignLanes,
     createGroups,
-    saveResultsForRound
+    saveResultsForRound,
 } from '@/services/draw';
 
 function makeTeam(title, wins = 0, opponents = [], rating = 0) {
     return {
-        title, wins, opponents, rating,
-        buhgolts: 0, smallBuhgolts: 0,
-        pointsPlus: 0, pointsMinus: 0,
-        lanes: [], players: []
+        title,
+        wins,
+        opponents,
+        rating,
+        buhgolts: 0,
+        smallBuhgolts: 0,
+        pointsPlus: 0,
+        pointsMinus: 0,
+        lanes: [],
+        players: [],
     };
 }
 
@@ -26,18 +32,16 @@ function makeTournament(teams, options = {}) {
         preferences: {
             fieldsStart: options.fieldsStart || 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
         games: options.games || [],
-        ...options
+        ...options,
     };
 }
 
 describe('Bug #1 FIXED: assignLanes handles supermele composite team names', () => {
     it('assigns lanes using individual player history', () => {
-        const teams = [
-            makeTeam('P1'), makeTeam('P2'), makeTeam('P3'), makeTeam('P4'),
-        ];
+        const teams = [makeTeam('P1'), makeTeam('P2'), makeTeam('P3'), makeTeam('P4')];
         const tournament = makeTournament(teams, { system: 'supermele', fieldsStart: 1 });
         const games = [
             {
@@ -46,8 +50,8 @@ describe('Bug #1 FIXED: assignLanes handles supermele composite team names', () 
                 team_1_score: null,
                 team_2: 'P3, P4',
                 team_2_players: ['P3', 'P4'],
-                team_2_score: null
-            }
+                team_2_score: null,
+            },
         ];
         const result = assignLanes(games, tournament);
         expect(result).toHaveLength(1);
@@ -72,8 +76,8 @@ describe('Bug #1 FIXED: assignLanes handles supermele composite team names', () 
                 team_1_score: null,
                 team_2: 'P3, P4',
                 team_2_players: ['P3', 'P4'],
-                team_2_score: null
-            }
+                team_2_score: null,
+            },
         ];
         const result = assignLanes(games, tournament);
         // P1,P2 played lane 0; P3,P4 played lane 1 — should pick lane 2
@@ -114,7 +118,7 @@ describe('Bug #3 FIXED: getRandomWithOneExclusion uniform distribution', () => {
         }
         const expectedPer = iterations / 5;
         // All indices should be within 20% of expected with uniform distribution
-        Object.values(counts).forEach(count => {
+        Object.values(counts).forEach((count) => {
             expect(count).toBeGreaterThan(expectedPer * 0.75);
             expect(count).toBeLessThan(expectedPer * 1.25);
         });
@@ -123,11 +127,7 @@ describe('Bug #3 FIXED: getRandomWithOneExclusion uniform distribution', () => {
 
 describe('Bug #4 FIXED: generateCompetitorsFirstLast reverse path with small teams', () => {
     it('searches for valid opponent instead of returning already-played pair', () => {
-        const teams = [
-            makeTeam('A', 2, ['C']),
-            makeTeam('B', 1, []),
-            makeTeam('C', 1, ['A']),
-        ];
+        const teams = [makeTeam('A', 2, ['C']), makeTeam('B', 1, []), makeTeam('C', 1, ['A'])];
         // reverse=true, iteration=2 → starts at opponentIndex=length-1=2 (C)
         // A already played C → should advance to find B or return -1
         const result = generateCompetitorsFirstLast(teams, 2, true, true, 2);
@@ -142,7 +142,7 @@ describe('Bug #6 FIXED: saveResultsForRound does not award win on draws', () => 
         const teams = [makeTeam('A'), makeTeam('B')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 10, team_2: 'B', team_2_score: 10 }]]
+            games: [[{ team_1: 'A', team_1_score: 10, team_2: 'B', team_2_score: 10 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].wins).toBe(0);
@@ -153,7 +153,7 @@ describe('Bug #6 FIXED: saveResultsForRound does not award win on draws', () => 
         const teams = [makeTeam('A'), makeTeam('B')];
         const tournament = makeTournament(teams, {
             system: 'swiss',
-            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 7 }]]
+            games: [[{ team_1: 'A', team_1_score: 13, team_2: 'B', team_2_score: 7 }]],
         });
         saveResultsForRound(tournament, 0);
         expect(tournament.teams[0].wins).toBe(1);
@@ -171,10 +171,10 @@ describe('Bug #7 FIXED: createGroups does not mutate tournament.teams order', ()
             makeTeam('E', 0, [], 60),
             makeTeam('F', 0, [], 10),
         ];
-        const originalOrder = teams.map(t => t.title);
+        const originalOrder = teams.map((t) => t.title);
         const tournament = makeTournament(teams, { useRating: true });
         createGroups(tournament, 3);
-        const newOrder = tournament.teams.map(t => t.title);
+        const newOrder = tournament.teams.map((t) => t.title);
         expect(newOrder).toEqual(originalOrder);
     });
 });

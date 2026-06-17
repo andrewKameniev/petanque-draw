@@ -1,9 +1,9 @@
-import {defineConfig} from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
     timeout: 30000,
-    expect: {timeout: 3000},
+    expect: { timeout: 3000 },
     fullyParallel: false,
     retries: 1,
     workers: 1,
@@ -22,7 +22,7 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: {browserName: 'chromium'},
+            use: { browserName: 'chromium' },
         },
     ],
 });

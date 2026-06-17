@@ -2,29 +2,39 @@
 <template>
     <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
         <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
-        <p class="setup-card__summary">{{ tournament.teams.length }} {{ tournament.system === 'tir' ? pluralizeParticipants(tournament.teams.length) : $t('teams.teams').toLowerCase() }}</p>
+        <p class="setup-card__summary">
+            {{ tournament.teams.length }}
+            {{
+                tournament.system === 'tir'
+                    ? pluralizeParticipants(tournament.teams.length)
+                    : $t('teams.teams').toLowerCase()
+            }}
+        </p>
 
         <div class="setup-card__field">
             <label class="setup-card__label">{{ $t('teams.system') }}</label>
             <div class="setup-card__radios">
                 <label class="setup-card__radio" v-if="tournament.teams?.length > 4">
-                    <input type="radio" name="system" value="swiss" v-model="tournament.system">
+                    <input type="radio" name="system" value="swiss" v-model="tournament.system" />
                     {{ $t('teams.swiss') }}
                 </label>
                 <label class="setup-card__radio">
-                    <input type="radio" name="system" value="groups" v-model="tournament.system">
+                    <input type="radio" name="system" value="groups" v-model="tournament.system" />
                     {{ $t('teams.groups') }}
                 </label>
-                <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
-                    <input type="radio" name="system" value="poules" v-model="tournament.system">
+                <label
+                    class="setup-card__radio"
+                    v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0"
+                >
+                    <input type="radio" name="system" value="poules" v-model="tournament.system" />
                     {{ $t('teams.poules') }}
                 </label>
                 <label class="setup-card__radio">
-                    <input type="radio" name="system" value="supermele" v-model="tournament.system">
+                    <input type="radio" name="system" value="supermele" v-model="tournament.system" />
                     {{ $t('teams.supermele') }}
                 </label>
                 <label class="setup-card__radio">
-                    <input type="radio" name="system" value="tir" v-model="tournament.system">
+                    <input type="radio" name="system" value="tir" v-model="tournament.system" />
                     {{ $t('teams.tir') }}
                 </label>
             </div>
@@ -35,7 +45,7 @@
             <select class="setup-card__select" data-testid="select-teams-in-group" v-model.number="localTeamsInGroup">
                 <option :value="tournament.teams.length">{{ $t('teams.allTeams') }}</option>
                 <template v-for="(team, index) in tournament.teams" :key="index">
-                    <option v-if="index > 1">{{index + 1}}</option>
+                    <option v-if="index > 1">{{ index + 1 }}</option>
                 </template>
             </select>
             <div v-if="isAllTeamsGroup" class="setup-card__field mt-2">
@@ -45,12 +55,17 @@
                 </select>
                 <span class="setup-card__hint">{{ $t('teams.roundsCountHint') }}</span>
             </div>
-            <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod"/>
+            <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod" />
         </div>
 
         <div v-if="tournament.system === 'poules'" class="setup-card__field">
-            <span class="setup-card__hint">{{ Math.floor(tournament.teams.length / 4) }} {{ $t('setup.poulesInfo', { count: poulesPlayoffCount }) }}</span>
-            <span v-if="tournament.teams.length % 4 !== 0" class="setup-card__hint setup-card__hint--warn">{{ $t('setup.poulesHint') }}</span>
+            <span class="setup-card__hint"
+                >{{ Math.floor(tournament.teams.length / 4) }}
+                {{ $t('setup.poulesInfo', { count: poulesPlayoffCount }) }}</span
+            >
+            <span v-if="tournament.teams.length % 4 !== 0" class="setup-card__hint setup-card__hint--warn">{{
+                $t('setup.poulesHint')
+            }}</span>
         </div>
 
         <div v-if="tournament.system === 'supermele'" class="setup-card__field">
@@ -63,93 +78,130 @@
 
         <div v-if="tournament.system === 'tir'" class="setup-card__field">
             <label class="setup-card__checkbox">
-                <input type="checkbox" v-model="localTirTwoRounds">
+                <input type="checkbox" v-model="localTirTwoRounds" />
                 {{ $t('tir.twoRoundSystem') }}
             </label>
             <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
             <label class="setup-card__checkbox" style="margin-top: 0.75rem">
-                <input type="checkbox" v-model="localTirJunior">
+                <input type="checkbox" v-model="localTirJunior" />
                 {{ $t('tir.juniorTournament') }}
             </label>
             <span class="setup-card__hint">{{ $t('tir.juniorHint') }}</span>
         </div>
 
-        <div v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'" class="setup-card__field">
+        <div
+            v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'"
+            class="setup-card__field"
+        >
             <label class="setup-card__checkbox">
-                <input type="checkbox" v-model="localSetupPlayOff" data-testid="checkbox-playoff">
+                <input type="checkbox" v-model="localSetupPlayOff" data-testid="checkbox-playoff" />
                 {{ $t('setup.enablePlayOff') }}
             </label>
             <div v-if="localSetupPlayOff" class="setup-card__sub">
                 <div v-if="!localWithBarrage">
                     <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
-                    <select class="setup-card__select" v-model.number="tournament.preferences.playOffTeams" data-testid="select-playoff-teams">
+                    <select
+                        class="setup-card__select"
+                        v-model.number="tournament.preferences.playOffTeams"
+                        data-testid="select-playoff-teams"
+                    >
                         <template v-for="value in teamToPlayOffValues" :key="value">
-                            <option :value="value" v-if="tournament.teams.length >= value">{{value}}</option>
+                            <option :value="value" v-if="tournament.teams.length >= value">{{ value }}</option>
                         </template>
                     </select>
                     <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
                 </div>
                 <label class="setup-card__checkbox setup-card__checkbox--sub">
-                    <input type="checkbox" v-model="localWithCadrage" data-testid="checkbox-cadrage">
+                    <input type="checkbox" v-model="localWithCadrage" data-testid="checkbox-cadrage" />
                     {{ $t('ranking.withCadrage') }}
                 </label>
                 <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.cadrageHint') }}</span>
                 <label v-if="tournament.system === 'swiss'" class="setup-card__checkbox setup-card__checkbox--sub mt-2">
-                    <input type="checkbox" v-model="localWithBarrage" data-testid="checkbox-barrage">
+                    <input type="checkbox" v-model="localWithBarrage" data-testid="checkbox-barrage" />
                     {{ $t('ranking.withBarrage') }}
                 </label>
-                <span v-if="tournament.system === 'swiss'" class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.barrageHint') }}</span>
+                <span v-if="tournament.system === 'swiss'" class="setup-card__hint setup-card__hint--sub">{{
+                    $t('ranking.barrageHint')
+                }}</span>
                 <div v-if="localWithBarrage && tournament.system === 'swiss'" class="setup-card__sub">
                     <label class="setup-card__label">{{ $t('ranking.barrageTeams') }}</label>
-                    <select class="setup-card__select" v-model.number="tournament.preferences.barrageTeams" data-testid="select-barrage-teams">
+                    <select
+                        class="setup-card__select"
+                        v-model.number="tournament.preferences.barrageTeams"
+                        data-testid="select-barrage-teams"
+                    >
                         <template v-for="value in barrageTeamValues" :key="value">
                             <option :value="value">{{ value }}</option>
                         </template>
                     </select>
                     <span class="setup-card__hint">{{ $t('ranking.barrageTeamsHint') }}</span>
-                    <span class="setup-card__hint">{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span>
+                    <span class="setup-card__hint"
+                        >{{ barrageToPlayoffCount }} {{ $t('ranking.barrageToPlayoff') }}</span
+                    >
                 </div>
             </div>
         </div>
 
         <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="setup-card__field">
             <label class="setup-card__checkbox">
-                <input type="checkbox" v-model="localPlayB" data-testid="checkbox-play-b">
+                <input type="checkbox" v-model="localPlayB" data-testid="checkbox-play-b" />
                 {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
             </label>
         </div>
 
         <div v-if="tournament.system === 'swiss'" class="setup-card__field">
             <label class="setup-card__label">{{ $t('modals.swissRoundsCount') }}</label>
-            <input class="setup-card__input" type="number" v-model.number="tournament.preferences.swissRoundsCount" min="1">
+            <input
+                class="setup-card__input"
+                type="number"
+                v-model.number="tournament.preferences.swissRoundsCount"
+                min="1"
+            />
             <span class="setup-card__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
         </div>
 
         <div v-if="tournament.system === 'swiss'" class="setup-card__field">
             <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
-            <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1">
+            <input
+                class="setup-card__input"
+                type="number"
+                v-model.number="tournament.preferences.prizePlaces"
+                min="1"
+            />
             <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
         </div>
 
-        <button v-if="tournament.system !== 'tir'" class="setup-card__collapse-toggle" @click="showAdvancedSettings = !showAdvancedSettings">
-            <ChevronDown :size="16" class="setup-card__collapse-icon" :class="{'setup-card__collapse-icon--open': showAdvancedSettings}"/>
+        <button
+            v-if="tournament.system !== 'tir'"
+            class="setup-card__collapse-toggle"
+            @click="showAdvancedSettings = !showAdvancedSettings"
+        >
+            <ChevronDown
+                :size="16"
+                class="setup-card__collapse-icon"
+                :class="{ 'setup-card__collapse-icon--open': showAdvancedSettings }"
+            />
             {{ $t('setup.additionalSettings') }}
         </button>
 
         <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
             <div class="setup-card__field">
                 <label class="setup-card__checkbox">
-                    <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled">
+                    <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
                     {{ $t('modals.timeLimit') }}
                 </label>
                 <span class="setup-card__hint">{{ $t('modals.timeLimitHint') }}</span>
                 <div v-if="tournament.preferences.timeLimitEnabled" class="setup-card__nested">
                     <div class="setup-card__row mt-2">
                         <div class="setup-card__row-item">
-                            <span class="setup-card__label">{{ localSetupPlayOff ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit') }}</span>
+                            <span class="setup-card__label">{{
+                                localSetupPlayOff ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit')
+                            }}</span>
                             <div class="select is-fullwidth">
                                 <select v-model.number="tournament.preferences.timeLimit">
-                                    <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    <option v-for="t in timeLimitOptions" :key="t" :value="t">
+                                        {{ t }} {{ $t('modals.min') }}
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -157,13 +209,15 @@
                             <span class="setup-card__label">{{ $t('modals.timeLimitPlayoff') }}</span>
                             <div class="select is-fullwidth">
                                 <select v-model.number="tournament.preferences.playoffTimeLimit">
-                                    <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                                    <option v-for="t in timeLimitOptions" :key="t" :value="t">
+                                        {{ t }} {{ $t('modals.min') }}
+                                    </option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <label v-if="localSetupPlayOff" class="setup-card__checkbox mt-2">
-                        <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale">
+                        <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" />
                         {{ $t('modals.noTimeLimitFinale') }}
                     </label>
                     <div class="mt-4">
@@ -181,7 +235,7 @@
 
             <div class="setup-card__field">
                 <label class="setup-card__checkbox">
-                    <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled">
+                    <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
                     {{ $t('modals.perRoundScoring') }}
                 </label>
                 <span class="setup-card__hint">{{ $t('modals.perRoundScoringHint') }}</span>
@@ -192,11 +246,21 @@
                 <div class="setup-card__row">
                     <div class="setup-card__row-item">
                         <span class="setup-card__hint">{{ $t('games.first') }}</span>
-                        <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalFirst" min="0">
+                        <input
+                            class="setup-card__input"
+                            type="number"
+                            v-model="tournament.preferences.technical.technicalFirst"
+                            min="0"
+                        />
                     </div>
                     <div class="setup-card__row-item">
                         <span class="setup-card__hint">{{ $t('games.technical') }} 2</span>
-                        <input class="setup-card__input" type="number" v-model="tournament.preferences.technical.technicalSecond" min="0">
+                        <input
+                            class="setup-card__input"
+                            type="number"
+                            v-model="tournament.preferences.technical.technicalSecond"
+                            min="0"
+                        />
                     </div>
                 </div>
                 <span class="setup-card__hint">{{ $t('modals.technicalScoreHint') }}</span>
@@ -204,19 +268,19 @@
 
             <div class="setup-card__field">
                 <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
-                <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1">
+                <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1" />
                 <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
             </div>
 
             <div class="setup-card__field">
                 <label class="setup-card__label">{{ $t('modals.fieldsStart') }}</label>
-                <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1">
+                <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1" />
                 <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
             </div>
 
             <div class="setup-card__field">
                 <label class="setup-card__checkbox">
-                    <input type="checkbox" v-model="tournament.preferences.isTestTournament">
+                    <input type="checkbox" v-model="tournament.preferences.isTestTournament" />
                     {{ $t('setup.testTournament') }}
                 </label>
                 <span class="setup-card__hint">{{ $t('setup.testTournamentHint') }}</span>
@@ -225,12 +289,12 @@
 
         <div class="setup-card__actions">
             <button class="setup-card__start" data-testid="btn-draw-first-round" @click="$emit('draw')">
-                <Play :size="18"/>
+                <Play :size="18" />
                 {{ $t('setup.drawFirstRound') }}
             </button>
             <span class="setup-card__or">{{ $t('common.or') }}</span>
             <button class="setup-card__delete" data-testid="btn-delete-setup" @click="$emit('remove')">
-                <Trash2 :size="16"/>
+                <Trash2 :size="16" />
                 <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
             </button>
         </div>
@@ -238,13 +302,24 @@
 </template>
 
 <script>
-import GroupDrawMethod from "@/components/partials/GroupDrawMethod";
-import {Play, Trash2, ChevronDown} from "lucide-vue-next";
+import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
+import { Play, Trash2, ChevronDown } from 'lucide-vue-next';
 
 export default {
     name: 'SetupCard',
     components: { GroupDrawMethod, Play, Trash2, ChevronDown },
-    emits: ['draw', 'remove', 'update:teamsInGroup', 'update:groupRoundsCount', 'update:setupPlayOff', 'update:withCadrage', 'update:withBarrage', 'update:playB', 'update:tirTwoRounds', 'update:tirJunior'],
+    emits: [
+        'draw',
+        'remove',
+        'update:teamsInGroup',
+        'update:groupRoundsCount',
+        'update:setupPlayOff',
+        'update:withCadrage',
+        'update:withBarrage',
+        'update:playB',
+        'update:tirTwoRounds',
+        'update:tirJunior',
+    ],
     props: {
         tournament: { type: Object, required: true },
         teamsInGroup: { type: Number, default: null },
@@ -254,12 +329,12 @@ export default {
         withBarrage: { type: Boolean, default: false },
         playB: { type: Boolean, default: false },
         tirTwoRounds: { type: Boolean, default: false },
-        tirJunior: { type: Boolean, default: false }
+        tirJunior: { type: Boolean, default: false },
     },
     data() {
         return {
-            showAdvancedSettings: false
-        }
+            showAdvancedSettings: false,
+        };
     },
     watch: {
         localWithCadrage(val) {
@@ -272,40 +347,72 @@ export default {
             if (val === this.tournament.teams?.length) {
                 this.localGroupRoundsCount = this.defaultGroupRounds;
             }
-        }
+        },
     },
     computed: {
         localTeamsInGroup: {
-            get() { return this.teamsInGroup; },
-            set(val) { this.$emit('update:teamsInGroup', val); }
+            get() {
+                return this.teamsInGroup;
+            },
+            set(val) {
+                this.$emit('update:teamsInGroup', val);
+            },
         },
         localGroupRoundsCount: {
-            get() { return this.groupRoundsCount; },
-            set(val) { this.$emit('update:groupRoundsCount', val); }
+            get() {
+                return this.groupRoundsCount;
+            },
+            set(val) {
+                this.$emit('update:groupRoundsCount', val);
+            },
         },
         localSetupPlayOff: {
-            get() { return this.setupPlayOff; },
-            set(val) { this.$emit('update:setupPlayOff', val); }
+            get() {
+                return this.setupPlayOff;
+            },
+            set(val) {
+                this.$emit('update:setupPlayOff', val);
+            },
         },
         localWithCadrage: {
-            get() { return this.withCadrage; },
-            set(val) { this.$emit('update:withCadrage', val); }
+            get() {
+                return this.withCadrage;
+            },
+            set(val) {
+                this.$emit('update:withCadrage', val);
+            },
         },
         localWithBarrage: {
-            get() { return this.withBarrage; },
-            set(val) { this.$emit('update:withBarrage', val); }
+            get() {
+                return this.withBarrage;
+            },
+            set(val) {
+                this.$emit('update:withBarrage', val);
+            },
         },
         localPlayB: {
-            get() { return this.playB; },
-            set(val) { this.$emit('update:playB', val); }
+            get() {
+                return this.playB;
+            },
+            set(val) {
+                this.$emit('update:playB', val);
+            },
         },
         localTirTwoRounds: {
-            get() { return this.tirTwoRounds; },
-            set(val) { this.$emit('update:tirTwoRounds', val); }
+            get() {
+                return this.tirTwoRounds;
+            },
+            set(val) {
+                this.$emit('update:tirTwoRounds', val);
+            },
         },
         localTirJunior: {
-            get() { return this.tirJunior; },
-            set(val) { this.$emit('update:tirJunior', val); }
+            get() {
+                return this.tirJunior;
+            },
+            set(val) {
+                this.$emit('update:tirJunior', val);
+            },
         },
         isAllTeamsGroup() {
             return this.tournament.system === 'groups' && this.teamsInGroup === this.tournament.teams.length;
@@ -335,7 +442,7 @@ export default {
             return values;
         },
         hasTeamRatings() {
-            return this.tournament.useRating && this.tournament.teams?.some(t => t.rating > 0);
+            return this.tournament.useRating && this.tournament.teams?.some((t) => t.rating > 0);
         },
         poulesPlayoffCount() {
             const groups = Math.floor(this.tournament.teams?.length / 4) || 0;
@@ -355,7 +462,7 @@ export default {
             const groups = barrageTeams / 4;
             const estimated = groups * 2;
             return Math.pow(2, Math.ceil(Math.log2(estimated)));
-        }
+        },
     },
     methods: {
         pluralizeParticipants(n) {
@@ -370,9 +477,9 @@ export default {
             if (locale === 'fr') return n === 1 ? 'participant' : 'participants';
             if (locale === 'es') return n === 1 ? 'participante' : 'participantes';
             return n === 1 ? 'participant' : 'participants';
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -432,8 +539,8 @@ export default {
     border-radius: 6px;
     background: var(--color-bg-input);
     outline: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
+    appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;

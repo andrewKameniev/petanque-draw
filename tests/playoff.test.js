@@ -31,7 +31,7 @@ describe('buildCadrageGames', () => {
     it('all scores are null initially', () => {
         const teams = makeTeamList(6);
         const result = buildCadrageGames(teams, 6);
-        result.forEach(game => {
+        result.forEach((game) => {
             expect(game.team_1_score).toBeNull();
             expect(game.team_2_score).toBeNull();
         });
@@ -58,7 +58,7 @@ describe('buildPlayOffScheme', () => {
     it('sets empty string for team_2_place when hasCadrage is true', () => {
         const teams = makeTeamList(4);
         const result = buildPlayOffScheme(teams, true);
-        result.forEach(game => {
+        result.forEach((game) => {
             expect(game.team_2_place).toBe('');
         });
     });
@@ -66,7 +66,7 @@ describe('buildPlayOffScheme', () => {
     it('sets numeric team_2_place when hasCadrage is false', () => {
         const teams = makeTeamList(4);
         const result = buildPlayOffScheme(teams, false);
-        result.forEach(game => {
+        result.forEach((game) => {
             expect(typeof game.team_2_place).toBe('number');
         });
     });
@@ -75,7 +75,7 @@ describe('buildPlayOffScheme', () => {
         const teams = makeTeamList(16);
         const result = buildPlayOffScheme(teams, false);
         expect(result).toHaveLength(8);
-        const allTeams = result.flatMap(g => [g.team_1, g.team_2]);
+        const allTeams = result.flatMap((g) => [g.team_1, g.team_2]);
         expect(new Set(allTeams).size).toBe(16);
     });
 
@@ -88,7 +88,7 @@ describe('buildPlayOffScheme', () => {
     it('every team appears exactly once in playoff', () => {
         const teams = makeTeamList(16);
         const result = buildPlayOffScheme(teams, false);
-        const allTeams = result.flatMap(g => [g.team_1, g.team_2]);
+        const allTeams = result.flatMap((g) => [g.team_1, g.team_2]);
         const unique = new Set(allTeams);
         expect(unique.size).toBe(16);
     });

@@ -12,6 +12,7 @@ Bugs and issues discovered during Playwright e2e test development.
 When attempting to draw the first round with fewer than 5 teams in Swiss mode, the app shows an error and refuses to proceed. The minimum is 5 teams, not 4. This is correct behavior but undocumented — the UI allows adding 4 teams and selecting Swiss without warning until the draw button is clicked.
 
 **Steps:**
+
 1. Add 4 teams
 2. Keep Swiss system selected (default)
 3. Click "Draw first round"
@@ -27,6 +28,7 @@ When attempting to draw the first round with fewer than 5 teams in Swiss mode, t
 When a tournament with cadrage enabled is deleted, the `withCadrage: true` preference can persist in Firebase for the next tournament created in the same slot. This causes unexpected cadrage screens to appear in tournaments that didn't explicitly enable cadrage.
 
 **Steps:**
+
 1. Create tournament with 8 teams, enable playoff + cadrage
 2. Play through swiss rounds
 3. Delete tournament
@@ -46,6 +48,7 @@ When a tournament with cadrage enabled is deleted, the `withCadrage: true` prefe
 When playoff is started with "Play B" enabled, the app creates a new "Group B" tournament AND immediately switches the UI to display it. This means after clicking "Go to Playoff," the user sees the Group B tournament name, not the playoff bracket of the original tournament.
 
 **Steps:**
+
 1. Create 8-team tournament with playoff (top 4) + Play B enabled
 2. Play 3 rounds of swiss
 3. Click "Go to Playoff"
@@ -75,6 +78,7 @@ The `data-testid="login-error"` attribute was only present on the email validati
 Clicking "Restore round" does not immediately restore — it shows a confirmation modal with a danger button. The round is only restored after confirming. This is good UX but wasn't obvious from the component code alone.
 
 **Steps:**
+
 1. Start tournament, draw round, save results
 2. Click "Restore round" link
 3. Confirmation modal appears with danger-styled button
@@ -84,13 +88,13 @@ Clicking "Restore round" does not immediately restore — it shows a confirmatio
 
 ## Test Coverage Summary
 
-| Module | Tests | Status |
-|--------|-------|--------|
-| Auth | 3 | 2 pass, 1 skip (register) |
-| Swiss System | 11 | All pass |
-| Supermele | 4 | All pass |
-| Groups (Round-Robin) | 2 | All pass |
-| Tournament Management | 4 | All pass |
-| **Total** | **24** | **23 pass, 1 skip** |
+| Module                | Tests  | Status                    |
+| --------------------- | ------ | ------------------------- |
+| Auth                  | 3      | 2 pass, 1 skip (register) |
+| Swiss System          | 11     | All pass                  |
+| Supermele             | 4      | All pass                  |
+| Groups (Round-Robin)  | 2      | All pass                  |
+| Tournament Management | 4      | All pass                  |
+| **Total**             | **24** | **23 pass, 1 skip**       |
 
 Full suite runs in ~1.8 minutes with serial execution (1 worker).

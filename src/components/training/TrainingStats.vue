@@ -255,7 +255,7 @@ export default {
             };
         },
         progressData() {
-            return this.filteredSessions
+            return [...this.filteredSessions]
                 .sort((a, b) => a.createdAt - b.createdAt)
                 .map((session) => {
                     let attempts = session.attempts || [];
@@ -466,12 +466,15 @@ export default {
 .tstats__dot--carreau {
     background: var(--tir-carreau);
 }
+
 .tstats__dot--reussi {
     background: var(--tir-reussi);
 }
+
 .tstats__dot--touche {
     background: var(--tir-touche);
 }
+
 .tstats__dot--manque {
     background: var(--tir-manque);
 }
@@ -493,12 +496,15 @@ export default {
 .tstats__dist-bar--carreau {
     background: var(--tir-carreau);
 }
+
 .tstats__dist-bar--reussi {
     background: var(--tir-reussi);
 }
+
 .tstats__dist-bar--touche {
     background: var(--tir-touche);
 }
+
 .tstats__dist-bar--manque {
     background: var(--tir-manque);
 }

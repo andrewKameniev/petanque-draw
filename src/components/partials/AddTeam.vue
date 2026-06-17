@@ -1,69 +1,116 @@
 <template>
     <div class="add-team-card">
         <div class="add-team-card__row" v-if="!importHidden">
-            <input v-model="tournamentId" @keydown.enter="importList" class="add-team-card__input" type="number" data-testid="input-portal-id" :placeholder="$t('teams.tournamentId')" :disabled="importing">
-            <button class="add-team-card__btn add-team-card__btn--import" data-testid="btn-import-portal" @click="importList" :disabled="importing">
+            <input
+                v-model="tournamentId"
+                @keydown.enter="importList"
+                class="add-team-card__input"
+                type="number"
+                data-testid="input-portal-id"
+                :placeholder="$t('teams.tournamentId')"
+                :disabled="importing"
+            />
+            <button
+                class="add-team-card__btn add-team-card__btn--import"
+                data-testid="btn-import-portal"
+                @click="importList"
+                :disabled="importing"
+            >
                 <span v-if="importing" class="add-team-card__spinner"></span>
                 {{ importing ? $t('teams.importing') : $t('teams.importPortal') }}
             </button>
-            <button v-if="tournament.teams && tournament.teams.length" class="add-team-card__btn add-team-card__btn--clear" @click="onClearTeams">
-                <Trash2 :size="14"/>
+            <button
+                v-if="tournament.teams && tournament.teams.length"
+                class="add-team-card__btn add-team-card__btn--clear"
+                @click="onClearTeams"
+            >
+                <Trash2 :size="14" />
                 {{ $t('teams.clearTeams') }}
             </button>
         </div>
         <div class="add-team-card__row">
-            <input v-model="teamTitle" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--name" type="text" data-testid="input-team-title" :placeholder="$t('teams.teamTitle')">
-            <input v-if="tournament.useRating" v-model="teamRating" @keyup.enter="addTeam(teamTitle, teamRating)" class="add-team-card__input add-team-card__input--rating" type="number" :placeholder="$t('teams.rating')">
-            <button class="add-team-card__btn" data-testid="btn-add-team" @click="addTeam(teamTitle, teamRating)">{{ $t('teams.addTeam') }}</button>
+            <input
+                v-model="teamTitle"
+                @keyup.enter="addTeam(teamTitle, teamRating)"
+                class="add-team-card__input add-team-card__input--name"
+                type="text"
+                data-testid="input-team-title"
+                :placeholder="$t('teams.teamTitle')"
+            />
+            <input
+                v-if="tournament.useRating"
+                v-model="teamRating"
+                @keyup.enter="addTeam(teamTitle, teamRating)"
+                class="add-team-card__input add-team-card__input--rating"
+                type="number"
+                :placeholder="$t('teams.rating')"
+            />
+            <button class="add-team-card__btn" data-testid="btn-add-team" @click="addTeam(teamTitle, teamRating)">
+                {{ $t('teams.addTeam') }}
+            </button>
         </div>
         <div class="add-team-card__footer">
             <label class="add-team-card__checkbox">
-                <input type="checkbox" :checked="tournament.useRating" @change="changeDrawType($event.target.checked)">
+                <input
+                    type="checkbox"
+                    :checked="tournament.useRating"
+                    @change="changeDrawType($event.target.checked)"
+                />
                 {{ $t('teams.useTeamRating') }}
             </label>
-            <button v-if="showRestore" class="add-team-card__restore" @click="$emit('restore')">{{ $t('teams.restoreTeams') }}</button>
+            <button v-if="showRestore" class="add-team-card__restore" @click="$emit('restore')">
+                {{ $t('teams.restoreTeams') }}
+            </button>
         </div>
     </div>
 </template>
 
 <script>
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {Trash2} from "lucide-vue-next";
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { Trash2 } from 'lucide-vue-next';
 
 export default {
     name: 'AddTeam',
-    components: {Trash2},
+    components: { Trash2 },
     props: ['importHidden', 'showRestore'],
-    data(){
+    data() {
         return {
             teamTitle: null,
             teamRating: null,
             tournamentId: null,
             importing: false,
-        }
+        };
     },
     emits: ['add-team', 'change-draw-style', 'restore'],
     computed: {
         ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
     },
     methods: {
-        ...mapActions(useMainStore, ['addTeamToStore', 'clearTeams', 'changeDrawType', 'showMessage', 'setTournamentIdFromPortal', 'setTournamentInfoFromPortal', 'syncToFirebase']),
-        addTeam(title, rating, players = false, portalTeamId = null, club = null){
-            if(title !== null && title !== ''){
+        ...mapActions(useMainStore, [
+            'addTeamToStore',
+            'clearTeams',
+            'changeDrawType',
+            'showMessage',
+            'setTournamentIdFromPortal',
+            'setTournamentInfoFromPortal',
+            'syncToFirebase',
+        ]),
+        addTeam(title, rating, players = false, portalTeamId = null, club = null) {
+            if (title !== null && title !== '') {
                 let teamExists = false;
                 if (!this.tournament.teams) {
                     this.tournament.teams = [];
                 }
-                this.tournament.teams.forEach(team => {
-                    if(team.title === title){
+                this.tournament.teams.forEach((team) => {
+                    if (team.title === title) {
                         teamExists = true;
                     }
                 });
-                if(!teamExists){
+                if (!teamExists) {
                     const team = {
                         title: title.trim(),
                         rating: rating,
@@ -77,48 +124,65 @@ export default {
                         pointsMinus: 0,
                         opponents: ['placeholder'],
                         lanes: [],
-                    }
-                    this.addTeamToStore(team)
+                    };
+                    this.addTeamToStore(team);
                     this.syncToFirebase();
                     this.teamTitle = null;
                     this.teamRating = null;
                 } else {
-                    this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.teamExists'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.error'),
+                        text: this.$t('messages.teamExists'),
+                        type: 'error',
+                    });
                 }
             } else {
-                this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.enterFields'), type: 'error'});
+                this.showMessage({
+                    title: this.$t('messages.error'),
+                    text: this.$t('messages.enterFields'),
+                    type: 'error',
+                });
             }
-
         },
-        async importList(){
+        async importList() {
             if (!this.tournamentId) return;
             this.importing = true;
             try {
-                let response = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`);
+                let response = await fetch(
+                    `https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`,
+                );
 
                 if (response.ok) {
                     let importedList = await response.json();
 
-                    importedList.teams.forEach(team => {
+                    importedList.teams.forEach((team) => {
                         this.addTeam(team.name, +team.power, team.players, team.id, team.club);
-                    })
+                    });
                     this.setTournamentInfoFromPortal(importedList.tournament);
                     this.setTournamentIdFromPortal(this.tournamentId);
                     this.syncToFirebase();
                 } else {
-                    this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.tournamentNotFound'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.error'),
+                        text: this.$t('messages.tournamentNotFound'),
+                        type: 'error',
+                    });
                 }
-            } catch (e) {
-                this.showMessage({title: this.$t('messages.error'), text: this.$t('messages.tournamentNotFound'), type: 'error'});
+            } catch {
+                this.showMessage({
+                    title: this.$t('messages.error'),
+                    text: this.$t('messages.tournamentNotFound'),
+                    type: 'error',
+                });
             } finally {
                 this.importing = false;
             }
         },
         onClearTeams() {
             this.clearTeams();
-        }
+        },
     },
-}
+};
 </script>
 
 <style scoped>
@@ -215,7 +279,7 @@ export default {
     display: inline-block;
     width: 14px;
     height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgb(255 255 255 / 30%);
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
@@ -224,7 +288,9 @@ export default {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .add-team-card__footer {
@@ -242,7 +308,6 @@ export default {
     color: var(--color-text-secondary);
     cursor: pointer;
 }
-
 
 .add-team-card__restore {
     padding: 0.4rem 0.75rem;

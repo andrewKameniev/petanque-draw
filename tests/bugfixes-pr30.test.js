@@ -9,7 +9,7 @@ describe('Bug #1: Restore from first playoff stage should restore cadrage', () =
                 stages: [
                     ...(hasCadrage ? [{ stageLabel: 'cadrage', teams: [] }] : []),
                     { stageLabel: firstPlayoffStageLabel, teams: [{ team_1: 'A', team_2: 'B' }] },
-                ]
+                ],
             },
             playOffStage: currentStage,
             cadrage: hasCadrage ? [{ team_1: 'A', team_2: 'B', team_1_score: 10, team_2_score: 5 }] : undefined,
@@ -26,7 +26,7 @@ describe('Bug #1: Restore from first playoff stage should restore cadrage', () =
 
         const bracket = tournament.playOffBracket;
         const currentStage = tournament.playOffStage;
-        const firstPlayoffStageLabel = bracket.stages.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
+        const firstPlayoffStageLabel = bracket.stages.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
 
         // Simulate the restore logic
         const shouldRestoreToPreviousPlayoffStage = bracket && currentStage && currentStage < firstPlayoffStageLabel;
@@ -58,7 +58,7 @@ describe('Bug #1: Restore from first playoff stage should restore cadrage', () =
 
         const bracket = tournament.playOffBracket;
         const currentStage = tournament.playOffStage;
-        const firstPlayoffStageLabel = bracket.stages.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
+        const firstPlayoffStageLabel = bracket.stages.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
 
         const shouldRestoreToPreviousPlayoffStage = bracket && currentStage && currentStage < firstPlayoffStageLabel;
         expect(shouldRestoreToPreviousPlayoffStage).toBe(false);
@@ -83,14 +83,14 @@ describe('Bug #1: Restore from first playoff stage should restore cadrage', () =
                 stages: [
                     { stageLabel: 4, teams: [{ team_1: 'A', team_2: 'B' }] },
                     { stageLabel: 2, teams: [{ team_1: 'C', team_2: null }] },
-                ]
+                ],
             },
             playOffStage: 2,
         };
 
         const bracket = tournament.playOffBracket;
         const currentStage = tournament.playOffStage;
-        const firstPlayoffStageLabel = bracket.stages.find(s => s.stageLabel !== 'cadrage')?.stageLabel;
+        const firstPlayoffStageLabel = bracket.stages.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
 
         const shouldRestoreToPreviousPlayoffStage = bracket && currentStage && currentStage < firstPlayoffStageLabel;
         expect(shouldRestoreToPreviousPlayoffStage).toBe(true);
@@ -108,27 +108,23 @@ describe('Bug #2: Cadrage saveResults validates scores before advancing', () => 
         ];
         const maxScore = 13;
 
-        const hasError = cadrageGames.some(game => isScoreError(game, maxScore));
+        const hasError = cadrageGames.some((game) => isScoreError(game, maxScore));
         expect(hasError).toBe(true);
     });
 
     it('blocks save when scores are tied', () => {
-        const cadrageGames = [
-            { team_1_score: 10, team_2_score: 10 },
-        ];
+        const cadrageGames = [{ team_1_score: 10, team_2_score: 10 }];
         const maxScore = 13;
 
-        const hasError = cadrageGames.some(game => isScoreError(game, maxScore));
+        const hasError = cadrageGames.some((game) => isScoreError(game, maxScore));
         expect(hasError).toBe(true);
     });
 
     it('blocks save when score exceeds maxScore', () => {
-        const cadrageGames = [
-            { team_1_score: 14, team_2_score: 5 },
-        ];
+        const cadrageGames = [{ team_1_score: 14, team_2_score: 5 }];
         const maxScore = 13;
 
-        const hasError = cadrageGames.some(game => isScoreError(game, maxScore));
+        const hasError = cadrageGames.some((game) => isScoreError(game, maxScore));
         expect(hasError).toBe(true);
     });
 
@@ -140,7 +136,7 @@ describe('Bug #2: Cadrage saveResults validates scores before advancing', () => 
         ];
         const maxScore = 13;
 
-        const hasError = cadrageGames.some(game => isScoreError(game, maxScore));
+        const hasError = cadrageGames.some((game) => isScoreError(game, maxScore));
         expect(hasError).toBe(false);
     });
 });
@@ -162,7 +158,7 @@ describe('Bug #3: Playoff lane order is shuffled', () => {
 
         const unique = new Set(laneOrder);
         expect(unique.size).toBe(teamCount);
-        laneOrder.forEach(lane => {
+        laneOrder.forEach((lane) => {
             expect(lane).toBeGreaterThanOrEqual(0);
             expect(lane).toBeLessThan(teamCount);
         });

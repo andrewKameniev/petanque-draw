@@ -15,4 +15,4 @@ export {
     User as IconUser,
     LogOut as IconLogout,
     Copy as IconCopy,
-} from 'lucide-vue-next'
+} from 'lucide-vue-next';

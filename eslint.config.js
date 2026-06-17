@@ -1,10 +1,10 @@
-import js from '@eslint/js'
-import pluginVue from 'eslint-plugin-vue'
-import prettier from 'eslint-config-prettier'
+import js from '@eslint/js';
+import pluginVue from 'eslint-plugin-vue';
+import prettier from 'eslint-config-prettier';
 
 export default [
     {
-        ignores: ['dist/', 'node_modules/', 'public/', 'src/assets/css/bulma.min.css']
+        ignores: ['dist/', 'node_modules/', 'public/', 'src/assets/css/bulma.min.css'],
     },
     js.configs.recommended,
     ...pluginVue.configs['flat/essential'],
@@ -33,7 +33,12 @@ export default [
                 firebase: 'readonly',
                 Event: 'readonly',
                 atob: 'readonly',
-            }
+                location: 'readonly',
+                prompt: 'readonly',
+                NodeFilter: 'readonly',
+                requestAnimationFrame: 'readonly',
+                IntersectionObserver: 'readonly',
+            },
         },
         rules: {
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
@@ -41,6 +46,6 @@ export default [
             'no-useless-assignment': 'warn',
             'vue/multi-word-component-names': 'off',
             'vue/no-reserved-component-names': 'off',
-        }
-    }
-]
+        },
+    },
+];

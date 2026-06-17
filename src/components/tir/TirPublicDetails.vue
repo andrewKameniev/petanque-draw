@@ -2,40 +2,84 @@
     <div class="tir-details">
         <h3 class="tir-details__title">{{ $t('results.title') }}</h3>
         <div v-if="rankedParticipants.length" class="tir-details__list">
-            <div v-for="(participant, pIdx) in rankedParticipants" :key="participant.id || pIdx" class="tir-details__card">
+            <div
+                v-for="(participant, pIdx) in rankedParticipants"
+                :key="participant.id || pIdx"
+                class="tir-details__card"
+            >
                 <div class="tir-details__card-header" @click="toggleExpand(pIdx)">
                     <span class="tir-details__rank">{{ pIdx + 1 }}</span>
                     <span class="tir-details__name">{{ participant.name }}</span>
-                    <span class="tir-details__score"><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</span>
-                    <ChevronDown :size="16" class="tir-details__chevron" :class="{'tir-details__chevron--open': expanded === pIdx}"/>
+                    <span class="tir-details__score"
+                        ><strong>{{ getTotal(participant) }}</strong> / {{ maxTotal }}</span
+                    >
+                    <ChevronDown
+                        :size="16"
+                        class="tir-details__chevron"
+                        :class="{ 'tir-details__chevron--open': expanded === pIdx }"
+                    />
                 </div>
                 <div v-if="expanded === pIdx" class="tir-details__body">
                     <div v-for="(atelier, aIdx) in atelierNames" :key="aIdx" class="tir-details__atelier">
                         <div class="tir-details__atelier-header">
                             <span class="tir-details__atelier-name">{{ aIdx + 1 }}. {{ atelier }}</span>
-                            <span class="tir-details__atelier-score">{{ getAtelierTotal(participant, aIdx) }} / {{ maxAtelierScore }}</span>
+                            <span class="tir-details__atelier-score"
+                                >{{ getAtelierTotal(participant, aIdx) }} / {{ maxAtelierScore }}</span
+                            >
                         </div>
                         <div class="tir-details__grid">
                             <div class="tir-details__grid-header">
                                 <div class="tir-details__grid-corner"></div>
-                                <div class="tir-details__grid-th tir-details__grid-th--carreau">{{ $t('tir.carreau') }}</div>
-                                <div class="tir-details__grid-th tir-details__grid-th--reussi">{{ $t('tir.reussi') }}</div>
-                                <div class="tir-details__grid-th tir-details__grid-th--touche">{{ $t('tir.touche') }}</div>
-                                <div class="tir-details__grid-th tir-details__grid-th--manque">{{ $t('tir.manque') }}</div>
+                                <div class="tir-details__grid-th tir-details__grid-th--carreau">
+                                    {{ $t('tir.carreau') }}
+                                </div>
+                                <div class="tir-details__grid-th tir-details__grid-th--reussi">
+                                    {{ $t('tir.reussi') }}
+                                </div>
+                                <div class="tir-details__grid-th tir-details__grid-th--touche">
+                                    {{ $t('tir.touche') }}
+                                </div>
+                                <div class="tir-details__grid-th tir-details__grid-th--manque">
+                                    {{ $t('tir.manque') }}
+                                </div>
                             </div>
                             <div v-for="distance in distances" :key="distance" class="tir-details__grid-row">
                                 <div class="tir-details__grid-distance">{{ distance }}m</div>
-                                <div class="tir-details__grid-cell" :class="{'tir-details__grid-cell--carreau': getScore(participant, aIdx, distance) === 'carreau'}">
-                                    <Check v-if="getScore(participant, aIdx, distance) === 'carreau'" :size="14"/>
+                                <div
+                                    class="tir-details__grid-cell"
+                                    :class="{
+                                        'tir-details__grid-cell--carreau':
+                                            getScore(participant, aIdx, distance) === 'carreau',
+                                    }"
+                                >
+                                    <Check v-if="getScore(participant, aIdx, distance) === 'carreau'" :size="14" />
                                 </div>
-                                <div class="tir-details__grid-cell" :class="{'tir-details__grid-cell--reussi': getScore(participant, aIdx, distance) === 'reussi'}">
-                                    <Check v-if="getScore(participant, aIdx, distance) === 'reussi'" :size="14"/>
+                                <div
+                                    class="tir-details__grid-cell"
+                                    :class="{
+                                        'tir-details__grid-cell--reussi':
+                                            getScore(participant, aIdx, distance) === 'reussi',
+                                    }"
+                                >
+                                    <Check v-if="getScore(participant, aIdx, distance) === 'reussi'" :size="14" />
                                 </div>
-                                <div class="tir-details__grid-cell" :class="{'tir-details__grid-cell--touche': getScore(participant, aIdx, distance) === 'touche'}">
-                                    <Check v-if="getScore(participant, aIdx, distance) === 'touche'" :size="14"/>
+                                <div
+                                    class="tir-details__grid-cell"
+                                    :class="{
+                                        'tir-details__grid-cell--touche':
+                                            getScore(participant, aIdx, distance) === 'touche',
+                                    }"
+                                >
+                                    <Check v-if="getScore(participant, aIdx, distance) === 'touche'" :size="14" />
                                 </div>
-                                <div class="tir-details__grid-cell" :class="{'tir-details__grid-cell--manque': getScore(participant, aIdx, distance) === 'manque'}">
-                                    <Check v-if="getScore(participant, aIdx, distance) === 'manque'" :size="14"/>
+                                <div
+                                    class="tir-details__grid-cell"
+                                    :class="{
+                                        'tir-details__grid-cell--manque':
+                                            getScore(participant, aIdx, distance) === 'manque',
+                                    }"
+                                >
+                                    <Check v-if="getScore(participant, aIdx, distance) === 'manque'" :size="14" />
                                 </div>
                             </div>
                         </div>
@@ -48,19 +92,19 @@
 </template>
 
 <script>
-import {ChevronDown, Check} from "lucide-vue-next";
+import { ChevronDown, Check } from 'lucide-vue-next';
 
-const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+const SCORING = { carreau: 5, reussi: 3, touche: 1, manque: 0 };
 const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
 
 export default {
     name: 'TirPublicDetails',
-    components: {ChevronDown, Check},
+    components: { ChevronDown, Check },
     props: {
-        tournament: {type: Object, required: true}
+        tournament: { type: Object, required: true },
     },
     data() {
-        return {expanded: null}
+        return { expanded: null };
     },
     computed: {
         isJunior() {
@@ -76,14 +120,14 @@ export default {
             return 5 * this.maxAtelierScore;
         },
         atelierNames() {
-            return ATELIER_KEYS.map(k => this.$t(`tir.${k}`));
+            return ATELIER_KEYS.map((k) => this.$t(`tir.${k}`));
         },
         participants() {
             return this.tournament.tirParticipants || [];
         },
         rankedParticipants() {
             return [...this.participants].sort((a, b) => this.getTotal(b) - this.getTotal(a));
-        }
+        },
     },
     methods: {
         toggleExpand(idx) {
@@ -92,8 +136,10 @@ export default {
         getTotal(participant) {
             if (!participant.scores) return 0;
             let total = 0;
-            Object.values(participant.scores).forEach(atelier => {
-                Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+            Object.values(participant.scores).forEach((atelier) => {
+                Object.values(atelier).forEach((val) => {
+                    total += SCORING[val] || 0;
+                });
             });
             return total;
         },
@@ -104,9 +150,9 @@ export default {
         },
         getScore(participant, atelierIdx, distance) {
             return participant.scores?.[atelierIdx]?.[distance] || null;
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
@@ -221,10 +267,21 @@ export default {
     padding: 2px;
 }
 
-.tir-details__grid-th--carreau { color: var(--tir-carreau); }
-.tir-details__grid-th--reussi { color: var(--tir-reussi); }
-.tir-details__grid-th--touche { color: var(--tir-touche); }
-.tir-details__grid-th--manque { color: var(--tir-manque); }
+.tir-details__grid-th--carreau {
+    color: var(--tir-carreau);
+}
+
+.tir-details__grid-th--reussi {
+    color: var(--tir-reussi);
+}
+
+.tir-details__grid-th--touche {
+    color: var(--tir-touche);
+}
+
+.tir-details__grid-th--manque {
+    color: var(--tir-manque);
+}
 
 .tir-details__grid-row {
     display: flex;
@@ -250,10 +307,29 @@ export default {
     justify-content: center;
 }
 
-.tir-details__grid-cell--carreau { background: var(--tir-carreau); border-color: var(--tir-carreau); color: var(--color-btn-text); }
-.tir-details__grid-cell--reussi { background: var(--tir-reussi); border-color: var(--tir-reussi); color: var(--color-btn-text); }
-.tir-details__grid-cell--touche { background: var(--tir-touche); border-color: var(--tir-touche); color: var(--color-btn-text); }
-.tir-details__grid-cell--manque { background: var(--tir-manque); border-color: var(--tir-manque); color: var(--color-btn-text); }
+.tir-details__grid-cell--carreau {
+    background: var(--tir-carreau);
+    border-color: var(--tir-carreau);
+    color: var(--color-btn-text);
+}
+
+.tir-details__grid-cell--reussi {
+    background: var(--tir-reussi);
+    border-color: var(--tir-reussi);
+    color: var(--color-btn-text);
+}
+
+.tir-details__grid-cell--touche {
+    background: var(--tir-touche);
+    border-color: var(--tir-touche);
+    color: var(--color-btn-text);
+}
+
+.tir-details__grid-cell--manque {
+    background: var(--tir-manque);
+    border-color: var(--tir-manque);
+    color: var(--color-btn-text);
+}
 
 .tir-details__empty {
     text-align: center;

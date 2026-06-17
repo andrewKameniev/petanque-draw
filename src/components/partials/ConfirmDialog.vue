@@ -3,15 +3,23 @@
         <div class="confirm-dialog">
             <p class="confirm-dialog__text">{{ message }}</p>
             <div class="confirm-dialog__actions">
-                <button class="confirm-dialog__btn confirm-dialog__btn--cancel" @click="$emit('cancel')">{{ cancelLabel }}</button>
-                <button class="confirm-dialog__btn confirm-dialog__btn--confirm" :data-testid="confirmTestId" @click="$emit('confirm')">{{ confirmLabel }}</button>
+                <button class="confirm-dialog__btn confirm-dialog__btn--cancel" @click="$emit('cancel')">
+                    {{ cancelLabel }}
+                </button>
+                <button
+                    class="confirm-dialog__btn confirm-dialog__btn--confirm"
+                    :data-testid="confirmTestId"
+                    @click="$emit('confirm')"
+                >
+                    {{ confirmLabel }}
+                </button>
             </div>
         </div>
     </Modal>
 </template>
 
 <script>
-import Modal from "@/components/Modal";
+import Modal from '@/components/Modal';
 
 export default {
     name: 'ConfirmDialog',
@@ -21,9 +29,9 @@ export default {
         message: { type: String, required: true },
         confirmLabel: { type: String, required: true },
         cancelLabel: { type: String, required: true },
-        confirmTestId: { type: String, default: null }
-    }
-}
+        confirmTestId: { type: String, default: null },
+    },
+};
 </script>
 
 <style scoped>

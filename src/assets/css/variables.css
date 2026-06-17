@@ -5,32 +5,32 @@
 
 :root {
     /* Grey scale */
-    --grey-0: #ffffff;
+    --grey-0: #fff;
     --grey-50: #f9fafb;
     --grey-100: #f7f7f7;
     --grey-150: #f5f5f5;
     --grey-200: #f4f4f4;
     --grey-250: #f0f1f5;
     --grey-300: #f0f0f0;
-    --grey-350: #eeeeee;
+    --grey-350: #eee;
     --grey-400: #e8e8e8;
     --grey-450: #e5e7f0;
     --grey-500: #e0e0e0;
-    --grey-550: #dddddd;
+    --grey-550: #ddd;
     --grey-600: #dbdbdb;
-    --grey-650: #cccccc;
+    --grey-650: #ccc;
     --grey-700: #b5b5b5;
-    --grey-750: #aaaaaa;
-    --grey-800: #999999;
+    --grey-750: #aaa;
+    --grey-800: #999;
     --grey-850: #8b8fa3;
-    --grey-900: #666666;
-    --grey-950: #555555;
+    --grey-900: #666;
+    --grey-950: #555;
     --grey-1000: #4b5563;
     --grey-1050: #4a4a4a;
     --grey-1100: #374151;
-    --grey-1150: #333333;
+    --grey-1150: #333;
     --grey-1200: #1a1a2e;
-    --grey-1250: #000000;
+    --grey-1250: #000;
 
     /* Purple scale */
     --purple-50: #f3eeff;
@@ -42,29 +42,29 @@
 
     /* Green scale */
     --green-50: #e8f5e9;
-    --green-100: #7FC6A6;
-    --green-200: #4CAF50;
-    --green-300: #43A047;
+    --green-100: #7fc6a6;
+    --green-200: #4caf50;
+    --green-300: #43a047;
     --green-400: #22c55e;
-    --green-500: #1FA37A;
+    --green-500: #1fa37a;
     --green-600: #16a34a;
     --green-700: #178c68;
     --green-800: #10b981;
     --green-900: #059669;
     --green-1000: #2e7d32;
-    --green-1100: #02C66F;
+    --green-1100: #02c66f;
 
     /* Blue scale */
-    --blue-100: #60A5FA;
-    --blue-200: #42A5F5;
+    --blue-100: #60a5fa;
+    --blue-200: #42a5f5;
     --blue-300: #3b82f6;
-    --blue-400: #2196F3;
-    --blue-500: #0EA5E9;
+    --blue-400: #2196f3;
+    --blue-500: #0ea5e9;
 
     /* Amber/Orange scale */
     --amber-50: #fef9ec;
     --amber-100: #fff3e0;
-    --amber-200: #F5A623;
+    --amber-200: #f5a623;
     --amber-300: #f0ad4e;
     --amber-400: #e6a817;
     --amber-500: #e6951e;
@@ -83,14 +83,14 @@
     --red-800: #be185d;
 
     /* Gold / Silver / Bronze */
-    --gold-1: rgba(255, 197, 0, 0.18);
-    --gold-2: rgba(255, 197, 0, 0.3);
+    --gold-1: rgb(255 197 0 / 18%);
+    --gold-2: rgb(255 197 0 / 30%);
     --gold-3: #f5c518;
-    --silver-1: rgba(192, 192, 192, 0.25);
-    --silver-2: rgba(192, 192, 192, 0.4);
+    --silver-1: rgb(192 192 192 / 25%);
+    --silver-2: rgb(192 192 192 / 40%);
     --silver-3: #aaa;
-    --bronze-1: rgba(205, 127, 50, 0.15);
-    --bronze-2: rgba(205, 127, 50, 0.25);
+    --bronze-1: rgb(205 127 50 / 15%);
+    --bronze-2: rgb(205 127 50 / 25%);
     --bronze-3: #cd7f32;
 }
 
@@ -104,8 +104,8 @@
     --color-primary-light: var(--purple-600);
     --color-primary-bg: var(--purple-50);
     --color-primary-bg-hover: var(--purple-200);
-    --color-primary-shadow: rgba(71, 26, 160, 0.25);
-    --color-highlight: rgba(16, 185, 129, 0.12);
+    --color-primary-shadow: rgb(71 26 160 / 25%);
+    --color-highlight: rgb(16 185 129 / 12%);
 
     /* Text */
     --color-text: var(--grey-1200);
@@ -119,11 +119,11 @@
     --color-surface: var(--grey-0);
     --color-surface-hover: var(--grey-150);
     --color-surface-alt: var(--grey-100);
-    --color-surface-semi: rgba(255, 255, 255, 0.5);
-    --color-input-bg: rgba(255, 255, 255, 0.5);
-    --color-table-bg: rgba(255, 255, 255, 0.5);
+    --color-surface-semi: rgb(255 255 255 / 50%);
+    --color-input-bg: rgb(255 255 255 / 50%);
+    --color-table-bg: rgb(255 255 255 / 50%);
     --color-modal-bg: var(--grey-0);
-    --color-overlay-bg: rgba(0, 0, 0, 0.5);
+    --color-overlay-bg: rgb(0 0 0 / 50%);
     --color-bg-input: var(--grey-50);
 
     /* Borders */
@@ -132,7 +132,7 @@
     --color-border-medium: var(--grey-600);
 
     /* Game */
-    --color-game-row-odd: rgba(242, 239, 239, 0.44);
+    --color-game-row-odd: rgb(242 239 239 / 44%);
     --color-game-row-border: var(--grey-650);
     --color-navbar-link: var(--grey-1050);
     --color-lanes-played: var(--grey-800);
@@ -152,8 +152,8 @@
     --color-danger-light: var(--red-500);
 
     /* Shadows */
-    --color-dropdown-shadow: rgba(0, 0, 0, 0.12);
-    --color-card-shadow: rgba(71, 26, 160, 0.08);
+    --color-dropdown-shadow: rgb(0 0 0 / 12%);
+    --color-card-shadow: rgb(71 26 160 / 8%);
 
     /* Buttons */
     --color-btn-text: var(--grey-0);
@@ -176,16 +176,16 @@
     --color-badge-bronze-border: var(--bronze-3);
 
     /* Bracket */
-    --color-bracket-winner: rgba(16, 185, 129, 0.12);
-    --color-bracket-winner-score: rgba(16, 185, 129, 0.22);
+    --color-bracket-winner: rgb(16 185 129 / 12%);
+    --color-bracket-winner-score: rgb(16 185 129 / 22%);
     --color-bracket-gold: var(--gold-1);
     --color-bracket-gold-score: var(--gold-2);
     --color-bracket-silver: var(--silver-1);
     --color-bracket-silver-score: var(--silver-2);
     --color-bracket-bronze: var(--bronze-1);
     --color-bracket-bronze-score: var(--bronze-2);
-    --color-bracket-loser: rgba(255, 255, 255, 1);
-    --color-bracket-loser-score: rgba(0, 0, 0, 0.07);
+    --color-bracket-loser: rgb(255 255 255 / 100%);
+    --color-bracket-loser-score: rgb(0 0 0 / 7%);
     --color-bracket-text: var(--grey-1150);
     --color-bracket-divider: var(--grey-350);
     --color-bracket-connector: var(--grey-650);
@@ -203,7 +203,7 @@
     --color-tab-inactive-hover: var(--grey-500);
 
     /* Misc */
-    --color-ranking-primary-bg: rgba(71, 26, 160, 0.85);
+    --color-ranking-primary-bg: rgb(71 26 160 / 85%);
     --color-help-border: var(--grey-550);
     --color-loader-border: var(--grey-750);
     --color-message-bg: var(--grey-300);
@@ -224,8 +224,8 @@
     --color-public-surface-white: var(--grey-0);
 
     /* TIR scoring */
-    --tir-row-direct-bg: rgba(76, 175, 80, 0.08);
-    --tir-row-r2-bg: rgba(245, 166, 35, 0.08);
+    --tir-row-direct-bg: rgb(76 175 80 / 8%);
+    --tir-row-r2-bg: rgb(245 166 35 / 8%);
     --tir-carreau: var(--green-200);
     --tir-reussi: var(--blue-400);
     --tir-touche: var(--amber-200);
@@ -236,7 +236,7 @@
     --tir-progress-text: var(--amber-600);
     --tir-progress-bg: var(--amber-100);
     --tir-in-progress: var(--purple-500);
-    --tir-in-progress-bg: rgba(94, 53, 177, 0.1);
+    --tir-in-progress-bg: rgb(94 53 177 / 10%);
     --tir-tied-text: var(--red-700);
     --tir-tied-bg: var(--red-100);
     --tir-tied-border: var(--red-300);
@@ -248,14 +248,14 @@
    SEMANTIC TOKENS — DARK
    ═══════════════════════════════════════════════════════════ */
 
-[data-theme="dark"] {
+[data-theme='dark'] {
     /* Brand */
     --color-primary: #8b6fde;
     --color-primary-light: #a78bfa;
     --color-primary-bg: #2d2340;
     --color-primary-bg-hover: #3a2d52;
-    --color-primary-shadow: rgba(139, 111, 222, 0.25);
-    --color-highlight: rgba(139, 111, 222, 0.18);
+    --color-primary-shadow: rgb(139 111 222 / 25%);
+    --color-highlight: rgb(139 111 222 / 18%);
 
     /* Text */
     --color-text: #e4e5ea;
@@ -269,11 +269,11 @@
     --color-surface: #181a24;
     --color-surface-hover: #22253a;
     --color-surface-alt: #1e2130;
-    --color-surface-semi: rgba(24, 26, 36, 0.8);
-    --color-input-bg: rgba(26, 29, 40, 0.9);
-    --color-table-bg: rgba(24, 26, 36, 0.7);
+    --color-surface-semi: rgb(24 26 36 / 80%);
+    --color-input-bg: rgb(26 29 40 / 90%);
+    --color-table-bg: rgb(24 26 36 / 70%);
     --color-modal-bg: #181a24;
-    --color-overlay-bg: rgba(0, 0, 0, 0.75);
+    --color-overlay-bg: rgb(0 0 0 / 75%);
     --color-bg-input: #1a1d28;
 
     /* Borders */
@@ -282,7 +282,7 @@
     --color-border-medium: #3f4656;
 
     /* Game */
-    --color-game-row-odd: rgba(34, 37, 58, 0.4);
+    --color-game-row-odd: rgb(34 37 58 / 40%);
     --color-game-row-border: #2f3543;
     --color-navbar-link: #d1d5db;
     --color-lanes-played: #6b7280;
@@ -302,11 +302,11 @@
     --color-danger-light: #fb7185;
 
     /* Shadows */
-    --color-dropdown-shadow: rgba(0, 0, 0, 0.5);
-    --color-card-shadow: rgba(0, 0, 0, 0.35);
+    --color-dropdown-shadow: rgb(0 0 0 / 50%);
+    --color-card-shadow: rgb(0 0 0 / 35%);
 
     /* Buttons */
-    --color-btn-text: #ffffff;
+    --color-btn-text: #fff;
     --color-btn-dark: #4b5563;
     --color-btn-dark-hover: #6b7280;
     --color-btn-green: #2a9d5c;
@@ -318,24 +318,24 @@
 
     /* Badges */
     --color-badge-purple: #2a2040;
-    --color-badge-gold-bg: rgba(251, 191, 36, 0.35);
+    --color-badge-gold-bg: rgb(251 191 36 / 35%);
     --color-badge-gold-border: #f5c518;
-    --color-badge-silver-bg: rgba(156, 163, 175, 0.30);
+    --color-badge-silver-bg: rgb(156 163 175 / 30%);
     --color-badge-silver-border: #b0b8c4;
-    --color-badge-bronze-bg: rgba(205, 127, 50, 0.30);
+    --color-badge-bronze-bg: rgb(205 127 50 / 30%);
     --color-badge-bronze-border: #e0924a;
 
     /* Bracket */
-    --color-bracket-winner: rgba(168, 85, 247, 0.2);
-    --color-bracket-winner-score: rgba(168, 85, 247, 0.3);
-    --color-bracket-gold: rgba(251, 191, 36, 0.2);
-    --color-bracket-gold-score: rgba(251, 191, 36, 0.3);
-    --color-bracket-silver: rgba(156, 163, 175, 0.18);
-    --color-bracket-silver-score: rgba(156, 163, 175, 0.3);
-    --color-bracket-bronze: rgba(205, 127, 50, 0.18);
-    --color-bracket-bronze-score: rgba(205, 127, 50, 0.28);
+    --color-bracket-winner: rgb(168 85 247 / 20%);
+    --color-bracket-winner-score: rgb(168 85 247 / 30%);
+    --color-bracket-gold: rgb(251 191 36 / 20%);
+    --color-bracket-gold-score: rgb(251 191 36 / 30%);
+    --color-bracket-silver: rgb(156 163 175 / 18%);
+    --color-bracket-silver-score: rgb(156 163 175 / 30%);
+    --color-bracket-bronze: rgb(205 127 50 / 18%);
+    --color-bracket-bronze-score: rgb(205 127 50 / 28%);
     --color-bracket-loser: #1e2130;
-    --color-bracket-loser-score: rgba(255, 255, 255, 0.06);
+    --color-bracket-loser-score: rgb(255 255 255 / 6%);
     --color-bracket-text: #e4e5ea;
     --color-bracket-divider: #3f4656;
     --color-bracket-connector: #5b6478;
@@ -353,7 +353,7 @@
     --color-tab-inactive-hover: #2c3044;
 
     /* Misc */
-    --color-ranking-primary-bg: rgba(139, 111, 222, 0.85);
+    --color-ranking-primary-bg: rgb(139 111 222 / 85%);
     --color-help-border: #2f3543;
     --color-loader-border: #6b7280;
     --color-message-bg: #1e2130;
@@ -374,22 +374,22 @@
     --color-public-surface-white: #181a24;
 
     /* TIR scoring */
-    --tir-row-direct-bg: rgba(76, 175, 80, 0.18);
-    --tir-row-r2-bg: rgba(245, 166, 35, 0.18);
-    --tir-carreau: #66BB6A;
-    --tir-reussi: #42A5F5;
-    --tir-touche: #FFC107;
+    --tir-row-direct-bg: rgb(76 175 80 / 18%);
+    --tir-row-r2-bg: rgb(245 166 35 / 18%);
+    --tir-carreau: #66bb6a;
+    --tir-reussi: #42a5f5;
+    --tir-touche: #ffc107;
     --tir-manque: #757575;
-    --tir-winner: #66BB6A;
-    --tir-winner-text: #81C784;
-    --tir-winner-bg: rgba(76, 175, 80, 0.15);
-    --tir-progress-text: #FFB74D;
-    --tir-progress-bg: rgba(255, 152, 0, 0.12);
-    --tir-in-progress: #B39DDB;
-    --tir-in-progress-bg: rgba(149, 117, 205, 0.15);
-    --tir-tied-text: #EF9A9A;
-    --tir-tied-bg: rgba(229, 57, 53, 0.12);
-    --tir-tied-border: #E57373;
-    --tir-delete: #F48FB1;
+    --tir-winner: #66bb6a;
+    --tir-winner-text: #81c784;
+    --tir-winner-bg: rgb(76 175 80 / 15%);
+    --tir-progress-text: #ffb74d;
+    --tir-progress-bg: rgb(255 152 0 / 12%);
+    --tir-in-progress: #b39ddb;
+    --tir-in-progress-bg: rgb(149 117 205 / 15%);
+    --tir-tied-text: #ef9a9a;
+    --tir-tied-bg: rgb(229 57 53 / 12%);
+    --tir-tied-border: #e57373;
+    --tir-delete: #f48fb1;
     --tir-circle-inactive: #4a4a5a;
 }

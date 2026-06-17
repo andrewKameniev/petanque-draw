@@ -3,104 +3,219 @@
         <div class="team-card__header">
             <div class="team-card__stats">
                 <div v-if="system === 'simple'">
-                    <div v-if="commonTeamStat && commonTeamStat.all.positive + commonTeamStat.all.negative > 0" class="team-card__stat-line">
-                        <span class="team-card__stat-badge">{{ $t('stat.total') }}: {{ commonTeamStat.all.positive }}/{{ commonTeamStat.all.positive + commonTeamStat.all.negative }}
-                            — <strong>{{ Math.round(commonTeamStat.all.positive/(commonTeamStat.all.positive + commonTeamStat.all.negative) * 100) }}%</strong>
+                    <div
+                        v-if="commonTeamStat && commonTeamStat.all.positive + commonTeamStat.all.negative > 0"
+                        class="team-card__stat-line"
+                    >
+                        <span class="team-card__stat-badge"
+                            >{{ $t('stat.total') }}: {{ commonTeamStat.all.positive }}/{{
+                                commonTeamStat.all.positive + commonTeamStat.all.negative
+                            }}
+                            —
+                            <strong
+                                >{{
+                                    Math.round(
+                                        (commonTeamStat.all.positive /
+                                            (commonTeamStat.all.positive + commonTeamStat.all.negative)) *
+                                            100,
+                                    )
+                                }}%</strong
+                            >
                         </span>
-                        <span class="team-card__stat-badge team-card__stat-badge--points" v-if="commonTeamStat.points.positive + commonTeamStat.points.negative !== 0">
-                            P: {{ commonTeamStat.points.positive }}/{{ commonTeamStat.points.positive + commonTeamStat.points.negative }}
-                            — {{ Math.round(commonTeamStat.points.positive/(commonTeamStat.points.positive + commonTeamStat.points.negative) * 100) }}%
+                        <span
+                            class="team-card__stat-badge team-card__stat-badge--points"
+                            v-if="commonTeamStat.points.positive + commonTeamStat.points.negative !== 0"
+                        >
+                            P: {{ commonTeamStat.points.positive }}/{{
+                                commonTeamStat.points.positive + commonTeamStat.points.negative
+                            }}
+                            —
+                            {{
+                                Math.round(
+                                    (commonTeamStat.points.positive /
+                                        (commonTeamStat.points.positive + commonTeamStat.points.negative)) *
+                                        100,
+                                )
+                            }}%
                         </span>
-                        <span class="team-card__stat-badge team-card__stat-badge--tirs" v-if="commonTeamStat.tirs.positive + commonTeamStat.tirs.negative !== 0">
-                            T: {{ commonTeamStat.tirs.positive }}/{{ commonTeamStat.tirs.positive + commonTeamStat.tirs.negative }}
-                            — {{ Math.round(commonTeamStat.tirs.positive/(commonTeamStat.tirs.positive + commonTeamStat.tirs.negative) * 100) }}%
+                        <span
+                            class="team-card__stat-badge team-card__stat-badge--tirs"
+                            v-if="commonTeamStat.tirs.positive + commonTeamStat.tirs.negative !== 0"
+                        >
+                            T: {{ commonTeamStat.tirs.positive }}/{{
+                                commonTeamStat.tirs.positive + commonTeamStat.tirs.negative
+                            }}
+                            —
+                            {{
+                                Math.round(
+                                    (commonTeamStat.tirs.positive /
+                                        (commonTeamStat.tirs.positive + commonTeamStat.tirs.negative)) *
+                                        100,
+                                )
+                            }}%
                         </span>
                     </div>
                 </div>
                 <div v-else class="team-card__stat-line">
                     <span class="team-card__stat-badge team-card__stat-badge--points">
-                        P: vol {{ commonTeamStat.points.volume / team.players.length }}% int {{ commonTeamStat.points.intensity / team.players.length }}%
+                        P: vol {{ commonTeamStat.points.volume / team.players.length }}% int
+                        {{ commonTeamStat.points.intensity / team.players.length }}%
                     </span>
                     <span class="team-card__stat-badge team-card__stat-badge--tirs">
-                        T: vol {{ commonTeamStat.tirs.volume / team.players.length }}% int {{ commonTeamStat.tirs.intensity / team.players.length }}%
+                        T: vol {{ commonTeamStat.tirs.volume / team.players.length }}% int
+                        {{ commonTeamStat.tirs.intensity / team.players.length }}%
                     </span>
                 </div>
             </div>
             <div class="team-card__score-row">
                 <button v-if="gameType > 1" class="team-card__replace-btn" @click="showReplacePlayerModal">
-                    <UserRoundPlus :size="12"/> {{ $t('stat.replacePlayer') }}
+                    <UserRoundPlus :size="12" /> {{ $t('stat.replacePlayer') }}
                 </button>
                 <div class="team-card__score">
                     <span class="team-card__score-label">{{ $t('stat.howManyPoints') }}</span>
-                    <input type="number" class="team-card__score-input"
-                           min="0" max="6"
-                           :value="team.score[currentMan]" @keyup.enter="$emit('next')"
-                           @input="updateScore($event.target.value)">
+                    <input
+                        type="number"
+                        class="team-card__score-input"
+                        min="0"
+                        max="6"
+                        :value="team.score[currentMan]"
+                        @keyup.enter="$emit('next')"
+                        @input="updateScore($event.target.value)"
+                    />
                 </div>
             </div>
         </div>
 
         <div class="team-card__players">
             <template v-for="(player, index) in team.players" :key="index">
-            <div v-if="!player.wasChanged" class="team-card__player">
-                <div class="team-card__player-info">
-                    <button class="team-card__change-btn" @click="showChangePlayerModal(index)">
-                        <UserRoundPen :size="12"/>
-                    </button>
-                    <div class="team-card__player-details">
-                        <span class="team-card__player-name">{{ player.name || $t('stat.playerName') + ' ' + (index + 1) }}</span>
-                        <div class="team-card__player-stat" v-if="system === 'simple' && teamsStat[index].all.positive + teamsStat[index].all.negative > 0">
-                            {{ teamsStat[index].all.positive }}/{{ teamsStat[index].all.positive + teamsStat[index].all.negative }}
-                            — <strong>{{ Math.round(teamsStat[index].all.positive/(teamsStat[index].all.positive + teamsStat[index].all.negative) * 100) }}%</strong>
-                            <template v-if="isCouch">
-                                <span class="team-card__player-stat--points" v-if="teamsStat[index].points.positive + teamsStat[index].points.negative > 0">
-                                    P: {{ teamsStat[index].points.positive }}/{{ teamsStat[index].points.positive + teamsStat[index].points.negative }}
+                <div v-if="!player.wasChanged" class="team-card__player">
+                    <div class="team-card__player-info">
+                        <button class="team-card__change-btn" @click="showChangePlayerModal(index)">
+                            <UserRoundPen :size="12" />
+                        </button>
+                        <div class="team-card__player-details">
+                            <span class="team-card__player-name">{{
+                                player.name || $t('stat.playerName') + ' ' + (index + 1)
+                            }}</span>
+                            <div
+                                class="team-card__player-stat"
+                                v-if="
+                                    system === 'simple' &&
+                                    teamsStat[index].all.positive + teamsStat[index].all.negative > 0
+                                "
+                            >
+                                {{ teamsStat[index].all.positive }}/{{
+                                    teamsStat[index].all.positive + teamsStat[index].all.negative
+                                }}
+                                —
+                                <strong
+                                    >{{
+                                        Math.round(
+                                            (teamsStat[index].all.positive /
+                                                (teamsStat[index].all.positive + teamsStat[index].all.negative)) *
+                                                100,
+                                        )
+                                    }}%</strong
+                                >
+                                <template v-if="isCouch">
+                                    <span
+                                        class="team-card__player-stat--points"
+                                        v-if="teamsStat[index].points.positive + teamsStat[index].points.negative > 0"
+                                    >
+                                        P: {{ teamsStat[index].points.positive }}/{{
+                                            teamsStat[index].points.positive + teamsStat[index].points.negative
+                                        }}
+                                    </span>
+                                    <span
+                                        class="team-card__player-stat--tirs"
+                                        v-if="teamsStat[index].tirs.positive + teamsStat[index].tirs.negative > 0"
+                                    >
+                                        T: {{ teamsStat[index].tirs.positive }}/{{
+                                            teamsStat[index].tirs.positive + teamsStat[index].tirs.negative
+                                        }}
+                                    </span>
+                                </template>
+                            </div>
+                            <div class="team-card__player-stat" v-else-if="system !== 'simple'">
+                                <span v-if="teamsStat[index].serie.filter((item) => item.type === 'p').length">
+                                    P: vol
+                                    {{
+                                        getFrenchStat(
+                                            teamsStat[index].points.volume,
+                                            teamsStat[index].serie.filter((item) => item.type === 'p').length,
+                                        )
+                                    }}% int
+                                    {{
+                                        getFrenchStat(
+                                            teamsStat[index].points.intensity,
+                                            teamsStat[index].serie.filter((item) => item.type === 'p').length,
+                                        )
+                                    }}%
                                 </span>
-                                <span class="team-card__player-stat--tirs" v-if="teamsStat[index].tirs.positive + teamsStat[index].tirs.negative > 0">
-                                    T: {{ teamsStat[index].tirs.positive }}/{{ teamsStat[index].tirs.positive + teamsStat[index].tirs.negative }}
+                                <span v-if="teamsStat[index].serie.filter((item) => item.type === 't').length">
+                                    T: vol
+                                    {{
+                                        getFrenchStat(
+                                            teamsStat[index].tirs.volume,
+                                            teamsStat[index].serie.filter((item) => item.type === 't').length,
+                                        )
+                                    }}% int
+                                    {{
+                                        getFrenchStat(
+                                            teamsStat[index].tirs.intensity,
+                                            teamsStat[index].serie.filter((item) => item.type === 't').length,
+                                        )
+                                    }}%
                                 </span>
-                            </template>
-                        </div>
-                        <div class="team-card__player-stat" v-else-if="system !== 'simple'">
-                            <span v-if="teamsStat[index].serie.filter(item => item.type === 'p').length">
-                                P: vol {{ getFrenchStat(teamsStat[index].points.volume, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%
-                                int {{ getFrenchStat(teamsStat[index].points.intensity, teamsStat[index].serie.filter(item => item.type === 'p').length) }}%
-                            </span>
-                            <span v-if="teamsStat[index].serie.filter(item => item.type === 't').length">
-                                T: vol {{ getFrenchStat(teamsStat[index].tirs.volume, teamsStat[index].serie.filter(item => item.type === 't').length) }}%
-                                int {{ getFrenchStat(teamsStat[index].tirs.intensity, teamsStat[index].serie.filter(item => item.type === 't').length) }}%
-                            </span>
-                        </div>
-                        <div class="throw-result-container" v-if="system === 'simple' && isCouch">
-                            <span class="throw-result" :class="{'-success': item.success, '-carro': item.x2 && item.type === 't' && item.success}"
-                                  v-for="(item, itemIndex) in teamsStat[index].serie.slice(-12)"
-                                  :key="itemIndex"></span>
+                            </div>
+                            <div class="throw-result-container" v-if="system === 'simple' && isCouch">
+                                <span
+                                    class="throw-result"
+                                    :class="{
+                                        '-success': item.success,
+                                        '-carro': item.x2 && item.type === 't' && item.success,
+                                    }"
+                                    v-for="(item, itemIndex) in teamsStat[index].serie.slice(-12)"
+                                    :key="itemIndex"
+                                ></span>
+                            </div>
                         </div>
                     </div>
+                    <div class="team-card__throws">
+                        <ThrowResult
+                            v-for="(res, throwIndex) in team.players[index].stat[currentMan]"
+                            :info="res"
+                            :key="throwIndex"
+                            :system="system"
+                            :iterator="'throwTypeTeam' + iterator + index + throwIndex"
+                            @remove="$emit('removethrow', team, index, currentMan, throwIndex)"
+                            @add="$emit('addthrow', team, index, currentMan, throwIndex)"
+                            @super="$emit('x2throw', team, index, currentMan, throwIndex, $event)"
+                            @updatetype="$emit('updatethrow', team, index, currentMan, throwIndex, 'type', $event)"
+                            @updateresult="$emit('updatethrow', team, index, currentMan, throwIndex, 'success', $event)"
+                            @updateresultfrench="
+                                $emit('updatethrow', team, index, currentMan, throwIndex, 'french', $event)
+                            "
+                            @updatedistance="
+                                $emit('updatethrow', team, index, currentMan, throwIndex, 'distance', $event)
+                            "
+                        />
+                    </div>
                 </div>
-                <div class="team-card__throws">
-                    <ThrowResult v-for="(res, throwIndex) in team.players[index].stat[currentMan]"
-                                 :info="res" :key="throwIndex" :system="system"
-                                 :iterator="'throwTypeTeam' + iterator + index + throwIndex"
-                                 @remove="$emit('removethrow', team, index, currentMan, throwIndex)"
-                                 @add="$emit('addthrow', team, index, currentMan, throwIndex)"
-                                 @super="$emit('x2throw', team, index, currentMan, throwIndex, $event)"
-                                 @updatetype="$emit('updatethrow', team, index, currentMan, throwIndex, 'type', $event)"
-                                 @updateresult="$emit('updatethrow', team, index, currentMan, throwIndex, 'success', $event)"
-                                 @updateresultfrench="$emit('updatethrow', team, index, currentMan, throwIndex, 'french', $event)"
-                                 @updatedistance="$emit('updatethrow', team, index, currentMan, throwIndex, 'distance', $event)"
-                    />
-                </div>
-            </div>
             </template>
         </div>
 
         <Modal v-if="changePlayerModalOpen" @close-modal="changePlayerModalOpen = false">
             <div class="team-card__modal">
                 <label class="team-card__modal-label">{{ $t('stat.enterPlayerName') }}</label>
-                <input type="text" class="team-card__modal-input" v-model="changePlayerName"/>
-                <button class="team-card__modal-btn"
-                        @click="changePlayerModalOpen = false; $emit('changePlayer', iterator, changePlayerIndex, changePlayerName)">
+                <input type="text" class="team-card__modal-input" v-model="changePlayerName" />
+                <button
+                    class="team-card__modal-btn"
+                    @click="
+                        changePlayerModalOpen = false;
+                        $emit('changePlayer', iterator, changePlayerIndex, changePlayerName);
+                    "
+                >
                     {{ $t('stat.changePlayer') }}
                 </button>
             </div>
@@ -111,18 +226,23 @@
                 <label class="team-card__modal-label">{{ $t('stat.replacePlayerTitle') }}</label>
                 <label class="team-card__modal-sublabel">{{ $t('stat.selectPlayerToReplace') }}</label>
                 <div class="team-card__modal-players">
-                    <button v-for="(player, index) in activePlayers" :key="index"
-                            class="team-card__modal-player-btn"
-                            :class="{'team-card__modal-player-btn--active': replacePlayerIndex === player.originalIndex}"
-                            @click="replacePlayerIndex = player.originalIndex">
+                    <button
+                        v-for="(player, index) in activePlayers"
+                        :key="index"
+                        class="team-card__modal-player-btn"
+                        :class="{ 'team-card__modal-player-btn--active': replacePlayerIndex === player.originalIndex }"
+                        @click="replacePlayerIndex = player.originalIndex"
+                    >
                         {{ player.name || $t('stat.playerName') + ' ' + (player.originalIndex + 1) }}
                     </button>
                 </div>
                 <label class="team-card__modal-sublabel">{{ $t('stat.newPlayerName') }}</label>
-                <input type="text" class="team-card__modal-input" v-model="replacePlayerName"/>
-                <button class="team-card__modal-btn"
-                        :disabled="replacePlayerIndex === null || !replacePlayerName"
-                        @click="confirmReplacePlayer">
+                <input type="text" class="team-card__modal-input" v-model="replacePlayerName" />
+                <button
+                    class="team-card__modal-btn"
+                    :disabled="replacePlayerIndex === null || !replacePlayerName"
+                    @click="confirmReplacePlayer"
+                >
                     {{ $t('stat.replacePlayer') }}
                 </button>
             </div>
@@ -131,15 +251,24 @@
 </template>
 
 <script>
-import ThrowResult from "@/components/stats/ThrowResult.vue";
-import Modal from "@/components/Modal.vue";
-import {calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat} from "@/helpers-stat";
-import {UserRoundPen, UserRoundPlus} from "lucide-vue-next";
+import ThrowResult from '@/components/stats/ThrowResult.vue';
+import Modal from '@/components/Modal.vue';
+import { calculateCommonTeamStat, calculateTeamPlayersStat, getFrenchStat } from '@/helpers-stat';
+import { UserRoundPen, UserRoundPlus } from 'lucide-vue-next';
 
 export default {
-    components: {Modal, ThrowResult, UserRoundPen, UserRoundPlus},
+    components: { Modal, ThrowResult, UserRoundPen, UserRoundPlus },
     props: ['team', 'currentMan', 'iterator', 'showThrow', 'system', 'isCouch', 'gameType'],
-    emits: ['update-score', 'removethrow', 'addthrow', 'x2throw', 'updatethrow', 'next', 'changePlayer', 'replacePlayer'],
+    emits: [
+        'update-score',
+        'removethrow',
+        'addthrow',
+        'x2throw',
+        'updatethrow',
+        'next',
+        'changePlayer',
+        'replacePlayer',
+    ],
     data() {
         return {
             changePlayerModalOpen: false,
@@ -148,19 +277,17 @@ export default {
             replacePlayerModalOpen: false,
             replacePlayerName: '',
             replacePlayerIndex: null,
-        }
+        };
     },
     computed: {
         teamsStat() {
-            return calculateTeamPlayersStat(this.team, this.system)
+            return calculateTeamPlayersStat(this.team, this.system);
         },
         commonTeamStat() {
             return calculateCommonTeamStat(this.teamsStat, this.system);
         },
         activePlayers() {
-            return this.team.players
-                .map((p, i) => ({...p, originalIndex: i}))
-                .filter(p => !p.wasChanged);
+            return this.team.players.map((p, i) => ({ ...p, originalIndex: i })).filter((p) => !p.wasChanged);
         },
     },
     methods: {
@@ -180,9 +307,9 @@ export default {
             this.replacePlayerModalOpen = false;
         },
         updateScore(value) {
-            this.$emit("update-score", this.team, parseInt(value, 10) || 0, this.currentMan);
+            this.$emit('update-score', this.team, parseInt(value, 10) || 0, this.currentMan);
         },
-    }
+    },
 };
 </script>
 
@@ -227,12 +354,12 @@ export default {
 }
 
 .team-card__stat-badge--points {
-    background: rgba(2, 198, 111, 0.1);
+    background: rgb(2 198 111 / 10%);
     color: var(--color-stat-green);
 }
 
 .team-card__stat-badge--tirs {
-    background: rgba(25, 144, 255, 0.1);
+    background: rgb(25 144 255 / 10%);
     color: var(--color-stat-blue);
 }
 
@@ -331,7 +458,10 @@ export default {
     cursor: pointer;
     padding: 0.3rem;
     border-radius: 6px;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s,
+        border-color 0.15s;
     flex-shrink: 0;
 }
 

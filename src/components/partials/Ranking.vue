@@ -1,19 +1,29 @@
 <template>
     <div>
-        <div class="round-tabs ranking-subtabs mb-4" v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished && !isForProtocol && !showInSaved">
-            <button class="button is-small mr-1 mb-1"
-                    :class="{'is-purple': rankingSubtab === 'result'}"
-                    @click="rankingSubtab = 'result'">
+        <div
+            class="round-tabs ranking-subtabs mb-4"
+            v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished && !isForProtocol && !showInSaved"
+        >
+            <button
+                class="button is-small mr-1 mb-1"
+                :class="{ 'is-purple': rankingSubtab === 'result' }"
+                @click="rankingSubtab = 'result'"
+            >
                 {{ $t('ranking.tournamentResult') }}
             </button>
-            <button class="button is-small mr-1 mb-1"
-                    :class="{'is-purple': rankingSubtab === 'swiss'}"
-                    @click="rankingSubtab = 'swiss'">
+            <button
+                class="button is-small mr-1 mb-1"
+                :class="{ 'is-purple': rankingSubtab === 'swiss' }"
+                @click="rankingSubtab = 'swiss'"
+            >
                 {{ $t('ranking.swissTable') }}
             </button>
-            <button v-if="tournament.barrage" class="button is-small mr-1 mb-1"
-                    :class="{'is-purple': rankingSubtab === 'barrage'}"
-                    @click="rankingSubtab = 'barrage'">
+            <button
+                v-if="tournament.barrage"
+                class="button is-small mr-1 mb-1"
+                :class="{ 'is-purple': rankingSubtab === 'barrage' }"
+                @click="rankingSubtab = 'barrage'"
+            >
                 {{ $t('games.poulesBarrage') }}
             </button>
         </div>
@@ -21,18 +31,26 @@
             <div v-if="!isForProtocol" class="ranking-header">
                 <h2>{{ $t('ranking.tournamentResult') }}</h2>
                 <div class="ranking-header__actions">
-                    <button v-if="isTournamentOrg && tournament.portalIdTournament" class="button is-small btn-purple-outline" @click="showExportConfirm = true">
-                        <Upload :size="18"/>
+                    <button
+                        v-if="isTournamentOrg && tournament.portalIdTournament"
+                        class="button is-small btn-purple-outline"
+                        @click="showExportConfirm = true"
+                    >
+                        <Upload :size="18" />
                         <span class="is-hidden-mobile">{{ $t('ranking.exportResults') }}</span>
                     </button>
-                    <button class="button is-small btn-purple-outline" :class="{'btn-purple-outline--copied': resultsCopied}" @click="copyResults">
+                    <button
+                        class="button is-small btn-purple-outline"
+                        :class="{ 'btn-purple-outline--copied': resultsCopied }"
+                        @click="copyResults"
+                    >
                         <template v-if="resultsCopied">
-                            <Check :size="18"/>
+                            <Check :size="18" />
                         </template>
                         <template v-else>
-                            <Copy :size="18" class="is-hidden-mobile"/>
+                            <Copy :size="18" class="is-hidden-mobile" />
                             <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
-                            <Copy class="is-hidden-tablet" :size="20"/>
+                            <Copy class="is-hidden-tablet" :size="20" />
                         </template>
                     </button>
                 </div>
@@ -40,31 +58,68 @@
             <div v-if="!isForProtocol" class="table-container">
                 <table id="table-finish-ranking" class="table">
                     <thead>
-                    <tr>
-                        <th>{{ $t('ranking.place') }}</th>
-                        <th>{{ $t('ranking.team') }}</th>
-                        <th>{{ $t('ranking.players') }}</th>
-                    </tr>
+                        <tr>
+                            <th>{{ $t('ranking.place') }}</th>
+                            <th>{{ $t('ranking.team') }}</th>
+                            <th>{{ $t('ranking.players') }}</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking" :key="index"
-                        :class="{'place-gold': team.place == 1, 'place-silver': team.place == 2, 'place-bronze': team.place == 3}">
-                        <td>{{ team.place }}</td>
-                        <td>{{ team.title }}</td>
-                        <td>
-                            <div class="is-size-7" v-if="showInSaved ? team.players && team.players.length : (team.title && getTeamPlayers(team.title).length)">
-                                <span class="has-text-dark" v-for="(player, index) in (showInSaved ? team.players : getTeamPlayers(team.title))" :key="index">{{ player.name }} {{ player.surname || '' }}<span v-if="index < (showInSaved ? team.players : getTeamPlayers(team.title)).length - 1">, </span></span>
-                            </div>
-                        </td>
-                    </tr>
+                        <tr
+                            v-for="(team, index) in showInSaved ? tournament.ranking : tournamentRanking"
+                            :key="index"
+                            :class="{
+                                'place-gold': team.place == 1,
+                                'place-silver': team.place == 2,
+                                'place-bronze': team.place == 3,
+                            }"
+                        >
+                            <td>{{ team.place }}</td>
+                            <td>{{ team.title }}</td>
+                            <td>
+                                <div
+                                    class="is-size-7"
+                                    v-if="
+                                        showInSaved
+                                            ? team.players && team.players.length
+                                            : team.title && getTeamPlayers(team.title).length
+                                    "
+                                >
+                                    <span
+                                        class="has-text-dark"
+                                        v-for="(player, index) in showInSaved
+                                            ? team.players
+                                            : getTeamPlayers(team.title)"
+                                        :key="index"
+                                        >{{ player.name }} {{ player.surname || ''
+                                        }}<span
+                                            v-if="
+                                                index <
+                                                (showInSaved ? team.players : getTeamPlayers(team.title)).length - 1
+                                            "
+                                            >,
+                                        </span></span
+                                    >
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <div v-if="tournament.games?.length && rankingTeams && !isResultOnly">
-            <div v-if="tournament.barrage && activeRound > tournament.barrage.startIndex && !tournament.playOff && !tournament.tournamentIsFinished">
+            <div
+                v-if="
+                    tournament.barrage &&
+                    activeRound > tournament.barrage.startIndex &&
+                    !tournament.playOff &&
+                    !tournament.tournamentIsFinished
+                "
+            >
                 <div v-for="(group, gIndex) in rankingTeams" :key="gIndex">
-                    <h4 v-if="tournament.barrage.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[gIndex] }}</h4>
+                    <h4 v-if="tournament.barrage.groups.length > 1">
+                        {{ $t('common.group') }} {{ groupsNames[gIndex] }}
+                    </h4>
                     <div class="table-container mb-5">
                         <table class="table table is-striped">
                             <thead>
@@ -82,28 +137,40 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex), 'search-highlight': isTeamHighlighted(team.title)}">
-                                <td>{{ index + 1 }}</td>
-                                <td>{{ team.title }}</td>
-                                <td align="center" class="td-highlight">{{ team.wins }}</td>
-                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            </tr>
+                                <tr
+                                    v-for="(team, index) in group"
+                                    :key="index"
+                                    :class="{
+                                        'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex),
+                                        'search-highlight': isTeamHighlighted(team.title),
+                                    }"
+                                >
+                                    <td>{{ index + 1 }}</td>
+                                    <td>{{ team.title }}</td>
+                                    <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                    <td align="center" class="nowrap">
+                                        {{ team.pointsPlus }} : {{ team.pointsMinus }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
             <div v-else-if="isBarrageOnly">
-                <div v-for="(group, gIndex) in barrageRankingTeams" :key="'b'+gIndex">
-                    <h4 v-if="tournament.barrage.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[gIndex] }}</h4>
+                <div v-for="(group, gIndex) in barrageRankingTeams" :key="'b' + gIndex">
+                    <h4 v-if="tournament.barrage.groups.length > 1">
+                        {{ $t('common.group') }} {{ groupsNames[gIndex] }}
+                    </h4>
                     <div class="table-container mb-5">
                         <table class="table table is-striped">
                             <thead>
                                 <tr>
                                     <th>{{ $t('ranking.place') }}</th>
                                     <th>{{ $t('ranking.team') }}</th>
-                                    <th v-for="(col, colIndex) in group" :key="colIndex" align="center">{{ colIndex + 1 }}</th>
+                                    <th v-for="(col, colIndex) in group" :key="colIndex" align="center">
+                                        {{ colIndex + 1 }}
+                                    </th>
                                     <th align="center">
                                         <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                                         <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
@@ -115,101 +182,174 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': team.wins >= 2}">
-                                <td>{{ index + 1 }}</td>
-                                <td>{{ team.title }}</td>
-                                <td v-for="(opponent, oi) in group" :key="oi" align="center" class="no-wrap group-cell">
-                                    <template v-if="team.title === opponent.title">-</template>
-                                    <template v-else>
-                                        <div v-for="(result, ri) in getBarrageGameResults(team.title, opponent.title)" :key="ri"
-                                             :class="{'group-cell--win': result.diff > 0, 'group-cell--lose': result.diff < 0}">
-                                            {{ result.text }}
-                                        </div>
-                                    </template>
-                                </td>
-                                <td align="center" class="td-highlight">{{ team.wins }}</td>
-                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            </tr>
+                                <tr
+                                    v-for="(team, index) in group"
+                                    :key="index"
+                                    :class="{ 'playoff-highlight': team.wins >= 2 }"
+                                >
+                                    <td>{{ index + 1 }}</td>
+                                    <td>{{ team.title }}</td>
+                                    <td
+                                        v-for="(opponent, oi) in group"
+                                        :key="oi"
+                                        align="center"
+                                        class="no-wrap group-cell"
+                                    >
+                                        <template v-if="team.title === opponent.title">-</template>
+                                        <template v-else>
+                                            <div
+                                                v-for="(result, ri) in getBarrageGameResults(
+                                                    team.title,
+                                                    opponent.title,
+                                                )"
+                                                :key="ri"
+                                                :class="{
+                                                    'group-cell--win': result.diff > 0,
+                                                    'group-cell--lose': result.diff < 0,
+                                                }"
+                                            >
+                                                {{ result.text }}
+                                            </div>
+                                        </template>
+                                    </td>
+                                    <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                    <td align="center" class="nowrap">
+                                        {{ team.pointsPlus }} : {{ team.pointsMinus }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
             <div v-else-if="tournament.system === 'swiss'">
-                <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">{{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}</div>
+                <div
+                    v-if="!isForProtocol && activeRound > 1 && !tournament.playOff"
+                    class="has-text-grey is-size-7 mb-2"
+                >
+                    {{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}
+                </div>
                 <template v-if="isForProtocol">
-                    <div v-for="(chunk, ci) in rankingChunks" :key="'rc'+ci" class="pdf-page-break">
-                    <h3 v-if="ci === 0 && sectionTitle" class="text-center is-size-4 mb-2" v-html="sectionTitle"></h3>
-                    <table :id="ci === 0 ? 'table-ranking' : undefined" class="table is-bordered ranking-chunk">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{{ $t('ranking.team') }}</th>
-                            <th align="center">{{ $t('ranking.wins') }}</th>
-                            <th align="center">{{ $t('ranking.buh') }}</th>
-                            <th align="center">{{ $t('ranking.sbuh') }}</th>
-                            <th align="center">{{ $t('ranking.points') }}</th>
-                            <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="(team, index) in chunk" :key="team.title"
-                            :class="{'place-gold': index === 0 && ci === 0, 'place-silver': index === 1 && ci === 0, 'place-bronze': index === 2 && ci === 0}">
-                            <td>{{ ci * rankingChunkSize + index + 1 }}</td>
-                            <td>{{ teamTitles[team.title] }}</td>
-                            <td align="center" class="td-highlight">{{ team.wins }}</td>
-                            <td align="center">{{ team.buhgolts }}</td>
-                            <td align="center">{{ team.smallBuhgolts }}</td>
-                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div v-for="(chunk, ci) in rankingChunks" :key="'rc' + ci" class="pdf-page-break">
+                        <h3
+                            v-if="ci === 0 && sectionTitle"
+                            class="text-center is-size-4 mb-2"
+                            v-html="sectionTitle"
+                        ></h3>
+                        <table :id="ci === 0 ? 'table-ranking' : undefined" class="table is-bordered ranking-chunk">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ $t('ranking.team') }}</th>
+                                    <th align="center">{{ $t('ranking.wins') }}</th>
+                                    <th align="center">{{ $t('ranking.buh') }}</th>
+                                    <th align="center">{{ $t('ranking.sbuh') }}</th>
+                                    <th align="center">{{ $t('ranking.points') }}</th>
+                                    <th v-if="tournament.useRating" align="center">{{ $t('ranking.rating') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="(team, index) in chunk"
+                                    :key="team.title"
+                                    :class="{
+                                        'place-gold': index === 0 && ci === 0,
+                                        'place-silver': index === 1 && ci === 0,
+                                        'place-bronze': index === 2 && ci === 0,
+                                    }"
+                                >
+                                    <td>{{ ci * rankingChunkSize + index + 1 }}</td>
+                                    <td>{{ teamTitles[team.title] }}</td>
+                                    <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                    <td align="center">{{ team.buhgolts }}</td>
+                                    <td align="center">{{ team.smallBuhgolts }}</td>
+                                    <td align="center" class="nowrap">
+                                        {{ team.pointsPlus }} : {{ team.pointsMinus }}
+                                    </td>
+                                    <td v-if="tournament.useRating" align="center">
+                                        <span class="rating-badge">{{ team.rating }}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </template>
                 <div v-else class="table-container" :style="activeTooltip ? 'overflow: visible' : ''">
                     <table id="table-ranking" class="table">
                         <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{{ $t('ranking.team') }}</th>
-                            <th align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
-                            </th>
-                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'buh' ? null : 'buh'">
-                                <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
-                                <div v-if="activeTooltip === 'buh'" class="ranking-tooltip">{{ $t('ranking.buhTooltip') }}</div>
-                            </th>
-                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'sbuh' ? null : 'sbuh'">
-                                <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
-                                <div v-if="activeTooltip === 'sbuh'" class="ranking-tooltip">{{ $t('ranking.sbuhTooltip') }}</div>
-                            </th>
-                            <th align="center" class="has-tooltip" @click="activeTooltip = activeTooltip === 'points' ? null : 'points'">
-                                <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
-                                <div v-if="activeTooltip === 'points'" class="ranking-tooltip ranking-tooltip-right">{{ $t('ranking.pointsTooltip') }}</div>
-                            </th>
-                            <th v-if="tournament.useRating" align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
-                            </th>
-                        </tr>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ $t('ranking.team') }}</th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                                </th>
+                                <th
+                                    align="center"
+                                    class="has-tooltip"
+                                    @click="activeTooltip = activeTooltip === 'buh' ? null : 'buh'"
+                                >
+                                    <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
+                                    <div v-if="activeTooltip === 'buh'" class="ranking-tooltip">
+                                        {{ $t('ranking.buhTooltip') }}
+                                    </div>
+                                </th>
+                                <th
+                                    align="center"
+                                    class="has-tooltip"
+                                    @click="activeTooltip = activeTooltip === 'sbuh' ? null : 'sbuh'"
+                                >
+                                    <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
+                                    <div v-if="activeTooltip === 'sbuh'" class="ranking-tooltip">
+                                        {{ $t('ranking.sbuhTooltip') }}
+                                    </div>
+                                </th>
+                                <th
+                                    align="center"
+                                    class="has-tooltip"
+                                    @click="activeTooltip = activeTooltip === 'points' ? null : 'points'"
+                                >
+                                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                    <div
+                                        v-if="activeTooltip === 'points'"
+                                        class="ranking-tooltip ranking-tooltip-right"
+                                    >
+                                        {{ $t('ranking.pointsTooltip') }}
+                                    </div>
+                                </th>
+                                <th v-if="tournament.useRating" align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
+                                </th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'playoff-highlight': isPrizeHighlighted(index), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
-                            <td><span class="team-count"></span></td>
-                            <td>{{ team.title }}</td>
-                            <td align="center" class="td-highlight">{{ team.wins }}</td>
-                            <td align="center">{{ team.buhgolts }}</td>
-                            <td align="center">{{ team.smallBuhgolts }}</td>
-                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
-                        </tr>
+                            <tr
+                                v-for="(team, index) in rankingTeams"
+                                :key="team.title"
+                                :class="{
+                                    'playoff-highlight': isPrizeHighlighted(index),
+                                    'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
+                                    'place-silver':
+                                        !tournament.playOff && tournament.tournamentIsFinished && index === 1,
+                                    'place-bronze':
+                                        !tournament.playOff && tournament.tournamentIsFinished && index === 2,
+                                    'search-highlight': isTeamHighlighted(team.title),
+                                }"
+                            >
+                                <td><span class="team-count"></span></td>
+                                <td>{{ team.title }}</td>
+                                <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                <td align="center">{{ team.buhgolts }}</td>
+                                <td align="center">{{ team.smallBuhgolts }}</td>
+                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
+                                <td v-if="tournament.useRating" align="center">
+                                    <span class="rating-badge">{{ team.rating }}</span>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -218,52 +358,74 @@
                 <div class="table-container">
                     <table id="table-ranking" class="table">
                         <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{{ $t('ranking.player') }}</th>
-                            <th align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
-                            </th>
-                            <th align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.difference') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.differenceMobile') }}</span>
-                            </th>
-                            <th align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
-                            </th>
-                            <th v-if="tournament.useRating" align="center">
-                                <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
-                                <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
-                            </th>
-                        </tr>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ $t('ranking.player') }}</th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                                </th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.difference') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.differenceMobile') }}</span>
+                                </th>
+                                <th align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                                </th>
+                                <th v-if="tournament.useRating" align="center">
+                                    <span class="is-hidden-mobile">{{ $t('ranking.rating') }}</span>
+                                    <span class="is-hidden-tablet">{{ $t('ranking.ratingMobile') }}</span>
+                                </th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(team, index) in rankingTeams" :key="team.title"
-                            :class="{'place-gold': tournament.tournamentIsFinished && index === 0, 'place-silver': tournament.tournamentIsFinished && index === 1, 'place-bronze': tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
-                            <td><span class="team-count"></span></td>
-                            <td>{{ team.title }}</td>
-                            <td align="center" class="td-highlight">{{ team.wins }}</td>
-                            <td align="center" class="td-highlight">{{team.pointsPlus - team.pointsMinus > 0 ? '+' : ''}}{{ team.pointsPlus - team.pointsMinus }}</td>
-                            <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            <td v-if="tournament.useRating" align="center"><span class="rating-badge">{{ team.rating }}</span></td>
-                        </tr>
+                            <tr
+                                v-for="(team, index) in rankingTeams"
+                                :key="team.title"
+                                :class="{
+                                    'place-gold': tournament.tournamentIsFinished && index === 0,
+                                    'place-silver': tournament.tournamentIsFinished && index === 1,
+                                    'place-bronze': tournament.tournamentIsFinished && index === 2,
+                                    'search-highlight': isTeamHighlighted(team.title),
+                                }"
+                            >
+                                <td><span class="team-count"></span></td>
+                                <td>{{ team.title }}</td>
+                                <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                <td align="center" class="td-highlight">
+                                    {{ team.pointsPlus - team.pointsMinus > 0 ? '+' : ''
+                                    }}{{ team.pointsPlus - team.pointsMinus }}
+                                </td>
+                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
+                                <td v-if="tournament.useRating" align="center">
+                                    <span class="rating-badge">{{ team.rating }}</span>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div v-else-if="tournament.groups">
-                <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff && tournament.roundRobinCircle > 1" class="has-text-grey is-size-7 mb-2">{{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle }}</div>
+                <div
+                    v-if="!isForProtocol && activeRound > 1 && !tournament.playOff && tournament.roundRobinCircle > 1"
+                    class="has-text-grey is-size-7 mb-2"
+                >
+                    {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle }}
+                </div>
                 <div v-for="(group, gIndex) in rankingTeams" :key="gIndex">
-                    <h4 v-if="tournament.groups && tournament.groups.length > 1">{{ $t('common.group') }} {{ groupsNames[gIndex] }}</h4>
+                    <h4 v-if="tournament.groups && tournament.groups.length > 1">
+                        {{ $t('common.group') }} {{ groupsNames[gIndex] }}
+                    </h4>
                     <div class="table-container mb-5">
                         <table class="table table is-striped">
                             <thead>
                                 <tr>
                                     <th>{{ $t('ranking.place') }}</th>
                                     <th>{{ $t('ranking.team') }}</th>
-                                    <th v-for="(col, colIndex) in group" :key="colIndex" align="center">{{ colIndex + 1 }}</th>
+                                    <th v-for="(col, colIndex) in group" :key="colIndex" align="center">
+                                        {{ colIndex + 1 }}
+                                    </th>
                                     <th align="center">
                                         <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                                         <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
@@ -275,23 +437,51 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(team, index) in group" :key="index"
-                                :class="{'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex), 'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0, 'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1, 'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2, 'search-highlight': isTeamHighlighted(team.title)}">
-                                <td>{{ index + 1 }}</td>
-                                <td>{{ isForProtocol ? teamTitles[team.title] : team.title}}</td>
-                                <td v-for="(opponent, indexOpponent) in group" :key="indexOpponent" align="center"
-                                    class="no-wrap group-cell">
-                                    <template v-if="team.title === opponent.title"><span class="group-cell--muted">-</span></template>
-                                    <template v-else>
-                                        <div v-for="(result, ri) in getGameResults(team.title, opponent.title)" :key="ri"
-                                             :class="{'group-cell--win': result.diff > 0 && !result.inProgress, 'group-cell--lose': result.diff < 0 && !result.inProgress, 'group-cell--in-progress': result.inProgress, 'group-cell--muted': result.pending}">
-                                            {{ result.text }}
-                                        </div>
-                                    </template>
-                                </td>
-                                <td align="center" class="td-highlight">{{ team.wins }}</td>
-                                <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
-                            </tr>
+                                <tr
+                                    v-for="(team, index) in group"
+                                    :key="index"
+                                    :class="{
+                                        'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex),
+                                        'place-gold':
+                                            !tournament.playOff && tournament.tournamentIsFinished && index === 0,
+                                        'place-silver':
+                                            !tournament.playOff && tournament.tournamentIsFinished && index === 1,
+                                        'place-bronze':
+                                            !tournament.playOff && tournament.tournamentIsFinished && index === 2,
+                                        'search-highlight': isTeamHighlighted(team.title),
+                                    }"
+                                >
+                                    <td>{{ index + 1 }}</td>
+                                    <td>{{ isForProtocol ? teamTitles[team.title] : team.title }}</td>
+                                    <td
+                                        v-for="(opponent, indexOpponent) in group"
+                                        :key="indexOpponent"
+                                        align="center"
+                                        class="no-wrap group-cell"
+                                    >
+                                        <template v-if="team.title === opponent.title"
+                                            ><span class="group-cell--muted">-</span></template
+                                        >
+                                        <template v-else>
+                                            <div
+                                                v-for="(result, ri) in getGameResults(team.title, opponent.title)"
+                                                :key="ri"
+                                                :class="{
+                                                    'group-cell--win': result.diff > 0 && !result.inProgress,
+                                                    'group-cell--lose': result.diff < 0 && !result.inProgress,
+                                                    'group-cell--in-progress': result.inProgress,
+                                                    'group-cell--muted': result.pending,
+                                                }"
+                                            >
+                                                {{ result.text }}
+                                            </div>
+                                        </template>
+                                    </td>
+                                    <td align="center" class="td-highlight">{{ team.wins }}</td>
+                                    <td align="center" class="nowrap">
+                                        {{ team.pointsPlus }} : {{ team.pointsMinus }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -299,45 +489,66 @@
             </div>
         </div>
         <div v-else-if="!isResultOnly && !isSwissOnly" class="ranking-empty">
-            <Trophy :size="40" class="ranking-empty__icon"/>
+            <Trophy :size="40" class="ranking-empty__icon" />
             <p class="ranking-empty__text">{{ $t('ranking.noRanking') }}</p>
         </div>
         <Modal v-if="showExportConfirm" @close-modal="showExportConfirm = false">
             <div class="confirm-export">
                 <p class="confirm-export__text">{{ $t('ranking.exportConfirm') }}</p>
                 <div class="confirm-export__actions">
-                    <button class="confirm-export__btn confirm-export__btn--cancel" @click="showExportConfirm = false">{{ $t('common.cancel') }}</button>
-                    <button class="confirm-export__btn confirm-export__btn--confirm" @click="showExportConfirm = false; exportResults()">{{ $t('ranking.exportResults') }}</button>
+                    <button class="confirm-export__btn confirm-export__btn--cancel" @click="showExportConfirm = false">
+                        {{ $t('common.cancel') }}
+                    </button>
+                    <button
+                        class="confirm-export__btn confirm-export__btn--confirm"
+                        @click="
+                            showExportConfirm = false;
+                            exportResults();
+                        "
+                    >
+                        {{ $t('ranking.exportResults') }}
+                    </button>
                 </div>
             </div>
         </Modal>
     </div>
 </template>
 
-
 <script>
-import {tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent} from "@/helpers";
-import {getQualifiedCountForGroup, getPlayOffTeamsPerGroup} from "@/services/results";
-import {Copy, Check, Upload, Trophy} from "lucide-vue-next";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {tournamentOrgsService} from "@/services/db";
-import Modal from "@/components/Modal";
+import { tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent } from '@/helpers';
+import { getQualifiedCountForGroup, getPlayOffTeamsPerGroup } from '@/services/results';
+import { Copy, Check, Upload, Trophy } from 'lucide-vue-next';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { tournamentOrgsService } from '@/services/db';
+import Modal from '@/components/Modal';
 
 export default {
     name: 'Ranking',
-    components: {Copy, Check, Upload, Trophy, Modal},
-    props: ['tournament', 'rankingTeams', 'activeRound', 'showInSaved', 'isForProtocol', 'teamTitles', 'highlightedTeam', 'teamClubMap', 'sectionTitle'],
+    components: { Copy, Check, Upload, Trophy, Modal },
+    props: [
+        'tournament',
+        'rankingTeams',
+        'activeRound',
+        'showInSaved',
+        'isForProtocol',
+        'teamTitles',
+        'highlightedTeam',
+        'teamClubMap',
+        'sectionTitle',
+    ],
     emits: ['is-playoff'],
     data() {
         return {
-            playOffBracket: localStorage.getItem('playOffBracket') ? JSON.parse(localStorage.getItem('playOffBracket')) : null,
+            playOffBracket: localStorage.getItem('playOffBracket')
+                ? JSON.parse(localStorage.getItem('playOffBracket'))
+                : null,
             activeTooltip: null,
             rankingSubtab: 'result',
             resultsCopied: false,
             isTournamentOrg: false,
             showExportConfirm: false,
-        }
+        };
     },
     created() {
         if (this.isForProtocol) {
@@ -364,7 +575,8 @@ export default {
         isPrizeHighlighted(index) {
             const prefs = this.tournament.preferences;
             if ((prefs?.playOffEnabled || this.tournament.playOff) && index < prefs?.playOffTeams) return true;
-            if (!prefs?.playOffEnabled && !this.tournament.playOff && prefs?.prizePlaces && index < prefs.prizePlaces) return true;
+            if (!prefs?.playOffEnabled && !this.tournament.playOff && prefs?.prizePlaces && index < prefs.prizePlaces)
+                return true;
             return false;
         },
         getQualifiedForGroup(gIndex) {
@@ -381,17 +593,30 @@ export default {
             if (this.tournament.groupSchedule) {
                 const playedRounds = this.tournament.games?.length || 0;
                 this.tournament.groupSchedule.forEach((round, roundIndex) => {
-                    round.forEach(game => {
-                        if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
+                    round.forEach((game) => {
+                        if (
+                            game.team_1 + game.team_2 === team + opponent ||
+                            game.team_2 + game.team_1 === team + opponent
+                        ) {
                             if (roundIndex < playedRounds) {
-                                const playedGame = this.tournament.games[roundIndex].find(g =>
-                                    g.team_1 + g.team_2 === team + opponent || g.team_2 + g.team_1 === team + opponent
+                                const playedGame = this.tournament.games[roundIndex].find(
+                                    (g) =>
+                                        g.team_1 + g.team_2 === team + opponent ||
+                                        g.team_2 + g.team_1 === team + opponent,
                                 );
-                                if (playedGame && (playedGame.status === 'in_progress' || playedGame.status === 'finished' ||
-                                    (playedGame.team_1_score != null && playedGame.team_2_score != null))) {
+                                if (
+                                    playedGame &&
+                                    (playedGame.status === 'in_progress' ||
+                                        playedGame.status === 'finished' ||
+                                        (playedGame.team_1_score != null && playedGame.team_2_score != null))
+                                ) {
                                     const isFirst = playedGame.team_1 + playedGame.team_2 === team + opponent;
-                                    const s1 = isFirst ? (playedGame.team_1_score ?? 0) : (playedGame.team_2_score ?? 0);
-                                    const s2 = isFirst ? (playedGame.team_2_score ?? 0) : (playedGame.team_1_score ?? 0);
+                                    const s1 = isFirst
+                                        ? (playedGame.team_1_score ?? 0)
+                                        : (playedGame.team_2_score ?? 0);
+                                    const s2 = isFirst
+                                        ? (playedGame.team_2_score ?? 0)
+                                        : (playedGame.team_1_score ?? 0);
                                     const inProgress = playedGame.status === 'in_progress';
                                     results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
                                 } else {
@@ -404,12 +629,18 @@ export default {
                     });
                 });
             } else if (this.tournament.games) {
-                this.tournament.games.forEach((round, roundIndex) => {
-                    round.forEach(game => {
-                        if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
+                this.tournament.games.forEach((round, _roundIndex) => {
+                    round.forEach((game) => {
+                        if (
+                            game.team_1 + game.team_2 === team + opponent ||
+                            game.team_2 + game.team_1 === team + opponent
+                        ) {
                             const isFirst = game.team_1 + game.team_2 === team + opponent;
-                            if (game.status === 'in_progress' || game.status === 'finished' ||
-                                (game.team_1_score != null && game.team_2_score != null)) {
+                            if (
+                                game.status === 'in_progress' ||
+                                game.status === 'finished' ||
+                                (game.team_1_score != null && game.team_2_score != null)
+                            ) {
                                 const s1 = isFirst ? (game.team_1_score ?? 0) : (game.team_2_score ?? 0);
                                 const s2 = isFirst ? (game.team_2_score ?? 0) : (game.team_1_score ?? 0);
                                 const inProgress = game.status === 'in_progress';
@@ -426,12 +657,18 @@ export default {
         getBarrageGameResults(team, opponent) {
             const results = [];
             const barrageGames = this.tournament.games.slice(this.tournament.barrage.startIndex);
-            barrageGames.forEach(round => {
-                round.forEach(game => {
+            barrageGames.forEach((round) => {
+                round.forEach((game) => {
                     if (game.team_1 + game.team_2 === team + opponent) {
-                        results.push({ text: `${game.team_1_score || 0} : ${game.team_2_score || 0}`, diff: (game.team_1_score || 0) - (game.team_2_score || 0) });
+                        results.push({
+                            text: `${game.team_1_score || 0} : ${game.team_2_score || 0}`,
+                            diff: (game.team_1_score || 0) - (game.team_2_score || 0),
+                        });
                     } else if (game.team_2 + game.team_1 === team + opponent) {
-                        results.push({ text: `${game.team_2_score || 0} : ${game.team_1_score || 0}`, diff: (game.team_2_score || 0) - (game.team_1_score || 0) });
+                        results.push({
+                            text: `${game.team_2_score || 0} : ${game.team_1_score || 0}`,
+                            diff: (game.team_2_score || 0) - (game.team_1_score || 0),
+                        });
                     }
                 });
             });
@@ -440,26 +677,28 @@ export default {
         async exportResults() {
             const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
             if (!token) {
-                this.showMessage({title: this.$t('messages.error'), text: 'API token not configured', type: 'error'});
+                this.showMessage({ title: this.$t('messages.error'), text: 'API token not configured', type: 'error' });
                 return;
             }
 
             let portalTeams;
             try {
-                const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.tournament.portalIdTournament}?format=json`);
+                const res = await fetch(
+                    `https://portal.petanque.org.ua/tournament/team_export/${this.tournament.portalIdTournament}?format=json`,
+                );
                 if (!res.ok) throw new Error(`Portal responded ${res.status}`);
                 const data = await res.json();
                 portalTeams = data.teams;
             } catch (e) {
-                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+                this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
                 return;
             }
 
             const teams = this.tournamentRanking
-                .map(item => {
-                    const localTeam = this.tournament.teams?.find(t => t.title === item.title);
-                    const portalTeamId = localTeam?.portalTeamId
-                        || portalTeams.find(pt => pt.name === item.title)?.id;
+                .map((item) => {
+                    const localTeam = this.tournament.teams?.find((t) => t.title === item.title);
+                    const portalTeamId =
+                        localTeam?.portalTeamId || portalTeams.find((pt) => pt.name === item.title)?.id;
                     if (!portalTeamId) return null;
                     const place = String(item.place);
                     const entry = {
@@ -478,7 +717,7 @@ export default {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': token,
+                        Authorization: token,
                     },
                     body: JSON.stringify({
                         tournament_id: Number(this.tournament.portalIdTournament),
@@ -488,52 +727,73 @@ export default {
 
                 if (response.ok) {
                     const data = await response.json();
-                    this.showMessage({title: this.$t('messages.success'), text: `Updated ${data.updated_teams?.length || 0} teams`});
+                    this.showMessage({
+                        title: this.$t('messages.success'),
+                        text: `Updated ${data.updated_teams?.length || 0} teams`,
+                    });
                 } else {
                     const error = await response.json().catch(() => ({}));
-                    this.showMessage({title: this.$t('messages.error'), text: error.error || `Error ${response.status}`, type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.error'),
+                        text: error.error || `Error ${response.status}`,
+                        type: 'error',
+                    });
                 }
             } catch (e) {
                 console.error('Import results failed:', e);
-                this.showMessage({title: this.$t('messages.error'), text: e.message, type: 'error'});
+                this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
             }
         },
         copyResults() {
-            let content = ''
-            this.tournamentRanking.forEach(item => {
-                content += item.place + ' ' + item.title + '\n'
-            })
-            copyContent(content)
+            let content = '';
+            this.tournamentRanking.forEach((item) => {
+                content += item.place + ' ' + item.title + '\n';
+            });
+            copyContent(content);
             this.resultsCopied = true;
-            setTimeout(() => { this.resultsCopied = false; }, 2000);
+            setTimeout(() => {
+                this.resultsCopied = false;
+            }, 2000);
         },
         getTeamPlayers(title) {
-            const team = this.tournament.teams?.find(item => item.title === title);
+            const team = this.tournament.teams?.find((item) => item.title === title);
             return team?.players || '';
         },
     },
     computed: {
         ...mapState(useMainStore, ['user']),
         groupsNames() {
-            return tournamentNames
+            return tournamentNames;
         },
         tournamentRanking() {
-            return getTournamentRanking(this.tournament, this.rankingTeams)
+            return getTournamentRanking(this.tournament, this.rankingTeams);
         },
         playOffTeamsPerGroup() {
             return getPlayOffTeamsPerGroup(this.tournament);
         },
         isSwissOnly() {
             if (this.isForProtocol) return true;
-            return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'swiss';
+            return (
+                this.tournament.system === 'swiss' &&
+                this.tournament.tournamentIsFinished &&
+                this.rankingSubtab === 'swiss'
+            );
         },
         isResultOnly() {
             if (this.isForProtocol) return false;
-            return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'result';
+            return (
+                this.tournament.system === 'swiss' &&
+                this.tournament.tournamentIsFinished &&
+                this.rankingSubtab === 'result'
+            );
         },
         isBarrageOnly() {
             if (this.isForProtocol) return false;
-            return this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'barrage';
+            return (
+                this.tournament.system === 'swiss' &&
+                this.tournament.tournamentIsFinished &&
+                this.rankingSubtab === 'barrage'
+            );
         },
         rankingChunkSize() {
             return 28;
@@ -554,33 +814,37 @@ export default {
                 const teamWins = {};
                 const teamPointsPlus = {};
                 const teamPointsMinus = {};
-                group.forEach(t => {
+                group.forEach((t) => {
                     teamWins[t.title] = 0;
                     teamPointsPlus[t.title] = 0;
                     teamPointsMinus[t.title] = 0;
                 });
-                barrageGames.forEach(roundGames => {
-                    roundGames.filter(g => g.group === groupIndex).forEach(game => {
-                        if (game.team_1_score != null && game.team_2_score != null) {
-                            teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
-                            teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
-                            teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
-                            teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
-                            if (game.team_1_score > game.team_2_score) teamWins[game.team_1]++;
-                            else if (game.team_2_score > game.team_1_score) teamWins[game.team_2]++;
-                        }
-                    });
+                barrageGames.forEach((roundGames) => {
+                    roundGames
+                        .filter((g) => g.group === groupIndex)
+                        .forEach((game) => {
+                            if (game.team_1_score != null && game.team_2_score != null) {
+                                teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
+                                teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
+                                teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
+                                teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
+                                if (game.team_1_score > game.team_2_score) teamWins[game.team_1]++;
+                                else if (game.team_2_score > game.team_1_score) teamWins[game.team_2]++;
+                            }
+                        });
                 });
-                return group.map(t => ({
-                    ...t,
-                    wins: teamWins[t.title] || 0,
-                    pointsPlus: teamPointsPlus[t.title] || 0,
-                    pointsMinus: teamPointsMinus[t.title] || 0,
-                })).sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+                return group
+                    .map((t) => ({
+                        ...t,
+                        wins: teamWins[t.title] || 0,
+                        pointsPlus: teamPointsPlus[t.title] || 0,
+                        pointsMinus: teamPointsMinus[t.title] || 0,
+                    }))
+                    .sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
             });
         },
     },
-}
+};
 </script>
 
 <style scoped>

@@ -2,12 +2,12 @@ importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js');
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU",
-    authDomain: "petanque-draw.firebaseapp.com",
-    projectId: "petanque-draw",
-    storageBucket: "petanque-draw.appspot.com",
-    messagingSenderId: "774303828599",
-    appId: "1:774303828599:web:78c14845b68be7fd4e5472"
+    apiKey: 'AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU',
+    authDomain: 'petanque-draw.firebaseapp.com',
+    projectId: 'petanque-draw',
+    storageBucket: 'petanque-draw.appspot.com',
+    messagingSenderId: '774303828599',
+    appId: '1:774303828599:web:78c14845b68be7fd4e5472',
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -18,19 +18,18 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.data.title;
     const notificationOptions = {
         body: payload.data.body,
-        data: {url: payload.data.url},
+        data: { url: payload.data.url },
         icon: 'https://i.imgur.com/S8zDbo4.png',
         vibrate: [200, 100, 200, 100],
-        actions: [{action: "open_url", title: "Open"}]
+        actions: [{ action: 'open_url', title: 'Open' }],
     };
-    self.registration.showNotification(notificationTitle,
-        notificationOptions);
+    self.registration.showNotification(notificationTitle, notificationOptions);
 });
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', (event) => {
     let url = event.notification.data.url;
     event.notification.close(); // Android needs explicit close.
     event.waitUntil(
-        clients.matchAll({type: 'window'}).then( windowClients => {
+        clients.matchAll({ type: 'window' }).then((windowClients) => {
             // Check if there is already a window/tab open with the target URL
             for (var i = 0; i < windowClients.length; i++) {
                 var client = windowClients[i];
@@ -43,6 +42,6 @@ self.addEventListener('notificationclick', event => {
             if (clients.openWindow) {
                 return clients.openWindow(url);
             }
-        })
+        }),
     );
 });

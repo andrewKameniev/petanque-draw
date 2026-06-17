@@ -1,20 +1,22 @@
-export const SCORING = {carreau: 5, reussi: 3, touche: 1, manque: 0};
+export const SCORING = { carreau: 5, reussi: 3, touche: 1, manque: 0 };
 export const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
 export const DISTANCES_FULL = [6, 7, 8, 9];
 export const DISTANCES_JUNIOR = [6, 7, 8];
 export const RESULT_OPTIONS = [
-    {key: 'carreau', points: 5},
-    {key: 'reussi', points: 3},
-    {key: 'touche', points: 1},
-    {key: 'manque', points: 0}
+    { key: 'carreau', points: 5 },
+    { key: 'reussi', points: 3 },
+    { key: 'touche', points: 1 },
+    { key: 'manque', points: 0 },
 ];
 
 export function getScoreTotal(participant, key) {
     if (!participant[key]) return 0;
     let total = 0;
-    Object.values(participant[key]).forEach(atelier => {
+    Object.values(participant[key]).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
-            Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+            Object.values(atelier).forEach((val) => {
+                total += SCORING[val] || 0;
+            });
         }
     });
     return total;
@@ -23,9 +25,11 @@ export function getScoreTotal(participant, key) {
 export function getScoreCarreauCount(participant, key) {
     if (!participant[key]) return 0;
     let count = 0;
-    Object.values(participant[key]).forEach(atelier => {
+    Object.values(participant[key]).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
-            Object.values(atelier).forEach(val => { if (val === 'carreau') count++; });
+            Object.values(atelier).forEach((val) => {
+                if (val === 'carreau') count++;
+            });
         }
     });
     return count;
@@ -34,9 +38,11 @@ export function getScoreCarreauCount(participant, key) {
 export function getScoreReussiCount(participant, key) {
     if (!participant[key]) return 0;
     let count = 0;
-    Object.values(participant[key]).forEach(atelier => {
+    Object.values(participant[key]).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
-            Object.values(atelier).forEach(val => { if (val === 'reussi') count++; });
+            Object.values(atelier).forEach((val) => {
+                if (val === 'reussi') count++;
+            });
         }
     });
     return count;
@@ -49,7 +55,7 @@ export function getCombinedTotal(participant) {
 export function getThrowCount(participant, key) {
     if (!participant[key]) return 0;
     let count = 0;
-    Object.values(participant[key]).forEach(atelier => {
+    Object.values(participant[key]).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
             count += Object.keys(atelier).length;
         }
@@ -74,9 +80,10 @@ export function isAtelierComplete(participant, key, atelierIdx, distancesCount) 
 }
 
 export function rankParticipants(participants, key) {
-    return [...participants].sort((a, b) =>
-        getScoreTotal(b, key) - getScoreTotal(a, key) ||
-        getScoreCarreauCount(b, key) - getScoreCarreauCount(a, key)
+    return [...participants].sort(
+        (a, b) =>
+            getScoreTotal(b, key) - getScoreTotal(a, key) ||
+            getScoreCarreauCount(b, key) - getScoreCarreauCount(a, key),
     );
 }
 
@@ -85,10 +92,12 @@ export function rankByR1(participants) {
 }
 
 export function rankByCombined(participants) {
-    return [...participants].sort((a, b) =>
-        getCombinedTotal(b) - getCombinedTotal(a) ||
-        (getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2')) -
-        (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2'))
+    return [...participants].sort(
+        (a, b) =>
+            getCombinedTotal(b) - getCombinedTotal(a) ||
+            getScoreCarreauCount(b, 'scores') +
+                getScoreCarreauCount(b, 'scores2') -
+                (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')),
     );
 }
 
@@ -106,13 +115,15 @@ export function getTiebreakerKey(round) {
 
 export function rankWithTiebreakers(participants, mainKey, tiebreakerCount) {
     return [...participants].sort((a, b) => {
-        const diff = getScoreTotal(b, mainKey) - getScoreTotal(a, mainKey) ||
+        const diff =
+            getScoreTotal(b, mainKey) - getScoreTotal(a, mainKey) ||
             getScoreCarreauCount(b, mainKey) - getScoreCarreauCount(a, mainKey) ||
             getScoreReussiCount(b, mainKey) - getScoreReussiCount(a, mainKey);
         if (diff !== 0) return diff;
         for (let i = 1; i <= tiebreakerCount; i++) {
             const tbKey = getTiebreakerKey(i);
-            const tbDiff = getScoreTotal(b, tbKey) - getScoreTotal(a, tbKey) ||
+            const tbDiff =
+                getScoreTotal(b, tbKey) - getScoreTotal(a, tbKey) ||
                 getScoreCarreauCount(b, tbKey) - getScoreCarreauCount(a, tbKey) ||
                 getScoreReussiCount(b, tbKey) - getScoreReussiCount(a, tbKey);
             if (tbDiff !== 0) return tbDiff;
@@ -142,7 +153,7 @@ export function findTiesAtBoundary(rankedParticipants, boundaryIndex, mainKey, t
     const tiedScore = lastInScore;
     const tiedCarreau = getScoreCarreauCount(lastIn, mainKey);
     const tiedReussi = getScoreReussiCount(lastIn, mainKey);
-    return rankedParticipants.filter(p => {
+    return rankedParticipants.filter((p) => {
         if (getScoreTotal(p, mainKey) !== tiedScore) return false;
         if (getScoreCarreauCount(p, mainKey) !== tiedCarreau) return false;
         if (getScoreReussiCount(p, mainKey) !== tiedReussi) return false;
@@ -160,14 +171,14 @@ export function detectTiebreakersNeeded(participants, tiebreakerCount) {
     const ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
     const top4Ties = findTiesAtBoundary(ranked, 4, 'scores', tiebreakerCount);
     const r2Ties = findTiesAtBoundary(ranked, 16, 'scores', tiebreakerCount);
-    return {top4Ties, r2Ties, ranked};
+    return { top4Ties, r2Ties, ranked };
 }
 
 export function isTiebreakerComplete(participant, tbKey) {
     const scores = participant[tbKey];
     if (!scores) return false;
     let count = 0;
-    Object.values(scores).forEach(atelier => {
+    Object.values(scores).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
             count += Object.keys(atelier).length;
         }
@@ -177,8 +188,18 @@ export function isTiebreakerComplete(participant, tbKey) {
 
 export function generateSeededBracket(n) {
     if (n === 2) return [[0, 1]];
-    if (n === 4) return [[0, 3], [1, 2]];
-    if (n === 8) return [[0, 7], [3, 4], [1, 6], [2, 5]];
+    if (n === 4)
+        return [
+            [0, 3],
+            [1, 2],
+        ];
+    if (n === 8)
+        return [
+            [0, 7],
+            [3, 4],
+            [1, 6],
+            [2, 5],
+        ];
     return buildSeededPairs(n);
 }
 
@@ -204,7 +225,7 @@ export function createMatch(player1, player2) {
         complete: false,
         winner: null,
         loser: null,
-        tieWinner: null
+        tieWinner: null,
     };
 }
 
@@ -215,17 +236,17 @@ export function buildPlayoffBracket(qualifiedNames, size) {
             qualified: qualifiedNames,
             size,
             thirdPlace: null,
-            final: createMatch(qualifiedNames[0], qualifiedNames[1])
+            final: createMatch(qualifiedNames[0], qualifiedNames[1]),
         };
     }
     const pairs = generateSeededBracket(size);
     const matches = pairs.map(([a, b]) => createMatch(qualifiedNames[a], qualifiedNames[b]));
     return {
-        rounds: [{matches}],
+        rounds: [{ matches }],
         qualified: qualifiedNames,
         size,
         thirdPlace: null,
-        final: null
+        final: null,
     };
 }
 
@@ -234,11 +255,11 @@ export function advancePlayoff(playoff) {
     if (playoff.final) return false;
 
     const lastRound = playoff.rounds[playoff.rounds.length - 1];
-    const allComplete = lastRound.matches.every(m => m.complete);
+    const allComplete = lastRound.matches.every((m) => m.complete);
     if (!allComplete) return false;
 
-    const winners = lastRound.matches.map(m => m.winner);
-    const losers = lastRound.matches.map(m => m.loser);
+    const winners = lastRound.matches.map((m) => m.winner);
+    const losers = lastRound.matches.map((m) => m.loser);
 
     if (winners.length === 2) {
         playoff.final = createMatch(winners[0], winners[1]);
@@ -250,7 +271,7 @@ export function advancePlayoff(playoff) {
         for (let i = 0; i < winners.length; i += 2) {
             nextMatches.push(createMatch(winners[i], winners[i + 1]));
         }
-        playoff.rounds.push({matches: nextMatches});
+        playoff.rounds.push({ matches: nextMatches });
     }
     return true;
 }
@@ -260,9 +281,11 @@ export function getMatchPlayerScore(match, playerNum) {
     const scores = match[key];
     if (!scores) return 0;
     let total = 0;
-    Object.values(scores).forEach(atelier => {
+    Object.values(scores).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
-            Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+            Object.values(atelier).forEach((val) => {
+                total += SCORING[val] || 0;
+            });
         }
     });
     return total;
@@ -273,7 +296,7 @@ export function getMatchPlayerThrows(match, playerNum) {
     const scores = match[key];
     if (!scores) return 0;
     let count = 0;
-    Object.values(scores).forEach(atelier => {
+    Object.values(scores).forEach((atelier) => {
         if (atelier && typeof atelier === 'object') {
             count += Object.keys(atelier).length;
         }
@@ -299,10 +322,21 @@ export function getMatchWinner(match, totalThrows) {
     return s1 > s2 ? match.player1 : match.player2;
 }
 
-export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, playoff, currentRound, isTwoRoundSystem, hasPlayoffScores, labels, tiebreakerCount = 0}) {
+export function buildTableRows({
+    participants,
+    directIds,
+    r2Ids,
+    r2CandidateIds,
+    playoff,
+    currentRound,
+    isTwoRoundSystem,
+    hasPlayoffScores,
+    labels,
+    tiebreakerCount = 0,
+}) {
     const r1Ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
 
-    const allPlayers = r1Ranked.map(p => {
+    const allPlayers = r1Ranked.map((p) => {
         const isDirect = directIds.includes(p.id);
         const isR2 = r2Ids.includes(p.id);
         const r1Started = getThrowCount(p, 'scores') > 0;
@@ -337,25 +371,39 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
 
         let playoffStage = 0;
         let playoffLastScore = 0;
-        if (matchScores.final !== '') { playoffStage = 3; playoffLastScore = matchScores.final; }
-        else if (matchScores.sf !== '') { playoffStage = 2; playoffLastScore = matchScores.sf; }
-        else if (matchScores.qf !== '') { playoffStage = 1; playoffLastScore = matchScores.qf; }
+        if (matchScores.final !== '') {
+            playoffStage = 3;
+            playoffLastScore = matchScores.final;
+        } else if (matchScores.sf !== '') {
+            playoffStage = 2;
+            playoffLastScore = matchScores.sf;
+        } else if (matchScores.qf !== '') {
+            playoffStage = 1;
+            playoffLastScore = matchScores.qf;
+        }
 
         return {
-            id: p.id, name: p.name,
+            id: p.id,
+            name: p.name,
             r1: r1Started ? r1Score : '—',
-            r2: isDirect ? '—' : (r2Score !== null ? (r2Started ? r2Score : '—') : ''),
+            r2: isDirect ? '—' : r2Score !== null ? (r2Started ? r2Score : '—') : '',
             r2Num: r2Score || 0,
-            combined: isR2 ? (r1Started || r2Started ? combined : '—') : (isDirect ? (r1Started ? r1Score : '—') : ''),
-            qf: matchScores.qf, sf: matchScores.sf, final: matchScores.final,
-            place, rowClass, combinedNum: combined, playoffStage, playoffLastScore
+            combined: isR2 ? (r1Started || r2Started ? combined : '—') : isDirect ? (r1Started ? r1Score : '—') : '',
+            qf: matchScores.qf,
+            sf: matchScores.sf,
+            final: matchScores.final,
+            place,
+            rowClass,
+            combinedNum: combined,
+            playoffStage,
+            playoffLastScore,
         };
     });
 
     if (currentRound >= 2 && r2Ids.length) {
-        const qualifiedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--direct');
-        const r2Rows = allPlayers.filter(r => r.rowClass === 'tir-table__row--r2');
-        const eliminatedRows = allPlayers.filter(r => r.rowClass === 'tir-table__row--eliminated');
+        const qualifiedRows = allPlayers.filter((r) => r.rowClass === 'tir-table__row--direct');
+        const r2Rows = allPlayers.filter((r) => r.rowClass === 'tir-table__row--r2');
+        const eliminatedRows = allPlayers.filter((r) => r.rowClass === 'tir-table__row--eliminated');
 
         if (playoff && hasPlayoffScores) {
             const playoffParticipants = [...qualifiedRows, ...r2Rows];
@@ -366,16 +414,30 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
                 const loser = winner === finalMatch.player1 ? finalMatch.player2 : finalMatch.player1;
                 const thirdWinner = playoff.thirdPlace?.winner;
 
-                playoffParticipants.forEach(row => {
-                    if (row.name === winner) { row.rowClass = 'place-gold'; row.place = '1'; row.placeNum = 1; }
-                    else if (row.name === loser) { row.rowClass = 'place-silver'; row.place = '2'; row.placeNum = 2; }
-                    else if (thirdWinner && row.name === thirdWinner) { row.rowClass = 'place-bronze'; row.place = '3'; row.placeNum = 3; }
+                playoffParticipants.forEach((row) => {
+                    if (row.name === winner) {
+                        row.rowClass = 'place-gold';
+                        row.place = '1';
+                        row.placeNum = 1;
+                    } else if (row.name === loser) {
+                        row.rowClass = 'place-silver';
+                        row.place = '2';
+                        row.placeNum = 2;
+                    } else if (thirdWinner && row.name === thirdWinner) {
+                        row.rowClass = 'place-bronze';
+                        row.place = '3';
+                        row.placeNum = 3;
+                    }
                 });
             }
 
             playoffParticipants.sort((a, b) => {
                 if (a.placeNum || b.placeNum) return (a.placeNum || 99) - (b.placeNum || 99);
-                return b.playoffStage - a.playoffStage || b.playoffLastScore - a.playoffLastScore || b.combinedNum - a.combinedNum;
+                return (
+                    b.playoffStage - a.playoffStage ||
+                    b.playoffLastScore - a.playoffLastScore ||
+                    b.combinedNum - a.combinedNum
+                );
             });
 
             return [...playoffParticipants, ...eliminatedRows];
@@ -387,11 +449,11 @@ export function buildTableRows({participants, directIds, r2Ids, r2CandidateIds, 
 }
 
 export function getPlayoffMatchScores(playerName, playoff) {
-    const result = {qf: '', sf: '', final: ''};
+    const result = { qf: '', sf: '', final: '' };
     if (!playoff) return result;
     if (playoff.rounds) {
-        playoff.rounds.forEach(round => {
-            round.matches.forEach(m => {
+        playoff.rounds.forEach((round) => {
+            round.matches.forEach((m) => {
                 if (m.player1 === playerName || m.player2 === playerName) {
                     const score = m.player1 === playerName ? m.score1 : m.score2;
                     if (score != null) {
@@ -407,7 +469,10 @@ export function getPlayoffMatchScores(playerName, playoff) {
         const score = playoff.final.player1 === playerName ? playoff.final.score1 : playoff.final.score2;
         if (score != null) result.final = score;
     }
-    if (playoff.thirdPlace && (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)) {
+    if (
+        playoff.thirdPlace &&
+        (playoff.thirdPlace.player1 === playerName || playoff.thirdPlace.player2 === playerName)
+    ) {
         const score = playoff.thirdPlace.player1 === playerName ? playoff.thirdPlace.score1 : playoff.thirdPlace.score2;
         if (score != null) result.final = score;
     }
@@ -417,8 +482,8 @@ export function getPlayoffMatchScores(playerName, playoff) {
 export function findPlayoffMatchForParticipant(participantName, matches) {
     if (!matches) return null;
     for (const m of matches) {
-        if (m.player1 === participantName) return {match: m, playerNum: 1, scoresKey: 'scores1'};
-        if (m.player2 === participantName) return {match: m, playerNum: 2, scoresKey: 'scores2'};
+        if (m.player1 === participantName) return { match: m, playerNum: 1, scoresKey: 'scores1' };
+        if (m.player2 === participantName) return { match: m, playerNum: 2, scoresKey: 'scores2' };
     }
     return null;
 }

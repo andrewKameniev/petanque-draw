@@ -77,24 +77,15 @@ describe('validateGameStart', () => {
     });
 
     it('returns false if any player has no name', () => {
-        expect(validateGameStart('My Game', [
-            { name: 'Alice' },
-            { name: '' }
-        ])).toBe(false);
+        expect(validateGameStart('My Game', [{ name: 'Alice' }, { name: '' }])).toBe(false);
     });
 
     it('returns false if player name is whitespace only', () => {
-        expect(validateGameStart('My Game', [
-            { name: 'Alice' },
-            { name: '   ' }
-        ])).toBe(false);
+        expect(validateGameStart('My Game', [{ name: 'Alice' }, { name: '   ' }])).toBe(false);
     });
 
     it('returns true when game name and all players have names', () => {
-        expect(validateGameStart('My Game', [
-            { name: 'Alice' },
-            { name: 'Bob' }
-        ])).toBe(true);
+        expect(validateGameStart('My Game', [{ name: 'Alice' }, { name: 'Bob' }])).toBe(true);
     });
 
     it('returns true for single player', () => {
@@ -117,74 +108,74 @@ describe('extractPlayers', () => {
 
     it('extracts unique player names from both teams', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: 'Alice' }, { name: 'Bob' }] },
-                team2: { players: [{ name: 'Charlie' }, { name: 'Diana' }] }
-            }
+                team2: { players: [{ name: 'Charlie' }, { name: 'Diana' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
     });
 
     it('deduplicates players across games', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: 'Alice' }] },
-                team2: { players: [{ name: 'Bob' }] }
+                team2: { players: [{ name: 'Bob' }] },
             },
-            '1700000001': {
+            1700000001: {
                 team1: { players: [{ name: 'Alice' }] },
-                team2: { players: [{ name: 'Charlie' }] }
-            }
+                team2: { players: [{ name: 'Charlie' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Alice', 'Bob', 'Charlie']);
     });
 
     it('trims whitespace from names', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: '  Alice  ' }] },
-                team2: { players: [{ name: 'Bob ' }] }
-            }
+                team2: { players: [{ name: 'Bob ' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Alice', 'Bob']);
     });
 
     it('skips empty/null player names', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: '' }, { name: 'Alice' }] },
-                team2: { players: [{ name: null }, { name: 'Bob' }] }
-            }
+                team2: { players: [{ name: null }, { name: 'Bob' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Alice', 'Bob']);
     });
 
     it('skips null players', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [null, { name: 'Alice' }] },
-                team2: { players: [{ name: 'Bob' }] }
-            }
+                team2: { players: [{ name: 'Bob' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Alice', 'Bob']);
     });
 
     it('returns sorted names', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: 'Zara' }] },
-                team2: { players: [{ name: 'Anna' }] }
-            }
+                team2: { players: [{ name: 'Anna' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Anna', 'Zara']);
     });
 
     it('handles single player per game', () => {
         const stats = {
-            '1700000000': {
+            1700000000: {
                 team1: { players: [{ name: 'Solo' }] },
-                team2: { players: [{ name: 'Solo' }] }
-            }
+                team2: { players: [{ name: 'Solo' }] },
+            },
         };
         expect(extractPlayers(stats)).toEqual(['Solo']);
     });

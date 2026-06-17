@@ -1,14 +1,14 @@
-import { createI18n } from 'vue-i18n'
-import en from '@/locales/en'
-import ua from '@/locales/ua'
-import fr from '@/locales/fr'
-import es from '@/locales/es'
+import { createI18n } from 'vue-i18n';
+import en from '@/locales/en';
+import ua from '@/locales/ua';
+import fr from '@/locales/fr';
+import es from '@/locales/es';
 
 const i18n = createI18n({
     locale: localStorage.getItem('petanqueDrawLang') || 'ua',
     fallbackLocale: 'en',
-    messages: { en, ua, fr, es }
-})
+    messages: { en, ua, fr, es },
+});
 
 const loadedModules = new Set();
 
@@ -29,4 +29,4 @@ export async function loadLocaleModule(module) {
     loadedModules.add(module);
 }
 
-export default i18n
+export default i18n;

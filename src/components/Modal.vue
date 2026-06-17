@@ -1,6 +1,6 @@
 <template>
     <Teleport to="body">
-        <div class="modal is-active" >
+        <div class="modal is-active">
             <div class="modal-background" @click.self="$emit('close-modal')"></div>
             <div class="modal-content">
                 <div class="box">
@@ -13,7 +13,6 @@
 </template>
 
 <script>
-
 export default {
     name: 'Modal',
     emits: ['close-modal'],
@@ -22,8 +21,8 @@ export default {
     },
     beforeUnmount() {
         document.documentElement.classList.remove('is-clipped');
-    }
-}
+    },
+};
 </script>
 
 <style scoped>

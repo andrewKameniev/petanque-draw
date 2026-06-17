@@ -1,7 +1,11 @@
 <template>
-    <div class="round-timer" :class="{'round-timer--ended': isEnded, 'round-timer--clickable': !readOnly}" @click="onTimerClick">
+    <div
+        class="round-timer"
+        :class="{ 'round-timer--ended': isEnded, 'round-timer--clickable': !readOnly }"
+        @click="onTimerClick"
+    >
         <div class="round-timer__display">
-            <Timer :size="18" class="round-timer__icon"/>
+            <Timer :size="18" class="round-timer__icon" />
             <span v-if="isEnded && !showRestart" class="round-timer__text round-timer__text--ended">
                 {{ $t('timer.timeLimitEnded') }}
             </span>
@@ -9,14 +13,29 @@
                 {{ formattedTime }}
             </span>
             <div v-if="showRestart" class="round-timer__restart">
-                <button v-for="opt in restartOptions" :key="opt" class="round-timer__restart-btn" @click.stop="restart(opt)">
+                <button
+                    v-for="opt in restartOptions"
+                    :key="opt"
+                    class="round-timer__restart-btn"
+                    @click.stop="restart(opt)"
+                >
                     {{ opt }}
                 </button>
-                <input ref="customMinutes" class="round-timer__restart-input" type="number" min="1"
-                       v-model.number="customMinutes" :placeholder="$t('timer.min')"
-                       @click.stop
-                       @keydown.enter.stop="restart(customMinutes)">
-                <button class="round-timer__restart-btn round-timer__restart-btn--go" @click.stop="restart(customMinutes)" :disabled="!customMinutes">
+                <input
+                    ref="customMinutes"
+                    class="round-timer__restart-input"
+                    type="number"
+                    min="1"
+                    v-model.number="customMinutes"
+                    :placeholder="$t('timer.min')"
+                    @click.stop
+                    @keydown.enter.stop="restart(customMinutes)"
+                />
+                <button
+                    class="round-timer__restart-btn round-timer__restart-btn--go"
+                    @click.stop="restart(customMinutes)"
+                    :disabled="!customMinutes"
+                >
                     ▶
                 </button>
             </div>
@@ -28,18 +47,18 @@
 </template>
 
 <script>
-import {Timer} from "lucide-vue-next";
+import { Timer } from 'lucide-vue-next';
 
 export default {
     name: 'RoundTimer',
-    components: {Timer},
+    components: { Timer },
     props: {
-        timerStartedAt: {type: String, default: null},
-        timerEndsAt: {type: String, default: null},
-        timerStatus: {type: String, default: 'not_started'},
-        cochonettesEnabled: {type: Boolean, default: false},
-        cochonettes: {type: Number, default: 1},
-        readOnly: {type: Boolean, default: false}
+        timerStartedAt: { type: String, default: null },
+        timerEndsAt: { type: String, default: null },
+        timerStatus: { type: String, default: 'not_started' },
+        cochonettesEnabled: { type: Boolean, default: false },
+        cochonettes: { type: Number, default: 1 },
+        readOnly: { type: Boolean, default: false },
     },
     emits: ['timer-ended', 'restart'],
     data() {
@@ -48,7 +67,7 @@ export default {
             interval: null,
             showRestart: false,
             restartOptions: [5, 10, 15, 30, 60],
-            customMinutes: null
+            customMinutes: null,
         };
     },
     computed: {
@@ -73,7 +92,7 @@ export default {
             if (!this.cochonettesEnabled || !this.cochonettes) return '';
             const noun = this.cochonettes === 1 ? this.$t('timer.lastCochonette') : this.$t('timer.lastCochonettes');
             return `${this.$t('timer.playLastCochonette')} ${this.cochonettes} ${noun}`;
-        }
+        },
     },
     watch: {
         timerStatus(val) {
@@ -88,7 +107,7 @@ export default {
             if (val) {
                 this.$emit('timer-ended');
             }
-        }
+        },
     },
     mounted() {
         if (this.timerStatus === 'running') {
@@ -120,8 +139,8 @@ export default {
             if (!minutes || minutes < 1) return;
             this.showRestart = false;
             this.$emit('restart', minutes);
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -223,6 +242,6 @@ export default {
 }
 
 .round-timer__restart-input:focus {
-    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+    box-shadow: 0 0 0 2px rgb(108 92 231 / 20%);
 }
 </style>

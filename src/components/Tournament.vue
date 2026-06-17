@@ -1,33 +1,54 @@
 <template>
     <div>
-        <RemoteToolbar v-if="user" v-model:message="tournament.tournamentMessage"
-                       :loading="loadingOnServer" @show-qr="showQrCode = true" @update:message="onMessageInput"/>
-        <QrCode v-if="showQrCode" @close-modal="showQrCode = false"/>
-        <TournamentHeader :name="tournament.name" :system="tournament.system"
-                          :tournament-started="tournamentStarted"
-                          :is-test="!!tournament.preferences?.isTestTournament"
-                          :is-pinned="isPinned"
-                          @update:name="changeTournamentName"
-                          @pin="pinTournament" @unpin="unpinTournament"/>
+        <RemoteToolbar
+            v-if="user"
+            v-model:message="tournament.tournamentMessage"
+            :loading="loadingOnServer"
+            @show-qr="showQrCode = true"
+            @update:message="onMessageInput"
+        />
+        <QrCode v-if="showQrCode" @close-modal="showQrCode = false" />
+        <TournamentHeader
+            :name="tournament.name"
+            :system="tournament.system"
+            :tournament-started="tournamentStarted"
+            :is-test="!!tournament.preferences?.isTestTournament"
+            :is-pinned="isPinned"
+            @update:name="changeTournamentName"
+            @pin="pinTournament"
+            @unpin="unpinTournament"
+        />
         <!-- PRE-START: Setup flow -->
         <template v-if="!tournamentStarted">
-            <SetupCard :tournament="tournament"
-                       v-model:teamsInGroup="teamsInGroup" v-model:groupRoundsCount="groupRoundsCount"
-                       v-model:setupPlayOff="setupPlayOff" v-model:withCadrage="withCadrage"
-                       v-model:withBarrage="withBarrage" v-model:playB="playB"
-                       v-model:tirTwoRounds="tirTwoRounds" v-model:tirJunior="tirJunior"
-                       @draw="drawFirstRound" @remove="removeConfirmId = 1"/>
+            <SetupCard
+                :tournament="tournament"
+                v-model:teamsInGroup="teamsInGroup"
+                v-model:groupRoundsCount="groupRoundsCount"
+                v-model:setupPlayOff="setupPlayOff"
+                v-model:withCadrage="withCadrage"
+                v-model:withBarrage="withBarrage"
+                v-model:playB="playB"
+                v-model:tirTwoRounds="tirTwoRounds"
+                v-model:tirJunior="tirJunior"
+                @draw="drawFirstRound"
+                @remove="removeConfirmId = 1"
+            />
 
             <div class="setup-teams-card">
-                <AddTeam v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
-                         :import-hidden="false" :show-restore="!tournament.teams?.length" @restore="restoreTeamsFromLocalStorage"/>
-                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
-                <div v-else class="setup-empty">
-                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
-                </div>
-                <div v-if="!(tournament.teams?.length > 2)" class="setup-card__actions setup-card__actions--delete-only">
+                <AddTeam
+                    v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+                    :import-hidden="false"
+                    :show-restore="!tournament.teams?.length"
+                    @restore="restoreTeamsFromLocalStorage"
+                />
+                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
+                <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
+                <div
+                    v-if="!(tournament.teams?.length > 2)"
+                    class="setup-card__actions setup-card__actions--delete-only"
+                >
                     <button class="setup-card__delete" @click="removeConfirmId = 1">
-                        <Trash2 :size="16"/>
+                        <Trash2 :size="16" />
                         <span>{{ $t('teams.removeTournament') }}</span>
                     </button>
                 </div>
@@ -36,25 +57,39 @@
 
         <!-- POST-START: Tir module (no tabs) -->
         <template v-else-if="tournament.system === 'tir'">
-            <TirModule ref="tirModule" @finish="showFinishConfirm = true"/>
+            <TirModule ref="tirModule" @finish="showFinishConfirm = true" />
             <div class="bottom-actions">
                 <div class="bottom-actions__row">
                     <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
-                        <Trash2 :size="16"/>
+                        <Trash2 :size="16" />
                         {{ $t('teams.removeTournament') }}
                     </button>
                     <template v-if="tournament.tournamentIsFinished">
-                        <span class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
-                            <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
-                                <IconArchive :size="16"/>
+                        <span
+                            class="bottom-actions__tooltip-wrapper"
+                            :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''"
+                        >
+                            <button
+                                class="bottom-actions__btn bottom-actions__btn--primary"
+                                :disabled="isAlreadyArchived"
+                                @click="showSaveTournament = true"
+                            >
+                                <IconArchive :size="16" />
                                 {{ $t('teams.saveTournament') }}
                             </button>
                         </span>
-                        <button class="bottom-actions__btn bottom-actions__btn--success" @click="$refs.tirModule.exportResults('csv')">
-                            <Download :size="16"/>
+                        <button
+                            class="bottom-actions__btn bottom-actions__btn--success"
+                            @click="$refs.tirModule.exportResults('csv')"
+                        >
+                            <Download :size="16" />
                             {{ $t('tir.exportResults') }}
                         </button>
-                        <button v-if="tournament.portalIdTournament" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
+                        <button
+                            v-if="tournament.portalIdTournament"
+                            class="bottom-actions__btn bottom-actions__btn--gold"
+                            @click="showProtocol = !showProtocol"
+                        >
                             {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
                         </button>
                     </template>
@@ -65,34 +100,48 @@
         <!-- POST-START: Tabbed tournament view -->
         <template v-else>
             <div class="tournament-nav">
-                <button v-for="(tab, index) in tabs" :key="index"
+                <button
+                    v-for="(tab, index) in tabs"
+                    :key="index"
                     :id="'tab-' + tab.id"
                     class="tournament-nav__btn"
-                    :class="[`tournament-nav__btn--${tab.id}`, {'tournament-nav__btn--active': tab.id === activeTab}]"
-                    @click="activeTab = tab.id">
-                    <component :is="tab.icon" :size="18"/>
+                    :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
+                    @click="activeTab = tab.id"
+                >
+                    <component :is="tab.icon" :size="18" />
                     <span>{{ tab.label }}</span>
                 </button>
             </div>
             <div class="tabs-content-area">
-            <div class="content tabs-content" v-if="activeTab === 'teams'">
-                <AddTeam v-if="(tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) && !tournament.tirStarted"
-                         :import-hidden="tournament.system === 'supermele' && (tournament.games && tournament.games.length > 0)"/>
-                <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound"/>
-                <div v-else class="mb-5 mt-5">
-                    {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
+                <div class="content tabs-content" v-if="activeTab === 'teams'">
+                    <AddTeam
+                        v-if="
+                            (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) &&
+                            !tournament.tirStarted
+                        "
+                        :import-hidden="
+                            tournament.system === 'supermele' && tournament.games && tournament.games.length > 0
+                        "
+                    />
+                    <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
+                    <div v-else class="mb-5 mt-5">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
                 </div>
-            </div>
-            <Games ref="games" v-if="activeTab === 'games'"
-                   :rankingTeams="rankingTeams"
-                   :activeRound="activeRound" :teams-in-group="teamsInGroup"
-                   @openResults="activeTab = 'ranking'" @startPlayOff="startPlayOff"
-                   @startFirstRound="startFirstRound" @redraw="redrawRounds"/>
-            <Results v-if="activeTab === 'results'"/>
-            <StreamPresets v-if="activeTab === 'streams'"/>
-            <div class="content tabs-content" v-if="activeTab === 'ranking'">
-                <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound"/>
-                <!-- TODO: still working on cadrage/group B transition
+                <Games
+                    ref="games"
+                    v-if="activeTab === 'games'"
+                    :rankingTeams="rankingTeams"
+                    :activeRound="activeRound"
+                    :teams-in-group="teamsInGroup"
+                    @openResults="activeTab = 'ranking'"
+                    @startPlayOff="startPlayOff"
+                    @startFirstRound="startFirstRound"
+                    @redraw="redrawRounds"
+                />
+                <Results v-if="activeTab === 'results'" />
+                <StreamPresets v-if="activeTab === 'streams'" />
+                <div class="content tabs-content" v-if="activeTab === 'ranking'">
+                    <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
+                    <!-- TODO: still working on cadrage/group B transition
                 <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished && tournament.games?.length">
                     <div class="mt-5">
                         <h2 class="h2">{{ $t('ranking.goPlayOff') }}</h2>
@@ -122,69 +171,173 @@
                         </label>
                     </div>
                 </div>
-                -->
-            </div>
-        <div class="bottom-actions" v-if="tournament.system !== 'tir'">
-            <div class="bottom-actions__row">
-                <button v-if="tournament.preferences?.isTestTournament && !tournament.tournamentIsFinished && (tournament.roundIsActive || tournament.cadrage?.length || tournament.playOff?.length)" class="bottom-actions__btn bottom-actions__btn--test" @click="autoFillScores">
-                    <Zap :size="16"/>
-                    {{ $t('setup.autoFillScores') }}
-                </button>
-                <button v-if="hasPlayOffConfigured && !tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-go-playoff" class="bottom-actions__btn bottom-actions__btn--finish" @click="openPlayoffConfirm">
-                    {{ $t('ranking.goPlayOff') }}
-                </button>
-                <button v-if="!tournament.tournamentIsFinished && !tournament.roundIsActive && tournament.games?.length && !tournament.playOff?.length && !tournament.cadrage?.length" data-testid="btn-finish-tournament" class="bottom-actions__btn bottom-actions__btn--outline" @click="showFinishConfirm = true">
-                    {{ $t('teams.finishTournament') }}
-                </button>
-                <button v-if="tournament.playOff?.length && !tournament.tournamentIsFinished" data-testid="btn-restore-round" class="bottom-actions__btn bottom-actions__btn--outline" @click="activeTab = 'games'; $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true))">
-                    <Undo2 :size="16"/>
-                    {{ $t('games.restoreRound') }}
-                </button>
-                <button v-if="tournamentStarted" data-testid="btn-preferences" class="bottom-actions__btn bottom-actions__btn--purple-outline" @click="showPreferences = true">
-                    <IconSettings :size="16"/>
-                    {{ $t('teams.preferences') }}
-                </button>
-                <button v-if="tournament.games?.length === 1 && tournament.roundIsActive" class="bottom-actions__btn bottom-actions__btn--outline" @click="redrawRounds">
-                    <RefreshCw :size="16"/>
-                    {{ $t('setup.redraw') }}
-                </button>
-                <span v-if="canSaveTournament || tournament.tournamentIsFinished" class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
-                    <button class="bottom-actions__btn bottom-actions__btn--primary" :disabled="isAlreadyArchived" @click="showSaveTournament = true">
-                        <IconArchive :size="16"/>
-                        {{ $t('teams.saveTournament') }}
-                    </button>
-                </span>
-                <button v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length" class="bottom-actions__btn bottom-actions__btn--gold" @click="showProtocol = !showProtocol">
-                    {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
-                </button>
-            </div>
-        </div>
+                --></div>
+                <div class="bottom-actions" v-if="tournament.system !== 'tir'">
+                    <div class="bottom-actions__row">
+                        <button
+                            v-if="
+                                tournament.preferences?.isTestTournament &&
+                                !tournament.tournamentIsFinished &&
+                                (tournament.roundIsActive || tournament.cadrage?.length || tournament.playOff?.length)
+                            "
+                            class="bottom-actions__btn bottom-actions__btn--test"
+                            @click="autoFillScores"
+                        >
+                            <Zap :size="16" />
+                            {{ $t('setup.autoFillScores') }}
+                        </button>
+                        <button
+                            v-if="
+                                hasPlayOffConfigured &&
+                                !tournament.tournamentIsFinished &&
+                                !tournament.roundIsActive &&
+                                tournament.games?.length &&
+                                !tournament.playOff?.length &&
+                                !tournament.cadrage?.length
+                            "
+                            data-testid="btn-go-playoff"
+                            class="bottom-actions__btn bottom-actions__btn--finish"
+                            @click="openPlayoffConfirm"
+                        >
+                            {{ $t('ranking.goPlayOff') }}
+                        </button>
+                        <button
+                            v-if="
+                                !tournament.tournamentIsFinished &&
+                                !tournament.roundIsActive &&
+                                tournament.games?.length &&
+                                !tournament.playOff?.length &&
+                                !tournament.cadrage?.length
+                            "
+                            data-testid="btn-finish-tournament"
+                            class="bottom-actions__btn bottom-actions__btn--outline"
+                            @click="showFinishConfirm = true"
+                        >
+                            {{ $t('teams.finishTournament') }}
+                        </button>
+                        <button
+                            v-if="tournament.playOff?.length && !tournament.tournamentIsFinished"
+                            data-testid="btn-restore-round"
+                            class="bottom-actions__btn bottom-actions__btn--outline"
+                            @click="
+                                activeTab = 'games';
+                                $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true));
+                            "
+                        >
+                            <Undo2 :size="16" />
+                            {{ $t('games.restoreRound') }}
+                        </button>
+                        <button
+                            v-if="tournamentStarted"
+                            data-testid="btn-preferences"
+                            class="bottom-actions__btn bottom-actions__btn--purple-outline"
+                            @click="showPreferences = true"
+                        >
+                            <IconSettings :size="16" />
+                            {{ $t('teams.preferences') }}
+                        </button>
+                        <button
+                            v-if="tournament.games?.length === 1 && tournament.roundIsActive"
+                            class="bottom-actions__btn bottom-actions__btn--outline"
+                            @click="redrawRounds"
+                        >
+                            <RefreshCw :size="16" />
+                            {{ $t('setup.redraw') }}
+                        </button>
+                        <span
+                            v-if="canSaveTournament || tournament.tournamentIsFinished"
+                            class="bottom-actions__tooltip-wrapper"
+                            :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''"
+                        >
+                            <button
+                                class="bottom-actions__btn bottom-actions__btn--primary"
+                                :disabled="isAlreadyArchived"
+                                @click="showSaveTournament = true"
+                            >
+                                <IconArchive :size="16" />
+                                {{ $t('teams.saveTournament') }}
+                            </button>
+                        </span>
+                        <button
+                            v-if="
+                                tournament.portalIdTournament &&
+                                tournament.tournamentIsFinished &&
+                                tournament.teams?.length
+                            "
+                            class="bottom-actions__btn bottom-actions__btn--gold"
+                            @click="showProtocol = !showProtocol"
+                        >
+                            {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </template>
-        <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams"
-                        @close-modal="showSaveTournament = false"/>
-        <ConfirmRemoveModal v-if="removeConfirmId" :name="tournament.name" @close="removeConfirmId = null" @remove="removeTournament(); showPreferences = false"/>
-        <ConfirmDialog v-if="showFinishConfirm"
-                       :message="$t('teams.finishTournamentConfirm')"
-                       :confirm-label="$t('teams.finishTournament')"
-                       :cancel-label="$t('common.cancel')"
-                       confirm-test-id="btn-confirm-finish"
-                       @confirm="showFinishConfirm = false; finishTournament()"
-                       @cancel="showFinishConfirm = false"/>
-        <PlayoffConfirmModal v-if="showPlayoffConfirm"
-                             :is-swiss="tournament.system === 'swiss'"
-                             :is-group-b="!!tournament.isGroupB"
-                             :teams-count="tournament.teams?.length || 0"
-                             :play-off-teams="tournament.preferences.playOffTeams"
-                             :with-cadrage="withCadrage"
-                             :with-barrage="withBarrage"
-                             :play-b="playB"
-                             :barrage-teams="tournament.preferences.barrageTeams || 8"
-                             @confirm="onPlayoffConfirm"
-                             @cancel="showPlayoffConfirm = false"/>
-        <Preferences v-if="showPreferences" @close-modal="showPreferences = false" @remove-tournament="removeConfirmId = 1"/>
-        <Protocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system !== 'tir'" @close="showProtocol = false" :tournament="tournament" :rankingTeams="rankingTeams"/>
-        <TirProtocol v-if="showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system === 'tir'" @close="showProtocol = false" :tournament="tournament"/>
+        <SaveTournament
+            v-if="showSaveTournament"
+            :ranking-teams="rankingTeams"
+            @close-modal="showSaveTournament = false"
+        />
+        <ConfirmRemoveModal
+            v-if="removeConfirmId"
+            :name="tournament.name"
+            @close="removeConfirmId = null"
+            @remove="
+                removeTournament();
+                showPreferences = false;
+            "
+        />
+        <ConfirmDialog
+            v-if="showFinishConfirm"
+            :message="$t('teams.finishTournamentConfirm')"
+            :confirm-label="$t('teams.finishTournament')"
+            :cancel-label="$t('common.cancel')"
+            confirm-test-id="btn-confirm-finish"
+            @confirm="
+                showFinishConfirm = false;
+                finishTournament();
+            "
+            @cancel="showFinishConfirm = false"
+        />
+        <PlayoffConfirmModal
+            v-if="showPlayoffConfirm"
+            :is-swiss="tournament.system === 'swiss'"
+            :is-group-b="!!tournament.isGroupB"
+            :teams-count="tournament.teams?.length || 0"
+            :play-off-teams="tournament.preferences.playOffTeams"
+            :with-cadrage="withCadrage"
+            :with-barrage="withBarrage"
+            :play-b="playB"
+            :barrage-teams="tournament.preferences.barrageTeams || 8"
+            @confirm="onPlayoffConfirm"
+            @cancel="showPlayoffConfirm = false"
+        />
+        <Preferences
+            v-if="showPreferences"
+            @close-modal="showPreferences = false"
+            @remove-tournament="removeConfirmId = 1"
+        />
+        <Protocol
+            v-if="
+                showProtocol &&
+                tournament.portalIdTournament &&
+                tournament.tournamentIsFinished &&
+                tournament.system !== 'tir'
+            "
+            @close="showProtocol = false"
+            :tournament="tournament"
+            :rankingTeams="rankingTeams"
+        />
+        <TirProtocol
+            v-if="
+                showProtocol &&
+                tournament.portalIdTournament &&
+                tournament.tournamentIsFinished &&
+                tournament.system === 'tir'
+            "
+            @close="showProtocol = false"
+            :tournament="tournament"
+        />
     </div>
 </template>
 
@@ -193,34 +346,43 @@ import AddTeam from './partials/AddTeam.vue';
 import Games from './partials/Games.vue';
 import Results from './partials/Results.vue';
 import Ranking from './partials/Ranking.vue';
-import TeamsList from "./partials/TeamsList";
-import SaveTournament from "./partials/SaveTournament";
-import {mapState, mapActions} from "pinia";
-import {useMainStore} from "@/stores/main";
-import ConfirmRemoveModal from "@/components/ConfirmRemoveModal";
-import {getTeamsRanking, shuffleArray} from "@/helpers";
-import {buildPlayOffScheme, buildCadrageGames} from "@/services/playoff";
-import QrCode from "@/components/partials/QrCode";
-import Preferences from "@/components/partials/Preferences";
-import Protocol from "@/components/partials/Protocol";
-import ConfirmDialog from "@/components/partials/ConfirmDialog";
-import PlayoffConfirmModal from "@/components/partials/PlayoffConfirmModal";
-import SetupCard from "@/components/partials/SetupCard";
-import TournamentHeader from "@/components/partials/TournamentHeader";
-import RemoteToolbar from "@/components/partials/RemoteToolbar";
-import {IconSettings, IconArchive} from "@/components/icons";
-import {Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap} from "lucide-vue-next";
-import {autoFillScores as autoFillScoresFn} from "@/services/testUtils";
-import StreamPresets from "@/components/partials/StreamPresets.vue";
-import {drawSwissRound, drawSupermeleRound, drawGroupsRound, assignLanes, generateConstrainedGroups, createPoules, drawPoulesRound, reshuffleGroupSchedule} from '@/services/draw';
-import TirModule from "@/components/tir/TirModule.vue";
-import TirProtocol from "@/components/tir/TirProtocol.vue";
+import TeamsList from './partials/TeamsList';
+import SaveTournament from './partials/SaveTournament';
+import { mapState, mapActions } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import ConfirmRemoveModal from '@/components/ConfirmRemoveModal';
+import { getTeamsRanking, shuffleArray } from '@/helpers';
+import { buildPlayOffScheme, buildCadrageGames } from '@/services/playoff';
+import QrCode from '@/components/partials/QrCode';
+import Preferences from '@/components/partials/Preferences';
+import Protocol from '@/components/partials/Protocol';
+import ConfirmDialog from '@/components/partials/ConfirmDialog';
+import PlayoffConfirmModal from '@/components/partials/PlayoffConfirmModal';
+import SetupCard from '@/components/partials/SetupCard';
+import TournamentHeader from '@/components/partials/TournamentHeader';
+import RemoteToolbar from '@/components/partials/RemoteToolbar';
+import { IconSettings, IconArchive } from '@/components/icons';
+import { Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
+import { autoFillScores as autoFillScoresFn } from '@/services/testUtils';
+import StreamPresets from '@/components/partials/StreamPresets.vue';
+import {
+    drawSwissRound,
+    drawSupermeleRound,
+    drawGroupsRound,
+    assignLanes,
+    generateConstrainedGroups,
+    createPoules,
+    drawPoulesRound,
+    reshuffleGroupSchedule,
+} from '@/services/draw';
+import TirModule from '@/components/tir/TirModule.vue';
+import TirProtocol from '@/components/tir/TirProtocol.vue';
 
 export default {
     name: 'Tournament',
     data() {
         return {
-            activeTab: "teams",
+            activeTab: 'teams',
             showSaveTournament: false,
             removeConfirmId: null,
             playB: false,
@@ -239,7 +401,7 @@ export default {
             tirTwoRounds: false,
             tirJunior: false,
             pinnedState: localStorage.getItem('petanqueDrawPinned'),
-        }
+        };
     },
     watch: {
         withCadrage(val) {
@@ -247,7 +409,7 @@ export default {
         },
         withBarrage(val) {
             if (val) this.withCadrage = false;
-        }
+        },
     },
     created() {
         if (!this.tournament) return;
@@ -273,16 +435,33 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'removeTournament', 'setPlayOff', 'setCadrage', 'setBarrage', 'addBTournament', 'finishTournament', 'showMessage', 'addTeamToStore', 'saveP', 'changeTournamentName', 'syncToFirebase', 'syncToFirebaseNow', 'addRoundToGames', 'savePreferences', 'clearRoundTimer']),
+        ...mapActions(useMainStore, [
+            'startRound',
+            'removeTournament',
+            'setPlayOff',
+            'setCadrage',
+            'setBarrage',
+            'addBTournament',
+            'finishTournament',
+            'showMessage',
+            'addTeamToStore',
+            'saveP',
+            'changeTournamentName',
+            'syncToFirebase',
+            'syncToFirebaseNow',
+            'addRoundToGames',
+            'savePreferences',
+            'clearRoundTimer',
+        ]),
         pinTournament() {
             localStorage.setItem('petanqueDrawPinned', this.currentTournamentIndex);
             this.pinnedState = this.currentTournamentIndex;
-            this.showMessage({title: this.$t('common.pin'), text: this.$t('messages.tournamentPinned')});
+            this.showMessage({ title: this.$t('common.pin'), text: this.$t('messages.tournamentPinned') });
         },
         unpinTournament() {
             localStorage.removeItem('petanqueDrawPinned');
             this.pinnedState = null;
-            this.showMessage({title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned')});
+            this.showMessage({ title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned') });
         },
         onMessageInput() {
             this.syncToFirebase();
@@ -306,7 +485,7 @@ export default {
             const withCadrage = this.withCadrage;
             const withBarrage = this.withBarrage;
             let playOffList;
-            if(this.tournament.system === 'swiss') {
+            if (this.tournament.system === 'swiss') {
                 if (withBarrage) {
                     const barrageCount = this.tournament.preferences.barrageTeams || 8;
                     playOffList = this.rankingTeams.slice(0, barrageCount);
@@ -315,22 +494,22 @@ export default {
                 } else if (withCadrage) {
                     playOffList = this.rankingTeams.slice(this.teamToPlayOff * 0.5, this.teamToPlayOff * 1.5);
                 } else {
-                    playOffList = this.rankingTeams.slice(0, this.teamToPlayOff)
+                    playOffList = this.rankingTeams.slice(0, this.teamToPlayOff);
                 }
             } else {
-                if(this.tournament.groups.length > 1) {
+                if (this.tournament.groups.length > 1) {
                     playOffList = [];
                     for (let i = 0; i < this.teamToPlayOff / this.tournament.groups.length; i++) {
-                        this.rankingTeams.forEach(group => playOffList.push(group[i]));
+                        this.rankingTeams.forEach((group) => playOffList.push(group[i]));
                     }
                 } else {
-                    playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff)
+                    playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff);
                 }
             }
             if (withCadrage) {
-                this.startCadrage(playOffList)
+                this.startCadrage(playOffList);
             } else {
-                this.startPlayOff(playOffList)
+                this.startPlayOff(playOffList);
             }
         },
         startCadrage(playOffList) {
@@ -367,7 +546,7 @@ export default {
             const barrage = {
                 groups,
                 barrageRound: 1,
-                startIndex
+                startIndex,
             };
             this.setBarrage(barrage);
 
@@ -380,14 +559,14 @@ export default {
                     team_1: group[0].title,
                     team_1_score: null,
                     team_2: group[2].title,
-                    team_2_score: null
+                    team_2_score: null,
                 });
                 round.push({
                     group: groupIndex,
                     team_1: group[1].title,
                     team_1_score: null,
                     team_2: group[3].title,
-                    team_2_score: null
+                    team_2_score: null,
                 });
             });
 
@@ -404,9 +583,10 @@ export default {
             const playB = this.playB;
             if (playB) {
                 const currentIndex = this.currentTournamentIndex;
-                const tournamentBTeams = this.rankingTeams.slice(this.teamToPlayOff, this.rankingTeams.length)
-                    .map(team => ({ ...team }));
-                tournamentBTeams.forEach(team => {
+                const tournamentBTeams = this.rankingTeams
+                    .slice(this.teamToPlayOff, this.rankingTeams.length)
+                    .map((team) => ({ ...team }));
+                tournamentBTeams.forEach((team) => {
                     team.wins = 0;
                     team.buhgolts = 0;
                     team.smallBuhgolts = 0;
@@ -414,7 +594,7 @@ export default {
                     team.pointsMinus = 0;
                     team.opponents = ['placeholder'];
                     team.lanes = [];
-                })
+                });
                 this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
                 this.currentTournamentIndex = currentIndex;
             }
@@ -422,24 +602,23 @@ export default {
         restoreTeamsFromLocalStorage() {
             const teams = JSON.parse(localStorage.getItem('petanqueDrawTeamsRestore'));
             if (!teams) return;
-            teams.forEach(item => {
-                this.addTeamToStore(item)
-            })
+            teams.forEach((item) => {
+                this.addTeamToStore(item);
+            });
         },
         drawFirstRound() {
-            console.log('Tournament ID:', this.currentTournamentIndex);
             if (this.tournament.system === 'tir') {
                 this.tournament.tirStarted = true;
                 if (!this.tournament.tirParticipants) {
-                    this.tournament.tirParticipants = this.tournament.teams.map(t => ({
+                    this.tournament.tirParticipants = this.tournament.teams.map((t) => ({
                         id: Date.now() + Math.random(),
                         name: t.title,
                         city: '',
-                        scores: {}
+                        scores: {},
                     }));
                 }
                 if (!this.tournament.tirConfig) {
-                    this.tournament.tirConfig = {junior: this.tirJunior, rounds: this.tirTwoRounds ? 2 : 1};
+                    this.tournament.tirConfig = { junior: this.tirJunior, rounds: this.tirTwoRounds ? 2 : 1 };
                 }
                 this.tournament.tirRound = 1;
                 if (!this.tournament.games) this.tournament.games = [];
@@ -449,27 +628,43 @@ export default {
                 return;
             }
             if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
-                this.showMessage({title: this.$t('games.chooseSystem'), text: this.$t('games.chooseSystemText'), type: 'error'});
+                this.showMessage({
+                    title: this.$t('games.chooseSystem'),
+                    text: this.$t('games.chooseSystemText'),
+                    type: 'error',
+                });
                 return;
             }
             let round = [];
             if (this.tournament.system === 'swiss') {
                 const result = drawSwissRound(this.tournament, this.rankingTeams, this.activeRound);
                 if (result.error) {
-                    this.showMessage({title: this.$t('messages.cantDrawRound'), text: this.$t('messages.tooManyGames'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.cantDrawRound'),
+                        text: this.$t('messages.tooManyGames'),
+                        type: 'error',
+                    });
                     return;
                 }
                 round = result.round;
             } else if (this.tournament.system === 'groups') {
                 if (this.teamsInGroup < 3) {
-                    this.showMessage({title: this.$t('messages.cantDraw'), text: this.$t('messages.chooseCorrectTeams'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.cantDraw'),
+                        text: this.$t('messages.chooseCorrectTeams'),
+                        type: 'error',
+                    });
                     return;
                 }
                 const result = generateConstrainedGroups(this.tournament, this.teamsInGroup);
                 this.tournament.groups = result.groups;
                 this.tournament.groupsScheme = result.schemas;
                 if (result.warning) {
-                    this.showMessage({title: this.$t('messages.warning'), text: this.$t('messages.constraintsNotSatisfied'), type: 'error'});
+                    this.showMessage({
+                        title: this.$t('messages.warning'),
+                        text: this.$t('messages.constraintsNotSatisfied'),
+                        type: 'error',
+                    });
                 }
                 if (this.isAllTeamsGroup) {
                     this.tournament.preferences.groupTotalRounds = this.groupRoundsCount;
@@ -483,7 +678,7 @@ export default {
                     round = drawGroupsRound(this.tournament);
                 }
             } else if (this.tournament.system === 'poules') {
-                const {groups} = createPoules(this.tournament);
+                const { groups } = createPoules(this.tournament);
                 this.tournament.groups = groups;
                 this.tournament.poulesRound = 1;
                 round = drawPoulesRound(this.tournament);
@@ -522,12 +717,12 @@ export default {
             if (this.tournament.roundIsActive && this.tournament.games.length > 1) return;
             this.clearRoundTimer();
             this.tournament.games = [];
-            this.tournament.teams.forEach(team => {
+            this.tournament.teams.forEach((team) => {
                 team.lanes = [];
             });
 
             if (this.tournament.system === 'groups' && this.tournament.groups) {
-                const {groups, schemas} = reshuffleGroupSchedule(this.tournament);
+                const { groups, schemas } = reshuffleGroupSchedule(this.tournament);
                 this.tournament.groups = groups;
                 this.tournament.groupsScheme = schemas;
                 this.tournament.groupSchedule = null;
@@ -560,17 +755,25 @@ export default {
             this.tournament.roundIsActive = false;
             this.tournament.tournamentIsStarted = false;
             this.syncToFirebaseNow();
-            this.showMessage({title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText')});
+            this.showMessage({ title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText') });
         },
         autoFillScores() {
             autoFillScoresFn(this.tournament, this.activeRound);
             this.syncToFirebase();
-        }
+        },
     },
     computed: {
-        ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'savedTournaments', 'allScoresFilled']),
+        ...mapState(useMainStore, [
+            'tournaments',
+            'currentTournamentIndex',
+            'isAdmin',
+            'user',
+            'currentTournament',
+            'savedTournaments',
+            'allScoresFilled',
+        ]),
         tournament() {
-            return this.currentTournament
+            return this.currentTournament;
         },
         tabs() {
             if (this.tournament.system === 'tir') {
@@ -591,20 +794,29 @@ export default {
             return this.tournament.system === 'groups' && this.teamsInGroup === this.tournament.teams.length;
         },
         canSaveTournament() {
-            return this.tournament.tournamentIsFinished && this.tournament.games?.length > 1
-                || this.tournament.playoff && this.tournament.playoff[this.tournament.playoff.length - 1].teams[0].team_1_score !== null
+            return (
+                (this.tournament.tournamentIsFinished && this.tournament.games?.length > 1) ||
+                (this.tournament.playoff &&
+                    this.tournament.playoff[this.tournament.playoff.length - 1].teams[0].team_1_score !== null)
+            );
         },
         rankingTeams() {
-            return getTeamsRanking(this.tournament, this.activeRound)
+            return getTeamsRanking(this.tournament, this.activeRound);
         },
         activeRound() {
-            return this.tournament.games && this.tournament.games.length ?
-                this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1
+            return this.tournament.games && this.tournament.games.length
+                ? this.tournament.roundIsActive
+                    ? this.tournament.games.length
+                    : this.tournament.games.length + 1
                 : 1;
         },
         hasPlayOffConfigured() {
             if (this.tournament.system === 'poules') return false;
-            return (this.tournament.system === 'swiss' || this.tournament.system === 'groups') && this.tournament.preferences?.playOffEnabled && this.tournament.preferences.playOffTeams < this.tournament.teams?.length;
+            return (
+                (this.tournament.system === 'swiss' || this.tournament.system === 'groups') &&
+                this.tournament.preferences?.playOffEnabled &&
+                this.tournament.preferences.playOffTeams < this.tournament.teams?.length
+            );
         },
         isPinned() {
             return String(this.pinnedState) === String(this.currentTournamentIndex);
@@ -613,7 +825,13 @@ export default {
             return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);
         },
         tournamentStarted() {
-            return !!(this.tournament.games?.length || this.tournament.playOff || this.tournament.cadrage || this.tournament.tirStarted || this.tournament.tournamentIsFinished);
+            return !!(
+                this.tournament.games?.length ||
+                this.tournament.playOff ||
+                this.tournament.cadrage ||
+                this.tournament.tirStarted ||
+                this.tournament.tournamentIsFinished
+            );
         },
         teamToPlayOff() {
             return this.tournament.preferences.playOffTeams;
@@ -621,8 +839,8 @@ export default {
         allGamesFinishedForRound() {
             const games = this.tournament.games?.[this.activeRound - 1];
             if (!games?.length) return false;
-            return games.every(g => g.status === 'finished' || g.team_2 === 'Technical');
-        }
+            return games.every((g) => g.status === 'finished' || g.team_2 === 'Technical');
+        },
     },
     components: {
         Undo2,
@@ -654,10 +872,9 @@ export default {
         Radio,
         Download,
         TirProtocol,
-        StreamPresets
-    }
-}
-
+        StreamPresets,
+    },
+};
 </script>
 
 <style scoped>
@@ -798,7 +1015,6 @@ export default {
     color: var(--color-btn-text);
 }
 
-
 .setup-teams-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -924,4 +1140,3 @@ export default {
     border-color: var(--color-warning-hover, #d97706);
 }
 </style>
-

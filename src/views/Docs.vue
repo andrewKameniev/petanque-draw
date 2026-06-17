@@ -1,14 +1,14 @@
 <template>
-    <Navbar @open-menu="menuOpen = !menuOpen"/>
-    <MenuComponent :active="menuOpen" @closeMenu="menuOpen = false"/>
+    <Navbar @open-menu="menuOpen = !menuOpen" />
+    <MenuComponent :active="menuOpen" @closeMenu="menuOpen = false" />
 
     <div class="docs">
         <!-- Mobile nav toggle -->
         <button class="docs__mobile-toggle" @click="navOpen = !navOpen">
-            <Menu :size="20" v-if="!navOpen"/>
-            <X :size="20" v-else/>
-            <span>{{ sections.find(s => s.id === activeSection)?.label || $t('docs.title') }}</span>
-            <ChevronDown :size="16" :class="{'docs__chevron--open': navOpen}"/>
+            <Menu :size="20" v-if="!navOpen" />
+            <X :size="20" v-else />
+            <span>{{ sections.find((s) => s.id === activeSection)?.label || $t('docs.title') }}</span>
+            <ChevronDown :size="16" :class="{ 'docs__chevron--open': navOpen }" />
         </button>
 
         <DocsSidebar
@@ -31,9 +31,12 @@
                             :key="result.id"
                             href="#"
                             class="docs__search-result"
-                            @click.prevent="searchQuery = ''; scrollToSection(result.id)"
+                            @click.prevent="
+                                searchQuery = '';
+                                scrollToSection(result.id);
+                            "
                         >
-                            <component :is="result.icon" :size="18"/>
+                            <component :is="result.icon" :size="18" />
                             <div>
                                 <strong>{{ result.label }}</strong>
                                 <span>{{ result.preview }}</span>
@@ -59,7 +62,10 @@
                             v-for="key in glossaryKeys"
                             :key="key"
                             class="docs__glossary-card"
-                            :class="[`docs__glossary-card--${key}`, glossaryLink(key) ? 'docs__glossary-card--clickable' : '']"
+                            :class="[
+                                `docs__glossary-card--${key}`,
+                                glossaryLink(key) ? 'docs__glossary-card--clickable' : '',
+                            ]"
                             @click="glossaryLink(key) && scrollToSection(glossaryLink(key))"
                         >
                             <span class="docs__glossary-term">{{ $t(`docs.glossary.${key}.term`) }}</span>
@@ -71,7 +77,7 @@
                 <!-- Swiss System -->
                 <section id="swiss" class="docs__section" ref="swiss">
                     <div class="docs__section-header">
-                        <Shuffle :size="24" class="docs__section-icon docs__section-icon--purple"/>
+                        <Shuffle :size="24" class="docs__section-icon docs__section-icon--purple" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.swissSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.swissSystem.subtitle') }}</p>
@@ -135,13 +141,21 @@
 
                     <!-- Swiss Calculator -->
                     <div class="docs__card docs__card--highlight" id="calculator" ref="calculator">
-                        <h3><Calculator :size="18"/> {{ $t('docs.swissSystem.calculator.title') }}</h3>
+                        <h3><Calculator :size="18" /> {{ $t('docs.swissSystem.calculator.title') }}</h3>
                         <p>{{ $t('docs.swissSystem.calculator.description') }}</p>
                         <div class="docs__calculator">
                             <label>{{ $t('docs.swissSystem.calculator.teamsLabel') }}</label>
-                            <input type="number" v-model.number="calcTeams" min="4" max="200" class="docs__calc-input"/>
+                            <input
+                                type="number"
+                                v-model.number="calcTeams"
+                                min="4"
+                                max="200"
+                                class="docs__calc-input"
+                            />
                             <div class="docs__calc-result" v-if="calcTeams >= 4">
-                                {{ $t('docs.swissSystem.calculator.result', {rounds: calcRecommended, max: calcMax}) }}
+                                {{
+                                    $t('docs.swissSystem.calculator.result', { rounds: calcRecommended, max: calcMax })
+                                }}
                             </div>
                         </div>
                     </div>
@@ -150,7 +164,7 @@
                 <!-- Groups -->
                 <section id="groups" class="docs__section" ref="groups">
                     <div class="docs__section-header">
-                        <Grid3x3 :size="24" class="docs__section-icon docs__section-icon--blue"/>
+                        <Grid3x3 :size="24" class="docs__section-icon docs__section-icon--blue" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.groupsSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.groupsSystem.subtitle') }}</p>
@@ -187,7 +201,7 @@
                 <!-- Barrage -->
                 <section id="barrage" class="docs__section" ref="barrage">
                     <div class="docs__section-header">
-                        <Users :size="24" class="docs__section-icon docs__section-icon--amber"/>
+                        <Users :size="24" class="docs__section-icon docs__section-icon--amber" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.barrageSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.barrageSystem.subtitle') }}</p>
@@ -224,7 +238,7 @@
                 <!-- Supermele -->
                 <section id="supermele" class="docs__section" ref="supermele">
                     <div class="docs__section-header">
-                        <Shuffle :size="24" class="docs__section-icon docs__section-icon--green"/>
+                        <Shuffle :size="24" class="docs__section-icon docs__section-icon--green" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.supermeleSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.supermeleSystem.subtitle') }}</p>
@@ -257,7 +271,7 @@
                 <!-- TIR -->
                 <section id="tir" class="docs__section" ref="tir">
                     <div class="docs__section-header">
-                        <Target :size="24" class="docs__section-icon docs__section-icon--green"/>
+                        <Target :size="24" class="docs__section-icon docs__section-icon--green" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.tirSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.tirSystem.subtitle') }}</p>
@@ -319,7 +333,7 @@
                 <!-- Playoff -->
                 <section id="playoff" class="docs__section" ref="playoff">
                     <div class="docs__section-header">
-                        <Trophy :size="24" class="docs__section-icon docs__section-icon--gold"/>
+                        <Trophy :size="24" class="docs__section-icon docs__section-icon--gold" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.playoffSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.playoffSystem.subtitle') }}</p>
@@ -366,7 +380,7 @@
                 <!-- Cadrage -->
                 <section id="cadrage" class="docs__section" ref="cadrage">
                     <div class="docs__section-header">
-                        <GitBranch :size="24" class="docs__section-icon docs__section-icon--amber"/>
+                        <GitBranch :size="24" class="docs__section-icon docs__section-icon--amber" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.cadrageSystem.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.cadrageSystem.subtitle') }}</p>
@@ -410,7 +424,7 @@
                 <!-- Swiss + Playoff -->
                 <section id="swiss-playoff" class="docs__section" ref="swissPlayoff">
                     <div class="docs__section-header">
-                        <Layers :size="24" class="docs__section-icon docs__section-icon--purple"/>
+                        <Layers :size="24" class="docs__section-icon docs__section-icon--purple" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.swissPlayoff.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.swissPlayoff.subtitle') }}</p>
@@ -425,12 +439,12 @@
                                 <span class="docs__flow-num">1</span>
                                 {{ $t('docs.swissPlayoff.flow.step1') }}
                             </div>
-                            <div class="docs__flow-arrow"><ChevronDown :size="16"/></div>
+                            <div class="docs__flow-arrow"><ChevronDown :size="16" /></div>
                             <div class="docs__flow-step">
                                 <span class="docs__flow-num">2</span>
                                 {{ $t('docs.swissPlayoff.flow.step2') }}
                             </div>
-                            <div class="docs__flow-arrow"><ChevronDown :size="16"/></div>
+                            <div class="docs__flow-arrow"><ChevronDown :size="16" /></div>
                             <div class="docs__flow-step">
                                 <span class="docs__flow-num">3</span>
                                 {{ $t('docs.swissPlayoff.flow.step3') }}
@@ -450,7 +464,7 @@
                 <!-- Swiss + Barrage + Playoff -->
                 <section id="swiss-barrage-playoff" class="docs__section" ref="swissBarragePlayoff">
                     <div class="docs__section-header">
-                        <Layers :size="24" class="docs__section-icon docs__section-icon--blue"/>
+                        <Layers :size="24" class="docs__section-icon docs__section-icon--blue" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.swissBarragePlayoff.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.swissBarragePlayoff.subtitle') }}</p>
@@ -465,12 +479,12 @@
                                 <span class="docs__flow-num">1</span>
                                 {{ $t('docs.swissBarragePlayoff.flow.step1') }}
                             </div>
-                            <div class="docs__flow-arrow"><ChevronDown :size="16"/></div>
+                            <div class="docs__flow-arrow"><ChevronDown :size="16" /></div>
                             <div class="docs__flow-step">
                                 <span class="docs__flow-num">2</span>
                                 {{ $t('docs.swissBarragePlayoff.flow.step2') }}
                             </div>
-                            <div class="docs__flow-arrow"><ChevronDown :size="16"/></div>
+                            <div class="docs__flow-arrow"><ChevronDown :size="16" /></div>
                             <div class="docs__flow-step">
                                 <span class="docs__flow-num">3</span>
                                 {{ $t('docs.swissBarragePlayoff.flow.step3') }}
@@ -487,7 +501,7 @@
                 <!-- Tournament B -->
                 <section id="tournament-b" class="docs__section" ref="tournamentB">
                     <div class="docs__section-header">
-                        <Copy :size="24" class="docs__section-icon docs__section-icon--blue"/>
+                        <Copy :size="24" class="docs__section-icon docs__section-icon--blue" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.tournamentB.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.tournamentB.subtitle') }}</p>
@@ -509,7 +523,7 @@
                 <!-- Rankings -->
                 <section id="rankings" class="docs__section" ref="rankings">
                     <div class="docs__section-header">
-                        <BarChart3 :size="24" class="docs__section-icon docs__section-icon--purple"/>
+                        <BarChart3 :size="24" class="docs__section-icon docs__section-icon--purple" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.rankingAlgorithms.title') }}</h2>
                             <p class="docs__subtitle">{{ $t('docs.rankingAlgorithms.subtitle') }}</p>
@@ -520,7 +534,9 @@
                         <div class="docs__ranking-card" v-for="sys in rankingSystems" :key="sys">
                             <h4>{{ $t(`docs.rankingAlgorithms.${sys}.title`) }}</h4>
                             <code class="docs__code">{{ $t(`docs.rankingAlgorithms.${sys}.criteria`) }}</code>
-                            <p v-if="$te(`docs.rankingAlgorithms.${sys}.note`)">{{ $t(`docs.rankingAlgorithms.${sys}.note`) }}</p>
+                            <p v-if="$te(`docs.rankingAlgorithms.${sys}.note`)">
+                                {{ $t(`docs.rankingAlgorithms.${sys}.note`) }}
+                            </p>
                         </div>
                     </div>
 
@@ -538,7 +554,7 @@
                 <!-- FAQ -->
                 <section id="faq" class="docs__section" ref="faq">
                     <div class="docs__section-header">
-                        <HelpCircle :size="24" class="docs__section-icon docs__section-icon--blue"/>
+                        <HelpCircle :size="24" class="docs__section-icon docs__section-icon--blue" />
                         <div>
                             <h2 class="docs__title">{{ $t('docs.faqSection.title') }}</h2>
                         </div>
@@ -549,11 +565,11 @@
                             v-for="n in 8"
                             :key="n"
                             class="docs__faq-item"
-                            :class="{'docs__faq-item--open': faqOpen === n}"
+                            :class="{ 'docs__faq-item--open': faqOpen === n }"
                         >
                             <button class="docs__faq-question" @click="faqOpen = faqOpen === n ? null : n">
                                 <span>{{ $t(`docs.faqSection.items.q${n}`) }}</span>
-                                <ChevronDown :size="16"/>
+                                <ChevronDown :size="16" />
                             </button>
                             <div class="docs__faq-answer">
                                 <p>{{ $t(`docs.faqSection.items.a${n}`) }}</p>
@@ -562,10 +578,9 @@
                     </div>
                 </section>
 
-
                 <!-- Back to top -->
                 <button class="docs__back-top" v-show="showBackTop" @click="scrollToTop">
-                    <ChevronUp :size="20"/>
+                    <ChevronUp :size="20" />
                 </button>
             </template>
         </main>
@@ -577,18 +592,48 @@ import Navbar from '@/components/Navbar.vue';
 import MenuComponent from '@/components/Menu.vue';
 import DocsSidebar from '@/components/docs/DocsSidebar.vue';
 import {
-    Menu, X, ChevronDown, ChevronUp, ChevronRight,
-    Shuffle, Grid3x3, Users, Target, Trophy, GitBranch,
-    Layers, Copy, BarChart3, HelpCircle, BookOpen, Calculator
+    Menu,
+    X,
+    ChevronDown,
+    ChevronUp,
+    ChevronRight,
+    Shuffle,
+    Grid3x3,
+    Users,
+    Target,
+    Trophy,
+    GitBranch,
+    Layers,
+    Copy,
+    BarChart3,
+    HelpCircle,
+    BookOpen,
+    Calculator,
 } from 'lucide-vue-next';
 
 export default {
     name: 'Docs',
     components: {
-        Navbar, MenuComponent, DocsSidebar,
-        Menu, X, ChevronDown, ChevronUp, ChevronRight,
-        Shuffle, Grid3x3, Users, Target, Trophy, GitBranch,
-        Layers, Copy, BarChart3, HelpCircle, BookOpen, Calculator
+        Navbar,
+        MenuComponent,
+        DocsSidebar,
+        Menu,
+        X,
+        ChevronDown,
+        ChevronUp,
+        ChevronRight,
+        Shuffle,
+        Grid3x3,
+        Users,
+        Target,
+        Trophy,
+        GitBranch,
+        Layers,
+        Copy,
+        BarChart3,
+        HelpCircle,
+        BookOpen,
+        Calculator,
     },
     data() {
         return {
@@ -600,11 +645,26 @@ export default {
             calcTeams: 16,
             showBackTop: false,
             observer: null,
-        }
+        };
     },
     computed: {
         glossaryKeys() {
-            return ['swiss', 'barrage', 'cadrage', 'playoff', 'tir', 'supermele', 'buchholz', 'technical', 'carreau', 'reussi', 'touche', 'manque', 'lane', 'cochonnet'];
+            return [
+                'swiss',
+                'barrage',
+                'cadrage',
+                'playoff',
+                'tir',
+                'supermele',
+                'buchholz',
+                'technical',
+                'carreau',
+                'reussi',
+                'touche',
+                'manque',
+                'lane',
+                'cochonnet',
+            ];
         },
         maxRoundsTable() {
             return [
@@ -646,41 +706,58 @@ export default {
             const q = this.searchQuery.toLowerCase();
             const results = [];
 
-            this.sections.forEach(s => {
+            this.sections.forEach((s) => {
                 if (s.label.toLowerCase().includes(q)) {
                     results.push({ id: s.id, label: s.label, icon: s.icon, preview: '' });
                 }
             });
 
-            this.glossaryKeys.forEach(key => {
+            this.glossaryKeys.forEach((key) => {
                 const term = this.$t(`docs.glossary.${key}.term`);
                 const desc = this.$t(`docs.glossary.${key}.short`);
                 if (term.toLowerCase().includes(q) || desc.toLowerCase().includes(q)) {
                     const target = this.glossaryLink(key) || 'glossary';
-                    if (!results.find(r => r.id === target && r.label === term)) {
+                    if (!results.find((r) => r.id === target && r.label === term)) {
                         results.push({ id: target, label: term, icon: BookOpen, preview: desc });
                     }
                 }
             });
 
             const searchKeys = [
-                { section: 'swiss', keys: ['docs.swissSystem.intro', 'docs.swissSystem.rules.noRematch', 'docs.swissSystem.rules.equalWins', 'docs.swissSystem.rules.odd', 'docs.swissSystem.bye.text'] },
+                {
+                    section: 'swiss',
+                    keys: [
+                        'docs.swissSystem.intro',
+                        'docs.swissSystem.rules.noRematch',
+                        'docs.swissSystem.rules.equalWins',
+                        'docs.swissSystem.rules.odd',
+                        'docs.swissSystem.bye.text',
+                    ],
+                },
                 { section: 'groups', keys: ['docs.groupsSystem.intro', 'docs.groupsSystem.ranking.headToHead'] },
                 { section: 'barrage', keys: ['docs.barrageSystem.intro', 'docs.barrageSystem.qualification.text'] },
                 { section: 'supermele', keys: ['docs.supermeleSystem.intro'] },
                 { section: 'tir', keys: ['docs.tirSystem.intro', 'docs.tirSystem.rounds.text'] },
                 { section: 'playoff', keys: ['docs.playoffSystem.intro', 'docs.playoffSystem.seeding.text'] },
                 { section: 'cadrage', keys: ['docs.cadrageSystem.intro', 'docs.cadrageSystem.pairing.text'] },
-                { section: 'rankings', keys: ['docs.rankingAlgorithms.buchholz.text', 'docs.rankingAlgorithms.lanes.text'] },
+                {
+                    section: 'rankings',
+                    keys: ['docs.rankingAlgorithms.buchholz.text', 'docs.rankingAlgorithms.lanes.text'],
+                },
             ];
 
             searchKeys.forEach(({ section, keys }) => {
-                if (results.find(r => r.id === section)) return;
+                if (results.find((r) => r.id === section)) return;
                 for (const key of keys) {
                     const text = this.$t(key);
                     if (text.toLowerCase().includes(q)) {
-                        const s = this.sections.find(x => x.id === section);
-                        results.push({ id: section, label: s?.label || section, icon: s?.icon || BookOpen, preview: text.slice(0, 80) });
+                        const s = this.sections.find((x) => x.id === section);
+                        results.push({
+                            id: section,
+                            label: s?.label || section,
+                            icon: s?.icon || BookOpen,
+                            preview: text.slice(0, 80),
+                        });
                         break;
                     }
                 }
@@ -697,11 +774,19 @@ export default {
             results.push(...faqResults);
 
             return results.slice(0, 10);
-        }
+        },
     },
     methods: {
         glossaryLink(key) {
-            const map = { swiss: 'swiss', barrage: 'barrage', cadrage: 'cadrage', playoff: 'playoff', tir: 'tir', supermele: 'supermele', buchholz: 'rankings' };
+            const map = {
+                swiss: 'swiss',
+                barrage: 'barrage',
+                cadrage: 'cadrage',
+                playoff: 'playoff',
+                tir: 'tir',
+                supermele: 'supermele',
+                buchholz: 'rankings',
+            };
             return map[key] || null;
         },
         smoothScroll(container, to, duration = 300) {
@@ -742,7 +827,13 @@ export default {
         },
         setupObserver() {
             let scrolled = false;
-            this.$refs.content?.addEventListener('scroll', () => { scrolled = true; }, { once: true });
+            this.$refs.content?.addEventListener(
+                'scroll',
+                () => {
+                    scrolled = true;
+                },
+                { once: true },
+            );
 
             const options = { root: this.$refs.content, rootMargin: '-80px 0px -60% 0px', threshold: 0 };
             this.observer = new IntersectionObserver((entries) => {
@@ -754,7 +845,7 @@ export default {
                 }
             }, options);
 
-            this.sections.forEach(s => {
+            this.sections.forEach((s) => {
                 const el = document.getElementById(s.id);
                 if (el) this.observer.observe(el);
             });
@@ -764,7 +855,7 @@ export default {
             if (content) {
                 this.showBackTop = content.scrollTop > 400;
             }
-        }
+        },
     },
     mounted() {
         this.$nextTick(() => {
@@ -780,8 +871,8 @@ export default {
     beforeUnmount() {
         this.observer?.disconnect();
         this.$refs.content?.removeEventListener('scroll', this.handleScroll);
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -795,6 +886,7 @@ export default {
 }
 
 /* Mobile toggle */
+
 .docs__mobile-toggle {
     display: none;
     position: sticky;
@@ -823,6 +915,7 @@ export default {
 }
 
 /* Content */
+
 .docs__content {
     flex: 1;
     overflow-y: auto;
@@ -858,17 +951,17 @@ export default {
 
 .docs__section-icon--blue {
     color: var(--blue-400);
-    background: rgba(33, 150, 243, 0.08);
+    background: rgb(33 150 243 / 8%);
 }
 
 .docs__section-icon--green {
     color: var(--green-300);
-    background: rgba(76, 175, 80, 0.08);
+    background: rgb(76 175 80 / 8%);
 }
 
 .docs__section-icon--amber {
     color: var(--amber-500);
-    background: rgba(245, 166, 35, 0.08);
+    background: rgb(245 166 35 / 8%);
 }
 
 .docs__section-icon--gold {
@@ -898,6 +991,7 @@ export default {
 }
 
 /* Cards */
+
 .docs__card {
     background: var(--color-white);
     border: 1px solid var(--color-border-light);
@@ -937,6 +1031,7 @@ export default {
 }
 
 /* Lists */
+
 .docs__list {
     margin: 0;
     padding-left: 1.25rem;
@@ -954,19 +1049,21 @@ export default {
 }
 
 /* Code */
+
 .docs__code {
     display: block;
     padding: 0.5rem 0.75rem;
     background: var(--color-surface-alt);
     border-radius: 6px;
     font-size: 0.82rem;
-    font-family: 'Menlo', 'Monaco', monospace;
+    font-family: Menlo, Monaco, monospace;
     color: var(--color-primary);
     margin: 0.5rem 0;
     overflow-x: auto;
 }
 
 /* Table */
+
 .docs__table {
     width: 100%;
     border-collapse: collapse;
@@ -994,6 +1091,7 @@ export default {
 }
 
 /* Glossary */
+
 .docs__glossary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1008,7 +1106,9 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .docs__glossary-card--clickable {
@@ -1032,18 +1132,48 @@ export default {
     line-height: 1.4;
 }
 
-.docs__glossary-card--swiss .docs__glossary-term { color: var(--color-primary); }
-.docs__glossary-card--barrage .docs__glossary-term { color: var(--amber-500); }
-.docs__glossary-card--cadrage .docs__glossary-term { color: var(--amber-500); }
-.docs__glossary-card--playoff .docs__glossary-term { color: var(--gold-3); }
-.docs__glossary-card--tir .docs__glossary-term { color: var(--green-300); }
-.docs__glossary-card--supermele .docs__glossary-term { color: var(--green-300); }
-.docs__glossary-card--buchholz .docs__glossary-term { color: var(--color-primary); }
-.docs__glossary-card--carreau .docs__glossary-term { color: var(--tir-carreau); }
-.docs__glossary-card--reussi .docs__glossary-term { color: var(--blue-400); }
-.docs__glossary-card--touche .docs__glossary-term { color: var(--amber-200); }
+.docs__glossary-card--swiss .docs__glossary-term {
+    color: var(--color-primary);
+}
+
+.docs__glossary-card--barrage .docs__glossary-term {
+    color: var(--amber-500);
+}
+
+.docs__glossary-card--cadrage .docs__glossary-term {
+    color: var(--amber-500);
+}
+
+.docs__glossary-card--playoff .docs__glossary-term {
+    color: var(--gold-3);
+}
+
+.docs__glossary-card--tir .docs__glossary-term {
+    color: var(--green-300);
+}
+
+.docs__glossary-card--supermele .docs__glossary-term {
+    color: var(--green-300);
+}
+
+.docs__glossary-card--buchholz .docs__glossary-term {
+    color: var(--color-primary);
+}
+
+.docs__glossary-card--carreau .docs__glossary-term {
+    color: var(--tir-carreau);
+}
+
+.docs__glossary-card--reussi .docs__glossary-term {
+    color: var(--blue-400);
+}
+
+.docs__glossary-card--touche .docs__glossary-term {
+    color: var(--amber-200);
+}
 
 /* TIR scoring visual */
+
 .docs__tir-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1074,16 +1204,41 @@ export default {
     flex-shrink: 0;
 }
 
-.docs__tir-score--carreau { background: rgba(76, 175, 80, 0.08); }
-.docs__tir-score--carreau .docs__tir-pts { background: var(--tir-carreau); }
-.docs__tir-score--reussi { background: rgba(33, 150, 243, 0.08); }
-.docs__tir-score--reussi .docs__tir-pts { background: var(--blue-400); }
-.docs__tir-score--touche { background: rgba(245, 166, 35, 0.08); }
-.docs__tir-score--touche .docs__tir-pts { background: var(--amber-200); color: var(--color-text); }
-.docs__tir-score--manque { background: rgba(0, 0, 0, 0.04); }
-.docs__tir-score--manque .docs__tir-pts { background: var(--grey-700); }
+.docs__tir-score--carreau {
+    background: rgb(76 175 80 / 8%);
+}
+
+.docs__tir-score--carreau .docs__tir-pts {
+    background: var(--tir-carreau);
+}
+
+.docs__tir-score--reussi {
+    background: rgb(33 150 243 / 8%);
+}
+
+.docs__tir-score--reussi .docs__tir-pts {
+    background: var(--blue-400);
+}
+
+.docs__tir-score--touche {
+    background: rgb(245 166 35 / 8%);
+}
+
+.docs__tir-score--touche .docs__tir-pts {
+    background: var(--amber-200);
+    color: var(--color-text);
+}
+
+.docs__tir-score--manque {
+    background: rgb(0 0 0 / 4%);
+}
+
+.docs__tir-score--manque .docs__tir-pts {
+    background: var(--grey-700);
+}
 
 /* Bracket visual */
+
 .docs__bracket-visual {
     display: flex;
     flex-direction: column;
@@ -1116,6 +1271,7 @@ export default {
 }
 
 /* Cadrage flow */
+
 .docs__cadrage-flow {
     display: flex;
     flex-direction: column;
@@ -1132,9 +1288,17 @@ export default {
     color: var(--color-text-secondary);
 }
 
-.docs__cadrage-step--direct { background: rgba(76, 175, 80, 0.08); }
-.docs__cadrage-step--cadrage { background: rgba(245, 166, 35, 0.08); }
-.docs__cadrage-step--eliminated { background: rgba(0, 0, 0, 0.04); }
+.docs__cadrage-step--direct {
+    background: rgb(76 175 80 / 8%);
+}
+
+.docs__cadrage-step--cadrage {
+    background: rgb(245 166 35 / 8%);
+}
+
+.docs__cadrage-step--eliminated {
+    background: rgb(0 0 0 / 4%);
+}
 
 .docs__cadrage-badge {
     font-weight: 700;
@@ -1147,6 +1311,7 @@ export default {
 }
 
 /* Flow steps */
+
 .docs__flow {
     display: flex;
     flex-direction: column;
@@ -1185,6 +1350,7 @@ export default {
 }
 
 /* Rankings grid */
+
 .docs__rankings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1213,6 +1379,7 @@ export default {
 }
 
 /* FAQ */
+
 .docs__faq {
     display: flex;
     flex-direction: column;
@@ -1276,6 +1443,7 @@ export default {
 }
 
 /* Calculator */
+
 .docs__calculator {
     margin-top: 0.75rem;
 }
@@ -1310,6 +1478,7 @@ export default {
 }
 
 /* Link button */
+
 .docs__link-btn {
     display: inline-flex;
     align-items: center;
@@ -1330,6 +1499,7 @@ export default {
 }
 
 /* Back to top */
+
 .docs__back-top {
     position: fixed;
     bottom: 1.5rem;
@@ -1354,6 +1524,7 @@ export default {
 }
 
 /* Search results */
+
 .docs__search-results {
     display: flex;
     flex-direction: column;
@@ -1410,10 +1581,7 @@ export default {
     .docs__sidebar {
         display: none;
         position: fixed;
-        top: 52px;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 52px 0 0;
         width: 100%;
         z-index: 200;
         border-right: none;

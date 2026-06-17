@@ -12,7 +12,7 @@ function makeTeam(title, club = null) {
         pointsPlus: 0,
         pointsMinus: 0,
         lanes: [],
-        players: club ? [{ club }] : []
+        players: club ? [{ club }] : [],
     };
 }
 
@@ -25,9 +25,9 @@ function makeTournament(teams) {
         preferences: {
             fieldsStart: 1,
             technical: { technicalFirst: 13, technicalSecond: 0 },
-            maxScore: 13
+            maxScore: 13,
         },
-        games: []
+        games: [],
     };
 }
 
@@ -70,7 +70,7 @@ describe('generateConstrainedGroups', () => {
         tournament.groupsScheme = result.schemas;
 
         const rounds = generateFullSchedule(tournament);
-        const firstHalfEnd = Math.floor((rounds.length) / 2);
+        const firstHalfEnd = Math.floor(rounds.length / 2);
 
         const sameClubPairs = [
             ['Team X1', 'Team X2'],
@@ -80,9 +80,11 @@ describe('generateConstrainedGroups', () => {
         for (const [teamA, teamB] of sameClubPairs) {
             let meetRound = -1;
             rounds.forEach((round, rIdx) => {
-                round.forEach(game => {
-                    if ((game.team_1 === teamA && game.team_2 === teamB) ||
-                        (game.team_1 === teamB && game.team_2 === teamA)) {
+                round.forEach((game) => {
+                    if (
+                        (game.team_1 === teamA && game.team_2 === teamB) ||
+                        (game.team_1 === teamB && game.team_2 === teamA)
+                    ) {
                         meetRound = rIdx;
                     }
                 });
@@ -107,9 +109,9 @@ describe('generateConstrainedGroups', () => {
         expect(rounds).toHaveLength(9);
 
         const allPairs = new Set();
-        rounds.forEach((round, rIdx) => {
+        rounds.forEach((round, _rIdx) => {
             const teamsInRound = new Set();
-            round.forEach(game => {
+            round.forEach((game) => {
                 expect(teamsInRound.has(game.team_1)).toBe(false);
                 expect(teamsInRound.has(game.team_2)).toBe(false);
                 teamsInRound.add(game.team_1);

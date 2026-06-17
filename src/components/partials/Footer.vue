@@ -1,15 +1,15 @@
 <script>
-import {mapState} from "pinia";
-import {useMainStore} from "@/stores/main";
-import {version} from "../../../package.json";
+import { mapState } from 'pinia';
+import { useMainStore } from '@/stores/main';
+import { version } from '../../../package.json';
 
 export default {
-    name: "Footer",
+    name: 'Footer',
     data() {
-        return { appVersion: version }
+        return { appVersion: version };
     },
     computed: mapState(useMainStore, ['user']),
-}
+};
 </script>
 
 <template>
@@ -20,10 +20,17 @@ export default {
                     <router-link to="/docs">{{ $t('common.documentation') }}</router-link>
                     <a href="http://portal.petanque.org.ua/" target="_blank">{{ $t('common.portal') }}</a>
                 </div>
-                <p class="app-footer__credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a> <span class="app-footer__version">ver: {{ appVersion }}</span></p>
+                <p class="app-footer__credit">
+                    {{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> &
+                    <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a>
+                    <span class="app-footer__version">ver: {{ appVersion }}</span>
+                </p>
             </div>
         </div>
-        <p class="app-footer__credit app-footer__mobile-credit">{{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> & <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a></p>
+        <p class="app-footer__credit app-footer__mobile-credit">
+            {{ $t('common.developedBy') }} <a href="mailto:ancam1987@gmail.com">Andrii Kameniev</a> &
+            <a href="mailto:nemo15.alex@gmail.com">Oleksandr Rozhok</a>
+        </p>
     </footer>
 </template>
 

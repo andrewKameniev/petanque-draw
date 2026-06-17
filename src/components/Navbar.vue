@@ -170,7 +170,12 @@
                                 </svg>
                                 {{ $t('common.documentation') }}
                             </router-link>
-                            <a class="user-dropdown__item" href="http://portal.petanque.org.ua/" target="_blank" @click="userDropdownOpen = false">
+                            <a
+                                class="user-dropdown__item"
+                                href="http://portal.petanque.org.ua/"
+                                target="_blank"
+                                @click="userDropdownOpen = false"
+                            >
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
@@ -347,15 +352,15 @@ export default {
 }
 
 .navbar-center .navbar-nav-link--purple.router-link-exact-active {
-    background: rgba(142, 68, 173, 0.12);
+    background: rgb(142 68 173 / 12%);
 }
 
 .navbar-center .navbar-nav-link--blue.router-link-exact-active {
-    background: rgba(41, 128, 185, 0.12);
+    background: rgb(41 128 185 / 12%);
 }
 
 .navbar-center .navbar-nav-link--green.router-link-exact-active {
-    background: rgba(39, 174, 96, 0.12);
+    background: rgb(39 174 96 / 12%);
 }
 
 .navbar-icon-link {
@@ -380,7 +385,7 @@ export default {
 }
 
 .navbar-icon-link.navbar-icon-link--purple.router-link-exact-active {
-    background: rgba(142, 68, 173, 0.12);
+    background: rgb(142 68 173 / 12%);
 }
 
 .navbar-icon-link.navbar-icon-link--blue {
@@ -388,7 +393,7 @@ export default {
 }
 
 .navbar-icon-link.navbar-icon-link--blue.router-link-exact-active {
-    background: rgba(41, 128, 185, 0.12);
+    background: rgb(41 128 185 / 12%);
 }
 
 .navbar-icon-link.navbar-icon-link--green {
@@ -396,15 +401,16 @@ export default {
 }
 
 .navbar-icon-link.navbar-icon-link--green.router-link-exact-active {
-    background: rgba(39, 174, 96, 0.12);
+    background: rgb(39 174 96 / 12%);
 }
 
 /* Active overlay */
+
 .active-overlay {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgb(0 0 0 / 40%);
     animation: overlay-fade-in 0.2s ease;
 }
 
@@ -412,6 +418,7 @@ export default {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -425,7 +432,7 @@ export default {
     max-height: 80vh;
     background: var(--color-white);
     border-radius: 0 0 1rem 1rem;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 40px rgb(0 0 0 / 15%);
     padding: 1.5rem;
     overflow-y: auto;
     animation: panel-slide-down 0.25s ease;
@@ -435,6 +442,7 @@ export default {
     from {
         transform: translateY(-100%);
     }
+
     to {
         transform: translateY(0);
     }
@@ -492,12 +500,12 @@ export default {
 
 .active-overlay__item:hover {
     border-color: #e67e22;
-    background: rgba(230, 126, 34, 0.04);
+    background: rgb(230 126 34 / 4%);
 }
 
 .active-overlay__item--active {
     border-color: #e67e22;
-    background: rgba(230, 126, 34, 0.08);
+    background: rgb(230 126 34 / 8%);
 }
 
 .active-overlay__item-top {
@@ -523,7 +531,7 @@ export default {
     font-weight: 500;
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
-    background: var(--color-primary-bg, rgba(124, 58, 237, 0.1));
+    background: var(--color-primary-bg, rgb(124 58 237 / 10%));
     color: var(--color-primary);
     text-transform: capitalize;
 }
@@ -612,7 +620,6 @@ export default {
     }
 }
 
-
 .navbar-menu {
     display: flex;
     align-items: center;
@@ -635,7 +642,7 @@ export default {
     border-radius: 0.5rem;
     box-shadow:
         0 8px 24px var(--color-dropdown-shadow),
-        0 2px 4px rgba(0, 0, 0, 0.04);
+        0 2px 4px rgb(0 0 0 / 4%);
     min-width: 160px;
     padding: 0.35rem;
     z-index: 9999;
@@ -647,6 +654,7 @@ export default {
         opacity: 0;
         transform: translateY(-4px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

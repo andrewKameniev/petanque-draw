@@ -1,6 +1,6 @@
 <script>
-import StatCheckbox from "@/components/stats/StatCheckbox.vue";
-import {throwDistances} from "@/helpers-stat";
+import StatCheckbox from '@/components/stats/StatCheckbox.vue';
+import { throwDistances } from '@/helpers-stat';
 
 const clickOutsideDirective = {
     beforeMount(el, binding) {
@@ -16,8 +16,8 @@ const clickOutsideDirective = {
     },
 };
 export default {
-    name: "ThrowResult",
-    components: {StatCheckbox},
+    name: 'ThrowResult',
+    components: { StatCheckbox },
     props: ['info', 'iterator', 'system'],
     data() {
         return {
@@ -25,7 +25,7 @@ export default {
             longPressTimer: null,
             isLongPress: false,
             selectOpen: false,
-            frenchSystem: ['H', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I']
+            frenchSystem: ['H', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I'],
         };
     },
     directives: {
@@ -33,8 +33,8 @@ export default {
     },
     computed: {
         getThrowDistances() {
-            return throwDistances
-        }
+            return throwDistances;
+        },
     },
     methods: {
         showMenu() {
@@ -79,40 +79,70 @@ export default {
             this.$emit('super', !result);
             this.hideMenu();
         },
-        onClickOutside () {
-            this.hideMenu()
+        onClickOutside() {
+            this.hideMenu();
         },
         getFrenchLabel(value) {
             if (value === 'H') {
-                return '+'
+                return '+';
             } else if (value === 'I') {
-                return '-'
+                return '-';
             } else {
-                return value
+                return value;
             }
-        }
+        },
     },
-}
+};
 </script>
 
 <template>
-    <div @mousedown.stop="handleMouseDown" @mouseup="handleMouseUp" @mouseleave="handleMouseUp"
-         @touchstart.stop="handleTouchStart" @touchend.stop="handleTouchEnd" @touchcancel="handleTouchEnd"
-         class="longpress-area" v-click-outside="onClickOutside">
+    <div
+        @mousedown.stop="handleMouseDown"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseUp"
+        @touchstart.stop="handleTouchStart"
+        @touchend.stop="handleTouchEnd"
+        @touchcancel="handleTouchEnd"
+        class="longpress-area"
+        v-click-outside="onClickOutside"
+    >
         <div class="is-flex is-align-items-center" style="gap: 5px" v-if="info.isMade">
-            <span class="is-size-3" :class="{'has-text-success': info.success, 'has-text-danger': !info.success}" v-if="info.x2">!</span>
+            <span
+                class="is-size-3"
+                :class="{ 'has-text-success': info.success, 'has-text-danger': !info.success }"
+                v-if="info.x2"
+                >!</span
+            >
             <div class="checkbox-wrapper-10">
-                <input class="tgl tgl-flip" :id="iterator" type="checkbox" :checked="info.type === 'p'"
-                       @change="$emit('updatetype', $event.target.checked ? 'p' : 't')"
-                       @click="handleElementClick"/>
+                <input
+                    class="tgl tgl-flip"
+                    :id="iterator"
+                    type="checkbox"
+                    :checked="info.type === 'p'"
+                    @change="$emit('updatetype', $event.target.checked ? 'p' : 't')"
+                    @click="handleElementClick"
+                />
                 <label class="tgl-btn" data-tg-off="Tir" data-tg-on="Point" :for="iterator"></label>
             </div>
-            <StatCheckbox v-if="system === 'simple'" :checked-value="info.success" @changeval="$emit('updateresult', $event)" @click="handleElementClick"/>
+            <StatCheckbox
+                v-if="system === 'simple'"
+                :checked-value="info.success"
+                @changeval="$emit('updateresult', $event)"
+                @click="handleElementClick"
+            />
             <div v-else class="control">
                 <div class="select">
-                    <select :name="'throwResult' + iterator" :id="'throwResult' + iterator" :value="info.french"
-                            @focus="selectOpen = true" @blur="selectOpen = false" @change="$emit('updateresultfrench', $event.target.value)">
-                        <option v-for="value in frenchSystem" :value="value" :key="value">{{ getFrenchLabel(value) }}</option>
+                    <select
+                        :name="'throwResult' + iterator"
+                        :id="'throwResult' + iterator"
+                        :value="info.french"
+                        @focus="selectOpen = true"
+                        @blur="selectOpen = false"
+                        @change="$emit('updateresultfrench', $event.target.value)"
+                    >
+                        <option v-for="value in frenchSystem" :value="value" :key="value">
+                            {{ getFrenchLabel(value) }}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -120,13 +150,23 @@ export default {
         <div v-else class="gost-throw" @click="$emit('add')"></div>
         <div v-if="isMenuVisible" class="custom-menu">
             <ul>
-                <li v-if="system === 'simple'" @click="superThrow(info.x2)">{{ info.x2 ? 'remove x2' : 'x2 result' }}</li>
+                <li v-if="system === 'simple'" @click="superThrow(info.x2)">
+                    {{ info.x2 ? 'remove x2' : 'x2 result' }}
+                </li>
                 <li @click="removeThrow()">Remove throw</li>
                 <li class="is-flex is-align-items-center" style="gap: 5px">
                     <span class="select">
-                        <select :name="'throwResultDistances' + iterator" :id="'throwResultDistances' + iterator" :value="info.distance"
-                                @focus="selectOpen = true" @blur="selectOpen = false" @change="$emit('updatedistance', $event.target.value)">
-                            <option v-for="value in getThrowDistances" :value="value" :key="value">~{{value}}m</option>
+                        <select
+                            :name="'throwResultDistances' + iterator"
+                            :id="'throwResultDistances' + iterator"
+                            :value="info.distance"
+                            @focus="selectOpen = true"
+                            @blur="selectOpen = false"
+                            @change="$emit('updatedistance', $event.target.value)"
+                        >
+                            <option v-for="value in getThrowDistances" :value="value" :key="value">
+                                ~{{ value }}m
+                            </option>
                         </select>
                     </span>
                     m
@@ -134,7 +174,6 @@ export default {
             </ul>
         </div>
     </div>
-
 </template>
 
 <style scoped>
@@ -145,7 +184,9 @@ export default {
     border-radius: 8px;
     cursor: pointer;
     background: var(--color-bg-input);
-    transition: border-color 0.15s, background 0.15s;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
 }
 
 .gost-throw:hover {
@@ -194,20 +235,23 @@ export default {
 .checkbox-wrapper-10 .tgl {
     display: none;
 }
+
 .checkbox-wrapper-10 .tgl,
-.checkbox-wrapper-10 .tgl:after,
-.checkbox-wrapper-10 .tgl:before,
+.checkbox-wrapper-10 .tgl::after,
+.checkbox-wrapper-10 .tgl::before,
 .checkbox-wrapper-10 .tgl *,
-.checkbox-wrapper-10 .tgl *:after,
-.checkbox-wrapper-10 .tgl *:before,
+.checkbox-wrapper-10 .tgl *::after,
+.checkbox-wrapper-10 .tgl *::before,
 .checkbox-wrapper-10 .tgl + .tgl-btn {
     box-sizing: border-box;
 }
+
 .checkbox-wrapper-10 .tgl::selection,
 .checkbox-wrapper-10 .tgl *::selection,
 .checkbox-wrapper-10 .tgl + .tgl-btn::selection {
     background: none;
 }
+
 .checkbox-wrapper-10 .tgl + .tgl-btn {
     outline: 0;
     display: block;
@@ -218,21 +262,25 @@ export default {
     cursor: pointer;
     user-select: none;
 }
-.checkbox-wrapper-10 .tgl + .tgl-btn:after,
-.checkbox-wrapper-10 .tgl + .tgl-btn:before {
+
+.checkbox-wrapper-10 .tgl + .tgl-btn::after,
+.checkbox-wrapper-10 .tgl + .tgl-btn::before {
     position: relative;
     display: block;
-    content: "";
+    content: '';
     width: 50%;
     height: 100%;
 }
-.checkbox-wrapper-10 .tgl + .tgl-btn:after {
+
+.checkbox-wrapper-10 .tgl + .tgl-btn::after {
     left: 0;
 }
-.checkbox-wrapper-10 .tgl + .tgl-btn:before {
+
+.checkbox-wrapper-10 .tgl + .tgl-btn::before {
     display: none;
 }
-.checkbox-wrapper-10 .tgl:checked + .tgl-btn:after {
+
+.checkbox-wrapper-10 .tgl:checked + .tgl-btn::after {
     left: 50%;
 }
 
@@ -242,8 +290,9 @@ export default {
     font-family: sans-serif;
     perspective: 100px;
 }
-.checkbox-wrapper-10 .tgl-flip + .tgl-btn:after,
-.checkbox-wrapper-10 .tgl-flip + .tgl-btn:before {
+
+.checkbox-wrapper-10 .tgl-flip + .tgl-btn::after,
+.checkbox-wrapper-10 .tgl-flip + .tgl-btn::before {
     display: inline-block;
     transition: all 0.4s ease;
     width: 100%;
@@ -257,27 +306,33 @@ export default {
     backface-visibility: hidden;
     border-radius: 6px;
 }
-.checkbox-wrapper-10 .tgl-flip + .tgl-btn:after {
+
+.checkbox-wrapper-10 .tgl-flip + .tgl-btn::after {
     content: attr(data-tg-on);
     background: var(--color-stat-green);
     transform: rotateY(-180deg);
 }
-.checkbox-wrapper-10 .tgl-flip + .tgl-btn:before {
+
+.checkbox-wrapper-10 .tgl-flip + .tgl-btn::before {
     background: var(--color-stat-blue);
     content: attr(data-tg-off);
 }
-.checkbox-wrapper-10 .tgl-flip + .tgl-btn:active:before {
+
+.checkbox-wrapper-10 .tgl-flip + .tgl-btn:active::before {
     transform: rotateY(-20deg);
 }
-.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:before {
+
+.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn::before {
     transform: rotateY(180deg);
 }
-.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:after {
+
+.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn::after {
     transform: rotateY(0);
     left: 0;
     background: var(--color-stat-green-light);
 }
-.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:active:after {
+
+.checkbox-wrapper-10 .tgl-flip:checked + .tgl-btn:active::after {
     transform: rotateY(20deg);
 }
 </style>

@@ -4,7 +4,7 @@ import {
     calculateTeamPlayersStat,
     calculateCommonTeamStat,
     getFrenchStat,
-    getDate
+    getDate,
 } from '@/helpers-stat';
 
 function makeThrow(overrides = {}) {
@@ -15,7 +15,7 @@ function makeThrow(overrides = {}) {
         french: 'D',
         distance: 7,
         important: false,
-        ...overrides
+        ...overrides,
     };
 }
 
@@ -62,16 +62,14 @@ describe('calculatePlayerStat - simple system', () => {
 
     it('calculates allPercent correctly', () => {
         const scenario = [
-            [makeThrow({ success: true }), makeThrow({ success: false }), makeThrow({ type: 't', success: true })]
+            [makeThrow({ success: true }), makeThrow({ success: false }), makeThrow({ type: 't', success: true })],
         ];
         const result = calculatePlayerStat(scenario, 'simple');
         expect(result.allPercent).toBe(67);
     });
 
     it('calculates pointsPercent correctly', () => {
-        const scenario = [
-            [makeThrow({ success: true }), makeThrow({ success: true }), makeThrow({ success: false })]
-        ];
+        const scenario = [[makeThrow({ success: true }), makeThrow({ success: true }), makeThrow({ success: false })]];
         const result = calculatePlayerStat(scenario, 'simple');
         expect(result.pointsPercent).toBe(67);
     });
@@ -149,15 +147,15 @@ describe('calculateTeamPlayersStat - simple system', () => {
         return {
             players: Array.from({ length: playerCount }, (_, i) => ({
                 name: `Player${i + 1}`,
-                stat: stats[i] || []
-            }))
+                stat: stats[i] || [],
+            })),
         };
     }
 
     it('returns correct stats for each player', () => {
         const team = makeTeam(2, [
             [[makeThrow({ success: true }), makeThrow({ success: false })]],
-            [[makeThrow({ type: 't', success: true })]]
+            [[makeThrow({ type: 't', success: true })]],
         ]);
         const result = calculateTeamPlayersStat(team, 'simple');
         expect(result[0].points.positive).toBe(1);
@@ -166,9 +164,7 @@ describe('calculateTeamPlayersStat - simple system', () => {
     });
 
     it('tracks x2 throws separately', () => {
-        const team = makeTeam(1, [
-            [[makeThrow({ success: true, x2: true }), makeThrow({ success: true })]]
-        ]);
+        const team = makeTeam(1, [[[makeThrow({ success: true, x2: true }), makeThrow({ success: true })]]]);
         const result = calculateTeamPlayersStat(team, 'simple');
         expect(result[0].x2.points.positive).toBe(1);
         expect(result[0].points.positive).toBe(2);
@@ -176,16 +172,14 @@ describe('calculateTeamPlayersStat - simple system', () => {
 
     it('tracks important throws separately', () => {
         const team = makeTeam(1, [
-            [[makeThrow({ success: true, important: true }), makeThrow({ success: true, important: false })]]
+            [[makeThrow({ success: true, important: true }), makeThrow({ success: true, important: false })]],
         ]);
         const result = calculateTeamPlayersStat(team, 'simple');
         expect(result[0].important.points.positive).toBe(1);
     });
 
     it('calculates all (combined points + tirs)', () => {
-        const team = makeTeam(1, [
-            [[makeThrow({ success: true }), makeThrow({ type: 't', success: true })]]
-        ]);
+        const team = makeTeam(1, [[[makeThrow({ success: true }), makeThrow({ type: 't', success: true })]]]);
         const result = calculateTeamPlayersStat(team, 'simple');
         expect(result[0].all.positive).toBe(2);
         expect(result[0].all.negative).toBe(0);
@@ -202,7 +196,7 @@ describe('calculateCommonTeamStat - simple system', () => {
     it('sums all player stats', () => {
         const playersStat = [
             { points: { positive: 3, negative: 1 }, tirs: { positive: 2, negative: 0 }, serie: [] },
-            { points: { positive: 1, negative: 2 }, tirs: { positive: 1, negative: 1 }, serie: [] }
+            { points: { positive: 1, negative: 2 }, tirs: { positive: 1, negative: 1 }, serie: [] },
         ];
         const result = calculateCommonTeamStat(playersStat, 'simple');
         expect(result.all.positive).toBe(7);
@@ -217,8 +211,16 @@ describe('calculateCommonTeamStat - simple system', () => {
 describe('calculateCommonTeamStat - french system', () => {
     it('sums volume and intensity with getFrenchStat', () => {
         const playersStat = [
-            { points: { volume: 3, intensity: 2 }, tirs: { volume: 1, intensity: 1 }, serie: [{ type: 'p' }, { type: 'p' }, { type: 't' }] },
-            { points: { volume: 1, intensity: 1 }, tirs: { volume: 2, intensity: 2 }, serie: [{ type: 'p' }, { type: 't' }, { type: 't' }] }
+            {
+                points: { volume: 3, intensity: 2 },
+                tirs: { volume: 1, intensity: 1 },
+                serie: [{ type: 'p' }, { type: 'p' }, { type: 't' }],
+            },
+            {
+                points: { volume: 1, intensity: 1 },
+                tirs: { volume: 2, intensity: 2 },
+                serie: [{ type: 'p' }, { type: 't' }, { type: 't' }],
+            },
         ];
         const result = calculateCommonTeamStat(playersStat, 'french');
         expect(result.points.volume).toBe(getFrenchStat(3, 2) + getFrenchStat(1, 1));

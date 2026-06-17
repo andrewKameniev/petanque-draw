@@ -88,13 +88,13 @@ When the same UI is needed on admin and public pages, extract it into a shared c
 
 ## Routing
 
-| Path | Component | Purpose |
-|------|-----------|---------|
-| `/` | Draw | Main tournament management (auth-gated) |
-| `/tournament` | Public | Public tournament viewer (query: `ref=`) |
-| `/show` | redirect | Legacy redirect → `/tournament` |
-| `/login-user` | LoginUser | Authentication |
-| `/doc` | Help | Documentation / help |
-| `/stats` | Stats | Game statistics |
-| `/training` | Training | Training exercises |
-| `/archived` | Archived | Archived tournaments (auth-gated) |
+| Path          | Component | Purpose                                  |
+| ------------- | --------- | ---------------------------------------- |
+| `/`           | Draw      | Main tournament management (auth-gated)  |
+| `/tournament` | Public    | Public tournament viewer (query: `ref=`) |
+| `/show`       | redirect  | Legacy redirect → `/tournament`          |
+| `/login-user` | LoginUser | Authentication                           |
+| `/doc`        | Help      | Documentation / help                     |
+| `/stats`      | Stats     | Game statistics                          |
+| `/training`   | Training  | Training exercises                       |
+| `/archived`   | Archived  | Archived tournaments (auth-gated)        |

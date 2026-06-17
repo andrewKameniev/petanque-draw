@@ -5,14 +5,14 @@ const labels = {
     swiss: 'швейцарки',
     playOff: 'плей-оф',
     poulesBarrage: 'бараж',
-    systemLabel: 'Швейцарка'
+    systemLabel: 'Швейцарка',
 };
 
 const labelsEn = {
     swiss: 'swiss',
     playOff: 'play-off',
     poulesBarrage: 'barrage',
-    systemLabel: 'Swiss'
+    systemLabel: 'Swiss',
 };
 
 describe('formatSwissDescription', () => {
@@ -62,7 +62,11 @@ describe('formatSwissDescription', () => {
         });
 
         it('shows progress + playoff', () => {
-            const t = { system: 'swiss', games: [[{}], [{}]], preferences: { swissRoundsCount: 4, playOffEnabled: true } };
+            const t = {
+                system: 'swiss',
+                games: [[{}], [{}]],
+                preferences: { swissRoundsCount: 4, playOffEnabled: true },
+            };
             expect(formatSwissDescription(t, 'ua', labels)).toBe('2/4 кола швейцарки + плей-оф');
         });
 
@@ -74,7 +78,12 @@ describe('formatSwissDescription', () => {
 
     describe('with barrage', () => {
         it('shows rounds before barrage + barrage label', () => {
-            const t = { system: 'swiss', games: [[{}], [{}], [{}]], preferences: { swissRoundsCount: 4 }, barrage: { startIndex: 2 } };
+            const t = {
+                system: 'swiss',
+                games: [[{}], [{}], [{}]],
+                preferences: { swissRoundsCount: 4 },
+                barrage: { startIndex: 2 },
+            };
             expect(formatSwissDescription(t, 'ua', labels)).toBe('2/4 кола швейцарки + бараж');
         });
     });

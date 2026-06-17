@@ -2,7 +2,7 @@
     <div class="tir-compare">
         <div class="tir-compare__header">
             <button class="tir-compare__back" @click="$emit('back')">
-                <ChevronLeft :size="20"/>
+                <ChevronLeft :size="20" />
                 <span>{{ $t('tir.backToBracket') }}</span>
             </button>
             <div class="tir-compare__round-label">{{ roundLabel }}</div>
@@ -10,7 +10,7 @@
 
         <!-- Score cards -->
         <div class="tir-compare__scores">
-            <div class="tir-compare__player-card" :class="{'tir-compare__player-card--winner': isPlayer1Winner}">
+            <div class="tir-compare__player-card" :class="{ 'tir-compare__player-card--winner': isPlayer1Winner }">
                 <div class="tir-compare__player-name">{{ match.player1 }}</div>
                 <div class="tir-compare__player-total">
                     <span class="tir-compare__player-total-val">{{ getPlayerTotal(1) }}</span>
@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="tir-compare__vs">vs</div>
-            <div class="tir-compare__player-card" :class="{'tir-compare__player-card--winner': isPlayer2Winner}">
+            <div class="tir-compare__player-card" :class="{ 'tir-compare__player-card--winner': isPlayer2Winner }">
                 <div class="tir-compare__player-name">{{ match.player2 }}</div>
                 <div class="tir-compare__player-total">
                     <span class="tir-compare__player-total-val">{{ getPlayerTotal(2) }}</span>
@@ -49,7 +49,7 @@
 
         <!-- Match result notice -->
         <div v-if="matchComplete" class="tir-compare__result">
-            <Trophy :size="18" class="tir-compare__result-icon"/>
+            <Trophy :size="18" class="tir-compare__result-icon" />
             <span class="tir-compare__result-text">{{ winnerName }}</span>
         </div>
 
@@ -62,22 +62,28 @@
             <div class="tir-compare__grid">
                 <div v-for="distance in distances" :key="distance" class="tir-compare__row">
                     <div class="tir-compare__circles tir-compare__circles--left">
-                        <span v-for="opt in resultOptions" :key="opt.key"
-                              class="tir-compare__circle"
-                              :class="[
-                                  `tir-compare__circle--${opt.key}`,
-                                  {'tir-compare__circle--active': getScore(1, aIdx, distance) === opt.key}
-                              ]">
+                        <span
+                            v-for="opt in resultOptions"
+                            :key="opt.key"
+                            class="tir-compare__circle"
+                            :class="[
+                                `tir-compare__circle--${opt.key}`,
+                                { 'tir-compare__circle--active': getScore(1, aIdx, distance) === opt.key },
+                            ]"
+                        >
                         </span>
                     </div>
                     <div class="tir-compare__distance">{{ distance }}m</div>
                     <div class="tir-compare__circles tir-compare__circles--right">
-                        <span v-for="opt in resultOptions" :key="opt.key"
-                              class="tir-compare__circle"
-                              :class="[
-                                  `tir-compare__circle--${opt.key}`,
-                                  {'tir-compare__circle--active': getScore(2, aIdx, distance) === opt.key}
-                              ]">
+                        <span
+                            v-for="opt in resultOptions"
+                            :key="opt.key"
+                            class="tir-compare__circle"
+                            :class="[
+                                `tir-compare__circle--${opt.key}`,
+                                { 'tir-compare__circle--active': getScore(2, aIdx, distance) === opt.key },
+                            ]"
+                        >
                         </span>
                     </div>
                 </div>
@@ -85,7 +91,7 @@
         </div>
 
         <!-- Final score summary -->
-        <div class="tir-compare__summary" :class="{'tir-compare__summary--complete': matchComplete}">
+        <div class="tir-compare__summary" :class="{ 'tir-compare__summary--complete': matchComplete }">
             <div class="tir-compare__summary-side">
                 <span class="tir-compare__summary-label">{{ $t('tir.totalScore') }}</span>
                 <span class="tir-compare__summary-val">{{ getPlayerTotal(1) }}</span>
@@ -101,25 +107,25 @@
 </template>
 
 <script>
-import {ChevronLeft, Trophy} from "lucide-vue-next";
+import { ChevronLeft, Trophy } from 'lucide-vue-next';
 
-import {SCORING} from '@/services/tir';
+import { SCORING } from '@/services/tir';
 
 const RESULT_OPTIONS = [
-    {key: 'carreau', points: 5},
-    {key: 'reussi', points: 3},
-    {key: 'touche', points: 1},
-    {key: 'manque', points: 0}
+    { key: 'carreau', points: 5 },
+    { key: 'reussi', points: 3 },
+    { key: 'touche', points: 1 },
+    { key: 'manque', points: 0 },
 ];
 
 export default {
     name: 'TirPlayoffComparison',
-    components: {ChevronLeft, Trophy},
+    components: { ChevronLeft, Trophy },
     props: {
-        match: {type: Object, required: true},
-        ateliers: {type: Array, required: true},
-        distances: {type: Array, required: true},
-        roundLabel: {type: String, default: ''}
+        match: { type: Object, required: true },
+        ateliers: { type: Array, required: true },
+        distances: { type: Array, required: true },
+        roundLabel: { type: String, default: '' },
     },
     emits: ['back'],
     computed: {
@@ -166,7 +172,7 @@ export default {
             if (!this.matchComplete) return '';
             if (this.isPlayer1Winner) return this.match.player1;
             return this.match.player2;
-        }
+        },
     },
     methods: {
         getScores(playerNum) {
@@ -180,9 +186,11 @@ export default {
             const scores = this.getScores(playerNum);
             if (!scores) return 0;
             let total = 0;
-            Object.values(scores).forEach(atelier => {
+            Object.values(scores).forEach((atelier) => {
                 if (atelier && typeof atelier === 'object') {
-                    Object.values(atelier).forEach(val => { total += SCORING[val] || 0; });
+                    Object.values(atelier).forEach((val) => {
+                        total += SCORING[val] || 0;
+                    });
                 }
             });
             return total;
@@ -191,15 +199,15 @@ export default {
             const scores = this.getScores(playerNum);
             if (!scores) return 0;
             let count = 0;
-            Object.values(scores).forEach(atelier => {
+            Object.values(scores).forEach((atelier) => {
                 if (atelier && typeof atelier === 'object') {
                     count += Object.keys(atelier).length;
                 }
             });
             return count;
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -237,6 +245,7 @@ export default {
 }
 
 /* Score cards */
+
 .tir-compare__scores {
     display: flex;
     align-items: center;
@@ -251,19 +260,21 @@ export default {
     border: 2px solid var(--color-border);
     border-radius: 12px;
     text-align: center;
-    transition: border-color 0.2s, background 0.2s;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
 }
 
 .tir-compare__player-card--winner {
     border-color: var(--tir-carreau);
-    background: rgba(76, 175, 80, 0.06);
+    background: rgb(76 175 80 / 6%);
 }
 
 .tir-compare__player-name {
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 6px;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.3;
     color: var(--color-text);
@@ -300,6 +311,7 @@ export default {
 }
 
 /* Legend */
+
 .tir-compare__legend {
     display: flex;
     flex-wrap: wrap;
@@ -345,6 +357,7 @@ export default {
 }
 
 /* Atelier cards */
+
 .tir-compare__atelier {
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -380,6 +393,7 @@ export default {
 }
 
 /* Comparison grid */
+
 .tir-compare__grid {
     display: flex;
     flex-direction: column;
@@ -448,6 +462,7 @@ export default {
 }
 
 /* Final score summary */
+
 .tir-compare__summary {
     display: flex;
     align-items: center;
@@ -464,8 +479,8 @@ export default {
     justify-content: center;
     gap: 8px;
     padding: 10px 16px;
-    background: rgba(76, 175, 80, 0.08);
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    background: rgb(76 175 80 / 8%);
+    border: 1px solid rgb(76 175 80 / 30%);
     border-radius: 8px;
     margin-bottom: 12px;
 }
@@ -481,8 +496,8 @@ export default {
 }
 
 .tir-compare__summary--complete {
-    background: rgba(76, 175, 80, 0.08);
-    border-color: rgba(76, 175, 80, 0.3);
+    background: rgb(76 175 80 / 8%);
+    border-color: rgb(76 175 80 / 30%);
 }
 
 .tir-compare__summary-side {
@@ -520,7 +535,6 @@ export default {
         margin-right: -12px;
         border-radius: 8px;
     }
-
 
     .tir-compare__circles {
         gap: 8px;

@@ -3,18 +3,16 @@
         <div class="tracking__header">
             <div class="tracking__header-left">
                 <button class="tracking__btn tracking__btn--ghost" @click="$emit('minimize')">
-                    <ChevronsDown :size="16"/>
+                    <ChevronsDown :size="16" />
                 </button>
                 <button class="tracking__btn tracking__btn--primary-outline" @click="$emit('newGame')">
-                    <Plus :size="14"/> {{ $t('stat.newGame') }}
+                    <Plus :size="14" /> {{ $t('stat.newGame') }}
                 </button>
             </div>
             <div class="tracking__header-right">
                 <button class="tracking__btn tracking__btn--primary" @click="$emit('finishGame')">
-                    <Loader v-if="isSaving" class="tracking__spinner"/>
-                    <template v-else>
-                        <Check :size="14"/> {{ $t('stat.finishGame') }}
-                    </template>
+                    <Loader v-if="isSaving" class="tracking__spinner" />
+                    <template v-else> <Check :size="14" /> {{ $t('stat.finishGame') }} </template>
                 </button>
             </div>
         </div>
@@ -22,7 +20,9 @@
         <div class="tracking__status">
             <div class="tracking__status-item">
                 <span class="tracking__status-label">{{ $t('stat.man') }}</span>
-                <span class="tracking__status-value">{{ currentMan + 1 }}<span class="tracking__status-dim">/{{ manCount }}</span></span>
+                <span class="tracking__status-value"
+                    >{{ currentMan + 1 }}<span class="tracking__status-dim">/{{ manCount }}</span></span
+                >
             </div>
             <div class="tracking__status-item" v-if="gameName">
                 <span class="tracking__status-label">{{ gameName }}</span>
@@ -36,51 +36,108 @@
         <div class="tracking__distance">
             <span class="tracking__distance-label">{{ $t('stat.whatDistance') }}</span>
             <div class="tracking__pills">
-                <button v-for="dist in throwDistances" :key="dist"
-                        class="tracking__pill"
-                        :class="{'tracking__pill--active': localManDistance === dist}"
-                        @click="localManDistance = dist">
+                <button
+                    v-for="dist in throwDistances"
+                    :key="dist"
+                    class="tracking__pill"
+                    :class="{ 'tracking__pill--active': localManDistance === dist }"
+                    @click="localManDistance = dist"
+                >
                     {{ dist === 11 ? '>10m' : '~' + dist + 'm' }}
                 </button>
             </div>
         </div>
 
         <div class="tracking__teams">
-            <Teaminfo :team="team1" :current-man="currentMan" :iterator="1" :system="statSystem" :isCouch="asCouch" :gameType="gameType"
-                      @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
-                      @x2throw="onX2Throw" @next="$emit('next')"
-                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer" @replacePlayer="onReplacePlayer"/>
-            <Teaminfo :team="team2" :current-man="currentMan" :iterator="2" :system="statSystem" :isCouch="asCouch" :gameType="gameType"
-                      @update-score="onUpdateScore" @removethrow="onRemoveThrow" @addthrow="onAddThrow"
-                      @x2throw="onX2Throw" @next="$emit('next')"
-                      @updatethrow="onUpdateThrow" @changePlayer="onChangePlayer" @replacePlayer="onReplacePlayer"/>
+            <Teaminfo
+                :team="team1"
+                :current-man="currentMan"
+                :iterator="1"
+                :system="statSystem"
+                :isCouch="asCouch"
+                :gameType="gameType"
+                @update-score="onUpdateScore"
+                @removethrow="onRemoveThrow"
+                @addthrow="onAddThrow"
+                @x2throw="onX2Throw"
+                @next="$emit('next')"
+                @updatethrow="onUpdateThrow"
+                @changePlayer="onChangePlayer"
+                @replacePlayer="onReplacePlayer"
+            />
+            <Teaminfo
+                :team="team2"
+                :current-man="currentMan"
+                :iterator="2"
+                :system="statSystem"
+                :isCouch="asCouch"
+                :gameType="gameType"
+                @update-score="onUpdateScore"
+                @removethrow="onRemoveThrow"
+                @addthrow="onAddThrow"
+                @x2throw="onX2Throw"
+                @next="$emit('next')"
+                @updatethrow="onUpdateThrow"
+                @changePlayer="onChangePlayer"
+                @replacePlayer="onReplacePlayer"
+            />
         </div>
 
         <div class="tracking__nav">
             <button class="tracking__btn tracking__btn--secondary" @click="$emit('prev')" v-if="currentMan >= 1">
-                <ChevronLeft :size="16"/> {{ $t('stat.prev') }}
+                <ChevronLeft :size="16" /> {{ $t('stat.prev') }}
             </button>
-            <button class="tracking__btn tracking__btn--danger-outline" v-if="currentMan !== 0" @click="$emit('removeMan')">
-                <Trash2 :size="14"/> {{ $t('stat.removeMan') }}
+            <button
+                class="tracking__btn tracking__btn--danger-outline"
+                v-if="currentMan !== 0"
+                @click="$emit('removeMan')"
+            >
+                <Trash2 :size="14" /> {{ $t('stat.removeMan') }}
             </button>
             <button class="tracking__btn tracking__btn--success" @click="$emit('next')">
-                {{ $t('stat.next') }} <ChevronRight :size="16"/>
+                {{ $t('stat.next') }} <ChevronRight :size="16" />
             </button>
         </div>
     </div>
 </template>
 
 <script>
-import Teaminfo from "@/components/stats/Teaminfo.vue";
-import Loader from "@/components/Loader.vue";
-import {throwDistances} from "@/helpers-stat.js";
-import {ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2} from "lucide-vue-next";
+import Teaminfo from '@/components/stats/Teaminfo.vue';
+import Loader from '@/components/Loader.vue';
+import { throwDistances } from '@/helpers-stat.js';
+import { ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2 } from 'lucide-vue-next';
 
 export default {
     name: 'StatsTracking',
-    components: {Teaminfo, Loader, ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2},
-    props: ['team1', 'team2', 'currentMan', 'currentScore', 'manCount', 'statSystem', 'asCouch', 'isSaving', 'gameName', 'gameType'],
-    emits: ['newGame', 'finishGame', 'updateScore', 'removeThrow', 'addThrow', 'x2Throw', 'updateThrow', 'changePlayer', 'replacePlayer', 'next', 'prev', 'removeMan', 'distanceChange', 'minimize'],
+    components: { Teaminfo, Loader, ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2 },
+    props: [
+        'team1',
+        'team2',
+        'currentMan',
+        'currentScore',
+        'manCount',
+        'statSystem',
+        'asCouch',
+        'isSaving',
+        'gameName',
+        'gameType',
+    ],
+    emits: [
+        'newGame',
+        'finishGame',
+        'updateScore',
+        'removeThrow',
+        'addThrow',
+        'x2Throw',
+        'updateThrow',
+        'changePlayer',
+        'replacePlayer',
+        'next',
+        'prev',
+        'removeMan',
+        'distanceChange',
+        'minimize',
+    ],
     data() {
         return {
             throwDistances,
@@ -89,7 +146,7 @@ export default {
             swipeDirection: null,
             isHorizontalSwipe: false,
             localManDistance: null,
-        }
+        };
     },
     watch: {
         localManDistance(newValue) {
@@ -98,7 +155,7 @@ export default {
         currentMan() {
             const throws = this.team1.players?.[0]?.stat?.[this.currentMan];
             this.localManDistance = throws?.[0]?.distance || null;
-        }
+        },
     },
     methods: {
         onUpdateScore(team, score, manIndex) {
@@ -151,8 +208,8 @@ export default {
                 }
             }
         },
-    }
-}
+    },
+};
 </script>
 
 <style scoped>
@@ -274,6 +331,7 @@ export default {
 }
 
 /* Buttons */
+
 .tracking__btn {
     display: inline-flex;
     align-items: center;
@@ -293,7 +351,7 @@ export default {
 }
 
 .tracking__btn--success:focus-visible {
-    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.3);
+    box-shadow: 0 0 0 3px rgb(72 187 120 / 30%);
 }
 
 .tracking__btn--primary {

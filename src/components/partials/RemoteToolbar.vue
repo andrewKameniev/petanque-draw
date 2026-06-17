@@ -2,31 +2,48 @@
     <div class="remote-toolbar">
         <div class="remote-toolbar__actions">
             <button class="remote-toolbar__btn" @click="$emit('show-qr')">
-                <Link :size="18"/>
+                <Link :size="18" />
                 <span class="is-hidden-mobile">{{ $t('remote.showLinks') }}</span>
                 <span class="is-hidden-tablet">{{ $t('remote.showLink') }}</span>
             </button>
-            <button class="remote-toolbar__btn" :class="{'remote-toolbar__btn--active': showInput, 'remote-toolbar__btn--has-message': !showInput && hasMessage}" @click="showInput = !showInput">
-                <MessageCircle :size="18"/>
+            <button
+                class="remote-toolbar__btn"
+                :class="{
+                    'remote-toolbar__btn--active': showInput,
+                    'remote-toolbar__btn--has-message': !showInput && hasMessage,
+                }"
+                @click="showInput = !showInput"
+            >
+                <MessageCircle :size="18" />
                 {{ $t('remote.writeMessage') }}
-                <ChevronDown :size="14" class="remote-toolbar__chevron" :class="{'remote-toolbar__chevron--open': showInput}"/>
+                <ChevronDown
+                    :size="14"
+                    class="remote-toolbar__chevron"
+                    :class="{ 'remote-toolbar__chevron--open': showInput }"
+                />
             </button>
         </div>
         <progress class="progress is-small is-info" max="100" v-if="loading">15%</progress>
         <Transition name="slide">
             <div class="remote-toolbar__message" v-if="showInput">
                 <span v-if="saved" class="message-saved-label">
-                    <Check :size="14"/>
+                    <Check :size="14" />
                     {{ $t('remote.messageSaved') }}
                 </span>
-                <textarea rows="3" :value="message" class="remote-toolbar__textarea" :placeholder="$t('remote.writeMessage') + '...'" @input="onInput"></textarea>
+                <textarea
+                    rows="3"
+                    :value="message"
+                    class="remote-toolbar__textarea"
+                    :placeholder="$t('remote.writeMessage') + '...'"
+                    @input="onInput"
+                ></textarea>
             </div>
         </Transition>
     </div>
 </template>
 
 <script>
-import {Link, MessageCircle, ChevronDown, Check} from "lucide-vue-next";
+import { Link, MessageCircle, ChevronDown, Check } from 'lucide-vue-next';
 
 export default {
     name: 'RemoteToolbar',
@@ -34,19 +51,19 @@ export default {
     emits: ['show-qr', 'update:message'],
     props: {
         message: { type: String, default: '' },
-        loading: { type: Boolean, default: false }
+        loading: { type: Boolean, default: false },
     },
     data() {
         return {
             showInput: false,
             saved: false,
-            saveTimeout: null
-        }
+            saveTimeout: null,
+        };
     },
     computed: {
         hasMessage() {
             return this.message?.trim();
-        }
+        },
     },
     methods: {
         onInput(e) {
@@ -56,12 +73,12 @@ export default {
             this.saveTimeout = setTimeout(() => {
                 this.saved = true;
             }, 1000);
-        }
+        },
     },
     beforeUnmount() {
         clearTimeout(this.saveTimeout);
-    }
-}
+    },
+};
 </script>
 
 <style scoped>

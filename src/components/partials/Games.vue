@@ -267,7 +267,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
+        ...mapActions(useMainStore, ['startRound', 'endRound', 'addRoundToGames', 'restoreRound', 'showMessage', 'shuffleLanesStore', 'swapLanesStore', 'setPlayOffStage', 'setPlayOffBracket', 'setBarrage', 'syncToFirebase', 'syncToFirebaseNow', 'syncGameMatch', 'startRoundTimer', 'endRoundTimer', 'clearRoundTimer', 'restartRoundTimer', 'subscribeTournament', 'unsubscribeTournament']),
         gameHasError,
         onTimerEnded() {
             this.endRoundTimer();
@@ -357,6 +357,7 @@ export default {
             }
             this.clearRoundTimer();
             this.endRound();
+            this.syncToFirebaseNow();
 
             if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
                 this.drawBarrageRound();

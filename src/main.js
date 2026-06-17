@@ -18,110 +18,110 @@ import { auth } from '@/firebase';
 const app = createApp(App);
 const pinia = createPinia();
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes: [
-        {
-            path: '/',
-            name: 'public',
-            component: Draw,
-        },
-        {
-            path: '/tournament',
-            name: 'view',
-            component: Public,
-        },
-        {
-            path: '/show',
-            redirect: (to) => {
-                const { user, tournament } = to.query;
-                if (user && tournament) {
-                    const ref = `${user}.${parseInt(tournament).toString(36)}`;
-                    return { path: '/tournament', query: { ref } };
-                }
-                return '/';
-            },
-        },
-        {
-            path: '/login-user',
-            redirect: '/',
-        },
-        {
-            path: '/doc',
-            name: 'Documentation',
-            component: Help,
-        },
-        {
-            path: '/docs',
-            name: 'Docs',
-            component: Docs,
-        },
-        {
-            path: '/stats',
-            name: 'Statistics',
-            component: Stats,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: '/stats/share',
-            name: 'PublicStats',
-            component: PublicStats,
-        },
-        {
-            path: '/training',
-            name: 'Training',
-            component: Training,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: '/archived',
-            name: 'Archived',
-            component: Archived,
-            meta: { requiresAuth: true },
-        },
-    ],
+  history: createWebHashHistory(),
+  routes: [
+    {
+      path: '/',
+      name: 'public',
+      component: Draw,
+    },
+    {
+      path: '/tournament',
+      name: 'view',
+      component: Public,
+    },
+    {
+      path: '/show',
+      redirect: (to) => {
+        const { user, tournament } = to.query;
+        if (user && tournament) {
+          const ref = `${user}.${parseInt(tournament).toString(36)}`;
+          return { path: '/tournament', query: { ref } };
+        }
+        return '/';
+      },
+    },
+    {
+      path: '/login-user',
+      redirect: '/',
+    },
+    {
+      path: '/doc',
+      name: 'Documentation',
+      component: Help,
+    },
+    {
+      path: '/docs',
+      name: 'Docs',
+      component: Docs,
+    },
+    {
+      path: '/stats',
+      name: 'Statistics',
+      component: Stats,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/stats/share',
+      name: 'PublicStats',
+      component: PublicStats,
+    },
+    {
+      path: '/training',
+      name: 'Training',
+      component: Training,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/archived',
+      name: 'Archived',
+      component: Archived,
+      meta: { requiresAuth: true },
+    },
+  ],
 });
 
 app.use(pinia).use(router).use(i18n);
 
 const authReadyPromise = auth.authStateReady().then(async () => {
-    const store = useMainStore();
-    const user = auth.currentUser;
-    store.loginUser(user || false);
-    if (user) await store.getTournaments();
+  const store = useMainStore();
+  const user = auth.currentUser;
+  store.loginUser(user || false);
+  if (user) await store.getTournaments();
 });
 
 onAuthStateChanged(auth, async (user) => {
-    const store = useMainStore();
-    store.loginUser(user || false);
-    if (user) await store.getTournaments();
+  const store = useMainStore();
+  store.loginUser(user || false);
+  if (user) await store.getTournaments();
 });
 
 const routeLocaleMap = {
-    Statistics: ['stat'],
-    PublicStats: ['stat'],
-    Documentation: ['help'],
-    Docs: ['docs'],
-    Training: ['training', 'stat'],
+  Statistics: ['stat'],
+  PublicStats: ['stat'],
+  Documentation: ['help'],
+  Docs: ['docs'],
+  Training: ['training', 'stat'],
 };
 
 router.beforeEach(async (to) => {
-    if (to.meta.requiresAuth) {
-        await authReadyPromise;
-        const store = useMainStore();
-        if (!store.user) return '/';
-    }
-    const modules = routeLocaleMap[to.name];
-    if (modules) await Promise.all(modules.map((m) => loadLocaleModule(m)));
+  if (to.meta.requiresAuth) {
+    await authReadyPromise;
+    const store = useMainStore();
+    if (!store.user) return '/';
+  }
+  const modules = routeLocaleMap[to.name];
+  if (modules) await Promise.all(modules.map((m) => loadLocaleModule(m)));
 });
 
 const zoomableRoutes = ['Statistics', 'PublicStats', 'Training'];
 router.afterEach((to) => {
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-        viewport.content = zoomableRoutes.includes(to.name)
-            ? 'width=device-width,initial-scale=1.0'
-            : 'width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no';
-    }
+  const viewport = document.querySelector('meta[name="viewport"]');
+  if (viewport) {
+    viewport.content = zoomableRoutes.includes(to.name)
+      ? 'width=device-width,initial-scale=1.0'
+      : 'width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no';
+  }
 });
 
 authReadyPromise.then(() => app.mount('#app'));

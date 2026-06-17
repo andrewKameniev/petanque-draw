@@ -4,94 +4,94 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-    /* Grey scale */
-    --grey-0: #fff;
-    --grey-50: #f9fafb;
-    --grey-100: #f7f7f7;
-    --grey-150: #f5f5f5;
-    --grey-200: #f4f4f4;
-    --grey-250: #f0f1f5;
-    --grey-300: #f0f0f0;
-    --grey-350: #eee;
-    --grey-400: #e8e8e8;
-    --grey-450: #e5e7f0;
-    --grey-500: #e0e0e0;
-    --grey-550: #ddd;
-    --grey-600: #dbdbdb;
-    --grey-650: #ccc;
-    --grey-700: #b5b5b5;
-    --grey-750: #aaa;
-    --grey-800: #999;
-    --grey-850: #8b8fa3;
-    --grey-900: #666;
-    --grey-950: #555;
-    --grey-1000: #4b5563;
-    --grey-1050: #4a4a4a;
-    --grey-1100: #374151;
-    --grey-1150: #333;
-    --grey-1200: #1a1a2e;
-    --grey-1250: #000;
+  /* Grey scale */
+  --grey-0: #fff;
+  --grey-50: #f9fafb;
+  --grey-100: #f7f7f7;
+  --grey-150: #f5f5f5;
+  --grey-200: #f4f4f4;
+  --grey-250: #f0f1f5;
+  --grey-300: #f0f0f0;
+  --grey-350: #eee;
+  --grey-400: #e8e8e8;
+  --grey-450: #e5e7f0;
+  --grey-500: #e0e0e0;
+  --grey-550: #ddd;
+  --grey-600: #dbdbdb;
+  --grey-650: #ccc;
+  --grey-700: #b5b5b5;
+  --grey-750: #aaa;
+  --grey-800: #999;
+  --grey-850: #8b8fa3;
+  --grey-900: #666;
+  --grey-950: #555;
+  --grey-1000: #4b5563;
+  --grey-1050: #4a4a4a;
+  --grey-1100: #374151;
+  --grey-1150: #333;
+  --grey-1200: #1a1a2e;
+  --grey-1250: #000;
 
-    /* Purple scale */
-    --purple-50: #f3eeff;
-    --purple-100: #f0e6ff;
-    --purple-200: #e8e0ff;
-    --purple-500: #5e35b1;
-    --purple-600: #5a2db8;
-    --purple-700: #471aa0;
+  /* Purple scale */
+  --purple-50: #f3eeff;
+  --purple-100: #f0e6ff;
+  --purple-200: #e8e0ff;
+  --purple-500: #5e35b1;
+  --purple-600: #5a2db8;
+  --purple-700: #471aa0;
 
-    /* Green scale */
-    --green-50: #e8f5e9;
-    --green-100: #7fc6a6;
-    --green-200: #4caf50;
-    --green-300: #43a047;
-    --green-400: #22c55e;
-    --green-500: #1fa37a;
-    --green-600: #16a34a;
-    --green-700: #178c68;
-    --green-800: #10b981;
-    --green-900: #059669;
-    --green-1000: #2e7d32;
-    --green-1100: #02c66f;
+  /* Green scale */
+  --green-50: #e8f5e9;
+  --green-100: #7fc6a6;
+  --green-200: #4caf50;
+  --green-300: #43a047;
+  --green-400: #22c55e;
+  --green-500: #1fa37a;
+  --green-600: #16a34a;
+  --green-700: #178c68;
+  --green-800: #10b981;
+  --green-900: #059669;
+  --green-1000: #2e7d32;
+  --green-1100: #02c66f;
 
-    /* Blue scale */
-    --blue-100: #60a5fa;
-    --blue-200: #42a5f5;
-    --blue-300: #3b82f6;
-    --blue-400: #2196f3;
-    --blue-500: #0ea5e9;
+  /* Blue scale */
+  --blue-100: #60a5fa;
+  --blue-200: #42a5f5;
+  --blue-300: #3b82f6;
+  --blue-400: #2196f3;
+  --blue-500: #0ea5e9;
 
-    /* Amber/Orange scale */
-    --amber-50: #fef9ec;
-    --amber-100: #fff3e0;
-    --amber-200: #f5a623;
-    --amber-300: #f0ad4e;
-    --amber-400: #e6a817;
-    --amber-500: #e6951e;
-    --amber-600: #f57c00;
-    --amber-700: #856404;
+  /* Amber/Orange scale */
+  --amber-50: #fef9ec;
+  --amber-100: #fff3e0;
+  --amber-200: #f5a623;
+  --amber-300: #f0ad4e;
+  --amber-400: #e6a817;
+  --amber-500: #e6951e;
+  --amber-600: #f57c00;
+  --amber-700: #856404;
 
-    /* Red scale */
-    --red-50: #fef2f2;
-    --red-100: #fce4ec;
-    --red-200: #fb7185;
-    --red-300: #ef5350;
-    --red-400: #ef4444;
-    --red-500: #e07070;
-    --red-600: #dc2626;
-    --red-700: #c62828;
-    --red-800: #be185d;
+  /* Red scale */
+  --red-50: #fef2f2;
+  --red-100: #fce4ec;
+  --red-200: #fb7185;
+  --red-300: #ef5350;
+  --red-400: #ef4444;
+  --red-500: #e07070;
+  --red-600: #dc2626;
+  --red-700: #c62828;
+  --red-800: #be185d;
 
-    /* Gold / Silver / Bronze */
-    --gold-1: rgb(255 197 0 / 18%);
-    --gold-2: rgb(255 197 0 / 30%);
-    --gold-3: #f5c518;
-    --silver-1: rgb(192 192 192 / 25%);
-    --silver-2: rgb(192 192 192 / 40%);
-    --silver-3: #aaa;
-    --bronze-1: rgb(205 127 50 / 15%);
-    --bronze-2: rgb(205 127 50 / 25%);
-    --bronze-3: #cd7f32;
+  /* Gold / Silver / Bronze */
+  --gold-1: rgb(255 197 0 / 18%);
+  --gold-2: rgb(255 197 0 / 30%);
+  --gold-3: #f5c518;
+  --silver-1: rgb(192 192 192 / 25%);
+  --silver-2: rgb(192 192 192 / 40%);
+  --silver-3: #aaa;
+  --bronze-1: rgb(205 127 50 / 15%);
+  --bronze-2: rgb(205 127 50 / 25%);
+  --bronze-3: #cd7f32;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -99,149 +99,149 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-    /* Brand */
-    --color-primary: var(--purple-700);
-    --color-primary-light: var(--purple-600);
-    --color-primary-bg: var(--purple-50);
-    --color-primary-bg-hover: var(--purple-200);
-    --color-primary-shadow: rgb(71 26 160 / 25%);
-    --color-highlight: rgb(16 185 129 / 12%);
+  /* Brand */
+  --color-primary: var(--purple-700);
+  --color-primary-light: var(--purple-600);
+  --color-primary-bg: var(--purple-50);
+  --color-primary-bg-hover: var(--purple-200);
+  --color-primary-shadow: rgb(71 26 160 / 25%);
+  --color-highlight: rgb(16 185 129 / 12%);
 
-    /* Text */
-    --color-text: var(--grey-1200);
-    --color-text-muted: var(--grey-850);
-    --color-text-secondary: var(--grey-1100);
+  /* Text */
+  --color-text: var(--grey-1200);
+  --color-text-muted: var(--grey-850);
+  --color-text-secondary: var(--grey-1100);
 
-    /* Surfaces */
-    --color-white: var(--grey-0);
-    --color-grey: var(--grey-700);
-    --color-body-bg: var(--grey-200);
-    --color-surface: var(--grey-0);
-    --color-surface-hover: var(--grey-150);
-    --color-surface-alt: var(--grey-100);
-    --color-surface-semi: rgb(255 255 255 / 50%);
-    --color-input-bg: rgb(255 255 255 / 50%);
-    --color-table-bg: rgb(255 255 255 / 50%);
-    --color-modal-bg: var(--grey-0);
-    --color-overlay-bg: rgb(0 0 0 / 50%);
-    --color-bg-input: var(--grey-50);
+  /* Surfaces */
+  --color-white: var(--grey-0);
+  --color-grey: var(--grey-700);
+  --color-body-bg: var(--grey-200);
+  --color-surface: var(--grey-0);
+  --color-surface-hover: var(--grey-150);
+  --color-surface-alt: var(--grey-100);
+  --color-surface-semi: rgb(255 255 255 / 50%);
+  --color-input-bg: rgb(255 255 255 / 50%);
+  --color-table-bg: rgb(255 255 255 / 50%);
+  --color-modal-bg: var(--grey-0);
+  --color-overlay-bg: rgb(0 0 0 / 50%);
+  --color-bg-input: var(--grey-50);
 
-    /* Borders */
-    --color-border: var(--grey-450);
-    --color-border-light: var(--grey-250);
-    --color-border-medium: var(--grey-600);
+  /* Borders */
+  --color-border: var(--grey-450);
+  --color-border-light: var(--grey-250);
+  --color-border-medium: var(--grey-600);
 
-    /* Game */
-    --color-game-row-odd: rgb(242 239 239 / 44%);
-    --color-game-row-border: var(--grey-650);
-    --color-navbar-link: var(--grey-1050);
-    --color-lanes-played: var(--grey-800);
+  /* Game */
+  --color-game-row-odd: rgb(242 239 239 / 44%);
+  --color-game-row-border: var(--grey-650);
+  --color-navbar-link: var(--grey-1050);
+  --color-lanes-played: var(--grey-800);
 
-    /* Status */
-    --color-success: var(--green-800);
-    --color-success-hover: var(--green-900);
-    --color-error: var(--red-400);
-    --color-error-hover: var(--red-600);
-    --color-error-bg: var(--red-50);
-    --color-warning: var(--amber-200);
-    --color-warning-hover: var(--amber-500);
-    --color-warning-bg: var(--amber-50);
-    --color-warning-text: var(--amber-700);
-    --color-warning-border: var(--amber-300);
-    --color-info: var(--blue-500);
-    --color-danger-light: var(--red-500);
+  /* Status */
+  --color-success: var(--green-800);
+  --color-success-hover: var(--green-900);
+  --color-error: var(--red-400);
+  --color-error-hover: var(--red-600);
+  --color-error-bg: var(--red-50);
+  --color-warning: var(--amber-200);
+  --color-warning-hover: var(--amber-500);
+  --color-warning-bg: var(--amber-50);
+  --color-warning-text: var(--amber-700);
+  --color-warning-border: var(--amber-300);
+  --color-info: var(--blue-500);
+  --color-danger-light: var(--red-500);
 
-    /* Shadows */
-    --color-dropdown-shadow: rgb(0 0 0 / 12%);
-    --color-card-shadow: rgb(71 26 160 / 8%);
+  /* Shadows */
+  --color-dropdown-shadow: rgb(0 0 0 / 12%);
+  --color-card-shadow: rgb(71 26 160 / 8%);
 
-    /* Buttons */
-    --color-btn-text: var(--grey-0);
-    --color-btn-dark: var(--grey-1000);
-    --color-btn-dark-hover: var(--grey-1100);
-    --color-btn-green: var(--green-500);
-    --color-btn-green-hover: var(--green-700);
-    --color-btn-blue: var(--blue-100);
-    --color-btn-blue-hover: var(--blue-300);
-    --color-add-team-btn: var(--green-400);
-    --color-add-team-btn-hover: var(--green-600);
+  /* Buttons */
+  --color-btn-text: var(--grey-0);
+  --color-btn-dark: var(--grey-1000);
+  --color-btn-dark-hover: var(--grey-1100);
+  --color-btn-green: var(--green-500);
+  --color-btn-green-hover: var(--green-700);
+  --color-btn-blue: var(--blue-100);
+  --color-btn-blue-hover: var(--blue-300);
+  --color-add-team-btn: var(--green-400);
+  --color-add-team-btn-hover: var(--green-600);
 
-    /* Badges */
-    --color-badge-purple: var(--purple-100);
-    --color-badge-gold-bg: var(--gold-1);
-    --color-badge-gold-border: var(--gold-3);
-    --color-badge-silver-bg: var(--silver-1);
-    --color-badge-silver-border: var(--silver-3);
-    --color-badge-bronze-bg: var(--bronze-1);
-    --color-badge-bronze-border: var(--bronze-3);
+  /* Badges */
+  --color-badge-purple: var(--purple-100);
+  --color-badge-gold-bg: var(--gold-1);
+  --color-badge-gold-border: var(--gold-3);
+  --color-badge-silver-bg: var(--silver-1);
+  --color-badge-silver-border: var(--silver-3);
+  --color-badge-bronze-bg: var(--bronze-1);
+  --color-badge-bronze-border: var(--bronze-3);
 
-    /* Bracket */
-    --color-bracket-winner: rgb(16 185 129 / 12%);
-    --color-bracket-winner-score: rgb(16 185 129 / 22%);
-    --color-bracket-gold: var(--gold-1);
-    --color-bracket-gold-score: var(--gold-2);
-    --color-bracket-silver: var(--silver-1);
-    --color-bracket-silver-score: var(--silver-2);
-    --color-bracket-bronze: var(--bronze-1);
-    --color-bracket-bronze-score: var(--bronze-2);
-    --color-bracket-loser: rgb(255 255 255 / 100%);
-    --color-bracket-loser-score: rgb(0 0 0 / 7%);
-    --color-bracket-text: var(--grey-1150);
-    --color-bracket-divider: var(--grey-350);
-    --color-bracket-connector: var(--grey-650);
-    --color-bracket-badge: var(--grey-750);
+  /* Bracket */
+  --color-bracket-winner: rgb(16 185 129 / 12%);
+  --color-bracket-winner-score: rgb(16 185 129 / 22%);
+  --color-bracket-gold: var(--gold-1);
+  --color-bracket-gold-score: var(--gold-2);
+  --color-bracket-silver: var(--silver-1);
+  --color-bracket-silver-score: var(--silver-2);
+  --color-bracket-bronze: var(--bronze-1);
+  --color-bracket-bronze-score: var(--bronze-2);
+  --color-bracket-loser: rgb(255 255 255 / 100%);
+  --color-bracket-loser-score: rgb(0 0 0 / 7%);
+  --color-bracket-text: var(--grey-1150);
+  --color-bracket-divider: var(--grey-350);
+  --color-bracket-connector: var(--grey-650);
+  --color-bracket-badge: var(--grey-750);
 
-    /* Stats */
-    --color-stat-green: var(--green-1100);
-    --color-stat-blue: var(--amber-400);
-    --color-stat-green-light: var(--green-100);
-    --color-stat-checkbox: var(--grey-1250);
+  /* Stats */
+  --color-stat-green: var(--green-1100);
+  --color-stat-blue: var(--amber-400);
+  --color-stat-green-light: var(--green-100);
+  --color-stat-checkbox: var(--grey-1250);
 
-    /* Tabs */
-    --color-tab-inactive-bg: var(--grey-300);
-    --color-tab-inactive-text: var(--grey-900);
-    --color-tab-inactive-hover: var(--grey-500);
+  /* Tabs */
+  --color-tab-inactive-bg: var(--grey-300);
+  --color-tab-inactive-text: var(--grey-900);
+  --color-tab-inactive-hover: var(--grey-500);
 
-    /* Misc */
-    --color-ranking-primary-bg: rgb(71 26 160 / 85%);
-    --color-help-border: var(--grey-550);
-    --color-loader-border: var(--grey-750);
-    --color-message-bg: var(--grey-300);
-    --color-message-text: var(--grey-1150);
-    --color-message-muted: var(--grey-800);
-    --color-message-border: var(--grey-500);
+  /* Misc */
+  --color-ranking-primary-bg: rgb(71 26 160 / 85%);
+  --color-help-border: var(--grey-550);
+  --color-loader-border: var(--grey-750);
+  --color-message-bg: var(--grey-300);
+  --color-message-text: var(--grey-1150);
+  --color-message-muted: var(--grey-800);
+  --color-message-border: var(--grey-500);
 
-    /* QR */
-    --color-qr-bg: var(--grey-0);
-    --color-qr-border: var(--grey-350);
-    --color-qr-alt-bg: var(--grey-100);
+  /* QR */
+  --color-qr-bg: var(--grey-0);
+  --color-qr-border: var(--grey-350);
+  --color-qr-alt-bg: var(--grey-100);
 
-    /* Public */
-    --color-public-text-muted: var(--grey-950);
-    --color-public-separator: var(--grey-350);
-    --color-public-surface: var(--grey-100);
-    --color-public-surface-border: var(--grey-400);
-    --color-public-surface-white: var(--grey-0);
+  /* Public */
+  --color-public-text-muted: var(--grey-950);
+  --color-public-separator: var(--grey-350);
+  --color-public-surface: var(--grey-100);
+  --color-public-surface-border: var(--grey-400);
+  --color-public-surface-white: var(--grey-0);
 
-    /* TIR scoring */
-    --tir-row-direct-bg: rgb(76 175 80 / 8%);
-    --tir-row-r2-bg: rgb(245 166 35 / 8%);
-    --tir-carreau: var(--green-200);
-    --tir-reussi: var(--blue-400);
-    --tir-touche: var(--amber-200);
-    --tir-manque: var(--grey-700);
-    --tir-winner: var(--green-300);
-    --tir-winner-text: var(--green-1000);
-    --tir-winner-bg: var(--green-50);
-    --tir-progress-text: var(--amber-600);
-    --tir-progress-bg: var(--amber-100);
-    --tir-in-progress: var(--purple-500);
-    --tir-in-progress-bg: rgb(94 53 177 / 10%);
-    --tir-tied-text: var(--red-700);
-    --tir-tied-bg: var(--red-100);
-    --tir-tied-border: var(--red-300);
-    --tir-delete: var(--red-800);
-    --tir-circle-inactive: var(--grey-500);
+  /* TIR scoring */
+  --tir-row-direct-bg: rgb(76 175 80 / 8%);
+  --tir-row-r2-bg: rgb(245 166 35 / 8%);
+  --tir-carreau: var(--green-200);
+  --tir-reussi: var(--blue-400);
+  --tir-touche: var(--amber-200);
+  --tir-manque: var(--grey-700);
+  --tir-winner: var(--green-300);
+  --tir-winner-text: var(--green-1000);
+  --tir-winner-bg: var(--green-50);
+  --tir-progress-text: var(--amber-600);
+  --tir-progress-bg: var(--amber-100);
+  --tir-in-progress: var(--purple-500);
+  --tir-in-progress-bg: rgb(94 53 177 / 10%);
+  --tir-tied-text: var(--red-700);
+  --tir-tied-bg: var(--red-100);
+  --tir-tied-border: var(--red-300);
+  --tir-delete: var(--red-800);
+  --tir-circle-inactive: var(--grey-500);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -249,147 +249,147 @@
    ═══════════════════════════════════════════════════════════ */
 
 [data-theme='dark'] {
-    /* Brand */
-    --color-primary: #8b6fde;
-    --color-primary-light: #a78bfa;
-    --color-primary-bg: #2d2340;
-    --color-primary-bg-hover: #3a2d52;
-    --color-primary-shadow: rgb(139 111 222 / 25%);
-    --color-highlight: rgb(139 111 222 / 18%);
+  /* Brand */
+  --color-primary: #8b6fde;
+  --color-primary-light: #a78bfa;
+  --color-primary-bg: #2d2340;
+  --color-primary-bg-hover: #3a2d52;
+  --color-primary-shadow: rgb(139 111 222 / 25%);
+  --color-highlight: rgb(139 111 222 / 18%);
 
-    /* Text */
-    --color-text: #e4e5ea;
-    --color-text-muted: #9ca3af;
-    --color-text-secondary: #d1d5db;
+  /* Text */
+  --color-text: #e4e5ea;
+  --color-text-muted: #9ca3af;
+  --color-text-secondary: #d1d5db;
 
-    /* Surfaces */
-    --color-white: #1e1e2e;
-    --color-grey: #9ca3af;
-    --color-body-bg: #0f1117;
-    --color-surface: #181a24;
-    --color-surface-hover: #22253a;
-    --color-surface-alt: #1e2130;
-    --color-surface-semi: rgb(24 26 36 / 80%);
-    --color-input-bg: rgb(26 29 40 / 90%);
-    --color-table-bg: rgb(24 26 36 / 70%);
-    --color-modal-bg: #181a24;
-    --color-overlay-bg: rgb(0 0 0 / 75%);
-    --color-bg-input: #1a1d28;
+  /* Surfaces */
+  --color-white: #1e1e2e;
+  --color-grey: #9ca3af;
+  --color-body-bg: #0f1117;
+  --color-surface: #181a24;
+  --color-surface-hover: #22253a;
+  --color-surface-alt: #1e2130;
+  --color-surface-semi: rgb(24 26 36 / 80%);
+  --color-input-bg: rgb(26 29 40 / 90%);
+  --color-table-bg: rgb(24 26 36 / 70%);
+  --color-modal-bg: #181a24;
+  --color-overlay-bg: rgb(0 0 0 / 75%);
+  --color-bg-input: #1a1d28;
 
-    /* Borders */
-    --color-border: #2f3543;
-    --color-border-light: #262d3a;
-    --color-border-medium: #3f4656;
+  /* Borders */
+  --color-border: #2f3543;
+  --color-border-light: #262d3a;
+  --color-border-medium: #3f4656;
 
-    /* Game */
-    --color-game-row-odd: rgb(34 37 58 / 40%);
-    --color-game-row-border: #2f3543;
-    --color-navbar-link: #d1d5db;
-    --color-lanes-played: #6b7280;
+  /* Game */
+  --color-game-row-odd: rgb(34 37 58 / 40%);
+  --color-game-row-border: #2f3543;
+  --color-navbar-link: #d1d5db;
+  --color-lanes-played: #6b7280;
 
-    /* Status */
-    --color-success: #34b86c;
-    --color-success-hover: #2a9d5c;
-    --color-error: #fb7185;
-    --color-error-hover: #f43f5e;
-    --color-error-bg: #2d1b1e;
-    --color-warning: #fbbf24;
-    --color-warning-hover: #f59e0b;
-    --color-warning-bg: #2d2a1a;
-    --color-warning-text: #fde68a;
-    --color-warning-border: #b45309;
-    --color-info: #38bdf8;
-    --color-danger-light: #fb7185;
+  /* Status */
+  --color-success: #34b86c;
+  --color-success-hover: #2a9d5c;
+  --color-error: #fb7185;
+  --color-error-hover: #f43f5e;
+  --color-error-bg: #2d1b1e;
+  --color-warning: #fbbf24;
+  --color-warning-hover: #f59e0b;
+  --color-warning-bg: #2d2a1a;
+  --color-warning-text: #fde68a;
+  --color-warning-border: #b45309;
+  --color-info: #38bdf8;
+  --color-danger-light: #fb7185;
 
-    /* Shadows */
-    --color-dropdown-shadow: rgb(0 0 0 / 50%);
-    --color-card-shadow: rgb(0 0 0 / 35%);
+  /* Shadows */
+  --color-dropdown-shadow: rgb(0 0 0 / 50%);
+  --color-card-shadow: rgb(0 0 0 / 35%);
 
-    /* Buttons */
-    --color-btn-text: #fff;
-    --color-btn-dark: #4b5563;
-    --color-btn-dark-hover: #6b7280;
-    --color-btn-green: #2a9d5c;
-    --color-btn-green-hover: #228b4e;
-    --color-btn-blue: #3b82f6;
-    --color-btn-blue-hover: #2563eb;
-    --color-add-team-btn: #2a9d5c;
-    --color-add-team-btn-hover: #228b4e;
+  /* Buttons */
+  --color-btn-text: #fff;
+  --color-btn-dark: #4b5563;
+  --color-btn-dark-hover: #6b7280;
+  --color-btn-green: #2a9d5c;
+  --color-btn-green-hover: #228b4e;
+  --color-btn-blue: #3b82f6;
+  --color-btn-blue-hover: #2563eb;
+  --color-add-team-btn: #2a9d5c;
+  --color-add-team-btn-hover: #228b4e;
 
-    /* Badges */
-    --color-badge-purple: #2a2040;
-    --color-badge-gold-bg: rgb(251 191 36 / 35%);
-    --color-badge-gold-border: #f5c518;
-    --color-badge-silver-bg: rgb(156 163 175 / 30%);
-    --color-badge-silver-border: #b0b8c4;
-    --color-badge-bronze-bg: rgb(205 127 50 / 30%);
-    --color-badge-bronze-border: #e0924a;
+  /* Badges */
+  --color-badge-purple: #2a2040;
+  --color-badge-gold-bg: rgb(251 191 36 / 35%);
+  --color-badge-gold-border: #f5c518;
+  --color-badge-silver-bg: rgb(156 163 175 / 30%);
+  --color-badge-silver-border: #b0b8c4;
+  --color-badge-bronze-bg: rgb(205 127 50 / 30%);
+  --color-badge-bronze-border: #e0924a;
 
-    /* Bracket */
-    --color-bracket-winner: rgb(168 85 247 / 20%);
-    --color-bracket-winner-score: rgb(168 85 247 / 30%);
-    --color-bracket-gold: rgb(251 191 36 / 20%);
-    --color-bracket-gold-score: rgb(251 191 36 / 30%);
-    --color-bracket-silver: rgb(156 163 175 / 18%);
-    --color-bracket-silver-score: rgb(156 163 175 / 30%);
-    --color-bracket-bronze: rgb(205 127 50 / 18%);
-    --color-bracket-bronze-score: rgb(205 127 50 / 28%);
-    --color-bracket-loser: #1e2130;
-    --color-bracket-loser-score: rgb(255 255 255 / 6%);
-    --color-bracket-text: #e4e5ea;
-    --color-bracket-divider: #3f4656;
-    --color-bracket-connector: #5b6478;
-    --color-bracket-badge: #9ca3af;
+  /* Bracket */
+  --color-bracket-winner: rgb(168 85 247 / 20%);
+  --color-bracket-winner-score: rgb(168 85 247 / 30%);
+  --color-bracket-gold: rgb(251 191 36 / 20%);
+  --color-bracket-gold-score: rgb(251 191 36 / 30%);
+  --color-bracket-silver: rgb(156 163 175 / 18%);
+  --color-bracket-silver-score: rgb(156 163 175 / 30%);
+  --color-bracket-bronze: rgb(205 127 50 / 18%);
+  --color-bracket-bronze-score: rgb(205 127 50 / 28%);
+  --color-bracket-loser: #1e2130;
+  --color-bracket-loser-score: rgb(255 255 255 / 6%);
+  --color-bracket-text: #e4e5ea;
+  --color-bracket-divider: #3f4656;
+  --color-bracket-connector: #5b6478;
+  --color-bracket-badge: #9ca3af;
 
-    /* Stats */
-    --color-stat-green: #4ade80;
-    --color-stat-blue: #f0b429;
-    --color-stat-green-light: #86efac;
-    --color-stat-checkbox: #e4e5ea;
+  /* Stats */
+  --color-stat-green: #4ade80;
+  --color-stat-blue: #f0b429;
+  --color-stat-green-light: #86efac;
+  --color-stat-checkbox: #e4e5ea;
 
-    /* Tabs */
-    --color-tab-inactive-bg: #22253a;
-    --color-tab-inactive-text: #9ca3af;
-    --color-tab-inactive-hover: #2c3044;
+  /* Tabs */
+  --color-tab-inactive-bg: #22253a;
+  --color-tab-inactive-text: #9ca3af;
+  --color-tab-inactive-hover: #2c3044;
 
-    /* Misc */
-    --color-ranking-primary-bg: rgb(139 111 222 / 85%);
-    --color-help-border: #2f3543;
-    --color-loader-border: #6b7280;
-    --color-message-bg: #1e2130;
-    --color-message-text: #e4e5ea;
-    --color-message-muted: #6b7280;
-    --color-message-border: #2f3543;
+  /* Misc */
+  --color-ranking-primary-bg: rgb(139 111 222 / 85%);
+  --color-help-border: #2f3543;
+  --color-loader-border: #6b7280;
+  --color-message-bg: #1e2130;
+  --color-message-text: #e4e5ea;
+  --color-message-muted: #6b7280;
+  --color-message-border: #2f3543;
 
-    /* QR */
-    --color-qr-bg: #181a24;
-    --color-qr-border: #2f3543;
-    --color-qr-alt-bg: #1e2130;
+  /* QR */
+  --color-qr-bg: #181a24;
+  --color-qr-border: #2f3543;
+  --color-qr-alt-bg: #1e2130;
 
-    /* Public */
-    --color-public-text-muted: #9ca3af;
-    --color-public-separator: #2f3543;
-    --color-public-surface: #1e2130;
-    --color-public-surface-border: #2f3543;
-    --color-public-surface-white: #181a24;
+  /* Public */
+  --color-public-text-muted: #9ca3af;
+  --color-public-separator: #2f3543;
+  --color-public-surface: #1e2130;
+  --color-public-surface-border: #2f3543;
+  --color-public-surface-white: #181a24;
 
-    /* TIR scoring */
-    --tir-row-direct-bg: rgb(76 175 80 / 18%);
-    --tir-row-r2-bg: rgb(245 166 35 / 18%);
-    --tir-carreau: #66bb6a;
-    --tir-reussi: #42a5f5;
-    --tir-touche: #ffc107;
-    --tir-manque: #757575;
-    --tir-winner: #66bb6a;
-    --tir-winner-text: #81c784;
-    --tir-winner-bg: rgb(76 175 80 / 15%);
-    --tir-progress-text: #ffb74d;
-    --tir-progress-bg: rgb(255 152 0 / 12%);
-    --tir-in-progress: #b39ddb;
-    --tir-in-progress-bg: rgb(149 117 205 / 15%);
-    --tir-tied-text: #ef9a9a;
-    --tir-tied-bg: rgb(229 57 53 / 12%);
-    --tir-tied-border: #e57373;
-    --tir-delete: #f48fb1;
-    --tir-circle-inactive: #4a4a5a;
+  /* TIR scoring */
+  --tir-row-direct-bg: rgb(76 175 80 / 18%);
+  --tir-row-r2-bg: rgb(245 166 35 / 18%);
+  --tir-carreau: #66bb6a;
+  --tir-reussi: #42a5f5;
+  --tir-touche: #ffc107;
+  --tir-manque: #757575;
+  --tir-winner: #66bb6a;
+  --tir-winner-text: #81c784;
+  --tir-winner-bg: rgb(76 175 80 / 15%);
+  --tir-progress-text: #ffb74d;
+  --tir-progress-bg: rgb(255 152 0 / 12%);
+  --tir-in-progress: #b39ddb;
+  --tir-in-progress-bg: rgb(149 117 205 / 15%);
+  --tir-tied-text: #ef9a9a;
+  --tir-tied-bg: rgb(229 57 53 / 12%);
+  --tir-tied-border: #e57373;
+  --tir-delete: #f48fb1;
+  --tir-circle-inactive: #4a4a5a;
 }

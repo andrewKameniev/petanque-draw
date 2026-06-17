@@ -93,8 +93,8 @@ Pattern:
 
 ```javascript
 test('my test', async ({ page }) => {
-    // ... do test work ...
-    await deleteCurrentTournament(page);
+  // ... do test work ...
+  await deleteCurrentTournament(page);
 });
 ```
 

@@ -39,9 +39,9 @@ Automatic calculations:
 - Final score
 - Team performance comparison
 - Per-player statistics:
-    - Hit rate (percentage)
-    - Shots per round
-    - Series analysis (consecutive successes/failures)
+  - Hit rate (percentage)
+  - Shots per round
+  - Series analysis (consecutive successes/failures)
 - Round-by-round point breakdown
 - Visual charts (ApexCharts)
 

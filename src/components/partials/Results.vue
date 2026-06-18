@@ -64,10 +64,10 @@
                 :key="i"
                 class="match-item"
                 :class="{
-                  'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished',
-                  'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress',
+                  'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished' || (!isRoundActive(index) && game.team_1_score != null),
+                  'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress' && isRoundActive(index),
                   'match-item--upcoming':
-                    !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started'),
+                    !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started') && !(!isRoundActive(index) && game.team_1_score != null),
                   'match-item--highlighted': isGameHighlighted(game),
                 }"
               >
@@ -585,6 +585,10 @@ export default {
     },
     allDisplayRounds() {
       if (this.tournament.groupSchedule) {
+        const games = this.tournament.games || [];
+        if (games.length > this.tournament.groupSchedule.length) {
+          return [...this.tournament.groupSchedule, ...games.slice(this.tournament.groupSchedule.length)];
+        }
         return this.tournament.groupSchedule;
       }
       return this.tournament.games || [];
@@ -593,8 +597,13 @@ export default {
       let rounds;
       if (this.tournament.groupSchedule) {
         const played = this.sortedGames || [];
-        const scheduled = this.tournament.groupSchedule.slice(played.length);
-        rounds = [...played, ...sortGamesByGroup(scheduled, this.hasGroupsColumn)];
+        const scheduleLength = this.tournament.groupSchedule.length;
+        if (played.length < scheduleLength) {
+          const scheduled = this.tournament.groupSchedule.slice(played.length);
+          rounds = [...played, ...sortGamesByGroup(scheduled, this.hasGroupsColumn)];
+        } else {
+          rounds = played;
+        }
       } else {
         rounds = this.sortedGames;
       }
@@ -689,6 +698,9 @@ export default {
       if (index >= this.tournament.games.length) return false;
       const round = this.tournament.games[index];
       return round && round.some((g) => g.team_1_score != null && g.team_2_score != null);
+    },
+    isRoundActive(index) {
+      return index === (this.tournament.games?.length || 0) - 1 && this.tournament.roundIsActive;
     },
     playoffGameClass(game) {
       if (this.tournament.tournamentIsFinished || game.status === 'finished') return 'match-item--finished';

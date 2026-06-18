@@ -607,14 +607,18 @@ export default {
     saveResults() {
       this.scoreError = false;
       const realGames = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.filter((game) => !game.isBye);
-      if (realGames.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
+      const unfinished = realGames.filter((game) => game.status !== 'finished');
+      if (unfinished.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
         this.scoreError = true;
         return false;
       }
       realGames.forEach((game) => {
+        game.team_1_score = Number(game.team_1_score);
+        game.team_2_score = Number(game.team_2_score);
+        if (game.status === 'finished') return;
         game.status = 'finished';
         if (!game.winner) {
-          game.winner = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_1 : game.team_2;
+          game.winner = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2;
         }
       });
       this.clearRoundTimer();

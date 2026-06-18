@@ -5,6 +5,7 @@
     <Cadrage
       v-else-if="tournament.cadrage && tournament.cadrage.length"
       @startPlayOff="$emit('startPlayOff', $event)"
+      @finish="onCadrageFinish"
     />
     <div v-else>
       <div
@@ -71,8 +72,8 @@
           <template v-else-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
           <template v-else
             >{{ $t('common.round') }} {{ activeRound
-            }}<template v-if="tournament.preferences?.groupTotalRounds"
-              >/{{ tournament.preferences.groupTotalRounds }}</template
+            }}<template v-if="groupTotalRoundsDisplay"
+              >/{{ groupTotalRoundsDisplay }}</template
             ></template
           >
         </h2>
@@ -224,11 +225,21 @@
     <ConfirmRemoveModal
       v-if="showFinishConfirmIndex !== null"
       :hint="$t('teamPlayoff.finishMatch')"
-      :message="finishConfirmMessage"
       :confirm-label="$t('teamPlayoff.finishMatch')"
       @confirm="confirmFinishMatch()"
       @close="showFinishConfirmIndex = null"
-    />
+    >
+      <div v-if="finishConfirmGame" class="finish-match-preview">
+        <div class="finish-match-preview__row" :class="{ 'finish-match-preview__row--winner': finishConfirmGame.team_1_score > finishConfirmGame.team_2_score }">
+          <span class="finish-match-preview__name">{{ finishConfirmGame.team_1 }}</span>
+          <span class="finish-match-preview__score">{{ finishConfirmGame.team_1_score }}</span>
+        </div>
+        <div class="finish-match-preview__row" :class="{ 'finish-match-preview__row--winner': finishConfirmGame.team_2_score > finishConfirmGame.team_1_score }">
+          <span class="finish-match-preview__name">{{ finishConfirmGame.team_2 }}</span>
+          <span class="finish-match-preview__score">{{ finishConfirmGame.team_2_score }}</span>
+        </div>
+      </div>
+    </ConfirmRemoveModal>
   </div>
 </template>
 
@@ -278,6 +289,7 @@ export default {
       compactView: false,
       showRestoreConfirm: false,
       showFinishConfirmIndex: null,
+      finishConfirmSource: null,
     };
   },
   mounted() {
@@ -315,17 +327,24 @@ export default {
     tournament() {
       return this.currentTournament;
     },
+    groupTotalRoundsDisplay() {
+      const perCircle = this.tournament?.preferences?.groupTotalRounds;
+      if (!perCircle) return null;
+      const circles = this.tournament.roundRobinCircle || 1;
+      return perCircle * circles;
+    },
     teamsCount() {
       if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
       if (this.tournament.groups) {
-        if (this.tournament.preferences?.groupTotalRounds) {
-          return this.tournament.preferences.groupTotalRounds;
+        const perCircle = this.tournament.preferences?.groupTotalRounds;
+        const circles = this.tournament.roundRobinCircle || 1;
+        if (perCircle) {
+          return perCircle * circles;
         }
         const roundsPerCircle =
           this.tournament.groups[0].length % 2 !== 0
             ? this.tournament.groups[0].length
             : this.tournament.groups[0].length - 1;
-        const circles = this.tournament.roundRobinCircle || 1;
         return roundsPerCircle * circles;
       }
       return this.tournament.teams.length - 1;
@@ -411,11 +430,12 @@ export default {
     hasAnyFinishedGame() {
       return this.currentRoundGames.some((g) => g.status === 'finished' || g.status === 'in_progress');
     },
-    finishConfirmMessage() {
-      if (this.showFinishConfirmIndex === null) return '';
-      const game = this.currentRoundGames[this.showFinishConfirmIndex];
-      if (!game) return '';
-      return `${game.team_1} ${game.team_1_score} : ${game.team_2_score} ${game.team_2}`;
+    finishConfirmGame() {
+      if (this.showFinishConfirmIndex === null) return null;
+      if (this.finishConfirmSource === 'cadrage') {
+        return this.tournament.cadrage?.[this.showFinishConfirmIndex] || null;
+      }
+      return this.currentRoundGames[this.showFinishConfirmIndex] || null;
     },
   },
   methods: {
@@ -431,6 +451,7 @@ export default {
       'setPlayOffBracket',
       'setBarrage',
       'syncGameMatch',
+      'syncCadrageMatch',
       'syncGames',
       'syncTeams',
       'syncGamesAndTeams',
@@ -456,18 +477,32 @@ export default {
       this.syncGameMatch(this.activeRound - 1, gameIndex, game);
     },
     onGameFinish(gameIndex) {
+      this.finishConfirmSource = 'games';
+      this.showFinishConfirmIndex = gameIndex;
+    },
+    onCadrageFinish(gameIndex) {
+      this.finishConfirmSource = 'cadrage';
       this.showFinishConfirmIndex = gameIndex;
     },
     confirmFinishMatch() {
       const idx = this.showFinishConfirmIndex;
-      const game = this.tournament.games[this.activeRound - 1][idx];
+      const isCadrage = this.finishConfirmSource === 'cadrage';
+      const game = isCadrage
+        ? this.tournament.cadrage[idx]
+        : this.tournament.games[this.activeRound - 1][idx];
       game.team_1_score = Number(game.team_1_score);
       game.team_2_score = Number(game.team_2_score);
       game.status = 'finished';
       game.winner = game.team_1_score > game.team_2_score ? game.team_1 : game.team_2;
       game.updated_at = new Date().toISOString();
-      this.syncGameMatch(this.activeRound - 1, idx, game);
+      if (isCadrage) {
+        this.syncCadrageMatch(idx, game);
+      } else {
+        this.syncGameMatch(this.activeRound - 1, idx, game);
+      }
       this.showFinishConfirmIndex = null;
+      this.finishConfirmSource = null;
+      if (isCadrage) return;
       const allFinished = this.tournament.games[this.activeRound - 1].every((g) => g.status === 'finished');
       if (allFinished && this.tournament.roundTimer?.timerStatus === 'running') {
         this.endRoundTimer();
@@ -1115,5 +1150,51 @@ export default {
   font-size: 13px;
   color: var(--color-text-muted);
   text-decoration: underline;
+}
+
+.finish-match-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 8px;
+  padding: 4px;
+  margin: 0.25rem 0;
+}
+
+.finish-match-preview__row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--color-bg, #fff);
+}
+
+.finish-match-preview__row--winner {
+  background: var(--color-success-bg, #dcfce7);
+  font-weight: 700;
+}
+
+.finish-match-preview__name {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.finish-match-preview__score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--color-text);
+  margin-left: 0.75rem;
+}
+
+.finish-match-preview__row--winner .finish-match-preview__score {
+  color: var(--color-success, #16a34a);
 }
 </style>

@@ -9,7 +9,7 @@ import RoundTimer from '@/components/partials/RoundTimer.vue';
 export default {
   name: 'Cadrage',
   props: ['activeTournament', 'isPublicView'],
-  emits: ['startPlayOff'],
+  emits: ['startPlayOff', 'finish'],
   components: { Game, Timer, RoundTimer },
   data() {
     return {
@@ -63,11 +63,13 @@ export default {
     },
     saveResults() {
       this.scoreError = false;
-      if (this.tournament.cadrage.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
+      const unfinished = this.tournament.cadrage.filter((game) => game.status !== 'finished');
+      if (unfinished.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
         this.scoreError = true;
         return;
       }
       this.tournament.cadrage.forEach((game) => {
+        if (game.status === 'finished') return;
         game.team_1_score = Number(game.team_1_score);
         game.team_2_score = Number(game.team_2_score);
         game.status = 'finished';
@@ -122,6 +124,7 @@ export default {
       :is-cadrage="true"
       @save="saveResults"
       @update="onGameUpdate"
+      @finish="$emit('finish', $event)"
       @swapLane="swapCadrageLane"
     />
     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>

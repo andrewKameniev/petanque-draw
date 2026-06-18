@@ -5,19 +5,19 @@
       container: !isPublicView || playOffStageCurrent !== 0,
       content: activeTournament && (!isPublicView || playOffStageCurrent !== 0),
     }"
-    style="padding-top: 0; margin-top: 0"
+    style="padding-top: 0; margin-top: 0;"
   >
     <div
       class="is-flex is-justify-content-space-between is-align-items-center mb-2"
       v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)"
     >
-      <h2 v-if="playOffStageCurrent !== 0" style="margin: 0">{{ $t('games.playOff') }}</h2>
+      <h2 v-if="playOffStageCurrent !== 0" style="margin: 0;">{{ $t('games.playOff') }}</h2>
       <button
         v-if="!isPublicView && playOffStageCurrent !== 0"
         class="button btn-purple-outline"
         @click="showBracket = true"
       >
-        <GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem" />
+        <GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem;" />
         {{ $t('games.showBracket') }}
       </button>
     </div>
@@ -542,38 +542,44 @@ export default {
     onThirdPlaceUpdate() {
       const game = this.playOffBracket.thirdPlace;
       if (game) {
-        if (this.tournament.preferences?.cochonettesEnabled) updateScoreHistory(game);
+        updateScoreHistory(game);
+        this.syncBracketMatch('thirdPlace', game);
       }
-      this.syncToFirebase();
     },
     onThirdPlaceFinish() {
       const game = this.playOffBracket.thirdPlace;
       if (game) {
         game.status = 'finished';
         game.winner = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_1 : game.team_2;
-        this.syncToFirebase();
+        this.syncBracketMatch('thirdPlace', game);
       }
     },
     onPlayoffGameUpdate(gameIndex) {
       const game = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams[gameIndex];
       if (game) {
-        if (this.tournament.preferences?.cochonettesEnabled) updateScoreHistory(game);
+        updateScoreHistory(game);
+        this.syncBracketMatch(
+          `stages/${this.currentPlayOffBracketIndex}/teams/${gameIndex}`,
+          game,
+        );
       }
-      this.syncToFirebase();
     },
     onGameFinish(gameIndex) {
       const game = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams[gameIndex];
       if (game) {
         game.status = 'finished';
         game.winner = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_1 : game.team_2;
-        this.syncToFirebase();
+        this.syncBracketMatch(
+          `stages/${this.currentPlayOffBracketIndex}/teams/${gameIndex}`,
+          game,
+        );
       }
     },
     ...mapActions(useMainStore, [
       'finishTournament',
       'setPlayOffBracket',
       'setPlayOffStage',
-      'syncToFirebase',
+      'syncBracketMatch',
       'startRoundTimer',
       'endRoundTimer',
       'clearRoundTimer',
@@ -803,7 +809,6 @@ export default {
   cursor: pointer;
   transition: background 0.15s;
   -webkit-tap-highlight-color: transparent;
-  appearance: none;
   appearance: none;
 }
 

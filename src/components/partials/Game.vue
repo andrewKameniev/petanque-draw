@@ -123,7 +123,12 @@ export default {
     };
   },
   methods: {
-    ...mapActions(useMainStore, ['updateGameScore', 'setActiveGameMatchPath']),
+    ...mapActions(useMainStore, [
+      'updateGameScore',
+      'setActiveGameMatchPath',
+      'setActiveCadrageIndex',
+      'setActiveBracketMatchPath',
+    ]),
     gameHasError,
     onScoreInput(field) {
       const prevVal = this._prevScores?.[field] ?? null;
@@ -157,12 +162,21 @@ export default {
       }
     },
     onFocus() {
-      if (!this.isPlayoff && !this.isCadrage && !this.isThird) {
+      if (this.isCadrage) {
+        this.setActiveCadrageIndex(this.gameIndex);
+      } else if (this.isPlayoff || this.isThird) {
+        const path = this.isThird ? 'thirdPlace' : `stages/${this.activeRound}/teams/${this.gameIndex}`;
+        this.setActiveBracketMatchPath(path);
+      } else {
         this.setActiveGameMatchPath(`${this.activeRound}/${this.gameIndex}`);
       }
     },
     onBlur() {
-      if (!this.isPlayoff && !this.isCadrage && !this.isThird) {
+      if (this.isCadrage) {
+        this.setActiveCadrageIndex(null);
+      } else if (this.isPlayoff || this.isThird) {
+        this.setActiveBracketMatchPath(null);
+      } else {
         this.setActiveGameMatchPath(null);
       }
     },
@@ -335,13 +349,14 @@ export default {
 }
 
 .game-row__stream-indicator {
+  position: absolute;
+  left: 10px;
+  top: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #e53935;
   padding: 4px;
-  margin-left: 10px;
-  flex-shrink: 0;
 }
 
 .game-row__history {
@@ -401,7 +416,7 @@ export default {
 
 @media all and (max-width: 768px) {
   .game-row__stream-indicator {
-    margin-left: 0;
+    left: 10px;
   }
 
   .game-row__history {

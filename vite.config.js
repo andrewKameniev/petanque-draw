@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     globals: true,
+    exclude: ['e2e/**', 'node_modules/**'],
   },
   plugins: [
     vue(),

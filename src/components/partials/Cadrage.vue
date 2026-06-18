@@ -2,7 +2,7 @@
 import Game from '@/components/partials/Game.vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { getTeamsRanking, isScoreError } from '@/helpers';
+import { getTeamsRanking, isScoreError, updateScoreHistory } from '@/helpers';
 import { Timer } from 'lucide-vue-next';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 
@@ -48,23 +48,7 @@ export default {
     },
     onGameUpdate(gameIndex) {
       const game = this.tournament.cadrage[gameIndex];
-      const s1 = Number(game.team_1_score);
-      const s2 = Number(game.team_2_score);
-      if (!isNaN(s1) && !isNaN(s2) && (s1 > 0 || s2 > 0)) {
-        if (!game.score_history) game.score_history = [];
-        const now = Date.now();
-        const key = `cadrage_${gameIndex}`;
-        if (!this._scoreHistoryTs) this._scoreHistoryTs = {};
-        const lastTs = this._scoreHistoryTs[key] || 0;
-        const last = game.score_history[game.score_history.length - 1];
-        if (last && now - lastTs < 2000) {
-          last.s1 = s1;
-          last.s2 = s2;
-        } else if (!last || last.s1 !== s1 || last.s2 !== s2) {
-          game.score_history.push({ s1, s2 });
-        }
-        this._scoreHistoryTs[key] = now;
-      }
+      updateScoreHistory(game);
       this.syncCadrageMatch(gameIndex, game);
     },
     swapCadrageLane({ fromIndex, targetLane }) {

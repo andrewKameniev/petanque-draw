@@ -34,7 +34,7 @@ export default {
     ...mapActions(useMainStore, [
       'saveCadrageScores',
       'syncCadrageMatch',
-      'syncToFirebase',
+      'syncCadrageFull',
       'startRoundTimer',
       'endRoundTimer',
       'clearRoundTimer',
@@ -59,7 +59,7 @@ export default {
       const temp = cadrage[fromIndex];
       cadrage[fromIndex] = cadrage[targetIndex];
       cadrage[targetIndex] = temp;
-      this.syncToFirebase();
+      this.syncCadrageFull();
     },
     saveResults() {
       this.scoreError = false;

@@ -430,11 +430,12 @@ export default {
       'setPlayOffStage',
       'setPlayOffBracket',
       'setBarrage',
-      'syncToFirebase',
-      'syncToFirebaseNow',
       'syncGameMatch',
       'syncGames',
       'syncTeams',
+      'syncGamesAndTeams',
+      'syncTeamPlayoff',
+      'syncPathNull',
       'startRoundTimer',
       'endRoundTimer',
       'clearRoundTimer',
@@ -527,7 +528,7 @@ export default {
       }
       this.clearRoundTimer();
       this.endRound();
-      this.syncToFirebaseNow();
+      this.syncGamesAndTeams();
 
       if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
         this.drawBarrageRound();
@@ -670,13 +671,19 @@ export default {
           delete this.tournament.playOff;
           delete this.tournament.playOffBracket;
           delete this.tournament.playOffStage;
-          this.syncToFirebase();
+          this.syncPathNull('playOff');
+          this.syncPathNull('playOffBracket');
+          this.syncPathNull('playOffStage');
           return;
         }
         delete this.tournament.playOff;
         delete this.tournament.playOffBracket;
         delete this.tournament.playOffStage;
         delete this.tournament.cadrage;
+        this.syncPathNull('playOff');
+        this.syncPathNull('playOffBracket');
+        this.syncPathNull('playOffStage');
+        this.syncPathNull('cadrage');
         if (this.tournament.system === 'poules') {
           this.tournament.poulesRound = 3;
         }
@@ -696,7 +703,7 @@ export default {
           } else {
             // Restoring the first barrage round means removing barrage entirely
             delete this.tournament.barrage;
-            this.syncToFirebase();
+            this.syncPathNull('barrage');
           }
         } else if (this.tournament.system === 'poules') {
           if (this.tournament.poulesRound > 1) {
@@ -778,7 +785,7 @@ export default {
           final: null,
         };
       }
-      this.syncToFirebase();
+      this.syncTeamPlayoff();
     },
     playNextCircle() {
       this.tournament.roundRobinCircle = (this.tournament.roundRobinCircle || 1) + 1;

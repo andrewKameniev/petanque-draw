@@ -93,7 +93,7 @@ export default {
       'showMessage',
       'setTournamentIdFromPortal',
       'setTournamentInfoFromPortal',
-      'syncToFirebase',
+      'syncTeams',
     ]),
     addTeam(title, rating, players = false, portalTeamId = null, club = null) {
       if (title !== null && title !== '') {
@@ -122,7 +122,7 @@ export default {
             lanes: [],
           };
           this.addTeamToStore(team);
-          this.syncToFirebase();
+          this.syncTeams();
           this.teamTitle = null;
           this.teamRating = null;
         } else {
@@ -156,7 +156,7 @@ export default {
           });
           this.setTournamentInfoFromPortal(importedList.tournament);
           this.setTournamentIdFromPortal(this.tournamentId);
-          this.syncToFirebase();
+          this.syncTeams();
         } else {
           this.showMessage({
             title: this.$t('messages.error'),

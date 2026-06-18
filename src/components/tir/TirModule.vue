@@ -948,8 +948,11 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, [
-      'syncToFirebase',
+      'syncTirParticipants',
+      'syncTirState',
+      'syncTirPlayoff',
       'syncTirPlayoffMatch',
+      'finishTournament',
       'setActivePlayoffMatchPath',
       'subscribeTournament',
       'unsubscribeTournament',
@@ -1003,12 +1006,13 @@ export default {
       this.tournament.tirTiebreakerParticipantIds = participants.map((p) => p.id);
       this.tournament.tirTiebreakerCount = (this.tiebreakerCount || 0) + 1;
       this.scoringRound = `ex${this.tournament.tirTiebreakerCount}`;
-      this.syncToFirebase();
+      this.syncTirParticipants();
+      this.syncTirState();
     },
     finishTiebreaker() {
       this.tournament.tirTiebreakerActive = false;
       this.tournament.tirTiebreakerParticipantIds = null;
-      this.syncToFirebase();
+      this.syncTirState();
     },
     getPlaceWithTiebreaker(row) {
       if (row.place) return row.place;
@@ -1055,13 +1059,14 @@ export default {
         if (!p.scores2) p.scores2 = {};
       });
       this.tournament.tirRound = 2;
-      this.syncToFirebase();
+      this.syncTirParticipants();
+      this.syncTirState();
     },
     returnToRound1() {
       this.tournament.tirRound = 1;
       this.tournament.tirR2Participants = null;
       this.scoringRound = 'r1';
-      this.syncToFirebase();
+      this.syncTirState();
     },
     addParticipant() {
       if (!this.newParticipant.name.trim()) return;
@@ -1088,7 +1093,7 @@ export default {
       });
       this.newParticipant = { name: '', city: '' };
       this.showAddParticipant = false;
-      this.syncToFirebase();
+      this.syncTirParticipants();
     },
     getParticipantLane(participant) {
       if (participant.lane) return participant.lane;
@@ -1113,7 +1118,7 @@ export default {
         targetParticipant.lane = sourceLane;
       }
       this.swapParticipant = null;
-      this.syncToFirebase();
+      this.syncTirParticipants();
     },
     openParticipantScoring(participant) {
       this.activeParticipant = participant;
@@ -1161,7 +1166,7 @@ export default {
       }).length;
     },
     onScoreUpdate() {
-      this.syncToFirebase();
+      this.syncTirParticipants();
     },
     goToNextParticipant() {
       const list = this.scoringListParticipants;
@@ -1171,7 +1176,7 @@ export default {
     },
     finishAtelier() {
       this.activeAtelier = null;
-      this.syncToFirebase();
+      this.syncTirParticipants();
     },
     generateSeededBracket(n) {
       if (n === 2) return [[0, 1]];
@@ -1251,7 +1256,8 @@ export default {
           final: null,
         };
       }
-      this.syncToFirebase();
+      this.syncTirPlayoff();
+      this.syncTirParticipants();
       this.view = 'playoff';
     },
     openParticipantFromTable(id) {
@@ -1326,8 +1332,7 @@ export default {
       this.syncTirPlayoffMatch(null, null);
     },
     finishPlayoffTournament() {
-      this.tournament.tournamentIsFinished = true;
-      this.syncToFirebase();
+      this.finishTournament();
     },
     getMatchLane(rIdx, mIdx, match) {
       if (match.lane) return match.lane;

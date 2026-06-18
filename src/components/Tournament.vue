@@ -294,6 +294,9 @@
       :with-barrage="withBarrage"
       :play-b="playB"
       :barrage-teams="tournament.preferences.barrageTeams || 8"
+      :time-limit-enabled="!!tournament.preferences.timeLimitEnabled"
+      :playoff-time-limit="tournament.preferences.playoffTimeLimit || 30"
+      :no-time-limit-finale="!!tournament.preferences.noTimeLimitFinale"
       @confirm="onPlayoffConfirm"
       @cancel="showPlayoffConfirm = false"
     />
@@ -452,6 +455,8 @@ export default {
       this.playB = config.playB;
       this.tournament.preferences.playOffTeams = config.playOffTeams;
       this.tournament.preferences.barrageTeams = config.barrageTeams;
+      this.tournament.preferences.playoffTimeLimit = config.playoffTimeLimit;
+      this.tournament.preferences.noTimeLimitFinale = config.noTimeLimitFinale;
       this.setPlayOffList();
     },
     openPlayoffConfirm() {

@@ -104,7 +104,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['syncToFirebase']),
+    ...mapActions(useMainStore, ['syncStreamPresets']),
     ensurePresets() {
       if (!this.tournament.streamPresets) {
         this.tournament.streamPresets = { teams: {}, lanes: {} };
@@ -118,13 +118,13 @@ export default {
         this.tournament.streamPresets.teams[teamTitle] = [];
       }
       this.tournament.streamPresets.teams[teamTitle].push('');
-      this.syncToFirebase();
+      this.syncStreamPresets();
     },
     updateTeamStream(teamTitle, idx, value) {
       this.ensurePresets();
       if (this.tournament.streamPresets.teams[teamTitle]) {
         this.tournament.streamPresets.teams[teamTitle][idx] = value;
-        this.syncToFirebase();
+        this.syncStreamPresets();
       }
     },
     removeTeamStream(teamTitle, idx) {
@@ -134,7 +134,7 @@ export default {
         if (!this.tournament.streamPresets.teams[teamTitle].length) {
           delete this.tournament.streamPresets.teams[teamTitle];
         }
-        this.syncToFirebase();
+        this.syncStreamPresets();
       }
     },
     addLaneStream(lane) {
@@ -144,14 +144,14 @@ export default {
         this.tournament.streamPresets.lanes[key] = [];
       }
       this.tournament.streamPresets.lanes[key].push('');
-      this.syncToFirebase();
+      this.syncStreamPresets();
     },
     updateLaneStream(lane, idx, value) {
       this.ensurePresets();
       const key = String(lane);
       if (this.tournament.streamPresets.lanes[key]) {
         this.tournament.streamPresets.lanes[key][idx] = value;
-        this.syncToFirebase();
+        this.syncStreamPresets();
       }
     },
     removeLaneStream(lane, idx) {
@@ -162,7 +162,7 @@ export default {
         if (!this.tournament.streamPresets.lanes[key].length) {
           delete this.tournament.streamPresets.lanes[key];
         }
-        this.syncToFirebase();
+        this.syncStreamPresets();
       }
     },
     getStreamIcon: getStreamIconComponent,

@@ -536,8 +536,9 @@ export default {
     getGameResultInGroup: getGameResultInGroup,
     getGameResults(team, opponent) {
       const results = [];
+      const playedRounds = this.tournament.games?.length || 0;
+      const lastRoundActive = this.tournament.roundIsActive;
       if (this.tournament.groupSchedule) {
-        const playedRounds = this.tournament.games?.length || 0;
         this.tournament.groupSchedule.forEach((round, roundIndex) => {
           round.forEach((game) => {
             if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
@@ -554,7 +555,8 @@ export default {
                   const isFirst = playedGame.team_1 + playedGame.team_2 === team + opponent;
                   const s1 = isFirst ? (playedGame.team_1_score ?? 0) : (playedGame.team_2_score ?? 0);
                   const s2 = isFirst ? (playedGame.team_2_score ?? 0) : (playedGame.team_1_score ?? 0);
-                  const inProgress = playedGame.status === 'in_progress';
+                  const isCurrentRound = roundIndex === playedRounds - 1 && lastRoundActive;
+                  const inProgress = isCurrentRound && playedGame.status === 'in_progress';
                   results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
                 } else {
                   results.push({ text: '-- : --', diff: 0, pending: true });
@@ -565,8 +567,32 @@ export default {
             }
           });
         });
+        // Include extra-circle rounds beyond the original schedule
+        const scheduleLength = this.tournament.groupSchedule.length;
+        if (playedRounds > scheduleLength) {
+          for (let i = scheduleLength; i < playedRounds; i++) {
+            this.tournament.games[i].forEach((game) => {
+              if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
+                const isFirst = game.team_1 + game.team_2 === team + opponent;
+                if (
+                  game.status === 'in_progress' ||
+                  game.status === 'finished' ||
+                  (game.team_1_score != null && game.team_2_score != null)
+                ) {
+                  const s1 = isFirst ? (game.team_1_score ?? 0) : (game.team_2_score ?? 0);
+                  const s2 = isFirst ? (game.team_2_score ?? 0) : (game.team_1_score ?? 0);
+                  const isCurrentRound = i === playedRounds - 1 && lastRoundActive;
+                  const inProgress = isCurrentRound && game.status === 'in_progress';
+                  results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
+                } else {
+                  results.push({ text: '-- : --', diff: 0, pending: true });
+                }
+              }
+            });
+          }
+        }
       } else if (this.tournament.games) {
-        this.tournament.games.forEach((round, _roundIndex) => {
+        this.tournament.games.forEach((round, roundIndex) => {
           round.forEach((game) => {
             if (game.team_1 + game.team_2 === team + opponent || game.team_2 + game.team_1 === team + opponent) {
               const isFirst = game.team_1 + game.team_2 === team + opponent;
@@ -577,7 +603,8 @@ export default {
               ) {
                 const s1 = isFirst ? (game.team_1_score ?? 0) : (game.team_2_score ?? 0);
                 const s2 = isFirst ? (game.team_2_score ?? 0) : (game.team_1_score ?? 0);
-                const inProgress = game.status === 'in_progress';
+                const isCurrentRound = roundIndex === playedRounds - 1 && lastRoundActive;
+                const inProgress = isCurrentRound && game.status === 'in_progress';
                 results.push({ text: `${s1} : ${s2}`, diff: s1 - s2, inProgress });
               } else {
                 results.push({ text: '-- : --', diff: 0, pending: true });

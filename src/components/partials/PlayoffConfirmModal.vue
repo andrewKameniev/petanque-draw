@@ -52,6 +52,25 @@
         </label>
       </div>
 
+      <div v-if="timeLimitEnabled" class="confirm-playoff__time-block">
+        <div class="confirm-playoff__time-header">
+          <Clock :size="16" />
+          <span>{{ $t('modals.timeLimit') }}</span>
+        </div>
+        <div class="confirm-playoff__time-body">
+          <div class="confirm-playoff__time-row">
+            <label class="confirm-playoff__label">{{ $t('modals.timeLimitPlayoff') }}</label>
+            <select class="confirm-playoff__select" v-model.number="localPlayoffTimeLimit" data-testid="confirm-playoff-time-limit">
+              <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+            </select>
+          </div>
+          <label class="confirm-playoff__checkbox">
+            <input type="checkbox" v-model="localNoTimeLimitFinale" data-testid="confirm-no-timelimit-finale" />
+            {{ $t('modals.noTimeLimitFinale') }}
+          </label>
+        </div>
+      </div>
+
       <div class="confirm-playoff__actions">
         <button class="confirm-playoff__btn confirm-playoff__btn--cancel" @click="$emit('cancel')">
           {{ $t('common.cancel') }}
@@ -70,10 +89,11 @@
 
 <script>
 import Modal from '@/components/Modal';
+import { Clock } from 'lucide-vue-next';
 
 export default {
   name: 'PlayoffConfirmModal',
-  components: { Modal },
+  components: { Modal, Clock },
   emits: ['confirm', 'cancel'],
   props: {
     isSwiss: { type: Boolean, default: false },
@@ -84,6 +104,9 @@ export default {
     withBarrage: { type: Boolean, default: false },
     playB: { type: Boolean, default: false },
     barrageTeams: { type: Number, default: 8 },
+    timeLimitEnabled: { type: Boolean, default: false },
+    playoffTimeLimit: { type: Number, default: 30 },
+    noTimeLimitFinale: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -92,6 +115,8 @@ export default {
       localPlayB: this.playB,
       localPlayOffTeams: this.playOffTeams,
       localBarrageTeams: this.barrageTeams,
+      localPlayoffTimeLimit: this.playoffTimeLimit,
+      localNoTimeLimitFinale: this.noTimeLimitFinale,
     };
   },
   watch: {
@@ -126,6 +151,11 @@ export default {
       const estimated = groups * 2;
       return Math.pow(2, Math.ceil(Math.log2(estimated)));
     },
+    timeLimitOptions() {
+      const options = [];
+      for (let i = 20; i <= 120; i += 5) options.push(i);
+      return options;
+    },
   },
   methods: {
     onConfirm() {
@@ -135,6 +165,8 @@ export default {
         playB: this.localPlayB,
         playOffTeams: this.localPlayOffTeams,
         barrageTeams: this.localBarrageTeams,
+        playoffTimeLimit: this.localPlayoffTimeLimit,
+        noTimeLimitFinale: this.localNoTimeLimitFinale,
       });
     },
   },
@@ -196,6 +228,41 @@ export default {
   color: var(--color-text-muted, #888);
   margin-top: 0.25rem;
   margin-left: 1.5rem;
+}
+
+.confirm-playoff__time-block {
+  margin-top: 1.25rem;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.confirm-playoff__time-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface-hover, #f5f5f5);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #555);
+}
+
+.confirm-playoff__time-body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.confirm-playoff__time-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.confirm-playoff__time-row .confirm-playoff__label {
+  margin-bottom: 0;
 }
 
 .confirm-playoff__actions {

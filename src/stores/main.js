@@ -424,13 +424,17 @@ export const useMainStore = defineStore('main', {
     savePreferences() {
       this._syncPath('preferences', this.tournaments[this.currentTournamentIndex].preferences);
     },
+    syncStreamPresets() {
+      this._syncPath('streamPresets', this.tournaments[this.currentTournamentIndex].streamPresets);
+    },
     shuffleLanesStore(games) {
       this.tournaments[this.currentTournamentIndex].games[
         this.tournaments[this.currentTournamentIndex].games.length - 1
       ] = games;
       this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.lanes.pop());
       this.saveLanesToTeams(games);
-      this.syncToFirebase();
+      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
     },
     swapLanesStore({ roundIndex, indexA, indexB }) {
       const games = this.tournaments[this.currentTournamentIndex].games[roundIndex];
@@ -444,7 +448,8 @@ export const useMainStore = defineStore('main', {
         if (team.lanes) team.lanes.pop();
       });
       this.saveLanesToTeams(games);
-      this.syncToFirebase();
+      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
     },
     saveLanesToTeams(games) {
       games.map((game) => {
@@ -570,6 +575,33 @@ export const useMainStore = defineStore('main', {
     syncTeams() {
       this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
     },
+    syncGamesAndTeams() {
+      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+    },
+    syncTeamPlayoff() {
+      this._syncPath('teamPlayoff', this.tournaments[this.currentTournamentIndex].teamPlayoff);
+    },
+    syncCadrageFull() {
+      this._syncPath('cadrage', this.tournaments[this.currentTournamentIndex].cadrage);
+    },
+    syncTirParticipants() {
+      this._syncPath('tirParticipants', this.tournaments[this.currentTournamentIndex].tirParticipants);
+    },
+    syncTirState() {
+      const t = this.tournaments[this.currentTournamentIndex];
+      this._syncPath('tirRound', t.tirRound);
+      this._syncPath('tirR2Participants', t.tirR2Participants || null);
+      this._syncPath('tirTiebreakerActive', t.tirTiebreakerActive || false);
+      this._syncPath('tirTiebreakerCount', t.tirTiebreakerCount || null);
+      this._syncPath('tirTiebreakerParticipantIds', t.tirTiebreakerParticipantIds || null);
+    },
+    syncTirPlayoff() {
+      this._syncPath('tirPlayoff', this.tournaments[this.currentTournamentIndex].tirPlayoff);
+    },
+    syncPathNull(path) {
+      this._syncPath(path, null);
+    },
     startRoundTimer() {
       const tournament = this.tournaments[this.currentTournamentIndex];
       if (!tournament?.preferences?.timeLimitEnabled) return;
@@ -625,13 +657,16 @@ export const useMainStore = defineStore('main', {
       this.tournaments[this.currentTournamentIndex].roundIsActive = true;
       this._roundActivatedAt = Date.now();
       this.saveLanesToTeams(round);
-      this.syncToFirebase();
+      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      this._syncPath('roundIsActive', true);
     },
     restoreRound() {
       this.tournaments[this.currentTournamentIndex].games.pop();
       this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.opponents.pop());
       this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.lanes.pop());
-      this.syncToFirebase();
+      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
     },
     setPlayOff(scheme) {
       this.tournaments[this.currentTournamentIndex].playOff = scheme;

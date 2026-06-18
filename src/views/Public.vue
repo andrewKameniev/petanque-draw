@@ -45,9 +45,9 @@
               : tournament.teams.length
           }}</span>
         </div>
-        <div class="tournament-info-row" v-if="tournament.preferences?.groupTotalRounds">
+        <div class="tournament-info-row" v-if="groupTotalRoundsDisplay">
           <span class="has-text-grey-dark">{{ $t('common.totalRounds') }}:</span>
-          <span class="has-text-weight-semibold">{{ tournament.preferences.groupTotalRounds }}</span>
+          <span class="has-text-weight-semibold">{{ groupTotalRoundsDisplay }}</span>
         </div>
         <div class="tournament-info-row" v-if="tournamentExtrasLine">
           <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
@@ -186,9 +186,9 @@
                 : tournament.teams.length
             }}</span>
           </div>
-          <div class="tournament-info-row" v-if="tournament.preferences?.groupTotalRounds">
+          <div class="tournament-info-row" v-if="groupTotalRoundsDisplay">
             <span class="has-text-grey-dark">{{ $t('common.totalRounds') }}:</span>
-            <span class="has-text-weight-semibold">{{ tournament.preferences.groupTotalRounds }}</span>
+            <span class="has-text-weight-semibold">{{ groupTotalRoundsDisplay }}</span>
           </div>
           <div class="tournament-info-row" v-if="tournamentExtrasLine">
             <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
@@ -198,8 +198,8 @@
         <div class="round-header">
           <span
             >{{ $t('common.round') }} {{ activeRound
-            }}<template v-if="tournament.preferences?.groupTotalRounds"
-              >/{{ tournament.preferences.groupTotalRounds }}</template
+            }}<template v-if="groupTotalRoundsDisplay"
+              >/{{ groupTotalRoundsDisplay }}</template
             ></span
           >
           <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
@@ -500,6 +500,12 @@ export default {
         return this.tournament.games.some((round) => round.some((g) => g.status && g.status !== 'not_started'));
       }
       return false;
+    },
+    groupTotalRoundsDisplay() {
+      const perCircle = this.tournament?.preferences?.groupTotalRounds;
+      if (!perCircle) return null;
+      const circles = this.tournament.roundRobinCircle || 1;
+      return perCircle * circles;
     },
     badgeClass() {
       if (this.isFinished) return 'badge-finished';

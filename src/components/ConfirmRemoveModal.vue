@@ -13,13 +13,15 @@
         </button>
       </div>
       <div class="confirm-remove__body">
-        <p class="confirm-remove__question">
-          <template v-if="message">{{ message }}</template
-          ><template v-else
-            >{{ $t('modals.sureRemove') }} <strong>{{ name }}</strong
-            >?</template
-          >
-        </p>
+        <slot>
+          <p class="confirm-remove__question">
+            <template v-if="message">{{ message }}</template
+            ><template v-else
+              >{{ $t('modals.sureRemove') }} <strong>{{ name }}</strong
+              >?</template
+            >
+          </p>
+        </slot>
       </div>
       <div class="confirm-remove__footer">
         <button class="confirm-remove__btn confirm-remove__btn--cancel" @click="$emit('close')">

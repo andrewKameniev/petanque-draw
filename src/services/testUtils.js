@@ -21,6 +21,9 @@ export function autoFillScores(tournament, activeRound) {
       }
       game.team_1_score = s1;
       game.team_2_score = s2;
+      if (!game.status || game.status === 'not_started') {
+        game.status = 'in_progress';
+      }
     });
   };
 

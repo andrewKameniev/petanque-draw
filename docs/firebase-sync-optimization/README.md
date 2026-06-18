@@ -52,10 +52,10 @@ Each task is independent and can be completed in any order (except Task 6 depend
 | 1 | ✅ | [Store actions](./01-store-actions.md) | `src/stores/main.js` | 5 syncToFirebase calls | High — affects addRound, shuffle, swap, restore |
 | 2 | ✅ | [TirModule](./02-tir-module.md) | `src/components/tir/TirModule.vue` | 10 syncToFirebase calls | High — most frequent during tir tournaments |
 | 3 | ✅ | [StreamPresets](./03-stream-presets.md) | `src/components/partials/StreamPresets.vue` | 6 syncToFirebase calls | Medium — stream overlay config |
-| 4 | ⬜ | [Tournament component](./04-tournament-component.md) | `src/components/Tournament.vue` | 5 syncToFirebase calls | Medium — draw, redraw, tir start |
+| 4 | ✅ | [Tournament component](./04-tournament-component.md) | `src/components/Tournament.vue` | 5 syncToFirebase calls | Medium — draw, redraw, tir start |
 | 5 | ✅ | [Games & AddTeam & Cadrage](./05-games-addteam-cadrage.md) | Multiple components | 7 syncToFirebase calls | Medium — score save, team add, restore |
-| 6 | ⬜ | [Admin subscription](./06-admin-subscription.md) | `src/stores/main.js` | subscribeTournament() rewrite | High — eliminates full snapshot downloads |
-| 7 | ⬜ | [Cleanup & validation](./07-cleanup.md) | All files | Remove dead code, add safety net | Low — final polish |
+| 6 | ✅ | [Admin subscription](./06-admin-subscription.md) | `src/stores/main.js` | subscribeTournament() rewrite | High — eliminates full snapshot downloads |
+| 7 | ✅ | [Cleanup & validation](./07-cleanup.md) | All files | Remove dead code, add safety net | Low — final polish |
 
 > Mark tasks as ✅ when complete, ⬜ when pending.
 

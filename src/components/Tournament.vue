@@ -429,8 +429,11 @@ export default {
       'addTeamToStore',
       'saveP',
       'changeTournamentName',
-      'syncToFirebase',
-      'syncToFirebaseNow',
+      'syncTournamentMessage',
+      'syncTirStart',
+      'syncDrawStart',
+      'syncRedraw',
+      'syncGames',
       'addRoundToGames',
       'savePreferences',
       'clearRoundTimer',
@@ -446,7 +449,7 @@ export default {
       this.showMessage({ title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned') });
     },
     onMessageInput() {
-      this.syncToFirebase();
+      this.syncTournamentMessage();
     },
     onPlayoffConfirm(config) {
       this.showPlayoffConfirm = false;
@@ -607,7 +610,7 @@ export default {
         this.tournament.tirRound = 1;
         if (!this.tournament.games) this.tournament.games = [];
         this.tournament.games.push([]);
-        this.syncToFirebase();
+        this.syncTirStart();
         this.activeTab = 'games';
         return;
       }
@@ -688,7 +691,7 @@ export default {
       } else {
         this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
       }
-      this.syncToFirebase();
+      this.syncDrawStart();
       this.activeTab = 'games';
     },
     startFirstRound() {
@@ -738,12 +741,12 @@ export default {
 
       this.tournament.roundIsActive = false;
       this.tournament.tournamentIsStarted = false;
-      this.syncToFirebaseNow();
+      this.syncRedraw();
       this.showMessage({ title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText') });
     },
     autoFillScores() {
       autoFillScoresFn(this.tournament, this.activeRound);
-      this.syncToFirebase();
+      this.syncGames();
     },
   },
   computed: {

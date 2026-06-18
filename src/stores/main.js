@@ -4,26 +4,6 @@ import { get, getDatabase, ref, set, remove, update, onValue } from 'firebase/da
 import { database } from '@/firebase';
 import i18n from '@/i18n';
 
-// eslint-disable-next-line no-unused-vars
-const actionsRequiringSync = [
-  'savePreferences',
-  'saveTournamentData',
-  'finishTournament',
-  'changeTournamentName',
-  'setPlayOffStage',
-  'setPlayOffBracket',
-  'setPlayOff',
-  'setCadrage',
-  'saveCadrageScores',
-  'restoreRound',
-  'addRoundToGames',
-  'endRound',
-  'startRound',
-  'shuffleLanesStore',
-  'swapLanesStore',
-  'setBarrage',
-  'setBarrageGames',
-];
 
 function createTournament(overrides = {}) {
   return {
@@ -105,6 +85,8 @@ export const useMainStore = defineStore('main', {
   actions: {
     _syncPath(path, data) {
       if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
+      if (!this._recentSyncPaths) this._recentSyncPaths = new Set();
+      this._recentSyncPaths.add(path.split('/')[0]);
       const db = getDatabase();
       const fullPath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${path}`;
       const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
@@ -127,18 +109,16 @@ export const useMainStore = defineStore('main', {
       }, 200);
     },
     syncToFirebase() {
+      if (import.meta.env.DEV) {
+        console.warn('[perf] syncToFirebase() called — consider using _syncPath() instead');
+      }
       clearTimeout(this._syncTimeout);
       this._syncTimeout = setTimeout(() => {
         this._doSync();
       }, 300);
     },
-    syncToFirebaseNow() {
-      clearTimeout(this._syncTimeout);
-      this._doSync();
-    },
     _doSync() {
       if (this.user && this.user.uid && this.currentTournamentIndex) {
-        this._lastFullSyncAt = Date.now();
         const db = getDatabase();
         update(ref(db, `${this.user.uid}/tournaments/`), {
           [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex],
@@ -194,49 +174,76 @@ export const useMainStore = defineStore('main', {
       this.unsubscribeTournament();
       if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
       const db = getDatabase();
-      const dbRef = ref(db, `${this.user.uid}/tournaments/${this.currentTournamentIndex}`);
-      this._tournamentUnsubscribe = onValue(dbRef, (snapshot) => {
-        if (!snapshot.exists()) return;
-        if (this._lastFullSyncAt && Date.now() - this._lastFullSyncAt < 2000) {
-          this._lastFullSyncAt = null;
+      const basePath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}`;
+      this._tournamentUnsubscribers = [];
+
+      const subscribePath = (path, handler) => {
+        const dbRef = ref(db, `${basePath}/${path}`);
+        const unsub = onValue(dbRef, (snapshot) => {
+          if (this._recentSyncPaths?.has(path)) {
+            this._recentSyncPaths.delete(path);
+            return;
+          }
+          const local = this.tournaments[this.currentTournamentIndex];
+          if (!local) return;
+          handler(snapshot.val(), local);
+        });
+        this._tournamentUnsubscribers.push(unsub);
+      };
+
+      subscribePath('games', (remoteGames, local) => {
+        if (!remoteGames || !local.games || !local.roundIsActive) return;
+        this._mergeGames(local, { games: remoteGames });
+      });
+
+      subscribePath('cadrage', (remoteCadrage, local) => {
+        if (!remoteCadrage || !local.cadrage) return;
+        this._mergeCadrage(local, { cadrage: remoteCadrage });
+      });
+
+      subscribePath('playOffBracket', (remoteBracket, local) => {
+        if (!remoteBracket || !local.playOffBracket) return;
+        this._mergeBracketPlayoff(local, { playOffBracket: remoteBracket });
+      });
+
+      subscribePath('tirPlayoff', (remotePlayoff, local) => {
+        if (!remotePlayoff) return;
+        if (!local.tirPlayoff) {
+          local.tirPlayoff = remotePlayoff;
           return;
         }
-        const remote = snapshot.val();
-        const local = this.tournaments[this.currentTournamentIndex];
-        if (!local) return;
-        if (remote.tirPlayoff && local.tirPlayoff) {
-          this._mergeTirPlayoff(local, remote);
+        this._mergeTirPlayoff(local, { tirPlayoff: remotePlayoff });
+      });
+
+      subscribePath('teamPlayoff', (remotePlayoff, local) => {
+        if (!remotePlayoff) return;
+        if (!local.teamPlayoff) {
+          local.teamPlayoff = remotePlayoff;
+          return;
         }
-        if (remote.teamPlayoff && local.teamPlayoff) {
-          this._mergeTeamPlayoff(local, remote);
-        } else if (remote.teamPlayoff && !local.teamPlayoff) {
-          local.teamPlayoff = remote.teamPlayoff;
-        }
-        if (remote.tirParticipants) {
-          local.tirParticipants = remote.tirParticipants;
-        }
-        if (remote.tirRound !== undefined) local.tirRound = remote.tirRound;
-        if (remote.tirR2Participants !== undefined) local.tirR2Participants = remote.tirR2Participants;
-        if (remote.tirTiebreakerCount !== undefined) local.tirTiebreakerCount = remote.tirTiebreakerCount;
-        if (remote.tirTiebreakerActive !== undefined) local.tirTiebreakerActive = remote.tirTiebreakerActive;
-        if (remote.tirTiebreakerParticipantIds !== undefined)
-          local.tirTiebreakerParticipantIds = remote.tirTiebreakerParticipantIds;
-        if (remote.games && local.games && local.roundIsActive) {
-          this._mergeGames(local, remote);
-        }
-        if (remote.cadrage && local.cadrage) {
-          this._mergeCadrage(local, remote);
-        }
-        if (remote.playOffBracket && local.playOffBracket) {
-          this._mergeBracketPlayoff(local, remote);
-        }
-        if (remote.roundIsActive !== undefined && !remote.roundIsActive && local.roundIsActive) {
+        this._mergeTeamPlayoff(local, { teamPlayoff: remotePlayoff });
+      });
+
+      const simplePaths = [
+        'tirParticipants', 'tirRound', 'tirR2Participants',
+        'tirTiebreakerCount', 'tirTiebreakerActive', 'tirTiebreakerParticipantIds',
+        'roundTimer', 'tournamentIsFinished', 'tournamentMessage',
+        'teams', 'preferences', 'streamPresets', 'playOff', 'playOffStage',
+        'barrage', 'tirStarted', 'tirConfig',
+      ];
+
+      simplePaths.forEach((path) => {
+        subscribePath(path, (value, local) => {
+          if (value !== undefined) local[path] = value;
+        });
+      });
+
+      subscribePath('roundIsActive', (value, local) => {
+        if (value !== undefined && !value && local.roundIsActive) {
           if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
-            local.roundIsActive = remote.roundIsActive;
+            local.roundIsActive = value;
           }
         }
-        if (remote.roundTimer !== undefined) local.roundTimer = remote.roundTimer;
-        if (remote.tournamentIsFinished) local.tournamentIsFinished = remote.tournamentIsFinished;
       });
     },
     _mergeTirPlayoff(local, remote) {
@@ -400,6 +407,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     unsubscribeTournament() {
+      if (this._tournamentUnsubscribers) {
+        this._tournamentUnsubscribers.forEach((fn) => fn());
+        this._tournamentUnsubscribers = null;
+      }
       if (this._tournamentUnsubscribe) {
         this._tournamentUnsubscribe();
         this._tournamentUnsubscribe = null;
@@ -598,6 +609,37 @@ export const useMainStore = defineStore('main', {
     },
     syncTirPlayoff() {
       this._syncPath('tirPlayoff', this.tournaments[this.currentTournamentIndex].tirPlayoff);
+    },
+    syncTournamentMessage() {
+      clearTimeout(this._syncMessageTimeout);
+      this._syncMessageTimeout = setTimeout(() => {
+        this._syncPath('tournamentMessage', this.tournaments[this.currentTournamentIndex].tournamentMessage);
+      }, 300);
+    },
+    syncTirStart() {
+      const t = this.tournaments[this.currentTournamentIndex];
+      this._syncPath('tirStarted', true);
+      this._syncPath('tirParticipants', t.tirParticipants);
+      this._syncPath('tirConfig', t.tirConfig);
+      this._syncPath('tirRound', 1);
+      this._syncPath('games', t.games);
+    },
+    syncDrawStart() {
+      const t = this.tournaments[this.currentTournamentIndex];
+      if (t.groups) this._syncPath('groups', t.groups);
+      if (t.groupsScheme) this._syncPath('groupsScheme', t.groupsScheme);
+      if (t.groupSchedule) this._syncPath('groupSchedule', t.groupSchedule);
+      if (t.poulesRound) this._syncPath('poulesRound', t.poulesRound);
+    },
+    syncRedraw() {
+      const t = this.tournaments[this.currentTournamentIndex];
+      this._syncPath('games', t.games);
+      this._syncPath('teams', t.teams);
+      this._syncPath('roundIsActive', false);
+      this._syncPath('tournamentIsStarted', false);
+      this._syncPath('groupSchedule', t.groupSchedule || null);
+      this._syncPath('groupsScheme', t.groupsScheme || null);
+      this._syncPath('groups', t.groups || null);
     },
     syncPathNull(path) {
       this._syncPath(path, null);

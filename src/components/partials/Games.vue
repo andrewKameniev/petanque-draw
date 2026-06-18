@@ -72,9 +72,7 @@
           <template v-else-if="tournament.system === 'poules'">{{ poulesRoundLabel }}</template>
           <template v-else
             >{{ $t('common.round') }} {{ activeRound
-            }}<template v-if="groupTotalRoundsDisplay"
-              >/{{ groupTotalRoundsDisplay }}</template
-            ></template
+            }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></template
           >
         </h2>
         <div v-if="showTimerSection" class="round-timer-section">
@@ -188,15 +186,17 @@
           >
             {{ $t('teamPlayoff.startPlayoff') }}
           </a>
-          <span class="draw-card__or">{{ $t('common.or') }}</span>
-          <a
-            href="#"
-            class="draw-card__link draw-card__link--draw"
-            data-testid="link-play-next-circle"
-            @click.prevent="playNextCircle"
-          >
-            {{ $t('games.playNextCircle') }}
-          </a>
+          <template v-if="tournament.preferences?.groupFormat !== 'swiss'">
+            <span class="draw-card__or">{{ $t('common.or') }}</span>
+            <a
+              href="#"
+              class="draw-card__link draw-card__link--draw"
+              data-testid="link-play-next-circle"
+              @click.prevent="playNextCircle"
+            >
+              {{ $t('games.playNextCircle') }}
+            </a>
+          </template>
           <span class="draw-card__or">{{ $t('common.or') }}</span>
           <a
             href="#"
@@ -230,11 +230,21 @@
       @close="showFinishConfirmIndex = null"
     >
       <div v-if="finishConfirmGame" class="finish-match-preview">
-        <div class="finish-match-preview__row" :class="{ 'finish-match-preview__row--winner': finishConfirmGame.team_1_score > finishConfirmGame.team_2_score }">
+        <div
+          class="finish-match-preview__row"
+          :class="{
+            'finish-match-preview__row--winner': finishConfirmGame.team_1_score > finishConfirmGame.team_2_score,
+          }"
+        >
           <span class="finish-match-preview__name">{{ finishConfirmGame.team_1 }}</span>
           <span class="finish-match-preview__score">{{ finishConfirmGame.team_1_score }}</span>
         </div>
-        <div class="finish-match-preview__row" :class="{ 'finish-match-preview__row--winner': finishConfirmGame.team_2_score > finishConfirmGame.team_1_score }">
+        <div
+          class="finish-match-preview__row"
+          :class="{
+            'finish-match-preview__row--winner': finishConfirmGame.team_2_score > finishConfirmGame.team_1_score,
+          }"
+        >
           <span class="finish-match-preview__name">{{ finishConfirmGame.team_2 }}</span>
           <span class="finish-match-preview__score">{{ finishConfirmGame.team_2_score }}</span>
         </div>
@@ -253,6 +263,7 @@ import {
   drawSwissRound,
   drawSupermeleRound,
   drawGroupsRound,
+  drawGroupsSwissRound,
   assignLanes,
   generateConstrainedGroups,
   saveResultsForRound,
@@ -336,6 +347,9 @@ export default {
     teamsCount() {
       if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
       if (this.tournament.groups) {
+        if (this.tournament.preferences?.groupFormat === 'swiss') {
+          return this.tournament.preferences.groupSwissRounds || 3;
+        }
         const perCircle = this.tournament.preferences?.groupTotalRounds;
         const circles = this.tournament.roundRobinCircle || 1;
         if (perCircle) {
@@ -487,9 +501,7 @@ export default {
     confirmFinishMatch() {
       const idx = this.showFinishConfirmIndex;
       const isCadrage = this.finishConfirmSource === 'cadrage';
-      const game = isCadrage
-        ? this.tournament.cadrage[idx]
-        : this.tournament.games[this.activeRound - 1][idx];
+      const game = isCadrage ? this.tournament.cadrage[idx] : this.tournament.games[this.activeRound - 1][idx];
       game.team_1_score = Number(game.team_1_score);
       game.team_2_score = Number(game.team_2_score);
       game.status = 'finished';
@@ -628,7 +640,11 @@ export default {
         if (this.activeRound === 1) {
           this.createGroups();
         }
-        if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
+        if (this.tournament.preferences?.groupFormat === 'swiss') {
+          if (this.tournament.groups) {
+            round = drawGroupsSwissRound(this.tournament, this.activeRound);
+          }
+        } else if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
           round = this.tournament.groupSchedule[this.activeRound - 1].map((g) => ({
             ...g,
             status: g.status || 'not_started',
@@ -637,8 +653,7 @@ export default {
           this.startRound();
           this.isRestoredRound = false;
           return;
-        }
-        if (this.tournament.groups) {
+        } else if (this.tournament.groups) {
           round = drawGroupsRound(this.tournament);
         }
       } else if (this.tournament.system === 'poules') {

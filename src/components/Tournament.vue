@@ -351,6 +351,7 @@ import {
   drawSwissRound,
   drawSupermeleRound,
   drawGroupsRound,
+  drawGroupsSwissRound,
   assignLanes,
   generateConstrainedGroups,
   createPoules,
@@ -400,6 +401,9 @@ export default {
     this.groupRoundsCount = n % 2 === 0 ? n - 1 : n;
     if (this.tournament.preferences && !this.tournament.preferences.groupDrawMethod) {
       this.tournament.preferences.groupDrawMethod = 'seeded';
+    }
+    if (this.tournament.preferences && !this.tournament.preferences.groupFormat) {
+      this.tournament.preferences.groupFormat = 'round_robin';
     }
     if (this.tournament.preferences?.withCadrage) {
       this.withCadrage = true;
@@ -653,7 +657,9 @@ export default {
             type: 'error',
           });
         }
-        if (this.isAllTeamsGroup) {
+        if (this.tournament.preferences.groupFormat === 'swiss') {
+          round = drawGroupsSwissRound(this.tournament, 1);
+        } else if (this.isAllTeamsGroup) {
           this.tournament.preferences.groupTotalRounds = this.groupRoundsCount;
           const schedule = [];
           for (let i = 0; i < this.groupRoundsCount; i++) {
@@ -715,7 +721,9 @@ export default {
         this.tournament.groupSchedule = null;
 
         let round;
-        if (this.isAllTeamsGroup) {
+        if (this.tournament.preferences.groupFormat === 'swiss') {
+          round = drawGroupsSwissRound(this.tournament, 1);
+        } else if (this.isAllTeamsGroup) {
           const totalRounds = this.tournament.preferences?.groupTotalRounds || this.groupRoundsCount;
           const schedule = [];
           for (let i = 0; i < totalRounds; i++) {

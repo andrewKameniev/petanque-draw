@@ -4,7 +4,6 @@ import { get, getDatabase, ref, set, remove, update, onValue } from 'firebase/da
 import { database } from '@/firebase';
 import i18n from '@/i18n';
 
-
 function createTournament(overrides = {}) {
   return {
     name: 'Tournament A',
@@ -38,6 +37,8 @@ function createTournament(overrides = {}) {
       cochonettesEnabled: false,
       cochonettes: 1,
       groupDrawMethod: 'seeded',
+      groupFormat: 'round_robin',
+      groupSwissRounds: 3,
       swissRoundsCount: null,
       prizePlaces: null,
       isTestTournament: false,
@@ -225,11 +226,23 @@ export const useMainStore = defineStore('main', {
       });
 
       const simplePaths = [
-        'tirParticipants', 'tirRound', 'tirR2Participants',
-        'tirTiebreakerCount', 'tirTiebreakerActive', 'tirTiebreakerParticipantIds',
-        'roundTimer', 'tournamentIsFinished', 'tournamentMessage',
-        'teams', 'preferences', 'streamPresets', 'playOff', 'playOffStage',
-        'barrage', 'tirStarted', 'tirConfig',
+        'tirParticipants',
+        'tirRound',
+        'tirR2Participants',
+        'tirTiebreakerCount',
+        'tirTiebreakerActive',
+        'tirTiebreakerParticipantIds',
+        'roundTimer',
+        'tournamentIsFinished',
+        'tournamentMessage',
+        'teams',
+        'preferences',
+        'streamPresets',
+        'playOff',
+        'playOffStage',
+        'barrage',
+        'tirStarted',
+        'tirConfig',
       ];
 
       simplePaths.forEach((path) => {

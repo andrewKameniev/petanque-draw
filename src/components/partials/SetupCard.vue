@@ -43,7 +43,37 @@
           <option v-if="index > 1">{{ index + 1 }}</option>
         </template>
       </select>
-      <div v-if="isAllTeamsGroup" class="setup-card__field mt-2">
+
+      <div class="setup-card__field mt-2">
+        <label class="setup-card__label">{{ $t('teams.groupFormat') }}</label>
+        <div class="setup-card__radios">
+          <label class="setup-card__radio">
+            <input type="radio" name="groupFormat" value="round_robin" v-model="tournament.preferences.groupFormat" />
+            {{ $t('teams.groupFormatRoundRobin') }}
+          </label>
+          <label class="setup-card__radio">
+            <input type="radio" name="groupFormat" value="swiss" v-model="tournament.preferences.groupFormat" />
+            {{ $t('teams.groupFormatSwiss') }}
+          </label>
+        </div>
+      </div>
+
+      <div v-if="tournament.preferences.groupFormat === 'swiss'" class="setup-card__field mt-2">
+        <label class="setup-card__label">{{ $t('teams.groupSwissRounds') }}</label>
+        <input
+          class="setup-card__input"
+          type="number"
+          v-model.number="tournament.preferences.groupSwissRounds"
+          min="1"
+          :max="localTeamsInGroup - 1"
+        />
+        <span class="setup-card__hint">{{ $t('teams.groupSwissRoundsHint') }}</span>
+      </div>
+
+      <div
+        v-if="isAllTeamsGroup && tournament.preferences.groupFormat === 'round_robin'"
+        class="setup-card__field mt-2"
+      >
         <label class="setup-card__label">{{ $t('teams.roundsCount') }}</label>
         <select class="setup-card__select" v-model.number="localGroupRoundsCount">
           <option v-for="r in maxGroupRounds" :key="r" :value="r">{{ r }}</option>
@@ -76,7 +106,7 @@
         {{ $t('tir.twoRoundSystem') }}
       </label>
       <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
-      <label class="setup-card__checkbox" style="margin-top: 0.75rem;">
+      <label class="setup-card__checkbox" style="margin-top: 0.75rem">
         <input type="checkbox" v-model="localTirJunior" />
         {{ $t('tir.juniorTournament') }}
       </label>
@@ -104,6 +134,13 @@
             </template>
           </select>
           <span class="setup-card__hint">{{ $t('modals.playOffTeamsHint') }}</span>
+          <span
+            v-if="qualifyPerGroupInfo"
+            class="setup-card__hint"
+            :class="{ 'setup-card__hint--warn': !qualifyPerGroupEven }"
+          >
+            {{ qualifyPerGroupInfo }}
+          </span>
         </div>
         <label class="setup-card__checkbox setup-card__checkbox--sub">
           <input type="checkbox" v-model="localWithCadrage" data-testid="checkbox-cadrage" />
@@ -441,6 +478,23 @@ export default {
       const estimated = groups * 2;
       return Math.pow(2, Math.ceil(Math.log2(estimated)));
     },
+    groupCount() {
+      if (this.tournament.system !== 'groups' || !this.localTeamsInGroup) return 0;
+      return Math.floor(this.tournament.teams.length / this.localTeamsInGroup);
+    },
+    qualifyPerGroupEven() {
+      if (!this.groupCount || !this.tournament.preferences?.playOffTeams) return true;
+      return this.tournament.preferences.playOffTeams % this.groupCount === 0;
+    },
+    qualifyPerGroupInfo() {
+      if (this.tournament.system !== 'groups' || !this.localSetupPlayOff || this.localWithBarrage) return '';
+      if (!this.groupCount || this.groupCount < 2) return '';
+      const playOffTeams = this.tournament.preferences?.playOffTeams || 0;
+      if (!playOffTeams) return '';
+      if (!this.qualifyPerGroupEven) return this.$t('teams.qualifyUnevenWarning');
+      const perGroup = playOffTeams / this.groupCount;
+      return this.$t('teams.qualifyPerGroup', { count: perGroup });
+    },
   },
   methods: {
     pluralizeParticipants(n) {
@@ -551,6 +605,10 @@ export default {
 
 .setup-card__hint--sub {
   margin-left: 1.5rem;
+}
+
+.setup-card__hint--warn {
+  color: var(--color-error, #dc3545);
 }
 
 .setup-card__row {

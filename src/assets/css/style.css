@@ -154,7 +154,6 @@ input[type='radio']:focus {
 
 input[type='checkbox'] {
   appearance: none;
-  appearance: none;
   width: 16px;
   height: 16px;
   border: 2px solid var(--color-border-medium);

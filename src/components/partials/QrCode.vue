@@ -15,6 +15,21 @@
           {{ linkCopied ? $t('messages.success') : $t('remote.copyLink') }}
         </button>
       </div>
+      <div class="qr-modal__divider"></div>
+      <h4 class="qr-modal__tv-title">
+        <Monitor :size="18" />
+        TV Dashboard
+      </h4>
+      <div class="qr-modal__link-box">
+        <a :href="tvLink" target="_blank" class="qr-modal__link">{{ tvLink }}</a>
+      </div>
+      <div class="qr-modal__actions">
+        <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': tvLinkCopied }" @click="copyTvLink">
+          <Check v-if="tvLinkCopied" :size="16" />
+          <Copy v-else :size="16" />
+          {{ tvLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
+        </button>
+      </div>
     </div>
   </Modal>
 </template>
@@ -24,15 +39,16 @@ import QrcodeVue from 'qrcode.vue';
 import Modal from '@/components/Modal';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { Copy, Check } from 'lucide-vue-next';
+import { Copy, Check, Monitor } from 'lucide-vue-next';
 
 export default {
   name: 'QrCode',
-  components: { Modal, QrcodeVue, Copy, Check },
+  components: { Modal, QrcodeVue, Copy, Check, Monitor },
   data() {
     return {
       size: 300,
       linkCopied: false,
+      tvLinkCopied: false,
     };
   },
   computed: {
@@ -40,10 +56,16 @@ export default {
     tournament() {
       return this.currentTournament;
     },
+    shortRef() {
+      return `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
+    },
     tournamentLink() {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-      const shortRef = `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
-      return `${window.location.origin}${domain}tournament?ref=${shortRef}`;
+      return `${window.location.origin}${domain}tournament?ref=${this.shortRef}`;
+    },
+    tvLink() {
+      const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
+      return `${window.location.origin}${domain}tv?ref=${this.shortRef}`;
     },
   },
   methods: {
@@ -53,6 +75,13 @@ export default {
       this.linkCopied = true;
       setTimeout(() => {
         this.linkCopied = false;
+      }, 2000);
+    },
+    copyTvLink() {
+      navigator.clipboard.writeText(this.tvLink);
+      this.tvLinkCopied = true;
+      setTimeout(() => {
+        this.tvLinkCopied = false;
       }, 2000);
     },
   },
@@ -128,5 +157,22 @@ export default {
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-surface) !important;
+}
+
+.qr-modal__divider {
+  height: 1px;
+  background: var(--color-qr-border);
+  margin: 1.25rem 0;
+}
+
+.qr-modal__tv-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
 }
 </style>

@@ -99,6 +99,16 @@
       />
       <div v-else-if="tournament.cadrage" class="cadrage-public-section">
         <h3 class="cadrage-public-section__title">{{ $t('games.cadrage') }}</h3>
+        <RoundTimer
+          v-if="showPublicTimer"
+          :timer-started-at="tournament.roundTimer.timerStartedAt"
+          :timer-ends-at="tournament.roundTimer.timerEndsAt"
+          :timer-status="tournament.roundTimer.timerStatus"
+          :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+          :cochonettes="tournament.preferences.cochonettes || 1"
+          :read-only="true"
+          class="mb-3"
+        />
         <div class="match-list">
           <div
             class="match-item"
@@ -142,6 +152,12 @@
               }"
               >{{ game.team_2 }}</span
             >
+            <div v-if="game.score_history && game.score_history.length" class="score-history">
+              <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
+                <span class="score-history__num">{{ i + 1 }}</span>
+                <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -1513,4 +1529,5 @@ export default {
   font-size: 12px;
   color: rgb(245 200 66 / 70%);
 }
+
 </style>

@@ -611,6 +611,19 @@ export const useMainStore = defineStore('main', {
       this.tournaments[this.currentTournamentIndex].games = games;
       this._syncPath('games', games);
     },
+    syncCadrageMatch(gameIndex, gameData) {
+      const key = `cadrage_${gameIndex}`;
+      if (!this._syncCadrageTimeouts) this._syncCadrageTimeouts = {};
+      clearTimeout(this._syncCadrageTimeouts[key]);
+      this._syncCadrageTimeouts[key] = setTimeout(() => {
+        if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
+        const db = getDatabase();
+        const path = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/cadrage/${gameIndex}`;
+        set(ref(db, path), JSON.parse(JSON.stringify(gameData))).catch((error) => {
+          console.error('Error updating cadrage match:', error);
+        });
+      }, 200);
+    },
     saveCadrageScores() {
       this.tournaments[this.currentTournamentIndex].cadrage = [
         ...this.tournaments[this.currentTournamentIndex].cadrage,

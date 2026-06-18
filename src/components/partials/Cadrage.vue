@@ -33,6 +33,7 @@ export default {
   methods: {
     ...mapActions(useMainStore, [
       'saveCadrageScores',
+      'syncCadrageMatch',
       'syncToFirebase',
       'startRoundTimer',
       'endRoundTimer',
@@ -44,6 +45,10 @@ export default {
     },
     onTimerRestart(minutes) {
       this.restartRoundTimer(minutes);
+    },
+    onGameUpdate(gameIndex) {
+      const game = this.tournament.cadrage[gameIndex];
+      this.syncCadrageMatch(gameIndex, game);
     },
     swapCadrageLane({ fromIndex, targetLane }) {
       const fieldsStart = this.tournament.preferences.fieldsStart;
@@ -115,6 +120,7 @@ export default {
       :fields-start="tournament.preferences.fieldsStart"
       :is-cadrage="true"
       @save="saveResults"
+      @update="onGameUpdate"
       @swapLane="swapCadrageLane"
     />
     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>

@@ -82,6 +82,8 @@ export const useMainStore = defineStore('main', {
     _activePlayoffMatchPath: null,
     _activeTeamPlayoffMatchPath: null,
     _activeGameMatchPath: null,
+    _activeBracketMatchPath: null,
+    _activeCadrageIndex: null,
   }),
   getters: {
     currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
@@ -109,6 +111,20 @@ export const useMainStore = defineStore('main', {
       return set(ref(db, fullPath), plain).catch((error) => {
         console.error('Error updating path:', path, error);
       });
+    },
+    _syncMatchDebounced(namespace, key, data) {
+      if (!this._syncMatchTimeouts) this._syncMatchTimeouts = {};
+      const timeoutKey = `${namespace}_${key}`;
+      clearTimeout(this._syncMatchTimeouts[timeoutKey]);
+      this._syncMatchTimeouts[timeoutKey] = setTimeout(() => {
+        if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
+        const db = getDatabase();
+        const path = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${namespace}/${key}`;
+        const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
+        set(ref(db, path), plain).catch((error) => {
+          console.error(`Error updating ${namespace}/${key}:`, error);
+        });
+      }, 200);
     },
     syncToFirebase() {
       clearTimeout(this._syncTimeout);
@@ -139,66 +155,40 @@ export const useMainStore = defineStore('main', {
     setActivePlayoffMatchPath(path) {
       this._activePlayoffMatchPath = path;
     },
-    syncTirPlayoffMatch(matchPath, matchData) {
-      const key = matchPath || '_full';
-      if (!this._syncTirPlayoffTimeouts) this._syncTirPlayoffTimeouts = {};
-      clearTimeout(this._syncTirPlayoffTimeouts[key]);
-      this._syncTirPlayoffTimeouts[key] = setTimeout(() => {
-        if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
-        const tournament = this.tournaments[this.currentTournamentIndex];
-        if (!tournament?.tirPlayoff) return;
-        const db = getDatabase();
-        const basePath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/tirPlayoff`;
-        if (matchPath) {
-          set(ref(db, `${basePath}/${matchPath}`), matchData).catch((error) => {
-            console.error('Error updating tirPlayoff match:', error);
-          });
-        } else {
-          set(ref(db, basePath), tournament.tirPlayoff).catch((error) => {
-            console.error('Error updating tirPlayoff:', error);
-          });
-        }
-      }, 200);
-    },
     setActiveTeamPlayoffMatchPath(path) {
       this._activeTeamPlayoffMatchPath = path;
     },
     setActiveGameMatchPath(path) {
       this._activeGameMatchPath = path;
     },
+    setActiveBracketMatchPath(path) {
+      this._activeBracketMatchPath = path;
+    },
+    setActiveCadrageIndex(index) {
+      this._activeCadrageIndex = index;
+    },
     syncGameMatch(roundIndex, gameIndex, gameData) {
-      const key = `${roundIndex}_${gameIndex}`;
-      if (!this._syncGameTimeouts) this._syncGameTimeouts = {};
-      clearTimeout(this._syncGameTimeouts[key]);
-      this._syncGameTimeouts[key] = setTimeout(() => {
-        if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
-        const db = getDatabase();
-        const path = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/games/${roundIndex}/${gameIndex}`;
-        set(ref(db, path), gameData).catch((error) => {
-          console.error('Error updating game match:', error);
-        });
-      }, 200);
+      this._syncMatchDebounced('games', `${roundIndex}/${gameIndex}`, gameData);
+    },
+    syncCadrageMatch(gameIndex, gameData) {
+      this._syncMatchDebounced('cadrage', gameIndex, gameData);
+    },
+    syncBracketMatch(matchPath, matchData) {
+      this._syncMatchDebounced('playOffBracket', matchPath, matchData);
     },
     syncTeamPlayoffMatch(matchPath, matchData) {
-      const key = matchPath || '_full';
-      if (!this._syncTeamPlayoffTimeouts) this._syncTeamPlayoffTimeouts = {};
-      clearTimeout(this._syncTeamPlayoffTimeouts[key]);
-      this._syncTeamPlayoffTimeouts[key] = setTimeout(() => {
-        if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
-        const tournament = this.tournaments[this.currentTournamentIndex];
-        if (!tournament?.teamPlayoff) return;
-        const db = getDatabase();
-        const basePath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/teamPlayoff`;
-        if (matchPath) {
-          set(ref(db, `${basePath}/${matchPath}`), matchData).catch((error) => {
-            console.error('Error updating teamPlayoff match:', error);
-          });
-        } else {
-          set(ref(db, basePath), tournament.teamPlayoff).catch((error) => {
-            console.error('Error updating teamPlayoff:', error);
-          });
-        }
-      }, 200);
+      if (matchPath) {
+        this._syncMatchDebounced('teamPlayoff', matchPath, matchData);
+      } else {
+        this._syncPath('teamPlayoff', this.tournaments[this.currentTournamentIndex]?.teamPlayoff);
+      }
+    },
+    syncTirPlayoffMatch(matchPath, matchData) {
+      if (matchPath) {
+        this._syncMatchDebounced('tirPlayoff', matchPath, matchData);
+      } else {
+        this._syncPath('tirPlayoff', this.tournaments[this.currentTournamentIndex]?.tirPlayoff);
+      }
     },
     subscribeTournament() {
       this.unsubscribeTournament();
@@ -233,6 +223,12 @@ export const useMainStore = defineStore('main', {
           local.tirTiebreakerParticipantIds = remote.tirTiebreakerParticipantIds;
         if (remote.games && local.games && local.roundIsActive) {
           this._mergeGames(local, remote);
+        }
+        if (remote.cadrage && local.cadrage) {
+          this._mergeCadrage(local, remote);
+        }
+        if (remote.playOffBracket && local.playOffBracket) {
+          this._mergeBracketPlayoff(local, remote);
         }
         if (remote.roundIsActive !== undefined && !remote.roundIsActive && local.roundIsActive) {
           if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
@@ -358,6 +354,50 @@ export const useMainStore = defineStore('main', {
         }
         Object.assign(localGame, remoteGame);
       });
+    },
+    _mergeCadrage(local, remote) {
+      const editingIndex = this._activeCadrageIndex;
+      if (!Array.isArray(remote.cadrage) || !Array.isArray(local.cadrage)) return;
+      remote.cadrage.forEach((remoteGame, idx) => {
+        if (editingIndex === idx) return;
+        const localGame = local.cadrage[idx];
+        if (!localGame) {
+          local.cadrage[idx] = remoteGame;
+          return;
+        }
+        Object.assign(localGame, remoteGame);
+      });
+    },
+    _mergeBracketPlayoff(local, remote) {
+      const editingPath = this._activeBracketMatchPath;
+      const localBracket = local.playOffBracket;
+      const remoteBracket = remote.playOffBracket;
+      if (!remoteBracket || !localBracket) return;
+      if (remoteBracket.stages && localBracket.stages) {
+        remoteBracket.stages.forEach((remoteStage, sIdx) => {
+          if (!localBracket.stages[sIdx]) {
+            localBracket.stages[sIdx] = remoteStage;
+            return;
+          }
+          if (!remoteStage.teams) return;
+          remoteStage.teams.forEach((remoteGame, gIdx) => {
+            if (editingPath === `stages/${sIdx}/teams/${gIdx}`) return;
+            const localGame = localBracket.stages[sIdx].teams[gIdx];
+            if (!localGame) {
+              localBracket.stages[sIdx].teams[gIdx] = remoteGame;
+              return;
+            }
+            Object.assign(localGame, remoteGame);
+          });
+        });
+      }
+      if (remoteBracket.thirdPlace) {
+        if (!localBracket.thirdPlace) {
+          localBracket.thirdPlace = remoteBracket.thirdPlace;
+        } else if (editingPath !== 'thirdPlace') {
+          Object.assign(localBracket.thirdPlace, remoteBracket.thirdPlace);
+        }
+      }
     },
     unsubscribeTournament() {
       if (this._tournamentUnsubscribe) {

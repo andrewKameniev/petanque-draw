@@ -122,7 +122,6 @@ input[type='number'] {
 
 input[type='radio'] {
   appearance: none;
-  appearance: none;
   width: 16px;
   height: 16px;
   border: 2px solid var(--color-border-medium);
@@ -264,6 +263,7 @@ footer {
 }
 
 .game-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

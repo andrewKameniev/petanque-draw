@@ -49,62 +49,12 @@
               >
             </div>
             <div v-if="team.players && team.players.length" class="team-card__players">
-              <a
+              <PlayerChip
                 v-for="(player, pIdx) in team.players"
                 :key="pIdx"
-                class="player-chip"
-                :class="{ 'player-chip--captain': isCaptain(team, pIdx) }"
-                :href="player.id ? 'https://portal.petanque.org.ua/player/' + player.id : undefined"
-                :target="player.id ? '_blank' : undefined"
-              >
-                <img v-if="player.avatar_url" :src="player.avatar_url" class="player-chip__avatar" alt="" />
-                <UserCircle v-else :size="30" class="player-chip__avatar-placeholder" />
-                <div class="player-chip__info">
-                  <span class="player-chip__name">{{ player.surname }} {{ player.name }}</span>
-                  <span v-if="player.rating_place" class="player-chip__rating"
-                    ><TrendingUp :size="10" />{{ player.rating_place }}</span
-                  >
-                </div>
-                <span v-if="player.sport_title" class="player-chip__sport-title">{{
-                  sportTitleLabel(player.sport_title)
-                }}</span>
-                <span v-if="isCaptain(team, pIdx)" class="player-chip__captain-badge">
-                  <svg class="player-chip__captain-crown" viewBox="0 0 64 48" fill="none" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="captainCrownGradient" x1="16" y1="8" x2="46" y2="42">
-                        <stop offset="0%" stop-color="#9B6CFF" />
-                        <stop offset="55%" stop-color="#7c3aed" />
-                        <stop offset="100%" stop-color="#5521b5" />
-                      </linearGradient>
-                      <filter id="captainCrownShadow" x="-20%" y="-20%" width="140%" height="150%">
-                        <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#6F35F4" flood-opacity="0.24" />
-                      </filter>
-                    </defs>
-                    <g filter="url(#captainCrownShadow)">
-                      <circle cx="10" cy="11" r="3.2" fill="#7c3aed" />
-                      <circle cx="32" cy="5" r="3.4" fill="#9B6CFF" />
-                      <circle cx="54" cy="11" r="3.2" fill="#7c3aed" />
-                      <path
-                        d="M9 17L21.5 27L32 10L42.5 27L55 17L50 38C50 38 42 34 32 34C22 34 14 38 14 38L9 17Z"
-                        fill="url(#captainCrownGradient)"
-                      />
-                      <path
-                        d="M14 38C14 38 22 34 32 34C42 34 50 38 50 38C50 38 43 42 32 42C21 42 14 38 14 38Z"
-                        fill="#5521b5"
-                        opacity="0.9"
-                      />
-                      <path
-                        d="M20 30C27 27 38 27 45 30"
-                        stroke="#DCCBFF"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        opacity="0.55"
-                      />
-                    </g>
-                  </svg>
-                  <span class="player-chip__captain-circle">C</span>
-                </span>
-              </a>
+                :player="player"
+                :is-captain="isCaptain(team, pIdx)"
+              />
             </div>
           </div>
         </div>
@@ -115,7 +65,7 @@
           :key="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title) }"
         >
-          <td style="width: 30px">{{ teamIndex + 1 }}.</td>
+          <td style="width: 30px;">{{ teamIndex + 1 }}.</td>
           <td>
             {{ team.title }}
             <div class="is-size-7" v-if="team.players && team.players.length > 1">
@@ -172,62 +122,12 @@
           </button>
         </div>
         <div v-if="team.players && team.players.length" class="team-card__players">
-          <a
+          <PlayerChip
             v-for="(player, pIdx) in team.players"
             :key="pIdx"
-            class="player-chip"
-            :class="{ 'player-chip--captain': isCaptain(team, pIdx) }"
-            :href="player.id ? 'https://portal.petanque.org.ua/player/' + player.id : undefined"
-            :target="player.id ? '_blank' : undefined"
-          >
-            <img v-if="player.avatar_url" :src="player.avatar_url" class="player-chip__avatar" alt="" />
-            <UserCircle v-else :size="30" class="player-chip__avatar-placeholder" />
-            <div class="player-chip__info">
-              <span class="player-chip__name">{{ player.surname }} {{ player.name }}</span>
-              <span v-if="player.rating_place" class="player-chip__rating"
-                ><TrendingUp :size="10" />{{ player.rating_place }}</span
-              >
-            </div>
-            <span v-if="player.sport_title" class="player-chip__sport-title">{{
-              sportTitleLabel(player.sport_title)
-            }}</span>
-            <span v-if="isCaptain(team, pIdx)" class="player-chip__captain-badge">
-              <svg class="player-chip__captain-crown" viewBox="0 0 64 48" fill="none" aria-hidden="true">
-                <defs>
-                  <linearGradient id="captainCrownGradient2" x1="16" y1="8" x2="46" y2="42">
-                    <stop offset="0%" stop-color="#9B6CFF" />
-                    <stop offset="55%" stop-color="#7c3aed" />
-                    <stop offset="100%" stop-color="#5521b5" />
-                  </linearGradient>
-                  <filter id="captainCrownShadow2" x="-20%" y="-20%" width="140%" height="150%">
-                    <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#6F35F4" flood-opacity="0.24" />
-                  </filter>
-                </defs>
-                <g filter="url(#captainCrownShadow2)">
-                  <circle cx="10" cy="11" r="3.2" fill="#7c3aed" />
-                  <circle cx="32" cy="5" r="3.4" fill="#9B6CFF" />
-                  <circle cx="54" cy="11" r="3.2" fill="#7c3aed" />
-                  <path
-                    d="M9 17L21.5 27L32 10L42.5 27L55 17L50 38C50 38 42 34 32 34C22 34 14 38 14 38L9 17Z"
-                    fill="url(#captainCrownGradient2)"
-                  />
-                  <path
-                    d="M14 38C14 38 22 34 32 34C42 34 50 38 50 38C50 38 43 42 32 42C21 42 14 38 14 38Z"
-                    fill="#5521b5"
-                    opacity="0.9"
-                  />
-                  <path
-                    d="M20 30C27 27 38 27 45 30"
-                    stroke="#DCCBFF"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    opacity="0.55"
-                  />
-                </g>
-              </svg>
-              <span class="player-chip__captain-circle">C</span>
-            </span>
-          </a>
+            :player="player"
+            :is-captain="isCaptain(team, pIdx)"
+          />
         </div>
       </div>
     </div>
@@ -279,11 +179,12 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
-import { Users, X, Star, UserCircle, TrendingUp } from 'lucide-vue-next';
+import { Users, X, Star } from 'lucide-vue-next';
+import PlayerChip from '@/components/partials/PlayerChip.vue';
 
 export default {
   name: 'TeamsList',
-  components: { Users, X, Star, UserCircle, TrendingUp },
+  components: { Users, X, Star, PlayerChip },
   props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
   computed: {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
@@ -431,10 +332,6 @@ export default {
       });
       return clubs;
     },
-    sportTitleLabel(title) {
-      const map = { candidate: 'КМС' };
-      return map[title] || title;
-    },
     formatClub(club) {
       if (!club) return [];
       const match = club.match(/^(.+?)\s*([«"«].+[»"»])$/);
@@ -556,123 +453,6 @@ export default {
   margin-top: 0.5rem;
 }
 
-.player-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.6rem 0.3rem 0.3rem;
-  border-radius: 24px;
-  background: var(--color-bg-input, #f5f5f5);
-  border: 1px solid var(--color-border, #eee);
-}
-
-.player-chip__avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.player-chip__avatar-placeholder {
-  color: var(--color-text-muted, #bbb);
-  flex-shrink: 0;
-}
-
-.player-chip__info {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-width: 0;
-}
-
-.player-chip__name {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.player-chip__rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: #16a34a;
-  background: rgb(22 163 74 / 10%);
-  padding: 1px 5px;
-  border-radius: 8px;
-  line-height: 1;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.player-chip__rating:hover {
-  background: rgb(22 163 74 / 20%);
-}
-
-.player-chip {
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-}
-
-.player-chip:hover {
-  border-color: rgb(22 163 74 / 50%);
-}
-
-.player-chip--captain {
-  background: rgb(124 58 237 / 6%);
-  border-color: rgb(124 58 237 / 35%);
-}
-
-.player-chip--captain:hover {
-  border-color: rgb(124 58 237 / 60%);
-}
-
-.player-chip__captain-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.player-chip__captain-crown {
-  width: 20px;
-  height: 12px;
-  transform: rotate(10deg) translate(3px, -3px);
-  margin-bottom: -2px;
-  margin-top: -10px;
-}
-
-.player-chip__captain-circle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.player-chip__sport-title {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: #92700c;
-  background: #fdf6e3;
-  padding: 1px 5px;
-  border-radius: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 .team-remove-btn {
   display: inline-flex;
   align-items: center;
@@ -728,19 +508,6 @@ export default {
   .team-card__club-logo {
     width: 38px;
     height: 38px;
-  }
-
-  .player-chip {
-    padding: 0.2rem 0.5rem 0.2rem 0.2rem;
-  }
-
-  .player-chip__avatar {
-    width: 26px;
-    height: 26px;
-  }
-
-  .player-chip__name {
-    font-size: 0.78rem;
   }
 }
 

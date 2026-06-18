@@ -92,13 +92,11 @@
   --bronze-1: rgb(205 127 50 / 15%);
   --bronze-2: rgb(205 127 50 / 25%);
   --bronze-3: #cd7f32;
-}
 
 /* ═══════════════════════════════════════════════════════════
    SEMANTIC TOKENS — LIGHT
    ═══════════════════════════════════════════════════════════ */
 
-:root {
   /* Brand */
   --color-primary: var(--purple-700);
   --color-primary-light: var(--purple-600);
@@ -222,6 +220,32 @@
   --color-public-surface: var(--grey-100);
   --color-public-surface-border: var(--grey-400);
   --color-public-surface-white: var(--grey-0);
+
+  /* Public — match cards */
+  --color-match-border-active: var(--purple-700);
+  --color-match-border-finished: var(--green-200);
+  --color-match-border-upcoming: var(--grey-700);
+  --color-match-border-hover: var(--amber-200);
+  --color-match-winner: var(--green-1000);
+  --color-match-score-pending: var(--grey-800);
+  --color-match-lane-bg: var(--grey-0);
+  --color-match-lane-border: var(--grey-850);
+
+  /* Public — stream */
+  --color-stream-youtube: #e53935;
+  --color-stream-twitch: #9146ff;
+  --color-stream-facebook: #1877f2;
+  --color-stream-instagram: #e4405f;
+
+  /* Public — winner card */
+  --color-winner-bg-start: var(--grey-1200);
+  --color-winner-bg-mid: #16213e;
+  --color-winner-border: #d4a017;
+  --color-winner-gold: #f5c842;
+  --color-winner-gold-dark: #e8a620;
+  --color-winner-gold-light: #f5d442;
+  --color-winner-text: var(--grey-0);
+  --color-winner-player-name: #f0f0f0;
 
   /* TIR scoring */
   --tir-row-direct-bg: rgb(76 175 80 / 8%);
@@ -372,6 +396,16 @@
   --color-public-surface: #1e2130;
   --color-public-surface-border: #2f3543;
   --color-public-surface-white: #181a24;
+
+  /* Public — match cards */
+  --color-match-border-active: #8b6fde;
+  --color-match-border-finished: #66bb6a;
+  --color-match-border-upcoming: #3f4656;
+  --color-match-border-hover: #ffc107;
+  --color-match-winner: #66bb6a;
+  --color-match-score-pending: #6b7280;
+  --color-match-lane-bg: #181a24;
+  --color-match-lane-border: #9ca3af;
 
   /* TIR scoring */
   --tir-row-direct-bg: rgb(76 175 80 / 18%);

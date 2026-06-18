@@ -275,7 +275,6 @@ export default {
   font-size: 14px;
   margin-bottom: 6px;
   overflow-wrap: break-word;
-  overflow-wrap: break-word;
   line-height: 1.3;
   color: var(--color-text);
 }

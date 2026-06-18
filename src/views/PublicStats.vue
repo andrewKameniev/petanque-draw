@@ -13,7 +13,7 @@
         <router-link class="navbar-item" to="/">
           <img src="../assets/img/logo.webp" alt="logo" />
         </router-link>
-        <div class="is-flex is-align-items-center" style="gap: 4px">
+        <div class="is-flex is-align-items-center" style="gap: 4px;">
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>

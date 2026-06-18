@@ -2,7 +2,7 @@
 import Game from '@/components/partials/Game.vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { getTeamsRanking, isScoreError } from '@/helpers';
+import { getTeamsRanking, isScoreError, updateScoreHistory } from '@/helpers';
 import { Timer } from 'lucide-vue-next';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 
@@ -33,6 +33,7 @@ export default {
   methods: {
     ...mapActions(useMainStore, [
       'saveCadrageScores',
+      'syncCadrageMatch',
       'syncToFirebase',
       'startRoundTimer',
       'endRoundTimer',
@@ -44,6 +45,11 @@ export default {
     },
     onTimerRestart(minutes) {
       this.restartRoundTimer(minutes);
+    },
+    onGameUpdate(gameIndex) {
+      const game = this.tournament.cadrage[gameIndex];
+      updateScoreHistory(game);
+      this.syncCadrageMatch(gameIndex, game);
     },
     swapCadrageLane({ fromIndex, targetLane }) {
       const fieldsStart = this.tournament.preferences.fieldsStart;
@@ -115,6 +121,7 @@ export default {
       :fields-start="tournament.preferences.fieldsStart"
       :is-cadrage="true"
       @save="saveResults"
+      @update="onGameUpdate"
       @swapLane="swapCadrageLane"
     />
     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>

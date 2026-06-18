@@ -76,7 +76,7 @@
         {{ $t('tir.twoRoundSystem') }}
       </label>
       <span class="setup-card__hint">{{ $t('tir.twoRoundHint') }}</span>
-      <label class="setup-card__checkbox" style="margin-top: 0.75rem">
+      <label class="setup-card__checkbox" style="margin-top: 0.75rem;">
         <input type="checkbox" v-model="localTirJunior" />
         {{ $t('tir.juniorTournament') }}
       </label>
@@ -517,8 +517,6 @@ export default {
   border-radius: 6px;
   background: var(--color-bg-input);
   outline: none;
-  appearance: none;
-  appearance: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;

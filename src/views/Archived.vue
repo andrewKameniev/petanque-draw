@@ -101,7 +101,7 @@
           </div>
           <div v-if="activeTournament.playOff" class="btn-bracket-group">
             <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">
-              <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
+              <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;" />
               {{ $t('games.showBracket') }}
             </button>
           </div>

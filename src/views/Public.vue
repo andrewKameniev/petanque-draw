@@ -13,7 +13,7 @@
         <router-link class="navbar-item" to="/">
           <img src="../assets/img/logo.webp" alt="logo" />
         </router-link>
-        <div class="is-flex is-align-items-center" style="gap: 4px">
+        <div class="is-flex is-align-items-center" style="gap: 4px;">
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
@@ -63,7 +63,7 @@
         </div>
         <div v-if="tournament.playOff" class="btn-bracket-group">
           <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">
-            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
+            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;" />
             {{ $t('games.showBracket') }}
           </button>
         </div>
@@ -99,6 +99,16 @@
       />
       <div v-else-if="tournament.cadrage" class="cadrage-public-section">
         <h3 class="cadrage-public-section__title">{{ $t('games.cadrage') }}</h3>
+        <RoundTimer
+          v-if="showPublicTimer"
+          :timer-started-at="tournament.roundTimer.timerStartedAt"
+          :timer-ends-at="tournament.roundTimer.timerEndsAt"
+          :timer-status="tournament.roundTimer.timerStatus"
+          :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+          :cochonettes="tournament.preferences.cochonettes || 1"
+          :read-only="true"
+          class="mb-3"
+        />
         <div class="match-list">
           <div
             class="match-item"
@@ -142,12 +152,14 @@
               }"
               >{{ game.team_2 }}</span
             >
+            <div v-if="game.score_history && game.score_history.length" class="score-history">
+              <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
+                <span class="score-history__num">{{ i + 1 }}</span>
+                <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-      <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
-        <span>{{ highlightedTeam }}</span>
-        <X :size="14" />
       </div>
       <div v-if="showCurrentRound" class="current-round-card mt-3 mb-3">
         <div class="tournament-info-card tournament-info-card--inline">
@@ -191,6 +203,10 @@
             ></span
           >
           <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
+        </div>
+        <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
+          <span>{{ highlightedTeam }}</span>
+          <X :size="14" />
         </div>
         <RoundTimer
           v-if="showPublicTimer"
@@ -746,8 +762,9 @@ export default {
 }
 
 .search-filter-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: fit-content;
   gap: 0.3rem;
   padding: 0.25rem 0.6rem;
   background: var(--color-primary);
@@ -756,7 +773,7 @@ export default {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 0.5rem auto;
+  margin: -0.25rem auto 0.5rem;
   transition: opacity 0.15s;
 }
 
@@ -908,7 +925,7 @@ export default {
 }
 
 .tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete, #e53935);
+  color: var(--tir-delete);
 }
 
 .tournament-nav__btn--games.tournament-nav__btn--active {
@@ -916,11 +933,11 @@ export default {
 }
 
 .tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau, #4caf50);
+  color: var(--tir-carreau);
 }
 
 .tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche, #ff9800);
+  color: var(--tir-touche);
 }
 
 .wrapper {
@@ -1041,8 +1058,8 @@ export default {
   font-size: 12px;
   font-weight: 700;
   color: var(--color-text-muted);
-  background: var(--color-white, #fff);
-  border: 1px solid var(--color-text-muted);
+  background: var(--color-match-lane-bg);
+  border: 1px solid var(--color-match-lane-border);
   line-height: 1;
 }
 
@@ -1125,26 +1142,25 @@ export default {
 [data-theme='dark'] .match-item--finished,
 [data-theme='dark'] .match-item--in-progress,
 [data-theme='dark'] .match-item--upcoming {
-  background-color: var(--color-surface) !important;
-  background-blend-mode: soft-light;
+  background: var(--color-surface) !important;
 }
 
 .match-item:hover {
-  border-color: var(--tir-touche, #ff9800);
+  border-color: var(--color-match-border-hover);
 }
 
 .match-item--in-progress {
-  border-color: var(--color-primary);
+  border-color: var(--color-match-border-active);
   background: url('@/assets/img/card-bg-active.png') center/cover no-repeat !important;
 }
 
 .match-item--finished {
-  border-color: var(--tir-carreau, #4caf50);
+  border-color: var(--color-match-border-finished);
   background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
 }
 
 .match-item--upcoming {
-  border-color: #bdbdbd;
+  border-color: var(--color-match-border-upcoming);
   background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
 }
 
@@ -1152,7 +1168,7 @@ export default {
   min-width: 0;
   font-weight: 600;
   font-size: 13px;
-  color: #333;
+  color: var(--color-text);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1198,12 +1214,12 @@ export default {
 }
 
 .match-score--pending {
-  color: #999;
+  color: var(--color-match-score-pending);
   font-weight: 400;
 }
 
 .match-team--winner {
-  color: var(--tir-winner, #2e7d32) !important;
+  color: var(--color-match-winner) !important;
   font-weight: 700;
 }
 
@@ -1216,7 +1232,7 @@ export default {
 }
 
 .match-status-badge--progress {
-  color: var(--color-primary, #6c5ce7);
+  color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1227,16 +1243,16 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-primary, #6c5ce7);
+  background: var(--color-primary);
   animation: live-pulse 1.5s ease-in-out infinite;
 }
 
 .match-status-badge--finished {
-  color: var(--tir-winner-text, #2e7d32);
+  color: var(--tir-winner-text);
 }
 
 .match-status-badge--live {
-  color: #e53935;
+  color: var(--color-stream-youtube);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1247,21 +1263,21 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #e53935;
+  color: var(--color-stream-youtube);
   text-decoration: none;
   font-weight: 600;
 }
 
 .match-live-link.stream-icon--twitch {
-  color: #9146ff;
+  color: var(--color-stream-twitch);
 }
 
 .match-live-link.stream-icon--facebook {
-  color: #1877f2;
+  color: var(--color-stream-facebook);
 }
 
 .match-live-link.stream-icon--instagram {
-  color: #e4405f;
+  color: var(--color-stream-instagram);
 }
 
 .match-live-link:hover {
@@ -1277,7 +1293,7 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #e53935;
+  background: var(--color-stream-youtube);
   animation: live-pulse 1.5s ease-in-out infinite;
 }
 
@@ -1319,7 +1335,7 @@ export default {
   height: 16px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-btn-text);
   font-size: 9px;
   font-weight: 700;
 }
@@ -1345,8 +1361,8 @@ export default {
 }
 
 .winner-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
-  border: 2px solid #d4a017;
+  background: linear-gradient(135deg, var(--color-winner-bg-start) 0%, var(--color-winner-bg-mid) 50%, var(--color-winner-bg-start) 100%);
+  border: 2px solid var(--color-winner-border);
   border-radius: 16px;
   padding: 28px 24px;
   margin: 12px 0;
@@ -1431,7 +1447,7 @@ export default {
 }
 
 .winner-card__trophy {
-  color: #f5c842;
+  color: var(--color-winner-gold);
   margin-bottom: 8px;
   position: relative;
   filter: drop-shadow(0 0 8px rgb(245 200 66 / 40%));
@@ -1442,8 +1458,7 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, #e8a620, #f5d442, #e8a620);
-  background-clip: text;
+  background: linear-gradient(90deg, var(--color-winner-gold-dark), var(--color-winner-gold-light), var(--color-winner-gold-dark));
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 6px;
@@ -1453,7 +1468,7 @@ export default {
 .winner-card__team-name {
   font-size: 24px;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-winner-text);
   margin-bottom: 18px;
   position: relative;
   text-shadow: 0 0 20px rgb(245 200 66 / 20%);
@@ -1493,7 +1508,7 @@ export default {
   align-items: center;
   justify-content: center;
   background: rgb(245 200 66 / 10%);
-  color: #f5c842;
+  color: var(--color-winner-gold);
 }
 
 .winner-card__player-info {
@@ -1505,11 +1520,12 @@ export default {
 .winner-card__player-name {
   font-weight: 600;
   font-size: 14px;
-  color: #f0f0f0;
+  color: var(--color-winner-player-name);
 }
 
 .winner-card__player-club {
   font-size: 12px;
   color: rgb(245 200 66 / 70%);
 }
+
 </style>

@@ -8,7 +8,7 @@
     </div>
     <div class="field">
       <label class="label is-capitalized">{{ $t('training.distances') }}</label>
-      <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
+      <div class="control is-flex" style="gap: 1em; flex-wrap: wrap;">
         <label class="checkbox" v-for="item in distances" :key="item">
           <input
             type="checkbox"
@@ -63,7 +63,7 @@
     </div>
     <div class="field" v-if="exercise.value">
       <label class="label">What points will be available?</label>
-      <div class="control is-flex" style="gap: 1em; flex-wrap: wrap">
+      <div class="control is-flex" style="gap: 1em; flex-wrap: wrap;">
         <label class="checkbox" v-for="item in possiblePoints" :key="item">
           <input
             type="checkbox"

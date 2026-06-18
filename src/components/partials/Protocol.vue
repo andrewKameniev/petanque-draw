@@ -95,13 +95,13 @@
           <table v-if="participantChunks.length" class="table is-bordered">
             <thead>
               <tr class="has-text-centered">
-                <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
+                <th style="width: 30px;">№ <span style="white-space: nowrap;">з/п</span></th>
                 <th>ПІП</th>
-                <th style="width: 16%">Регіон</th>
-                <th style="width: 18%">Тренер(и)</th>
-                <th style="width: 10%">Спортивний розряд/звання</th>
+                <th style="width: 16%;">Регіон</th>
+                <th style="width: 18%;">Тренер(и)</th>
+                <th style="width: 10%;">Спортивний розряд/звання</th>
                 <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
-                <th style="width: 7%">Загальне підсумкове місце</th>
+                <th style="width: 7%;">Загальне підсумкове місце</th>
               </tr>
             </thead>
             <tbody v-for="(team, index) in participantChunks[0]" :key="index" class="team-group">
@@ -176,13 +176,13 @@
           <table class="table is-bordered">
             <thead>
               <tr class="has-text-centered">
-                <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
+                <th style="width: 30px;">№ <span style="white-space: nowrap;">з/п</span></th>
                 <th>ПІП</th>
-                <th style="width: 16%">Регіон</th>
-                <th style="width: 18%">Тренер(и)</th>
-                <th style="width: 10%">Спортивний розряд/звання</th>
+                <th style="width: 16%;">Регіон</th>
+                <th style="width: 18%;">Тренер(и)</th>
+                <th style="width: 10%;">Спортивний розряд/звання</th>
                 <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
-                <th style="width: 7%">Загальне підсумкове місце</th>
+                <th style="width: 7%;">Загальне підсумкове місце</th>
               </tr>
             </thead>
             <tbody v-for="(team, index) in chunk" :key="index" class="team-group">
@@ -283,10 +283,10 @@
           <table class="table is-bordered">
             <thead class="has-text-centered">
               <tr>
-                <th style="width: 60px">№ з/п</th>
+                <th style="width: 60px;">№ з/п</th>
                 <th>Прізвище, ім'я, по батькові</th>
-                <th style="width: 22%">Посада</th>
-                <th style="width: 14%">Суддівська категорія</th>
+                <th style="width: 22%;">Посада</th>
+                <th style="width: 14%;">Суддівська категорія</th>
                 <th v-if="showArbitrCertificate">№ посвідчення</th>
                 <th>Регіон</th>
               </tr>
@@ -1045,12 +1045,10 @@ export default {
   counter-increment: protocol-page;
   margin-bottom: 24px;
   break-before: page;
-  break-before: page;
   overflow: hidden;
 }
 
 #protocol > .protocol-page {
-  break-before: auto;
   break-before: auto;
 }
 
@@ -1075,7 +1073,6 @@ export default {
 #protocol table tr,
 #protocol table tbody.team-group {
   break-inside: avoid;
-  break-inside: avoid;
 }
 
 #protocol table {
@@ -1094,7 +1091,6 @@ export default {
 }
 
 #protocol table td[contenteditable] {
-  user-select: text;
   user-select: text;
   cursor: text;
   min-height: 1.4em;
@@ -1132,7 +1128,6 @@ export default {
   padding: 0;
   margin: 0;
   overflow: visible;
-  break-before: auto;
   break-before: auto;
 }
 

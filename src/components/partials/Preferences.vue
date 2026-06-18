@@ -5,17 +5,12 @@
       <div class="prefs__body">
         <div class="prefs__list">
           <div class="prefs__item">
-            <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
-            <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number" />
-            <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
-          </div>
-          <div class="prefs__item">
             <label class="prefs__label">
               <input
                 type="checkbox"
                 v-model="tournament.preferences.playOffEnabled"
                 :disabled="!!tournament.playOff"
-                style="margin-right: 0.5rem"
+                style="margin-right: 0.5rem;"
               />
               {{ $t('setup.enablePlayOff') }}
             </label>
@@ -51,12 +46,12 @@
             <input class="prefs__input" v-model.number="tournament.preferences.prizePlaces" type="number" min="1" />
             <span class="prefs__hint">{{ $t('modals.prizePlacesHint') }}</span>
           </div>
-          <div class="prefs__item">
+          <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
             <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number" />
             <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
           </div>
-          <div class="prefs__item">
+          <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
             <div class="prefs__inputs prefs__inputs--double">
               <div class="prefs__input-group">
@@ -72,7 +67,7 @@
           </div>
           <div class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem" />
+              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem;" />
               {{ $t('modals.timeLimit') }}
             </label>
             <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
@@ -101,7 +96,7 @@
                 <input
                   type="checkbox"
                   v-model="tournament.preferences.noTimeLimitFinale"
-                  style="margin-right: 0.5rem"
+                  style="margin-right: 0.5rem;"
                 />
                 {{ $t('modals.noTimeLimitFinale') }}
               </label>
@@ -119,14 +114,19 @@
           </div>
           <div class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem" />
+              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem;" />
               {{ $t('modals.perRoundScoring') }}
             </label>
             <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
           </div>
           <div class="prefs__item">
+            <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
+            <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number" />
+            <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
+          </div>
+          <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem" />
+              <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem;" />
               {{ $t('setup.testTournament') }}
             </label>
             <span class="prefs__hint">{{ $t('setup.testTournamentHint') }}</span>
@@ -167,6 +167,10 @@ export default {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
     tournament() {
       return this.currentTournament;
+    },
+    tournamentStarted() {
+      const t = this.tournament;
+      return !!(t.games?.length || t.playOff || t.cadrage || t.playOffBracket);
     },
     timeLimitOptions() {
       const options = [];

@@ -155,7 +155,6 @@ export default {
   transition: background 0.15s;
   -webkit-tap-highlight-color: transparent;
   appearance: none;
-  appearance: none;
 }
 
 .team-search-btn svg {

@@ -106,7 +106,7 @@ export default {
     class="longpress-area"
     v-click-outside="onClickOutside"
   >
-    <div class="is-flex is-align-items-center" style="gap: 5px" v-if="info.isMade">
+    <div class="is-flex is-align-items-center" style="gap: 5px;" v-if="info.isMade">
       <span
         class="is-size-3"
         :class="{ 'has-text-success': info.success, 'has-text-danger': !info.success }"
@@ -154,7 +154,7 @@ export default {
           {{ info.x2 ? 'remove x2' : 'x2 result' }}
         </li>
         <li @click="removeThrow()">Remove throw</li>
-        <li class="is-flex is-align-items-center" style="gap: 5px">
+        <li class="is-flex is-align-items-center" style="gap: 5px;">
           <span class="select">
             <select
               :name="'throwResultDistances' + iterator"

@@ -1,6 +1,6 @@
 <template>
   <Modal @close-modal="$emit('close-modal')">
-    <div class="content is-flex is-justify-content-space-between mb-3" style="gap: 24px">
+    <div class="content is-flex is-justify-content-space-between mb-3" style="gap: 24px;">
       <h2>{{ tournament.name }}</h2>
       <button
         class="button is-danger"

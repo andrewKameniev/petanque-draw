@@ -48,7 +48,7 @@
             <GitFork
               :size="16"
               :stroke-width="2"
-              style="transform: rotate(90deg); margin-right: 0.3rem; min-width: 16px"
+              style="transform: rotate(90deg); margin-right: 0.3rem; min-width: 16px;"
             />
             <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
           </button>

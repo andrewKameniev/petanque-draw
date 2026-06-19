@@ -657,6 +657,9 @@ export const useMainStore = defineStore('main', {
     syncPathNull(path) {
       this._syncPath(path, null);
     },
+    syncTournamentStarted(value) {
+      this._syncPath('tournamentIsStarted', value);
+    },
     startRoundTimer() {
       const tournament = this.tournaments[this.currentTournamentIndex];
       if (!tournament?.preferences?.timeLimitEnabled) return;

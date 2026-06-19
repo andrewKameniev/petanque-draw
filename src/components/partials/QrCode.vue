@@ -175,4 +175,12 @@ export default {
   margin-bottom: 0.75rem;
   color: var(--color-text);
 }
+
+@media (max-width: 768px) {
+  .qr-modal__code {
+    transform: scale(0.7);
+    transform-origin: center;
+    margin: -1.5rem auto;
+  }
+}
 </style>

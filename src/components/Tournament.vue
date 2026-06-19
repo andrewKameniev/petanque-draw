@@ -405,10 +405,10 @@ export default {
     if (this.tournament.preferences && !this.tournament.preferences.groupFormat) {
       this.tournament.preferences.groupFormat = 'round_robin';
     }
-    if (this.tournament.preferences?.withCadrage) {
+    if (this.tournament.preferences?.withCadrage && this.tournament.system === 'swiss') {
       this.withCadrage = true;
     }
-    if (this.tournament.preferences?.withBarrage) {
+    if (this.tournament.preferences?.withBarrage && this.tournament.system === 'swiss') {
       this.withBarrage = true;
     }
     if (this.tournament.preferences?.playB) {
@@ -441,6 +441,7 @@ export default {
       'addRoundToGames',
       'savePreferences',
       'clearRoundTimer',
+      'syncTournamentStarted',
     ]),
     pinTournament() {
       localStorage.setItem('petanqueDrawPinned', this.currentTournamentIndex);
@@ -476,7 +477,7 @@ export default {
       const withCadrage = this.withCadrage;
       const withBarrage = this.withBarrage;
       let playOffList;
-      if (this.tournament.system === 'swiss') {
+      if (this.tournament.system === 'swiss' && !this.tournament.groups?.length) {
         if (withBarrage) {
           const barrageCount = this.tournament.preferences.barrageTeams || 8;
           playOffList = this.rankingTeams.slice(0, barrageCount);
@@ -573,10 +574,19 @@ export default {
 
       const playB = this.playB;
       if (playB) {
+        const store = useMainStore();
         const currentIndex = this.currentTournamentIndex;
-        const tournamentBTeams = this.rankingTeams
-          .slice(this.teamToPlayOff, this.rankingTeams.length)
-          .map((team) => ({ ...team }));
+        let tournamentBTeams;
+        if (this.tournament.groups?.length > 1 && Array.isArray(this.rankingTeams?.[0])) {
+          const qualifyPerGroup = this.teamToPlayOff / this.tournament.groups.length;
+          tournamentBTeams = this.rankingTeams
+            .flatMap((group) => group.slice(qualifyPerGroup))
+            .map((team) => ({ ...team }));
+        } else {
+          tournamentBTeams = this.rankingTeams
+            .slice(this.teamToPlayOff, this.rankingTeams.length)
+            .map((team) => ({ ...team }));
+        }
         tournamentBTeams.forEach((team) => {
           team.wins = 0;
           team.buhgolts = 0;
@@ -587,7 +597,7 @@ export default {
           team.lanes = [];
         });
         this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
-        this.currentTournamentIndex = currentIndex;
+        store.currentTournamentIndex = currentIndex;
       }
     },
     restoreTeamsFromLocalStorage() {
@@ -702,6 +712,7 @@ export default {
     },
     startFirstRound() {
       this.tournament.tournamentIsStarted = true;
+      this.syncTournamentStarted(true);
       this.startRound();
       this.activeTab = 'games';
     },

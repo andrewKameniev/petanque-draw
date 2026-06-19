@@ -219,7 +219,86 @@
           class="mb-3"
         />
         <div class="match-list">
+          <template v-if="tournament.groups && tournament.groups.length > 1">
+            <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
+              <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
+              <div
+                class="match-item"
+                :class="{
+                  'match-item--highlighted': isTeamHighlighted(game),
+                  'match-item--in-progress': game.status === 'in_progress',
+                  'match-item--finished': game.status === 'finished',
+                  'match-item--upcoming': !game.status || game.status === 'not_started',
+                }"
+                v-for="(game, index) in group"
+                :key="index"
+              >
+                <span
+                  class="match-lane-left"
+                  :class="{
+                    'match-lane-left--active': game.status === 'in_progress',
+                    'match-lane-left--finished': game.status === 'finished',
+                  }"
+                  >{{ game._laneIndex + tournament.preferences.fieldsStart }}</span
+                >
+                <span
+                  class="match-team match-team-right"
+                  :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_1),
+                    'match-team--winner': game.status === 'finished' && game.winner === game.team_1,
+                  }"
+                  >{{ game.team_1 }}</span
+                >
+                <span class="match-vs">
+                  <template v-if="game.status === 'in_progress' || game.status === 'finished'">
+                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="match-score match-score--pending">-- : --</span>
+                  </template>
+                </span>
+                <span
+                  class="match-team"
+                  :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_2),
+                    'match-team--winner': game.status === 'finished' && game.winner === game.team_2,
+                  }"
+                  >{{ game.team_2 }}</span
+                >
+                <span v-if="getGameStreams(game, game._laneIndex).length" class="match-status-badge match-status-badge--live">
+                  <a
+                    v-for="(streamUrl, si) in getGameStreams(game, game._laneIndex)"
+                    :key="si"
+                    :href="streamUrl"
+                    target="_blank"
+                    rel="noopener"
+                    class="match-live-link"
+                    :class="getStreamIconClass(streamUrl)"
+                  >
+                    <span v-if="si === 0 && game.status === 'in_progress'" class="match-live-dot"></span>
+                    <component :is="getStreamIcon(streamUrl)" :size="16" />
+                  </a>
+                  <span class="match-live-label">{{
+                    game.status === 'in_progress' ? $t('games.live') : $t('games.stream')
+                  }}</span>
+                </span>
+                <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
+                  <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+                </span>
+                <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
+                  $t('teamPlayoff.matchFinished')
+                }}</span>
+                <div v-if="game.score_history && game.score_history.length" class="score-history">
+                  <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
+                    <span class="score-history__num">{{ i + 1 }}</span>
+                    <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
           <div
+            v-else
             class="match-item"
             :class="{
               'match-item--highlighted': isTeamHighlighted(game),
@@ -313,7 +392,7 @@
         </div>
         <div class="tabs-content-area">
           <div v-if="activeTab === 'teams'">
-            <TeamsList :previewTournament="tournament" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap" />
+            <TeamsList :previewTournament="tournament" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap" />
           </div>
           <Results
             v-if="activeTab === 'results'"
@@ -347,7 +426,7 @@ import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import TeamsList from '@/components/partials/TeamsList';
 import { tournamentService } from '@/services/db';
-import { getTeamsRanking, pluralizeRounds, formatSwissDescription } from '@/helpers';
+import { getTeamsRanking, pluralizeRounds, formatSwissDescription, tournamentNames } from '@/helpers';
 import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass } from '@/services/streams';
 import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
@@ -452,6 +531,21 @@ export default {
     },
     rankingTeams() {
       return getTeamsRanking(this.tournament, this.activeRound);
+    },
+    groupLabels() {
+      return tournamentNames;
+    },
+    groupedCurrentGames() {
+      const games = this.tournament.games?.[this.activeRound - 1] || [];
+      const grouped = {};
+      games.forEach((game, idx) => {
+        const g = game.group ?? 0;
+        if (!grouped[g]) grouped[g] = [];
+        grouped[g].push({ ...game, _laneIndex: idx });
+      });
+      return Object.keys(grouped)
+        .sort((a, b) => a - b)
+        .map((k) => grouped[k]);
     },
     winnerTeam() {
       if (!this.isFinished || !this.tournament?.teams) return null;
@@ -694,6 +788,8 @@ export default {
         'teams',
         'preferences',
         'streamPresets',
+        'groups',
+        'system',
       ];
       for (const path of paths) {
         const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
@@ -1130,6 +1226,21 @@ export default {
   gap: 0.4rem;
 }
 
+.match-group {
+  margin-bottom: 0.5rem;
+}
+
+.match-group__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 1rem 0 0.4rem;
+}
+
+.match-group:first-child .match-group__title {
+  margin-top: 0;
+}
+
 .match-item {
   position: relative;
   display: grid;
@@ -1143,6 +1254,7 @@ export default {
   transition:
     background 0.15s,
     border-color 0.15s;
+  margin-bottom: 8px;
 }
 
 [data-theme='dark'] .match-item--finished,

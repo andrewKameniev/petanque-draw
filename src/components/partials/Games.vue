@@ -139,6 +139,25 @@
             {{ $t('games.resultsError') }}
           </div>
         </div>
+        <div class="games-list" v-else-if="tournament.groups && tournament.groups.length > 1">
+          <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
+            <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
+            <Game
+              v-for="(game, index) in group"
+              :key="index"
+              :game="game"
+              :activeRound="activeRound - 1"
+              :compactView="compactView"
+              :game-index="currentRoundGames.indexOf(game)"
+              @update="onGameUpdate"
+              @finish="onGameFinish"
+              @swapLane="swapLane"
+            />
+          </div>
+          <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">
+            {{ $t('games.resultsError') }}
+          </div>
+        </div>
         <div class="games-list" v-else>
           <Game
             v-for="(game, index) in tournament.games[activeRound - 1]"
@@ -1124,8 +1143,7 @@ export default {
 }
 
 .poules-group__title {
-  text-align: center;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin-bottom: 0.5rem;

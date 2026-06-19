@@ -480,7 +480,7 @@ export default {
     },
     groupCount() {
       if (this.tournament.system !== 'groups' || !this.localTeamsInGroup) return 0;
-      return Math.floor(this.tournament.teams.length / this.localTeamsInGroup);
+      return Math.ceil(this.tournament.teams.length / this.localTeamsInGroup);
     },
     qualifyPerGroupEven() {
       if (!this.groupCount || !this.tournament.preferences?.playOffTeams) return true;

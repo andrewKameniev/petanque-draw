@@ -87,13 +87,14 @@
                 <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
               </div>
               <div class="active-overlay__item-meta">
-                <span v-if="item.teams">{{ item.teams.length }} {{ $t('common.teamsCount') }}</span>
+                <span v-if="item.teamsCount">{{ item.teamsCount }} {{ $t('common.teamsCount') }}</span>
                 <span v-if="getTeamFormat(item)">{{ getTeamFormat(item) }}</span>
                 <span v-if="item.tournamentIsFinished" class="active-overlay__item-finished">{{
                   $t('common.finished')
                 }}</span>
-                <span v-else-if="item.playOff">{{ $t('games.playOff') }}</span>
-                <span v-else-if="item.games">{{ item.games.length }} {{ $t('common.round') }}</span>
+                <span v-else-if="item.hasPlayoff">{{ $t('games.playOff') }}</span>
+                <span v-else-if="item.roundsCount">{{ item.roundsCount }} {{ $t('common.round') }}</span>
+                <span class="active-overlay__item-id">{{ String(item.id).slice(-5) }}</span>
               </div>
             </div>
           </div>
@@ -246,7 +247,18 @@ export default {
       return this.pinnedIdLocal;
     },
     sortedTournaments() {
-      return Object.values(this.tournaments).sort((a, b) => (b.id || 0) - (a.id || 0));
+      return Object.values(this.tournaments)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          system: t.system,
+          teamsCount: t.teams?.length || 0,
+          firstTeamPlayers: t.teams?.[0]?.players?.length || 0,
+          roundsCount: t.games?.length || 0,
+          hasPlayoff: !!t.playOff,
+          tournamentIsFinished: t.tournamentIsFinished,
+        }))
+        .sort((a, b) => (b.id || 0) - (a.id || 0));
     },
   },
   methods: {
@@ -271,12 +283,10 @@ export default {
       }
     },
     getTeamFormat(item) {
-      if (!item.teams?.length) return '';
-      const players = item.teams[0].players;
-      if (!players?.length) return '';
-      if (players.length === 1) return this.$t('common.formatTete');
-      if (players.length === 2) return this.$t('common.formatDoublette');
-      if (players.length >= 3) return this.$t('common.formatTriplette');
+      if (!item.firstTeamPlayers) return '';
+      if (item.firstTeamPlayers === 1) return this.$t('common.formatTete');
+      if (item.firstTeamPlayers === 2) return this.$t('common.formatDoublette');
+      if (item.firstTeamPlayers >= 3) return this.$t('common.formatTriplette');
       return '';
     },
     addNewTournament() {

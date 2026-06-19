@@ -282,6 +282,9 @@ export default {
       return this.tournament.preferences.fieldsStart;
     },
     cochonettesEnabled() {
+      if (this.isPlayoff || this.isThird) {
+        return !!this.tournament.preferences.cochonettesEnabledPlayoff;
+      }
       return !!this.tournament.preferences.cochonettesEnabled;
     },
     resolvedStreams() {

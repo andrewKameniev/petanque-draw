@@ -180,7 +180,7 @@
             {{ $t('games.finishRound') }}
           </button>
           <a
-            v-if="!tournament.playOff && tournament.system !== 'swiss'"
+            v-if="!tournament.playOff && (tournament.system !== 'swiss' || tournament.groups?.length)"
             href="#"
             class="restore-round-link"
             @click.prevent="showRestoreConfirm = true"
@@ -364,7 +364,7 @@ export default {
       return perCircle * circles;
     },
     teamsCount() {
-      if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
+      if (this.tournament.system === 'swiss') return (this.tournament.teams?.length || 0) - 1;
       if (this.tournament.groups) {
         if (this.tournament.preferences?.groupFormat === 'swiss') {
           return this.tournament.preferences.groupSwissRounds || 3;
@@ -662,6 +662,7 @@ export default {
         if (this.tournament.preferences?.groupFormat === 'swiss') {
           if (this.tournament.groups) {
             round = drawGroupsSwissRound(this.tournament, this.activeRound);
+            console.log('drawGroupsSwissRound result:', round.filter((g) => g.team_2 === 'Technical'));
           }
         } else if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
           round = this.tournament.groupSchedule[this.activeRound - 1].map((g) => ({
@@ -709,6 +710,7 @@ export default {
       this.finishRound();
     },
     restoreRoundGames() {
+      console.log('tournament', JSON.parse(JSON.stringify(this.tournament)));
       this.clearRoundTimer();
       this.isRestoredRound = true;
       if (this.tournament.playOff || this.tournament.cadrage?.length) {
@@ -787,7 +789,7 @@ export default {
           for (let i = 0; i < this.tournament.games.length; i++) {
             this.saveResultsForRound(i);
           }
-        } else if (this.tournament.system === 'groups') {
+        } else if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
           this.tournament.teams.forEach((team) => {
             team.opponents = ['placeholder'];
             team.pointsPlus = 0;

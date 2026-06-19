@@ -94,6 +94,7 @@
                 }}</span>
                 <span v-else-if="item.hasPlayoff">{{ $t('games.playOff') }}</span>
                 <span v-else-if="item.roundsCount">{{ item.roundsCount }} {{ $t('common.round') }}</span>
+                <span class="active-overlay__item-id">{{ String(item.id).slice(-5) }}</span>
               </div>
             </div>
           </div>
@@ -556,6 +557,13 @@ export default {
 .active-overlay__item-finished {
   color: var(--tir-carreau, #4caf50);
   font-weight: 600;
+}
+
+.active-overlay__item-id {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  font-family: monospace;
 }
 
 .active-overlay__empty {

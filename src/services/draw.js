@@ -258,18 +258,13 @@ export function drawSupermeleRound(tournament, rankingTeams) {
 
 export function assignLanes(games, tournament) {
   const technicalGames = [];
-  const hasTechnical =
-    (tournament.system === 'swiss' && tournament.teams.length % 2 !== 0) ||
-    (tournament.system === 'groups' && tournament.preferences?.groupFormat === 'swiss');
-  if (hasTechnical) {
-    games = games.filter((game) => {
-      if (game.team_2 === 'Technical') {
-        technicalGames.push(game);
-        return false;
-      }
-      return true;
-    });
-  }
+  games = games.filter((game) => {
+    if (game.team_2 === 'Technical') {
+      technicalGames.push(game);
+      return false;
+    }
+    return true;
+  });
 
   const isSupermele = tournament.system === 'supermele';
   const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
@@ -702,7 +697,7 @@ export function drawGroupsSwissRound(tournament, activeRound) {
     const groupTitles = new Set(group.map((g) => g.title));
 
     groupTeamsCopy.forEach((t) => {
-      t.opponents = (t.opponents || []).filter((o) => groupTitles.has(o));
+      t.opponents = (t.opponents || []).filter((o) => o === 'Technical' || groupTitles.has(o));
     });
 
     const result = drawSwissRound(

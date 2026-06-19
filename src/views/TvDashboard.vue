@@ -250,6 +250,9 @@
       <!-- Default: flat table -->
       <div v-else class="tv__table-wrapper">
         <h2 class="tv__table-title">ТУРНІРНА ТАБЛИЦЯ</h2>
+        <div v-if="totalTablePages > 1" class="tv__rotation-ribbon">
+          <div class="tv__rotation-ribbon-bar" :key="tableRotationKey"></div>
+        </div>
         <table class="tv__table">
           <thead>
             <tr>
@@ -309,7 +312,7 @@
 
 <script>
 import { tournamentService } from '@/services/db';
-import { getTeamsRanking } from '@/helpers';
+import { getTeamsRanking, pluralizeRounds } from '@/helpers';
 import QrcodeVue from 'qrcode.vue';
 
 export default {
@@ -325,6 +328,7 @@ export default {
       currentTablePage: 0,
       currentGroupPage: 0,
       groupRotationKey: 0,
+      tableRotationKey: 0,
       tablePageSize: 20,
       qrCanvas: null,
     };
@@ -341,6 +345,7 @@ export default {
         this.groupRotationKey++;
       } else if (this.totalTablePages > 1) {
         this.currentTablePage = (this.currentTablePage + 1) % this.totalTablePages;
+        this.tableRotationKey++;
       }
     }, 12000);
   },
@@ -455,7 +460,7 @@ export default {
         return text;
       }
       const rounds = prefs?.swissRoundsCount || this.tournament.games?.length || 4;
-      let text = `${rounds} кола швейцарки`;
+      let text = `${rounds} ${pluralizeRounds(rounds, 'ua')} швейцарки`;
       if (prefs?.playOffEnabled) text += '\n+ плей-оф';
       return text;
     },
@@ -1149,17 +1154,17 @@ export default {
 }
 
 .tv__card-lane {
-  width: 22px;
-  height: 22px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #fff;
   color: #6b7280;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #d1d5db;
+  border: 2px solid #d1d5db;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -1177,7 +1182,7 @@ export default {
 }
 
 .tv__card-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #374151;
   flex: 1;
@@ -1200,11 +1205,11 @@ export default {
 
 
 .tv__card-score {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   color: #111827;
   text-align: center;
-  min-width: 50px;
+  min-width: 55px;
   letter-spacing: 1px;
 }
 
@@ -1538,13 +1543,13 @@ export default {
 
 .tv__game-box {
   fill: #fff;
-  stroke: #d1d5db;
-  stroke-width: 1;
+  stroke: #6b7280;
+  stroke-width: 1.5;
 }
 
 .tv__game-divider {
-  stroke: #e5e7eb;
-  stroke-width: 1;
+  stroke: #9ca3af;
+  stroke-width: 1.5;
 }
 
 .tv__round-header {
@@ -1612,8 +1617,8 @@ export default {
 
 .tv__connector-line {
   fill: none;
-  stroke: #d1d5db;
-  stroke-width: 2;
+  stroke: #4b5563;
+  stroke-width: 2.5;
 }
 
 .tv__podium {

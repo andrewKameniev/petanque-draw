@@ -29,8 +29,7 @@
     </div>
     <div v-if="tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="mb-5">
       <div v-if="!isForProtocol" class="ranking-header">
-        <h2>{{ $t('ranking.tournamentResult') }}</h2>
-        <div class="ranking-header__actions">
+        <div class="ranking-header__actions ml-auto">
           <button
             v-if="isTournamentOrg && tournament.portalIdTournament"
             class="button is-small btn-purple-outline"
@@ -60,8 +59,8 @@
           <thead>
             <tr>
               <th>{{ $t('ranking.place') }}</th>
-              <th>{{ $t('ranking.team') }}</th>
-              <th>{{ $t('ranking.players') }}</th>
+              <th>{{ isTetATet ? $t('ranking.player') : $t('ranking.team') }}</th>
+              <th>{{ isTetATet ? $t('ranking.club') : $t('ranking.players') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -77,18 +76,19 @@
               <td>{{ team.place }}</td>
               <td>{{ team.title }}</td>
               <td>
+                <template v-if="isTetATet">{{ teamClubMap?.[team.title] || '--' }}</template>
                 <div
-                  class="is-size-7"
-                  v-if="
+                  v-else-if="
                     showInSaved ? team.players && team.players.length : team.title && getTeamPlayers(team.title).length
                   "
+                  class="is-size-7"
                 >
                   <span
                     class="has-text-dark"
-                    v-for="(player, index) in showInSaved ? team.players : getTeamPlayers(team.title)"
-                    :key="index"
+                    v-for="(player, pIdx) in showInSaved ? team.players : getTeamPlayers(team.title)"
+                    :key="pIdx"
                     >{{ player.name }} {{ player.surname || ''
-                    }}<span v-if="index < (showInSaved ? team.players : getTeamPlayers(team.title)).length - 1"
+                    }}<span v-if="pIdx < (showInSaved ? team.players : getTeamPlayers(team.title)).length - 1"
                       >,
                     </span></span
                   >
@@ -790,6 +790,9 @@ export default {
     },
     playOffTeamsPerGroup() {
       return getPlayOffTeamsPerGroup(this.tournament);
+    },
+    isTetATet() {
+      return this.tournament.teams?.every((t) => t.players?.length === 1);
     },
     isSwissGroups() {
       return this.tournament.preferences?.groupFormat === 'swiss';

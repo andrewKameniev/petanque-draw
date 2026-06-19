@@ -171,40 +171,28 @@ function getTournamentRanking(tournament, rankingTeams) {
     }
 
     if (tournament.games?.length > 0) {
-      if (
-        tournament.system === 'swiss' ||
-        ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams.length === 1)
-      ) {
-        const remainingTeams = rankingTeams.filter((team) => !teamsInRanking.includes(team.title));
-        const rangeStart = teamsInRanking.length + 1;
-        remainingTeams.forEach((team, index) => {
-          const teamPlace = {
-            place: rangeStart + index,
-            title: team.title,
-            players: team.players,
-          };
-          tournamentRanking.push(teamPlace);
-        });
-      } else {
-        const groupsCount = rankingTeams.length;
-        const teamsCountPlayOff = tournament.playOffBracket.stages[0].teamsCount;
-        let teamsGroupsAfterPlayOff = [];
-        rankingTeams.forEach((group, index) => {
-          teamsGroupsAfterPlayOff[index] = group.slice(teamsCountPlayOff / groupsCount);
-        });
-        for (let i = 0; i < teamsGroupsAfterPlayOff[0].length; i++) {
-          teamsGroupsAfterPlayOff.forEach((group) => {
-            if (group[i]) {
-              const teamPlace = {
-                place:
-                  teamsCountPlayOff + i * groupsCount + 1 + '-' + (teamsCountPlayOff + i * groupsCount + groupsCount),
-                title: group[i].title,
-              };
-              tournamentRanking.push(teamPlace);
-            }
-          });
-        }
+      const isNestedGroups = Array.isArray(rankingTeams?.[0]);
+      const flatRanking = isNestedGroups ? rankingTeams.flat() : rankingTeams;
+      const remainingTeams = flatRanking.filter((team) => !teamsInRanking.includes(team.title));
+      if (isNestedGroups) {
+        remainingTeams.sort(
+          (a, b) =>
+            b.wins - a.wins ||
+            b.buhgolts - a.buhgolts ||
+            b.smallBuhgolts - a.smallBuhgolts ||
+            b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus) ||
+            b.pointsPlus - a.pointsPlus ||
+            b.rating - a.rating,
+        );
       }
+      const rangeStart = teamsInRanking.length + 1;
+      remainingTeams.forEach((team, index) => {
+        tournamentRanking.push({
+          place: rangeStart + index,
+          title: team.title,
+          players: team.players,
+        });
+      });
     }
   } else {
     if (

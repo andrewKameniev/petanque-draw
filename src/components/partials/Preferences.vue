@@ -117,6 +117,10 @@
               <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem;" />
               {{ $t('modals.perRoundScoring') }}
             </label>
+            <label v-if="tournament.preferences.playOffEnabled || tournament.playOff" class="prefs__label" style="margin-top: 0.5rem;">
+              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" style="margin-right: 0.5rem;" />
+              {{ $t('modals.perRoundScoringPlayoff') }}
+            </label>
             <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
           </div>
           <div class="prefs__item">

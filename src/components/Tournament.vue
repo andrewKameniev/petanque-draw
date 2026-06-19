@@ -357,6 +357,7 @@ import {
   createPoules,
   drawPoulesRound,
   reshuffleGroupSchedule,
+  saveResultsForRound,
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
@@ -397,6 +398,7 @@ export default {
   created() {
     if (!this.tournament) return;
     this.teamsInGroup = this.tournament.groups ? this.tournament.groups.length : 4;
+    this.migrateMissingTechnicalGames();
     const n = this.tournament.teams?.length || 4;
     this.groupRoundsCount = n % 2 === 0 ? n - 1 : n;
     if (this.tournament.preferences && !this.tournament.preferences.groupDrawMethod) {
@@ -443,6 +445,57 @@ export default {
       'clearRoundTimer',
       'syncTournamentStarted',
     ]),
+    migrateMissingTechnicalGames() {
+      const t = this.tournament;
+      if (!t.groups?.length || !t.games?.length || t.preferences?.groupFormat !== 'swiss') return;
+      const technical = t.preferences?.technical || { technicalFirst: 13, technicalSecond: 7 };
+      let migrated = false;
+      t.games.forEach((round, roundIndex) => {
+        t.groups.forEach((group, groupIndex) => {
+          if (group.length % 2 === 0) return;
+          const groupGamesInRound = round.filter((g) => g.group === groupIndex);
+          const hasTechnical = groupGamesInRound.some((g) => g.team_2 === 'Technical');
+          if (hasTechnical) return;
+          const groupTitles = new Set(group.map((g) => g.title));
+          const playingTeams = new Set();
+          groupGamesInRound.forEach((g) => {
+            playingTeams.add(g.team_1);
+            playingTeams.add(g.team_2);
+          });
+          const missingTeam = [...groupTitles].find((title) => !playingTeams.has(title));
+          if (missingTeam) {
+            round.push({
+              team_1: missingTeam,
+              team_1_score: technical.technicalFirst,
+              team_2: 'Technical',
+              team_2_score: technical.technicalSecond,
+              status: 'finished',
+              winner: missingTeam,
+              group: groupIndex,
+              lane: 0,
+            });
+            migrated = true;
+            console.log(`[Migration] Added missing technical game for ${missingTeam} in round ${roundIndex + 1}, group ${groupIndex}`);
+          }
+        });
+      });
+      if (migrated) {
+        t.teams.forEach((team) => {
+          team.wins = 0;
+          team.opponents = [];
+          team.buhgolts = 0;
+          team.smallBuhgolts = 0;
+          team.pointsMinus = 0;
+          team.pointsPlus = 0;
+        });
+        for (let i = 0; i < t.games.length; i++) {
+          if (t.games[i].every((g) => g.status === 'finished')) {
+            saveResultsForRound(t, i);
+          }
+        }
+        this.syncGames();
+      }
+    },
     pinTournament() {
       localStorage.setItem('petanqueDrawPinned', this.currentTournamentIndex);
       this.pinnedState = this.currentTournamentIndex;
@@ -492,7 +545,9 @@ export default {
         if (this.tournament.groups.length > 1) {
           playOffList = [];
           for (let i = 0; i < this.teamToPlayOff / this.tournament.groups.length; i++) {
-            this.rankingTeams.forEach((group) => playOffList.push(group[i]));
+            this.rankingTeams.forEach((group) => {
+              if (group[i]) playOffList.push(group[i]);
+            });
           }
         } else {
           playOffList = this.rankingTeams[0].slice(0, this.teamToPlayOff);
@@ -501,6 +556,10 @@ export default {
       if (withCadrage) {
         this.startCadrage(playOffList);
       } else {
+        const nextPow2 = Math.pow(2, Math.ceil(Math.log2(playOffList.length)));
+        while (playOffList.length < nextPow2) {
+          playOffList.push({ title: null, isBye: true });
+        }
         this.startPlayOff(playOffList);
       }
     },

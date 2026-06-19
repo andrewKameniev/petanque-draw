@@ -1,0 +1,4589 @@
+{
+    "name": "Відкритий турнір \"Кубок Кошового 2026\"",
+    "games": [
+        [
+            {
+                "group": 1,
+                "lane": 0,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 2
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПОПОВИЧ Ксенія",
+                "team_1_score": 13,
+                "team_2": "БАБЯК Анастасія",
+                "team_2_score": 2,
+                "updated_at": "2026-06-19T09:31:13.764Z",
+                "winner": "ПОПОВИЧ Ксенія"
+            },
+            {
+                "group": 0,
+                "lane": 1,
+                "score_history": [
+                    {
+                        "s1": 4,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "КИЯНИЦЯ Дмитро",
+                "team_1_score": 4,
+                "team_2": "ДРОЗД Іван",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:29:48.628Z",
+                "winner": "ДРОЗД Іван"
+            },
+            {
+                "group": 1,
+                "lane": 2,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 11
+                    }
+                ],
+                "status": "finished",
+                "team_1": "МУЩИНКА Наталія",
+                "team_1_score": 13,
+                "team_2": "ЗАМОГИЛЬНИЙ Олександр",
+                "team_2_score": 11,
+                "updated_at": "2026-06-19T09:31:31.480Z",
+                "winner": "МУЩИНКА Наталія"
+            },
+            {
+                "group": 2,
+                "lane": 3,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "РОЖОК Олександр",
+                "team_1_score": 11,
+                "team_2": "ЗАГРЕБЕЛЬНИЙ Олег",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:33:15.186Z",
+                "winner": "ЗАГРЕБЕЛЬНИЙ Олег"
+            },
+            {
+                "group": 2,
+                "lane": 4,
+                "score_history": [
+                    {
+                        "s1": 7,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ФРЕЛІК Вікторія",
+                "team_1_score": 7,
+                "team_2": "ОГАНОВ Артем",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:33:23.976Z",
+                "winner": "ОГАНОВ Артем"
+            },
+            {
+                "group": 3,
+                "lane": 5,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 11,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ЗАЙЦЕВ Валерій",
+                "team_1_score": 11,
+                "team_2": "ВОЛОДИМИР Корева",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:34:56.662Z",
+                "winner": "ВОЛОДИМИР Корева"
+            },
+            {
+                "group": 3,
+                "lane": 6,
+                "score_history": [
+                    {
+                        "s1": 7,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПЕРЕВЕРТЕНЬ Ольга",
+                "team_1_score": 7,
+                "team_2": "МУЖЧІЛЬ Олександр",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:35:18.133Z",
+                "winner": "МУЖЧІЛЬ Олександр"
+            },
+            {
+                "group": 3,
+                "lane": 7,
+                "score_history": [
+                    {
+                        "s1": 0,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 0,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "БАГІНСЬКА Марія",
+                "team_1_score": 0,
+                "team_2": "ДОВЛІСАРОВ Віталій",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:35:31.594Z",
+                "winner": "ДОВЛІСАРОВ Віталій"
+            },
+            {
+                "group": 0,
+                "lane": 8,
+                "score_history": [
+                    {
+                        "s1": 9,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 9,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 9,
+                        "s2": 11
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПОПОВИЧ Андрій",
+                "team_1_score": 9,
+                "team_2": "ЛИТОВЧЕНКО Артем",
+                "team_2_score": 11,
+                "updated_at": "2026-06-19T09:30:09.738Z",
+                "winner": "ЛИТОВЧЕНКО Артем"
+            },
+            {
+                "group": 2,
+                "lane": 9,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 12,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 12,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 12,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ТРУШ Олександр",
+                "team_1_score": 12,
+                "team_2": "САПУЦЬКИЙ Назарій",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:33:41.443Z",
+                "winner": "САПУЦЬКИЙ Назарій"
+            },
+            {
+                "group": 0,
+                "lane": 10,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 6
+                    }
+                ],
+                "status": "finished",
+                "team_1": "СТЕПАНЮК Валерій",
+                "team_1_score": 13,
+                "team_2": "ФЕДИШИН Ярослав",
+                "team_2_score": 6,
+                "updated_at": "2026-06-19T09:29:21.946Z",
+                "winner": "СТЕПАНЮК Валерій"
+            },
+            {
+                "group": 3,
+                "lane": 11,
+                "score_history": [
+                    {
+                        "s1": 4,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПОХИЛЬКО-ЛИТОВЧЕНКО Яна",
+                "team_1_score": 4,
+                "team_2": "САКАДА Сергій",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:35:51.519Z",
+                "winner": "САКАДА Сергій"
+            },
+            {
+                "group": 1,
+                "lane": 12,
+                "score_history": [
+                    {
+                        "s1": 0,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 0,
+                        "s2": 13
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "БАБЯК Сергій",
+                "team_1_score": 7,
+                "team_2": "РУБЦОВА Світлана",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:31:47.504Z",
+                "winner": "РУБЦОВА Світлана"
+            },
+            {
+                "group": 0,
+                "lane": 13,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 1
+                    }
+                ],
+                "status": "finished",
+                "team_1": "СТЕПАНЮК Галина",
+                "team_1_score": 13,
+                "team_2": "КАВУН Володимир",
+                "team_2_score": 1,
+                "updated_at": "2026-06-19T09:30:33.144Z",
+                "winner": "СТЕПАНЮК Галина"
+            },
+            {
+                "group": 3,
+                "lane": 14,
+                "score_history": [
+                    {
+                        "s1": 7,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПЕРЕВЕРТЕНЬ Юрій",
+                "team_1_score": 7,
+                "team_2": "ТВЕРДУН Іван",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:36:33.203Z",
+                "winner": "ТВЕРДУН Іван"
+            },
+            {
+                "group": 0,
+                "lane": 15,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 7
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ЛИТВИН Лілія",
+                "team_1_score": 13,
+                "team_2": "ОСТАПЧУК Анатолій",
+                "team_2_score": 7,
+                "updated_at": "2026-06-19T09:30:43.150Z",
+                "winner": "ЛИТВИН Лілія"
+            },
+            {
+                "group": 3,
+                "lane": 16,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 5
+                    }
+                ],
+                "status": "finished",
+                "team_1": "РОСЛОВ Олександр",
+                "team_1_score": 13,
+                "team_2": "ПОПОВИЧ Поліна",
+                "team_2_score": 5,
+                "updated_at": "2026-06-19T09:36:45.091Z",
+                "winner": "РОСЛОВ Олександр"
+            },
+            {
+                "group": 3,
+                "lane": 17,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 6
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ГАНУСИЧ Андрій",
+                "team_1_score": 13,
+                "team_2": "МУРАШОВ Олександр",
+                "team_2_score": 6,
+                "updated_at": "2026-06-19T09:36:56.029Z",
+                "winner": "ГАНУСИЧ Андрій"
+            },
+            {
+                "group": 2,
+                "lane": 18,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 7
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ГРИЦЮК Тарас",
+                "team_1_score": 13,
+                "team_2": "ABRAMOV Anton",
+                "team_2_score": 7,
+                "updated_at": "2026-06-19T09:33:53.748Z",
+                "winner": "ГРИЦЮК Тарас"
+            },
+            {
+                "group": 1,
+                "lane": 19,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    }
+                ],
+                "status": "finished",
+                "team_1": "МУЩИНКА Анатолій",
+                "team_1_score": 13,
+                "team_2": "КОСЕНКО Сергій",
+                "team_2_score": 0,
+                "updated_at": "2026-06-19T09:32:11.488Z",
+                "winner": "МУЩИНКА Анатолій"
+            },
+            {
+                "group": 1,
+                "lane": 20,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 10
+                    }
+                ],
+                "status": "finished",
+                "team_1": "КУСЕНЬ Світлана",
+                "team_1_score": 13,
+                "team_2": "ОНУЧКО Роман",
+                "team_2_score": 10,
+                "updated_at": "2026-06-19T09:32:30.984Z",
+                "winner": "КУСЕНЬ Світлана"
+            },
+            {
+                "group": 2,
+                "lane": 21,
+                "score_history": [
+                    {
+                        "s1": 4,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 4,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ПОПОВИЧ Наталія",
+                "team_1_score": 4,
+                "team_2": "КАЧАН Володимир",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:34:22.465Z",
+                "winner": "КАЧАН Володимир"
+            },
+            {
+                "group": 2,
+                "lane": 22,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 10,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 10,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 10,
+                        "s2": 11
+                    }
+                ],
+                "status": "finished",
+                "team_1": "БАРКАР Віталія",
+                "team_1_score": 10,
+                "team_2": "ДЕНИСЕНКО Максим",
+                "team_2_score": 11,
+                "updated_at": "2026-06-19T09:34:32.696Z",
+                "winner": "ДЕНИСЕНКО Максим"
+            },
+            {
+                "group": 2,
+                "lane": 23,
+                "score_history": [
+                    {
+                        "s1": 7,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 7,
+                        "s2": 13
+                    }
+                ],
+                "status": "finished",
+                "team_1": "МАКСИМЕНКО Сергій",
+                "team_1_score": 7,
+                "team_2": "КРУЛЬ Андрій",
+                "team_2_score": 13,
+                "updated_at": "2026-06-19T09:34:43.189Z",
+                "winner": "КРУЛЬ Андрій"
+            },
+            {
+                "group": 0,
+                "lane": 24,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 12
+                    }
+                ],
+                "status": "finished",
+                "team_1": "GILLADE Peter Paul",
+                "team_1_score": 13,
+                "team_2": "КИРІЯ Гіоргі",
+                "team_2_score": 12,
+                "updated_at": "2026-06-19T09:30:55.019Z",
+                "winner": "GILLADE Peter Paul"
+            },
+            {
+                "group": 1,
+                "lane": 25,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 8
+                    }
+                ],
+                "status": "finished",
+                "team_1": "УВАРОВА Юлія",
+                "team_1_score": 13,
+                "team_2": "ВІВЧАР Володимир",
+                "team_2_score": 8,
+                "updated_at": "2026-06-19T09:32:51.381Z",
+                "winner": "УВАРОВА Юлія"
+            },
+            {
+                "group": 1,
+                "lane": 26,
+                "score_history": [
+                    {
+                        "s1": 1,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 0
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 1
+                    },
+                    {
+                        "s1": 13,
+                        "s2": 12
+                    }
+                ],
+                "status": "finished",
+                "team_1": "ШИМКО Андрій",
+                "team_1_score": 13,
+                "team_2": "ШУМІЛЕНКО Віталій",
+                "team_2_score": 12,
+                "updated_at": "2026-06-19T09:33:00.719Z",
+                "winner": "ШИМКО Андрій"
+            }
+        ]
+    ],
+    "teams": [
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                7,
+                14,
+                24
+            ],
+            "opponents": [
+                "ДОВЛІСАРОВ Віталій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/77d8c886b0de2b821e7d3c515754b029.jpeg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 1041,
+                    "name": "Марія",
+                    "rating": "846.8685",
+                    "rating_field": "current_rating",
+                    "rating_place": 50,
+                    "second_name": "Володимирівна",
+                    "surname": "Багінська"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 0,
+            "portalTeamId": 3090,
+            "rating": 19.75,
+            "smallBuhgolts": 0,
+            "title": "БАГІНСЬКА Марія",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                18,
+                13,
+                23
+            ],
+            "opponents": [
+                "ABRAMOV Anton"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/dd36aa42831da0d39ea7750822f4ccaa.jpg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 807,
+                    "name": "Тарас",
+                    "rating": "1720.9915",
+                    "rating_field": "current_rating",
+                    "rating_place": 9,
+                    "sport_title": "candidate",
+                    "surname": "Грицюк"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 1956,
+            "rating": 36.2188,
+            "smallBuhgolts": 0,
+            "title": "ГРИЦЮК Тарас",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 2,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                "name": "Спортивний петанк-клуб «Чесна Гра»",
+                "short_name": "Fair Play"
+            },
+            "lanes": [
+                23,
+                6,
+                17
+            ],
+            "opponents": [
+                "КРУЛЬ Андрій"
+            ],
+            "players": [
+                {
+                    "club": "Спортивний петанк-клуб «Чесна Гра»",
+                    "club_id": 2,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                    "club_short_name": "Fair Play",
+                    "id": 897,
+                    "name": "Сергій",
+                    "rating": "251.1059",
+                    "rating_field": "current_rating",
+                    "rating_place": 109,
+                    "surname": "Максименко"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 2385,
+            "rating": 10.8438,
+            "smallBuhgolts": 0,
+            "title": "МАКСИМЕНКО Сергій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                12,
+                8,
+                20
+            ],
+            "opponents": [
+                "РУБЦОВА Світлана"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/8bb51b46f006a01011844aaae36fa371.jpeg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 586,
+                    "name": "Сергій",
+                    "rating": "980.2065",
+                    "rating_field": "current_rating",
+                    "rating_place": 43,
+                    "sport_title": "candidate",
+                    "surname": "Бабяк"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 1106,
+            "rating": 18.3125,
+            "smallBuhgolts": 0,
+            "title": "БАБЯК Сергій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                0,
+                22,
+                12
+            ],
+            "opponents": [
+                "ПОПОВИЧ Ксенія"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ace209cca3fac8eb30c521eb689b94dd.jpg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 723,
+                    "name": "Анастасія",
+                    "rating": "214.8896",
+                    "rating_field": "current_rating",
+                    "rating_place": 115,
+                    "surname": "Бабяк"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 2,
+            "portalTeamId": 1623,
+            "rating": 5.75,
+            "smallBuhgolts": 0,
+            "title": "БАБЯК Анастасія",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                15,
+                5,
+                0
+            ],
+            "opponents": [
+                "ОСТАПЧУК Анатолій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/adf72bb4f3ff108b3d2ca2ed33beaf01.jpg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 621,
+                    "name": "Лілія",
+                    "rating": "1199.6326",
+                    "rating_field": "current_rating",
+                    "rating_place": 31,
+                    "sport_title": "candidate",
+                    "surname": "Литвин"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 1341,
+            "rating": 27.75,
+            "smallBuhgolts": 0,
+            "title": "ЛИТВИН Лілія",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                1,
+                0,
+                7
+            ],
+            "opponents": [
+                "ДРОЗД Іван"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/a2b2a6ee2a613263b1da47dd2c4b9812.jpeg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 587,
+                    "name": "Дмитро",
+                    "rating": "404.3231",
+                    "rating_field": "current_rating",
+                    "rating_place": 84,
+                    "second_name": "Олексійович",
+                    "sport_title": "candidate",
+                    "surname": "Кияниця"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 4,
+            "portalTeamId": 1107,
+            "rating": 8.875,
+            "smallBuhgolts": 0,
+            "title": "КИЯНИЦЯ Дмитро",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 16,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                "name": "Аптаун Петанк Клаб",
+                "short_name": "Аптаун"
+            },
+            "lanes": [
+                6,
+                10,
+                13
+            ],
+            "opponents": [
+                "МУЖЧІЛЬ Олександр"
+            ],
+            "players": [
+                {
+                    "club": "Аптаун Петанк Клаб",
+                    "club_id": 16,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "club_short_name": "Аптаун",
+                    "id": 1002,
+                    "name": "Ольга",
+                    "rating": "314.2989",
+                    "rating_field": "current_rating",
+                    "rating_place": 97,
+                    "surname": "Перевертень"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 3125,
+            "rating": 7.6876,
+            "smallBuhgolts": 0,
+            "title": "ПЕРЕВЕРТЕНЬ Ольга",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                16,
+                9,
+                10
+            ],
+            "opponents": [
+                "ПОПОВИЧ Поліна"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/52c82b5c8536ed896bc3153af6cf13b4.jpg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 95,
+                    "name": "Олександр",
+                    "rating": "1602.5101",
+                    "rating_field": "current_rating",
+                    "rating_place": 14,
+                    "second_name": "Сергійович",
+                    "sport_title": "candidate",
+                    "surname": "Рослов"
+                }
+            ],
+            "pointsMinus": 5,
+            "pointsPlus": 13,
+            "portalTeamId": 31,
+            "rating": 36.1875,
+            "smallBuhgolts": 0,
+            "title": "РОСЛОВ Олександр",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 16,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                "name": "Аптаун Петанк Клаб",
+                "short_name": "Аптаун"
+            },
+            "lanes": [
+                5,
+                14,
+                24
+            ],
+            "opponents": [
+                "ВОЛОДИМИР Корева"
+            ],
+            "players": [
+                {
+                    "club": "Аптаун Петанк Клаб",
+                    "club_id": 16,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "club_short_name": "Аптаун",
+                    "id": 874,
+                    "name": "Валерій",
+                    "rating": "659.9035",
+                    "rating_field": "current_rating",
+                    "rating_place": 60,
+                    "sport_title": "candidate",
+                    "surname": "Зайцев"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 11,
+            "portalTeamId": 2336,
+            "rating": 10.4063,
+            "smallBuhgolts": 0,
+            "title": "ЗАЙЦЕВ Валерій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 23,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                "name": "Карпатська Спортивна Ліга",
+                "short_name": "KSL"
+            },
+            "lanes": [
+                11,
+                10,
+                13
+            ],
+            "opponents": [
+                "САКАДА Сергій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/bf0745a0aeef3516f9aea2a217cf5fc1.JPG",
+                    "club": "Карпатська Спортивна Ліга",
+                    "club_id": 23,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                    "club_short_name": "KSL",
+                    "id": 977,
+                    "name": "Яна",
+                    "rating": "1132.5811",
+                    "rating_field": "current_rating",
+                    "rating_place": 35,
+                    "surname": "Похилько-Литовченко"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 4,
+            "portalTeamId": 2852,
+            "rating": 20.0781,
+            "smallBuhgolts": 0,
+            "title": "ПОХИЛЬКО-ЛИТОВЧЕНКО Яна",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                4,
+                3,
+                2
+            ],
+            "opponents": [
+                "ФРЕЛІК Вікторія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1338,
+                    "name": "Артем",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Оганов"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 3641,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ОГАНОВ Артем",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                17,
+                21,
+                6
+            ],
+            "opponents": [
+                "ГАНУСИЧ Андрій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1174,
+                    "name": "Олександр",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Мурашов"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 6,
+            "portalTeamId": 3651,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "МУРАШОВ Олександр",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                11,
+                2,
+                21
+            ],
+            "opponents": [
+                "ПОХИЛЬКО-ЛИТОВЧЕНКО Яна"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1337,
+                    "name": "Сергій",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Сакада"
+                }
+            ],
+            "pointsMinus": 4,
+            "pointsPlus": 13,
+            "portalTeamId": 3642,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "САКАДА Сергій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                22,
+                11,
+                3
+            ],
+            "opponents": [
+                "БАРКАР Віталія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1249,
+                    "name": "Максим",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Денисенко"
+                }
+            ],
+            "pointsMinus": 10,
+            "pointsPlus": 11,
+            "portalTeamId": 3422,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ДЕНИСЕНКО Максим",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                2,
+                23,
+                26
+            ],
+            "opponents": [
+                "МУЩИНКА Наталія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1340,
+                    "name": "Олександр",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Замогильний"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 11,
+            "portalTeamId": 3643,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ЗАМОГИЛЬНИЙ Олександр",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 21,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                "name": "Кульмайстер петанк-клуб",
+                "short_name": "Кульмайстер"
+            },
+            "lanes": [
+                10,
+                5,
+                0
+            ],
+            "opponents": [
+                "ФЕДИШИН Ярослав"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/12919dc618d5a7503b44201a908e06c5.jpg",
+                    "club": "Кульмайстер петанк-клуб",
+                    "club_id": 21,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                    "club_short_name": "Кульмайстер",
+                    "id": 884,
+                    "name": "Валерій",
+                    "rating": "641.4165",
+                    "rating_field": "current_rating",
+                    "rating_place": 61,
+                    "surname": "Степанюк"
+                }
+            ],
+            "pointsMinus": 6,
+            "pointsPlus": 13,
+            "portalTeamId": 2564,
+            "rating": 12.625,
+            "smallBuhgolts": 0,
+            "title": "СТЕПАНЮК Валерій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                13,
+                1,
+                25
+            ],
+            "opponents": [
+                "СТЕПАНЮК Галина"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1339,
+                    "name": "Володимир",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Кавун"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 1,
+            "portalTeamId": 3644,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "КАВУН Володимир",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 24,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                "name": "Sharkany Petanque Club",
+                "short_name": "Sharkany"
+            },
+            "lanes": [
+                2,
+                7,
+                9
+            ],
+            "opponents": [
+                "ЗАМОГИЛЬНИЙ Олександр"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/c2d8ef3fe4d2f3057b6e27bfa4186daa.png",
+                    "club": "Sharkany Petanque Club",
+                    "club_id": 24,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "club_short_name": "Sharkany",
+                    "id": 937,
+                    "name": "Наталія",
+                    "rating": "1419.6888",
+                    "rating_field": "current_rating",
+                    "rating_place": 18,
+                    "surname": "Мущинка"
+                }
+            ],
+            "pointsMinus": 11,
+            "pointsPlus": 13,
+            "portalTeamId": 2641,
+            "rating": 27.375,
+            "smallBuhgolts": 0,
+            "title": "МУЩИНКА Наталія",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                10,
+                16,
+                4
+            ],
+            "opponents": [
+                "СТЕПАНЮК Валерій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1343,
+                    "name": "Ярослав",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Федишин"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 6,
+            "portalTeamId": 3656,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ФЕДИШИН Ярослав",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 23,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                "name": "Карпатська Спортивна Ліга",
+                "short_name": "KSL"
+            },
+            "lanes": [
+                8,
+                18,
+                11
+            ],
+            "opponents": [
+                "ПОПОВИЧ Андрій"
+            ],
+            "players": [
+                {
+                    "club": "Карпатська Спортивна Ліга",
+                    "club_id": 23,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                    "club_short_name": "KSL",
+                    "id": 737,
+                    "name": "Артем",
+                    "rating": "395.7533",
+                    "rating_field": "current_rating",
+                    "rating_place": 87,
+                    "sport_title": "candidate",
+                    "surname": "Литовченко"
+                }
+            ],
+            "pointsMinus": 9,
+            "pointsPlus": 11,
+            "portalTeamId": 1730,
+            "rating": 4.75,
+            "smallBuhgolts": 0,
+            "title": "ЛИТОВЧЕНКО Артем",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                8,
+                0,
+                7
+            ],
+            "opponents": [
+                "ЛИТОВЧЕНКО Артем"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/fa861c1f829ad7f4ea80b3466d850094.jpg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 964,
+                    "name": "Андрій",
+                    "rating": "1203.3837",
+                    "rating_field": "current_rating",
+                    "rating_place": 30,
+                    "surname": "Попович"
+                }
+            ],
+            "pointsMinus": 11,
+            "pointsPlus": 9,
+            "portalTeamId": 2797,
+            "rating": 31.125,
+            "smallBuhgolts": 0,
+            "title": "ПОПОВИЧ Андрій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                12,
+                4,
+                19
+            ],
+            "opponents": [
+                "БАБЯК Сергій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1233,
+                    "name": "Світлана",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Рубцова"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 3484,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "РУБЦОВА Світлана",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 24,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                "name": "Sharkany Petanque Club",
+                "short_name": "Sharkany"
+            },
+            "lanes": [
+                17,
+                9,
+                10
+            ],
+            "opponents": [
+                "МУРАШОВ Олександр"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/2281db684449b7283fcd748afd2a53e6.png",
+                    "club": "Sharkany Petanque Club",
+                    "club_id": 24,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "club_short_name": "Sharkany",
+                    "id": 173,
+                    "name": "Андрій",
+                    "rating": "1528.2051",
+                    "rating_field": "current_rating",
+                    "rating_place": 16,
+                    "sport_title": "candidate",
+                    "surname": "Ганусич"
+                }
+            ],
+            "pointsMinus": 6,
+            "pointsPlus": 13,
+            "portalTeamId": 532,
+            "rating": 34.75,
+            "smallBuhgolts": 0,
+            "title": "ГАНУСИЧ Андрій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 24,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                "name": "Sharkany Petanque Club",
+                "short_name": "Sharkany"
+            },
+            "lanes": [
+                19,
+                7,
+                9
+            ],
+            "opponents": [
+                "КОСЕНКО Сергій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/79a4a61ff91bc58b18e2d38203de9f3a.png",
+                    "club": "Sharkany Petanque Club",
+                    "club_id": 24,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "club_short_name": "Sharkany",
+                    "id": 914,
+                    "name": "Анатолій",
+                    "rating": "1616.0974",
+                    "rating_field": "current_rating",
+                    "rating_place": 13,
+                    "sport_title": "candidate",
+                    "surname": "Мущинка"
+                }
+            ],
+            "pointsMinus": 0,
+            "pointsPlus": 13,
+            "portalTeamId": 2523,
+            "rating": 33.1875,
+            "smallBuhgolts": 0,
+            "title": "МУЩИНКА Анатолій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                3,
+                13,
+                23
+            ],
+            "opponents": [
+                "РОЖОК Олександр"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1344,
+                    "name": "Олег",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "second_name": "",
+                    "surname": "Загребельний"
+                }
+            ],
+            "pointsMinus": 11,
+            "pointsPlus": 13,
+            "portalTeamId": 3657,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ЗАГРЕБЕЛЬНИЙ Олег",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                7,
+                12,
+                15
+            ],
+            "opponents": [
+                "БАГІНСЬКА Марія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1346,
+                    "name": "Віталій",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "second_name": "Сергійович",
+                    "surname": "Довлісаров"
+                }
+            ],
+            "pointsMinus": 0,
+            "pointsPlus": 13,
+            "portalTeamId": 3653,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ДОВЛІСАРОВ Віталій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 21,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                "name": "Кульмайстер петанк-клуб",
+                "short_name": "Кульмайстер"
+            },
+            "lanes": [
+                13,
+                19,
+                14
+            ],
+            "opponents": [
+                "КАВУН Володимир"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/cde4cd7baeae68fb1ce6519ccc274302.jpg",
+                    "club": "Кульмайстер петанк-клуб",
+                    "club_id": 21,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                    "club_short_name": "Кульмайстер",
+                    "id": 911,
+                    "name": "Галина",
+                    "rating": "705.3501",
+                    "rating_field": "current_rating",
+                    "rating_place": 58,
+                    "sport_title": "candidate",
+                    "surname": "СТЕПАНЮК"
+                }
+            ],
+            "pointsMinus": 1,
+            "pointsPlus": 13,
+            "portalTeamId": 2565,
+            "rating": 15.8125,
+            "smallBuhgolts": 0,
+            "title": "СТЕПАНЮК Галина",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                9,
+                11,
+                3
+            ],
+            "opponents": [
+                "САПУЦЬКИЙ Назарій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/d627aab848c3ed16c8de52732373b8b3.jpeg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 49,
+                    "name": "Олександр",
+                    "rating": "207.0677",
+                    "rating_field": "current_rating",
+                    "rating_place": 116,
+                    "sport_title": "candidate",
+                    "surname": "Труш"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 12,
+            "portalTeamId": 26,
+            "rating": 8.3125,
+            "smallBuhgolts": 0,
+            "title": "ТРУШ Олександр",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                5,
+                17,
+                16
+            ],
+            "opponents": [
+                "ЗАЙЦЕВ Валерій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1129,
+                    "name": "Корева",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Володимир"
+                }
+            ],
+            "pointsMinus": 11,
+            "pointsPlus": 13,
+            "portalTeamId": 3243,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ВОЛОДИМИР Корева",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                23,
+                3,
+                2
+            ],
+            "opponents": [
+                "МАКСИМЕНКО Сергій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1058,
+                    "name": "Андрій",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Круль"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 3147,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "КРУЛЬ Андрій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                26,
+                20,
+                22
+            ],
+            "opponents": [
+                "ШИМКО Андрій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1158,
+                    "name": "Віталій",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Шуміленко"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 12,
+            "portalTeamId": 3668,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ШУМІЛЕНКО Віталій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                18,
+                25,
+                5
+            ],
+            "opponents": [
+                "ГРИЦЮК Тарас"
+            ],
+            "players": [
+                {
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 1026,
+                    "name": "Anton",
+                    "rating": "149.8756",
+                    "rating_field": "current_rating",
+                    "rating_place": 126,
+                    "surname": "Abramov"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 3028,
+            "rating": 6.1875,
+            "smallBuhgolts": 0,
+            "title": "ABRAMOV Anton",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                1,
+                18,
+                11
+            ],
+            "opponents": [
+                "КИЯНИЦЯ Дмитро"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1159,
+                    "name": "Іван",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Дрозд"
+                }
+            ],
+            "pointsMinus": 4,
+            "pointsPlus": 13,
+            "portalTeamId": 3669,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ДРОЗД Іван",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "players": [
+                {
+                    "club": "",
+                    "id": 1234,
+                    "name": "Михайло",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Савчук"
+                }
+            ],
+            "pointsMinus": 0,
+            "pointsPlus": 0,
+            "portalTeamId": 3684,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "САВЧУК Михайло",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                20,
+                22,
+                12
+            ],
+            "opponents": [
+                "КУСЕНЬ Світлана"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1057,
+                    "name": "Роман",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Онучко"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 10,
+            "portalTeamId": 3146,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ОНУЧКО Роман",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                21,
+                24,
+                8
+            ],
+            "opponents": [
+                "ПОПОВИЧ Наталія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1051,
+                    "name": "Володимир",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Качан"
+                }
+            ],
+            "pointsMinus": 4,
+            "pointsPlus": 13,
+            "portalTeamId": 3141,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "КАЧАН Володимир",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                19,
+                20,
+                22
+            ],
+            "opponents": [
+                "МУЩИНКА Анатолій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/44540353ff01b23874dfcae416970cda.jpg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 944,
+                    "name": "Сергій",
+                    "rating": "73.4052",
+                    "rating_field": "current_rating",
+                    "rating_place": 141,
+                    "surname": "Косенко"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 0,
+            "portalTeamId": 2798,
+            "rating": 0.9375,
+            "smallBuhgolts": 0,
+            "title": "КОСЕНКО Сергій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                14,
+                2,
+                21
+            ],
+            "opponents": [
+                "ПЕРЕВЕРТЕНЬ Юрій"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 371,
+                    "name": "Іван",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "surname": "Твердун"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 3025,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ТВЕРДУН Іван",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 11,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/e7b1021201422a8886ed2112d4f33680.jpg",
+                "name": "Спортивний клуб «Leo Family»",
+                "short_name": "Leo Family"
+            },
+            "lanes": [
+                20,
+                26,
+                1
+            ],
+            "opponents": [
+                "ОНУЧКО Роман"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ac9a4315f8dd8faa29f6621e1fb95768.jpg",
+                    "club": "Спортивний клуб «Leo Family»",
+                    "club_id": 11,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/e7b1021201422a8886ed2112d4f33680.jpg",
+                    "club_short_name": "Leo Family",
+                    "id": 34,
+                    "name": "Світлана",
+                    "rating": "279.3374",
+                    "rating_field": "current_rating",
+                    "rating_place": 103,
+                    "surname": "Кусень"
+                }
+            ],
+            "pointsMinus": 10,
+            "pointsPlus": 13,
+            "portalTeamId": 24,
+            "rating": 9.0625,
+            "smallBuhgolts": 0,
+            "title": "КУСЕНЬ Світлана",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 2,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                "name": "Спортивний петанк-клуб «Чесна Гра»",
+                "short_name": "Fair Play"
+            },
+            "lanes": [
+                21,
+                15,
+                18
+            ],
+            "opponents": [
+                "КАЧАН Володимир"
+            ],
+            "players": [
+                {
+                    "club": "Спортивний петанк-клуб «Чесна Гра»",
+                    "club_id": 2,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                    "club_short_name": "Fair Play",
+                    "id": 1029,
+                    "name": "Наталія",
+                    "rating": "436.7780",
+                    "rating_field": "current_rating",
+                    "surname": "Попович"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 4,
+            "portalTeamId": 3276,
+            "rating": 10.0625,
+            "smallBuhgolts": 0,
+            "title": "ПОПОВИЧ Наталія",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                25,
+                4,
+                19
+            ],
+            "opponents": [
+                "ВІВЧАР Володимир"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/567f028c928b20a931265e165d7745d1.jpeg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 1047,
+                    "name": "Юлія",
+                    "rating": "318.4779",
+                    "rating_field": "current_rating",
+                    "rating_place": 96,
+                    "second_name": "Володимирівна",
+                    "surname": "Уварова"
+                }
+            ],
+            "pointsMinus": 8,
+            "pointsPlus": 13,
+            "portalTeamId": 3135,
+            "rating": 8.4376,
+            "smallBuhgolts": 0,
+            "title": "УВАРОВА Юлія",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                22,
+                15,
+                18
+            ],
+            "opponents": [
+                "ДЕНИСЕНКО Максим"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/3675d19d1c0ee33987089cebab4fc787.jpg",
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 832,
+                    "name": "Віталія",
+                    "rating": "1249.5688",
+                    "rating_field": "current_rating",
+                    "rating_place": 29,
+                    "sport_title": "candidate",
+                    "surname": "Баркар"
+                }
+            ],
+            "pointsMinus": 11,
+            "pointsPlus": 10,
+            "portalTeamId": 2097,
+            "rating": 23.8438,
+            "smallBuhgolts": 0,
+            "title": "БАРКАР Віталія",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 22,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                "name": "Сталевий легіон Спортивний клуб",
+                "short_name": "Сталевий Легіон"
+            },
+            "lanes": [
+                26,
+                23,
+                26
+            ],
+            "opponents": [
+                "ШУМІЛЕНКО Віталій"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/6e8988c2e41c3f8b1dffe6861c976add.jpg",
+                    "club": "Сталевий легіон Спортивний клуб",
+                    "club_id": 22,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "club_short_name": "Сталевий Легіон",
+                    "id": 967,
+                    "name": "Андрій",
+                    "rating": "524.0618",
+                    "rating_field": "current_rating",
+                    "rating_place": 71,
+                    "surname": "Шимко"
+                }
+            ],
+            "pointsMinus": 12,
+            "pointsPlus": 13,
+            "portalTeamId": 2806,
+            "rating": 10.9375,
+            "smallBuhgolts": 0,
+            "title": "ШИМКО Андрій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 14,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                "name": "Спортивний петанк-клуб «Кошовий»",
+                "short_name": "Кошовий"
+            },
+            "lanes": [
+                16,
+                21,
+                6
+            ],
+            "opponents": [
+                "РОСЛОВ Олександр"
+            ],
+            "players": [
+                {
+                    "club": "Спортивний петанк-клуб «Кошовий»",
+                    "club_id": 14,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "club_short_name": "Кошовий",
+                    "id": 989,
+                    "name": "Поліна",
+                    "rating": "335.1512",
+                    "rating_field": "current_rating",
+                    "rating_place": 93,
+                    "surname": "Попович"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 5,
+            "portalTeamId": 2980,
+            "rating": 6.3438,
+            "smallBuhgolts": 0,
+            "title": "ПОПОВИЧ Поліна",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                0,
+                26,
+                1
+            ],
+            "opponents": [
+                "БАБЯК Анастасія"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ef3a4618e7a5080f28653dbb51dfeeb8.jpg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 963,
+                    "name": "Ксенія",
+                    "rating": "1656.6050",
+                    "rating_field": "current_rating",
+                    "rating_place": 11,
+                    "surname": "Попович"
+                }
+            ],
+            "pointsMinus": 2,
+            "pointsPlus": 13,
+            "portalTeamId": 2796,
+            "rating": 38.625,
+            "smallBuhgolts": 0,
+            "title": "ПОПОВИЧ Ксенія",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 16,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                "name": "Аптаун Петанк Клаб",
+                "short_name": "Аптаун"
+            },
+            "lanes": [
+                14,
+                17,
+                16
+            ],
+            "opponents": [
+                "ТВЕРДУН Іван"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/6688c77c329de8c5e2204462ba10b12c.jpg",
+                    "club": "Аптаун Петанк Клаб",
+                    "club_id": 16,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "club_short_name": "Аптаун",
+                    "id": 978,
+                    "name": "Юрій",
+                    "rating": "502.6312",
+                    "rating_field": "current_rating",
+                    "rating_place": 73,
+                    "sport_title": "candidate",
+                    "surname": "Перевертень"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 2884,
+            "rating": 10.4063,
+            "smallBuhgolts": 0,
+            "title": "ПЕРЕВЕРТЕНЬ Юрій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                6,
+                12,
+                15
+            ],
+            "opponents": [
+                "ПЕРЕВЕРТЕНЬ Ольга"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1359,
+                    "name": "Олександр",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "second_name": "Сергійович",
+                    "surname": "Мужчіль"
+                }
+            ],
+            "pointsMinus": 7,
+            "pointsPlus": 13,
+            "portalTeamId": 3694,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "МУЖЧІЛЬ Олександр",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 22,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                "name": "Сталевий легіон Спортивний клуб",
+                "short_name": "Сталевий Легіон"
+            },
+            "lanes": [
+                15,
+                16,
+                4
+            ],
+            "opponents": [
+                "ЛИТВИН Лілія"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/8fe1b2cdaf8ab625af59203d2cf45b93.jpeg",
+                    "club": "Сталевий легіон Спортивний клуб",
+                    "club_id": 22,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "club_short_name": "Сталевий Легіон",
+                    "id": 995,
+                    "name": "Анатолій",
+                    "rating": "95.7693",
+                    "rating_field": "current_rating",
+                    "rating_place": 135,
+                    "surname": "Остапчук"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 2946,
+            "rating": 2.25,
+            "smallBuhgolts": 0,
+            "title": "ОСТАПЧУК Анатолій",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 22,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                "name": "Сталевий легіон Спортивний клуб",
+                "short_name": "Сталевий Легіон"
+            },
+            "lanes": [
+                24,
+                1,
+                25
+            ],
+            "opponents": [
+                "GILLADE Peter Paul"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/c7b087bb93e66ad44033a3f7927d4c5f.jpeg",
+                    "club": "Сталевий легіон Спортивний клуб",
+                    "club_id": 22,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "club_short_name": "Сталевий Легіон",
+                    "id": 1001,
+                    "name": "Гіоргі",
+                    "rating": "437.5024",
+                    "rating_field": "current_rating",
+                    "rating_place": 80,
+                    "surname": "Кирія"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 12,
+            "portalTeamId": 2944,
+            "rating": 8.7969,
+            "smallBuhgolts": 0,
+            "title": "КИРІЯ Гіоргі",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                9,
+                24,
+                8
+            ],
+            "opponents": [
+                "ТРУШ Олександр"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1360,
+                    "name": "Назарій",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "second_name": "Ярославович",
+                    "surname": "Сапуцький"
+                }
+            ],
+            "pointsMinus": 12,
+            "pointsPlus": 13,
+            "portalTeamId": 3706,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "САПУЦЬКИЙ Назарій",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 7,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                "name": "Спортивний петанк-клуб «Зелені леви»",
+                "short_name": "Зелені леви"
+            },
+            "lanes": [
+                3,
+                25,
+                5
+            ],
+            "opponents": [
+                "ЗАГРЕБЕЛЬНИЙ Олег"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ae4d4fcb9e34258204b0bde4c6025bbd.jpeg",
+                    "club": "Спортивний петанк-клуб «Зелені леви»",
+                    "club_id": 7,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "club_short_name": "Зелені леви",
+                    "id": 1027,
+                    "name": "Олександр",
+                    "rating": "700.7083",
+                    "rating_field": "current_rating",
+                    "rating_place": 59,
+                    "second_name": "Олександрович",
+                    "surname": "Рожок"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 11,
+            "portalTeamId": 3029,
+            "rating": 19,
+            "smallBuhgolts": 0,
+            "title": "РОЖОК Олександр",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "lanes": [
+                25,
+                8,
+                20
+            ],
+            "opponents": [
+                "УВАРОВА Юлія"
+            ],
+            "players": [
+                {
+                    "club": "",
+                    "id": 1361,
+                    "name": "Володимир",
+                    "rating": "0.0000",
+                    "rating_field": "current_rating",
+                    "second_name": "",
+                    "surname": "Вівчар"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 8,
+            "portalTeamId": 3709,
+            "rating": 0,
+            "smallBuhgolts": 0,
+            "title": "ВІВЧАР Володимир",
+            "wins": 0
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 24,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                "name": "Sharkany Petanque Club",
+                "short_name": "Sharkany"
+            },
+            "lanes": [
+                24,
+                19,
+                14
+            ],
+            "opponents": [
+                "КИРІЯ Гіоргі"
+            ],
+            "players": [
+                {
+                    "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/a42d8a1bbe2470ea02ab6c3783a24e4b.png",
+                    "club": "Sharkany Petanque Club",
+                    "club_id": 24,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "club_short_name": "Sharkany",
+                    "id": 600,
+                    "name": "Peter Paul",
+                    "rating": "1806.3520",
+                    "rating_field": "current_rating",
+                    "rating_place": 5,
+                    "sport_title": "candidate",
+                    "surname": "Gillade"
+                }
+            ],
+            "pointsMinus": 12,
+            "pointsPlus": 13,
+            "portalTeamId": 1373,
+            "rating": 41.75,
+            "smallBuhgolts": 0,
+            "title": "GILLADE Peter Paul",
+            "wins": 1
+        },
+        {
+            "buhgolts": 0,
+            "club": {
+                "id": 27,
+                "logo_url": "http://petanque-portal.s3.amazonaws.com/media/8e8d4e63d76b5c8f7f63e6ea9d17a80e.jpg",
+                "name": "Громадська Організація \"Петанк клуб \"Петаксис\"",
+                "short_name": "ГО \"ПК\"ПЕТАКСИС\""
+            },
+            "lanes": [
+                4,
+                6,
+                17
+            ],
+            "opponents": [
+                "ОГАНОВ Артем"
+            ],
+            "players": [
+                {
+                    "club": "Громадська Організація \"Петанк клуб \"Петаксис\"",
+                    "club_id": 27,
+                    "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/8e8d4e63d76b5c8f7f63e6ea9d17a80e.jpg",
+                    "club_short_name": "ГО \"ПК\"ПЕТАКСИС\"",
+                    "id": 803,
+                    "name": "Вікторія",
+                    "rating": "1755.0770",
+                    "rating_field": "current_rating",
+                    "rating_place": 7,
+                    "sport_title": "candidate",
+                    "surname": "Фрелік"
+                }
+            ],
+            "pointsMinus": 13,
+            "pointsPlus": 7,
+            "portalTeamId": 2153,
+            "rating": 34.6875,
+            "smallBuhgolts": 0,
+            "title": "ФРЕЛІК Вікторія",
+            "wins": 0
+        }
+    ],
+    "system": "swiss",
+    "roundIsActive": true,
+    "useRating": false,
+    "playoff": false,
+    "isCadrage": false,
+    "supermelePlayers": 2,
+    "tournamentIsFinished": false,
+    "tournamentMessage": "",
+    "preferences": {
+        "barrageTeams": 8,
+        "cochonettes": 1,
+        "cochonettesEnabled": true,
+        "fieldsStart": 1,
+        "groupDrawMethod": "snake",
+        "groupFormat": "swiss",
+        "groupSwissRounds": 4,
+        "isTestTournament": false,
+        "maxScore": 13,
+        "noTimeLimitFinale": false,
+        "playB": false,
+        "playOffEnabled": true,
+        "playOffTeams": 16,
+        "playoffTimeLimit": 60,
+        "technical": {
+            "technicalFirst": 13,
+            "technicalSecond": 7
+        },
+        "timeLimit": 45,
+        "timeLimitEnabled": true,
+        "withBarrage": false,
+        "withCadrage": false
+    },
+    "createdAt": "2026-06-19T08:31:19.785Z",
+    "date": "2026-06-19",
+    "groups": [
+        [
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 24,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "name": "Sharkany Petanque Club",
+                    "short_name": "Sharkany"
+                },
+                "lanes": [
+                    24
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/a42d8a1bbe2470ea02ab6c3783a24e4b.png",
+                        "club": "Sharkany Petanque Club",
+                        "club_id": 24,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                        "club_short_name": "Sharkany",
+                        "id": 600,
+                        "name": "Peter Paul",
+                        "rating": "1806.3520",
+                        "rating_field": "current_rating",
+                        "rating_place": 5,
+                        "sport_title": "candidate",
+                        "surname": "Gillade"
+                    }
+                ],
+                "pointsMinus": 12,
+                "pointsPlus": 13,
+                "portalTeamId": 1373,
+                "rating": 41.75,
+                "smallBuhgolts": 0,
+                "title": "GILLADE Peter Paul",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    8
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/fa861c1f829ad7f4ea80b3466d850094.jpg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 964,
+                        "name": "Андрій",
+                        "rating": "1203.3837",
+                        "rating_field": "current_rating",
+                        "rating_place": 30,
+                        "surname": "Попович"
+                    }
+                ],
+                "pointsMinus": 11,
+                "pointsPlus": 9,
+                "portalTeamId": 2797,
+                "rating": 31.125,
+                "smallBuhgolts": 0,
+                "title": "ПОПОВИЧ Андрій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    15
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/adf72bb4f3ff108b3d2ca2ed33beaf01.jpg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 621,
+                        "name": "Лілія",
+                        "rating": "1199.6326",
+                        "rating_field": "current_rating",
+                        "rating_place": 31,
+                        "sport_title": "candidate",
+                        "surname": "Литвин"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 1341,
+                "rating": 27.75,
+                "smallBuhgolts": 0,
+                "title": "ЛИТВИН Лілія",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 21,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                    "name": "Кульмайстер петанк-клуб",
+                    "short_name": "Кульмайстер"
+                },
+                "lanes": [
+                    13
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/cde4cd7baeae68fb1ce6519ccc274302.jpg",
+                        "club": "Кульмайстер петанк-клуб",
+                        "club_id": 21,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                        "club_short_name": "Кульмайстер",
+                        "id": 911,
+                        "name": "Галина",
+                        "rating": "705.3501",
+                        "rating_field": "current_rating",
+                        "rating_place": 58,
+                        "sport_title": "candidate",
+                        "surname": "СТЕПАНЮК"
+                    }
+                ],
+                "pointsMinus": 1,
+                "pointsPlus": 13,
+                "portalTeamId": 2565,
+                "rating": 15.8125,
+                "smallBuhgolts": 0,
+                "title": "СТЕПАНЮК Галина",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 21,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                    "name": "Кульмайстер петанк-клуб",
+                    "short_name": "Кульмайстер"
+                },
+                "lanes": [
+                    10
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/12919dc618d5a7503b44201a908e06c5.jpg",
+                        "club": "Кульмайстер петанк-клуб",
+                        "club_id": 21,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/a99ced07892659240497a77087bc831a.jpg",
+                        "club_short_name": "Кульмайстер",
+                        "id": 884,
+                        "name": "Валерій",
+                        "rating": "641.4165",
+                        "rating_field": "current_rating",
+                        "rating_place": 61,
+                        "surname": "Степанюк"
+                    }
+                ],
+                "pointsMinus": 6,
+                "pointsPlus": 13,
+                "portalTeamId": 2564,
+                "rating": 12.625,
+                "smallBuhgolts": 0,
+                "title": "СТЕПАНЮК Валерій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    1
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/a2b2a6ee2a613263b1da47dd2c4b9812.jpeg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 587,
+                        "name": "Дмитро",
+                        "rating": "404.3231",
+                        "rating_field": "current_rating",
+                        "rating_place": 84,
+                        "second_name": "Олексійович",
+                        "sport_title": "candidate",
+                        "surname": "Кияниця"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 4,
+                "portalTeamId": 1107,
+                "rating": 8.875,
+                "smallBuhgolts": 0,
+                "title": "КИЯНИЦЯ Дмитро",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 22,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "name": "Сталевий легіон Спортивний клуб",
+                    "short_name": "Сталевий Легіон"
+                },
+                "lanes": [
+                    24
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/c7b087bb93e66ad44033a3f7927d4c5f.jpeg",
+                        "club": "Сталевий легіон Спортивний клуб",
+                        "club_id": 22,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                        "club_short_name": "Сталевий Легіон",
+                        "id": 1001,
+                        "name": "Гіоргі",
+                        "rating": "437.5024",
+                        "rating_field": "current_rating",
+                        "rating_place": 80,
+                        "surname": "Кирія"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 12,
+                "portalTeamId": 2944,
+                "rating": 8.7969,
+                "smallBuhgolts": 0,
+                "title": "КИРІЯ Гіоргі",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 23,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                    "name": "Карпатська Спортивна Ліга",
+                    "short_name": "KSL"
+                },
+                "lanes": [
+                    8
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Карпатська Спортивна Ліга",
+                        "club_id": 23,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                        "club_short_name": "KSL",
+                        "id": 737,
+                        "name": "Артем",
+                        "rating": "395.7533",
+                        "rating_field": "current_rating",
+                        "rating_place": 87,
+                        "sport_title": "candidate",
+                        "surname": "Литовченко"
+                    }
+                ],
+                "pointsMinus": 9,
+                "pointsPlus": 11,
+                "portalTeamId": 1730,
+                "rating": 4.75,
+                "smallBuhgolts": 0,
+                "title": "ЛИТОВЧЕНКО Артем",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 22,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "name": "Сталевий легіон Спортивний клуб",
+                    "short_name": "Сталевий Легіон"
+                },
+                "lanes": [
+                    15
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/8fe1b2cdaf8ab625af59203d2cf45b93.jpeg",
+                        "club": "Сталевий легіон Спортивний клуб",
+                        "club_id": 22,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                        "club_short_name": "Сталевий Легіон",
+                        "id": 995,
+                        "name": "Анатолій",
+                        "rating": "95.7693",
+                        "rating_field": "current_rating",
+                        "rating_place": 135,
+                        "surname": "Остапчук"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 2946,
+                "rating": 2.25,
+                "smallBuhgolts": 0,
+                "title": "ОСТАПЧУК Анатолій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    13
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1339,
+                        "name": "Володимир",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Кавун"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 1,
+                "portalTeamId": 3644,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "КАВУН Володимир",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    10
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1343,
+                        "name": "Ярослав",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Федишин"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 6,
+                "portalTeamId": 3656,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ФЕДИШИН Ярослав",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    1
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1159,
+                        "name": "Іван",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Дрозд"
+                    }
+                ],
+                "pointsMinus": 4,
+                "pointsPlus": 13,
+                "portalTeamId": 3669,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ДРОЗД Іван",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1234,
+                        "name": "Михайло",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Савчук"
+                    }
+                ],
+                "pointsMinus": 0,
+                "pointsPlus": 0,
+                "portalTeamId": 3684,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "САВЧУК Михайло",
+                "wins": 0
+            }
+        ],
+        [
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    0
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ef3a4618e7a5080f28653dbb51dfeeb8.jpg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 963,
+                        "name": "Ксенія",
+                        "rating": "1656.6050",
+                        "rating_field": "current_rating",
+                        "rating_place": 11,
+                        "surname": "Попович"
+                    }
+                ],
+                "pointsMinus": 2,
+                "pointsPlus": 13,
+                "portalTeamId": 2796,
+                "rating": 38.625,
+                "smallBuhgolts": 0,
+                "title": "ПОПОВИЧ Ксенія",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 24,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "name": "Sharkany Petanque Club",
+                    "short_name": "Sharkany"
+                },
+                "lanes": [
+                    19
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/79a4a61ff91bc58b18e2d38203de9f3a.png",
+                        "club": "Sharkany Petanque Club",
+                        "club_id": 24,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                        "club_short_name": "Sharkany",
+                        "id": 914,
+                        "name": "Анатолій",
+                        "rating": "1616.0974",
+                        "rating_field": "current_rating",
+                        "rating_place": 13,
+                        "sport_title": "candidate",
+                        "surname": "Мущинка"
+                    }
+                ],
+                "pointsMinus": 0,
+                "pointsPlus": 13,
+                "portalTeamId": 2523,
+                "rating": 33.1875,
+                "smallBuhgolts": 0,
+                "title": "МУЩИНКА Анатолій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 24,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "name": "Sharkany Petanque Club",
+                    "short_name": "Sharkany"
+                },
+                "lanes": [
+                    2
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/c2d8ef3fe4d2f3057b6e27bfa4186daa.png",
+                        "club": "Sharkany Petanque Club",
+                        "club_id": 24,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                        "club_short_name": "Sharkany",
+                        "id": 937,
+                        "name": "Наталія",
+                        "rating": "1419.6888",
+                        "rating_field": "current_rating",
+                        "rating_place": 18,
+                        "surname": "Мущинка"
+                    }
+                ],
+                "pointsMinus": 11,
+                "pointsPlus": 13,
+                "portalTeamId": 2641,
+                "rating": 27.375,
+                "smallBuhgolts": 0,
+                "title": "МУЩИНКА Наталія",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    12
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/8bb51b46f006a01011844aaae36fa371.jpeg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 586,
+                        "name": "Сергій",
+                        "rating": "980.2065",
+                        "rating_field": "current_rating",
+                        "rating_place": 43,
+                        "sport_title": "candidate",
+                        "surname": "Бабяк"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 1106,
+                "rating": 18.3125,
+                "smallBuhgolts": 0,
+                "title": "БАБЯК Сергій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 22,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                    "name": "Сталевий легіон Спортивний клуб",
+                    "short_name": "Сталевий Легіон"
+                },
+                "lanes": [
+                    26
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/6e8988c2e41c3f8b1dffe6861c976add.jpg",
+                        "club": "Сталевий легіон Спортивний клуб",
+                        "club_id": 22,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f91664b41013e0f3ac9adfaeb355f3bd.png",
+                        "club_short_name": "Сталевий Легіон",
+                        "id": 967,
+                        "name": "Андрій",
+                        "rating": "524.0618",
+                        "rating_field": "current_rating",
+                        "rating_place": 71,
+                        "surname": "Шимко"
+                    }
+                ],
+                "pointsMinus": 12,
+                "pointsPlus": 13,
+                "portalTeamId": 2806,
+                "rating": 10.9375,
+                "smallBuhgolts": 0,
+                "title": "ШИМКО Андрій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 11,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/e7b1021201422a8886ed2112d4f33680.jpg",
+                    "name": "Спортивний клуб «Leo Family»",
+                    "short_name": "Leo Family"
+                },
+                "lanes": [
+                    20
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ac9a4315f8dd8faa29f6621e1fb95768.jpg",
+                        "club": "Спортивний клуб «Leo Family»",
+                        "club_id": 11,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/e7b1021201422a8886ed2112d4f33680.jpg",
+                        "club_short_name": "Leo Family",
+                        "id": 34,
+                        "name": "Світлана",
+                        "rating": "279.3374",
+                        "rating_field": "current_rating",
+                        "rating_place": 103,
+                        "surname": "Кусень"
+                    }
+                ],
+                "pointsMinus": 10,
+                "pointsPlus": 13,
+                "portalTeamId": 24,
+                "rating": 9.0625,
+                "smallBuhgolts": 0,
+                "title": "КУСЕНЬ Світлана",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    25
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/567f028c928b20a931265e165d7745d1.jpeg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 1047,
+                        "name": "Юлія",
+                        "rating": "318.4779",
+                        "rating_field": "current_rating",
+                        "rating_place": 96,
+                        "second_name": "Володимирівна",
+                        "surname": "Уварова"
+                    }
+                ],
+                "pointsMinus": 8,
+                "pointsPlus": 13,
+                "portalTeamId": 3135,
+                "rating": 8.4376,
+                "smallBuhgolts": 0,
+                "title": "УВАРОВА Юлія",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    0
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ace209cca3fac8eb30c521eb689b94dd.jpg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 723,
+                        "name": "Анастасія",
+                        "rating": "214.8896",
+                        "rating_field": "current_rating",
+                        "rating_place": 115,
+                        "surname": "Бабяк"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 2,
+                "portalTeamId": 1623,
+                "rating": 5.75,
+                "smallBuhgolts": 0,
+                "title": "БАБЯК Анастасія",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    19
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/44540353ff01b23874dfcae416970cda.jpg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 944,
+                        "name": "Сергій",
+                        "rating": "73.4052",
+                        "rating_field": "current_rating",
+                        "rating_place": 141,
+                        "surname": "Косенко"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 0,
+                "portalTeamId": 2798,
+                "rating": 0.9375,
+                "smallBuhgolts": 0,
+                "title": "КОСЕНКО Сергій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    2
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1340,
+                        "name": "Олександр",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Замогильний"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 11,
+                "portalTeamId": 3643,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ЗАМОГИЛЬНИЙ Олександр",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    12
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1233,
+                        "name": "Світлана",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Рубцова"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 3484,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "РУБЦОВА Світлана",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    26
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1158,
+                        "name": "Віталій",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Шуміленко"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 12,
+                "portalTeamId": 3668,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ШУМІЛЕНКО Віталій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    20
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1057,
+                        "name": "Роман",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Онучко"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 10,
+                "portalTeamId": 3146,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ОНУЧКО Роман",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    25
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1361,
+                        "name": "Володимир",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "second_name": "",
+                        "surname": "Вівчар"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 8,
+                "portalTeamId": 3709,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ВІВЧАР Володимир",
+                "wins": 0
+            }
+        ],
+        [
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    18
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/dd36aa42831da0d39ea7750822f4ccaa.jpg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 807,
+                        "name": "Тарас",
+                        "rating": "1720.9915",
+                        "rating_field": "current_rating",
+                        "rating_place": 9,
+                        "sport_title": "candidate",
+                        "surname": "Грицюк"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 1956,
+                "rating": 36.2188,
+                "smallBuhgolts": 0,
+                "title": "ГРИЦЮК Тарас",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 27,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/8e8d4e63d76b5c8f7f63e6ea9d17a80e.jpg",
+                    "name": "Громадська Організація \"Петанк клуб \"Петаксис\"",
+                    "short_name": "ГО \"ПК\"ПЕТАКСИС\""
+                },
+                "lanes": [
+                    4
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Громадська Організація \"Петанк клуб \"Петаксис\"",
+                        "club_id": 27,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/8e8d4e63d76b5c8f7f63e6ea9d17a80e.jpg",
+                        "club_short_name": "ГО \"ПК\"ПЕТАКСИС\"",
+                        "id": 803,
+                        "name": "Вікторія",
+                        "rating": "1755.0770",
+                        "rating_field": "current_rating",
+                        "rating_place": 7,
+                        "sport_title": "candidate",
+                        "surname": "Фрелік"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 2153,
+                "rating": 34.6875,
+                "smallBuhgolts": 0,
+                "title": "ФРЕЛІК Вікторія",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    22
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/3675d19d1c0ee33987089cebab4fc787.jpg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 832,
+                        "name": "Віталія",
+                        "rating": "1249.5688",
+                        "rating_field": "current_rating",
+                        "rating_place": 29,
+                        "sport_title": "candidate",
+                        "surname": "Баркар"
+                    }
+                ],
+                "pointsMinus": 11,
+                "pointsPlus": 10,
+                "portalTeamId": 2097,
+                "rating": 23.8438,
+                "smallBuhgolts": 0,
+                "title": "БАРКАР Віталія",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    3
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/ae4d4fcb9e34258204b0bde4c6025bbd.jpeg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 1027,
+                        "name": "Олександр",
+                        "rating": "700.7083",
+                        "rating_field": "current_rating",
+                        "rating_place": 59,
+                        "second_name": "Олександрович",
+                        "surname": "Рожок"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 11,
+                "portalTeamId": 3029,
+                "rating": 19,
+                "smallBuhgolts": 0,
+                "title": "РОЖОК Олександр",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 2,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                    "name": "Спортивний петанк-клуб «Чесна Гра»",
+                    "short_name": "Fair Play"
+                },
+                "lanes": [
+                    23
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Спортивний петанк-клуб «Чесна Гра»",
+                        "club_id": 2,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                        "club_short_name": "Fair Play",
+                        "id": 897,
+                        "name": "Сергій",
+                        "rating": "251.1059",
+                        "rating_field": "current_rating",
+                        "rating_place": 109,
+                        "surname": "Максименко"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 2385,
+                "rating": 10.8438,
+                "smallBuhgolts": 0,
+                "title": "МАКСИМЕНКО Сергій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 2,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                    "name": "Спортивний петанк-клуб «Чесна Гра»",
+                    "short_name": "Fair Play"
+                },
+                "lanes": [
+                    21
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Спортивний петанк-клуб «Чесна Гра»",
+                        "club_id": 2,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/10ff88c507b2c6bbe2323bf0f0b19fbf.jpg",
+                        "club_short_name": "Fair Play",
+                        "id": 1029,
+                        "name": "Наталія",
+                        "rating": "436.7780",
+                        "rating_field": "current_rating",
+                        "surname": "Попович"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 4,
+                "portalTeamId": 3276,
+                "rating": 10.0625,
+                "smallBuhgolts": 0,
+                "title": "ПОПОВИЧ Наталія",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    9
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/d627aab848c3ed16c8de52732373b8b3.jpeg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 49,
+                        "name": "Олександр",
+                        "rating": "207.0677",
+                        "rating_field": "current_rating",
+                        "rating_place": 116,
+                        "sport_title": "candidate",
+                        "surname": "Труш"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 12,
+                "portalTeamId": 26,
+                "rating": 8.3125,
+                "smallBuhgolts": 0,
+                "title": "ТРУШ Олександр",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    18
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 1026,
+                        "name": "Anton",
+                        "rating": "149.8756",
+                        "rating_field": "current_rating",
+                        "rating_place": 126,
+                        "surname": "Abramov"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 3028,
+                "rating": 6.1875,
+                "smallBuhgolts": 0,
+                "title": "ABRAMOV Anton",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    4
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1338,
+                        "name": "Артем",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Оганов"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 3641,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ОГАНОВ Артем",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    22
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1249,
+                        "name": "Максим",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Денисенко"
+                    }
+                ],
+                "pointsMinus": 10,
+                "pointsPlus": 11,
+                "portalTeamId": 3422,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ДЕНИСЕНКО Максим",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    3
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1344,
+                        "name": "Олег",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "second_name": "",
+                        "surname": "Загребельний"
+                    }
+                ],
+                "pointsMinus": 11,
+                "pointsPlus": 13,
+                "portalTeamId": 3657,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ЗАГРЕБЕЛЬНИЙ Олег",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    23
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1058,
+                        "name": "Андрій",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Круль"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 3147,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "КРУЛЬ Андрій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    21
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1051,
+                        "name": "Володимир",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Качан"
+                    }
+                ],
+                "pointsMinus": 4,
+                "pointsPlus": 13,
+                "portalTeamId": 3141,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "КАЧАН Володимир",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    9
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1360,
+                        "name": "Назарій",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "second_name": "Ярославович",
+                        "surname": "Сапуцький"
+                    }
+                ],
+                "pointsMinus": 12,
+                "pointsPlus": 13,
+                "portalTeamId": 3706,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "САПУЦЬКИЙ Назарій",
+                "wins": 1
+            }
+        ],
+        [
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    16
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/52c82b5c8536ed896bc3153af6cf13b4.jpg",
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 95,
+                        "name": "Олександр",
+                        "rating": "1602.5101",
+                        "rating_field": "current_rating",
+                        "rating_place": 14,
+                        "second_name": "Сергійович",
+                        "sport_title": "candidate",
+                        "surname": "Рослов"
+                    }
+                ],
+                "pointsMinus": 5,
+                "pointsPlus": 13,
+                "portalTeamId": 31,
+                "rating": 36.1875,
+                "smallBuhgolts": 0,
+                "title": "РОСЛОВ Олександр",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 24,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                    "name": "Sharkany Petanque Club",
+                    "short_name": "Sharkany"
+                },
+                "lanes": [
+                    17
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/2281db684449b7283fcd748afd2a53e6.png",
+                        "club": "Sharkany Petanque Club",
+                        "club_id": 24,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/f378f2aeb9f12c15983d800ab4de90b1.png",
+                        "club_short_name": "Sharkany",
+                        "id": 173,
+                        "name": "Андрій",
+                        "rating": "1528.2051",
+                        "rating_field": "current_rating",
+                        "rating_place": 16,
+                        "sport_title": "candidate",
+                        "surname": "Ганусич"
+                    }
+                ],
+                "pointsMinus": 6,
+                "pointsPlus": 13,
+                "portalTeamId": 532,
+                "rating": 34.75,
+                "smallBuhgolts": 0,
+                "title": "ГАНУСИЧ Андрій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 23,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                    "name": "Карпатська Спортивна Ліга",
+                    "short_name": "KSL"
+                },
+                "lanes": [
+                    11
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/bf0745a0aeef3516f9aea2a217cf5fc1.JPG",
+                        "club": "Карпатська Спортивна Ліга",
+                        "club_id": 23,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/1165ae93edcfb0e31ea4f1ed744358c0.jpg",
+                        "club_short_name": "KSL",
+                        "id": 977,
+                        "name": "Яна",
+                        "rating": "1132.5811",
+                        "rating_field": "current_rating",
+                        "rating_place": 35,
+                        "surname": "Похилько-Литовченко"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 4,
+                "portalTeamId": 2852,
+                "rating": 20.0781,
+                "smallBuhgolts": 0,
+                "title": "ПОХИЛЬКО-ЛИТОВЧЕНКО Яна",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 7,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                    "name": "Спортивний петанк-клуб «Зелені леви»",
+                    "short_name": "Зелені леви"
+                },
+                "lanes": [
+                    7
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/77d8c886b0de2b821e7d3c515754b029.jpeg",
+                        "club": "Спортивний петанк-клуб «Зелені леви»",
+                        "club_id": 7,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/cff2dee13b9efeed06a7d085fec7a96c.jpg",
+                        "club_short_name": "Зелені леви",
+                        "id": 1041,
+                        "name": "Марія",
+                        "rating": "846.8685",
+                        "rating_field": "current_rating",
+                        "rating_place": 50,
+                        "second_name": "Володимирівна",
+                        "surname": "Багінська"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 0,
+                "portalTeamId": 3090,
+                "rating": 19.75,
+                "smallBuhgolts": 0,
+                "title": "БАГІНСЬКА Марія",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 16,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "name": "Аптаун Петанк Клаб",
+                    "short_name": "Аптаун"
+                },
+                "lanes": [
+                    5
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Аптаун Петанк Клаб",
+                        "club_id": 16,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                        "club_short_name": "Аптаун",
+                        "id": 874,
+                        "name": "Валерій",
+                        "rating": "659.9035",
+                        "rating_field": "current_rating",
+                        "rating_place": 60,
+                        "sport_title": "candidate",
+                        "surname": "Зайцев"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 11,
+                "portalTeamId": 2336,
+                "rating": 10.4063,
+                "smallBuhgolts": 0,
+                "title": "ЗАЙЦЕВ Валерій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 16,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "name": "Аптаун Петанк Клаб",
+                    "short_name": "Аптаун"
+                },
+                "lanes": [
+                    14
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "avatar_url": "http://petanque-portal.s3.amazonaws.com/media/6688c77c329de8c5e2204462ba10b12c.jpg",
+                        "club": "Аптаун Петанк Клаб",
+                        "club_id": 16,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                        "club_short_name": "Аптаун",
+                        "id": 978,
+                        "name": "Юрій",
+                        "rating": "502.6312",
+                        "rating_field": "current_rating",
+                        "rating_place": 73,
+                        "sport_title": "candidate",
+                        "surname": "Перевертень"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 2884,
+                "rating": 10.4063,
+                "smallBuhgolts": 0,
+                "title": "ПЕРЕВЕРТЕНЬ Юрій",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 16,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                    "name": "Аптаун Петанк Клаб",
+                    "short_name": "Аптаун"
+                },
+                "lanes": [
+                    6
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Аптаун Петанк Клаб",
+                        "club_id": 16,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/c7c3bb34da3e0a6ba5a4272ef166d171.jpg",
+                        "club_short_name": "Аптаун",
+                        "id": 1002,
+                        "name": "Ольга",
+                        "rating": "314.2989",
+                        "rating_field": "current_rating",
+                        "rating_place": 97,
+                        "surname": "Перевертень"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 7,
+                "portalTeamId": 3125,
+                "rating": 7.6876,
+                "smallBuhgolts": 0,
+                "title": "ПЕРЕВЕРТЕНЬ Ольга",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "club": {
+                    "id": 14,
+                    "logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                    "name": "Спортивний петанк-клуб «Кошовий»",
+                    "short_name": "Кошовий"
+                },
+                "lanes": [
+                    16
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "Спортивний петанк-клуб «Кошовий»",
+                        "club_id": 14,
+                        "club_logo_url": "http://petanque-portal.s3.amazonaws.com/media/fb1f7fcbfa808396af6d91b64c8356bb.png",
+                        "club_short_name": "Кошовий",
+                        "id": 989,
+                        "name": "Поліна",
+                        "rating": "335.1512",
+                        "rating_field": "current_rating",
+                        "rating_place": 93,
+                        "surname": "Попович"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 5,
+                "portalTeamId": 2980,
+                "rating": 6.3438,
+                "smallBuhgolts": 0,
+                "title": "ПОПОВИЧ Поліна",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    17
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1174,
+                        "name": "Олександр",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Мурашов"
+                    }
+                ],
+                "pointsMinus": 13,
+                "pointsPlus": 6,
+                "portalTeamId": 3651,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "МУРАШОВ Олександр",
+                "wins": 0
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    11
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1337,
+                        "name": "Сергій",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Сакада"
+                    }
+                ],
+                "pointsMinus": 4,
+                "pointsPlus": 13,
+                "portalTeamId": 3642,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "САКАДА Сергій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    7
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1346,
+                        "name": "Віталій",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "second_name": "Сергійович",
+                        "surname": "Довлісаров"
+                    }
+                ],
+                "pointsMinus": 0,
+                "pointsPlus": 13,
+                "portalTeamId": 3653,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ДОВЛІСАРОВ Віталій",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    5
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1129,
+                        "name": "Корева",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Володимир"
+                    }
+                ],
+                "pointsMinus": 11,
+                "pointsPlus": 13,
+                "portalTeamId": 3243,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ВОЛОДИМИР Корева",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    14
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 371,
+                        "name": "Іван",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "surname": "Твердун"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 3025,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "ТВЕРДУН Іван",
+                "wins": 1
+            },
+            {
+                "buhgolts": 0,
+                "lanes": [
+                    6
+                ],
+                "opponents": [
+                    "placeholder"
+                ],
+                "players": [
+                    {
+                        "club": "",
+                        "id": 1359,
+                        "name": "Олександр",
+                        "rating": "0.0000",
+                        "rating_field": "current_rating",
+                        "second_name": "Сергійович",
+                        "surname": "Мужчіль"
+                    }
+                ],
+                "pointsMinus": 7,
+                "pointsPlus": 13,
+                "portalTeamId": 3694,
+                "rating": 0,
+                "smallBuhgolts": 0,
+                "title": "МУЖЧІЛЬ Олександр",
+                "wins": 1
+            }
+        ]
+    ],
+    "groupsScheme": [
+        {
+            "bottom": [
+                13,
+                12,
+                11,
+                10,
+                9,
+                8,
+                7
+            ],
+            "top": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ]
+        },
+        {
+            "bottom": [
+                13,
+                12,
+                11,
+                10,
+                9,
+                8,
+                7
+            ],
+            "top": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ]
+        },
+        {
+            "bottom": [
+                13,
+                12,
+                11,
+                10,
+                9,
+                8,
+                7
+            ],
+            "top": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ]
+        },
+        {
+            "bottom": [
+                13,
+                12,
+                11,
+                10,
+                9,
+                8,
+                7
+            ],
+            "top": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ]
+        }
+    ],
+    "id": 1781857879785,
+    "portalIdTournament": 747,
+    "tournamentIsStarted": true,
+    "tirParticipants": null,
+    "tirRound": null,
+    "tirR2Participants": null,
+    "tirTiebreakerCount": null,
+    "tirTiebreakerActive": null,
+    "tirTiebreakerParticipantIds": null,
+    "roundTimer": null,
+    "streamPresets": null,
+    "playOff": null,
+    "playOffStage": null,
+    "barrage": null,
+    "tirStarted": null,
+    "tirConfig": null
+}

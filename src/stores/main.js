@@ -35,6 +35,7 @@ function createTournament(overrides = {}) {
       playoffTimeLimit: 30,
       noTimeLimitFinale: false,
       cochonettesEnabled: false,
+      cochonettesEnabledPlayoff: false,
       cochonettes: 1,
       groupDrawMethod: 'seeded',
       groupFormat: 'round_robin',
@@ -455,7 +456,9 @@ export const useMainStore = defineStore('main', {
       this.tournaments[this.currentTournamentIndex].games[
         this.tournaments[this.currentTournamentIndex].games.length - 1
       ] = games;
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.lanes.pop());
+      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => {
+        if (team.lanes) team.lanes.pop();
+      });
       this.saveLanesToTeams(games);
       this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
       this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
@@ -722,7 +725,9 @@ export const useMainStore = defineStore('main', {
     restoreRound() {
       this.tournaments[this.currentTournamentIndex].games.pop();
       this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.opponents.pop());
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.lanes.pop());
+      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => {
+        if (team.lanes) team.lanes.pop();
+      });
       this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
       this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
     },

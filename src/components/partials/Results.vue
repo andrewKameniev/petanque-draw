@@ -277,6 +277,14 @@
                     }"
                     >{{ tournament.playOffBracket.thirdPlace.team_2 }}</span
                   >
+                  <button
+                    v-if="canEditPlayoff"
+                    class="edit-result-btn edit-result-btn--card"
+                    :title="$t('results.editResult')"
+                    @click="openEditPlayoffModal(tournament.playOffBracket.thirdPlace, 'thirdPlace')"
+                  >
+                    <Pencil :size="14" />
+                  </button>
                 </div>
               </div>
             </template>
@@ -307,6 +315,14 @@
                       }"
                       >{{ game.team_2 }}</span
                     >
+                    <button
+                      v-if="canEditPlayoff"
+                      class="edit-result-btn edit-result-btn--card"
+                      :title="$t('results.editResult')"
+                      @click="openEditPlayoffModal(game, 'final', index, i)"
+                    >
+                      <Pencil :size="14" />
+                    </button>
                   </div>
                 </div>
               </template>
@@ -392,6 +408,14 @@
                       : tournament.playOffBracket.thirdPlace.team_2
                   }}</span
                 >
+                <button
+                  v-if="canEditPlayoff"
+                  class="edit-result-btn"
+                  :title="$t('results.editResult')"
+                  @click="openEditPlayoffModal(tournament.playOffBracket.thirdPlace, 'thirdPlace')"
+                >
+                  <Pencil :size="14" />
+                </button>
               </div>
             </template>
             <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po-final' + index">
@@ -418,6 +442,14 @@
                     }"
                     >{{ isForProtocol ? teamTitles[game.team_2] : game.team_2 }}</span
                   >
+                  <button
+                    v-if="canEditPlayoff"
+                    class="edit-result-btn"
+                    :title="$t('results.editResult')"
+                    @click="openEditPlayoffModal(game, 'final', index, i)"
+                  >
+                    <Pencil :size="14" />
+                  </button>
                 </div>
               </template>
             </template>
@@ -517,6 +549,7 @@
     </div>
     <Bracket v-if="showBracket" :bracket="tournament.playOffBracket" @close-modal="showBracket = false" />
     <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null" />
+    <EditResultModal v-if="editingPlayoffGame" :game="editingPlayoffGame" @save="saveEditedPlayoffResult" @close="editingPlayoffGame = null" />
   </div>
 </template>
 
@@ -555,6 +588,8 @@ export default {
       selectedGroup: 0,
       showBracket: false,
       editingGame: null,
+      editingPlayoffGame: null,
+      editingPlayoffMeta: null,
     };
   },
   created() {
@@ -573,6 +608,9 @@ export default {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'user']),
     canEditResults() {
       return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
+    },
+    canEditPlayoff() {
+      return !!this.user && !this.previewTournament && !this.isForProtocol;
     },
     tournament() {
       return this.previewTournament || this.currentTournament;
@@ -631,7 +669,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['showMessage']),
+    ...mapActions(useMainStore, ['showMessage', 'syncBracketMatch']),
     stageHasContent(stage) {
       return stage.teams?.some((g) => g.team_1 || g.team_2);
     },
@@ -666,6 +704,33 @@ export default {
       this.recalculateStandings();
       this.persistToFirebase();
       this.editingGame = null;
+      this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
+    },
+    openEditPlayoffModal(game, type, stageIndex, gameIndex) {
+      if (!this.canEditPlayoff) return;
+      this.editingPlayoffGame = game;
+      this.editingPlayoffMeta = { type, stageIndex, gameIndex };
+    },
+    saveEditedPlayoffResult({ score1, score2 }) {
+      const { type, stageIndex } = this.editingPlayoffMeta;
+      const bracket = this.tournament.playOffBracket;
+      const game = this.editingPlayoffGame;
+
+      game.team_1_score = score1;
+      game.team_2_score = score2;
+      game.winner = score1 > score2 ? game.team_1 : game.team_2;
+      game.status = 'finished';
+      game.updated_at = new Date().toISOString();
+
+      if (type === 'thirdPlace') {
+        this.syncBracketMatch('thirdPlace', game);
+      } else {
+        const gameIndex = bracket.stages[stageIndex].teams.indexOf(game);
+        this.syncBracketMatch(`stages/${stageIndex}/teams/${gameIndex}`, game);
+      }
+
+      this.editingPlayoffGame = null;
+      this.editingPlayoffMeta = null;
       this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
     },
     persistToFirebase() {
@@ -755,6 +820,7 @@ export default {
   background: var(--color-surface-hover);
   border-radius: 6px;
   margin-bottom: 0.4rem;
+  position: relative;
 }
 
 .playoff-team {

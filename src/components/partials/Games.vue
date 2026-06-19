@@ -643,7 +643,7 @@ export default {
       }
       let round = [];
 
-      if (this.tournament.system === 'swiss') {
+      if (this.tournament.system === 'swiss' && !this.tournament.groups?.length) {
         const result = drawSwissRound(this.tournament, this.rankingTeams, this.activeRound);
         if (result.error) {
           this.saveDisabled = true;
@@ -655,7 +655,7 @@ export default {
           return;
         }
         round = result.round;
-      } else if (this.tournament.system === 'groups') {
+      } else if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
         if (this.activeRound === 1) {
           this.createGroups();
         }

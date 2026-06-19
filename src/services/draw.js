@@ -257,13 +257,18 @@ export function drawSupermeleRound(tournament, rankingTeams) {
 }
 
 export function assignLanes(games, tournament) {
-  let technicalGame = null;
-  if (tournament.system === 'swiss' && tournament.teams.length % 2 !== 0) {
-    const technicalGameIndex = games.findIndex((game) => game.team_2 === 'Technical');
-    if (technicalGameIndex !== -1) {
-      technicalGame = games[technicalGameIndex];
-      games = games.filter((_, i) => i !== technicalGameIndex);
-    }
+  const technicalGames = [];
+  const hasTechnical =
+    (tournament.system === 'swiss' && tournament.teams.length % 2 !== 0) ||
+    (tournament.system === 'groups' && tournament.preferences?.groupFormat === 'swiss');
+  if (hasTechnical) {
+    games = games.filter((game) => {
+      if (game.team_2 === 'Technical') {
+        technicalGames.push(game);
+        return false;
+      }
+      return true;
+    });
   }
 
   const isSupermele = tournament.system === 'supermele';
@@ -360,9 +365,7 @@ export function assignLanes(games, tournament) {
     }
   });
 
-  if (technicalGame) {
-    scheduledMatches.push(technicalGame);
-  }
+  technicalGames.forEach((game) => scheduledMatches.push(game));
   return scheduledMatches.sort((a, b) => a.lane - b.lane);
 }
 
@@ -710,7 +713,6 @@ export function drawGroupsSwissRound(tournament, activeRound) {
 
     if (result.round) {
       result.round.forEach((game) => {
-        if (game.team_2 === 'Technical') return;
         round.push({ ...game, group: groupIndex });
       });
     }

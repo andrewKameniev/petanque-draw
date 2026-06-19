@@ -549,6 +549,13 @@ export default {
   font-weight: 600;
 }
 
+.active-overlay__item-id {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  font-family: monospace;
+}
+
 .active-overlay__empty {
   text-align: center;
   padding: 2rem;

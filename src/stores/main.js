@@ -498,6 +498,9 @@ export const useMainStore = defineStore('main', {
         tournaments[key] = {
           ...defaults,
           ...t,
+          id: t.id || key,
+          teams: t.teams || [],
+          games: t.games || [],
           preferences: { ...defaults.preferences, ...(t.preferences || {}) },
         };
       });
@@ -792,9 +795,9 @@ export const useMainStore = defineStore('main', {
       }
       const tournamentId = Date.now();
       const tournament = createTournament({
+        ...overrides,
         id: tournamentId,
         createdAt: new Date().toISOString(),
-        ...overrides,
       });
       tournament.name = `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`;
       this.tournaments[tournament.id] = tournament;

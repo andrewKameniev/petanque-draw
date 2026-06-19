@@ -364,7 +364,7 @@ export default {
       return perCircle * circles;
     },
     teamsCount() {
-      if (this.tournament.system === 'swiss') return this.tournament.teams.length - 1;
+      if (this.tournament.system === 'swiss') return (this.tournament.teams?.length || 0) - 1;
       if (this.tournament.groups) {
         if (this.tournament.preferences?.groupFormat === 'swiss') {
           return this.tournament.preferences.groupSwissRounds || 3;

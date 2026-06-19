@@ -89,17 +89,26 @@ const router = createRouter({
 
 app.use(pinia).use(router).use(i18n);
 
+const publicRoutes = ['/tournament', '/tv', '/stats/share'];
+function isPublicRoute(path) {
+  return publicRoutes.some((route) => path.startsWith(route));
+}
+
 const authReadyPromise = auth.authStateReady().then(async () => {
   const store = useMainStore();
   const user = auth.currentUser;
   store.loginUser(user || false);
-  if (user) await store.getTournaments();
+  if (user && !isPublicRoute(router.currentRoute.value.path)) {
+    await store.getTournaments();
+  }
 });
 
 onAuthStateChanged(auth, async (user) => {
   const store = useMainStore();
   store.loginUser(user || false);
-  if (user) await store.getTournaments();
+  if (user && !isPublicRoute(router.currentRoute.value.path)) {
+    await store.getTournaments();
+  }
 });
 
 const routeLocaleMap = {
@@ -111,10 +120,14 @@ const routeLocaleMap = {
 };
 
 router.beforeEach(async (to) => {
-  if (to.meta.requiresAuth) {
+  if (to.meta.requiresAuth || to.path === '/') {
     await authReadyPromise;
     const store = useMainStore();
-    if (!store.user) return '/';
+    if (!store.user) {
+      if (to.meta.requiresAuth) return '/';
+    } else if (!Object.keys(store.tournaments).length) {
+      await store.getTournaments();
+    }
   }
   const modules = routeLocaleMap[to.name];
   if (modules) await Promise.all(modules.map((m) => loadLocaleModule(m)));

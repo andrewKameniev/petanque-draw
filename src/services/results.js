@@ -47,7 +47,7 @@ export function getPoulesQualifiedPerGroup(rankingTeams, totalRounds) {
  * Returns the number of playoff-qualifying teams per group for standard groups system.
  */
 export function getPlayOffTeamsPerGroup(tournament) {
-  if (!tournament.playOff || !tournament.groups?.length) return 0;
+  if ((!tournament.playOff && !tournament.preferences?.playOffEnabled) || !tournament.groups?.length) return 0;
   return Math.ceil((tournament.preferences?.playOffTeams || 0) / tournament.groups.length);
 }
 

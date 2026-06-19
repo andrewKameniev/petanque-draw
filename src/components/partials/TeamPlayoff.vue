@@ -191,7 +191,6 @@ export default {
     ...mapActions(useMainStore, [
       'syncTeamPlayoffMatch',
       'setActiveTeamPlayoffMatchPath',
-      'syncToFirebase',
       'finishTournament',
       'subscribeTournament',
       'unsubscribeTournament',

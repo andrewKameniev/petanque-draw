@@ -53,8 +53,19 @@
             <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
           </button>
         </div>
+        <div v-if="hasGroupsColumn && !isForProtocol && selectedRound !== 'playoff' && selectedRound !== 'cadrage'" class="group-tabs mb-4">
+          <button
+            v-for="(group, gIndex) in tournament.groups"
+            :key="gIndex"
+            class="group-tabs__btn"
+            :class="{ 'group-tabs__btn--active': selectedGroup === gIndex }"
+            @click="selectedGroup = gIndex"
+          >
+            {{ $t('common.group') }} {{ groupsNames[gIndex] }}
+          </button>
+        </div>
         <div v-if="selectedRound !== 'playoff' && selectedRound !== 'cadrage' && cardView" class="results-card-list">
-          <template v-for="(round, index) in allSortedRounds" :key="index">
+          <template v-for="(round, index) in filteredSortedRounds" :key="index">
             <template v-if="selectedRound === -1 || selectedRound === index">
               <div v-if="selectedRound === -1" class="results-card-round-label">
                 {{ getRoundLabel(index) }}
@@ -151,7 +162,7 @@
             }"
           >
             <tbody>
-              <template v-for="(round, index) in allSortedRounds" :key="index">
+              <template v-for="(round, index) in filteredSortedRounds" :key="index">
                 <template v-if="selectedRound === -1 || selectedRound === index">
                   <tr v-for="(game, i) in round" :key="i" :class="{ 'search-highlight': isGameHighlighted(game) }">
                     <td v-if="selectedRound === -1" class="is-narrow round-group-cell">
@@ -541,6 +552,7 @@ export default {
   data() {
     return {
       selectedRound: -1,
+      selectedGroup: 0,
       showBracket: false,
       editingGame: null,
     };
@@ -573,11 +585,7 @@ export default {
     },
     hasGroupsColumn() {
       if (this.tournament.barrage && this.tournament.barrage.groups?.length > 1) return true;
-      if (
-        (this.tournament.system === 'groups' || this.tournament.system === 'poules') &&
-        this.tournament?.groups?.length > 1
-      )
-        return true;
+      if (this.tournament?.groups?.length > 1) return true;
       return false;
     },
     sortedGames() {
@@ -613,6 +621,10 @@ export default {
         const upcoming = round.filter((g) => !g.status || g.status === 'not_started');
         return [...finished, ...inProgress, ...upcoming];
       });
+    },
+    filteredSortedRounds() {
+      if (!this.hasGroupsColumn) return this.allSortedRounds;
+      return this.allSortedRounds.map((round) => round.filter((g) => (g.group ?? 0) === this.selectedGroup));
     },
     colCount() {
       return this.hasGroupsColumn ? 5 : 4;
@@ -946,5 +958,39 @@ export default {
   color: var(--color-text-muted);
   font-size: 1rem;
   margin: 0;
+}
+
+.group-tabs {
+  display: flex;
+  width: 100%;
+}
+
+.group-tabs__btn {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1.5px solid var(--color-border, #d1d5db);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #374151);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  margin-left: -1.5px;
+}
+
+.group-tabs__btn:first-child {
+  border-radius: 6px 0 0 6px;
+  margin-left: 0;
+}
+
+.group-tabs__btn:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.group-tabs__btn--active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  z-index: 1;
 }
 </style>

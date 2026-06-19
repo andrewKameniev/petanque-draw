@@ -107,45 +107,30 @@ function getTournamentRanking(tournament, rankingTeams) {
         teamsInRanking.push(secondPlace.title);
       } else if (playOffList[i].stageLabel === 2) {
         if (thirdPlaceGame) {
+          const thirdFinished =
+            thirdPlaceGame.status === 'finished' ||
+            (thirdPlaceGame.team_1_score != null && thirdPlaceGame.team_2_score != null);
+          const thirdWinner = thirdFinished
+            ? Number(thirdPlaceGame.team_1_score) > Number(thirdPlaceGame.team_2_score)
+              ? thirdPlaceGame.team_1
+              : thirdPlaceGame.team_2
+            : thirdPlaceGame.team_1;
+          const thirdLoser = thirdFinished
+            ? Number(thirdPlaceGame.team_1_score) > Number(thirdPlaceGame.team_2_score)
+              ? thirdPlaceGame.team_2
+              : thirdPlaceGame.team_1
+            : thirdPlaceGame.team_2;
           const thirdPlace = {
-            place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '3' : '3-4',
-            title:
-              thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score
-                ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score
-                  ? thirdPlaceGame.team_1
-                  : thirdPlaceGame.team_2
-                : thirdPlaceGame.team_1,
-            players:
-              tournament.teams.find(
-                (team) =>
-                  team.title ===
-                  (thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score
-                    ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score
-                      ? thirdPlaceGame.team_1
-                      : thirdPlaceGame.team_2
-                    : thirdPlaceGame.team_1),
-              )?.players || [],
+            place: thirdFinished ? '3' : '3-4',
+            title: thirdWinner,
+            players: tournament.teams.find((team) => team.title === thirdWinner)?.players || [],
           };
           tournamentRanking.push(thirdPlace);
           teamsInRanking.push(thirdPlace.title);
           const fourthPlace = {
-            place: thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score ? '4' : '3-4',
-            title:
-              thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score
-                ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score
-                  ? thirdPlaceGame.team_2
-                  : thirdPlaceGame.team_1
-                : thirdPlaceGame.team_2,
-            players:
-              tournament.teams.find(
-                (team) =>
-                  team.title ===
-                  (thirdPlaceGame.team_1_score && thirdPlaceGame.team_2_score
-                    ? thirdPlaceGame.team_1_score > thirdPlaceGame.team_2_score
-                      ? thirdPlaceGame.team_2
-                      : thirdPlaceGame.team_1
-                    : thirdPlaceGame.team_2),
-              )?.players || [],
+            place: thirdFinished ? '4' : '3-4',
+            title: thirdLoser,
+            players: tournament.teams.find((team) => team.title === thirdLoser)?.players || [],
           };
           tournamentRanking.push(fourthPlace);
           teamsInRanking.push(fourthPlace.title);
@@ -275,7 +260,7 @@ function countBuhgolts(whereCount, whatBuhgolts) {
   const whatCount = whatBuhgolts === 'buhgolts' ? 'wins' : 'buhgolts';
   whereCount.forEach((team) => {
     let currentTeamBuhgolts = 0;
-    if (team.opponents[0] !== 'placeholder' && team.opponents.length) {
+    if (team.opponents?.length && team.opponents[0] !== 'placeholder') {
       team.opponents.forEach((opponent) => {
         const opponentIndex = whereCount.findIndex((team) => team.title === opponent);
         if (opponentIndex !== -1) {
@@ -492,15 +477,35 @@ function getTeamsRanking(tournament, activeRound) {
         sortedGroups.push(groupRanking);
       });
       return sortedGroups;
-    } else if (tournament.system === 'groups' && (activeRound > 1 || tournament.groupSchedule)) {
+    } else if (
+      tournament.groups?.length &&
+      !tournament.barrage &&
+      (activeRound > 1 || tournament.groupSchedule || tournament.groups)
+    ) {
       let sortedGroups = [];
-      tournament.groups.forEach((group) => {
-        if (tournament.games) {
-          accumulateGroupStats(group, tournament.games, { requireFinished: true });
-        }
-        let groupRanking = rankGroupByRegulations(group, tournament.games || []);
-        sortedGroups.push(groupRanking);
-      });
+      if (tournament.preferences?.groupFormat === 'swiss') {
+        const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
+        tournament.groups.forEach((group) => {
+          const groupTitles = new Set(group.map((g) => g.title));
+          const groupTeams = group.map((g) => {
+            const fullTeam = teamMap.get(g.title);
+            if (!fullTeam) return { ...g, opponents: [], wins: 0, pointsPlus: 0, pointsMinus: 0 };
+            return {
+              ...fullTeam,
+              opponents: (fullTeam.opponents || []).filter((o) => groupTitles.has(o)),
+            };
+          });
+          sortedGroups.push(sortTeams(groupTeams));
+        });
+      } else {
+        tournament.groups.forEach((group) => {
+          if (tournament.games) {
+            accumulateGroupStats(group, tournament.games, { requireFinished: true });
+          }
+          let groupRanking = rankGroupByRegulations(group, tournament.games || []);
+          sortedGroups.push(groupRanking);
+        });
+      }
       return sortedGroups;
     } else if (
       tournament.barrage &&

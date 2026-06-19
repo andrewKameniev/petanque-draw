@@ -689,6 +689,35 @@ export function drawGroupsRound(tournament) {
   return round;
 }
 
+export function drawGroupsSwissRound(tournament, activeRound) {
+  const round = [];
+  const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
+
+  tournament.groups.forEach((group, groupIndex) => {
+    const groupTeams = group.map((g) => teamMap.get(g.title)).filter(Boolean);
+    const groupTeamsCopy = JSON.parse(JSON.stringify(groupTeams));
+    const groupTitles = new Set(group.map((g) => g.title));
+
+    groupTeamsCopy.forEach((t) => {
+      t.opponents = (t.opponents || []).filter((o) => groupTitles.has(o));
+    });
+
+    const result = drawSwissRound(
+      { ...tournament, teams: groupTeamsCopy, useRating: tournament.useRating },
+      groupTeamsCopy,
+      activeRound,
+    );
+
+    if (result.round) {
+      result.round.forEach((game) => {
+        if (game.team_2 === 'Technical') return;
+        round.push({ ...game, group: groupIndex });
+      });
+    }
+  });
+  return round;
+}
+
 export function reshuffleGroupSchedule(tournament) {
   const groups = tournament.groups;
   const newGroups = [];

@@ -624,6 +624,7 @@ export default {
       this.clearRoundTimer();
       if (this.playOffBracket.stages[this.currentPlayOffBracketIndex].teamsCount === 2) {
         //final
+        this.setPlayOffBracket(JSON.parse(JSON.stringify(this.playOffBracket)));
         this.setPlayOffStage(0);
         this.finishTournament();
       } else {

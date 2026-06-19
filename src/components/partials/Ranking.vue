@@ -194,7 +194,7 @@
           </div>
         </div>
       </div>
-      <div v-else-if="tournament.system === 'swiss'">
+      <div v-else-if="tournament.system === 'swiss' && !tournament.groups">
         <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">
           {{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}
         </div>
@@ -366,11 +366,70 @@
         >
           {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle }}
         </div>
-        <div v-for="(group, gIndex) in rankingTeams" :key="gIndex">
-          <h4 v-if="tournament.groups && tournament.groups.length > 1">
+        <div v-if="tournament.groups.length > 1 && !isForProtocol" class="group-tabs mb-4">
+          <button
+            v-for="(group, gIndex) in rankingTeams"
+            :key="gIndex"
+            class="group-tabs__btn"
+            :class="{ 'group-tabs__btn--active': activeGroupTab === gIndex }"
+            @click="activeGroupTab = gIndex"
+          >
+            {{ $t('common.group') }} {{ groupsNames[gIndex] }}
+          </button>
+        </div>
+        <div v-for="(group, gIndex) in rankingTeams" v-show="isForProtocol || tournament.groups.length === 1 || activeGroupTab === gIndex" :key="gIndex">
+          <h4 v-if="isForProtocol && tournament.groups.length > 1">
             {{ $t('common.group') }} {{ groupsNames[gIndex] }}
           </h4>
-          <div class="table-container mb-5">
+          <!-- Swiss format: buchholz table -->
+          <div v-if="isSwissGroups" class="table-container mb-5">
+            <table class="table is-striped">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>{{ $t('ranking.team') }}</th>
+                  <th align="center">
+                    <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
+                  </th>
+                  <th align="center">
+                    <span class="is-hidden-mobile">{{ $t('ranking.buh') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('ranking.buhMobile') }}</span>
+                  </th>
+                  <th align="center">
+                    <span class="is-hidden-mobile">{{ $t('ranking.sbuh') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('ranking.sbuhMobile') }}</span>
+                  </th>
+                  <th align="center">
+                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(team, index) in group"
+                  :key="team.title"
+                  :class="{
+                    'playoff-highlight': tournament.preferences?.playOffEnabled && index < playOffTeamsPerGroup,
+                    'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
+                    'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
+                    'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,
+                    'search-highlight': isTeamHighlighted(team.title),
+                  }"
+                >
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ isForProtocol ? teamTitles[team.title] : team.title }}</td>
+                  <td align="center" class="td-highlight">{{ team.wins }}</td>
+                  <td align="center">{{ team.buhgolts }}</td>
+                  <td align="center">{{ team.smallBuhgolts }}</td>
+                  <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Round-robin format: head-to-head matrix -->
+          <div v-else class="table-container mb-5">
             <table class="table table is-striped">
               <thead>
                 <tr>
@@ -394,7 +453,7 @@
                   v-for="(team, index) in group"
                   :key="index"
                   :class="{
-                    'playoff-highlight': tournament.playOff && index < getQualifiedForGroup(gIndex),
+                    'playoff-highlight': (tournament.playOff || tournament.preferences?.playOffEnabled) && index < getQualifiedForGroup(gIndex),
                     'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
                     'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
                     'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,
@@ -494,6 +553,7 @@ export default {
       resultsCopied: false,
       isTournamentOrg: false,
       showExportConfirm: false,
+      activeGroupTab: 0,
     };
   },
   created() {
@@ -731,6 +791,9 @@ export default {
     playOffTeamsPerGroup() {
       return getPlayOffTeamsPerGroup(this.tournament);
     },
+    isSwissGroups() {
+      return this.tournament.preferences?.groupFormat === 'swiss';
+    },
     isSwissOnly() {
       if (this.isForProtocol) return true;
       return (
@@ -881,8 +944,12 @@ export default {
   transform: none;
 }
 
-.playoff-highlight td {
-  background: var(--color-highlight) !important;
+.playoff-highlight :deep(td) {
+  background: var(--color-primary-bg) !important;
+}
+
+.playoff-highlight {
+  background: var(--color-primary-bg) !important;
 }
 
 .search-highlight td {
@@ -949,6 +1016,40 @@ export default {
   color: var(--color-text-muted);
   font-size: 1rem;
   margin: 0;
+}
+
+.group-tabs {
+  display: flex;
+  width: 100%;
+}
+
+.group-tabs__btn {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  margin-left: -1.5px;
+}
+
+.group-tabs__btn:first-child {
+  border-radius: 6px 0 0 6px;
+  margin-left: 0;
+}
+
+.group-tabs__btn:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.group-tabs__btn--active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  z-index: 1;
 }
 
 .group-cell {

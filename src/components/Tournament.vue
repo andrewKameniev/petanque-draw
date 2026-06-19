@@ -351,6 +351,7 @@ import {
   drawSwissRound,
   drawSupermeleRound,
   drawGroupsRound,
+  drawGroupsSwissRound,
   assignLanes,
   generateConstrainedGroups,
   createPoules,
@@ -401,10 +402,13 @@ export default {
     if (this.tournament.preferences && !this.tournament.preferences.groupDrawMethod) {
       this.tournament.preferences.groupDrawMethod = 'seeded';
     }
-    if (this.tournament.preferences?.withCadrage) {
+    if (this.tournament.preferences && !this.tournament.preferences.groupFormat) {
+      this.tournament.preferences.groupFormat = 'round_robin';
+    }
+    if (this.tournament.preferences?.withCadrage && this.tournament.system === 'swiss') {
       this.withCadrage = true;
     }
-    if (this.tournament.preferences?.withBarrage) {
+    if (this.tournament.preferences?.withBarrage && this.tournament.system === 'swiss') {
       this.withBarrage = true;
     }
     if (this.tournament.preferences?.playB) {
@@ -429,11 +433,15 @@ export default {
       'addTeamToStore',
       'saveP',
       'changeTournamentName',
-      'syncToFirebase',
-      'syncToFirebaseNow',
+      'syncTournamentMessage',
+      'syncTirStart',
+      'syncDrawStart',
+      'syncRedraw',
+      'syncGames',
       'addRoundToGames',
       'savePreferences',
       'clearRoundTimer',
+      'syncTournamentStarted',
     ]),
     pinTournament() {
       localStorage.setItem('petanqueDrawPinned', this.currentTournamentIndex);
@@ -446,7 +454,7 @@ export default {
       this.showMessage({ title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned') });
     },
     onMessageInput() {
-      this.syncToFirebase();
+      this.syncTournamentMessage();
     },
     onPlayoffConfirm(config) {
       this.showPlayoffConfirm = false;
@@ -469,7 +477,7 @@ export default {
       const withCadrage = this.withCadrage;
       const withBarrage = this.withBarrage;
       let playOffList;
-      if (this.tournament.system === 'swiss') {
+      if (this.tournament.system === 'swiss' && !this.tournament.groups?.length) {
         if (withBarrage) {
           const barrageCount = this.tournament.preferences.barrageTeams || 8;
           playOffList = this.rankingTeams.slice(0, barrageCount);
@@ -566,10 +574,19 @@ export default {
 
       const playB = this.playB;
       if (playB) {
+        const store = useMainStore();
         const currentIndex = this.currentTournamentIndex;
-        const tournamentBTeams = this.rankingTeams
-          .slice(this.teamToPlayOff, this.rankingTeams.length)
-          .map((team) => ({ ...team }));
+        let tournamentBTeams;
+        if (this.tournament.groups?.length > 1 && Array.isArray(this.rankingTeams?.[0])) {
+          const qualifyPerGroup = this.teamToPlayOff / this.tournament.groups.length;
+          tournamentBTeams = this.rankingTeams
+            .flatMap((group) => group.slice(qualifyPerGroup))
+            .map((team) => ({ ...team }));
+        } else {
+          tournamentBTeams = this.rankingTeams
+            .slice(this.teamToPlayOff, this.rankingTeams.length)
+            .map((team) => ({ ...team }));
+        }
         tournamentBTeams.forEach((team) => {
           team.wins = 0;
           team.buhgolts = 0;
@@ -580,7 +597,7 @@ export default {
           team.lanes = [];
         });
         this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
-        this.currentTournamentIndex = currentIndex;
+        store.currentTournamentIndex = currentIndex;
       }
     },
     restoreTeamsFromLocalStorage() {
@@ -607,7 +624,7 @@ export default {
         this.tournament.tirRound = 1;
         if (!this.tournament.games) this.tournament.games = [];
         this.tournament.games.push([]);
-        this.syncToFirebase();
+        this.syncTirStart();
         this.activeTab = 'games';
         return;
       }
@@ -650,7 +667,9 @@ export default {
             type: 'error',
           });
         }
-        if (this.isAllTeamsGroup) {
+        if (this.tournament.preferences.groupFormat === 'swiss') {
+          round = drawGroupsSwissRound(this.tournament, 1);
+        } else if (this.isAllTeamsGroup) {
           this.tournament.preferences.groupTotalRounds = this.groupRoundsCount;
           const schedule = [];
           for (let i = 0; i < this.groupRoundsCount; i++) {
@@ -688,11 +707,12 @@ export default {
       } else {
         this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
       }
-      this.syncToFirebase();
+      this.syncDrawStart();
       this.activeTab = 'games';
     },
     startFirstRound() {
       this.tournament.tournamentIsStarted = true;
+      this.syncTournamentStarted(true);
       this.startRound();
       this.activeTab = 'games';
     },
@@ -712,7 +732,9 @@ export default {
         this.tournament.groupSchedule = null;
 
         let round;
-        if (this.isAllTeamsGroup) {
+        if (this.tournament.preferences.groupFormat === 'swiss') {
+          round = drawGroupsSwissRound(this.tournament, 1);
+        } else if (this.isAllTeamsGroup) {
           const totalRounds = this.tournament.preferences?.groupTotalRounds || this.groupRoundsCount;
           const schedule = [];
           for (let i = 0; i < totalRounds; i++) {
@@ -738,12 +760,12 @@ export default {
 
       this.tournament.roundIsActive = false;
       this.tournament.tournamentIsStarted = false;
-      this.syncToFirebaseNow();
+      this.syncRedraw();
       this.showMessage({ title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText') });
     },
     autoFillScores() {
       autoFillScoresFn(this.tournament, this.activeRound);
-      this.syncToFirebase();
+      this.syncGames();
     },
   },
   computed: {

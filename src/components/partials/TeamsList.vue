@@ -5,7 +5,7 @@
   </div>
   <div
     v-else-if="
-      (tournament.system === 'groups' || tournament.system === 'poules') &&
+      (tournament.system === 'groups' || tournament.system === 'poules' || tournament.groups?.length) &&
       (activeRound > 1 || tournament.roundIsActive)
     "
     class="mb-5"
@@ -227,7 +227,7 @@ export default {
     sortedGroups() {
       if (!this.tournament.groups) return [];
       if (!this.tournament.games?.length) return this.tournament.groups;
-      if (this.tournament.system === 'groups') {
+      if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
         return this.tournament.groups.map((group) => {
           const teamWins = {};
           const teamPointsPlus = {};

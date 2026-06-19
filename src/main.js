@@ -4,6 +4,7 @@ import App from './App.vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 const Public = () => import('@/views/Public.vue');
 const PublicStats = () => import('@/views/PublicStats.vue');
+const TvDashboard = () => import('@/views/TvDashboard.vue');
 const Help = () => import('@/components/Help.vue');
 const Docs = () => import('@/views/Docs.vue');
 const Stats = () => import('@/views/Stats.vue');
@@ -29,6 +30,11 @@ const router = createRouter({
       path: '/tournament',
       name: 'view',
       component: Public,
+    },
+    {
+      path: '/tv',
+      name: 'tv',
+      component: TvDashboard,
     },
     {
       path: '/show',

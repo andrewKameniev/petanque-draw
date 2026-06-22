@@ -38,6 +38,12 @@ export default {
             }, {});
           Object.keys(this.statsList).forEach((key) => {
             this.statsList[key].isOpen = false;
+            const tags = this.statsList[key].tags;
+            if (tags && !Array.isArray(tags)) {
+              this.statsList[key].tags = Object.values(tags).filter(Boolean).map((t) => String(t).trim());
+            } else if (Array.isArray(tags)) {
+              this.statsList[key].tags = tags.filter(Boolean).map((t) => String(t).trim());
+            }
           });
           delete this.statsList['tags'];
         } else {
@@ -60,9 +66,15 @@ export default {
   computed: {
     ...mapState(useMainStore, ['user']),
     filteredGames() {
-      return this.filterGamesTag.length > 0
-        ? Object.values(this.statsList).filter((game) => game.tags?.some((tag) => this.filterGamesTag.includes(tag)))
-        : this.statsList;
+      if (this.filterGamesTag.length === 0) return this.statsList;
+      const selected = this.filterGamesTag;
+      return Object.keys(this.statsList).reduce((acc, key) => {
+        const game = this.statsList[key];
+        if (game.tags?.some((tag) => selected.includes(tag))) {
+          acc[key] = game;
+        }
+        return acc;
+      }, {});
     },
     gamesCount() {
       if (!this.statsList) return 0;
@@ -91,7 +103,8 @@ export default {
         });
     },
     getDate,
-    getGameTypeLabel(type) {
+    getGameTypeLabel(item) {
+      const type = item.type || item.team1?.players?.filter((p) => !p.wasChanged).length;
       const found = gameTypes.find((t) => t.value === type);
       return found ? found.label : '';
     },
@@ -230,7 +243,7 @@ export default {
           <div class="archive__game-header" @click="item.isOpen = !item.isOpen">
             <div class="archive__game-info">
               <span class="archive__game-name">{{ item.name || 'Unnamed game' }}</span>
-              <span v-if="item.type" class="archive__game-type-badge">{{ getGameTypeLabel(item.type) }}</span>
+              <span class="archive__game-type-badge">{{ getGameTypeLabel(item) }}</span>
               <span class="archive__game-date">{{ getDate(item.date) }}</span>
               <span v-if="item.tags?.length" class="archive__game-tags-inline">
                 <span v-for="(tag, index) in item.tags" :key="index" class="archive__game-tag-badge">{{ tag }}</span>
@@ -539,8 +552,8 @@ export default {
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: var(--color-surface-hover, #f0f0f0);
-  color: var(--color-text-secondary);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
   text-transform: capitalize;
 }
 
@@ -679,6 +692,7 @@ export default {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  overflow: hidden;
 }
 
 @media screen and (max-width: 768px) {

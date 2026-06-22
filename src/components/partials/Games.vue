@@ -320,6 +320,7 @@ export default {
       showRestoreConfirm: false,
       showFinishConfirmIndex: null,
       finishConfirmSource: null,
+      autoFinishAfterSave: false,
     };
   },
   mounted() {
@@ -496,6 +497,7 @@ export default {
       'restartRoundTimer',
       'subscribeTournament',
       'unsubscribeTournament',
+      'finishTournament',
     ]),
     gameHasError,
     onTimerEnded() {
@@ -619,6 +621,10 @@ export default {
         return;
       }
       this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.resultsSaved') });
+      if (this.autoFinishAfterSave) {
+        this.autoFinishAfterSave = false;
+        this.finishTournament();
+      }
     },
     shuffleLanes() {
       const currentRound = this.tournament.games[this.tournament.games.length - 1];

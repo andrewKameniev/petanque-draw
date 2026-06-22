@@ -25,6 +25,8 @@ export default {
     saveTournamentData: 'Зберегти дані',
     finishTournament: 'Закінчити турнір',
     finishTournamentConfirm: 'Ви впевнені, що хочете закінчити турнір?',
+    revertLastRound: 'Повернути останній раунд',
+    revertLastRoundConfirm: 'Ви впевнені, що хочете повернути останній раунд? Турнір буде відкрито заново і ви зможете змінити результати.',
     preferences: 'Налаштування турніру',
     rating: 'Рейтинг',
     playersInTeam: 'Скільки гравців у команді?',

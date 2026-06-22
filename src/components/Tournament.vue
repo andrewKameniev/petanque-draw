@@ -209,6 +209,15 @@
               {{ $t('teams.finishTournament') }}
             </button>
             <button
+              v-if="tournament.tournamentIsFinished && tournament.games?.length"
+              data-testid="btn-revert-last-round"
+              class="bottom-actions__btn bottom-actions__btn--outline"
+              @click="showRevertFinishConfirm = true"
+            >
+              <Undo2 :size="16" />
+              {{ $t('teams.revertLastRound') }}
+            </button>
+            <button
               v-if="tournament.playOff?.length && !tournament.tournamentIsFinished"
               data-testid="btn-restore-round"
               class="bottom-actions__btn bottom-actions__btn--outline"
@@ -283,6 +292,18 @@
         finishTournament();
       "
       @cancel="showFinishConfirm = false"
+    />
+    <ConfirmDialog
+      v-if="showRevertFinishConfirm"
+      :message="$t('teams.revertLastRoundConfirm')"
+      :confirm-label="$t('teams.revertLastRound')"
+      :cancel-label="$t('common.cancel')"
+      confirm-test-id="btn-confirm-revert-round"
+      @confirm="
+        showRevertFinishConfirm = false;
+        revertLastRound();
+      "
+      @cancel="showRevertFinishConfirm = false"
     />
     <PlayoffConfirmModal
       v-if="showPlayoffConfirm"
@@ -379,6 +400,7 @@ export default {
       showPreferences: false,
       showProtocol: false,
       showFinishConfirm: false,
+      showRevertFinishConfirm: false,
       setupPlayOff: false,
       showAdvancedSettings: false,
       showPlayoffConfirm: false,
@@ -431,6 +453,7 @@ export default {
       'setBarrage',
       'addBTournament',
       'finishTournament',
+      'revertFinishTournament',
       'showMessage',
       'addTeamToStore',
       'saveP',
@@ -519,6 +542,25 @@ export default {
       this.tournament.preferences.playoffTimeLimit = config.playoffTimeLimit;
       this.tournament.preferences.noTimeLimitFinale = config.noTimeLimitFinale;
       this.setPlayOffList();
+    },
+    revertLastRound() {
+      this.revertFinishTournament();
+      const lastRound = this.tournament.games[this.tournament.games.length - 1];
+      if (lastRound) {
+        lastRound.forEach((game) => {
+          if (game.team_2 !== 'Technical') {
+            game.status = 'not_started';
+          }
+        });
+      }
+      this.startRound();
+      this.syncGames();
+      this.activeTab = 'games';
+      this.$nextTick(() => {
+        if (this.$refs.games) {
+          this.$refs.games.autoFinishAfterSave = true;
+        }
+      });
     },
     openPlayoffConfirm() {
       if (this.tournament.preferences?.playB) this.playB = true;

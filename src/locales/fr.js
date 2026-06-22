@@ -24,6 +24,8 @@ export default {
     saveTournamentData: 'Enregistrer les données',
     finishTournament: 'Terminer le tournoi',
     finishTournamentConfirm: 'Êtes-vous sûr de vouloir terminer le tournoi ?',
+    revertLastRound: 'Annuler le dernier tour',
+    revertLastRoundConfirm: 'Êtes-vous sûr de vouloir annuler le dernier tour ? Le tournoi sera rouvert et vous pourrez modifier les résultats.',
     preferences: 'Préférences',
     rating: 'Classement',
     playersInTeam: 'Combien de joueurs dans une équipe ?',

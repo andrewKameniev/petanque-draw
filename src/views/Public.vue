@@ -426,7 +426,13 @@ import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import TeamsList from '@/components/partials/TeamsList';
 import { tournamentService } from '@/services/db';
-import { getTeamsRanking, pluralizeRounds, formatSwissDescription, tournamentNames } from '@/helpers';
+import {
+  getTeamsRanking,
+  getTournamentRanking,
+  pluralizeRounds,
+  formatSwissDescription,
+  tournamentNames,
+} from '@/helpers';
 import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass } from '@/services/streams';
 import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
@@ -559,6 +565,13 @@ export default {
             const winner = participants.find((p) => p.name === winnerName);
             if (winner) return { title: winner.name, players: [winner] };
           }
+        }
+        return null;
+      }
+      if (this.tournament.playOffBracket) {
+        const tournamentRanking = getTournamentRanking(this.tournament, this.rankingTeams);
+        if (tournamentRanking?.length && tournamentRanking[0].title) {
+          return this.tournament.teams.find((t) => t.title === tournamentRanking[0].title) || null;
         }
         return null;
       }

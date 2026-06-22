@@ -773,6 +773,10 @@ export const useMainStore = defineStore('main', {
       this.tournaments[this.currentTournamentIndex].tournamentIsFinished = true;
       this._syncPath('tournamentIsFinished', true);
     },
+    revertFinishTournament() {
+      this.tournaments[this.currentTournamentIndex].tournamentIsFinished = false;
+      this._syncPath('tournamentIsFinished', false);
+    },
     showMessage({ title, text, type = 'success' }) {
       this.message = {
         show: true,

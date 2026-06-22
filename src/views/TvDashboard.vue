@@ -100,7 +100,7 @@
         <!-- Playoff bracket view -->
         <section v-else class="tv__bracket">
           <div class="tv__bracket-container">
-            <svg :width="bracketWidth" :height="bracketHeight" class="tv__bracket-svg">
+            <svg :viewBox="`0 0 ${bracketWidth} ${bracketHeight}`" class="tv__bracket-svg">
               <g v-for="(stage, si) in bracketStages" :key="si">
                 <g v-for="(game, gi) in stage.games" :key="gi">
                   <rect :x="game.x" :y="game.y" :width="bracketBoxWidth" :height="bracketBoxHeight" rx="6" ry="6" class="tv__game-box" />
@@ -626,7 +626,17 @@ export default {
     bracketHeight() {
       if (!this.tournament?.playOffBracket?.stages) return 0;
       const firstCount = this.tournament.playOffBracket.stages[0].teams.length;
-      return 56 + firstCount * (this.bracketBoxHeight + this.bracketRowGap) + 40;
+      let h = 56 + firstCount * (this.bracketBoxHeight + this.bracketRowGap) + 40;
+      if (this.tournament.playOffBracket.thirdPlace) {
+        const lastStage = this.bracketStages[this.bracketStages.length - 1];
+        if (lastStage?.games?.length) {
+          const finalGame = lastStage.games[0];
+          const thirdY = finalGame.y + this.bracketBoxHeight + 80;
+          const needed = thirdY + this.bracketBoxHeight + 20;
+          if (needed > h) h = needed;
+        }
+      }
+      return h;
     },
     bracketConnectors() {
       const paths = [];
@@ -1526,19 +1536,26 @@ export default {
 
 .tv__bracket {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .tv__bracket-container {
-  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tv__bracket-svg {
   display: block;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .tv__game-box {

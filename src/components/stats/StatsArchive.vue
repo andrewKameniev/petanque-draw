@@ -38,6 +38,12 @@ export default {
             }, {});
           Object.keys(this.statsList).forEach((key) => {
             this.statsList[key].isOpen = false;
+            const tags = this.statsList[key].tags;
+            if (tags && !Array.isArray(tags)) {
+              this.statsList[key].tags = Object.values(tags).filter(Boolean).map((t) => String(t).trim());
+            } else if (Array.isArray(tags)) {
+              this.statsList[key].tags = tags.filter(Boolean).map((t) => String(t).trim());
+            }
           });
           delete this.statsList['tags'];
         } else {
@@ -60,9 +66,15 @@ export default {
   computed: {
     ...mapState(useMainStore, ['user']),
     filteredGames() {
-      return this.filterGamesTag.length > 0
-        ? Object.values(this.statsList).filter((game) => game.tags?.some((tag) => this.filterGamesTag.includes(tag)))
-        : this.statsList;
+      if (this.filterGamesTag.length === 0) return this.statsList;
+      const selected = this.filterGamesTag;
+      return Object.keys(this.statsList).reduce((acc, key) => {
+        const game = this.statsList[key];
+        if (game.tags?.some((tag) => selected.includes(tag))) {
+          acc[key] = game;
+        }
+        return acc;
+      }, {});
     },
     gamesCount() {
       if (!this.statsList) return 0;
@@ -680,6 +692,7 @@ export default {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  overflow: hidden;
 }
 
 @media screen and (max-width: 768px) {

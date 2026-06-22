@@ -30,6 +30,16 @@ export default {
       }
       return fillScoresArray;
     },
+    tableChunks() {
+      const chunkSize = window.innerWidth <= 768 ? 11 : 16;
+      const total = this.boulesOnMan.length;
+      if (total <= chunkSize) return [{ start: 0, end: total }];
+      const chunks = [];
+      for (let i = 0; i < total; i += chunkSize) {
+        chunks.push({ start: i, end: Math.min(i + chunkSize, total) });
+      }
+      return chunks;
+    },
     hasData() {
       return this.teamStats.some((s) => s.serie.length > 0);
     },
@@ -134,27 +144,27 @@ export default {
 
       <div class="stat-result__section">
         <div class="stat-result__section-title">{{ $t('stat.everyManRes') }}</div>
-        <div class="stat-result__table-wrap">
+        <div class="stat-result__table-wrap" v-for="(chunk, ci) in tableChunks" :key="ci">
           <table class="stat-result__table">
             <thead>
               <tr>
                 <th></th>
-                <th v-for="(item, index) in boulesOnMan" :key="index">{{ index + 1 }}</th>
-                <th>Av</th>
+                <th v-for="i in chunk.end - chunk.start" :key="i">{{ chunk.start + i }}</th>
+                <th v-if="ci === tableChunks.length - 1">Av</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td class="stat-result__table-label">Res.</td>
-                <td v-for="(item, index) in boulesOnMan" :key="index">{{ item }}</td>
-                <td class="stat-result__table-avg">
+                <td v-for="i in chunk.end - chunk.start" :key="i">{{ boulesOnMan[chunk.start + i - 1] }}</td>
+                <td v-if="ci === tableChunks.length - 1" class="stat-result__table-avg">
                   {{ (boulesOnMan.reduce((acc, item) => acc + item, 0) / boulesOnMan.length).toFixed(1) }}
                 </td>
               </tr>
               <tr>
                 <td class="stat-result__table-label">Win</td>
-                <td v-for="(score, index) in filledScores" :key="index">{{ score || 0 }}</td>
-                <td class="stat-result__table-avg">
+                <td v-for="i in chunk.end - chunk.start" :key="i">{{ filledScores[chunk.start + i - 1] || 0 }}</td>
+                <td v-if="ci === tableChunks.length - 1" class="stat-result__table-avg">
                   {{ filledScores.reduce((acc, item) => acc + item, 0) }}
                 </td>
               </tr>
@@ -348,6 +358,7 @@ export default {
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 1rem;
+  overflow: hidden;
 }
 
 .stat-result__header {
@@ -440,10 +451,10 @@ export default {
 
 .stat-result__table-wrap {
   overflow-x: auto;
+  margin-bottom: 0.25rem;
 }
 
 .stat-result__table {
-  width: 100%;
   border-collapse: collapse;
   font-size: 1rem;
   text-align: center;

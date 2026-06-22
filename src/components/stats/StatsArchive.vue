@@ -91,7 +91,8 @@ export default {
         });
     },
     getDate,
-    getGameTypeLabel(type) {
+    getGameTypeLabel(item) {
+      const type = item.type || item.team1?.players?.filter((p) => !p.wasChanged).length;
       const found = gameTypes.find((t) => t.value === type);
       return found ? found.label : '';
     },
@@ -230,7 +231,7 @@ export default {
           <div class="archive__game-header" @click="item.isOpen = !item.isOpen">
             <div class="archive__game-info">
               <span class="archive__game-name">{{ item.name || 'Unnamed game' }}</span>
-              <span v-if="item.type" class="archive__game-type-badge">{{ getGameTypeLabel(item.type) }}</span>
+              <span class="archive__game-type-badge">{{ getGameTypeLabel(item) }}</span>
               <span class="archive__game-date">{{ getDate(item.date) }}</span>
               <span v-if="item.tags?.length" class="archive__game-tags-inline">
                 <span v-for="(tag, index) in item.tags" :key="index" class="archive__game-tag-badge">{{ tag }}</span>
@@ -539,8 +540,8 @@ export default {
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: var(--color-surface-hover, #f0f0f0);
-  color: var(--color-text-secondary);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
   text-transform: capitalize;
 }
 

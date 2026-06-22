@@ -28,7 +28,7 @@
       </button>
     </div>
     <div v-if="tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="mb-5">
-      <div v-if="!isForProtocol" class="ranking-header">
+      <div v-if="!isForProtocol && !readOnly" class="ranking-header">
         <div class="ranking-header__actions ml-auto">
           <button
             v-if="isTournamentOrg && tournament.portalIdTournament"
@@ -76,7 +76,7 @@
               <td>{{ team.place }}</td>
               <td>{{ team.title }}</td>
               <td>
-                <template v-if="isTetATet">{{ teamClubMap?.[team.title] || '--' }}</template>
+                <template v-if="isTetATet">{{ resolvedClubMap[team.title] || '–' }}</template>
                 <div
                   v-else-if="
                     showInSaved ? team.players && team.players.length : team.title && getTeamPlayers(team.title).length
@@ -537,6 +537,7 @@ export default {
     'activeRound',
     'showInSaved',
     'isForProtocol',
+    'readOnly',
     'teamTitles',
     'highlightedTeam',
     'teamClubMap',
@@ -591,7 +592,7 @@ export default {
     isTeamHighlighted(title) {
       if (!this.highlightedTeam) return false;
       if (this.highlightedTeam === title) return true;
-      return this.teamClubMap && this.teamClubMap[title] === this.highlightedTeam;
+      return this.resolvedClubMap[title] === this.highlightedTeam;
     },
     getGameResultInGroup: getGameResultInGroup,
     getGameResults(team, opponent) {
@@ -793,6 +794,17 @@ export default {
     },
     isTetATet() {
       return this.tournament.teams?.every((t) => t.players?.length === 1);
+    },
+    resolvedClubMap() {
+      if (this.teamClubMap) return this.teamClubMap;
+      if (!this.tournament?.teams) return {};
+      const map = {};
+      this.tournament.teams.forEach((t) => {
+        if (t.players?.length && t.players[0].club) {
+          map[t.title] = t.players[0].club;
+        }
+      });
+      return map;
     },
     isSwissGroups() {
       return this.tournament.preferences?.groupFormat === 'swiss';

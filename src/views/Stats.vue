@@ -465,6 +465,7 @@ export default {
       this.showResults = true;
       let statResult = {
         date: Date.now(),
+        type: this.gameType,
         system: this.statSystem,
         tags: this.gameTags,
         name: this.gameName,
@@ -524,9 +525,18 @@ export default {
         name: newPlayerName,
         stat: [],
       };
-      for (let i = 0; i <= this.currentMan; i++) {
+      for (let i = 0; i < this.currentMan; i++) {
         newPlayer.stat.push([]);
       }
+
+      const throwType = playerIndex === 2 ? 't' : 'p';
+      const throwCount = this.gameType === 1 || this.gameType === 2 ? 3 : 2;
+      const currentManStat = [];
+      for (let i = 0; i < throwCount; i++) {
+        currentManStat.push({ ...JSON.parse(JSON.stringify(this.throwInfo)), type: throwType });
+      }
+      newPlayer.stat.push(currentManStat);
+
       team.players.push(newPlayer);
     },
     removeThrow(team, playerIndex, manIndex, throwIndex) {

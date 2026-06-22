@@ -408,6 +408,7 @@
               :activeRound="activeRound"
               :highlightedTeam="highlightedTeam"
               :teamClubMap="teamClubMap"
+              :read-only="true"
             />
           </div>
         </div>

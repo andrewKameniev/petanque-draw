@@ -194,7 +194,7 @@
           </div>
         </div>
       </div>
-      <div v-else-if="tournament.system === 'swiss' && !tournament.groups">
+      <div v-else-if="(!tournament.system || tournament.system === 'swiss') && !tournament.groups">
         <div v-if="!isForProtocol && activeRound > 1 && !tournament.playOff" class="has-text-grey is-size-7 mb-2">
           {{ $t('ranking.roundsPlayed') }}: {{ activeRound - 1 }}
         </div>

@@ -657,6 +657,9 @@ export default {
         }
         return desc;
       }
+      if (!this.tournament.system) {
+        return this.$t('teams.swiss');
+      }
       if (this.tournament.system !== 'swiss') {
         return this.$t('teams.' + this.tournament.system);
       }

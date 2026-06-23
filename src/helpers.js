@@ -34,14 +34,14 @@ function getGameResultInGroup(where, team1, team2, difference) {
   const results = [];
   where.forEach((round) => {
     round.forEach((gameInRound) => {
-      if (gameInRound.team_1 + gameInRound.team_2 === team1 + team2) {
+      if (gameInRound.team_1 === team1 && gameInRound.team_2 === team2) {
         if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
           results.push({
             score1: gameInRound.team_1_score || 0,
             score2: gameInRound.team_2_score || 0,
           });
         }
-      } else if (gameInRound.team_2 + gameInRound.team_1 === team1 + team2) {
+      } else if (gameInRound.team_2 === team1 && gameInRound.team_1 === team2) {
         if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
           results.push({
             score1: gameInRound.team_2_score || 0,

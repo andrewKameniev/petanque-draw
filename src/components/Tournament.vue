@@ -876,7 +876,7 @@ export default {
       'isAdmin',
       'user',
       'currentTournament',
-      'savedTournaments',
+      'savedTournamentIds',
       'allScoresFilled',
     ]),
     tournament() {
@@ -929,7 +929,7 @@ export default {
       return String(this.pinnedState) === String(this.currentTournamentIndex);
     },
     isAlreadyArchived() {
-      return !!(this.savedTournaments && this.savedTournaments[this.currentTournamentIndex]);
+      return this.savedTournamentIds.includes(this.currentTournamentIndex);
     },
     tournamentStarted() {
       return !!(

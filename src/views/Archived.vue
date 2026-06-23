@@ -238,9 +238,11 @@ export default {
     },
   },
   created() {
-    if (this.tournamentKeys.length) {
-      this.activeKey = this.tournamentKeys[this.tournamentKeys.length - 1];
-    }
+    this.fetchSavedTournaments().then(() => {
+      if (this.tournamentKeys.length) {
+        this.activeKey = this.tournamentKeys[this.tournamentKeys.length - 1];
+      }
+    });
   },
   watch: {
     savedTournaments: {
@@ -392,7 +394,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['removeSavedTournament', 'renameSavedTournament']),
+    ...mapActions(useMainStore, ['fetchSavedTournaments', 'removeSavedTournament', 'renameSavedTournament']),
     selectTournament(key) {
       this.activeKey = key;
       this.selectorOpen = false;

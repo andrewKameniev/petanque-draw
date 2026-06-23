@@ -94,13 +94,12 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
         : getRandomWithOneExclusion(teamsToDraw.length);
     let technicalTeam = teamsToDraw[technicalTeamIndex];
     if (technicalTeam.opponents.includes('Technical')) {
-      for (let i = 2; i < teamsToDraw.length; i++) {
-        technicalTeamIndex = teamsToDraw.length - i;
-        technicalTeam = teamsToDraw[technicalTeamIndex];
-        if (!technicalTeam.opponents.includes('Technical')) {
-          break;
-        }
-      }
+      const fewestTechnicals = teamsToDraw.reduce((best, t, i) => {
+        const count = t.opponents.filter((o) => o === 'Technical').length;
+        return count < best.count ? { count, index: i } : best;
+      }, { count: Infinity, index: technicalTeamIndex });
+      technicalTeamIndex = fewestTechnicals.index;
+      technicalTeam = teamsToDraw[technicalTeamIndex];
     }
     round.push({
       team_1: technicalTeam.title,

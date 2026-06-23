@@ -58,6 +58,7 @@ export const useMainStore = defineStore('main', {
       text: '',
     },
     savedTournaments: {},
+    savedTournamentIds: [],
     currentTournamentIndex: null,
     isAdmin: false,
     user: false,
@@ -440,10 +441,21 @@ export const useMainStore = defineStore('main', {
       }
       const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
       const snapshotSaved = await get(dbRefSaved);
-      if (snapshot.exists() && snapshotSaved.val() !== null) {
+      if (snapshotSaved.exists()) {
+        this.savedTournamentIds = Object.keys(snapshotSaved.val());
+      } else {
+        this.savedTournamentIds = [];
+      }
+    },
+    async fetchSavedTournaments() {
+      const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
+      const snapshotSaved = await get(dbRefSaved);
+      if (snapshotSaved.exists()) {
         this.setSavedTournaments(snapshotSaved.val());
+        this.savedTournamentIds = Object.keys(snapshotSaved.val());
       } else {
         this.setSavedTournaments({});
+        this.savedTournamentIds = [];
       }
     },
     savePreferences() {
@@ -813,6 +825,9 @@ export const useMainStore = defineStore('main', {
       set(ref(db, `${this.user.uid}/saved/${tournament.id}`), tournament)
         .then(() => {
           this.savedTournaments[tournament.id] = tournament;
+          if (!this.savedTournamentIds.includes(tournament.id)) {
+            this.savedTournamentIds.push(tournament.id);
+          }
           this.showMessage({
             title: i18n.global.t('messages.saved'),
             text: i18n.global.t('messages.tournamentSavedList'),
@@ -830,6 +845,7 @@ export const useMainStore = defineStore('main', {
       remove(dataRef)
         .then(() => {
           delete this.savedTournaments[id];
+          this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
           this.showMessage({
             title: i18n.global.t('messages.removed'),
             text: i18n.global.t('messages.tournamentRemovedSaved'),

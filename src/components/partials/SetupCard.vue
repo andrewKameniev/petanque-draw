@@ -20,6 +20,10 @@
           <input type="radio" name="system" value="groups" v-model="tournament.system" />
           {{ $t('teams.groups') }}
         </label>
+        <label class="setup-card__radio">
+          <input type="radio" name="system" value="playoff" v-model="tournament.system" />
+          {{ $t('teams.playoff') }}
+        </label>
         <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
           <input type="radio" name="system" value="poules" v-model="tournament.system" />
           {{ $t('teams.poules') }}
@@ -92,6 +96,14 @@
       }}</span>
     </div>
 
+    <div v-if="tournament.system === 'playoff'" class="setup-card__field">
+      <span class="setup-card__hint">{{ $t('setup.straightPlayoffHint') }}</span>
+      <span v-if="hasTeamRatings && !isPowerOfTwo" class="setup-card__hint mt-2">
+        {{ $t('setup.straightPlayoffTechWins') }}
+      </span>
+      <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod" />
+    </div>
+
     <div v-if="tournament.system === 'supermele'" class="setup-card__field">
       <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
       <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
@@ -114,7 +126,7 @@
     </div>
 
     <div
-      v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules'"
+      v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules' && tournament.system !== 'playoff'"
       class="setup-card__field"
     >
       <label class="setup-card__checkbox">
@@ -171,7 +183,7 @@
       </div>
     </div>
 
-    <div v-if="tournament.system === 'swiss' && !tournament.isGroupB" class="setup-card__field">
+    <div v-if="tournament.system === 'swiss' && !tournament.isGroupB && tournament.system !== 'playoff'" class="setup-card__field">
       <label class="setup-card__checkbox">
         <input type="checkbox" v-model="localPlayB" data-testid="checkbox-play-b" />
         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
@@ -204,7 +216,7 @@
     </button>
 
     <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
-      <div class="setup-card__field">
+      <div v-if="tournament.system !== 'playoff'" class="setup-card__field">
         <label class="setup-card__checkbox">
           <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
           {{ $t('modals.timeLimit') }}
@@ -235,6 +247,42 @@
             <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" />
             {{ $t('modals.noTimeLimitFinale') }}
           </label>
+          <div class="mt-4">
+            <label class="setup-card__label">{{ $t('modals.cochonettes') }}</label>
+            <div class="select is-fullwidth">
+              <select v-model.number="tournament.preferences.cochonettes">
+                <option :value="1">1</option>
+                <option :value="2">2</option>
+              </select>
+            </div>
+            <span class="setup-card__hint">{{ $t('modals.cochonettesHint') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="tournament.system === 'playoff'" class="setup-card__field">
+        <label class="setup-card__checkbox">
+          <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
+          {{ $t('modals.timeLimit') }}
+        </label>
+        <span class="setup-card__hint">{{ $t('modals.timeLimitHint') }}</span>
+        <div v-if="tournament.preferences.timeLimitEnabled" class="setup-card__nested">
+          <label class="setup-card__checkbox mt-2">
+            <input type="checkbox" v-model="localPlayoffTimeLimitEnabled" />
+            {{ $t('setup.playoffTimeLimitEnabled') }}
+          </label>
+          <div v-if="localPlayoffTimeLimitEnabled" class="mt-2">
+            <span class="setup-card__label">{{ $t('modals.timeLimitPlayoff') }}</span>
+            <div class="select is-fullwidth">
+              <select v-model.number="tournament.preferences.playoffTimeLimit">
+                <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+              </select>
+            </div>
+            <label class="setup-card__checkbox mt-2">
+              <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" />
+              {{ $t('modals.noTimeLimitFinale') }}
+            </label>
+          </div>
           <div class="mt-4">
             <label class="setup-card__label">{{ $t('modals.cochonettes') }}</label>
             <div class="select is-fullwidth">
@@ -338,6 +386,7 @@ export default {
     'update:playB',
     'update:tirTwoRounds',
     'update:tirJunior',
+    'update:playoffTimeLimitEnabled',
   ],
   props: {
     tournament: { type: Object, required: true },
@@ -349,6 +398,7 @@ export default {
     playB: { type: Boolean, default: false },
     tirTwoRounds: { type: Boolean, default: false },
     tirJunior: { type: Boolean, default: false },
+    playoffTimeLimitEnabled: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -459,6 +509,18 @@ export default {
         values.pop();
       }
       return values;
+    },
+    localPlayoffTimeLimitEnabled: {
+      get() {
+        return this.playoffTimeLimitEnabled;
+      },
+      set(val) {
+        this.$emit('update:playoffTimeLimitEnabled', val);
+      },
+    },
+    isPowerOfTwo() {
+      const n = this.tournament.teams?.length || 0;
+      return n > 0 && (n & (n - 1)) === 0;
     },
     hasTeamRatings() {
       return this.tournament.useRating && this.tournament.teams?.some((t) => t.rating > 0);

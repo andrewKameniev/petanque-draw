@@ -929,7 +929,7 @@ export default {
       return String(this.pinnedState) === String(this.currentTournamentIndex);
     },
     isAlreadyArchived() {
-      return this.savedTournamentIds.includes(this.currentTournamentIndex);
+      return this.savedTournamentIds.includes(String(this.currentTournamentIndex));
     },
     tournamentStarted() {
       return !!(

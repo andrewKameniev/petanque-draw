@@ -133,10 +133,8 @@ export const useMainStore = defineStore('main', {
         const tournament = this.tournaments[this.currentTournamentIndex];
         if (tournament?._ownerUid) return;
         const db = getDatabase();
-        const data = JSON.parse(JSON.stringify(tournament));
-        delete data._ownerUid;
         update(ref(db, `${this.user.uid}/tournaments/`), {
-          [this.currentTournamentIndex]: data,
+          [this.currentTournamentIndex]: JSON.parse(JSON.stringify(tournament)),
         }).catch((error) => {
           console.error('Error updating specific tournament:', error);
           this.showMessage({
@@ -1038,8 +1036,8 @@ export const useMainStore = defineStore('main', {
     },
     async removeCollaborator(collaboratorUid) {
       const tournamentId = this.currentTournamentIndex;
-      await collaboratorService.remove(this.user.uid, tournamentId, collaboratorUid);
       await userMapService.remove(collaboratorUid, tournamentId);
+      await collaboratorService.remove(this.user.uid, tournamentId, collaboratorUid);
 
       if (this.currentTournament.collaborators) {
         delete this.currentTournament.collaborators[collaboratorUid];
@@ -1056,6 +1054,7 @@ export const useMainStore = defineStore('main', {
         tournament._ownerUid = ownerUid;
         this.tournaments[tournamentId] = tournament;
         this.setActiveTournament(tournamentId);
+        this.subscribeTournament();
       }
     },
     unarchiveTournament(id) {

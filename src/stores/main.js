@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { tournamentNames } from '@/helpers';
 import { get, getDatabase, ref, set, remove, update, onValue } from 'firebase/database';
 import { database } from '@/firebase';
+import { userMapService, collaboratorService } from '@/services/db';
 import i18n from '@/i18n';
 
 function createTournament(overrides = {}) {
@@ -57,6 +58,7 @@ export const useMainStore = defineStore('main', {
       title: 'Message',
       text: '',
     },
+    userTournamentMap: {},
     savedTournaments: {},
     savedTournamentIds: [],
     currentTournamentIndex: null,
@@ -70,6 +72,15 @@ export const useMainStore = defineStore('main', {
   }),
   getters: {
     currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
+    currentRole() {
+      const tournament = this.currentTournament;
+      if (!tournament?._ownerUid) return 'owner';
+      const mapEntry = this.userTournamentMap[this.currentTournamentIndex];
+      return mapEntry?.role || 'scorer';
+    },
+    isOwnerOrAdmin() {
+      return this.currentRole === 'owner' || this.currentRole === 'admin';
+    },
     allScoresFilled() {
       const tournament = this.currentTournament;
       if (!tournament) return false;
@@ -86,14 +97,22 @@ export const useMainStore = defineStore('main', {
     },
   },
   actions: {
+    _getTournamentOwnerUid() {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      return tournament?._ownerUid || this.user.uid;
+    },
     _syncPath(path, data) {
       if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
       if (!this._recentSyncPaths) this._recentSyncPaths = new Set();
       this._recentSyncPaths.add(path.split('/')[0]);
       const db = getDatabase();
-      const fullPath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${path}`;
+      const ownerUid = this._getTournamentOwnerUid();
+      const fullPath = `${ownerUid}/tournaments/${this.currentTournamentIndex}/${path}`;
       const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
       return set(ref(db, fullPath), plain).catch((error) => {
+        if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
+          this._handleAccessRevoked(this.currentTournamentIndex);
+        }
         console.error('Error updating path:', path, error);
       });
     },
@@ -104,9 +123,14 @@ export const useMainStore = defineStore('main', {
       this._syncMatchTimeouts[timeoutKey] = setTimeout(() => {
         if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
         const db = getDatabase();
-        const path = `${this.user.uid}/tournaments/${this.currentTournamentIndex}/${namespace}/${key}`;
+        const ownerUid = this._getTournamentOwnerUid();
+        const tid = this.currentTournamentIndex;
+        const path = `${ownerUid}/tournaments/${tid}/${namespace}/${key}`;
         const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
         set(ref(db, path), plain).catch((error) => {
+          if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
+            this._handleAccessRevoked(tid);
+          }
           console.error(`Error updating ${namespace}/${key}:`, error);
         });
       }, 200);
@@ -122,9 +146,11 @@ export const useMainStore = defineStore('main', {
     },
     _doSync() {
       if (this.user && this.user.uid && this.currentTournamentIndex) {
+        const tournament = this.tournaments[this.currentTournamentIndex];
+        if (tournament?._ownerUid) return;
         const db = getDatabase();
         update(ref(db, `${this.user.uid}/tournaments/`), {
-          [this.currentTournamentIndex]: this.tournaments[this.currentTournamentIndex],
+          [this.currentTournamentIndex]: JSON.parse(JSON.stringify(tournament)),
         }).catch((error) => {
           console.error('Error updating specific tournament:', error);
           this.showMessage({
@@ -177,7 +203,8 @@ export const useMainStore = defineStore('main', {
       this.unsubscribeTournament();
       if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
       const db = getDatabase();
-      const basePath = `${this.user.uid}/tournaments/${this.currentTournamentIndex}`;
+      const ownerUid = this._getTournamentOwnerUid();
+      const basePath = `${ownerUid}/tournaments/${this.currentTournamentIndex}`;
       this._tournamentUnsubscribers = [];
 
       const subscribePath = (path, handler) => {
@@ -430,33 +457,98 @@ export const useMainStore = defineStore('main', {
         this._tournamentUnsubscribe();
         this._tournamentUnsubscribe = null;
       }
+      if (this._accessWatcherUnsub) {
+        this._accessWatcherUnsub();
+        this._accessWatcherUnsub = null;
+      }
     },
     async getTournaments() {
+      const mapSnapshot = await userMapService.getAll(this.user.uid);
       const dbRef = ref(database, `${this.user.uid}/tournaments/`);
       const snapshot = await get(dbRef);
+
+      if (mapSnapshot.exists()) {
+        this.userTournamentMap = mapSnapshot.val();
+      } else {
+        this.userTournamentMap = {};
+        const migratedMap = {};
+        if (snapshot.exists()) {
+          const allTournaments = snapshot.val();
+          Object.keys(allTournaments).forEach((id) => {
+            migratedMap[id] = {
+              status: allTournaments[id].tournamentIsFinished ? 'archived' : 'active',
+              role: 'owner',
+              name: allTournaments[id].name || 'Tournament',
+            };
+          });
+        }
+        const savedRef = ref(database, `${this.user.uid}/saved/`);
+        const savedSnapshot = await get(savedRef);
+        if (savedSnapshot.exists()) {
+          Object.keys(savedSnapshot.val()).forEach((id) => {
+            if (!migratedMap[id]) {
+              migratedMap[id] = {
+                status: 'archived',
+                role: 'owner',
+                name: savedSnapshot.val()[id].name || 'Tournament',
+              };
+            }
+          });
+        }
+        if (Object.keys(migratedMap).length) {
+          this.userTournamentMap = migratedMap;
+          const db = getDatabase();
+          set(ref(db, `users/${this.user.uid}/tournaments`), migratedMap);
+        }
+      }
+
+      const ownActive = Object.entries(this.userTournamentMap)
+        .filter(([, entry]) => entry.role === 'owner' && entry.status !== 'archived')
+        .map(([id]) => id);
+
       if (snapshot.exists()) {
-        this.setTournaments(snapshot.val());
+        const all = snapshot.val();
+        const active = {};
+        if (ownActive.length) {
+          ownActive.forEach((id) => {
+            if (all[id]) active[id] = all[id];
+          });
+        } else if (!Object.keys(this.userTournamentMap).length) {
+          Object.assign(active, all);
+        }
+        this.setTournaments(active);
       } else {
         this.setTournaments({});
       }
-      const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
-      const snapshotSaved = await get(dbRefSaved);
-      if (snapshotSaved.exists()) {
-        this.savedTournamentIds = Object.keys(snapshotSaved.val());
-      } else {
-        this.savedTournamentIds = [];
-      }
+
+      this.savedTournamentIds = Object.entries(this.userTournamentMap)
+        .filter(([, entry]) => entry.status === 'archived')
+        .map(([id]) => id);
     },
     async fetchSavedTournaments() {
-      const dbRefSaved = ref(database, `${this.user.uid}/saved/`);
-      const snapshotSaved = await get(dbRefSaved);
-      if (snapshotSaved.exists()) {
-        this.setSavedTournaments(snapshotSaved.val());
-        this.savedTournamentIds = Object.keys(snapshotSaved.val());
-      } else {
+      const archivedIds = Object.entries(this.userTournamentMap)
+        .filter(([, entry]) => entry.status === 'archived' && entry.role === 'owner')
+        .map(([id]) => id);
+
+      if (!archivedIds.length) {
         this.setSavedTournaments({});
         this.savedTournamentIds = [];
+        return;
       }
+
+      const db = getDatabase();
+      const results = {};
+      await Promise.all(
+        archivedIds.map(async (id) => {
+          let snapshot = await get(ref(db, `${this.user.uid}/tournaments/${id}`));
+          if (!snapshot.exists()) {
+            snapshot = await get(ref(db, `${this.user.uid}/saved/${id}`));
+          }
+          if (snapshot.exists()) results[id] = snapshot.val();
+        }),
+      );
+      this.setSavedTournaments(results);
+      this.savedTournamentIds = Object.keys(results);
     },
     savePreferences() {
       this._syncPath('preferences', this.tournaments[this.currentTournamentIndex].preferences);
@@ -544,6 +636,11 @@ export const useMainStore = defineStore('main', {
     },
     loginUser(value) {
       this.user = value;
+      if (value && value.email && value.uid) {
+        const db = getDatabase();
+        const emailKey = value.email.replace(/\./g, ',');
+        set(ref(db, `emails/${emailKey}`), value.uid);
+      }
     },
     setActiveTournament(index) {
       this.currentTournamentIndex = index;
@@ -551,11 +648,16 @@ export const useMainStore = defineStore('main', {
     changeTournamentName(name) {
       this.tournaments[this.currentTournamentIndex].name = name;
       this._syncPath('name', name);
+      if (this.userTournamentMap[this.currentTournamentIndex]) {
+        this.userTournamentMap[this.currentTournamentIndex].name = name;
+        userMapService.update(this.user.uid, this.currentTournamentIndex, { name });
+      }
     },
     removeTournament() {
       const db = getDatabase();
-      const dataRef = ref(db, `${this.user.uid}/tournaments/${this.currentTournamentIndex}`);
-      const tokensRef = ref(db, `tokens/${this.user.uid}/${this.currentTournamentIndex}`);
+      const tournamentId = this.currentTournamentIndex;
+      const dataRef = ref(db, `${this.user.uid}/tournaments/${tournamentId}`);
+      const tokensRef = ref(db, `tokens/${this.user.uid}/${tournamentId}`);
 
       remove(tokensRef).catch((error) => {
         console.error('Error deleting data:', error);
@@ -563,7 +665,9 @@ export const useMainStore = defineStore('main', {
 
       remove(dataRef)
         .then(() => {
-          delete this.tournaments[this.currentTournamentIndex];
+          userMapService.remove(this.user.uid, tournamentId);
+          delete this.userTournamentMap[tournamentId];
+          delete this.tournaments[tournamentId];
           if (Object.keys(this.tournaments).length >= 1) {
             this.currentTournamentIndex = Object.keys(this.tournaments)[0];
           } else {
@@ -818,15 +922,33 @@ export const useMainStore = defineStore('main', {
       tournament.name = `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`;
       this.tournaments[tournament.id] = tournament;
       this.currentTournamentIndex = tournamentId;
+
+      const mapEntry = { status: 'active', role: 'owner', name: tournament.name };
+      this.userTournamentMap[tournamentId] = mapEntry;
+      userMapService.set(this.user.uid, tournamentId, mapEntry);
+
       this.syncToFirebase();
     },
     addToSaved(tournament) {
-      const db = getDatabase();
-      set(ref(db, `${this.user.uid}/saved/${tournament.id}`), tournament)
+      const id = String(tournament.id || this.currentTournamentIndex);
+      const mapUpdate = { status: 'archived' };
+
+      userMapService.update(this.user.uid, id, mapUpdate)
         .then(() => {
-          this.savedTournaments[tournament.id] = tournament;
-          if (!this.savedTournamentIds.includes(tournament.id)) {
-            this.savedTournamentIds.push(tournament.id);
+          if (this.userTournamentMap[id]) {
+            this.userTournamentMap[id].status = 'archived';
+          }
+          if (!this.savedTournamentIds.includes(id)) {
+            this.savedTournamentIds.push(id);
+          }
+          delete this.tournaments[id];
+          if (String(this.currentTournamentIndex) === id) {
+            const remaining = Object.keys(this.tournaments);
+            if (remaining.length) {
+              this.setActiveTournament(remaining[remaining.length - 1]);
+            } else {
+              this.addTournament();
+            }
           }
           this.showMessage({
             title: i18n.global.t('messages.saved'),
@@ -834,17 +956,19 @@ export const useMainStore = defineStore('main', {
           });
         })
         .catch((error) => {
-          console.error('Error save:', error);
+          console.error('Error archiving:', error);
           this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
         });
     },
     removeSavedTournament(id) {
       const db = getDatabase();
-      const dataRef = ref(db, `${this.user.uid}/saved/${id}`);
+      const dataRef = ref(db, `${this.user.uid}/tournaments/${id}`);
 
       remove(dataRef)
         .then(() => {
+          userMapService.remove(this.user.uid, id);
           delete this.savedTournaments[id];
+          delete this.userTournamentMap[id];
           this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
           this.showMessage({
             title: i18n.global.t('messages.removed'),
@@ -858,8 +982,10 @@ export const useMainStore = defineStore('main', {
     },
     renameSavedTournament(id, name) {
       const db = getDatabase();
-      update(ref(db, `${this.user.uid}/saved/${id}`), { name }).then(() => {
-        this.savedTournaments[id].name = name;
+      update(ref(db, `${this.user.uid}/tournaments/${id}`), { name }).then(() => {
+        if (this.savedTournaments[id]) this.savedTournaments[id].name = name;
+        if (this.userTournamentMap[id]) this.userTournamentMap[id].name = name;
+        userMapService.update(this.user.uid, id, { name });
       });
     },
     addBTournament(teams, name, isGroupB) {
@@ -878,6 +1004,141 @@ export const useMainStore = defineStore('main', {
         text: i18n.global.t('messages.tournamentDataSaved'),
       });
       this.syncToFirebase();
+    },
+    async addCollaborator(email, role) {
+      const snapshot = await collaboratorService.findUserByEmail(email);
+      if (!snapshot.exists()) {
+        this.showMessage({
+          title: i18n.global.t('messages.error'),
+          text: i18n.global.t('messages.userNotFound'),
+          type: 'error',
+        });
+        return false;
+      }
+      const collaboratorUid = snapshot.val();
+      if (!collaboratorUid || typeof collaboratorUid !== 'string') {
+        this.showMessage({
+          title: i18n.global.t('messages.error'),
+          text: i18n.global.t('messages.userNotFound'),
+          type: 'error',
+        });
+        return false;
+      }
+      if (collaboratorUid === this.user.uid) {
+        this.showMessage({
+          title: i18n.global.t('messages.error'),
+          text: i18n.global.t('messages.cannotAddSelf'),
+          type: 'error',
+        });
+        return false;
+      }
+      const tournamentId = this.currentTournamentIndex;
+      const tournament = this.currentTournament;
+
+      const collabData = { role, email };
+      await collaboratorService.add(this.user.uid, tournamentId, collaboratorUid, collabData);
+
+      const mapEntry = {
+        status: 'active',
+        role,
+        ownerUid: this.user.uid,
+        name: tournament.name,
+      };
+      await userMapService.set(collaboratorUid, tournamentId, mapEntry);
+
+      if (!tournament.collaborators) tournament.collaborators = {};
+      tournament.collaborators[collaboratorUid] = collabData;
+
+      this.showMessage({
+        title: i18n.global.t('messages.saved'),
+        text: i18n.global.t('messages.collaboratorAdded'),
+      });
+      return true;
+    },
+    async removeCollaborator(collaboratorUid) {
+      const tournamentId = this.currentTournamentIndex;
+      await userMapService.remove(collaboratorUid, tournamentId);
+      await collaboratorService.remove(this.user.uid, tournamentId, collaboratorUid);
+
+      if (this.currentTournament.collaborators) {
+        delete this.currentTournament.collaborators[collaboratorUid];
+      }
+    },
+    async leaveSharedTournament(tournamentId) {
+      const mapEntry = this.userTournamentMap[tournamentId];
+      if (!mapEntry || mapEntry.role === 'owner') return;
+      await userMapService.remove(this.user.uid, tournamentId);
+      delete this.userTournamentMap[tournamentId];
+      if (this.tournaments[tournamentId]) {
+        delete this.tournaments[tournamentId];
+      }
+      if (String(this.currentTournamentIndex) === String(tournamentId)) {
+        const remaining = Object.keys(this.tournaments);
+        this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+      }
+      this.unsubscribeTournament();
+    },
+    async loadSharedTournament(tournamentId, ownerUid) {
+      const db = getDatabase();
+      const dbRef = ref(db, `${ownerUid}/tournaments/${tournamentId}`);
+      const snapshot = await get(dbRef);
+      if (snapshot.exists()) {
+        const tournament = snapshot.val();
+        tournament.id = tournamentId;
+        tournament._ownerUid = ownerUid;
+        this.tournaments[tournamentId] = tournament;
+        this.setActiveTournament(tournamentId);
+        this.subscribeTournament();
+        this._watchCollaboratorAccess(tournamentId, ownerUid);
+      }
+    },
+    _handleAccessRevoked(tournamentId) {
+      if (this._accessRevokedHandled) return;
+      this._accessRevokedHandled = true;
+      this.unsubscribeTournament();
+      delete this.tournaments[tournamentId];
+      if (String(this.currentTournamentIndex) === String(tournamentId)) {
+        const remaining = Object.keys(this.tournaments);
+        this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+      }
+      if (this.userTournamentMap[tournamentId]) {
+        delete this.userTournamentMap[tournamentId];
+        userMapService.remove(this.user.uid, tournamentId);
+      }
+      this.showMessage({
+        title: i18n.global.t('messages.error'),
+        text: i18n.global.t('messages.accessRevoked'),
+        type: 'error',
+      });
+      setTimeout(() => { this._accessRevokedHandled = false; }, 1000);
+    },
+    _watchCollaboratorAccess(tournamentId, ownerUid) {
+      if (this._accessWatcherUnsub) {
+        this._accessWatcherUnsub();
+        this._accessWatcherUnsub = null;
+      }
+      const db = getDatabase();
+      const accessRef = ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${this.user.uid}`);
+      this._accessWatcherUnsub = onValue(accessRef, (snap) => {
+        if (!snap.exists() && this.tournaments[tournamentId]?._ownerUid) {
+          this._accessWatcherUnsub();
+          this._accessWatcherUnsub = null;
+          this._handleAccessRevoked(tournamentId);
+        }
+      });
+    },
+    unarchiveTournament(id) {
+      userMapService.update(this.user.uid, id, { status: 'active' })
+        .then(() => {
+          if (this.userTournamentMap[id]) {
+            this.userTournamentMap[id].status = 'active';
+          }
+          this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
+          this.showMessage({
+            title: i18n.global.t('messages.saved'),
+            text: i18n.global.t('messages.tournamentUnarchived'),
+          });
+        });
     },
   },
 });

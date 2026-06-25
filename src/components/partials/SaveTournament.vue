@@ -31,7 +31,6 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
-import { getTournamentRanking } from '@/helpers';
 
 export default {
   name: 'SaveTournament',
@@ -48,46 +47,22 @@ export default {
     this.name = this.tournament.name;
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'savedTournaments', 'currentTournament']),
+    ...mapState(useMainStore, ['currentTournament']),
     tournament() {
       return this.currentTournament;
     },
-    tournamentsNames() {
-      if (this.savedTournaments.length > 0) {
-        let tournamentsTitles = [];
-        this.savedTournaments.forEach((item) => {
-          tournamentsTitles.push(item.name);
-        });
-        return tournamentsTitles;
-      } else return false;
-    },
-    tournamentRanking() {
-      return getTournamentRanking(this.tournament, this.rankingTeams);
-    },
   },
   methods: {
-    ...mapActions(useMainStore, ['addToSaved', 'showMessage']),
+    ...mapActions(useMainStore, ['addToSaved', 'changeTournamentName']),
     saveTournament() {
       this.hasError = false;
-      if (!this.tournament.name || (this.tournamentsNames && this.tournamentsNames.includes(this.name))) {
+      if (!this.name) {
         this.hasError = true;
       } else {
-        const currentTournament = {
-          id: this.tournament.id,
-          name: this.name,
-          system: this.tournament.system,
-          tournamentIsFinished: this.tournament.tournamentIsFinished,
-          games: this.tournament.games,
-          teams: this.tournament.teams,
-          playOff: this.tournament.playOffBracket ? this.tournament.playOffBracket : null,
-          ranking: this.tournamentRanking,
-        };
-        if (this.tournament.system === 'tir') {
-          currentTournament.tirParticipants = this.tournament.tirParticipants;
-          currentTournament.tirPlayoff = this.tournament.tirPlayoff;
-          currentTournament.tirConfig = this.tournament.tirConfig;
+        if (this.name !== this.tournament.name) {
+          this.changeTournamentName(this.name);
         }
-        this.addToSaved(currentTournament);
+        this.addToSaved(this.tournament);
         this.$emit('close-modal');
       }
     },

@@ -78,6 +78,7 @@
               :class="{
                 'active-overlay__item--active': String(item.id) === String(currentTournamentIndex),
                 'active-overlay__item--finished': item.tournamentIsFinished,
+                'active-overlay__item--shared': item.isShared,
               }"
               @click="chooseTournamentFromOverlay(item.id)"
             >
@@ -101,6 +102,26 @@
           <div v-else class="active-overlay__empty">
             {{ $t('training.noSessions') }}
           </div>
+          <template v-if="sharedTournaments.length">
+            <div class="active-overlay__shared-header">{{ $t('collaborators.title') }}</div>
+            <div class="active-overlay__list">
+              <div
+                v-for="item in sharedTournaments"
+                :key="item.id"
+                class="active-overlay__item active-overlay__item--shared"
+                :class="{ 'active-overlay__item--active': String(item.id) === String(currentTournamentIndex) }"
+                @click="openSharedTournament(item)"
+              >
+                <div class="active-overlay__item-top">
+                  <span class="active-overlay__item-name">{{ item.name }}</span>
+                  <span class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
+                  <button class="active-overlay__item-leave" @click.stop="handleLeaveShared(item.id)" :title="$t('collaborators.leave')">
+                    <X :size="14" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </Teleport>
@@ -239,7 +260,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'userTournamentMap']),
     tournament() {
       return this.currentTournament;
     },
@@ -248,6 +269,7 @@ export default {
     },
     sortedTournaments() {
       return Object.values(this.tournaments)
+        .filter((t) => !t._ownerUid)
         .map((t) => ({
           id: t.id,
           name: t.name,
@@ -257,12 +279,25 @@ export default {
           roundsCount: t.games?.length || 0,
           hasPlayoff: !!t.playOff,
           tournamentIsFinished: t.tournamentIsFinished,
+          isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
         }))
         .sort((a, b) => (b.id || 0) - (a.id || 0));
     },
+    sharedTournaments() {
+      if (!this.userTournamentMap) return [];
+      return Object.entries(this.userTournamentMap)
+        .filter(([, entry]) => entry.role !== 'owner' && entry.status === 'active')
+        .map(([id, entry]) => ({
+          id,
+          name: this.tournaments[id]?.name || entry.name,
+          role: entry.role,
+          ownerUid: entry.ownerUid,
+          isLoaded: !!this.tournaments[id],
+        }));
+    },
   },
   methods: {
-    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
+    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament', 'loadSharedTournament', 'leaveSharedTournament']),
     refreshPinned() {
       this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
     },
@@ -281,6 +316,16 @@ export default {
       if (this.$route.path !== '/') {
         this.$router.push('/');
       }
+    },
+    async openSharedTournament(item) {
+      await this.loadSharedTournament(item.id, item.ownerUid);
+      this.activeOverlayOpen = false;
+      if (this.$route.path !== '/') {
+        this.$router.push('/');
+      }
+    },
+    async handleLeaveShared(tournamentId) {
+      await this.leaveSharedTournament(tournamentId);
     },
     getTeamFormat(item) {
       if (!item.firstTeamPlayers) return '';
@@ -570,6 +615,46 @@ export default {
   text-align: center;
   padding: 2rem;
   color: var(--color-text-muted);
+}
+
+.active-overlay__item--shared {
+  background: var(--color-shared-bg, rgba(99, 102, 241, 0.08));
+  border-left: 3px solid var(--color-primary);
+}
+
+.active-overlay__item-role {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--color-primary);
+  color: var(--color-btn-text);
+}
+
+.active-overlay__item-leave {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-danger, #e53e3e);
+  padding: 0.2rem;
+  margin-left: auto;
+  display: flex;
+  opacity: 0.6;
+}
+
+.active-overlay__item-leave:hover {
+  opacity: 1;
+}
+
+.active-overlay__shared-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 1rem 0.75rem 0.5rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.5rem;
 }
 
 .menu-burger {

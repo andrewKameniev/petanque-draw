@@ -1,0 +1,87 @@
+{
+  "rules": {
+    "$uid": {
+      ".write": "auth.uid === $uid",
+
+      "tournaments": {
+        "$tid": {
+          ".read": true,
+          ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'",
+
+          "collaborators": {
+            ".write": "auth.uid === $uid"
+          },
+
+          "games": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "cadrage": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "playOffBracket": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "tirPlayoff": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "teamPlayoff": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "roundTimer": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          },
+          "barrage": {
+            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          }
+        }
+      },
+
+      "saved": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      },
+
+      "stats": {
+        ".read": true,
+        ".write": "auth.uid === $uid"
+      },
+
+      "training": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      }
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid",
+
+        "tournaments": {
+          "$tid": {
+            ".read": "auth.uid === $uid",
+            ".write": "auth.uid === $uid || root.child(auth.uid + '/tournaments/' + $tid + '/collaborators/' + $uid).exists()"
+          }
+        }
+      }
+    },
+
+    "emails": {
+      ".read": "auth != null",
+      "$emailKey": {
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid)"
+      }
+    },
+
+    "tokens": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      }
+    },
+
+    "tournamentOrgs": {
+      ".read": "auth != null"
+    }
+  }
+}

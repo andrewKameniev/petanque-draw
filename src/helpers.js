@@ -195,11 +195,14 @@ function getTournamentRanking(tournament, rankingTeams) {
       });
     }
   } else {
+    const isNested = Array.isArray(rankingTeams?.[0]);
     if (
-      tournament.system === 'swiss' ||
-      ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams?.length === 1)
+      (tournament.system === 'swiss' && !isNested) ||
+      ((tournament.system === 'swiss' || tournament.system === 'groups' || tournament.system === 'poules') &&
+        isNested &&
+        rankingTeams?.length === 1)
     ) {
-      const rankingTeamsList = tournament.system === 'swiss' ? rankingTeams : rankingTeams[0];
+      const rankingTeamsList = isNested ? rankingTeams[0] : rankingTeams;
       rankingTeamsList.forEach((team, index) => {
         const teamPlace = {
           place: index + 1,
@@ -208,7 +211,7 @@ function getTournamentRanking(tournament, rankingTeams) {
         };
         tournamentRanking.push(teamPlace);
       });
-    } else if ((tournament.system === 'groups' || tournament.system === 'poules') && rankingTeams?.length > 1) {
+    } else if (isNested && rankingTeams?.length > 1) {
       const groupsCount = rankingTeams.length;
       const maxTeams = Math.max(...rankingTeams.map((g) => g.length));
       for (let i = 0; i < maxTeams; i++) {

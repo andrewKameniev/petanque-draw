@@ -1056,7 +1056,34 @@ export const useMainStore = defineStore('main', {
         this.tournaments[tournamentId] = tournament;
         this.setActiveTournament(tournamentId);
         this.subscribeTournament();
+        this._watchCollaboratorAccess(tournamentId, ownerUid);
       }
+    },
+    _watchCollaboratorAccess(tournamentId, ownerUid) {
+      const db = getDatabase();
+      const accessRef = ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${this.user.uid}`);
+      const unsubscribe = onValue(accessRef, (snap) => {
+        if (!snap.exists() && this.tournaments[tournamentId]?._ownerUid) {
+          unsubscribe();
+          this.unsubscribeTournament();
+          delete this.tournaments[tournamentId];
+          if (String(this.currentTournamentIndex) === String(tournamentId)) {
+            const remaining = Object.keys(this.tournaments);
+            this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+          }
+          if (this.userTournamentMap[tournamentId]) {
+            delete this.userTournamentMap[tournamentId];
+            userMapService.remove(this.user.uid, tournamentId);
+          }
+          this.showMessage({
+            title: i18n.global.t('messages.error'),
+            text: i18n.global.t('messages.accessRevoked'),
+            type: 'error',
+          });
+        }
+      });
+      if (!this._tournamentUnsubscribers) this._tournamentUnsubscribers = [];
+      this._tournamentUnsubscribers.push(unsubscribe);
     },
     unarchiveTournament(id) {
       userMapService.update(this.user.uid, id, { status: 'active' })

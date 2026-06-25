@@ -405,6 +405,7 @@ export default {
     userNotFound: 'User with this email not found',
     cannotAddSelf: 'You cannot add yourself as a collaborator',
     collaboratorAdded: 'Collaborator has been added',
+    accessRevoked: 'Your access to this tournament has been revoked',
     tournamentUnarchived: 'Tournament has been restored from archive',
     removeExercise: 'Remove this exercise?',
     removeSession: 'Remove this training session?',

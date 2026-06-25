@@ -406,6 +406,7 @@ export default {
     userNotFound: 'Користувача з цим email не знайдено',
     cannotAddSelf: 'Неможливо додати себе як колаборатора',
     collaboratorAdded: 'Колаборатора додано',
+    accessRevoked: 'Ваш доступ до цього турніру було скасовано',
     tournamentUnarchived: 'Турнір відновлено з архіву',
     removeExercise: 'Видалити цю вправу?',
     removeSession: 'Видалити цю тренувальну сесію?',

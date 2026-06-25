@@ -408,6 +408,7 @@ export default {
     userNotFound: "Aucun utilisateur trouvé avec cet email",
     cannotAddSelf: 'Vous ne pouvez pas vous ajouter comme collaborateur',
     collaboratorAdded: 'Le collaborateur a été ajouté',
+    accessRevoked: 'Votre accès à ce tournoi a été révoqué',
     tournamentUnarchived: "Le tournoi a été restauré depuis l'archive",
     removeExercise: 'Supprimer cet exercice ?',
     removeSession: "Supprimer cette session d'entraînement ?",

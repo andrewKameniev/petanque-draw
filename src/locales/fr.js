@@ -191,6 +191,7 @@ export default {
   },
   collaborators: {
     title: 'Collaborateurs',
+    legend: 'Ajoutez des marqueurs ou admins qui peuvent enregistrer les scores dans ce tournoi depuis leurs appareils.',
     emailPlaceholder: "Saisir l'adresse email",
     scorer: 'Marqueur',
     admin: 'Admin',

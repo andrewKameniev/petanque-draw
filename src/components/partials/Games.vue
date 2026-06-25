@@ -10,6 +10,7 @@
     <div v-else>
       <div
         v-if="
+          isOwnerOrAdmin &&
           tournament.games?.length &&
           !tournament.tournamentIsStarted &&
           !tournament.roundIsActive &&
@@ -28,7 +29,7 @@
           </a>
         </div>
       </div>
-      <div v-else-if="tournament.games?.length && showDrawLinks" class="draw-card">
+      <div v-else-if="isOwnerOrAdmin && tournament.games?.length && showDrawLinks" class="draw-card">
         <div class="draw-card__links">
           <a
             v-if="
@@ -86,7 +87,7 @@
             @timer-ended="onTimerEnded"
             @restart="onTimerRestart"
           />
-          <button v-else class="start-timer-btn" @click="startRoundTimer">
+          <button v-else-if="isOwnerOrAdmin" class="start-timer-btn" @click="startRoundTimer">
             <Timer :size="16" />
             {{ $t('timer.startTimer') }}
           </button>
@@ -175,7 +176,7 @@
           </div>
         </div>
         <div class="has-text-danger mt-3" v-if="saveDisabled">{{ $t('games.drawError') }}</div>
-        <div class="finish-round-section" v-if="tournament.roundIsActive">
+        <div class="finish-round-section" v-if="tournament.roundIsActive && isOwnerOrAdmin">
           <button class="finish-round-btn" data-testid="btn-finish-round" @click="validateAndFinishRound">
             {{ $t('games.finishRound') }}
           </button>
@@ -354,6 +355,7 @@ export default {
       'isAdmin',
       'currentTournament',
       'allScoresFilled',
+      'isOwnerOrAdmin',
     ]),
     tournament() {
       return this.currentTournament;

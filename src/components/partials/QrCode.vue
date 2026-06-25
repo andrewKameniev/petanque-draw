@@ -36,9 +36,11 @@
         <button class="qr-modal__collab-toggle" @click="collabOpen = !collabOpen">
           <Users :size="18" />
           {{ $t('collaborators.title') }}
+          <span v-if="!collabOpen && collaboratorsList.length" class="qr-modal__collab-badge">{{ collaboratorsList.length }}</span>
           <ChevronDown :size="16" :class="{ 'rotated': collabOpen }" />
         </button>
         <div v-if="collabOpen" class="qr-modal__collab-body">
+          <p class="qr-modal__collab-legend">{{ $t('collaborators.legend') }}</p>
           <div class="qr-modal__collab-form">
             <input
               v-model="collabEmail"
@@ -264,6 +266,26 @@ export default {
 
 .qr-modal__collab-toggle svg.rotated {
   transform: rotate(180deg);
+}
+
+.qr-modal__collab-badge {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.qr-modal__collab-legend {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #888);
+  margin-bottom: 0.75rem;
 }
 
 .qr-modal__collab-body {

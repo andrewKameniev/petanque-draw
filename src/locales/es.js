@@ -189,6 +189,7 @@ export default {
   },
   collaborators: {
     title: 'Colaboradores',
+    legend: 'Añade anotadores o admins que puedan registrar resultados en este torneo desde sus dispositivos.',
     emailPlaceholder: 'Introduce el email',
     scorer: 'Anotador',
     admin: 'Admin',

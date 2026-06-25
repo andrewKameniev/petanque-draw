@@ -1,13 +1,13 @@
 <template>
   <div>
     <RemoteToolbar
-      v-if="user"
+      v-if="user && isOwnerOrAdmin"
       v-model:message="tournament.tournamentMessage"
       :loading="loadingOnServer"
       @show-qr="showQrCode = true"
       @update:message="onMessageInput"
     />
-    <QrCode v-if="showQrCode" @close-modal="showQrCode = false" />
+    <QrCode v-if="showQrCode && isOwnerOrAdmin" @close-modal="showQrCode = false" />
     <TournamentHeader
       :name="tournament.name"
       :system="tournament.system"
@@ -165,7 +165,7 @@
                 </div>
                 -->
         </div>
-        <div class="bottom-actions" v-if="tournament.system !== 'tir'">
+        <div class="bottom-actions" v-if="tournament.system !== 'tir' && isOwnerOrAdmin">
           <div class="bottom-actions__row">
             <button
               v-if="
@@ -878,6 +878,7 @@ export default {
       'currentTournament',
       'savedTournamentIds',
       'allScoresFilled',
+      'isOwnerOrAdmin',
     ]),
     tournament() {
       return this.currentTournament;

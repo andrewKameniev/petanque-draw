@@ -190,6 +190,7 @@ export default {
   },
   collaborators: {
     title: 'Collaborators',
+    legend: 'Add scorers or admins who can record scores in this tournament from their own devices.',
     emailPlaceholder: 'Enter email address',
     scorer: 'Scorer',
     admin: 'Admin',

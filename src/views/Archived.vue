@@ -56,6 +56,7 @@
             @click.prevent.stop="selectTournament(key)"
           >
             {{ item.name }}
+            <span v-if="getFormatTag(item)" class="tournament-selector__tag">{{ getFormatTag(item) }}</span>
           </a>
         </div>
       </div>
@@ -395,6 +396,15 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, ['fetchSavedTournaments', 'removeSavedTournament', 'renameSavedTournament']),
+    getFormatTag(item) {
+      if (item.system === 'tir') return this.$t('teams.tir');
+      const players = item.teams?.[0]?.players?.length;
+      if (!players) return '';
+      if (players === 1) return this.$t('common.formatTete');
+      if (players === 2) return this.$t('common.formatDoublette');
+      if (players >= 3) return this.$t('common.formatTriplette');
+      return '';
+    },
     selectTournament(key) {
       this.activeKey = key;
       this.selectorOpen = false;
@@ -630,6 +640,19 @@ export default {
   background: var(--color-primary-bg);
   color: var(--color-primary);
   font-weight: 600;
+}
+
+.tournament-selector__tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  vertical-align: middle;
+  text-transform: lowercase;
 }
 
 .tournament-nav {

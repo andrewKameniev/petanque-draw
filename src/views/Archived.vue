@@ -619,7 +619,10 @@ export default {
 }
 
 .tournament-selector__option {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 500;
@@ -643,16 +646,15 @@ export default {
 }
 
 .tournament-selector__tag {
-  display: inline-block;
-  margin-left: 0.4rem;
+  flex-shrink: 0;
   padding: 0.1rem 0.4rem;
   font-size: 0.7rem;
   font-weight: 600;
   border-radius: 4px;
   background: var(--color-primary-bg);
   color: var(--color-primary);
-  vertical-align: middle;
   text-transform: lowercase;
+  white-space: nowrap;
 }
 
 .tournament-nav {
@@ -716,6 +718,14 @@ export default {
   .tournament-selector__arrow {
     width: 22px;
     height: 22px;
+  }
+
+  .tournament-selector__dropdown {
+    left: 0;
+    right: 0;
+    transform: none;
+    max-width: 100%;
+    min-width: unset;
   }
 }
 

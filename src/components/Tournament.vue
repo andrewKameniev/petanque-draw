@@ -30,6 +30,7 @@
         v-model:playB="playB"
         v-model:tirTwoRounds="tirTwoRounds"
         v-model:tirJunior="tirJunior"
+        v-model:playoffTimeLimitEnabled="playoffTimeLimitEnabled"
         @draw="drawFirstRound"
         @remove="removeConfirmId = 1"
       />
@@ -406,6 +407,7 @@ export default {
       showPlayoffConfirm: false,
       tirTwoRounds: false,
       tirJunior: false,
+      playoffTimeLimitEnabled: true,
       pinnedState: localStorage.getItem('petanqueDrawPinned'),
     };
   },
@@ -701,6 +703,45 @@ export default {
         store.currentTournamentIndex = currentIndex;
       }
     },
+    startStraightPlayoff() {
+      const teams = [...this.tournament.teams];
+      const useRating = this.tournament.useRating && teams.some((t) => t.rating > 0);
+
+      let playOffList;
+      if (useRating) {
+        const sorted = [...teams].sort((a, b) => b.rating - a.rating);
+        const nextPow2 = Math.pow(2, Math.ceil(Math.log2(sorted.length)));
+        playOffList = sorted.map((t) => ({ title: t.title, isBye: false }));
+        while (playOffList.length < nextPow2) {
+          playOffList.push({ title: null, isBye: true });
+        }
+      } else {
+        const shuffled = [...teams].sort(() => Math.random() - 0.5);
+        const nextPow2 = Math.pow(2, Math.ceil(Math.log2(shuffled.length)));
+        playOffList = shuffled.map((t) => ({ title: t.title, isBye: false }));
+        while (playOffList.length < nextPow2) {
+          playOffList.push({ title: null, isBye: true });
+        }
+      }
+
+      this.tournament.preferences.playOffEnabled = true;
+      this.tournament.preferences.playOffTeams = playOffList.length;
+
+      if (this.tournament.preferences.timeLimitEnabled && !this.playoffTimeLimitEnabled) {
+        this.tournament.preferences.timeLimitEnabled = false;
+      }
+
+      if (!this.tournament.games) {
+        this.tournament.games = [];
+      }
+
+      this.savePreferences();
+
+      const playOffScheme = buildPlayOffScheme(playOffList, false);
+      this.setPlayOff(playOffScheme);
+      this.syncDrawStart();
+      this.activeTab = 'games';
+    },
     restoreTeamsFromLocalStorage() {
       const teams = JSON.parse(localStorage.getItem('petanqueDrawTeamsRestore'));
       if (!teams) return;
@@ -786,6 +827,9 @@ export default {
         this.tournament.groups = groups;
         this.tournament.poulesRound = 1;
         round = drawPoulesRound(this.tournament);
+      } else if (this.tournament.system === 'playoff') {
+        this.startStraightPlayoff();
+        return;
       } else if (this.tournament.system === 'supermele') {
         round = drawSupermeleRound(this.tournament, this.rankingTeams);
       }
@@ -818,6 +862,17 @@ export default {
       this.activeTab = 'games';
     },
     redrawRounds() {
+      if (this.tournament.system === 'playoff') {
+        this.clearRoundTimer();
+        this.tournament.playOff = null;
+        this.tournament.playOffBracket = null;
+        this.tournament.playOffStage = null;
+        this.tournament.games = [];
+        this.startStraightPlayoff();
+        this.syncRedraw();
+        this.showMessage({ title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText') });
+        return;
+      }
       if (!this.tournament.games?.length) return;
       if (this.tournament.roundIsActive && this.tournament.games.length > 1) return;
       this.clearRoundTimer();

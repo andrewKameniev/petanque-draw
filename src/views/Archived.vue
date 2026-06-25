@@ -56,6 +56,7 @@
             @click.prevent.stop="selectTournament(key)"
           >
             {{ item.name }}
+            <span v-if="getFormatTag(item)" class="tournament-selector__tag">{{ getFormatTag(item) }}</span>
           </a>
         </div>
       </div>
@@ -395,6 +396,15 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, ['fetchSavedTournaments', 'removeSavedTournament', 'renameSavedTournament']),
+    getFormatTag(item) {
+      if (item.system === 'tir') return this.$t('teams.tir');
+      const players = item.teams?.[0]?.players?.length;
+      if (!players) return '';
+      if (players === 1) return this.$t('common.formatTete');
+      if (players === 2) return this.$t('common.formatDoublette');
+      if (players >= 3) return this.$t('common.formatTriplette');
+      return '';
+    },
     selectTournament(key) {
       this.activeKey = key;
       this.selectorOpen = false;
@@ -609,7 +619,10 @@ export default {
 }
 
 .tournament-selector__option {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 500;
@@ -630,6 +643,18 @@ export default {
   background: var(--color-primary-bg);
   color: var(--color-primary);
   font-weight: 600;
+}
+
+.tournament-selector__tag {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  text-transform: lowercase;
+  white-space: nowrap;
 }
 
 .tournament-nav {
@@ -693,6 +718,14 @@ export default {
   .tournament-selector__arrow {
     width: 22px;
     height: 22px;
+  }
+
+  .tournament-selector__dropdown {
+    left: 0;
+    right: 0;
+    transform: none;
+    max-width: 100%;
+    min-width: unset;
   }
 }
 

@@ -1015,7 +1015,8 @@ export const useMainStore = defineStore('main', {
       const tournamentId = this.currentTournamentIndex;
       const tournament = this.currentTournament;
 
-      await collaboratorService.add(this.user.uid, tournamentId, collaboratorUid, role);
+      const collabData = { role, email };
+      await collaboratorService.add(this.user.uid, tournamentId, collaboratorUid, collabData);
 
       const mapEntry = {
         status: 'active',
@@ -1026,7 +1027,7 @@ export const useMainStore = defineStore('main', {
       await userMapService.set(collaboratorUid, tournamentId, mapEntry);
 
       if (!tournament.collaborators) tournament.collaborators = {};
-      tournament.collaborators[collaboratorUid] = role;
+      tournament.collaborators[collaboratorUid] = collabData;
 
       this.showMessage({
         title: i18n.global.t('messages.saved'),

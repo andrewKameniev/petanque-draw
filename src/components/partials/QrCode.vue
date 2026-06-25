@@ -43,25 +43,29 @@
             <input
               v-model="collabEmail"
               type="email"
-              class="input qr-modal__collab-input"
+              class="input"
               :placeholder="$t('collaborators.emailPlaceholder')"
               @keyup.enter="handleAddCollaborator"
             />
-            <select v-model="collabRole" class="qr-modal__collab-select">
-              <option value="scorer">{{ $t('collaborators.scorer') }}</option>
-              <option value="admin">{{ $t('collaborators.admin') }}</option>
-            </select>
-            <button
-              class="button qr-modal__btn"
-              :disabled="!collabEmail || collabLoading"
-              @click="handleAddCollaborator"
-            >
-              <UserPlus :size="16" />
-            </button>
+            <div class="qr-modal__collab-actions">
+              <div class="select">
+                <select v-model="collabRole">
+                  <option value="scorer">{{ $t('collaborators.scorer') }}</option>
+                  <option value="admin">{{ $t('collaborators.admin') }}</option>
+                </select>
+              </div>
+              <button
+                class="button"
+                :disabled="!collabEmail || collabLoading"
+                @click="handleAddCollaborator"
+              >
+                <UserPlus :size="16" />
+              </button>
+            </div>
           </div>
           <ul v-if="collaboratorsList.length" class="qr-modal__collab-list">
             <li v-for="collab in collaboratorsList" :key="collab.uid" class="qr-modal__collab-item">
-              <span class="qr-modal__collab-uid">{{ collab.uid }}</span>
+              <span class="qr-modal__collab-email">{{ collab.email }}</span>
               <span class="qr-modal__collab-role">{{ $t(`collaborators.${collab.role}`) }}</span>
               <button class="qr-modal__collab-remove" @click="handleRemoveCollaborator(collab.uid)">
                 <X :size="14" />
@@ -115,7 +119,11 @@ export default {
     collaboratorsList() {
       const collabs = this.tournament?.collaborators;
       if (!collabs) return [];
-      return Object.entries(collabs).map(([uid, role]) => ({ uid, role }));
+      return Object.entries(collabs).map(([uid, val]) => ({
+        uid,
+        role: typeof val === 'string' ? val : val.role,
+        email: typeof val === 'string' ? uid : val.email,
+      }));
     },
   },
   methods: {
@@ -264,22 +272,13 @@ export default {
 
 .qr-modal__collab-form {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
 }
 
-.qr-modal__collab-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.qr-modal__collab-select {
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-qr-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 0.9rem;
+.qr-modal__collab-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .qr-modal__collab-list {
@@ -298,7 +297,7 @@ export default {
   margin-bottom: 0.4rem;
 }
 
-.qr-modal__collab-uid {
+.qr-modal__collab-email {
   flex: 1;
   font-size: 0.85rem;
   overflow: hidden;
@@ -333,14 +332,6 @@ export default {
     transform: scale(0.7);
     transform-origin: center;
     margin: -1.5rem auto;
-  }
-
-  .qr-modal__collab-form {
-    flex-wrap: wrap;
-  }
-
-  .qr-modal__collab-input {
-    flex-basis: 100%;
   }
 }
 </style>

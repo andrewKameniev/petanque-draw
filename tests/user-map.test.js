@@ -211,14 +211,14 @@ describe('User Tournament Map', () => {
       const result = await store.addCollaborator('friend@test.com', 'scorer');
 
       expect(result).toBe(true);
-      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'user2', 'scorer');
+      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'user2', { role: 'scorer', email: 'friend@test.com' });
       expect(userMapService.set).toHaveBeenCalledWith('user2', 't1', {
         status: 'active',
         role: 'scorer',
         ownerUid: 'user1',
         name: 'Test',
       });
-      expect(store.currentTournament.collaborators).toEqual({ user2: 'scorer' });
+      expect(store.currentTournament.collaborators).toEqual({ user2: { role: 'scorer', email: 'friend@test.com' } });
     });
   });
 

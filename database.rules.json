@@ -6,7 +6,7 @@
       "tournaments": {
         "$tid": {
           ".read": true,
-          ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).val() === 'admin'",
+          ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'",
 
           "collaborators": {
             ".write": "auth.uid === $uid"

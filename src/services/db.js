@@ -98,8 +98,8 @@ export const collaboratorService = {
   getAll(ownerUid, tournamentId) {
     return get(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators`));
   },
-  add(ownerUid, tournamentId, collaboratorUid, role) {
-    return set(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${collaboratorUid}`), role);
+  add(ownerUid, tournamentId, collaboratorUid, data) {
+    return set(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${collaboratorUid}`), data);
   },
   remove(ownerUid, tournamentId, collaboratorUid) {
     return remove(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${collaboratorUid}`));

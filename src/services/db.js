@@ -79,6 +79,37 @@ export const tournamentOrgsService = {
   },
 };
 
+export const userMapService = {
+  getAll(uid) {
+    return get(ref(db, `users/${uid}/tournaments`));
+  },
+  set(uid, tournamentId, data) {
+    return set(ref(db, `users/${uid}/tournaments/${tournamentId}`), data);
+  },
+  remove(uid, tournamentId) {
+    return remove(ref(db, `users/${uid}/tournaments/${tournamentId}`));
+  },
+  update(uid, tournamentId, data) {
+    return update(ref(db, `users/${uid}/tournaments/${tournamentId}`), data);
+  },
+};
+
+export const collaboratorService = {
+  getAll(ownerUid, tournamentId) {
+    return get(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators`));
+  },
+  add(ownerUid, tournamentId, collaboratorUid, role) {
+    return set(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${collaboratorUid}`), role);
+  },
+  remove(ownerUid, tournamentId, collaboratorUid) {
+    return remove(ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${collaboratorUid}`));
+  },
+  findUserByEmail(email) {
+    const key = email.replace(/\./g, ',');
+    return get(ref(db, `emails/${key}`));
+  },
+};
+
 export const trainingService = {
   getAll(uid) {
     return get(ref(db, `${uid}/training/list`));

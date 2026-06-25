@@ -78,6 +78,7 @@
               :class="{
                 'active-overlay__item--active': String(item.id) === String(currentTournamentIndex),
                 'active-overlay__item--finished': item.tournamentIsFinished,
+                'active-overlay__item--shared': item.isShared || item.isCollaborating,
               }"
               @click="chooseTournamentFromOverlay(item.id)"
             >
@@ -85,6 +86,7 @@
                 <Pin v-if="String(pinnedId) === String(item.id)" :size="14" class="active-overlay__item-pin" />
                 <span class="active-overlay__item-name">{{ item.name }}</span>
                 <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
+                <span v-if="item.isCollaborating" class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
               </div>
               <div class="active-overlay__item-meta">
                 <span v-if="item.teamsCount">{{ item.teamsCount }} {{ $t('common.teamsCount') }}</span>
@@ -101,6 +103,23 @@
           <div v-else class="active-overlay__empty">
             {{ $t('training.noSessions') }}
           </div>
+          <template v-if="sharedTournaments.length">
+            <div class="active-overlay__shared-header">{{ $t('collaborators.title') }}</div>
+            <div class="active-overlay__list">
+              <div
+                v-for="item in sharedTournaments"
+                :key="item.id"
+                class="active-overlay__item active-overlay__item--shared"
+                :class="{ 'active-overlay__item--active': String(item.id) === String(currentTournamentIndex) }"
+                @click="openSharedTournament(item)"
+              >
+                <div class="active-overlay__item-top">
+                  <span class="active-overlay__item-name">{{ item.name }}</span>
+                  <span class="active-overlay__item-badge">{{ $t(`collaborators.${item.role}`) }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </Teleport>
@@ -239,7 +258,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'userTournamentMap']),
     tournament() {
       return this.currentTournament;
     },
@@ -257,12 +276,22 @@ export default {
           roundsCount: t.games?.length || 0,
           hasPlayoff: !!t.playOff,
           tournamentIsFinished: t.tournamentIsFinished,
+          isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
+          isCollaborating: !!t._ownerUid,
+          role: t._ownerUid ? (this.userTournamentMap[t.id]?.role || 'scorer') : 'owner',
         }))
         .sort((a, b) => (b.id || 0) - (a.id || 0));
     },
+    sharedTournaments() {
+      if (!this.userTournamentMap) return [];
+      return Object.entries(this.userTournamentMap)
+        .filter(([, entry]) => entry.role !== 'owner' && entry.status === 'active')
+        .filter(([id]) => !this.tournaments[id])
+        .map(([id, entry]) => ({ id, name: entry.name, role: entry.role, ownerUid: entry.ownerUid }));
+    },
   },
   methods: {
-    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament']),
+    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament', 'loadSharedTournament']),
     refreshPinned() {
       this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
     },
@@ -277,6 +306,13 @@ export default {
     },
     chooseTournamentFromOverlay(id) {
       this.setActiveTournament(id);
+      this.activeOverlayOpen = false;
+      if (this.$route.path !== '/') {
+        this.$router.push('/');
+      }
+    },
+    async openSharedTournament(item) {
+      await this.loadSharedTournament(item.id, item.ownerUid);
       this.activeOverlayOpen = false;
       if (this.$route.path !== '/') {
         this.$router.push('/');
@@ -570,6 +606,31 @@ export default {
   text-align: center;
   padding: 2rem;
   color: var(--color-text-muted);
+}
+
+.active-overlay__item--shared {
+  background: var(--color-shared-bg, rgba(99, 102, 241, 0.08));
+  border-left: 3px solid var(--color-primary);
+}
+
+.active-overlay__item-role {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--color-primary);
+  color: var(--color-btn-text);
+}
+
+.active-overlay__shared-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 1rem 0.75rem 0.5rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.5rem;
 }
 
 .menu-burger {

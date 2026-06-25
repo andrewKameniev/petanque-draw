@@ -30,6 +30,47 @@
           {{ tvLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
         </button>
       </div>
+
+      <div class="qr-modal__divider"></div>
+      <div class="qr-modal__collab-section">
+        <button class="qr-modal__collab-toggle" @click="collabOpen = !collabOpen">
+          <Users :size="18" />
+          {{ $t('collaborators.title') }}
+          <ChevronDown :size="16" :class="{ 'rotated': collabOpen }" />
+        </button>
+        <div v-if="collabOpen" class="qr-modal__collab-body">
+          <div class="qr-modal__collab-form">
+            <input
+              v-model="collabEmail"
+              type="email"
+              class="input qr-modal__collab-input"
+              :placeholder="$t('collaborators.emailPlaceholder')"
+              @keyup.enter="handleAddCollaborator"
+            />
+            <select v-model="collabRole" class="qr-modal__collab-select">
+              <option value="scorer">{{ $t('collaborators.scorer') }}</option>
+              <option value="admin">{{ $t('collaborators.admin') }}</option>
+            </select>
+            <button
+              class="button qr-modal__btn"
+              :disabled="!collabEmail || collabLoading"
+              @click="handleAddCollaborator"
+            >
+              <UserPlus :size="16" />
+            </button>
+          </div>
+          <ul v-if="collaboratorsList.length" class="qr-modal__collab-list">
+            <li v-for="collab in collaboratorsList" :key="collab.uid" class="qr-modal__collab-item">
+              <span class="qr-modal__collab-uid">{{ collab.uid }}</span>
+              <span class="qr-modal__collab-role">{{ $t(`collaborators.${collab.role}`) }}</span>
+              <button class="qr-modal__collab-remove" @click="handleRemoveCollaborator(collab.uid)">
+                <X :size="14" />
+              </button>
+            </li>
+          </ul>
+          <p v-else class="qr-modal__collab-empty">{{ $t('collaborators.empty') }}</p>
+        </div>
+      </div>
     </div>
   </Modal>
 </template>
@@ -39,16 +80,20 @@ import QrcodeVue from 'qrcode.vue';
 import Modal from '@/components/Modal';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { Copy, Check, Monitor } from 'lucide-vue-next';
+import { Copy, Check, Monitor, Users, ChevronDown, UserPlus, X } from 'lucide-vue-next';
 
 export default {
   name: 'QrCode',
-  components: { Modal, QrcodeVue, Copy, Check, Monitor },
+  components: { Modal, QrcodeVue, Copy, Check, Monitor, Users, ChevronDown, UserPlus, X },
   data() {
     return {
       size: 300,
       linkCopied: false,
       tvLinkCopied: false,
+      collabOpen: false,
+      collabEmail: '',
+      collabRole: 'scorer',
+      collabLoading: false,
     };
   },
   computed: {
@@ -67,9 +112,14 @@ export default {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tv?ref=${this.shortRef}`;
     },
+    collaboratorsList() {
+      const collabs = this.tournament?.collaborators;
+      if (!collabs) return [];
+      return Object.entries(collabs).map(([uid, role]) => ({ uid, role }));
+    },
   },
   methods: {
-    ...mapActions(useMainStore, ['showMessage']),
+    ...mapActions(useMainStore, ['showMessage', 'addCollaborator', 'removeCollaborator']),
     copyLink() {
       navigator.clipboard.writeText(this.tournamentLink);
       this.linkCopied = true;
@@ -83,6 +133,16 @@ export default {
       setTimeout(() => {
         this.tvLinkCopied = false;
       }, 2000);
+    },
+    async handleAddCollaborator() {
+      if (!this.collabEmail || this.collabLoading) return;
+      this.collabLoading = true;
+      await this.addCollaborator(this.collabEmail.trim(), this.collabRole);
+      this.collabEmail = '';
+      this.collabLoading = false;
+    },
+    async handleRemoveCollaborator(uid) {
+      await this.removeCollaborator(uid);
     },
   },
 };
@@ -176,11 +236,111 @@ export default {
   color: var(--color-text);
 }
 
+.qr-modal__collab-section {
+  text-align: left;
+}
+
+.qr-modal__collab-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.qr-modal__collab-toggle svg.rotated {
+  transform: rotate(180deg);
+}
+
+.qr-modal__collab-body {
+  margin-top: 0.75rem;
+}
+
+.qr-modal__collab-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.qr-modal__collab-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.qr-modal__collab-select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-qr-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.qr-modal__collab-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.qr-modal__collab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-qr-alt-bg);
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+}
+
+.qr-modal__collab-uid {
+  flex: 1;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qr-modal__collab-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.qr-modal__collab-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-danger, #e53e3e);
+  padding: 0.2rem;
+  display: flex;
+}
+
+.qr-modal__collab-empty {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #888);
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .qr-modal__code {
     transform: scale(0.7);
     transform-origin: center;
     margin: -1.5rem auto;
+  }
+
+  .qr-modal__collab-form {
+    flex-wrap: wrap;
+  }
+
+  .qr-modal__collab-input {
+    flex-basis: 100%;
   }
 }
 </style>

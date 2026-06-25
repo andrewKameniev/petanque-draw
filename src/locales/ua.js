@@ -248,6 +248,7 @@ export default {
     timeLimitPlayoff: 'Плей-оф',
     noTimeLimitFinale: 'Без обмеження часу у фіналі',
     perRoundScoring: 'Рахунок по раундам (групи)',
+    perRoundScoringGeneric: 'Рахунок по раундам',
     perRoundScoringPlayoff: 'Рахунок по раундам (плей-оф)',
     perRoundScoringHint: 'Відстежувати рахунок по кожному кошонету окремо в матчі',
     cochonettes: 'Додаткові кошонети',

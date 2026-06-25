@@ -247,6 +247,7 @@ export default {
     timeLimitPlayoff: 'Play-off',
     noTimeLimitFinale: 'Sin límite de tiempo en la final',
     perRoundScoring: 'Puntuación por ronda (grupos)',
+    perRoundScoringGeneric: 'Puntuación por ronda',
     perRoundScoringPlayoff: 'Puntuación por ronda (play-off)',
     perRoundScoringHint: 'Registrar puntuación de cada mini (cochonette) por separado',
     cochonettes: 'Cochonnettes adicionales',

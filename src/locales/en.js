@@ -248,6 +248,7 @@ export default {
     timeLimitPlayoff: 'Playoff',
     noTimeLimitFinale: 'No time limit in finale',
     perRoundScoring: 'Per-round scoring (groups)',
+    perRoundScoringGeneric: 'Per-round scoring',
     perRoundScoringPlayoff: 'Per-round scoring (playoff)',
     perRoundScoringHint: 'Track score per each mini (cochonette) separately',
     cochonettes: 'Additional cochonettes',

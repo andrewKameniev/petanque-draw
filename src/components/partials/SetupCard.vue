@@ -282,28 +282,28 @@
               <input type="checkbox" v-model="tournament.preferences.noTimeLimitFinale" />
               {{ $t('modals.noTimeLimitFinale') }}
             </label>
-          </div>
-          <div class="mt-4">
-            <label class="setup-card__label">{{ $t('modals.cochonettes') }}</label>
-            <div class="select is-fullwidth">
-              <select v-model.number="tournament.preferences.cochonettes">
-                <option :value="1">1</option>
-                <option :value="2">2</option>
-              </select>
+            <div class="mt-4">
+              <label class="setup-card__label">{{ $t('modals.cochonettes') }}</label>
+              <div class="select is-fullwidth">
+                <select v-model.number="tournament.preferences.cochonettes">
+                  <option :value="1">1</option>
+                  <option :value="2">2</option>
+                </select>
+              </div>
+              <span class="setup-card__hint">{{ $t('modals.cochonettesHint') }}</span>
             </div>
-            <span class="setup-card__hint">{{ $t('modals.cochonettesHint') }}</span>
           </div>
         </div>
       </div>
 
       <div class="setup-card__field">
-        <label class="setup-card__checkbox">
+        <label v-if="tournament.system !== 'playoff'" class="setup-card__checkbox">
           <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
           {{ $t('modals.perRoundScoring') }}
         </label>
-        <label v-if="localSetupPlayOff" class="setup-card__checkbox mt-2">
+        <label v-if="localSetupPlayOff || tournament.system === 'playoff'" class="setup-card__checkbox" :class="{ 'mt-2': tournament.system !== 'playoff' }">
           <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" />
-          {{ $t('modals.perRoundScoringPlayoff') }}
+          {{ tournament.system === 'playoff' ? $t('modals.perRoundScoringGeneric') : $t('modals.perRoundScoringPlayoff') }}
         </label>
         <span class="setup-card__hint">{{ $t('modals.perRoundScoringHint') }}</span>
       </div>

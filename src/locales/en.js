@@ -195,6 +195,7 @@ export default {
     scorer: 'Scorer',
     admin: 'Admin',
     empty: 'No collaborators added yet',
+    leave: 'Leave tournament',
   },
   login: {
     back: 'Back',

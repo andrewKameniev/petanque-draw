@@ -78,7 +78,7 @@
               :class="{
                 'active-overlay__item--active': String(item.id) === String(currentTournamentIndex),
                 'active-overlay__item--finished': item.tournamentIsFinished,
-                'active-overlay__item--shared': item.isShared || item.isCollaborating,
+                'active-overlay__item--shared': item.isShared,
               }"
               @click="chooseTournamentFromOverlay(item.id)"
             >
@@ -86,7 +86,6 @@
                 <Pin v-if="String(pinnedId) === String(item.id)" :size="14" class="active-overlay__item-pin" />
                 <span class="active-overlay__item-name">{{ item.name }}</span>
                 <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
-                <span v-if="item.isCollaborating" class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
               </div>
               <div class="active-overlay__item-meta">
                 <span v-if="item.teamsCount">{{ item.teamsCount }} {{ $t('common.teamsCount') }}</span>
@@ -115,7 +114,10 @@
               >
                 <div class="active-overlay__item-top">
                   <span class="active-overlay__item-name">{{ item.name }}</span>
-                  <span class="active-overlay__item-badge">{{ $t(`collaborators.${item.role}`) }}</span>
+                  <span class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
+                  <button class="active-overlay__item-leave" @click.stop="handleLeaveShared(item.id)" :title="$t('collaborators.leave')">
+                    <X :size="14" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -267,6 +269,7 @@ export default {
     },
     sortedTournaments() {
       return Object.values(this.tournaments)
+        .filter((t) => !t._ownerUid)
         .map((t) => ({
           id: t.id,
           name: t.name,
@@ -277,8 +280,6 @@ export default {
           hasPlayoff: !!t.playOff,
           tournamentIsFinished: t.tournamentIsFinished,
           isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
-          isCollaborating: !!t._ownerUid,
-          role: t._ownerUid ? (this.userTournamentMap[t.id]?.role || 'scorer') : 'owner',
         }))
         .sort((a, b) => (b.id || 0) - (a.id || 0));
     },
@@ -286,12 +287,17 @@ export default {
       if (!this.userTournamentMap) return [];
       return Object.entries(this.userTournamentMap)
         .filter(([, entry]) => entry.role !== 'owner' && entry.status === 'active')
-        .filter(([id]) => !this.tournaments[id])
-        .map(([id, entry]) => ({ id, name: entry.name, role: entry.role, ownerUid: entry.ownerUid }));
+        .map(([id, entry]) => ({
+          id,
+          name: this.tournaments[id]?.name || entry.name,
+          role: entry.role,
+          ownerUid: entry.ownerUid,
+          isLoaded: !!this.tournaments[id],
+        }));
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament', 'loadSharedTournament']),
+    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament', 'loadSharedTournament', 'leaveSharedTournament']),
     refreshPinned() {
       this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
     },
@@ -317,6 +323,9 @@ export default {
       if (this.$route.path !== '/') {
         this.$router.push('/');
       }
+    },
+    async handleLeaveShared(tournamentId) {
+      await this.leaveSharedTournament(tournamentId);
     },
     getTeamFormat(item) {
       if (!item.firstTeamPlayers) return '';
@@ -621,6 +630,21 @@ export default {
   border-radius: 4px;
   background: var(--color-primary);
   color: var(--color-btn-text);
+}
+
+.active-overlay__item-leave {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-danger, #e53e3e);
+  padding: 0.2rem;
+  margin-left: auto;
+  display: flex;
+  opacity: 0.6;
+}
+
+.active-overlay__item-leave:hover {
+  opacity: 1;
 }
 
 .active-overlay__shared-header {

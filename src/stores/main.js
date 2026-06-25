@@ -110,7 +110,7 @@ export const useMainStore = defineStore('main', {
       const fullPath = `${ownerUid}/tournaments/${this.currentTournamentIndex}/${path}`;
       const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
       return set(ref(db, fullPath), plain).catch((error) => {
-        if (error?.code === 'PERMISSION_DENIED' && ownerUid !== this.user.uid) {
+        if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
           this._handleAccessRevoked(this.currentTournamentIndex);
         }
         console.error('Error updating path:', path, error);
@@ -124,9 +124,13 @@ export const useMainStore = defineStore('main', {
         if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
         const db = getDatabase();
         const ownerUid = this._getTournamentOwnerUid();
-        const path = `${ownerUid}/tournaments/${this.currentTournamentIndex}/${namespace}/${key}`;
+        const tid = this.currentTournamentIndex;
+        const path = `${ownerUid}/tournaments/${tid}/${namespace}/${key}`;
         const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
         set(ref(db, path), plain).catch((error) => {
+          if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
+            this._handleAccessRevoked(tid);
+          }
           console.error(`Error updating ${namespace}/${key}:`, error);
         });
       }, 200);
@@ -452,6 +456,10 @@ export const useMainStore = defineStore('main', {
       if (this._tournamentUnsubscribe) {
         this._tournamentUnsubscribe();
         this._tournamentUnsubscribe = null;
+      }
+      if (this._accessWatcherUnsub) {
+        this._accessWatcherUnsub();
+        this._accessWatcherUnsub = null;
       }
     },
     async getTournaments() {
@@ -1056,6 +1064,20 @@ export const useMainStore = defineStore('main', {
         delete this.currentTournament.collaborators[collaboratorUid];
       }
     },
+    async leaveSharedTournament(tournamentId) {
+      const mapEntry = this.userTournamentMap[tournamentId];
+      if (!mapEntry || mapEntry.role === 'owner') return;
+      await userMapService.remove(this.user.uid, tournamentId);
+      delete this.userTournamentMap[tournamentId];
+      if (this.tournaments[tournamentId]) {
+        delete this.tournaments[tournamentId];
+      }
+      if (String(this.currentTournamentIndex) === String(tournamentId)) {
+        const remaining = Object.keys(this.tournaments);
+        this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+      }
+      this.unsubscribeTournament();
+    },
     async loadSharedTournament(tournamentId, ownerUid) {
       const db = getDatabase();
       const dbRef = ref(db, `${ownerUid}/tournaments/${tournamentId}`);
@@ -1091,16 +1113,19 @@ export const useMainStore = defineStore('main', {
       setTimeout(() => { this._accessRevokedHandled = false; }, 1000);
     },
     _watchCollaboratorAccess(tournamentId, ownerUid) {
+      if (this._accessWatcherUnsub) {
+        this._accessWatcherUnsub();
+        this._accessWatcherUnsub = null;
+      }
       const db = getDatabase();
       const accessRef = ref(db, `${ownerUid}/tournaments/${tournamentId}/collaborators/${this.user.uid}`);
-      const unsubscribe = onValue(accessRef, (snap) => {
+      this._accessWatcherUnsub = onValue(accessRef, (snap) => {
         if (!snap.exists() && this.tournaments[tournamentId]?._ownerUid) {
-          unsubscribe();
+          this._accessWatcherUnsub();
+          this._accessWatcherUnsub = null;
           this._handleAccessRevoked(tournamentId);
         }
       });
-      if (!this._tournamentUnsubscribers) this._tournamentUnsubscribers = [];
-      this._tournamentUnsubscribers.push(unsubscribe);
     },
     unarchiveTournament(id) {
       userMapService.update(this.user.uid, id, { status: 'active' })

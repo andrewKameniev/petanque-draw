@@ -194,6 +194,7 @@ export default {
     scorer: 'Anotador',
     admin: 'Admin',
     empty: 'Aún no se han añadido colaboradores',
+    leave: 'Abandonar torneo',
   },
   login: {
     back: 'Atrás',

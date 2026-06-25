@@ -196,6 +196,7 @@ export default {
     scorer: 'Marqueur',
     admin: 'Admin',
     empty: 'Aucun collaborateur ajouté',
+    leave: 'Quitter le tournoi',
   },
   login: {
     back: 'Retour',

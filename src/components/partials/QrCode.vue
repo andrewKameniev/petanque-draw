@@ -15,21 +15,23 @@
           {{ linkCopied ? $t('messages.success') : $t('remote.copyLink') }}
         </button>
       </div>
-      <div class="qr-modal__divider"></div>
-      <h4 class="qr-modal__tv-title">
-        <Monitor :size="18" />
-        TV Dashboard
-      </h4>
-      <div class="qr-modal__link-box">
-        <a :href="tvLink" target="_blank" class="qr-modal__link">{{ tvLink }}</a>
-      </div>
-      <div class="qr-modal__actions">
-        <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': tvLinkCopied }" @click="copyTvLink">
-          <Check v-if="tvLinkCopied" :size="16" />
-          <Copy v-else :size="16" />
-          {{ tvLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
-        </button>
-      </div>
+      <template v-if="!isTir">
+        <div class="qr-modal__divider"></div>
+        <h4 class="qr-modal__tv-title">
+          <Monitor :size="18" />
+          TV Dashboard
+        </h4>
+        <div class="qr-modal__link-box">
+          <a :href="tvLink" target="_blank" class="qr-modal__link">{{ tvLink }}</a>
+        </div>
+        <div class="qr-modal__actions">
+          <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': tvLinkCopied }" @click="copyTvLink">
+            <Check v-if="tvLinkCopied" :size="16" />
+            <Copy v-else :size="16" />
+            {{ tvLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
+          </button>
+        </div>
+      </template>
 
       <div class="qr-modal__divider"></div>
       <div class="qr-modal__collab-section">
@@ -101,9 +103,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament']),
+    ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament', 'activeTournament']),
     tournament() {
       return this.currentTournament;
+    },
+    isTir() {
+      return (this.activeTournament || this.currentTournament)?.system === 'tir';
     },
     shortRef() {
       return `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;

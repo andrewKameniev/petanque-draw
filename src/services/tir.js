@@ -346,10 +346,11 @@ export function buildTableRows({
 
     let place, rowClass;
     const qualifiedNames = playoff?.qualified || [];
-    if (isDirect) {
+    const isPlayoffQualified = qualifiedNames.includes(p.name);
+    if (isDirect || (!isR2 && isPlayoffQualified)) {
       rowClass = 'tir-table__row--direct';
       place = labels.direct;
-    } else if (isR2 && playoff && qualifiedNames.includes(p.name)) {
+    } else if (isR2 && isPlayoffQualified) {
       rowClass = 'tir-table__row--direct';
       place = labels.r2Qualifier;
     } else if (isR2) {
@@ -396,6 +397,7 @@ export function buildTableRows({
       combinedNum: combined,
       playoffStage,
       playoffLastScore,
+      isDirect,
     };
   });
 
@@ -432,8 +434,13 @@ export function buildTableRows({
 
       playoffParticipants.sort((a, b) => {
         if (a.placeNum || b.placeNum) return (a.placeNum || 99) - (b.placeNum || 99);
+        const stageA = Math.max(a.playoffStage, 1);
+        const stageB = Math.max(b.playoffStage, 1);
         return (
-          b.playoffStage - a.playoffStage || b.playoffLastScore - a.playoffLastScore || b.combinedNum - a.combinedNum
+          stageB - stageA ||
+          b.playoffLastScore - a.playoffLastScore ||
+          (b.isDirect ? 1 : 0) - (a.isDirect ? 1 : 0) ||
+          b.combinedNum - a.combinedNum
         );
       });
 

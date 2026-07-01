@@ -186,6 +186,13 @@ export const useMainStore = defineStore('main', {
       const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
       this._syncPath(`${prefix}/eliminationRound`, eliminationData);
     },
+    syncEliminationGames() {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      if (!target?.eliminationRound) return;
+      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
+      this._syncPath(`${prefix}/eliminationRound/games`, target.eliminationRound.games);
+    },
     completeTournamentBElimination() {
       const tournament = this.tournaments[this.currentTournamentIndex];
       const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
@@ -227,7 +234,10 @@ export const useMainStore = defineStore('main', {
     },
     _syncMatchDebounced(namespace, key, data) {
       if (!this._syncMatchTimeouts) this._syncMatchTimeouts = {};
+      if (!this._recentMatchSyncs) this._recentMatchSyncs = new Set();
       const timeoutKey = `${namespace}_${key}`;
+      const syncKey = `${namespace}:${key}`;
+      this._recentMatchSyncs.add(syncKey);
       clearTimeout(this._syncMatchTimeouts[timeoutKey]);
       this._syncMatchTimeouts[timeoutKey] = setTimeout(() => {
         if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
@@ -236,22 +246,18 @@ export const useMainStore = defineStore('main', {
         const tid = this.currentTournamentIndex;
         const path = `${ownerUid}/tournaments/${tid}/${namespace}/${key}`;
         const plain = data != null && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : data;
-        set(ref(db, path), plain).catch((error) => {
-          if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
-            this._handleAccessRevoked(tid);
-          }
-          console.error(`Error updating ${namespace}/${key}:`, error);
-        });
+        set(ref(db, path), plain)
+          .then(() => {
+            this._recentMatchSyncs.delete(syncKey);
+          })
+          .catch((error) => {
+            this._recentMatchSyncs.delete(syncKey);
+            if (error?.code?.toLowerCase() === 'permission_denied' && ownerUid !== this.user.uid) {
+              this._handleAccessRevoked(tid);
+            }
+            console.error(`Error updating ${namespace}/${key}:`, error);
+          });
       }, 200);
-    },
-    syncToFirebase() {
-      if (import.meta.env.DEV) {
-        console.warn('[perf] syncToFirebase() called — consider using _syncPath() instead');
-      }
-      clearTimeout(this._syncTimeout);
-      this._syncTimeout = setTimeout(() => {
-        this._doSync();
-      }, 300);
     },
     _doSync() {
       if (this.user && this.user.uid && this.currentTournamentIndex) {
@@ -338,6 +344,7 @@ export const useMainStore = defineStore('main', {
       const tournament = this.tournaments[this.currentTournamentIndex];
       if (isNewFormat(tournament)) {
         const mainPaths = [
+          'system',
           'teams',
           'games',
           'preferences',
@@ -409,9 +416,7 @@ export const useMainStore = defineStore('main', {
         subscribePath('tournamentB', (value) => {
           const local = this.tournaments[this.currentTournamentIndex];
           if (!local || value == null) return;
-          const recentSubPaths = [...(this._recentSyncPaths || [])].filter((p) =>
-            p.startsWith('tournamentB/'),
-          );
+          const recentSubPaths = [...(this._recentSyncPaths || [])].filter((p) => p.startsWith('tournamentB/'));
           if (recentSubPaths.length) {
             recentSubPaths.forEach((p) => this._recentSyncPaths.delete(p));
             return;
@@ -504,7 +509,9 @@ export const useMainStore = defineStore('main', {
       const localPlayoff = local.tirPlayoff;
       const remotePlayoff = remote.tirPlayoff;
       if (!remotePlayoff) return;
-      const editingPath = this._activePlayoffMatchPath;
+      const { prefix } = this._getTarget();
+      const ns = `${prefix}tirPlayoff`;
+      const recentSyncs = this._recentMatchSyncs || new Set();
 
       if (remotePlayoff.rounds) {
         if (!localPlayoff.rounds) {
@@ -519,7 +526,7 @@ export const useMainStore = defineStore('main', {
               return;
             }
             remoteRound.matches.forEach((remoteMatch, mIdx) => {
-              if (editingPath === `rounds/${rIdx}/matches/${mIdx}`) return;
+              if (recentSyncs.has(`${ns}:rounds/${rIdx}/matches/${mIdx}`)) return;
               const localMatch = localPlayoff.rounds[rIdx].matches[mIdx];
               if (!localMatch) {
                 localPlayoff.rounds[rIdx].matches[mIdx] = remoteMatch;
@@ -534,7 +541,7 @@ export const useMainStore = defineStore('main', {
       if (remotePlayoff.final) {
         if (!localPlayoff.final) {
           localPlayoff.final = remotePlayoff.final;
-        } else if (editingPath !== 'final') {
+        } else if (!recentSyncs.has(`${ns}:final`)) {
           Object.assign(localPlayoff.final, remotePlayoff.final);
         }
       }
@@ -542,7 +549,7 @@ export const useMainStore = defineStore('main', {
       if (remotePlayoff.thirdPlace) {
         if (!localPlayoff.thirdPlace) {
           localPlayoff.thirdPlace = remotePlayoff.thirdPlace;
-        } else if (editingPath !== 'thirdPlace') {
+        } else if (!recentSyncs.has(`${ns}:thirdPlace`)) {
           Object.assign(localPlayoff.thirdPlace, remotePlayoff.thirdPlace);
         }
       }
@@ -554,7 +561,9 @@ export const useMainStore = defineStore('main', {
       const localPlayoff = local.teamPlayoff;
       const remotePlayoff = remote.teamPlayoff;
       if (!remotePlayoff) return;
-      const editingPath = this._activeTeamPlayoffMatchPath;
+      const { prefix } = this._getTarget();
+      const ns = `${prefix}teamPlayoff`;
+      const recentSyncs = this._recentMatchSyncs || new Set();
 
       if (remotePlayoff.rounds) {
         if (!localPlayoff.rounds) {
@@ -569,7 +578,7 @@ export const useMainStore = defineStore('main', {
               return;
             }
             remoteRound.matches.forEach((remoteMatch, mIdx) => {
-              if (editingPath === `rounds/${rIdx}/matches/${mIdx}`) return;
+              if (recentSyncs.has(`${ns}:rounds/${rIdx}/matches/${mIdx}`)) return;
               const localMatch = localPlayoff.rounds[rIdx].matches[mIdx];
               if (!localMatch) {
                 localPlayoff.rounds[rIdx].matches[mIdx] = remoteMatch;
@@ -584,7 +593,7 @@ export const useMainStore = defineStore('main', {
       if (remotePlayoff.final) {
         if (!localPlayoff.final) {
           localPlayoff.final = remotePlayoff.final;
-        } else if (editingPath !== 'final') {
+        } else if (!recentSyncs.has(`${ns}:final`)) {
           Object.assign(localPlayoff.final, remotePlayoff.final);
         }
       }
@@ -592,7 +601,7 @@ export const useMainStore = defineStore('main', {
       if (remotePlayoff.thirdPlace) {
         if (!localPlayoff.thirdPlace) {
           localPlayoff.thirdPlace = remotePlayoff.thirdPlace;
-        } else if (editingPath !== 'thirdPlace') {
+        } else if (!recentSyncs.has(`${ns}:thirdPlace`)) {
           Object.assign(localPlayoff.thirdPlace, remotePlayoff.thirdPlace);
         }
       }
@@ -601,13 +610,14 @@ export const useMainStore = defineStore('main', {
       if (remotePlayoff.size) localPlayoff.size = remotePlayoff.size;
     },
     _mergeGames(local, remote) {
-      const editingPath = this._activeGameMatchPath;
+      const { prefix } = this._getTarget();
+      const recentSyncs = this._recentMatchSyncs || new Set();
       if (!remote.games || !local.games) return;
       const activeRound = local.games.length - 1;
       const remoteRound = remote.games?.[activeRound];
       if (!Array.isArray(remoteRound) || !local.games[activeRound]) return;
       remoteRound.forEach((remoteGame, gIdx) => {
-        if (editingPath === `${activeRound}/${gIdx}`) return;
+        if (recentSyncs.has(`${prefix}games:${activeRound}/${gIdx}`)) return;
         const localGame = local.games[activeRound][gIdx];
         if (!localGame) {
           local.games[activeRound][gIdx] = remoteGame;
@@ -617,10 +627,11 @@ export const useMainStore = defineStore('main', {
       });
     },
     _mergeCadrage(local, remote) {
-      const editingIndex = this._activeCadrageIndex;
+      const { prefix } = this._getTarget();
+      const recentSyncs = this._recentMatchSyncs || new Set();
       if (!Array.isArray(remote.cadrage) || !Array.isArray(local.cadrage)) return;
       remote.cadrage.forEach((remoteGame, idx) => {
-        if (editingIndex === idx) return;
+        if (recentSyncs.has(`${prefix}cadrage:${idx}`)) return;
         const localGame = local.cadrage[idx];
         if (!localGame) {
           local.cadrage[idx] = remoteGame;
@@ -630,7 +641,8 @@ export const useMainStore = defineStore('main', {
       });
     },
     _mergeBracketPlayoff(local, remote) {
-      const editingPath = this._activeBracketMatchPath;
+      const { prefix } = this._getTarget();
+      const recentSyncs = this._recentMatchSyncs || new Set();
       const localBracket = local.playOffBracket;
       const remoteBracket = remote.playOffBracket;
       if (!remoteBracket || !localBracket) return;
@@ -642,7 +654,7 @@ export const useMainStore = defineStore('main', {
           }
           if (!remoteStage.teams) return;
           remoteStage.teams.forEach((remoteGame, gIdx) => {
-            if (editingPath === `stages/${sIdx}/teams/${gIdx}`) return;
+            if (recentSyncs.has(`${prefix}playOffBracket:stages/${sIdx}/teams/${gIdx}`)) return;
             const localGame = localBracket.stages[sIdx].teams[gIdx];
             if (!localGame) {
               localBracket.stages[sIdx].teams[gIdx] = remoteGame;
@@ -655,7 +667,7 @@ export const useMainStore = defineStore('main', {
       if (remoteBracket.thirdPlace) {
         if (!localBracket.thirdPlace) {
           localBracket.thirdPlace = remoteBracket.thirdPlace;
-        } else if (editingPath !== 'thirdPlace') {
+        } else if (!recentSyncs.has(`${prefix}playOffBracket:thirdPlace`)) {
           Object.assign(localBracket.thirdPlace, remoteBracket.thirdPlace);
         }
       }
@@ -999,6 +1011,7 @@ export const useMainStore = defineStore('main', {
     },
     syncTirStart() {
       const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}system`, data.system);
       this._syncPath(`${prefix}tirStarted`, true);
       this._syncPath(`${prefix}tirParticipants`, data.tirParticipants);
       this._syncPath(`${prefix}tirConfig`, data.tirConfig);
@@ -1007,6 +1020,7 @@ export const useMainStore = defineStore('main', {
     },
     syncDrawStart() {
       const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}system`, data.system);
       if (data.groups) this._syncPath(`${prefix}groups`, data.groups);
       if (data.groupsScheme) this._syncPath(`${prefix}groupsScheme`, data.groupsScheme);
       if (data.groupSchedule) this._syncPath(`${prefix}groupSchedule`, data.groupSchedule);
@@ -1188,7 +1202,7 @@ export const useMainStore = defineStore('main', {
       this.userTournamentMap[tournamentId] = mapEntry;
       userMapService.set(this.user.uid, tournamentId, mapEntry);
 
-      this.syncToFirebase();
+      this._doSync();
     },
     addToSaved(tournament) {
       const id = String(tournament.id || this.currentTournamentIndex);
@@ -1255,7 +1269,7 @@ export const useMainStore = defineStore('main', {
         title: i18n.global.t('messages.saved'),
         text: i18n.global.t('messages.tournamentDataSaved'),
       });
-      this.syncToFirebase();
+      this._doSync();
     },
     async addCollaborator(email, role) {
       const snapshot = await collaboratorService.findUserByEmail(email);

@@ -26,7 +26,8 @@ export default {
     finishTournament: 'Terminer le tournoi',
     finishTournamentConfirm: 'Êtes-vous sûr de vouloir terminer le tournoi ?',
     revertLastRound: 'Annuler le dernier tour',
-    revertLastRoundConfirm: 'Êtes-vous sûr de vouloir annuler le dernier tour ? Le tournoi sera rouvert et vous pourrez modifier les résultats.',
+    revertLastRoundConfirm:
+      'Êtes-vous sûr de vouloir annuler le dernier tour ? Le tournoi sera rouvert et vous pourrez modifier les résultats.',
     preferences: 'Préférences',
     rating: 'Classement',
     playersInTeam: 'Combien de joueurs dans une équipe ?',
@@ -192,7 +193,8 @@ export default {
   },
   collaborators: {
     title: 'Collaborateurs',
-    legend: 'Ajoutez des marqueurs ou admins qui peuvent enregistrer les scores dans ce tournoi depuis leurs appareils.',
+    legend:
+      'Ajoutez des marqueurs ou admins qui peuvent enregistrer les scores dans ce tournoi depuis leurs appareils.',
     emailPlaceholder: "Saisir l'adresse email",
     scorer: 'Marqueur',
     admin: 'Admin',
@@ -413,7 +415,7 @@ export default {
     tournamentRemovedSaved: 'Tournoi supprimé de votre liste enregistrée',
     tournamentDataSaved: 'Données du tournoi enregistrées',
     failedSaving: "Une erreur est survenue lors de l'enregistrement",
-    userNotFound: "Aucun utilisateur trouvé avec cet email",
+    userNotFound: 'Aucun utilisateur trouvé avec cet email',
     cannotAddSelf: 'Vous ne pouvez pas vous ajouter comme collaborateur',
     collaboratorAdded: 'Le collaborateur a été ajouté',
     accessRevoked: 'Votre accès à ce tournoi a été révoqué',

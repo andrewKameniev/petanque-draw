@@ -10,7 +10,7 @@
                 type="checkbox"
                 v-model="tournament.preferences.playOffEnabled"
                 :disabled="!!tournament.playOff"
-                style="margin-right: 0.5rem;"
+                style="margin-right: 0.5rem"
               />
               {{ $t('setup.enablePlayOff') }}
             </label>
@@ -67,7 +67,7 @@
           </div>
           <div class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem;" />
+              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem" />
               {{ $t('modals.timeLimit') }}
             </label>
             <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
@@ -96,7 +96,7 @@
                 <input
                   type="checkbox"
                   v-model="tournament.preferences.noTimeLimitFinale"
-                  style="margin-right: 0.5rem;"
+                  style="margin-right: 0.5rem"
                 />
                 {{ $t('modals.noTimeLimitFinale') }}
               </label>
@@ -114,11 +114,19 @@
           </div>
           <div class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem;" />
+              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem" />
               {{ $t('modals.perRoundScoring') }}
             </label>
-            <label v-if="tournament.preferences.playOffEnabled || tournament.playOff" class="prefs__label" style="margin-top: 0.5rem;">
-              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" style="margin-right: 0.5rem;" />
+            <label
+              v-if="tournament.preferences.playOffEnabled || tournament.playOff"
+              class="prefs__label"
+              style="margin-top: 0.5rem"
+            >
+              <input
+                type="checkbox"
+                v-model="tournament.preferences.cochonettesEnabledPlayoff"
+                style="margin-right: 0.5rem"
+              />
               {{ $t('modals.perRoundScoringPlayoff') }}
             </label>
             <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
@@ -130,7 +138,7 @@
           </div>
           <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem;" />
+              <input type="checkbox" v-model="tournament.preferences.isTestTournament" style="margin-right: 0.5rem" />
               {{ $t('setup.testTournament') }}
             </label>
             <span class="prefs__hint">{{ $t('setup.testTournamentHint') }}</span>
@@ -168,9 +176,9 @@ export default {
   components: { Modal, Trash2 },
   emits: ['close-modal', 'remove-tournament'],
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
     tournamentStarted() {
       const t = this.tournament;

@@ -13,27 +13,27 @@
       <label class="setup-card__label">{{ $t('teams.system') }}</label>
       <div class="setup-card__radios">
         <label class="setup-card__radio" v-if="tournament.teams?.length > 4">
-          <input type="radio" name="system" value="swiss" v-model="tournament.system" />
+          <input type="radio" name="system" value="swiss" v-model="tournament.system" data-testid="radio-system-swiss" />
           {{ $t('teams.swiss') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="groups" v-model="tournament.system" />
+          <input type="radio" name="system" value="groups" v-model="tournament.system" data-testid="radio-system-groups" />
           {{ $t('teams.groups') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="playoff" v-model="tournament.system" />
+          <input type="radio" name="system" value="playoff" v-model="tournament.system" data-testid="radio-system-playoff" />
           {{ $t('teams.playoff') }}
         </label>
         <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
-          <input type="radio" name="system" value="poules" v-model="tournament.system" />
+          <input type="radio" name="system" value="poules" v-model="tournament.system" data-testid="radio-system-poules" />
           {{ $t('teams.poules') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="supermele" v-model="tournament.system" />
+          <input type="radio" name="system" value="supermele" v-model="tournament.system" data-testid="radio-system-supermele" />
           {{ $t('teams.supermele') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="tir" v-model="tournament.system" />
+          <input type="radio" name="system" value="tir" v-model="tournament.system" data-testid="radio-system-tir" />
           {{ $t('teams.tir') }}
         </label>
       </div>
@@ -126,7 +126,11 @@
     </div>
 
     <div
-      v-if="(tournament.system === 'swiss' || tournament.system === 'groups') && tournament.system !== 'poules' && tournament.system !== 'playoff'"
+      v-if="
+        (tournament.system === 'swiss' || tournament.system === 'groups') &&
+        tournament.system !== 'poules' &&
+        tournament.system !== 'playoff'
+      "
       class="setup-card__field"
     >
       <label class="setup-card__checkbox">
@@ -183,7 +187,14 @@
       </div>
     </div>
 
-    <div v-if="tournament.system === 'swiss' && !tournament.isGroupB && tournament.system !== 'playoff'" class="setup-card__field">
+    <div
+      v-if="
+        (tournament.system === 'swiss' || tournament.system === 'groups') &&
+        !tournament.isTournamentB &&
+        tournament.system !== 'playoff'
+      "
+      class="setup-card__field"
+    >
       <label class="setup-card__checkbox">
         <input type="checkbox" v-model="localPlayB" data-testid="checkbox-play-b" />
         {{ $t('ranking.alsoPlay') }} <strong>{{ $t('ranking.tournamentB') }}</strong>
@@ -301,9 +312,15 @@
           <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
           {{ $t('modals.perRoundScoring') }}
         </label>
-        <label v-if="localSetupPlayOff || tournament.system === 'playoff'" class="setup-card__checkbox" :class="{ 'mt-2': tournament.system !== 'playoff' }">
+        <label
+          v-if="localSetupPlayOff || tournament.system === 'playoff'"
+          class="setup-card__checkbox"
+          :class="{ 'mt-2': tournament.system !== 'playoff' }"
+        >
           <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" />
-          {{ tournament.system === 'playoff' ? $t('modals.perRoundScoringGeneric') : $t('modals.perRoundScoringPlayoff') }}
+          {{
+            tournament.system === 'playoff' ? $t('modals.perRoundScoringGeneric') : $t('modals.perRoundScoringPlayoff')
+          }}
         </label>
         <span class="setup-card__hint">{{ $t('modals.perRoundScoringHint') }}</span>
       </div>

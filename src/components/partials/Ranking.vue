@@ -287,15 +287,18 @@
                 v-for="(team, index) in rankingTeams"
                 :key="team.title"
                 :class="{
-                  'playoff-highlight': isPrizeHighlighted(index),
                   'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
                   'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
                   'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,
                   'search-highlight': isTeamHighlighted(team.title),
+                  'team-withdrawn': team.withdrawn,
                 }"
               >
                 <td><span class="team-count"></span></td>
-                <td>{{ team.title }}</td>
+                <td>
+                  <span :class="{ 'text-line-through': team.withdrawn }">{{ team.title }}</span>
+                  <span v-if="team.withdrawn" class="withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
+                </td>
                 <td align="center" class="td-highlight">{{ team.wins }}</td>
                 <td align="center">{{ team.buhgolts }}</td>
                 <td align="center">{{ team.smallBuhgolts }}</td>
@@ -377,7 +380,11 @@
             {{ $t('common.group') }} {{ groupsNames[gIndex] }}
           </button>
         </div>
-        <div v-for="(group, gIndex) in rankingTeams" v-show="isForProtocol || tournament.groups.length === 1 || activeGroupTab === gIndex" :key="gIndex">
+        <div
+          v-for="(group, gIndex) in rankingTeams"
+          v-show="isForProtocol || tournament.groups.length === 1 || activeGroupTab === gIndex"
+          :key="gIndex"
+        >
           <h4 v-if="isForProtocol && tournament.groups.length > 1">
             {{ $t('common.group') }} {{ groupsNames[gIndex] }}
           </h4>
@@ -453,7 +460,9 @@
                   v-for="(team, index) in group"
                   :key="index"
                   :class="{
-                    'playoff-highlight': (tournament.playOff || tournament.preferences?.playOffEnabled) && index < getQualifiedForGroup(gIndex),
+                    'playoff-highlight':
+                      (tournament.playOff || tournament.preferences?.playOffEnabled) &&
+                      index < getQualifiedForGroup(gIndex),
                     'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
                     'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
                     'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,
@@ -602,7 +611,10 @@ export default {
       if (this.tournament.groupSchedule) {
         this.tournament.groupSchedule.forEach((round, roundIndex) => {
           round.forEach((game) => {
-            if ((game.team_1 === team && game.team_2 === opponent) || (game.team_2 === team && game.team_1 === opponent)) {
+            if (
+              (game.team_1 === team && game.team_2 === opponent) ||
+              (game.team_2 === team && game.team_1 === opponent)
+            ) {
               if (roundIndex < playedRounds) {
                 const playedGame = this.tournament.games[roundIndex].find(
                   (g) => (g.team_1 === team && g.team_2 === opponent) || (g.team_2 === team && g.team_1 === opponent),
@@ -633,7 +645,10 @@ export default {
         if (playedRounds > scheduleLength) {
           for (let i = scheduleLength; i < playedRounds; i++) {
             this.tournament.games[i].forEach((game) => {
-              if ((game.team_1 === team && game.team_2 === opponent) || (game.team_2 === team && game.team_1 === opponent)) {
+              if (
+                (game.team_1 === team && game.team_2 === opponent) ||
+                (game.team_2 === team && game.team_1 === opponent)
+              ) {
                 const isFirst = game.team_1 === team && game.team_2 === opponent;
                 if (
                   game.status === 'in_progress' ||
@@ -655,7 +670,10 @@ export default {
       } else if (this.tournament.games) {
         this.tournament.games.forEach((round, roundIndex) => {
           round.forEach((game) => {
-            if ((game.team_1 === team && game.team_2 === opponent) || (game.team_2 === team && game.team_1 === opponent)) {
+            if (
+              (game.team_1 === team && game.team_2 === opponent) ||
+              (game.team_2 === team && game.team_1 === opponent)
+            ) {
               const isFirst = game.team_1 === team && game.team_2 === opponent;
               if (
                 game.status === 'in_progress' ||
@@ -1047,7 +1065,10 @@ export default {
   background: #fff;
   color: #374151;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   margin-left: -1.5px;
 }
 
@@ -1159,5 +1180,25 @@ export default {
 
 .table-container .table {
   margin: 0 auto;
+}
+
+.team-withdrawn {
+  opacity: 0.5;
+}
+
+.text-line-through {
+  text-decoration: line-through;
+}
+
+.withdrawn-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 3px;
+  background: var(--color-danger, #e53935);
+  color: #fff;
+  vertical-align: middle;
 }
 </style>

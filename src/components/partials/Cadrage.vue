@@ -128,7 +128,7 @@ export default {
       @swapLane="swapCadrageLane"
     />
     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>
-    <div class="text-center mt-5" v-if="!activeTournament">
+    <div class="text-center mt-5" v-if="!isPublicView">
       <button class="button is-success" data-testid="btn-save-cadrage" @click="saveResults">
         {{ $t('games.saveResults') }}
       </button>

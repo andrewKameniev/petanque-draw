@@ -74,8 +74,8 @@ describe('User Tournament Map', () => {
         if (path.includes('/tournaments/')) {
           return Promise.resolve(
             makeSnapshot({
-              't1': { name: 'Active', tournamentIsFinished: false },
-              't2': { name: 'Finished', tournamentIsFinished: true },
+              t1: { name: 'Active', tournamentIsFinished: false },
+              t2: { name: 'Finished', tournamentIsFinished: true },
             }),
           );
         }
@@ -211,7 +211,10 @@ describe('User Tournament Map', () => {
       const result = await store.addCollaborator('friend@test.com', 'scorer');
 
       expect(result).toBe(true);
-      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'user2', { role: 'scorer', email: 'friend@test.com' });
+      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'user2', {
+        role: 'scorer',
+        email: 'friend@test.com',
+      });
       expect(userMapService.set).toHaveBeenCalledWith('user2', 't1', {
         status: 'active',
         role: 'scorer',

@@ -48,12 +48,15 @@
             <GitFork
               :size="16"
               :stroke-width="2"
-              style="transform: rotate(90deg); margin-right: 0.3rem; min-width: 16px;"
+              style="transform: rotate(90deg); margin-right: 0.3rem; min-width: 16px"
             />
             <span class="is-hidden-mobile">{{ $t('games.showBracket') }}</span>
           </button>
         </div>
-        <div v-if="hasGroupsColumn && !isForProtocol && selectedRound !== 'playoff' && selectedRound !== 'cadrage'" class="group-tabs mb-4">
+        <div
+          v-if="hasGroupsColumn && !isForProtocol && selectedRound !== 'playoff' && selectedRound !== 'cadrage'"
+          class="group-tabs mb-4"
+        >
           <button
             v-for="(group, gIndex) in tournament.groups"
             :key="gIndex"
@@ -75,10 +78,16 @@
                 :key="i"
                 class="match-item"
                 :class="{
-                  'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished' || (!isRoundActive(index) && game.team_1_score != null),
-                  'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress' && isRoundActive(index),
+                  'match-item--finished':
+                    tournament.tournamentIsFinished ||
+                    game.status === 'finished' ||
+                    (!isRoundActive(index) && game.team_1_score != null),
+                  'match-item--in-progress':
+                    !tournament.tournamentIsFinished && game.status === 'in_progress' && isRoundActive(index),
                   'match-item--upcoming':
-                    !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started') && !(!isRoundActive(index) && game.team_1_score != null),
+                    !tournament.tournamentIsFinished &&
+                    (!game.status || game.status === 'not_started') &&
+                    !(!isRoundActive(index) && game.team_1_score != null),
                   'match-item--highlighted': isGameHighlighted(game),
                 }"
               >
@@ -549,7 +558,12 @@
     </div>
     <Bracket v-if="showBracket" :bracket="tournament.playOffBracket" @close-modal="showBracket = false" />
     <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null" />
-    <EditResultModal v-if="editingPlayoffGame" :game="editingPlayoffGame" @save="saveEditedPlayoffResult" @close="editingPlayoffGame = null" />
+    <EditResultModal
+      v-if="editingPlayoffGame"
+      :game="editingPlayoffGame"
+      @save="saveEditedPlayoffResult"
+      @close="editingPlayoffGame = null"
+    />
   </div>
 </template>
 
@@ -593,19 +607,25 @@ export default {
     };
   },
   created() {
-    const t = this.previewTournament || this.currentTournament;
+    const t = this.previewTournament || this.activeTournament || this.currentTournament;
     this.selectedRound = getDefaultSelectedRound(t);
   },
   watch: {
     previewTournament(newVal) {
-      this.selectedRound = getDefaultSelectedRound(newVal || this.currentTournament);
+      this.selectedRound = getDefaultSelectedRound(newVal || this.activeTournament || this.currentTournament);
     },
     hasPlayOffResults(val) {
       if (val) this.selectedRound = 'playoff';
     },
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'user']),
+    ...mapState(useMainStore, [
+      'tournaments',
+      'currentTournamentIndex',
+      'currentTournament',
+      'activeTournament',
+      'user',
+    ]),
     canEditResults() {
       return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
     },
@@ -613,7 +633,7 @@ export default {
       return !!this.user && !this.previewTournament && !this.isForProtocol;
     },
     tournament() {
-      return this.previewTournament || this.currentTournament;
+      return this.previewTournament || this.activeTournament || this.currentTournament;
     },
     hasPlayOffResults() {
       return checkPlayOffResults(this.tournament);
@@ -924,7 +944,6 @@ export default {
   min-width: 0;
   font-weight: 600;
   font-size: 14px;
-  word-break: break-word;
   overflow-wrap: break-word;
   white-space: normal;
 }
@@ -1040,7 +1059,10 @@ export default {
   background: var(--color-surface, #fff);
   color: var(--color-text, #374151);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   margin-left: -1.5px;
 }
 

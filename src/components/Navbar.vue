@@ -115,7 +115,11 @@
                 <div class="active-overlay__item-top">
                   <span class="active-overlay__item-name">{{ item.name }}</span>
                   <span class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
-                  <button class="active-overlay__item-leave" @click.stop="handleLeaveShared(item.id)" :title="$t('collaborators.leave')">
+                  <button
+                    class="active-overlay__item-leave"
+                    @click.stop="handleLeaveShared(item.id)"
+                    :title="$t('collaborators.leave')"
+                  >
                     <X :size="14" />
                   </button>
                 </div>
@@ -260,7 +264,14 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'isAdmin', 'user', 'currentTournament', 'userTournamentMap']),
+    ...mapState(useMainStore, [
+      'tournaments',
+      'currentTournamentIndex',
+      'isAdmin',
+      'user',
+      'currentTournament',
+      'userTournamentMap',
+    ]),
     tournament() {
       return this.currentTournament;
     },
@@ -270,17 +281,20 @@ export default {
     sortedTournaments() {
       return Object.values(this.tournaments)
         .filter((t) => !t._ownerUid)
-        .map((t) => ({
-          id: t.id,
-          name: t.name,
-          system: t.system,
-          teamsCount: t.teams?.length || 0,
-          firstTeamPlayers: t.teams?.[0]?.players?.length || 0,
-          roundsCount: t.games?.length || 0,
-          hasPlayoff: !!t.playOff,
-          tournamentIsFinished: t.tournamentIsFinished,
-          isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
-        }))
+        .map((t) => {
+          const d = t.main || t;
+          return {
+            id: t.id,
+            name: t.name,
+            system: d.system,
+            teamsCount: d.teams?.length || 0,
+            firstTeamPlayers: d.teams?.[0]?.players?.length || 0,
+            roundsCount: d.games?.length || 0,
+            hasPlayoff: !!d.playOff,
+            tournamentIsFinished: d.tournamentIsFinished,
+            isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
+          };
+        })
         .sort((a, b) => (b.id || 0) - (a.id || 0));
     },
     sharedTournaments() {
@@ -297,7 +311,13 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['setActiveTournament', 'loginUser', 'addTournament', 'loadSharedTournament', 'leaveSharedTournament']),
+    ...mapActions(useMainStore, [
+      'setActiveTournament',
+      'loginUser',
+      'addTournament',
+      'loadSharedTournament',
+      'leaveSharedTournament',
+    ]),
     refreshPinned() {
       this.pinnedIdLocal = localStorage.getItem('petanqueDrawPinned');
     },
@@ -618,7 +638,7 @@ export default {
 }
 
 .active-overlay__item--shared {
-  background: var(--color-shared-bg, rgba(99, 102, 241, 0.08));
+  background: var(--color-shared-bg, rgb(99 102 241 / 8%));
   border-left: 3px solid var(--color-primary);
 }
 

@@ -4,7 +4,7 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['dist/', 'node_modules/', 'public/', 'src/assets/css/bulma.min.css'],
+    ignores: ['dist/', 'node_modules/', 'public/', 'src/assets/css/bulma.min.css', 'playwright-report/', '.claude/'],
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],

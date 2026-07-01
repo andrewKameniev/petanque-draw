@@ -17,7 +17,9 @@
           <div class="tv__system-box">
             <span class="tv__system-label">СИСТЕМА</span>
             <span class="tv__system-text">{{ systemSummary }}</span>
-            <span v-if="tournament.tournamentMessage" class="tv__system-message">{{ tournament.tournamentMessage }}</span>
+            <span v-if="tournament.tournamentMessage" class="tv__system-message">{{
+              tournament.tournamentMessage
+            }}</span>
           </div>
           <div class="tv__timer-box" :class="{ 'tv__timer-box--ended': timerEnded }">
             <div class="tv__timer-icon">
@@ -42,7 +44,10 @@
       <!-- Matches grid -->
       <main class="tv__main">
         <section
-          v-if="!tournament.roundIsActive && (!tournament.games || !tournament.games.length || (tournament.games.length === 1 && !hasFinishedGames))"
+          v-if="
+            !tournament.roundIsActive &&
+            (!tournament.games || !tournament.games.length || (tournament.games.length === 1 && !hasFinishedGames))
+          "
           class="tv__registration"
         >
           <div class="tv__registration-content">
@@ -62,9 +67,21 @@
                     <span class="tv__card-lane" :class="laneClass(game)">{{ game._lane }}</span>
                   </div>
                   <div class="tv__card-main">
-                    <span class="tv__card-name tv__card-name--left" :class="{ 'tv__card-name--winner': isWinner(game, 1) }">{{ formatName(game.team_1) }}</span>
-                    <span class="tv__card-score" :class="{ 'tv__card-score--waiting': !game.status || game.status === 'not_started' }">{{ gameScore(game, 1) }}&nbsp;:&nbsp;{{ gameScore(game, 2) }}</span>
-                    <span class="tv__card-name tv__card-name--right" :class="{ 'tv__card-name--winner': isWinner(game, 2) }">{{ formatName(game.team_2) }}</span>
+                    <span
+                      class="tv__card-name tv__card-name--left"
+                      :class="{ 'tv__card-name--winner': isWinner(game, 1) }"
+                      >{{ formatName(game.team_1) }}</span
+                    >
+                    <span
+                      class="tv__card-score"
+                      :class="{ 'tv__card-score--waiting': !game.status || game.status === 'not_started' }"
+                      >{{ gameScore(game, 1) }}&nbsp;:&nbsp;{{ gameScore(game, 2) }}</span
+                    >
+                    <span
+                      class="tv__card-name tv__card-name--right"
+                      :class="{ 'tv__card-name--winner': isWinner(game, 2) }"
+                      >{{ formatName(game.team_2) }}</span
+                    >
                   </div>
                   <div v-if="game.score_history && game.score_history.length" class="tv__card-history">
                     <span v-for="(entry, i) in game.score_history" :key="i" class="tv__card-chip">
@@ -83,9 +100,21 @@
                 <span class="tv__card-lane" :class="laneClass(game)">{{ game._lane }}</span>
               </div>
               <div class="tv__card-main">
-                <span class="tv__card-name tv__card-name--left" :class="{ 'tv__card-name--winner': isWinner(game, 1) }">{{ formatName(game.team_1) }}</span>
-                <span class="tv__card-score" :class="{ 'tv__card-score--waiting': !game.status || game.status === 'not_started' }">{{ gameScore(game, 1) }}&nbsp;:&nbsp;{{ gameScore(game, 2) }}</span>
-                <span class="tv__card-name tv__card-name--right" :class="{ 'tv__card-name--winner': isWinner(game, 2) }">{{ formatName(game.team_2) }}</span>
+                <span
+                  class="tv__card-name tv__card-name--left"
+                  :class="{ 'tv__card-name--winner': isWinner(game, 1) }"
+                  >{{ formatName(game.team_1) }}</span
+                >
+                <span
+                  class="tv__card-score"
+                  :class="{ 'tv__card-score--waiting': !game.status || game.status === 'not_started' }"
+                  >{{ gameScore(game, 1) }}&nbsp;:&nbsp;{{ gameScore(game, 2) }}</span
+                >
+                <span
+                  class="tv__card-name tv__card-name--right"
+                  :class="{ 'tv__card-name--winner': isWinner(game, 2) }"
+                  >{{ formatName(game.team_2) }}</span
+                >
               </div>
               <div v-if="game.score_history && game.score_history.length" class="tv__card-history">
                 <span v-for="(entry, i) in game.score_history" :key="i" class="tv__card-chip">
@@ -103,47 +132,147 @@
             <svg :viewBox="`0 0 ${bracketWidth} ${bracketHeight}`" class="tv__bracket-svg">
               <g v-for="(stage, si) in bracketStages" :key="si">
                 <g v-for="(game, gi) in stage.games" :key="gi">
-                  <rect :x="game.x" :y="game.y" :width="bracketBoxWidth" :height="bracketBoxHeight" rx="6" ry="6" class="tv__game-box" />
-                  <line :x1="game.x + 1" :y1="game.y + bracketBoxHeight / 2" :x2="game.x + bracketBoxWidth - 1" :y2="game.y + bracketBoxHeight / 2" class="tv__game-divider" />
-                  <path v-if="tvTeamBg(game.data, 1, stage.stageLabel)" :d="tvTopHalfPath(game.x, game.y)" :class="tvTeamBg(game.data, 1, stage.stageLabel)" />
-                  <path v-if="tvTeamBg(game.data, 2, stage.stageLabel)" :d="tvBottomHalfPath(game.x, game.y)" :class="tvTeamBg(game.data, 2, stage.stageLabel)" />
-                  <text :x="game.x + 10" :y="game.y + bracketBoxHeight / 4 + 5" class="tv__team-name" :class="{ 'tv__team-winner': isBracketWinner(game.data, 1) }">
+                  <rect
+                    :x="game.x"
+                    :y="game.y"
+                    :width="bracketBoxWidth"
+                    :height="bracketBoxHeight"
+                    rx="6"
+                    ry="6"
+                    class="tv__game-box"
+                  />
+                  <line
+                    :x1="game.x + 1"
+                    :y1="game.y + bracketBoxHeight / 2"
+                    :x2="game.x + bracketBoxWidth - 1"
+                    :y2="game.y + bracketBoxHeight / 2"
+                    class="tv__game-divider"
+                  />
+                  <path
+                    v-if="tvTeamBg(game.data, 1, stage.stageLabel)"
+                    :d="tvTopHalfPath(game.x, game.y)"
+                    :class="tvTeamBg(game.data, 1, stage.stageLabel)"
+                  />
+                  <path
+                    v-if="tvTeamBg(game.data, 2, stage.stageLabel)"
+                    :d="tvBottomHalfPath(game.x, game.y)"
+                    :class="tvTeamBg(game.data, 2, stage.stageLabel)"
+                  />
+                  <text
+                    :x="game.x + 10"
+                    :y="game.y + bracketBoxHeight / 4 + 5"
+                    class="tv__team-name"
+                    :class="{ 'tv__team-winner': isBracketWinner(game.data, 1) }"
+                  >
                     {{ truncBracketName(game.data.team_1) }}
                   </text>
-                  <path v-if="tvTeamBg(game.data, 1, stage.stageLabel)" :d="tvScoreTopPath(game.x, game.y)" :class="'tv__score-bg-' + tvTeamBg(game.data, 1, stage.stageLabel)" />
-                  <text :x="game.x + bracketBoxWidth - 20" :y="game.y + bracketBoxHeight / 4 + 5" class="tv__team-score">
+                  <path
+                    v-if="tvTeamBg(game.data, 1, stage.stageLabel)"
+                    :d="tvScoreTopPath(game.x, game.y)"
+                    :class="'tv__score-bg-' + tvTeamBg(game.data, 1, stage.stageLabel)"
+                  />
+                  <text
+                    :x="game.x + bracketBoxWidth - 20"
+                    :y="game.y + bracketBoxHeight / 4 + 5"
+                    class="tv__team-score"
+                  >
                     {{ game.data.team_1_score ?? '' }}
                   </text>
-                  <text :x="game.x + 10" :y="game.y + (bracketBoxHeight * 3) / 4 + 5" class="tv__team-name" :class="{ 'tv__team-winner': isBracketWinner(game.data, 2) }">
+                  <text
+                    :x="game.x + 10"
+                    :y="game.y + (bracketBoxHeight * 3) / 4 + 5"
+                    class="tv__team-name"
+                    :class="{ 'tv__team-winner': isBracketWinner(game.data, 2) }"
+                  >
                     {{ truncBracketName(game.data.team_2) }}
                   </text>
-                  <path v-if="tvTeamBg(game.data, 2, stage.stageLabel)" :d="tvScoreBottomPath(game.x, game.y)" :class="'tv__score-bg-' + tvTeamBg(game.data, 2, stage.stageLabel)" />
-                  <text :x="game.x + bracketBoxWidth - 20" :y="game.y + (bracketBoxHeight * 3) / 4 + 5" class="tv__team-score">
+                  <path
+                    v-if="tvTeamBg(game.data, 2, stage.stageLabel)"
+                    :d="tvScoreBottomPath(game.x, game.y)"
+                    :class="'tv__score-bg-' + tvTeamBg(game.data, 2, stage.stageLabel)"
+                  />
+                  <text
+                    :x="game.x + bracketBoxWidth - 20"
+                    :y="game.y + (bracketBoxHeight * 3) / 4 + 5"
+                    class="tv__team-score"
+                  >
                     {{ game.data.team_2_score ?? '' }}
                   </text>
                 </g>
               </g>
               <!-- Third place -->
               <g v-if="bracketThirdPlace">
-                <text :x="bracketThirdPlace.x + bracketBoxWidth / 2" :y="bracketThirdPlace.y - 8" class="tv__round-header">
+                <text
+                  :x="bracketThirdPlace.x + bracketBoxWidth / 2"
+                  :y="bracketThirdPlace.y - 8"
+                  class="tv__round-header"
+                >
                   3 місце
                 </text>
-                <rect :x="bracketThirdPlace.x" :y="bracketThirdPlace.y" :width="bracketBoxWidth" :height="bracketBoxHeight" rx="6" ry="6" class="tv__game-box" />
-                <line :x1="bracketThirdPlace.x + 1" :y1="bracketThirdPlace.y + bracketBoxHeight / 2" :x2="bracketThirdPlace.x + bracketBoxWidth - 1" :y2="bracketThirdPlace.y + bracketBoxHeight / 2" class="tv__game-divider" />
-                <path v-if="tvTeamBg(bracketThirdPlace.data, 1, 'third')" :d="tvTopHalfPath(bracketThirdPlace.x, bracketThirdPlace.y)" :class="tvTeamBg(bracketThirdPlace.data, 1, 'third')" />
-                <path v-if="tvTeamBg(bracketThirdPlace.data, 2, 'third')" :d="tvBottomHalfPath(bracketThirdPlace.x, bracketThirdPlace.y)" :class="tvTeamBg(bracketThirdPlace.data, 2, 'third')" />
-                <text :x="bracketThirdPlace.x + 10" :y="bracketThirdPlace.y + bracketBoxHeight / 4 + 5" class="tv__team-name" :class="{ 'tv__team-winner': isBracketWinner(bracketThirdPlace.data, 1) }">
+                <rect
+                  :x="bracketThirdPlace.x"
+                  :y="bracketThirdPlace.y"
+                  :width="bracketBoxWidth"
+                  :height="bracketBoxHeight"
+                  rx="6"
+                  ry="6"
+                  class="tv__game-box"
+                />
+                <line
+                  :x1="bracketThirdPlace.x + 1"
+                  :y1="bracketThirdPlace.y + bracketBoxHeight / 2"
+                  :x2="bracketThirdPlace.x + bracketBoxWidth - 1"
+                  :y2="bracketThirdPlace.y + bracketBoxHeight / 2"
+                  class="tv__game-divider"
+                />
+                <path
+                  v-if="tvTeamBg(bracketThirdPlace.data, 1, 'third')"
+                  :d="tvTopHalfPath(bracketThirdPlace.x, bracketThirdPlace.y)"
+                  :class="tvTeamBg(bracketThirdPlace.data, 1, 'third')"
+                />
+                <path
+                  v-if="tvTeamBg(bracketThirdPlace.data, 2, 'third')"
+                  :d="tvBottomHalfPath(bracketThirdPlace.x, bracketThirdPlace.y)"
+                  :class="tvTeamBg(bracketThirdPlace.data, 2, 'third')"
+                />
+                <text
+                  :x="bracketThirdPlace.x + 10"
+                  :y="bracketThirdPlace.y + bracketBoxHeight / 4 + 5"
+                  class="tv__team-name"
+                  :class="{ 'tv__team-winner': isBracketWinner(bracketThirdPlace.data, 1) }"
+                >
                   {{ truncBracketName(bracketThirdPlace.data.team_1) }}
                 </text>
-                <path v-if="tvTeamBg(bracketThirdPlace.data, 1, 'third')" :d="tvScoreTopPath(bracketThirdPlace.x, bracketThirdPlace.y)" :class="'tv__score-bg-' + tvTeamBg(bracketThirdPlace.data, 1, 'third')" />
-                <text :x="bracketThirdPlace.x + bracketBoxWidth - 20" :y="bracketThirdPlace.y + bracketBoxHeight / 4 + 5" class="tv__team-score">
+                <path
+                  v-if="tvTeamBg(bracketThirdPlace.data, 1, 'third')"
+                  :d="tvScoreTopPath(bracketThirdPlace.x, bracketThirdPlace.y)"
+                  :class="'tv__score-bg-' + tvTeamBg(bracketThirdPlace.data, 1, 'third')"
+                />
+                <text
+                  :x="bracketThirdPlace.x + bracketBoxWidth - 20"
+                  :y="bracketThirdPlace.y + bracketBoxHeight / 4 + 5"
+                  class="tv__team-score"
+                >
                   {{ bracketThirdPlace.data.team_1_score ?? '' }}
                 </text>
-                <text :x="bracketThirdPlace.x + 10" :y="bracketThirdPlace.y + (bracketBoxHeight * 3) / 4 + 5" class="tv__team-name" :class="{ 'tv__team-winner': isBracketWinner(bracketThirdPlace.data, 2) }">
+                <text
+                  :x="bracketThirdPlace.x + 10"
+                  :y="bracketThirdPlace.y + (bracketBoxHeight * 3) / 4 + 5"
+                  class="tv__team-name"
+                  :class="{ 'tv__team-winner': isBracketWinner(bracketThirdPlace.data, 2) }"
+                >
                   {{ truncBracketName(bracketThirdPlace.data.team_2) }}
                 </text>
-                <path v-if="tvTeamBg(bracketThirdPlace.data, 2, 'third')" :d="tvScoreBottomPath(bracketThirdPlace.x, bracketThirdPlace.y)" :class="'tv__score-bg-' + tvTeamBg(bracketThirdPlace.data, 2, 'third')" />
-                <text :x="bracketThirdPlace.x + bracketBoxWidth - 20" :y="bracketThirdPlace.y + (bracketBoxHeight * 3) / 4 + 5" class="tv__team-score">
+                <path
+                  v-if="tvTeamBg(bracketThirdPlace.data, 2, 'third')"
+                  :d="tvScoreBottomPath(bracketThirdPlace.x, bracketThirdPlace.y)"
+                  :class="'tv__score-bg-' + tvTeamBg(bracketThirdPlace.data, 2, 'third')"
+                />
+                <text
+                  :x="bracketThirdPlace.x + bracketBoxWidth - 20"
+                  :y="bracketThirdPlace.y + (bracketBoxHeight * 3) / 4 + 5"
+                  class="tv__team-score"
+                >
                   {{ bracketThirdPlace.data.team_2_score ?? '' }}
                 </text>
               </g>
@@ -153,7 +282,13 @@
               </g>
               <!-- Round headers -->
               <g class="tv__round-headers">
-                <text v-for="(stage, si) in bracketStages" :key="'h' + si" :x="stage.x + bracketBoxWidth / 2" :y="20" class="tv__round-header">
+                <text
+                  v-for="(stage, si) in bracketStages"
+                  :key="'h' + si"
+                  :x="stage.x + bracketBoxWidth / 2"
+                  :y="20"
+                  class="tv__round-header"
+                >
                   {{ stage.label }}
                 </text>
               </g>
@@ -714,7 +849,15 @@ export default {
       try {
         const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
         if (snapshot.exists()) {
-          this.tournament = snapshot.val();
+          const data = snapshot.val();
+          if (data?.main) {
+            this._isNewFormat = true;
+            this.tournament = data.main;
+            if (data.tournamentMessage) this.tournament.tournamentMessage = data.tournamentMessage;
+          } else {
+            this._isNewFormat = false;
+            this.tournament = data;
+          }
         }
       } catch (error) {
         console.error('Error fetching TV data:', error);
@@ -723,7 +866,7 @@ export default {
       this._subscribeDynamic();
     },
     _subscribeDynamic() {
-      const paths = [
+      const mainPaths = [
         'games',
         'roundIsActive',
         'roundTimer',
@@ -739,15 +882,25 @@ export default {
         'groups',
         'system',
         'groupSchedule',
-        'tournamentMessage',
       ];
-      for (const path of paths) {
-        const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
+      const prefix = this._isNewFormat ? 'main/' : '';
+      for (const path of mainPaths) {
+        const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, prefix + path, (snapshot) => {
           if (!this.tournament) return;
           this.tournament[path] = snapshot.val();
         });
         this._unsubscribers.push(unsub);
       }
+      const msgUnsub = tournamentService.subscribePath(
+        this.userId,
+        this.tournamentId,
+        'tournamentMessage',
+        (snapshot) => {
+          if (!this.tournament) return;
+          this.tournament.tournamentMessage = snapshot.val();
+        },
+      );
+      this._unsubscribers.push(msgUnsub);
     },
     _unsubscribeAll() {
       if (this._unsubscribers) {
@@ -908,7 +1061,7 @@ export default {
   align-items: stretch;
   justify-content: space-between;
   border-bottom: 2px solid #e5e7eb;
-  background: #081C69;
+  background: #081c69;
 }
 
 .tv__header-left {
@@ -930,7 +1083,7 @@ export default {
 }
 
 .tv__system-box {
-  background: #182F8C;
+  background: #182f8c;
   color: #fff;
   padding: 13px 28px;
   border-radius: 11px;
@@ -966,8 +1119,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 13px;
-  background: #DDF4F9;
-  border: 2px solid #53B7D2;
+  background: #ddf4f9;
+  border: 2px solid #53b7d2;
   border-radius: 11px;
   padding: 13px 28px;
 }
@@ -978,7 +1131,7 @@ export default {
 }
 
 .tv__timer-icon {
-  color: #53B7D2;
+  color: #53b7d2;
 }
 
 .tv__timer-icon svg {
@@ -995,7 +1148,7 @@ export default {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: #3E899E;
+  color: #3e899e;
 }
 
 .tv__timer-meta {
@@ -1003,12 +1156,12 @@ export default {
   flex-direction: column;
   font-size: 20px;
   font-weight: 600;
-  color: #3E899E;
+  color: #3e899e;
 }
 
 .tv__timer-cochonettes {
   font-size: 15px;
-  color: #53B7D2;
+  color: #53b7d2;
   font-weight: 700;
 }
 
@@ -1213,7 +1366,6 @@ export default {
   font-weight: 800;
 }
 
-
 .tv__card-score {
   font-size: 22px;
   font-weight: 800;
@@ -1389,9 +1541,6 @@ export default {
   gap: 10px;
 }
 
-.tv__group-block {
-}
-
 .tv__group-header {
   font-size: 18px;
   font-weight: 800;
@@ -1411,7 +1560,7 @@ export default {
 }
 
 .tv__table--group tbody td {
-  padding: 4px 4px;
+  padding: 4px;
 }
 
 /* Rotation ribbon */
@@ -1436,6 +1585,7 @@ export default {
   from {
     width: 100%;
   }
+
   to {
     width: 0%;
   }

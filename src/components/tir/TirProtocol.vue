@@ -84,7 +84,7 @@
         <table class="table is-bordered">
           <thead>
             <tr class="has-text-centered">
-              <th style="white-space: nowrap;">№ з/п</th>
+              <th style="white-space: nowrap">№ з/п</th>
               <th>ПІП</th>
               <th>Місто/Регіон</th>
               <th>Тренер(и)</th>
@@ -151,10 +151,10 @@
         <table class="table is-bordered">
           <thead class="has-text-centered">
             <tr>
-              <th style="width: 40px;">№ з/п</th>
+              <th style="width: 40px">№ з/п</th>
               <th>Прізвище, ім'я, по батькові</th>
-              <th style="width: 22%;">Посада</th>
-              <th style="width: 14%;">Суддівська категорія</th>
+              <th style="width: 22%">Посада</th>
+              <th style="width: 14%">Суддівська категорія</th>
               <th>№ посвідчення</th>
               <th>Регіон</th>
             </tr>

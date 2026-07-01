@@ -145,7 +145,7 @@ export default {
   color: var(--color-text);
   flex: 1;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .team-playoff-match__score-input {

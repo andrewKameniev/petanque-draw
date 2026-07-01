@@ -9,16 +9,19 @@ All files. Final pass after Tasks 1-6 are complete.
 ### 1. Audit remaining `syncToFirebase()` calls
 
 Run:
+
 ```bash
 grep -rn "syncToFirebase\|syncToFirebaseNow" src/ --include="*.vue" --include="*.js"
 ```
 
 Expected remaining valid uses:
+
 - `addTournament()` — new tournament, full sync is correct
 - `saveTournamentData()` — manual save button, keep as safety net
 - `Tournament.vue` — 5 calls (handled by Task 4)
 
 Dead imports to remove:
+
 - `TeamPlayoff.vue` line 194 — imports `syncToFirebase` but never calls it
 
 All others should be gone. If any remain, evaluate whether they can be replaced.
@@ -26,7 +29,9 @@ All others should be gone. If any remain, evaluate whether they can be replaced.
 ### 2. Remove `_doSync()` timeout logic
 
 Once no component calls `syncToFirebase()` in normal flow:
+
 - Keep `syncToFirebase()` and `_doSync()` as a fallback but add a console warning:
+
 ```js
 syncToFirebase() {
   if (import.meta.env.DEV) {
@@ -40,6 +45,7 @@ syncToFirebase() {
 ### 3. Remove old subscription code
 
 After Task 6 is verified:
+
 - Remove `_lastFullSyncAt` logic
 - Remove the old single `onValue()` in `subscribeTournament()`
 - Remove `syncToFirebaseNow()` if no callers remain
@@ -47,6 +53,7 @@ After Task 6 is verified:
 ### 4. Remove `syncGames()` full array sync
 
 The store action `syncGames()` (line 567) sends the entire `games` array. Check if any callers remain:
+
 ```bash
 grep -rn "syncGames" src/ --include="*.vue" --include="*.js"
 ```
@@ -90,6 +97,7 @@ _syncMultiplePaths(paths) {
 ```
 
 Usage:
+
 ```js
 addRoundToGames(round) {
   // ... mutations ...

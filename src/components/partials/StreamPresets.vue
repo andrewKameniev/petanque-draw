@@ -87,9 +87,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'activeTournament']),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
     teamStreams() {
       return this.tournament.streamPresets?.teams || {};

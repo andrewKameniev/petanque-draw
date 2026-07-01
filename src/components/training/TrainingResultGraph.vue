@@ -38,7 +38,7 @@ export default {
 </script>
 
 <template>
-  <div style="border-radius: 8px; overflow: hidden;">
+  <div style="border-radius: 8px; overflow: hidden">
     <apexchart type="line" height="350" :options="chartOptions" :series="chartData" />
   </div>
 </template>

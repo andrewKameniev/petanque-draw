@@ -2,14 +2,17 @@
   <div>
     <RemoteToolbar
       v-if="user && isOwnerOrAdmin"
-      v-model:message="tournament.tournamentMessage"
+      v-model:message="tournamentWrapper.tournamentMessage"
       :loading="loadingOnServer"
+      :show-group-switcher="isNewFormat ? !!tournamentWrapper.tournamentB : !!tournamentWrapper.groupB"
+      :active-group="tournamentWrapper.activeGroup || 'A'"
       @show-qr="showQrCode = true"
       @update:message="onMessageInput"
+      @update:active-group="setActiveGroup"
     />
     <QrCode v-if="showQrCode && isOwnerOrAdmin" @close-modal="showQrCode = false" />
     <TournamentHeader
-      :name="tournament.name"
+      :name="tournamentWrapper.name"
       :system="tournament.system"
       :tournament-started="tournamentStarted"
       :is-test="!!tournament.preferences?.isTestTournament"
@@ -122,18 +125,22 @@
         <Games
           ref="games"
           v-if="activeTab === 'games'"
-          :rankingTeams="rankingTeams"
-          :activeRound="activeRound"
+          :active-tournament="tournament"
+          :rankingTeams="activeViewRankingTeams"
+          :activeRound="activeViewRound"
           :teams-in-group="teamsInGroup"
           @openResults="activeTab = 'ranking'"
           @startPlayOff="startPlayOff"
           @startFirstRound="startFirstRound"
           @redraw="redrawRounds"
         />
-        <Results v-if="activeTab === 'results'" />
+        <Results
+          v-if="activeTab === 'results'"
+          :preview-tournament="tournamentWrapper.activeGroup === 'B' ? tournament : undefined"
+        />
         <StreamPresets v-if="activeTab === 'streams'" />
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
-          <Ranking :tournament="tournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
+          <Ranking :tournament="tournament" :rankingTeams="activeViewRankingTeams" :activeRound="activeViewRound" />
           <!-- TODO: still working on cadrage/group B transition
                 <div v-if="!tournament.playOff && tournament.teams?.length > 1 && !tournament.tournamentIsFinished && tournament.games?.length">
                     <div class="mt-5">
@@ -219,7 +226,7 @@
               {{ $t('teams.revertLastRound') }}
             </button>
             <button
-              v-if="tournament.playOff?.length && !tournament.tournamentIsFinished"
+              v-if="(tournament.playOff?.length || tournament.cadrage?.length) && !tournament.tournamentIsFinished"
               data-testid="btn-restore-round"
               class="bottom-actions__btn bottom-actions__btn--outline"
               @click="
@@ -275,7 +282,7 @@
     <SaveTournament v-if="showSaveTournament" :ranking-teams="rankingTeams" @close-modal="showSaveTournament = false" />
     <ConfirmRemoveModal
       v-if="removeConfirmId"
-      :name="tournament.name"
+      :name="tournamentWrapper.name"
       @close="removeConfirmId = null"
       @remove="
         removeTournament();
@@ -309,7 +316,8 @@
     <PlayoffConfirmModal
       v-if="showPlayoffConfirm"
       :is-swiss="tournament.system === 'swiss'"
-      :is-group-b="!!tournament.isGroupB"
+      :is-groups="tournament.system === 'groups'"
+      :is-tournament-b="!!tournament?.isTournamentB"
       :teams-count="tournament.teams?.length || 0"
       :play-off-teams="tournament.preferences.playOffTeams"
       :with-cadrage="withCadrage"
@@ -319,13 +327,18 @@
       :time-limit-enabled="!!tournament.preferences.timeLimitEnabled"
       :playoff-time-limit="tournament.preferences.playoffTimeLimit || 30"
       :no-time-limit-finale="!!tournament.preferences.noTimeLimitFinale"
+      :ranking-teams="flatRankingTeams"
+      :cadrage-losers-to-b="!!tournament.preferences.cadrageLosersToB"
       @confirm="onPlayoffConfirm"
       @cancel="showPlayoffConfirm = false"
     />
     <Preferences
       v-if="showPreferences"
       @close-modal="showPreferences = false"
-      @remove-tournament="removeConfirmId = 1"
+      @remove-tournament="
+        showPreferences = false;
+        removeConfirmId = 1;
+      "
     />
     <Protocol
       v-if="
@@ -453,7 +466,6 @@ export default {
       'setPlayOff',
       'setCadrage',
       'setBarrage',
-      'addBTournament',
       'finishTournament',
       'revertFinishTournament',
       'showMessage',
@@ -469,13 +481,16 @@ export default {
       'savePreferences',
       'clearRoundTimer',
       'syncTournamentStarted',
+      'setActiveGroup',
+      'initTournamentB',
+      'addTournamentBTeams',
     ]),
     migrateMissingTechnicalGames() {
       const t = this.tournament;
       if (!t.groups?.length || !t.games?.length || t.preferences?.groupFormat !== 'swiss') return;
       const technical = t.preferences?.technical || { technicalFirst: 13, technicalSecond: 7 };
       let migrated = false;
-      t.games.forEach((round, roundIndex) => {
+      t.games.forEach((round) => {
         t.groups.forEach((group, groupIndex) => {
           if (group.length % 2 === 0) return;
           const groupGamesInRound = round.filter((g) => g.group === groupIndex);
@@ -500,7 +515,6 @@ export default {
               lane: 0,
             });
             migrated = true;
-            console.log(`[Migration] Added missing technical game for ${missingTeam} in round ${roundIndex + 1}, group ${groupIndex}`);
           }
         });
       });
@@ -543,10 +557,16 @@ export default {
       this.tournament.preferences.barrageTeams = config.barrageTeams;
       this.tournament.preferences.playoffTimeLimit = config.playoffTimeLimit;
       this.tournament.preferences.noTimeLimitFinale = config.noTimeLimitFinale;
+      this.tournament.preferences.cadrageLosersToB = config.cadrageLosersToB || false;
+      this._playoffConfig = config;
       this.setPlayOffList();
     },
     revertLastRound() {
       this.revertFinishTournament();
+      if (this.tournament.playOff?.length || this.tournament.cadrage?.length) {
+        this.activeTab = 'games';
+        return;
+      }
       const lastRound = this.tournament.games[this.tournament.games.length - 1];
       if (lastRound) {
         lastRound.forEach((game) => {
@@ -675,21 +695,42 @@ export default {
 
       this.activeTab = 'games';
 
+      const hasCadrageLosersToB =
+        this.tournament.preferences?.cadrageLosersToB && this.tournament.cadrage?.length;
+
+      if (hasCadrageLosersToB && (this.tournamentWrapper.tournamentB || this.tournamentWrapper.groupB)) {
+        const store = useMainStore();
+        const cadrageLosers = this._buildCadrageLosers();
+        if (cadrageLosers.length) {
+          store.addTournamentBTeams(cadrageLosers);
+        }
+        return;
+      }
+
       const playB = this.playB;
       if (playB) {
         const store = useMainStore();
-        const currentIndex = this.currentTournamentIndex;
+        const config = this._playoffConfig || {};
         let tournamentBTeams;
+        const ranking = this.flatRankingTeams.filter((t) => !t.withdrawn);
         if (this.tournament.groups?.length > 1 && Array.isArray(this.rankingTeams?.[0])) {
           const qualifyPerGroup = this.teamToPlayOff / this.tournament.groups.length;
           tournamentBTeams = this.rankingTeams
             .flatMap((group) => group.slice(qualifyPerGroup))
+            .filter((t) => !t.withdrawn)
             .map((team) => ({ ...team }));
         } else {
-          tournamentBTeams = this.rankingTeams
-            .slice(this.teamToPlayOff, this.rankingTeams.length)
-            .map((team) => ({ ...team }));
+          const cadrageSlots = this.withCadrage ? this.teamToPlayOff / 2 : 0;
+          const directToA = this.withCadrage ? this.teamToPlayOff / 2 : this.teamToPlayOff;
+          const excludeFromB = hasCadrageLosersToB ? directToA + cadrageSlots * 2 : directToA + cadrageSlots;
+          tournamentBTeams = ranking.slice(excludeFromB).map((team) => ({ ...team }));
         }
+
+        if (hasCadrageLosersToB) {
+          const cadrageLosers = this._buildCadrageLosers();
+          tournamentBTeams.push(...cadrageLosers);
+        }
+
         tournamentBTeams.forEach((team) => {
           team.wins = 0;
           team.buhgolts = 0;
@@ -699,9 +740,23 @@ export default {
           team.opponents = ['placeholder'];
           team.lanes = [];
         });
-        this.addBTournament(tournamentBTeams, `${this.tournament.name}. Group B`, true);
-        store.currentTournamentIndex = currentIndex;
+        store.initTournamentB(tournamentBTeams, config.groupBMode || 'swiss');
+        this.tournament.preferences.playB = true;
+        this.tournament.preferences.cadrageLosersToB = config.cadrageLosersToB || false;
+        this.savePreferences();
       }
+    },
+    _buildCadrageLosers() {
+      const cadrageLosers = [];
+      this.tournament.cadrage.forEach((game) => {
+        const loserTitle =
+          Number(game.team_1_score) > Number(game.team_2_score) ? game.team_2 : game.team_1;
+        const loserTeam = this.flatRankingTeams.find((t) => t.title === loserTitle);
+        if (loserTeam) {
+          cadrageLosers.push({ ...loserTeam });
+        }
+      });
+      return cadrageLosers;
     },
     startStraightPlayoff() {
       const teams = [...this.tournament.teams];
@@ -852,6 +907,8 @@ export default {
       } else {
         this.addRoundToGames(assignLanes(shuffleArray(round), this.tournament));
       }
+      this.tournament.tournamentIsStarted = true;
+      this.syncTournamentStarted(true);
       this.syncDrawStart();
       this.activeTab = 'games';
     },
@@ -931,12 +988,29 @@ export default {
       'isAdmin',
       'user',
       'currentTournament',
+      'isNewFormat',
       'savedTournamentIds',
       'allScoresFilled',
       'isOwnerOrAdmin',
     ]),
     tournament() {
+      const t = this.currentTournament;
+      if (!t) return t;
+      if (this.isNewFormat) {
+        const active = t.activeGroup === 'B' && t.tournamentB ? t.tournamentB : t.main;
+        return active;
+      }
+      return t;
+    },
+    tournamentWrapper() {
       return this.currentTournament;
+    },
+    activeViewRound() {
+      const t = this.tournament;
+      return t.games?.length ? (t.roundIsActive ? t.games.length : t.games.length + 1) : 1;
+    },
+    activeViewRankingTeams() {
+      return getTeamsRanking(this.tournament, this.activeViewRound);
     },
     tabs() {
       if (this.tournament.system === 'tir') {
@@ -965,6 +1039,13 @@ export default {
     },
     rankingTeams() {
       return getTeamsRanking(this.tournament, this.activeRound);
+    },
+    flatRankingTeams() {
+      if (!this.rankingTeams) return [];
+      if (Array.isArray(this.rankingTeams[0])) {
+        return this.rankingTeams.flat();
+      }
+      return this.rankingTeams;
     },
     activeRound() {
       return this.tournament.games && this.tournament.games.length

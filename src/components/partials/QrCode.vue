@@ -36,8 +36,10 @@
         <button class="qr-modal__collab-toggle" @click="collabOpen = !collabOpen">
           <Users :size="18" />
           {{ $t('collaborators.title') }}
-          <span v-if="!collabOpen && collaboratorsList.length" class="qr-modal__collab-badge">{{ collaboratorsList.length }}</span>
-          <ChevronDown :size="16" :class="{ 'rotated': collabOpen }" />
+          <span v-if="!collabOpen && collaboratorsList.length" class="qr-modal__collab-badge">{{
+            collaboratorsList.length
+          }}</span>
+          <ChevronDown :size="16" :class="{ rotated: collabOpen }" />
         </button>
         <div v-if="collabOpen" class="qr-modal__collab-body">
           <p class="qr-modal__collab-legend">{{ $t('collaborators.legend') }}</p>
@@ -56,11 +58,7 @@
                   <option value="admin">{{ $t('collaborators.admin') }}</option>
                 </select>
               </div>
-              <button
-                class="button"
-                :disabled="!collabEmail || collabLoading"
-                @click="handleAddCollaborator"
-              >
+              <button class="button" :disabled="!collabEmail || collabLoading" @click="handleAddCollaborator">
                 <UserPlus :size="16" />
               </button>
             </div>

@@ -80,9 +80,9 @@ export default {
   },
   emits: ['add-team', 'change-draw-style', 'restore'],
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
   },
   methods: {

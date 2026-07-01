@@ -27,7 +27,8 @@ export default {
     finishTournament: 'Finish tournament',
     finishTournamentConfirm: 'Are you sure you want to finish the tournament?',
     revertLastRound: 'Revert last round',
-    revertLastRoundConfirm: 'Are you sure you want to revert the last round? The tournament will be reopened and you can re-enter results.',
+    revertLastRoundConfirm:
+      'Are you sure you want to revert the last round? The tournament will be reopened and you can re-enter results.',
     preferences: 'Preferences',
     rating: 'Rating',
     playersInTeam: 'How many players in a team?',

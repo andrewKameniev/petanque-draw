@@ -9,7 +9,7 @@
     }
   ],
   "rules": {
-    "@stylistic/declaration-block-trailing-semicolon": "always",
+    "@stylistic/declaration-block-trailing-semicolon": null,
     "block-no-empty": true,
     "no-empty-source": null,
     "selector-class-pattern": null,

@@ -106,6 +106,7 @@ export default {
   components: { TeamPlayoffMatch, Trophy, Pencil },
   props: {
     readOnly: { type: Boolean, default: false },
+    activeTournament: { type: Object, default: null },
   },
   data() {
     return {
@@ -123,7 +124,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['currentTournament']),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
     playoff() {
       return this.tournament?.teamPlayoff;
@@ -421,7 +422,7 @@ export default {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .team-playoff__team-name--right {

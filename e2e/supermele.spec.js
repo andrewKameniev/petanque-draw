@@ -77,11 +77,11 @@ test.describe('Supermele System', () => {
     await drawFirstRound(page);
     await playRound(page);
 
-    await page.locator('a', { hasText: /Teams|Команди/ }).click();
-    await page.locator('input[placeholder*="Team title"], input[placeholder*="Назва"]').fill('LatePlayer');
-    await page.locator('button', { hasText: /Add team|Додати/ }).click();
+    await page.locator('#tab-teams').click();
+    await page.locator('[data-testid="input-team-title"]').fill('LatePlayer');
+    await page.locator('[data-testid="btn-add-team"]').click();
 
-    await page.locator('a', { hasText: /Current games|Поточні ігри/ }).click();
+    await page.locator('#tab-games').click();
     await drawNextRound(page);
     await expect(page.locator('[data-testid="game-row"]').first()).toBeVisible();
     await deleteCurrentTournament(page);

@@ -40,7 +40,9 @@ export default {
             this.statsList[key].isOpen = false;
             const tags = this.statsList[key].tags;
             if (tags && !Array.isArray(tags)) {
-              this.statsList[key].tags = Object.values(tags).filter(Boolean).map((t) => String(t).trim());
+              this.statsList[key].tags = Object.values(tags)
+                .filter(Boolean)
+                .map((t) => String(t).trim());
             } else if (Array.isArray(tags)) {
               this.statsList[key].tags = tags.filter(Boolean).map((t) => String(t).trim());
             }

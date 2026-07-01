@@ -1569,7 +1569,7 @@ td.tir-table__muted {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .tir-playoff__player-name--right {

@@ -414,7 +414,7 @@
 
       <!-- Start playoff or finish -->
       <div
-        v-else-if="canStartPlayoff && !tournament.tournamentIsFinished && !tournament.tirPlayoff"
+        v-if="canStartPlayoff && !tournament.tournamentIsFinished && !tournament.tirPlayoff"
         class="tir-table__actions"
       >
         <div v-if="!isTwoRoundSystem" class="tir-table__playoff-row">
@@ -638,7 +638,8 @@ export default {
     };
   },
   created() {
-    if (this.currentTournament?.tirPlayoff) {
+    const t = this.activeTournament || this.currentTournament;
+    if (t?.tirPlayoff) {
       this.view = 'playoff';
     }
   },
@@ -650,9 +651,9 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'activeTournament']),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
     tirConfig() {
       return this.tournament.tirConfig || { junior: false, rounds: 1 };
@@ -2395,7 +2396,7 @@ td.tir-table__muted {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .tir-playoff__player-name--right {

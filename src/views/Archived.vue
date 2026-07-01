@@ -102,7 +102,7 @@
           </div>
           <div v-if="activeTournament.playOff" class="btn-bracket-group">
             <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">
-              <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;" />
+              <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
               {{ $t('games.showBracket') }}
             </button>
           </div>
@@ -275,6 +275,7 @@ export default {
       return Object.keys(this.savedTournaments);
     },
     activeTournament() {
+      if (this.tournament?.main) return this.tournament.main;
       return this.tournament;
     },
     tabs() {
@@ -957,7 +958,7 @@ export default {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .match-team-right {

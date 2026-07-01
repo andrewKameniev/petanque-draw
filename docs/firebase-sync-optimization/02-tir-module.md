@@ -76,9 +76,10 @@ syncTirPlayoff() {
 **Change to:** `this.syncTirParticipants()`
 
 **Optimization opportunity:** Could use debounced per-participant sync:
+
 ```js
 onScoreUpdate() {
-  this._syncMatchDebounced('tirParticipants', 
+  this._syncMatchDebounced('tirParticipants',
     this.tirParticipants.indexOf(this.activeParticipant),
     this.activeParticipant
   );
@@ -102,6 +103,7 @@ onScoreUpdate() {
 **Currently:** Sets tournamentIsFinished + `syncToFirebase()`
 
 **Change to:** `this._syncPath('tournamentIsFinished', true)` — already has `finishTournament()` action in store that does exactly this. Use it directly:
+
 ```js
 finishPlayoffTournament() {
   this.finishTournament();
@@ -125,17 +127,17 @@ This is the highest-frequency optimization. During active TIR scoring, multiple 
 
 ## Implementation Summary
 
-| Method | Was | Now |
-|--------|-----|-----|
-| `startTiebreaker()` | `syncToFirebase()` | `syncTirParticipants()` + `syncTirState()` |
-| `finishTiebreaker()` | `syncToFirebase()` | `syncTirState()` |
-| `startRound2()` | `syncToFirebase()` | `syncTirParticipants()` + `syncTirState()` |
-| `returnToRound1()` | `syncToFirebase()` | `syncTirState()` |
-| `addParticipant()` | `syncToFirebase()` | `syncTirParticipants()` |
-| `confirmLaneSwap()` | `syncToFirebase()` | `syncTirParticipants()` |
-| `onScoreUpdate()` | `syncToFirebase()` | `syncTirParticipants()` |
-| `finishAtelier()` | `syncToFirebase()` | `syncTirParticipants()` |
-| `startPlayoff()` | `syncToFirebase()` | `syncTirPlayoff()` + `syncTirParticipants()` |
+| Method                      | Was                | Now                                                 |
+| --------------------------- | ------------------ | --------------------------------------------------- |
+| `startTiebreaker()`         | `syncToFirebase()` | `syncTirParticipants()` + `syncTirState()`          |
+| `finishTiebreaker()`        | `syncToFirebase()` | `syncTirState()`                                    |
+| `startRound2()`             | `syncToFirebase()` | `syncTirParticipants()` + `syncTirState()`          |
+| `returnToRound1()`          | `syncToFirebase()` | `syncTirState()`                                    |
+| `addParticipant()`          | `syncToFirebase()` | `syncTirParticipants()`                             |
+| `confirmLaneSwap()`         | `syncToFirebase()` | `syncTirParticipants()`                             |
+| `onScoreUpdate()`           | `syncToFirebase()` | `syncTirParticipants()`                             |
+| `finishAtelier()`           | `syncToFirebase()` | `syncTirParticipants()`                             |
+| `startPlayoff()`            | `syncToFirebase()` | `syncTirPlayoff()` + `syncTirParticipants()`        |
 | `finishPlayoffTournament()` | `syncToFirebase()` | `finishTournament()` (reuses existing store action) |
 
 ## Notes

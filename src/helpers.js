@@ -613,26 +613,6 @@ function updateScoreHistory(game) {
   game.score_history.push({ s1, s2 });
 }
 
-function buildGroupBView(tournament) {
-  const gb = tournament?.groupB;
-  if (!gb) return null;
-  return {
-    ...tournament,
-    teams: gb.teams,
-    games: gb.games,
-    playOff: gb.playOff,
-    playOffBracket: gb.playOffBracket,
-    playOffStage: gb.playOffStage ?? gb.playOff?.[0]?.stage ?? null,
-    cadrage: gb.cadrage,
-    barrage: gb.barrage,
-    eliminationRound: gb.eliminationRound,
-    roundIsActive: gb.roundIsActive,
-    tournamentIsFinished: gb.tournamentIsFinished,
-    system: gb.mode === 'playoff' ? 'playoff' : 'swiss',
-    isGroupB: true,
-  };
-}
-
 function buildEliminationGames(teams, elimCount) {
   const pool = teams.slice(teams.length - elimCount);
   const games = [];
@@ -708,7 +688,6 @@ export {
   shuffleArray,
   rankGroupByRegulations,
   updateScoreHistory,
-  buildGroupBView,
   buildEliminationGames,
   pluralizeRounds,
   formatSwissDescription,

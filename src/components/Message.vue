@@ -85,7 +85,7 @@ export default {
   border-radius: 8px;
   box-shadow: 0 8px 24px var(--color-dropdown-shadow);
   z-index: 400;
-  animation: slideIn 0.25s ease-out;
+  animation: slide-in 0.25s ease-out;
 }
 
 .toast--error {
@@ -139,7 +139,7 @@ export default {
   background: var(--color-message-bg);
 }
 
-@keyframes slideIn {
+@keyframes slide-in {
   from {
     opacity: 0;
     transform: translateX(20px);

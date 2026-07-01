@@ -57,7 +57,7 @@ test.describe('Tournament Management', () => {
     await removeBtn.waitFor({ state: 'visible' });
     await removeBtn.click();
     await page.locator('[data-testid="btn-confirm-remove"]').click();
-    await page.waitForTimeout(500);
+    await page.locator('[data-testid="btn-confirm-remove"]').waitFor({ state: 'hidden' });
     await expect(page.locator('[data-testid="tournament-name-row"]')).toBeVisible();
   });
 });

@@ -155,7 +155,7 @@ export default {
 @media screen and (max-width: 520px) {
   .edit-result__label {
     white-space: normal;
-    word-break: break-word;
+    overflow-wrap: break-word;
   }
 }
 

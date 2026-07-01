@@ -1,9 +1,10 @@
 <template>
   <div class="content tabs-content">
-    <TeamPlayoff v-if="tournament.teamPlayoff" />
-    <PlayOff v-else-if="tournament.playOff" @openResults="$emit('openResults')" />
+    <TeamPlayoff v-if="tournament.teamPlayoff" :active-tournament="tournament" />
+    <PlayOff v-else-if="tournament.playOff" :active-tournament="tournament" @openResults="$emit('openResults')" />
     <Cadrage
       v-else-if="tournament.cadrage && tournament.cadrage.length"
+      :active-tournament="tournament"
       @startPlayOff="$emit('startPlayOff', $event)"
       @finish="onCadrageFinish"
     />
@@ -110,6 +111,7 @@
               :key="index"
               :game="game"
               :activeRound="activeRound - 1"
+              :activeTournament="tournament"
               :compactView="compactView"
               :game-index="currentRoundGames.indexOf(game)"
               @update="onGameUpdate"
@@ -129,6 +131,7 @@
               :key="index"
               :game="game"
               :activeRound="activeRound - 1"
+              :activeTournament="tournament"
               :compactView="compactView"
               :game-index="currentRoundGames.indexOf(game)"
               @update="onGameUpdate"
@@ -148,6 +151,7 @@
               :key="index"
               :game="game"
               :activeRound="activeRound - 1"
+              :activeTournament="tournament"
               :compactView="compactView"
               :game-index="currentRoundGames.indexOf(game)"
               @update="onGameUpdate"
@@ -165,6 +169,7 @@
             :key="index"
             :game="game"
             :activeRound="activeRound - 1"
+            :activeTournament="tournament"
             :compactView="compactView"
             :game-index="index"
             @update="onGameUpdate"
@@ -181,7 +186,9 @@
             {{ $t('games.finishRound') }}
           </button>
           <a
-            v-if="!tournament.playOff && (tournament.system !== 'swiss' || tournament.groups?.length)"
+            v-if="
+              !tournament.playOff && (tournament.system !== 'swiss' || tournament.groups?.length || tournament.barrage)
+            "
             href="#"
             class="restore-round-link"
             @click.prevent="showRestoreConfirm = true"
@@ -311,7 +318,7 @@ export default {
     FinishedBanner,
     RoundTimer,
   },
-  props: ['activeRound', 'teamsInGroup', 'rankingTeams'],
+  props: ['activeRound', 'teamsInGroup', 'rankingTeams', 'activeTournament'],
   data() {
     return {
       saveDisabled: false,
@@ -358,7 +365,7 @@ export default {
       'isOwnerOrAdmin',
     ]),
     tournament() {
-      return this.currentTournament;
+      return this.activeTournament || this.currentTournament;
     },
     groupTotalRoundsDisplay() {
       const perCircle = this.tournament?.preferences?.groupTotalRounds;
@@ -500,6 +507,9 @@ export default {
       'subscribeTournament',
       'unsubscribeTournament',
       'finishTournament',
+      'syncPoulesRound',
+      'syncTournamentStarted',
+      'removeTournamentB',
     ]),
     gameHasError,
     onTimerEnded() {
@@ -599,6 +609,7 @@ export default {
       this.clearRoundTimer();
       this.endRound();
       this.syncGamesAndTeams();
+      this.isRestoredRound = false;
 
       if (this.tournament.barrage && this.tournament.barrage.barrageRound < 3) {
         this.drawBarrageRound();
@@ -670,7 +681,6 @@ export default {
         if (this.tournament.preferences?.groupFormat === 'swiss') {
           if (this.tournament.groups) {
             round = drawGroupsSwissRound(this.tournament, this.activeRound);
-            console.log('drawGroupsSwissRound result:', round.filter((g) => g.team_2 === 'Technical'));
           }
         } else if (this.tournament.groupSchedule && this.tournament.groupSchedule[this.activeRound - 1]) {
           round = this.tournament.groupSchedule[this.activeRound - 1].map((g) => ({
@@ -717,99 +727,120 @@ export default {
     saveResults() {
       this.finishRound();
     },
+    clearPlayoffState(includeCadrage) {
+      delete this.tournament.playOff;
+      delete this.tournament.playOffBracket;
+      delete this.tournament.playOffStage;
+      this.syncPathNull('playOff');
+      this.syncPathNull('playOffBracket');
+      this.syncPathNull('playOffStage');
+      if (includeCadrage) {
+        delete this.tournament.cadrage;
+        this.syncPathNull('cadrage');
+      }
+    },
+    recalcTeamStats() {
+      const isGroups = this.tournament.system === 'groups' || this.tournament.groups?.length;
+      this.tournament.teams.forEach((team) => {
+        team.opponents = isGroups ? ['placeholder'] : [];
+        team.pointsPlus = 0;
+        team.pointsMinus = 0;
+        team.wins = 0;
+      });
+      const rounds = isGroups ? this.activeRound - 2 : this.tournament.games.length;
+      for (let i = 0; i < rounds; i++) {
+        this.saveResultsForRound(i);
+      }
+    },
     restoreRoundGames() {
-      console.log('tournament', JSON.parse(JSON.stringify(this.tournament)));
       this.clearRoundTimer();
       this.isRestoredRound = true;
+
       if (this.tournament.playOff || this.tournament.cadrage?.length) {
-        const bracket = this.tournament.playOffBracket;
-        const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
-        const firstPlayoffStageLabel = bracket?.stages?.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
-
-        if (bracket && currentStage && currentStage < firstPlayoffStageLabel) {
-          const previousStage = currentStage * 2;
-          const restoredBracket = JSON.parse(JSON.stringify(bracket));
-          const currentIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === currentStage);
-          if (currentIndex !== -1) {
-            restoredBracket.stages[currentIndex].teams.forEach((game) => {
-              game.team_1 = null;
-              game.team_2 = null;
-              game.team_1_score = null;
-              game.team_2_score = null;
-            });
-          }
-          if (currentStage === 1 && restoredBracket.thirdPlace) {
-            restoredBracket.thirdPlace = {};
-          }
-          this.setPlayOffBracket(restoredBracket);
-          this.setPlayOffStage(previousStage);
-          return;
-        }
-
-        if (this.tournament.cadrage?.length) {
-          delete this.tournament.playOff;
-          delete this.tournament.playOffBracket;
-          delete this.tournament.playOffStage;
-          this.syncPathNull('playOff');
-          this.syncPathNull('playOffBracket');
-          this.syncPathNull('playOffStage');
-          return;
-        }
-        delete this.tournament.playOff;
-        delete this.tournament.playOffBracket;
-        delete this.tournament.playOffStage;
-        delete this.tournament.cadrage;
-        this.syncPathNull('playOff');
-        this.syncPathNull('playOffBracket');
-        this.syncPathNull('playOffStage');
-        this.syncPathNull('cadrage');
-        if (this.tournament.system === 'poules') {
-          this.tournament.poulesRound = 3;
-        }
-        if (this.tournament.barrage) {
-          this.tournament.barrage.barrageRound = 3;
-        }
-        this.startRound();
+        this.restorePlayoffStage();
         return;
       }
       if (this.tournament.roundIsActive) {
-        this.restoreRound();
-        if (this.tournament.barrage) {
-          const barrage = this.tournament.barrage;
-          if (barrage.barrageRound > 1) {
-            barrage.barrageRound--;
-            this.setBarrage(barrage);
-          } else {
-            // Restoring the first barrage round means removing barrage entirely
-            delete this.tournament.barrage;
-            this.syncPathNull('barrage');
-          }
-        } else if (this.tournament.system === 'poules') {
-          if (this.tournament.poulesRound > 1) {
-            this.tournament.poulesRound--;
-          }
-          this.tournament.teams.forEach((team) => {
-            team.opponents = [];
-            team.pointsPlus = 0;
-            team.pointsMinus = 0;
-            team.wins = 0;
-          });
-          for (let i = 0; i < this.tournament.games.length; i++) {
-            this.saveResultsForRound(i);
-          }
-        } else if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
-          this.tournament.teams.forEach((team) => {
-            team.opponents = ['placeholder'];
-            team.pointsPlus = 0;
-            team.pointsMinus = 0;
-            team.wins = 0;
-          });
-          for (let i = 0; i < this.activeRound - 2; i++) {
-            this.saveResultsForRound(i);
-          }
-        }
+        this.restoreActiveRound();
       } else {
         this.startRound();
+      }
+    },
+    restorePlayoffStage() {
+      const bracket = this.tournament.playOffBracket;
+      const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
+      const firstPlayoffStageLabel = bracket?.stages?.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
+
+      if (bracket && currentStage && currentStage < firstPlayoffStageLabel) {
+        const restoredBracket = JSON.parse(JSON.stringify(bracket));
+        const currentIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === currentStage);
+        if (currentIndex !== -1) {
+          restoredBracket.stages[currentIndex].teams.forEach((game) => {
+            game.team_1 = null;
+            game.team_2 = null;
+            game.team_1_score = null;
+            game.team_2_score = null;
+          });
+        }
+        if (currentStage === 1 && restoredBracket.thirdPlace) {
+          restoredBracket.thirdPlace = {};
+        }
+        this.setPlayOffBracket(restoredBracket);
+        this.setPlayOffStage(currentStage * 2);
+        return;
+      }
+
+      if (this.tournament.cadrage?.length) {
+        this.clearPlayoffState(false);
+        return;
+      }
+
+      this.clearPlayoffState(true);
+      if (this.tournament.preferences?.playB) {
+        this.removeTournamentB();
+        this.tournament.preferences.playB = false;
+      }
+      if (this.tournament.system === 'poules') {
+        this.tournament.poulesRound = 3;
+        this.syncPoulesRound();
+      }
+      if (this.tournament.barrage) {
+        this.tournament.barrage.barrageRound = 3;
+        this.setBarrage(this.tournament.barrage);
+      }
+      this.startRound();
+    },
+    restoreActiveRound() {
+      this.restoreRound();
+
+      if (!this.tournament.games.length) {
+        this.endRound();
+        this.tournament.tournamentIsStarted = false;
+        this.syncTournamentStarted(false);
+        this.syncGamesAndTeams();
+        return;
+      }
+
+      if (this.tournament.barrage) {
+        const barrage = this.tournament.barrage;
+        if (barrage.barrageRound > 1) {
+          barrage.barrageRound--;
+          this.setBarrage(barrage);
+        } else {
+          delete this.tournament.barrage;
+          this.syncPathNull('barrage');
+        }
+      } else if (
+        this.tournament.system === 'poules' ||
+        this.tournament.system === 'groups' ||
+        this.tournament.groups?.length
+      ) {
+        if (this.tournament.system === 'poules' && this.tournament.poulesRound > 1) {
+          this.tournament.poulesRound--;
+          this.syncPoulesRound();
+        }
+        this.recalcTeamStats();
+        this.syncGamesAndTeams();
       }
     },
     startTeamPlayoff() {

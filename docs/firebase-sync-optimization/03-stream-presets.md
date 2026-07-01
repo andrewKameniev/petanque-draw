@@ -1,4 +1,4 @@
-# Task 3: StreamPresets — Replace syncToFirebase with _syncPath ✅
+# Task 3: StreamPresets — Replace syncToFirebase with \_syncPath ✅
 
 ## Scope
 
@@ -25,10 +25,15 @@ syncStreamPresets() {
 Replace all 6 `this.syncToFirebase()` calls in StreamPresets.vue with `this.syncStreamPresets()`:
 
 ### 1. `addTeamStream()` (line 121)
+
 ### 2. `updateTeamStream()` (line 127)
+
 ### 3. `removeTeamStream()` (line 137)
+
 ### 4. `addLaneStream()` (line 147)
+
 ### 5. `updateLaneStream()` (line 154)
+
 ### 6. `removeLaneStream()` (line 165)
 
 All follow the same pattern — mutate `tournament.streamPresets`, then sync just that path.

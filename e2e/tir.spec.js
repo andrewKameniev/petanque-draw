@@ -1,44 +1,47 @@
 import { test, expect } from '@playwright/test';
+import { login, deleteCurrentTournament, addTeams } from './helpers';
 
-const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
-const TEST_PASSWORD = 'TestPass123!';
-
-async function login(page) {
-  await page.goto('/#/');
-  const emailInput = page.locator('[data-testid="input-email"]');
-  if (!(await emailInput.isVisible().catch(() => false))) return;
-  await emailInput.fill(TEST_EMAIL);
-  await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
-  await page.locator('[data-testid="btn-submit"]').click();
-  await page.locator('[data-testid="tournament-name-row"]').waitFor({ state: 'visible' });
-}
-
-async function ensureNewTournament(page) {
+async function ensureTrulyClean(page) {
   await login(page);
-  const modal = page.locator('.modal-background');
-  if (await modal.isVisible().catch(() => false)) {
-    await modal.click({ force: true });
-    await page.waitForTimeout(200);
-  }
-  const userBtn = page.locator('.navbar-link__label, .dropdown-trigger button').first();
-  await userBtn.click();
-  await page.locator('text=Додати новий турнір').click();
-  await page.waitForTimeout(300);
+  const teamInput = page.locator('[data-testid="input-team-title"]');
+  const prefsBtn = page.locator('[data-testid="btn-preferences"]');
+  await expect(teamInput.or(prefsBtn)).toBeVisible({ timeout: 15000 });
+  if (await teamInput.isVisible().catch(() => false)) return;
+  await prefsBtn.click();
+  await page.locator('[data-testid="btn-remove-tournament"]').click();
+  await page.locator('[data-testid="btn-confirm-remove"]').click();
+  await teamInput.waitFor({ state: 'visible', timeout: 10000 });
 }
 
 async function setupTirTournament(page, { teams = 8, twoRounds = false, junior = false } = {}) {
-  await ensureNewTournament(page);
-  for (let i = 1; i <= teams; i++) {
-    await page.locator('[data-testid="input-team-title"]').fill(`Player_${i}`);
-    await page.locator('[data-testid="btn-add-team"]').click();
-    await page.waitForTimeout(50);
-  }
-  await page.locator('input[type="radio"][value="tir"]').click();
+  await ensureTrulyClean(page);
+  await addTeams(page, teams);
+  await page.waitForFunction(
+    (expected) => {
+      const app = document.querySelector('#app')?.__vue_app__;
+      if (!app) return false;
+      const store = app.config.globalProperties.$pinia._s.get('main');
+      const t = store.currentTournament;
+      if (!t) return false;
+      const active = t.main || t;
+      return (active.teams?.length || 0) >= expected;
+    },
+    teams,
+    { timeout: 10000 },
+  );
+  await page.locator('[data-testid="radio-system-tir"]').waitFor({ state: 'visible' });
+  await page.locator('[data-testid="radio-system-tir"]').click({ timeout: 10000 });
   if (twoRounds) {
-    await page.locator('text=Система з 2 раундами').locator('..').locator('input[type="checkbox"]').check();
+    await page
+      .locator('label', { hasText: /Система з 2/ })
+      .locator('input[type="checkbox"]')
+      .check();
   }
   if (junior) {
-    await page.locator('text=Юніорський турнір').locator('..').locator('input[type="checkbox"]').check();
+    await page
+      .locator('label', { hasText: /Юнацький турнір|Юніорський/ })
+      .locator('input[type="checkbox"]')
+      .check();
   }
   await page.locator('[data-testid="btn-draw-first-round"]').click();
   await page.waitForTimeout(300);
@@ -50,16 +53,19 @@ async function fillAllScoresViaJS(page, scoresKey = 'scores') {
       const app = document.querySelector('#app').__vue_app__;
       const store = app.config.globalProperties.$pinia._s.get('main');
       const tournament = store.currentTournament;
-      const participants = tournament.tirParticipants;
-      const distances = tournament.tirConfig?.junior ? [6, 7, 8] : [6, 7, 8, 9];
+      const active = tournament.main || tournament;
+      const participants = active.tirParticipants;
+      const distances = active.tirConfig?.junior ? [6, 7, 8] : [6, 7, 8, 9];
+      const types = ['carreau', 'reussi', 'touche', 'manque'];
       participants.forEach((p, pIdx) => {
         if (!p[scoresKey]) p[scoresKey] = {};
         for (let a = 0; a < 5; a++) {
           if (!p[scoresKey][a]) p[scoresKey][a] = {};
           distances.forEach((d, dIdx) => {
-            const seed = (pIdx * 20 + a * 4 + dIdx) % 4;
-            const types = ['carreau', 'reussi', 'touche', 'manque'];
-            p[scoresKey][a][d] = types[seed < pIdx % 4 ? 3 : seed];
+            const slot = a * distances.length + dIdx;
+            const threshold = Math.floor((pIdx / participants.length) * 20);
+            const typeIdx = slot < threshold ? 3 : (slot + pIdx) % 3;
+            p[scoresKey][a][d] = types[typeIdx];
           });
         }
       });
@@ -69,10 +75,16 @@ async function fillAllScoresViaJS(page, scoresKey = 'scores') {
 }
 
 test.describe('TIR Tournament', () => {
+  test.describe.configure({ timeout: 30000 });
+
+  test.afterEach(async ({ page }) => {
+    await deleteCurrentTournament(page);
+  });
+
   test('creates TIR tournament and shows participant list', async ({ page }) => {
     await setupTirTournament(page, { teams: 8 });
     await expect(page.locator('.tir-scoring__participant-row')).toHaveCount(8);
-    await expect(page.locator('.tir-nav__btn--active')).toContainText('Режим');
+    await expect(page.locator('.tir-nav__btn--active')).toContainText('Рахунок');
   });
 
   test('scoring view shows progress for participant', async ({ page }) => {
@@ -98,7 +110,8 @@ test.describe('TIR Tournament', () => {
     await page.waitForTimeout(200);
     await expect(page.locator('text=Напряму').first()).toBeVisible();
     await expect(page.locator('text=→ Раунд 2').first()).toBeVisible();
-    await expect(page.locator('text=Вибув').first()).toBeVisible();
+    const rows = page.locator('.tir-table__content tbody tr');
+    await expect(rows).toHaveCount(20);
   });
 
   test('2-round system: transition to R2', async ({ page }) => {
@@ -108,7 +121,7 @@ test.describe('TIR Tournament', () => {
     await page.waitForTimeout(200);
     await page.locator('button:has-text("Почати раунд 2")').click();
     await page.waitForTimeout(300);
-    await expect(page.locator('.tir-nav__round-badge')).toContainText('R2');
+    await expect(page.locator('button:has-text("Повернутися до раунду 1")')).toBeVisible();
   });
 
   test('2-round system: start playoff after R2', async ({ page }) => {

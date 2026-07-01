@@ -13,6 +13,7 @@ Replace 5 `syncToFirebase()` calls in store actions with specific `_syncPath()` 
 **Currently:** Mutates games + teams, then `syncToFirebase()` (full tournament).
 
 **Change to:**
+
 ```js
 shuffleLanesStore(games) {
   this.tournaments[this.currentTournamentIndex].games[
@@ -30,6 +31,7 @@ shuffleLanesStore(games) {
 **Currently:** Swaps two games' positions + lanes, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 swapLanesStore({ roundIndex, indexA, indexB }) {
   const games = this.tournaments[this.currentTournamentIndex].games[roundIndex];
@@ -53,6 +55,7 @@ swapLanesStore({ roundIndex, indexA, indexB }) {
 **Currently:** Pushes new round, sets roundIsActive, saves lanes, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 addRoundToGames(round) {
   if (!this.tournaments[this.currentTournamentIndex].games) {
@@ -73,6 +76,7 @@ addRoundToGames(round) {
 **Currently:** Pops last round + opponent/lane data, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 restoreRound() {
   this.tournaments[this.currentTournamentIndex].games.pop();
@@ -98,13 +102,13 @@ restoreRound() {
 
 ## Implementation Summary
 
-| Method | Was | Now |
-|--------|-----|-----|
-| `shuffleLanesStore()` | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')` |
-| `swapLanesStore()` | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')` |
-| `addRoundToGames()` | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')` + `_syncPath('roundIsActive')` |
-| `restoreRound()` | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')` |
-| `addTournament()` | `syncToFirebase()` | **kept as-is** (new tournament) |
+| Method                | Was                | Now                                                                        |
+| --------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `shuffleLanesStore()` | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')`                                |
+| `swapLanesStore()`    | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')`                                |
+| `addRoundToGames()`   | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')` + `_syncPath('roundIsActive')` |
+| `restoreRound()`      | `syncToFirebase()` | `_syncPath('games')` + `_syncPath('teams')`                                |
+| `addTournament()`     | `syncToFirebase()` | **kept as-is** (new tournament)                                            |
 
 ## Notes
 

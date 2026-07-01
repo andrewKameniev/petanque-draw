@@ -35,4 +35,15 @@ export default {
   max-height: calc(100vh - 40px);
   overflow-y: auto;
 }
+
+@media (max-width: 768px) {
+  .modal-close {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 10001;
+    background: rgb(0 0 0 / 40%);
+    border-radius: 50%;
+  }
+}
 </style>

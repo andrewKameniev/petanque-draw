@@ -16,6 +16,7 @@ this._tournamentUnsubscribe = onValue(dbRef, (snapshot) => { ... });
 ```
 
 This means:
+
 1. Every `_syncPath('games/0/1', gameData)` by a co-admin triggers a **full snapshot download** of the entire tournament
 2. The admin receives ~100 KB on every remote change, even if only 200 bytes changed
 3. Firebase charges for bytes downloaded — this multiplies bandwidth costs by 500x+
@@ -127,6 +128,7 @@ unsubscribeTournament() {
 Currently, echo prevention uses `_lastFullSyncAt` timestamp. With per-path sync, we need per-path echo prevention:
 
 **Option A — Track recently synced paths:**
+
 ```js
 _syncPath(path, data) {
   if (!this._recentSyncPaths) this._recentSyncPaths = new Set();
@@ -138,6 +140,7 @@ _syncPath(path, data) {
 The listener checks `_recentSyncPaths` and skips if present (cleared on next tick or after 1s timeout).
 
 **Option B — Timestamp per path (more robust):**
+
 ```js
 _syncPath(path, data) {
   if (!this._pathSyncTimestamps) this._pathSyncTimestamps = {};
@@ -152,6 +155,7 @@ Listener checks: `if (Date.now() - this._pathSyncTimestamps[path] < 1000) return
 ## Dependencies
 
 This task should be done **after** Tasks 1-5 are complete, because:
+
 1. Once all callers use `_syncPath()`, the echo prevention can be path-based
 2. The `_lastFullSyncAt` / `_doSync()` pattern becomes unused
 3. The old single-listener approach can be fully removed

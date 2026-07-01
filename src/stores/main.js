@@ -5,9 +5,37 @@ import { database } from '@/firebase';
 import { userMapService, collaboratorService } from '@/services/db';
 import i18n from '@/i18n';
 
-function createTournament(overrides = {}) {
+const defaultPreferences = {
+  technical: {
+    technicalFirst: 13,
+    technicalSecond: 7,
+  },
+  maxScore: 13,
+  playOffTeams: 8,
+  playOffEnabled: false,
+  fieldsStart: 1,
+  withCadrage: false,
+  withBarrage: false,
+  barrageTeams: 8,
+  playB: false,
+  timeLimitEnabled: false,
+  timeLimit: 45,
+  playoffTimeLimit: 30,
+  noTimeLimitFinale: false,
+  cochonettesEnabled: false,
+  cochonettesEnabledPlayoff: false,
+  cochonettes: 1,
+  groupDrawMethod: 'seeded',
+  groupFormat: 'round_robin',
+  groupSwissRounds: 3,
+  swissRoundsCount: null,
+  prizePlaces: null,
+  isTestTournament: false,
+  cadrageLosersToB: false,
+};
+
+function createTournamentData(overrides = {}) {
   return {
-    name: 'Tournament A',
     games: [],
     teams: [],
     system: 'swiss',
@@ -17,36 +45,27 @@ function createTournament(overrides = {}) {
     isCadrage: false,
     supermelePlayers: 2,
     tournamentIsFinished: false,
-    tournamentMessage: '',
-    preferences: {
-      technical: {
-        technicalFirst: 13,
-        technicalSecond: 7,
-      },
-      maxScore: 13,
-      playOffTeams: 8,
-      playOffEnabled: false,
-      fieldsStart: 1,
-      withCadrage: false,
-      withBarrage: false,
-      barrageTeams: 8,
-      playB: false,
-      timeLimitEnabled: false,
-      timeLimit: 45,
-      playoffTimeLimit: 30,
-      noTimeLimitFinale: false,
-      cochonettesEnabled: false,
-      cochonettesEnabledPlayoff: false,
-      cochonettes: 1,
-      groupDrawMethod: 'seeded',
-      groupFormat: 'round_robin',
-      groupSwissRounds: 3,
-      swissRoundsCount: null,
-      prizePlaces: null,
-      isTestTournament: false,
-    },
+    preferences: { ...defaultPreferences },
     ...overrides,
   };
+}
+
+function createTournament(overrides = {}) {
+  const { name, id, createdAt, ...dataOverrides } = overrides;
+  const wrapper = {
+    name: name || 'Tournament A',
+    tournamentMessage: '',
+    activeGroup: 'A',
+    tournamentB: null,
+    main: createTournamentData(dataOverrides),
+  };
+  if (id) wrapper.id = id;
+  if (createdAt) wrapper.createdAt = createdAt;
+  return wrapper;
+}
+
+function isNewFormat(tournament) {
+  return !!tournament?.main;
 }
 
 export const useMainStore = defineStore('main', {
@@ -72,6 +91,17 @@ export const useMainStore = defineStore('main', {
   }),
   getters: {
     currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
+    activeTournament() {
+      const t = this.currentTournament;
+      if (!t) return null;
+      if (isNewFormat(t)) {
+        return t.activeGroup === 'B' && t.tournamentB ? t.tournamentB : t.main;
+      }
+      return t;
+    },
+    isNewFormat() {
+      return isNewFormat(this.currentTournament);
+    },
     currentRole() {
       const tournament = this.currentTournament;
       if (!tournament?._ownerUid) return 'owner';
@@ -82,14 +112,10 @@ export const useMainStore = defineStore('main', {
       return this.currentRole === 'owner' || this.currentRole === 'admin';
     },
     allScoresFilled() {
-      const tournament = this.currentTournament;
-      if (!tournament) return false;
-      const activeRound = tournament.games?.length
-        ? tournament.roundIsActive
-          ? tournament.games.length
-          : tournament.games.length + 1
-        : 1;
-      const games = tournament.games?.[activeRound - 1];
+      const t = this.activeTournament;
+      if (!t) return false;
+      const activeRound = t.games?.length ? (t.roundIsActive ? t.games.length : t.games.length + 1) : 1;
+      const games = t.games?.[activeRound - 1];
       if (!games) return false;
       return games.every(
         (g) => g.team_1_score !== null && g.team_1_score !== '' && g.team_2_score !== null && g.team_2_score !== '',
@@ -101,10 +127,93 @@ export const useMainStore = defineStore('main', {
       const tournament = this.tournaments[this.currentTournamentIndex];
       return tournament?._ownerUid || this.user.uid;
     },
+    _getTarget() {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (isNewFormat(tournament)) {
+        if (tournament.activeGroup === 'B' && tournament.tournamentB) {
+          return { data: tournament.tournamentB, prefix: 'tournamentB/' };
+        }
+        return { data: tournament.main, prefix: 'main/' };
+      }
+      // Old format fallback
+      if (tournament?.activeGroup === 'B' && tournament.groupB) {
+        return { data: tournament.groupB, prefix: 'groupB/' };
+      }
+      return { data: tournament, prefix: '' };
+    },
+    setActiveGroup(group) {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (!tournament) return;
+      tournament.activeGroup = group;
+      this._syncPath('activeGroup', group);
+    },
+    initTournamentB(teams, mode = 'swiss') {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (!tournament) return;
+      tournament.tournamentB = createTournamentData({
+        isTournamentB: true,
+        system: mode,
+        teams: teams.map((t) => ({ ...t })),
+      });
+      tournament.activeGroup = 'A';
+      this._syncPath('tournamentB', tournament.tournamentB);
+      this._syncPath('activeGroup', 'A');
+    },
+    removeTournamentB() {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (!tournament || !tournament.tournamentB) return;
+      tournament.tournamentB = null;
+      tournament.activeGroup = 'A';
+      this._syncPath('tournamentB', null);
+      this._syncPath('activeGroup', 'A');
+    },
+    addTournamentBTeams(newTeams) {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      if (!target) return;
+      newTeams.forEach((t) => {
+        const existing = target.teams.find((bt) => bt.title === t.title);
+        if (!existing) target.teams.push({ ...t });
+      });
+      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
+      this._syncPath(`${prefix}/teams`, target.teams);
+    },
+    setTournamentBEliminationRound(eliminationData) {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      if (!target) return;
+      target.eliminationRound = eliminationData;
+      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
+      this._syncPath(`${prefix}/eliminationRound`, eliminationData);
+    },
+    completeTournamentBElimination() {
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      if (!target?.eliminationRound) return;
+      const elim = target.eliminationRound;
+      elim.completed = true;
+      elim.games.forEach((game) => {
+        const loserTitle = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_2 : game.team_1;
+        const loser = target.teams.find((t) => t.title === loserTitle);
+        if (loser) loser.eliminated = true;
+      });
+      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
+      this._syncPath(`${prefix}/eliminationRound`, elim);
+      this._syncPath(`${prefix}/teams`, target.teams);
+    },
+    toggleWithdrawn(teamTitle) {
+      const { data, prefix } = this._getTarget();
+      if (!data) return;
+      const team = data.teams.find((t) => t.title === teamTitle);
+      if (team) {
+        team.withdrawn = !team.withdrawn;
+        this._syncPath(`${prefix}teams`, data.teams);
+      }
+    },
     _syncPath(path, data) {
       if (!this.user || !this.user.uid || !this.currentTournamentIndex) return;
       if (!this._recentSyncPaths) this._recentSyncPaths = new Set();
-      this._recentSyncPaths.add(path.split('/')[0]);
+      this._recentSyncPaths.add(path);
       const db = getDatabase();
       const ownerUid = this._getTournamentOwnerUid();
       const fullPath = `${ownerUid}/tournaments/${this.currentTournamentIndex}/${path}`;
@@ -177,26 +286,31 @@ export const useMainStore = defineStore('main', {
       this._activeCadrageIndex = index;
     },
     syncGameMatch(roundIndex, gameIndex, gameData) {
-      this._syncMatchDebounced('games', `${roundIndex}/${gameIndex}`, gameData);
+      const { prefix } = this._getTarget();
+      this._syncMatchDebounced(`${prefix}games`, `${roundIndex}/${gameIndex}`, gameData);
     },
     syncCadrageMatch(gameIndex, gameData) {
-      this._syncMatchDebounced('cadrage', gameIndex, gameData);
+      const { prefix } = this._getTarget();
+      this._syncMatchDebounced(`${prefix}cadrage`, gameIndex, gameData);
     },
     syncBracketMatch(matchPath, matchData) {
-      this._syncMatchDebounced('playOffBracket', matchPath, matchData);
+      const { prefix } = this._getTarget();
+      this._syncMatchDebounced(`${prefix}playOffBracket`, matchPath, matchData);
     },
     syncTeamPlayoffMatch(matchPath, matchData) {
+      const { data, prefix } = this._getTarget();
       if (matchPath) {
-        this._syncMatchDebounced('teamPlayoff', matchPath, matchData);
+        this._syncMatchDebounced(`${prefix}teamPlayoff`, matchPath, matchData);
       } else {
-        this._syncPath('teamPlayoff', this.tournaments[this.currentTournamentIndex]?.teamPlayoff);
+        this._syncPath(`${prefix}teamPlayoff`, data?.teamPlayoff);
       }
     },
     syncTirPlayoffMatch(matchPath, matchData) {
+      const { data, prefix } = this._getTarget();
       if (matchPath) {
-        this._syncMatchDebounced('tirPlayoff', matchPath, matchData);
+        this._syncMatchDebounced(`${prefix}tirPlayoff`, matchPath, matchData);
       } else {
-        this._syncPath('tirPlayoff', this.tournaments[this.currentTournamentIndex]?.tirPlayoff);
+        this._syncPath(`${prefix}tirPlayoff`, data?.tirPlayoff);
       }
     },
     subscribeTournament() {
@@ -221,72 +335,170 @@ export const useMainStore = defineStore('main', {
         this._tournamentUnsubscribers.push(unsub);
       };
 
-      subscribePath('games', (remoteGames, local) => {
-        if (!remoteGames || !local.games || !local.roundIsActive) return;
-        this._mergeGames(local, { games: remoteGames });
-      });
-
-      subscribePath('cadrage', (remoteCadrage, local) => {
-        if (!remoteCadrage || !local.cadrage) return;
-        this._mergeCadrage(local, { cadrage: remoteCadrage });
-      });
-
-      subscribePath('playOffBracket', (remoteBracket, local) => {
-        if (!remoteBracket || !local.playOffBracket) return;
-        this._mergeBracketPlayoff(local, { playOffBracket: remoteBracket });
-      });
-
-      subscribePath('tirPlayoff', (remotePlayoff, local) => {
-        if (!remotePlayoff) return;
-        if (!local.tirPlayoff) {
-          local.tirPlayoff = remotePlayoff;
-          return;
-        }
-        this._mergeTirPlayoff(local, { tirPlayoff: remotePlayoff });
-      });
-
-      subscribePath('teamPlayoff', (remotePlayoff, local) => {
-        if (!remotePlayoff) return;
-        if (!local.teamPlayoff) {
-          local.teamPlayoff = remotePlayoff;
-          return;
-        }
-        this._mergeTeamPlayoff(local, { teamPlayoff: remotePlayoff });
-      });
-
-      const simplePaths = [
-        'tirParticipants',
-        'tirRound',
-        'tirR2Participants',
-        'tirTiebreakerCount',
-        'tirTiebreakerActive',
-        'tirTiebreakerParticipantIds',
-        'roundTimer',
-        'tournamentIsFinished',
-        'tournamentMessage',
-        'teams',
-        'preferences',
-        'streamPresets',
-        'playOff',
-        'playOffStage',
-        'barrage',
-        'tirStarted',
-        'tirConfig',
-      ];
-
-      simplePaths.forEach((path) => {
-        subscribePath(path, (value, local) => {
-          if (value !== undefined) local[path] = value;
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (isNewFormat(tournament)) {
+        const mainPaths = [
+          'teams',
+          'games',
+          'preferences',
+          'roundIsActive',
+          'roundTimer',
+          'tournamentIsFinished',
+          'playOff',
+          'playOffBracket',
+          'playOffStage',
+          'cadrage',
+          'barrage',
+          'eliminationRound',
+          'streamPresets',
+          'tirParticipants',
+          'tirRound',
+          'tirR2Participants',
+          'tirTiebreakerCount',
+          'tirTiebreakerActive',
+          'tirTiebreakerParticipantIds',
+          'tirStarted',
+          'tirConfig',
+          'teamPlayoff',
+          'tirPlayoff',
+        ];
+        mainPaths.forEach((path) => {
+          subscribePath(`main/${path}`, (value) => {
+            const local = this.tournaments[this.currentTournamentIndex];
+            if (!local?.main || value === undefined) return;
+            if (path === 'games') {
+              if (!value || !local.main.games || !local.main.roundIsActive) return;
+              this._mergeGames(local.main, { games: value });
+              return;
+            }
+            if (path === 'cadrage') {
+              if (!value || !local.main.cadrage) return;
+              this._mergeCadrage(local.main, { cadrage: value });
+              return;
+            }
+            if (path === 'playOffBracket') {
+              if (!value || !local.main.playOffBracket) return;
+              this._mergeBracketPlayoff(local.main, { playOffBracket: value });
+              return;
+            }
+            if (path === 'tirPlayoff') {
+              if (!local.main.tirPlayoff) {
+                local.main.tirPlayoff = value;
+                return;
+              }
+              this._mergeTirPlayoff(local.main, { tirPlayoff: value });
+              return;
+            }
+            if (path === 'teamPlayoff') {
+              if (!local.main.teamPlayoff) {
+                local.main.teamPlayoff = value;
+                return;
+              }
+              this._mergeTeamPlayoff(local.main, { teamPlayoff: value });
+              return;
+            }
+            if (path === 'roundIsActive' && !value && local.main.roundIsActive) {
+              if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
+                local.main[path] = value;
+              }
+              return;
+            }
+            local.main[path] = value;
+          });
         });
-      });
-
-      subscribePath('roundIsActive', (value, local) => {
-        if (value !== undefined && !value && local.roundIsActive) {
-          if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
-            local.roundIsActive = value;
+        subscribePath('tournamentB', (value) => {
+          const local = this.tournaments[this.currentTournamentIndex];
+          if (!local || value == null) return;
+          const recentSubPaths = [...(this._recentSyncPaths || [])].filter((p) =>
+            p.startsWith('tournamentB/'),
+          );
+          if (recentSubPaths.length) {
+            recentSubPaths.forEach((p) => this._recentSyncPaths.delete(p));
+            return;
           }
-        }
-      });
+          if (!local.tournamentB) {
+            local.tournamentB = value;
+            return;
+          }
+          Object.keys(value).forEach((key) => {
+            local.tournamentB[key] = value[key];
+          });
+        });
+        ['activeGroup', 'tournamentMessage', 'name'].forEach((path) => {
+          subscribePath(path, (value, local) => {
+            if (value !== undefined) local[path] = value;
+          });
+        });
+      } else {
+        subscribePath('games', (remoteGames, local) => {
+          if (!remoteGames || !local.games || !local.roundIsActive) return;
+          this._mergeGames(local, { games: remoteGames });
+        });
+
+        subscribePath('cadrage', (remoteCadrage, local) => {
+          if (!remoteCadrage || !local.cadrage) return;
+          this._mergeCadrage(local, { cadrage: remoteCadrage });
+        });
+
+        subscribePath('playOffBracket', (remoteBracket, local) => {
+          if (!remoteBracket || !local.playOffBracket) return;
+          this._mergeBracketPlayoff(local, { playOffBracket: remoteBracket });
+        });
+
+        subscribePath('tirPlayoff', (remotePlayoff, local) => {
+          if (!remotePlayoff) return;
+          if (!local.tirPlayoff) {
+            local.tirPlayoff = remotePlayoff;
+            return;
+          }
+          this._mergeTirPlayoff(local, { tirPlayoff: remotePlayoff });
+        });
+
+        subscribePath('teamPlayoff', (remotePlayoff, local) => {
+          if (!remotePlayoff) return;
+          if (!local.teamPlayoff) {
+            local.teamPlayoff = remotePlayoff;
+            return;
+          }
+          this._mergeTeamPlayoff(local, { teamPlayoff: remotePlayoff });
+        });
+
+        const simplePaths = [
+          'tirParticipants',
+          'tirRound',
+          'tirR2Participants',
+          'tirTiebreakerCount',
+          'tirTiebreakerActive',
+          'tirTiebreakerParticipantIds',
+          'roundTimer',
+          'tournamentIsFinished',
+          'tournamentMessage',
+          'teams',
+          'preferences',
+          'streamPresets',
+          'playOff',
+          'playOffStage',
+          'barrage',
+          'tirStarted',
+          'tirConfig',
+          'activeGroup',
+          'groupB',
+        ];
+
+        simplePaths.forEach((path) => {
+          subscribePath(path, (value, local) => {
+            if (value !== undefined) local[path] = value;
+          });
+        });
+
+        subscribePath('roundIsActive', (value, local) => {
+          if (value !== undefined && !value && local.roundIsActive) {
+            if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
+              local.roundIsActive = value;
+            }
+          }
+        });
+      }
     },
     _mergeTirPlayoff(local, remote) {
       const localPlayoff = local.tirPlayoff;
@@ -476,7 +688,10 @@ export const useMainStore = defineStore('main', {
           const allTournaments = snapshot.val();
           Object.keys(allTournaments).forEach((id) => {
             migratedMap[id] = {
-              status: allTournaments[id].tournamentIsFinished ? 'archived' : 'active',
+              status:
+                allTournaments[id].tournamentIsFinished || allTournaments[id].main?.tournamentIsFinished
+                  ? 'archived'
+                  : 'active',
               role: 'owner',
               name: allTournaments[id].name || 'Tournament',
             };
@@ -551,40 +766,43 @@ export const useMainStore = defineStore('main', {
       this.savedTournamentIds = Object.keys(results);
     },
     savePreferences() {
-      this._syncPath('preferences', this.tournaments[this.currentTournamentIndex].preferences);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}preferences`, data.preferences);
     },
     syncStreamPresets() {
-      this._syncPath('streamPresets', this.tournaments[this.currentTournamentIndex].streamPresets);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}streamPresets`, data.streamPresets);
     },
     shuffleLanesStore(games) {
-      this.tournaments[this.currentTournamentIndex].games[
-        this.tournaments[this.currentTournamentIndex].games.length - 1
-      ] = games;
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => {
+      const { data, prefix } = this._getTarget();
+      data.games[data.games.length - 1] = games;
+      data.teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
       });
       this.saveLanesToTeams(games);
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
     },
     swapLanesStore({ roundIndex, indexA, indexB }) {
-      const games = this.tournaments[this.currentTournamentIndex].games[roundIndex];
+      const { data, prefix } = this._getTarget();
+      const games = data.games[roundIndex];
       const temp = games[indexA];
       games[indexA] = games[indexB];
       games[indexB] = temp;
       const tempLane = games[indexA].lane;
       games[indexA].lane = games[indexB].lane;
       games[indexB].lane = tempLane;
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => {
+      data.teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
       });
       this.saveLanesToTeams(games);
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
     },
     saveLanesToTeams(games) {
+      const { data } = this._getTarget();
       games.map((game) => {
-        this.tournaments[this.currentTournamentIndex].teams.map((team) => {
+        data.teams.map((team) => {
           if (!team.lanes) team.lanes = [];
           if (team.title === game.team_1 && game.lane != null) {
             team.lanes.push(game.lane);
@@ -597,16 +815,35 @@ export const useMainStore = defineStore('main', {
     },
     setTournaments(tournaments) {
       Object.keys(tournaments).forEach((key) => {
-        const defaults = createTournament();
         const t = tournaments[key];
-        tournaments[key] = {
-          ...defaults,
-          ...t,
-          id: t.id || key,
-          teams: t.teams || [],
-          games: t.games || [],
-          preferences: { ...defaults.preferences, ...(t.preferences || {}) },
-        };
+        if (isNewFormat(t)) {
+          const mainDefaults = createTournamentData();
+          t.main = {
+            ...mainDefaults,
+            ...t.main,
+            preferences: { ...mainDefaults.preferences, ...(t.main.preferences || {}) },
+          };
+          if (t.tournamentB) {
+            t.tournamentB = {
+              ...mainDefaults,
+              ...t.tournamentB,
+              isTournamentB: true,
+              preferences: { ...mainDefaults.preferences, ...(t.tournamentB.preferences || {}) },
+            };
+          }
+          t.id = t.id || key;
+          t.activeGroup = t.activeGroup || 'A';
+        } else {
+          const defaults = createTournamentData();
+          tournaments[key] = {
+            ...defaults,
+            ...t,
+            id: t.id || key,
+            teams: t.teams || [],
+            games: t.games || [],
+            preferences: { ...defaults.preferences, ...(t.preferences || {}) },
+          };
+        }
       });
       this.tournaments = tournaments;
       if (!Object.keys(this.tournaments).length) {
@@ -659,6 +896,8 @@ export const useMainStore = defineStore('main', {
       const dataRef = ref(db, `${this.user.uid}/tournaments/${tournamentId}`);
       const tokensRef = ref(db, `tokens/${this.user.uid}/${tournamentId}`);
 
+      this.unsubscribeTournament();
+
       remove(tokensRef).catch((error) => {
         console.error('Error deleting data:', error);
       });
@@ -684,214 +923,234 @@ export const useMainStore = defineStore('main', {
         });
     },
     addTeamToStore(team) {
-      if (!this.tournaments[this.currentTournamentIndex].teams) {
-        this.tournaments[this.currentTournamentIndex].teams = [];
-      }
-      this.tournaments[this.currentTournamentIndex].teams.push(team);
-      localStorage.setItem(
-        'petanqueDrawTeamsRestore',
-        JSON.stringify(this.tournaments[this.currentTournamentIndex].teams),
-      );
+      const { data } = this._getTarget();
+      if (!data.teams) data.teams = [];
+      data.teams.push(team);
+      localStorage.setItem('petanqueDrawTeamsRestore', JSON.stringify(data.teams));
     },
     removeTeam(titleToRemove) {
-      this.tournaments[this.currentTournamentIndex].teams = this.tournaments[this.currentTournamentIndex].teams.filter(
-        (team) => team.title !== titleToRemove,
-      );
+      const { data } = this._getTarget();
+      data.teams = data.teams.filter((team) => team.title !== titleToRemove);
     },
     clearTeams() {
-      this.tournaments[this.currentTournamentIndex].teams = [];
+      const { data, prefix } = this._getTarget();
+      data.teams = [];
       localStorage.removeItem('petanqueDrawTeamsRestore');
-      this._syncPath('teams', []);
+      this._syncPath(`${prefix}teams`, []);
     },
     changeDrawType(value) {
-      this.tournaments[this.currentTournamentIndex].useRating = value;
+      const { data } = this._getTarget();
+      data.useRating = value;
     },
     startRound() {
-      this.tournaments[this.currentTournamentIndex].roundIsActive = true;
+      const { data, prefix } = this._getTarget();
+      data.roundIsActive = true;
       this._roundActivatedAt = Date.now();
-      this._syncPath('roundIsActive', true);
+      this._syncPath(`${prefix}roundIsActive`, true);
     },
     endRound() {
-      this.tournaments[this.currentTournamentIndex].roundIsActive = false;
-      this._syncPath('roundIsActive', false);
+      const { data, prefix } = this._getTarget();
+      data.roundIsActive = false;
+      this._syncPath(`${prefix}roundIsActive`, false);
     },
     syncGames() {
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}games`, data.games);
     },
     syncTeams() {
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}teams`, data.teams);
     },
     syncGamesAndTeams() {
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
     },
     syncTeamPlayoff() {
-      this._syncPath('teamPlayoff', this.tournaments[this.currentTournamentIndex].teamPlayoff);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}teamPlayoff`, data.teamPlayoff);
     },
     syncCadrageFull() {
-      this._syncPath('cadrage', this.tournaments[this.currentTournamentIndex].cadrage);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}cadrage`, data.cadrage);
     },
     syncTirParticipants() {
-      this._syncPath('tirParticipants', this.tournaments[this.currentTournamentIndex].tirParticipants);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}tirParticipants`, data.tirParticipants);
     },
     syncTirState() {
-      const t = this.tournaments[this.currentTournamentIndex];
-      this._syncPath('tirRound', t.tirRound);
-      this._syncPath('tirR2Participants', t.tirR2Participants || null);
-      this._syncPath('tirTiebreakerActive', t.tirTiebreakerActive || false);
-      this._syncPath('tirTiebreakerCount', t.tirTiebreakerCount || null);
-      this._syncPath('tirTiebreakerParticipantIds', t.tirTiebreakerParticipantIds || null);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}tirRound`, data.tirRound);
+      this._syncPath(`${prefix}tirR2Participants`, data.tirR2Participants || null);
+      this._syncPath(`${prefix}tirTiebreakerActive`, data.tirTiebreakerActive || false);
+      this._syncPath(`${prefix}tirTiebreakerCount`, data.tirTiebreakerCount || null);
+      this._syncPath(`${prefix}tirTiebreakerParticipantIds`, data.tirTiebreakerParticipantIds || null);
     },
     syncTirPlayoff() {
-      this._syncPath('tirPlayoff', this.tournaments[this.currentTournamentIndex].tirPlayoff);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}tirPlayoff`, data.tirPlayoff);
     },
     syncTournamentMessage() {
       clearTimeout(this._syncMessageTimeout);
       this._syncMessageTimeout = setTimeout(() => {
-        this._syncPath('tournamentMessage', this.tournaments[this.currentTournamentIndex].tournamentMessage);
+        const tournament = this.tournaments[this.currentTournamentIndex];
+        this._syncPath('tournamentMessage', tournament?.tournamentMessage);
       }, 300);
     },
     syncTirStart() {
-      const t = this.tournaments[this.currentTournamentIndex];
-      this._syncPath('tirStarted', true);
-      this._syncPath('tirParticipants', t.tirParticipants);
-      this._syncPath('tirConfig', t.tirConfig);
-      this._syncPath('tirRound', 1);
-      this._syncPath('games', t.games);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}tirStarted`, true);
+      this._syncPath(`${prefix}tirParticipants`, data.tirParticipants);
+      this._syncPath(`${prefix}tirConfig`, data.tirConfig);
+      this._syncPath(`${prefix}tirRound`, 1);
+      this._syncPath(`${prefix}games`, data.games);
     },
     syncDrawStart() {
-      const t = this.tournaments[this.currentTournamentIndex];
-      if (t.groups) this._syncPath('groups', t.groups);
-      if (t.groupsScheme) this._syncPath('groupsScheme', t.groupsScheme);
-      if (t.groupSchedule) this._syncPath('groupSchedule', t.groupSchedule);
-      if (t.poulesRound) this._syncPath('poulesRound', t.poulesRound);
+      const { data, prefix } = this._getTarget();
+      if (data.groups) this._syncPath(`${prefix}groups`, data.groups);
+      if (data.groupsScheme) this._syncPath(`${prefix}groupsScheme`, data.groupsScheme);
+      if (data.groupSchedule) this._syncPath(`${prefix}groupSchedule`, data.groupSchedule);
+      if (data.poulesRound) this._syncPath(`${prefix}poulesRound`, data.poulesRound);
     },
     syncRedraw() {
-      const t = this.tournaments[this.currentTournamentIndex];
-      this._syncPath('games', t.games);
-      this._syncPath('teams', t.teams);
-      this._syncPath('roundIsActive', false);
-      this._syncPath('tournamentIsStarted', false);
-      this._syncPath('groupSchedule', t.groupSchedule || null);
-      this._syncPath('groupsScheme', t.groupsScheme || null);
-      this._syncPath('groups', t.groups || null);
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
+      this._syncPath(`${prefix}roundIsActive`, false);
+      this._syncPath(`${prefix}tournamentIsStarted`, false);
+      this._syncPath(`${prefix}groupSchedule`, data.groupSchedule || null);
+      this._syncPath(`${prefix}groupsScheme`, data.groupsScheme || null);
+      this._syncPath(`${prefix}groups`, data.groups || null);
     },
     syncPathNull(path) {
-      this._syncPath(path, null);
+      const { prefix } = this._getTarget();
+      this._syncPath(`${prefix}${path}`, null);
     },
     syncTournamentStarted(value) {
-      this._syncPath('tournamentIsStarted', value);
+      const { prefix } = this._getTarget();
+      this._syncPath(`${prefix}tournamentIsStarted`, value);
+    },
+    syncPoulesRound() {
+      const { data, prefix } = this._getTarget();
+      this._syncPath(`${prefix}poulesRound`, data.poulesRound || null);
     },
     startRoundTimer() {
-      const tournament = this.tournaments[this.currentTournamentIndex];
-      if (!tournament?.preferences?.timeLimitEnabled) return;
-      const prefs = tournament.preferences;
-      const isPlayoff = !!(tournament.playOff || tournament.cadrage || tournament.teamPlayoff);
+      const { data, prefix } = this._getTarget();
+      if (!data?.preferences?.timeLimitEnabled) return;
+      const prefs = data.preferences;
+      const isPlayoff = !!(data.playOff || data.cadrage || data.teamPlayoff);
       const isFinale =
-        tournament.playOffStage === 1 ||
-        (tournament.playOff?.length && tournament.playOff[tournament.playOff.length - 1].teams?.length === 1);
+        data.playOffStage === 1 || (data.playOff?.length && data.playOff[data.playOff.length - 1].teams?.length === 1);
       if (isFinale && prefs.noTimeLimitFinale) return;
       const minutes = isPlayoff && prefs.playoffTimeLimit ? prefs.playoffTimeLimit : prefs.timeLimit;
       const now = new Date().toISOString();
       const endsAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
-      tournament.roundTimer = {
+      data.roundTimer = {
         timerStartedAt: now,
         timerEndsAt: endsAt,
         timerStatus: 'running',
         timeLimitMinutes: minutes,
       };
-      this._syncPath('roundTimer', tournament.roundTimer);
+      this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     endRoundTimer() {
-      const tournament = this.tournaments[this.currentTournamentIndex];
-      if (tournament?.roundTimer) {
-        tournament.roundTimer.timerStatus = 'ended';
-        this._syncPath('roundTimer', tournament.roundTimer);
+      const { data, prefix } = this._getTarget();
+      if (data?.roundTimer) {
+        data.roundTimer.timerStatus = 'ended';
+        this._syncPath(`${prefix}roundTimer`, data.roundTimer);
       }
     },
     restartRoundTimer(minutes) {
-      const tournament = this.tournaments[this.currentTournamentIndex];
-      if (!tournament) return;
+      const { data, prefix } = this._getTarget();
+      if (!data) return;
       const now = new Date().toISOString();
       const endsAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
-      tournament.roundTimer = {
+      data.roundTimer = {
         timerStartedAt: now,
         timerEndsAt: endsAt,
         timerStatus: 'running',
         timeLimitMinutes: minutes,
       };
-      this._syncPath('roundTimer', tournament.roundTimer);
+      this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     clearRoundTimer() {
-      const tournament = this.tournaments[this.currentTournamentIndex];
-      if (tournament) {
-        tournament.roundTimer = null;
-        this._syncPath('roundTimer', null);
+      const { data, prefix } = this._getTarget();
+      if (data) {
+        data.roundTimer = null;
+        this._syncPath(`${prefix}roundTimer`, null);
       }
     },
     addRoundToGames(round) {
-      if (!this.tournaments[this.currentTournamentIndex].games) {
-        this.tournaments[this.currentTournamentIndex].games = [];
-      }
-      this.tournaments[this.currentTournamentIndex].games.push(round);
-      this.tournaments[this.currentTournamentIndex].roundIsActive = true;
+      const { data, prefix } = this._getTarget();
+      if (!data.games) data.games = [];
+      data.games.push(round);
+      data.roundIsActive = true;
       this._roundActivatedAt = Date.now();
       this.saveLanesToTeams(round);
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
-      this._syncPath('roundIsActive', true);
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
+      this._syncPath(`${prefix}roundIsActive`, true);
     },
     restoreRound() {
-      this.tournaments[this.currentTournamentIndex].games.pop();
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => team.opponents.pop());
-      this.tournaments[this.currentTournamentIndex].teams.forEach((team) => {
+      const { data, prefix } = this._getTarget();
+      data.games.pop();
+      data.teams.forEach((team) => team.opponents.pop());
+      data.teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
       });
-      this._syncPath('games', this.tournaments[this.currentTournamentIndex].games);
-      this._syncPath('teams', this.tournaments[this.currentTournamentIndex].teams);
+      this._syncPath(`${prefix}games`, data.games);
+      this._syncPath(`${prefix}teams`, data.teams);
     },
     setPlayOff(scheme) {
-      this.tournaments[this.currentTournamentIndex].playOff = scheme;
-      this._syncPath('playOff', scheme);
+      const { data, prefix } = this._getTarget();
+      data.playOff = scheme;
+      this._syncPath(`${prefix}playOff`, scheme);
     },
     setCadrage(games) {
-      this.tournaments[this.currentTournamentIndex].cadrage = games;
-      this.tournaments[this.currentTournamentIndex].isCadrage = true;
-      this._syncPath('cadrage', games);
-      this._syncPath('isCadrage', true);
+      const { data, prefix } = this._getTarget();
+      data.cadrage = games;
+      data.isCadrage = true;
+      this._syncPath(`${prefix}cadrage`, games);
+      this._syncPath(`${prefix}isCadrage`, true);
     },
     setBarrage(barrage) {
-      this.tournaments[this.currentTournamentIndex].barrage = barrage;
-      this._syncPath('barrage', barrage);
+      const { data, prefix } = this._getTarget();
+      data.barrage = barrage;
+      this._syncPath(`${prefix}barrage`, barrage);
     },
     setBarrageGames(games) {
-      this.tournaments[this.currentTournamentIndex].games = games;
-      this._syncPath('games', games);
+      const { data, prefix } = this._getTarget();
+      data.games = games;
+      this._syncPath(`${prefix}games`, games);
     },
     saveCadrageScores() {
-      this.tournaments[this.currentTournamentIndex].cadrage = [
-        ...this.tournaments[this.currentTournamentIndex].cadrage,
-      ];
-      this._syncPath('cadrage', this.tournaments[this.currentTournamentIndex].cadrage);
+      const { data, prefix } = this._getTarget();
+      data.cadrage = [...data.cadrage];
+      this._syncPath(`${prefix}cadrage`, data.cadrage);
     },
     setPlayOffBracket(bracket) {
-      this.tournaments[this.currentTournamentIndex].playOffBracket = bracket;
-      this._syncPath('playOffBracket', bracket);
+      const { data, prefix } = this._getTarget();
+      data.playOffBracket = bracket;
+      this._syncPath(`${prefix}playOffBracket`, bracket);
     },
     setPlayOffStage(stage) {
-      this.tournaments[this.currentTournamentIndex].playOffStage = stage;
-      this._syncPath('playOffStage', stage);
+      const { data, prefix } = this._getTarget();
+      data.playOffStage = stage;
+      this._syncPath(`${prefix}playOffStage`, stage);
     },
     updateGameScore({ activeRound, gameIndex, team, score }) {
-      this.tournaments[this.currentTournamentIndex].games[activeRound][gameIndex][team] = score;
+      const { data } = this._getTarget();
+      data.games[activeRound][gameIndex][team] = score;
     },
     finishTournament() {
-      this.tournaments[this.currentTournamentIndex].tournamentIsFinished = true;
-      this._syncPath('tournamentIsFinished', true);
+      const { data, prefix } = this._getTarget();
+      data.tournamentIsFinished = true;
+      this._syncPath(`${prefix}tournamentIsFinished`, true);
     },
     revertFinishTournament() {
-      this.tournaments[this.currentTournamentIndex].tournamentIsFinished = false;
-      this._syncPath('tournamentIsFinished', false);
+      const { data, prefix } = this._getTarget();
+      data.tournamentIsFinished = false;
+      this._syncPath(`${prefix}tournamentIsFinished`, false);
     },
     showMessage({ title, text, type = 'success' }) {
       this.message = {
@@ -914,13 +1173,15 @@ export const useMainStore = defineStore('main', {
         return false;
       }
       const tournamentId = Date.now();
+      const { name, teams, ...dataOverrides } = overrides;
       const tournament = createTournament({
-        ...overrides,
+        name: name || `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`,
         id: tournamentId,
         createdAt: new Date().toISOString(),
+        teams: teams || [],
+        ...dataOverrides,
       });
-      tournament.name = `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`;
-      this.tournaments[tournament.id] = tournament;
+      this.tournaments[tournamentId] = tournament;
       this.currentTournamentIndex = tournamentId;
 
       const mapEntry = { status: 'active', role: 'owner', name: tournament.name };
@@ -933,7 +1194,8 @@ export const useMainStore = defineStore('main', {
       const id = String(tournament.id || this.currentTournamentIndex);
       const mapUpdate = { status: 'archived' };
 
-      userMapService.update(this.user.uid, id, mapUpdate)
+      userMapService
+        .update(this.user.uid, id, mapUpdate)
         .then(() => {
           if (this.userTournamentMap[id]) {
             this.userTournamentMap[id].status = 'archived';
@@ -987,16 +1249,6 @@ export const useMainStore = defineStore('main', {
         if (this.userTournamentMap[id]) this.userTournamentMap[id].name = name;
         userMapService.update(this.user.uid, id, { name });
       });
-    },
-    addBTournament(teams, name, isGroupB) {
-      this.addTournament({ teams: [...teams] });
-      if (name) {
-        this.changeTournamentName(name);
-      }
-      if (isGroupB) {
-        this.tournaments[this.currentTournamentIndex].isGroupB = true;
-        this._syncPath('isGroupB', true);
-      }
     },
     saveTournamentData() {
       this.showMessage({
@@ -1110,7 +1362,9 @@ export const useMainStore = defineStore('main', {
         text: i18n.global.t('messages.accessRevoked'),
         type: 'error',
       });
-      setTimeout(() => { this._accessRevokedHandled = false; }, 1000);
+      setTimeout(() => {
+        this._accessRevokedHandled = false;
+      }, 1000);
     },
     _watchCollaboratorAccess(tournamentId, ownerUid) {
       if (this._accessWatcherUnsub) {
@@ -1128,17 +1382,16 @@ export const useMainStore = defineStore('main', {
       });
     },
     unarchiveTournament(id) {
-      userMapService.update(this.user.uid, id, { status: 'active' })
-        .then(() => {
-          if (this.userTournamentMap[id]) {
-            this.userTournamentMap[id].status = 'active';
-          }
-          this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
-          this.showMessage({
-            title: i18n.global.t('messages.saved'),
-            text: i18n.global.t('messages.tournamentUnarchived'),
-          });
+      userMapService.update(this.user.uid, id, { status: 'active' }).then(() => {
+        if (this.userTournamentMap[id]) {
+          this.userTournamentMap[id].status = 'active';
+        }
+        this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
+        this.showMessage({
+          title: i18n.global.t('messages.saved'),
+          text: i18n.global.t('messages.tournamentUnarchived'),
         });
+      });
     },
   },
 });

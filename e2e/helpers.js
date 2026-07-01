@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
 const TEST_PASSWORD = 'TestPass123!';
 
@@ -7,14 +6,15 @@ const TEST_PASSWORD = 'TestPass123!';
 async function login(page) {
   await page.goto('/#/');
   const emailInput = page.locator('[data-testid="input-email"]');
+  const teamInput = page.locator('[data-testid="input-team-title"]');
+  const prefsBtn = page.locator('[data-testid="btn-preferences"]');
+  await emailInput.or(teamInput).or(prefsBtn).first().waitFor({ state: 'visible' });
   if (!(await emailInput.isVisible().catch(() => false))) return;
   await emailInput.fill(TEST_EMAIL);
   await page.locator('[data-testid="input-password"]').fill(TEST_PASSWORD);
+  await dismissModals(page);
   await page.locator('[data-testid="btn-submit"]').click();
-  await page
-    .locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]')
-    .first()
-    .waitFor({ state: 'visible' });
+  await page.locator('[data-testid="input-email"]').waitFor({ state: 'hidden', timeout: 10000 });
 }
 
 async function register(page) {
@@ -33,30 +33,53 @@ async function register(page) {
 async function ensureCleanTournament(page) {
   await login(page);
   await dismissModals(page);
+  const teamInput = page.locator('[data-testid="input-team-title"]');
+  const deleteSetup = page.locator('[data-testid="btn-delete-setup"]');
+  const prefsBtn = page.locator('[data-testid="btn-preferences"]');
+  const confirmBtn = page.locator('[data-testid="btn-confirm-remove"]');
   for (let i = 0; i < 5; i++) {
-    const started = await page
-      .locator('[data-testid="btn-preferences"]')
-      .isVisible()
-      .catch(() => false);
-    const hasTeams = await page
-      .locator('table tr td')
-      .first()
-      .isVisible()
-      .catch(() => false);
-    if (!started && !hasTeams) break;
-    await deleteCurrentTournament(page);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
+    await teamInput.or(prefsBtn).first().waitFor({ state: 'visible' });
+    if (await deleteSetup.isVisible().catch(() => false)) {
+      await deleteSetup.click();
+      await confirmBtn.waitFor({ state: 'visible' });
+      await confirmBtn.click();
+      await confirmBtn.waitFor({ state: 'hidden' });
+      await dismissModals(page);
+      continue;
+    }
+    if (await prefsBtn.isVisible().catch(() => false)) {
+      await dismissModals(page);
+      await prefsBtn.click({ force: true });
+      const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
+      const opened = await removeBtn.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+      if (!opened) {
+        await page.locator('.modal-close').click().catch(() => {});
+        await page.goto('/#/');
+        continue;
+      }
+      await removeBtn.click();
+      await confirmBtn.waitFor({ state: 'visible' });
+      await confirmBtn.click();
+      await confirmBtn.waitFor({ state: 'hidden' });
+      await dismissModals(page);
+      continue;
+    }
+    return;
   }
+  await teamInput.waitFor({ state: 'visible' });
 }
 
 async function addTeams(page, count) {
   const input = page.locator('[data-testid="input-team-title"]');
   const btn = page.locator('[data-testid="btn-add-team"]');
+  await input.waitFor({ state: 'visible' });
+  await page.waitForTimeout(300);
   for (let i = 1; i <= count; i++) {
-    await input.fill(`Team_${i}`);
+    await input.fill(`T${i}_${Math.random().toString(36).slice(2, 6)}`);
     await btn.click();
-    await page.waitForTimeout(100);
   }
+  await page.locator(`#table-list tr:nth-child(${count})`).waitFor({ state: 'visible' });
 }
 
 async function importTeamsFromPortal(page, portalId) {
@@ -66,7 +89,9 @@ async function importTeamsFromPortal(page, portalId) {
 }
 
 async function selectSystem(page, system) {
-  await page.locator(`input[type="radio"][value="${system}"]`).click();
+  const radio = page.locator(`[data-testid="radio-system-${system}"]`);
+  await radio.waitFor({ state: 'visible' });
+  await radio.click();
 }
 
 async function enablePlayOff(page) {
@@ -98,12 +123,27 @@ async function setTeamsInGroup(page, count) {
 // --- Game flows ---
 
 async function drawFirstRound(page) {
-  await page.locator('[data-testid="btn-draw-first-round"]').click();
-  await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
+  const drawBtn = page.locator('[data-testid="btn-draw-first-round"]');
+  await drawBtn.waitFor({ state: 'visible' });
+  await page.waitForTimeout(300);
+  const gameRow = page.locator('[data-testid="game-row"]').first();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await drawBtn.click();
+    const appeared = await gameRow.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
+    if (appeared) return;
+    if (!(await drawBtn.isVisible().catch(() => false))) {
+      await gameRow.waitFor({ state: 'visible', timeout: 10000 });
+      return;
+    }
+    await page.waitForTimeout(500);
+  }
+  throw new Error('drawFirstRound: game rows did not appear after 5 attempts');
 }
 
 async function fillScores(page) {
-  await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
+  await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForTimeout(200);
+  await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible', timeout: 5000 });
   await page.evaluate(() => {
     document.querySelectorAll('input[id^="team_"]').forEach((input) => {
       input.value = 13;
@@ -144,8 +184,16 @@ async function playMultipleRounds(page, rounds) {
 }
 
 async function playNextCircle(page) {
-  await page.locator('[data-testid="link-play-next-circle"]').click();
-  await page.locator('[data-testid="game-row"]').first().waitFor({ state: 'visible' });
+  const link = page.locator('[data-testid="link-play-next-circle"]');
+  await link.waitFor({ state: 'visible' });
+  await link.click();
+  const gameRow = page.locator('[data-testid="game-row"]').first();
+  const drawNextLink = page.locator('[data-testid="link-draw-next-round"]');
+  await gameRow.or(drawNextLink).first().waitFor({ state: 'visible', timeout: 15000 });
+  if (await drawNextLink.isVisible().catch(() => false)) {
+    await drawNextLink.click();
+    await gameRow.waitFor({ state: 'visible', timeout: 10000 });
+  }
 }
 
 // --- Transition flows ---
@@ -172,7 +220,7 @@ async function goToPlayOff(page, { playOffTeams, cadrage, playB } = {}) {
   }
   await page.locator('[data-testid="btn-confirm-playoff"]').click();
   if (playB) {
-    await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+    await page.locator('.group-switcher').waitFor({ state: 'visible', timeout: 10000 });
   } else {
     await page.locator('[data-testid="playoff-wrapper"]').waitFor({ state: 'visible' });
   }
@@ -252,34 +300,71 @@ async function dismissModals(page) {
   }
 }
 
+async function waitForStableState(page) {
+  await page
+    .locator('[data-testid="input-team-title"], [data-testid="tournament-name-row"], [data-testid="game-row"]')
+    .first()
+    .waitFor({ state: 'visible', timeout: 5000 })
+    .catch(() => {});
+}
+
 async function deleteCurrentTournament(page) {
   await dismissModals(page);
-  const setupDelete = page.locator('[data-testid="btn-delete-setup"]');
-  if (await setupDelete.isVisible().catch(() => false)) {
-    await setupDelete.click();
-    await page.locator('[data-testid="btn-confirm-remove"]').click();
-    await page.waitForTimeout(300);
-    return;
-  }
+  await page.waitForTimeout(500);
+  const teamInput = page.locator('[data-testid="input-team-title"]');
+  const deleteSetup = page.locator('[data-testid="btn-delete-setup"]');
   const prefsBtn = page.locator('[data-testid="btn-preferences"]');
-  if (await prefsBtn.isVisible().catch(() => false)) {
-    await prefsBtn.click();
-    const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
-    await removeBtn.waitFor({ state: 'visible' });
-    await removeBtn.click();
-    await page.locator('[data-testid="btn-confirm-remove"]').click();
-    await page.waitForTimeout(300);
+  const tirDelete = page.locator('.bottom-actions__btn--danger');
+  const confirmBtn = page.locator('[data-testid="btn-confirm-remove"]');
+  await teamInput.or(prefsBtn).or(tirDelete).first().waitFor({ state: 'visible' });
+  if (await tirDelete.isVisible().catch(() => false)) {
+    await tirDelete.click();
+    await confirmBtn.waitFor({ state: 'visible' });
+    await confirmBtn.click();
+    await confirmBtn.waitFor({ state: 'hidden' });
+    await dismissModals(page);
+    return true;
   }
+  if (await deleteSetup.isVisible().catch(() => false)) {
+    await deleteSetup.click();
+    await confirmBtn.waitFor({ state: 'visible' });
+    await confirmBtn.click();
+    await confirmBtn.waitFor({ state: 'hidden' });
+    await dismissModals(page);
+    return true;
+  }
+  if (await prefsBtn.isVisible().catch(() => false)) {
+    await dismissModals(page);
+    await prefsBtn.click({ force: true });
+    const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
+    const opened = await removeBtn.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+    if (!opened) {
+      await page.locator('.modal-close').click().catch(() => {});
+      return false;
+    }
+    await removeBtn.click();
+    await confirmBtn.waitFor({ state: 'visible' });
+    await confirmBtn.click();
+    await confirmBtn.waitFor({ state: 'hidden' });
+    await dismissModals(page);
+    return true;
+  }
+  return false;
 }
 
 async function deleteAllTournaments(page) {
   for (let i = 0; i < 12; i++) {
-    const hasRow = await page
-      .locator('[data-testid="tournament-name-row"]')
-      .isVisible()
-      .catch(() => false);
-    if (!hasRow) break;
-    await deleteCurrentTournament(page);
+    await page.goto('/#/');
+    await page.waitForTimeout(500);
+    const teamInput = page.locator('[data-testid="input-team-title"]');
+    const deleteSetup = page.locator('[data-testid="btn-delete-setup"]');
+    const prefsBtn = page.locator('[data-testid="btn-preferences"]');
+    await teamInput.or(prefsBtn).first().waitFor({ state: 'visible' });
+    if (await teamInput.isVisible().catch(() => false)) {
+      if (!(await deleteSetup.isVisible().catch(() => false))) return;
+    }
+    const deleted = await deleteCurrentTournament(page);
+    if (!deleted) continue;
   }
 }
 

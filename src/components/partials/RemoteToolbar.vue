@@ -23,6 +23,12 @@
         />
       </button>
     </div>
+    <GroupSwitcher
+      v-if="showGroupSwitcher"
+      :model-value="activeGroup"
+      :full-labels="true"
+      @update:model-value="$emit('update:activeGroup', $event)"
+    />
     <progress class="progress is-small is-info" max="100" v-if="loading">15%</progress>
     <Transition name="slide">
       <div class="remote-toolbar__message" v-if="showInput">
@@ -44,14 +50,17 @@
 
 <script>
 import { Link, MessageCircle, ChevronDown, Check } from 'lucide-vue-next';
+import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 
 export default {
   name: 'RemoteToolbar',
-  components: { Link, MessageCircle, ChevronDown, Check },
-  emits: ['show-qr', 'update:message'],
+  components: { Link, MessageCircle, ChevronDown, Check, GroupSwitcher },
+  emits: ['show-qr', 'update:message', 'update:activeGroup'],
   props: {
     message: { type: String, default: '' },
     loading: { type: Boolean, default: false },
+    showGroupSwitcher: { type: Boolean, default: false },
+    activeGroup: { type: String, default: 'A' },
   },
   data() {
     return {
@@ -83,6 +92,9 @@ export default {
 
 <style scoped>
 .remote-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 10px;

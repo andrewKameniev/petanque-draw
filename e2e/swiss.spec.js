@@ -181,7 +181,7 @@ test.describe('Swiss System Tournaments', () => {
     await page.locator('[data-testid="btn-go-playoff"]').click();
     await page.locator('[data-testid="playoff-confirm-modal"]').waitFor({ state: 'visible' });
     await page.locator('[data-testid="btn-confirm-playoff"]').click();
-    await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+    await page.locator('.group-switcher').waitFor({ state: 'visible', timeout: 10000 });
     await deleteAllTournaments(page);
   });
 
@@ -198,7 +198,7 @@ test.describe('Swiss System Tournaments', () => {
     await goToCadrage(page);
     await fillCadrageScores(page);
     await page.locator('[data-testid="btn-save-cadrage"]').click();
-    await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+    await page.locator('.group-switcher').waitFor({ state: 'visible', timeout: 10000 });
     await deleteAllTournaments(page);
   });
 
@@ -257,7 +257,7 @@ test.describe('Swiss System Tournaments', () => {
     await playMultipleRounds(page, 2);
     // Group B was NOT enabled during setup, enable at confirmation
     await goToPlayOff(page, { playB: true });
-    await expect(page.locator('[data-testid="tournament-name-row"] strong')).toContainText('Group B');
+    await expect(page.locator('.group-switcher')).toBeVisible();
     await deleteAllTournaments(page);
   });
 });

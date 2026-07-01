@@ -65,7 +65,7 @@
           :key="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title) }"
         >
-          <td style="width: 30px;">{{ teamIndex + 1 }}.</td>
+          <td style="width: 30px">{{ teamIndex + 1 }}.</td>
           <td>
             {{ team.title }}
             <div class="is-size-7" v-if="team.players && team.players.length > 1">
@@ -187,9 +187,9 @@ export default {
   components: { Users, X, Star, PlayerChip },
   props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
-      return this.previewTournament || this.currentTournament;
+      return this.previewTournament || this.activeTournament || this.currentTournament;
     },
     groupsNames() {
       return tournamentNames;

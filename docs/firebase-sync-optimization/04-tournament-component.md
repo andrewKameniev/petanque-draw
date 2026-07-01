@@ -13,6 +13,7 @@ Replace 5 `syncToFirebase()` calls with specific path syncs.
 **Currently:** Syncs full tournament when organizer types a message.
 
 **Change to:**
+
 ```js
 onMessageInput() {
   this._syncPath('tournamentMessage', this.tournament.tournamentMessage);
@@ -26,6 +27,7 @@ onMessageInput() {
 **Currently:** Sets tirStarted, tirParticipants, tirConfig, tirRound, pushes empty games, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 // After all mutations:
 this._syncPath('tirStarted', true);
@@ -42,12 +44,14 @@ Or better, create a store action `startTirTournament()` that encapsulates this.
 **Currently:** After preferences are saved and round is added, calls `syncToFirebase()`.
 
 **Analysis:** This is redundant because:
+
 - `savePreferences()` already calls `_syncPath('preferences', ...)`
 - `addRoundToGames()` (after Task 1) will sync `games`, `teams`, `roundIsActive`
 
 **Change to:** Remove the `syncToFirebase()` call entirely. The preceding actions already sync everything needed.
 
 Additional paths that need syncing (set earlier in the method):
+
 ```js
 // If groups system:
 this._syncPath('groups', this.tournament.groups);
@@ -66,6 +70,7 @@ this._syncPath('poulesRound', this.tournament.poulesRound);
 **Analysis:** This is a structural change — teams are reset, games regenerated, roundIsActive/tournamentIsStarted cleared. Multiple top-level fields change.
 
 **Change to:**
+
 ```js
 this._syncPath('games', this.tournament.games);
 this._syncPath('teams', this.tournament.teams);
@@ -81,6 +86,7 @@ this._syncPath('groups', this.tournament.groups);
 **Currently:** Auto-fills scores for testing, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 autoFillScores() {
   autoFillScoresFn(this.tournament, this.activeRound);
@@ -91,6 +97,7 @@ autoFillScores() {
 ## New Store Actions Needed
 
 Option A — Expose `_syncPath` to components via a generic action:
+
 ```js
 syncPath(path, data) {
   this._syncPath(path, data);
@@ -98,6 +105,7 @@ syncPath(path, data) {
 ```
 
 Option B — Create specific actions for each path (preferred for type safety):
+
 ```js
 syncTournamentMessage(message) {
   this._syncPath('tournamentMessage', message);

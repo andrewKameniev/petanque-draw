@@ -7,13 +7,13 @@
       <span></span>
     </div>
   </div>
-  <div v-else class="wrapper" :class="{ 'wrapper--tir': tournament?.system === 'tir' }">
+  <div v-else class="wrapper" :class="{ 'wrapper--tir': activeTournamentView?.system === 'tir' }">
     <div v-if="tournament" class="container">
       <div class="is-flex is-justify-content-space-between is-align-items-center">
         <router-link class="navbar-item" to="/">
           <img src="../assets/img/logo.webp" alt="logo" />
         </router-link>
-        <div class="is-flex is-align-items-center" style="gap: 4px;">
+        <div class="is-flex is-align-items-center" style="gap: 4px">
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
@@ -21,7 +21,18 @@
       <div class="text-center is-size-3 tournament-title-wrapper">
         <strong>{{ tournament.name }}</strong>
       </div>
-      <div v-if="!showCurrentRound" class="tournament-info-card mt-3 mb-3">
+      <div
+        v-if="!showCurrentRound"
+        class="tournament-info-card mt-3 mb-3"
+        :class="{ 'tournament-info-card--with-switcher': tournament.tournamentB || tournament.groupB }"
+      >
+        <GroupSwitcher
+          v-if="tournament.tournamentB || tournament.groupB"
+          :model-value="publicActiveGroup"
+          :full-labels="true"
+          class="tournament-info-card__switcher"
+          @update:model-value="publicActiveGroup = $event"
+        />
         <span class="badge badge-corner" :class="badgeClass">
           {{ badgeLabel }}
         </span>
@@ -35,14 +46,14 @@
           <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
           <span class="has-text-weight-semibold">{{ systemDescription }}</span>
         </div>
-        <div class="tournament-info-row" v-if="tournament.teams">
+        <div class="tournament-info-row" v-if="activeTournamentView?.teams">
           <span class="has-text-grey-dark"
-            >{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span
+            >{{ activeTournamentView.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span
           >
           <span class="has-text-weight-semibold">{{
-            tournament.system === 'tir'
-              ? (tournament.tirParticipants || tournament.teams).length
-              : tournament.teams.length
+            activeTournamentView.system === 'tir'
+              ? (activeTournamentView.tirParticipants || activeTournamentView.teams).length
+              : activeTournamentView.teams.length
           }}</span>
         </div>
         <div class="tournament-info-row" v-if="groupTotalRoundsDisplay">
@@ -53,17 +64,17 @@
           <span class="has-text-grey-dark">{{ $t('common.timeLimit') }}:</span>
           <span class="has-text-weight-semibold">{{ tournamentExtrasLine }}</span>
         </div>
-        <div class="tournament-info-row" v-if="tournament.cadrage">
+        <div class="tournament-info-row" v-if="activeTournamentView?.cadrage">
           <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
           <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
         </div>
-        <div class="tournament-info-row" v-if="tournament.playOff">
+        <div class="tournament-info-row" v-if="activeTournamentView?.playOff">
           <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
           <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
         </div>
-        <div v-if="tournament.playOff" class="btn-bracket-group">
+        <div v-if="activeTournamentView?.playOff" class="btn-bracket-group">
           <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">
-            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem;" />
+            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
             {{ $t('games.showBracket') }}
           </button>
         </div>
@@ -87,25 +98,25 @@
           </div>
         </div>
       </div>
-      <TeamPlayoff v-if="tournament.teamPlayoff" :read-only="true" />
+      <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
       <PlayOff
-        v-else-if="tournament.playOff && tournament.system !== 'tir'"
+        v-else-if="activeTournamentView?.playOff && activeTournamentView.system !== 'tir'"
         ref="playOff"
-        :active-tournament="tournament"
+        :active-tournament="activeTournamentView"
         :is-public-view="true"
         :hide-header="true"
         @openResults="activeTab = 'ranking'"
         class="playoff-public-wrapper"
       />
-      <div v-else-if="tournament.cadrage" class="cadrage-public-section">
+      <div v-else-if="activeTournamentView?.cadrage" class="cadrage-public-section">
         <h3 class="cadrage-public-section__title">{{ $t('games.cadrage') }}</h3>
         <RoundTimer
           v-if="showPublicTimer"
-          :timer-started-at="tournament.roundTimer.timerStartedAt"
-          :timer-ends-at="tournament.roundTimer.timerEndsAt"
-          :timer-status="tournament.roundTimer.timerStatus"
-          :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-          :cochonettes="tournament.preferences.cochonettes || 1"
+          :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
+          :timer-ends-at="activeTournamentView.roundTimer.timerEndsAt"
+          :timer-status="activeTournamentView.roundTimer.timerStatus"
+          :cochonettes-enabled="!!activeTournamentView.preferences.cochonettesEnabled"
+          :cochonettes="activeTournamentView.preferences.cochonettes || 1"
           :read-only="true"
           class="mb-3"
         />
@@ -117,7 +128,7 @@
               'match-item--finished': game.status === 'finished',
               'match-item--upcoming': !game.status || game.status === 'not_started',
             }"
-            v-for="(game, index) in tournament.cadrage"
+            v-for="(game, index) in activeTournamentView.cadrage"
             :key="'cadrage-' + index"
           >
             <span
@@ -126,7 +137,7 @@
                 'match-lane-left--active': game.status === 'in_progress',
                 'match-lane-left--finished': game.status === 'finished',
               }"
-              >{{ index + (tournament.preferences?.fieldsStart || 1) }}</span
+              >{{ index + (activeTournamentView.preferences?.fieldsStart || 1) }}</span
             >
             <span
               class="match-team match-team-right"
@@ -163,6 +174,12 @@
       </div>
       <div v-if="showCurrentRound" class="current-round-card mt-3 mb-3">
         <div class="tournament-info-card tournament-info-card--inline">
+          <GroupSwitcher
+            v-if="tournament.tournamentB || tournament.groupB"
+            :model-value="publicActiveGroup"
+            :full-labels="true"
+            @update:model-value="publicActiveGroup = $event"
+          />
           <span class="badge badge-corner" :class="badgeClass">
             {{ badgeLabel }}
           </span>
@@ -176,14 +193,14 @@
             <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
             <span class="has-text-weight-semibold">{{ systemDescription }}</span>
           </div>
-          <div class="tournament-info-row" v-if="tournament.teams">
+          <div class="tournament-info-row" v-if="activeTournamentView?.teams">
             <span class="has-text-grey-dark"
-              >{{ tournament.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span
+              >{{ activeTournamentView.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span
             >
             <span class="has-text-weight-semibold">{{
-              tournament.system === 'tir'
-                ? (tournament.tirParticipants || tournament.teams).length
-                : tournament.teams.length
+              activeTournamentView.system === 'tir'
+                ? (activeTournamentView.tirParticipants || activeTournamentView.teams).length
+                : activeTournamentView.teams.length
             }}</span>
           </div>
           <div class="tournament-info-row" v-if="groupTotalRoundsDisplay">
@@ -198,9 +215,7 @@
         <div class="round-header">
           <span
             >{{ $t('common.round') }} {{ activeRound
-            }}<template v-if="groupTotalRoundsDisplay"
-              >/{{ groupTotalRoundsDisplay }}</template
-            ></span
+            }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></span
           >
           <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
         </div>
@@ -210,16 +225,16 @@
         </div>
         <RoundTimer
           v-if="showPublicTimer"
-          :timer-started-at="tournament.roundTimer.timerStartedAt"
-          :timer-ends-at="tournament.roundTimer.timerEndsAt"
-          :timer-status="tournament.roundTimer.timerStatus"
-          :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-          :cochonettes="tournament.preferences.cochonettes || 1"
+          :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
+          :timer-ends-at="activeTournamentView.roundTimer.timerEndsAt"
+          :timer-status="activeTournamentView.roundTimer.timerStatus"
+          :cochonettes-enabled="!!activeTournamentView.preferences.cochonettesEnabled"
+          :cochonettes="activeTournamentView.preferences.cochonettes || 1"
           :read-only="true"
           class="mb-3"
         />
         <div class="match-list">
-          <template v-if="tournament.groups && tournament.groups.length > 1">
+          <template v-if="activeTournamentView?.groups && activeTournamentView.groups.length > 1">
             <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
               <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
               <div
@@ -239,7 +254,7 @@
                     'match-lane-left--active': game.status === 'in_progress',
                     'match-lane-left--finished': game.status === 'finished',
                   }"
-                  >{{ game._laneIndex + tournament.preferences.fieldsStart }}</span
+                  >{{ game._laneIndex + activeTournamentView.preferences.fieldsStart }}</span
                 >
                 <span
                   class="match-team match-team-right"
@@ -265,7 +280,10 @@
                   }"
                   >{{ game.team_2 }}</span
                 >
-                <span v-if="getGameStreams(game, game._laneIndex).length" class="match-status-badge match-status-badge--live">
+                <span
+                  v-if="getGameStreams(game, game._laneIndex).length"
+                  class="match-status-badge match-status-badge--live"
+                >
                   <a
                     v-for="(streamUrl, si) in getGameStreams(game, game._laneIndex)"
                     :key="si"
@@ -306,7 +324,7 @@
               'match-item--finished': game.status === 'finished',
               'match-item--upcoming': !game.status || game.status === 'not_started',
             }"
-            v-for="(game, index) in tournament.games[activeRound - 1]"
+            v-for="(game, index) in activeTournamentView.games[activeRound - 1]"
             :key="index"
           >
             <span
@@ -315,7 +333,7 @@
                 'match-lane-left--active': game.status === 'in_progress',
                 'match-lane-left--finished': game.status === 'finished',
               }"
-              >{{ index + tournament.preferences.fieldsStart }}</span
+              >{{ index + activeTournamentView.preferences.fieldsStart }}</span
             >
             <span
               class="match-team match-team-right"
@@ -374,7 +392,7 @@
         </div>
       </div>
       <!-- TIR: single view, no tabs -->
-      <TirPublicView v-if="tournament.system === 'tir'" :tournament="tournament" class="mt-3" />
+      <TirPublicView v-if="activeTournamentView?.system === 'tir'" :tournament="activeTournamentView" class="mt-3" />
 
       <!-- Other systems: tabs -->
       <template v-else>
@@ -392,18 +410,23 @@
         </div>
         <div class="tabs-content-area">
           <div v-if="activeTab === 'teams'">
-            <TeamsList :previewTournament="tournament" :activeRound="activeRound" :highlightedTeam="highlightedTeam" :teamClubMap="teamClubMap" />
+            <TeamsList
+              :previewTournament="activeTournamentView"
+              :activeRound="activeRound"
+              :highlightedTeam="highlightedTeam"
+              :teamClubMap="teamClubMap"
+            />
           </div>
           <Results
             v-if="activeTab === 'results'"
-            :previewTournament="tournament"
+            :previewTournament="activeTournamentView"
             :highlightedTeam="highlightedTeam"
             :teamClubMap="teamClubMap"
             :cardView="true"
           />
           <div v-if="activeTab === 'ranking'">
             <Ranking
-              :tournament="tournament"
+              :tournament="activeTournamentView"
               :rankingTeams="rankingTeams"
               :activeRound="activeRound"
               :highlightedTeam="highlightedTeam"
@@ -446,6 +469,7 @@ import { GitFork, X } from 'lucide-vue-next';
 import TeamSearch from '@/components/partials/TeamSearch.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
+import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 import { Users, List, Trophy as TrophyIcon } from 'lucide-vue-next';
 export default {
   name: 'Public',
@@ -463,6 +487,7 @@ export default {
     TeamSearch,
     TirPublicView,
     RoundTimer,
+    GroupSwitcher,
     Users,
     List,
     TrophyIcon,
@@ -480,6 +505,7 @@ export default {
       notificationsEnabled: false,
       highlightedTeam: null,
       girlImage: null,
+      publicActiveGroup: 'A',
     };
   },
   mounted() {
@@ -510,40 +536,65 @@ export default {
         });
       }
     },
+    tabs(newTabs) {
+      if (!newTabs.find((t) => t.id === this.activeTab)) {
+        this.activeTab = newTabs[0]?.id || 'teams';
+      }
+    },
   },
   computed: {
     tabs() {
-      return [
-        { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-        { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' },
-        { id: 'results', label: this.$t('teams.results'), icon: 'List' },
-      ];
+      const t = this.activeTournamentView;
+      const isPlayoffOnly = t?.system === 'playoff' || (t?.playOff && !t?.games?.length);
+      const list = [{ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' }];
+      if (!isPlayoffOnly) {
+        list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' });
+      }
+      list.push({ id: 'results', label: this.$t('teams.results'), icon: 'List' });
+      return list;
     },
     showCurrentRound() {
-      return (
-        this.tournament.games &&
-        this.tournament.roundIsActive &&
-        !this.tournament.tournamentIsFinished &&
-        !this.tournament.cadrage &&
-        !this.tournament.playOff &&
-        this.tournament.system !== 'tir'
-      );
+      const t = this.activeTournamentView;
+      return t?.games && t.roundIsActive && !t.tournamentIsFinished && !t.cadrage && !t.playOff && t.system !== 'tir';
     },
     activeRound() {
-      return this.tournament.games?.length
-        ? this.tournament.roundIsActive
-          ? this.tournament.games.length
-          : this.tournament.games.length + 1
-        : 1;
+      const t = this.activeTournamentView;
+      return t?.games?.length ? (t.roundIsActive ? t.games.length : t.games.length + 1) : 1;
+    },
+    activeTournamentView() {
+      if (this.publicActiveGroup === 'B') {
+        if (this.tournament?.main) {
+          return this.tournament.tournamentB || this.tournament.main;
+        }
+        if (this.tournament?.groupB) {
+          return {
+            ...this.tournament,
+            teams: this.tournament.groupB.teams,
+            games: this.tournament.groupB.games,
+            playOff: this.tournament.groupB.playOff,
+            playOffBracket: this.tournament.groupB.playOffBracket,
+            playOffStage: this.tournament.groupB.playOffStage,
+            cadrage: this.tournament.groupB.cadrage,
+            roundIsActive: this.tournament.groupB.roundIsActive,
+            tournamentIsFinished: this.tournament.groupB.tournamentIsFinished,
+            eliminationRound: this.tournament.groupB.eliminationRound,
+          };
+        }
+      }
+      if (this.tournament?.main) {
+        return this.tournament.main;
+      }
+      return this.tournament;
     },
     rankingTeams() {
-      return getTeamsRanking(this.tournament, this.activeRound);
+      return getTeamsRanking(this.activeTournamentView, this.activeRound);
     },
     groupLabels() {
       return tournamentNames;
     },
     groupedCurrentGames() {
-      const games = this.tournament.games?.[this.activeRound - 1] || [];
+      const t = this.activeTournamentView;
+      const games = t?.games?.[this.activeRound - 1] || [];
       const grouped = {};
       games.forEach((game, idx) => {
         const g = game.group ?? 0;
@@ -555,24 +606,25 @@ export default {
         .map((k) => grouped[k]);
     },
     winnerTeam() {
-      if (!this.isFinished || !this.tournament?.teams) return null;
-      if (this.tournament.system === 'tir') {
-        const playoff = this.tournament.tirPlayoff;
+      const t = this.activeTournamentView;
+      if (!this.isFinished || !t?.teams) return null;
+      if (t.system === 'tir') {
+        const playoff = t.tirPlayoff;
         if (playoff?.final?.score1 != null && playoff?.final?.score2 != null) {
           const winnerName =
             playoff.final.score1 > playoff.final.score2 ? playoff.final.player1 : playoff.final.player2;
           if (winnerName) {
-            const participants = this.tournament.tirParticipants || [];
+            const participants = t.tirParticipants || [];
             const winner = participants.find((p) => p.name === winnerName);
             if (winner) return { title: winner.name, players: [winner] };
           }
         }
         return null;
       }
-      if (this.tournament.playOffBracket) {
-        const tournamentRanking = getTournamentRanking(this.tournament, this.rankingTeams);
+      if (t.playOffBracket) {
+        const tournamentRanking = getTournamentRanking(t, this.rankingTeams);
         if (tournamentRanking?.length && tournamentRanking[0].title) {
-          return this.tournament.teams.find((t) => t.title === tournamentRanking[0].title) || null;
+          return t.teams.find((team) => team.title === tournamentRanking[0].title) || null;
         }
         return null;
       }
@@ -580,7 +632,7 @@ export default {
       if (!ranking || !ranking.length) return null;
       const topTitle = Array.isArray(ranking[0]) ? ranking[0][0]?.title : ranking[0]?.title;
       if (!topTitle) return null;
-      return this.tournament.teams.find((t) => t.title === topTitle) || null;
+      return t.teams.find((team) => team.title === topTitle) || null;
     },
     userId() {
       if (this.$route.query.ref) {
@@ -599,20 +651,21 @@ export default {
       return this.tournament.tournamentMessage.split('\n').filter((l) => l.trim());
     },
     isFinished() {
-      return !!this.tournament?.tournamentIsFinished;
+      return !!this.activeTournamentView?.tournamentIsFinished;
     },
     isStarted() {
-      if (this.tournament?.tournamentIsStarted || this.tournament?.roundIsActive || this.tournament?.tirStarted)
-        return true;
-      if (this.tournament?.games?.length) {
-        return this.tournament.games.some((round) => round.some((g) => g.status && g.status !== 'not_started'));
+      const t = this.activeTournamentView;
+      if (t?.tournamentIsStarted || t?.roundIsActive || t?.tirStarted) return true;
+      if (t?.games?.length) {
+        return t.games.some((round) => round.some((g) => g.status && g.status !== 'not_started'));
       }
       return false;
     },
     groupTotalRoundsDisplay() {
-      const perCircle = this.tournament?.preferences?.groupTotalRounds;
+      const t = this.activeTournamentView;
+      const perCircle = t?.preferences?.groupTotalRounds;
       if (!perCircle) return null;
-      const circles = this.tournament.roundRobinCircle || 1;
+      const circles = t.roundRobinCircle || 1;
       return perCircle * circles;
     },
     badgeClass() {
@@ -623,17 +676,18 @@ export default {
     badgeLabel() {
       if (this.isFinished) return this.$t('common.finished');
       if (!this.isStarted) return this.$t('common.notStarted');
-      if (this.tournament?.system === 'tir') {
+      const t = this.activeTournamentView;
+      if (t?.system === 'tir') {
         return this.tirPhaseLabel;
       }
-      if (this.tournament?.playOff || this.tournament?.playOffBracket) return this.$t('games.playOff');
-      if (this.tournament?.cadrage) return this.$t('games.cadrage');
-      const round = this.tournament?.games?.length || 0;
+      if (t?.playOff || t?.playOffBracket) return this.$t('games.playOff');
+      if (t?.cadrage) return this.$t('games.cadrage');
+      const round = t?.games?.length || 0;
       if (round) return `${this.$t('common.round')} ${round}`;
       return this.$t('common.active');
     },
     tirPhaseLabel() {
-      const t = this.tournament;
+      const t = this.activeTournamentView;
       if (!t) return this.$t('common.active');
       if (t.tirPlayoff) {
         const playoff = t.tirPlayoff;
@@ -647,45 +701,50 @@ export default {
       return this.$t('tir.round') + ' ' + round;
     },
     systemDescription() {
-      if (this.tournament.system === 'tir') {
+      const t = this.activeTournamentView;
+      if (t?.system === 'tir') {
         let desc = this.$t('teams.tir');
-        if (this.tournament.tirConfig?.rounds === 2) {
+        if (t.tirConfig?.rounds === 2) {
           desc += ', ' + this.$t('tir.twoRoundsShort');
         }
-        const qualifiedCount = this.tournament.tirPlayoff?.size || (this.tournament.tirConfig?.rounds === 2 ? 8 : null);
+        const qualifiedCount = t.tirPlayoff?.size || (t.tirConfig?.rounds === 2 ? 8 : null);
         if (qualifiedCount) {
           desc += ', ' + qualifiedCount + ' → ' + this.$t('games.playOff').toLowerCase();
         }
         return desc;
       }
-      if (!this.tournament.system) {
+      if (!t?.system) {
         return this.$t('teams.swiss');
       }
-      if (this.tournament.system !== 'swiss') {
-        return this.$t('teams.' + this.tournament.system);
+      if (t.system !== 'swiss') {
+        return this.$t('teams.' + t.system);
       }
-      return formatSwissDescription(this.tournament, this.$i18n.locale, {
+      return formatSwissDescription(t, this.$i18n.locale, {
         swiss: this.$t('ranking.swiss'),
         playOff: this.$t('games.playOff').toLowerCase(),
         poulesBarrage: this.$t('games.poulesBarrage').toLowerCase(),
-        systemLabel: this.$t('teams.' + this.tournament.system),
+        systemLabel: this.$t('teams.' + t.system),
       });
     },
     cadrageRange() {
-      if (!this.tournament?.cadrage?.length) return '';
-      const from = (this.tournament.playOff?.length || 0) + 1;
-      const to = from + this.tournament.cadrage.length * 2 - 1;
+      const t = this.activeTournamentView;
+      if (!t?.cadrage?.length) return '';
+      const from = (t.playOff?.length || 0) + 1;
+      const to = from + t.cadrage.length * 2 - 1;
       return `${from}-${to} ${this.$t('common.places')}`;
     },
     playOffTeamsCount() {
-      if (!this.tournament?.playOff?.length) return 0;
-      return this.tournament.playOff.length * 2;
+      const t = this.activeTournamentView;
+      if (!t?.playOff?.length) return 0;
+      return t.playOff.length * 2;
     },
     isInPlayoff() {
-      return !!this.tournament?.playOff || !!this.tournament?.cadrage;
+      const t = this.activeTournamentView;
+      return !!t?.playOff || !!t?.cadrage;
     },
     tournamentExtrasLine() {
-      const prefs = this.tournament?.preferences;
+      const t = this.activeTournamentView;
+      const prefs = t?.preferences;
       if (!prefs?.timeLimitEnabled) return '';
       const parts = [];
       const time =
@@ -703,24 +762,28 @@ export default {
       return parts.join(' ');
     },
     isFinale() {
-      const po = this.tournament?.playOff;
+      const t = this.activeTournamentView;
+      const po = t?.playOff;
       if (!po?.length) return false;
       return po[po.length - 1].teams?.length === 1;
     },
     showPublicTimer() {
-      const rt = this.tournament?.roundTimer;
+      const t = this.activeTournamentView;
+      const rt = t?.roundTimer;
       return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'ended');
     },
     teamNames() {
-      if (!this.tournament?.teams) return [];
-      return this.tournament.teams.map((t) => t.title);
+      const t = this.activeTournamentView;
+      if (!t?.teams) return [];
+      return t.teams.map((team) => team.title);
     },
     teamClubMap() {
-      if (!this.tournament?.teams) return {};
+      const t = this.activeTournamentView;
+      if (!t?.teams) return {};
       const map = {};
-      this.tournament.teams.forEach((t) => {
-        if (t.players?.length && t.players[0].club) {
-          map[t.title] = t.players[0].club;
+      t.teams.forEach((team) => {
+        if (team.players?.length && team.players[0].club) {
+          map[team.title] = team.players[0].club;
         }
       });
       return map;
@@ -728,7 +791,7 @@ export default {
   },
   methods: {
     getGameStreams(game, index) {
-      return getGameStreams(game, this.tournament, index);
+      return getGameStreams(game, this.activeTournamentView, index);
     },
     getStreamPlatform,
     getStreamIcon: getStreamIconComponent,
@@ -787,33 +850,94 @@ export default {
       }
     },
     _subscribeDynamic() {
-      const paths = [
-        'games',
-        'roundIsActive',
-        'roundTimer',
-        'playOff',
-        'playOffBracket',
-        'playOffStage',
-        'cadrage',
-        'barrage',
-        'tournamentIsFinished',
-        'tournamentIsStarted',
-        'tournamentMessage',
-        'tirPlayoff',
-        'tirRound',
-        'tirStarted',
-        'teams',
-        'preferences',
-        'streamPresets',
-        'groups',
-        'system',
-      ];
-      for (const path of paths) {
-        const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
-          if (!this.tournament) return;
-          this.tournament[path] = snapshot.val();
-        });
-        this._unsubscribers.push(unsub);
+      const isNew = !!this.tournament?.main;
+
+      if (isNew) {
+        const wrapperPaths = ['activeGroup', 'tournamentMessage'];
+        for (const path of wrapperPaths) {
+          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
+            if (!this.tournament) return;
+            this.tournament[path] = snapshot.val();
+          });
+          this._unsubscribers.push(unsub);
+        }
+        const dataFields = [
+          'games',
+          'roundIsActive',
+          'roundTimer',
+          'playOff',
+          'playOffBracket',
+          'playOffStage',
+          'cadrage',
+          'barrage',
+          'tournamentIsFinished',
+          'tournamentIsStarted',
+          'tirPlayoff',
+          'tirRound',
+          'tirStarted',
+          'teams',
+          'preferences',
+          'streamPresets',
+          'groups',
+          'system',
+        ];
+        for (const field of dataFields) {
+          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, `main/${field}`, (snapshot) => {
+            if (!this.tournament?.main) return;
+            this.tournament.main[field] = snapshot.val();
+          });
+          this._unsubscribers.push(unsub);
+        }
+        {
+          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, 'tournamentB', (snapshot) => {
+            if (!this.tournament) return;
+            this.tournament.tournamentB = snapshot.val();
+          });
+          this._unsubscribers.push(unsub);
+        }
+        for (const field of dataFields) {
+          const unsub = tournamentService.subscribePath(
+            this.userId,
+            this.tournamentId,
+            `tournamentB/${field}`,
+            (snapshot) => {
+              if (!this.tournament?.tournamentB) return;
+              this.tournament.tournamentB[field] = snapshot.val();
+            },
+          );
+          this._unsubscribers.push(unsub);
+        }
+      } else {
+        const paths = [
+          'games',
+          'roundIsActive',
+          'roundTimer',
+          'playOff',
+          'playOffBracket',
+          'playOffStage',
+          'cadrage',
+          'barrage',
+          'tournamentIsFinished',
+          'tournamentIsStarted',
+          'tournamentMessage',
+          'tirPlayoff',
+          'tirRound',
+          'tirStarted',
+          'teams',
+          'preferences',
+          'streamPresets',
+          'groups',
+          'system',
+          'activeGroup',
+          'groupB',
+        ];
+        for (const path of paths) {
+          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
+            if (!this.tournament) return;
+            this.tournament[path] = snapshot.val();
+          });
+          this._unsubscribers.push(unsub);
+        }
       }
     },
     _unsubscribeAll() {
@@ -909,6 +1033,22 @@ export default {
   background: var(--color-surface);
 }
 
+.tournament-info-card--with-switcher {
+  padding-top: 0;
+}
+
+.tournament-info-card--with-switcher .badge-corner {
+  top: 3.25rem;
+}
+
+.tournament-info-card__switcher {
+  margin-left: -1.25rem;
+  margin-right: -7rem;
+  width: calc(100% + 8.25rem);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 0.75rem;
+}
+
 .tournament-info-card--inline {
   border: none;
   border-radius: 0;
@@ -919,7 +1059,7 @@ export default {
 }
 
 @media screen and (max-width: 352px) {
-  .tournament-info-card {
+  .tournament-info-card:not(.tournament-info-card--with-switcher) {
     padding-right: 1.25rem;
     padding-top: 2.5rem;
   }
@@ -1308,7 +1448,7 @@ export default {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  word-break: break-word;
+  overflow-wrap: break-word;
   transition: color 0.15s;
 }
 
@@ -1496,7 +1636,12 @@ export default {
 }
 
 .winner-card {
-  background: linear-gradient(135deg, var(--color-winner-bg-start) 0%, var(--color-winner-bg-mid) 50%, var(--color-winner-bg-start) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-winner-bg-start) 0%,
+    var(--color-winner-bg-mid) 50%,
+    var(--color-winner-bg-start) 100%
+  );
   border: 2px solid var(--color-winner-border);
   border-radius: 16px;
   padding: 28px 24px;
@@ -1540,7 +1685,8 @@ export default {
   mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
-  mask-composite: xor;
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: winner-border-shift 3s ease-in-out infinite alternate;
   pointer-events: none;
@@ -1593,7 +1739,12 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, var(--color-winner-gold-dark), var(--color-winner-gold-light), var(--color-winner-gold-dark));
+  background: linear-gradient(
+    90deg,
+    var(--color-winner-gold-dark),
+    var(--color-winner-gold-light),
+    var(--color-winner-gold-dark)
+  );
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 6px;
@@ -1662,5 +1813,4 @@ export default {
   font-size: 12px;
   color: rgb(245 200 66 / 70%);
 }
-
 </style>

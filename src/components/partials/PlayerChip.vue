@@ -13,9 +13,7 @@
         ><TrendingUp :size="10" />{{ player.rating_place }}</span
       >
     </div>
-    <span v-if="player.sport_title" class="player-chip__sport-title">{{
-      sportTitleLabel(player.sport_title)
-    }}</span>
+    <span v-if="player.sport_title" class="player-chip__sport-title">{{ sportTitleLabel(player.sport_title) }}</span>
     <span v-if="isCaptain" class="player-chip__captain-badge">
       <svg class="player-chip__captain-crown" viewBox="0 0 64 48" fill="none" aria-hidden="true">
         <defs>
@@ -41,13 +39,7 @@
             fill="#5521b5"
             opacity="0.9"
           />
-          <path
-            d="M20 30C27 27 38 27 45 30"
-            stroke="#DCCBFF"
-            stroke-width="3"
-            stroke-linecap="round"
-            opacity="0.55"
-          />
+          <path d="M20 30C27 27 38 27 45 30" stroke="#DCCBFF" stroke-width="3" stroke-linecap="round" opacity="0.55" />
         </g>
       </svg>
       <span class="player-chip__captain-circle">C</span>

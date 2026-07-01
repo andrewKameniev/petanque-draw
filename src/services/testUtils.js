@@ -54,13 +54,14 @@ export function autoFillScores(tournament, activeRound) {
   if (tournament.roundIsActive && tournament.games?.length) {
     fillGames(tournament.games[activeRound - 1]);
   }
-  if (tournament.groupB?.eliminationRound && !tournament.groupB.eliminationRound.completed) {
-    fillGames(tournament.groupB.eliminationRound.games);
+  const tB = tournament.tournamentB || tournament.groupB;
+  if (tB?.eliminationRound && !tB.eliminationRound.completed) {
+    fillGames(tB.eliminationRound.games);
   }
-  if (tournament.activeGroup === 'B' && tournament.groupB?.playOff && tournament.groupB.playOffBracket) {
-    fillBracket(tournament.groupB.playOffBracket, tournament.groupB.playOffStage);
+  if (tournament.activeGroup === 'B' && tB?.playOff && tB.playOffBracket) {
+    fillBracket(tB.playOffBracket, tB.playOffStage);
   }
-  if (tournament.activeGroup === 'B' && tournament.groupB?.roundIsActive && tournament.groupB.games?.length) {
-    fillGames(tournament.groupB.games[tournament.groupB.games.length - 1]);
+  if (tournament.activeGroup === 'B' && tB?.roundIsActive && tB.games?.length) {
+    fillGames(tB.games[tB.games.length - 1]);
   }
 }

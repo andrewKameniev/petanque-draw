@@ -3,6 +3,7 @@
 ## Scope
 
 Files:
+
 - `src/components/partials/Games.vue` — 4 calls
 - `src/components/partials/AddTeam.vue` — 2 calls
 - `src/components/partials/Cadrage.vue` — 1 call
@@ -18,6 +19,7 @@ Files:
 **Analysis:** At round end, `games` and `teams` (with updated stats) both change. `endRound()` and `clearRoundTimer()` already sync their own paths.
 
 **Change to:**
+
 ```js
 this.clearRoundTimer();
 this.endRound();
@@ -32,6 +34,7 @@ Note: Use a non-debounced sync here (the existing `_syncPath` is already non-deb
 **Currently:** Deletes `playOff`, `playOffBracket`, `playOffStage` from tournament, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 delete this.tournament.playOff;
 delete this.tournament.playOffBracket;
@@ -46,6 +49,7 @@ this._syncPath('playOffStage', null);
 **Currently:** Deletes `barrage` from tournament, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 delete this.tournament.barrage;
 this._syncPath('barrage', null);
@@ -75,6 +79,7 @@ this._syncPath('cadrage', null);
 **Currently:** Pushes team to array, then `syncToFirebase()`.
 
 **Change to:**
+
 ```js
 this.addTeamToStore(team);
 this.syncTeams();
@@ -89,6 +94,7 @@ Where `syncTeams()` is the existing store action that calls `_syncPath('teams', 
 **Analysis:** By this point, `addTeam()` has been called for each team (each already syncing). The final `syncToFirebase()` is redundant if we ensure teams are synced once at the end.
 
 **Change to:**
+
 ```js
 // After forEach loop completes:
 this.syncTeams();
@@ -130,16 +136,16 @@ syncPathNull(path) {
 
 ## Implementation Summary
 
-| Component | Method | Was | Now |
-|-----------|--------|-----|-----|
-| Games.vue | `finishRound()` | `syncToFirebaseNow()` | `syncGamesAndTeams()` |
-| Games.vue | `restoreRoundGames()` (cadrage branch) | `syncToFirebase()` | `syncPathNull('playOff/playOffBracket/playOffStage')` |
-| Games.vue | `restoreRoundGames()` (full playoff branch) | implicit via `startRound()` | `syncPathNull('playOff/playOffBracket/playOffStage/cadrage')` |
-| Games.vue | `restoreRoundGames()` (barrage branch) | `syncToFirebase()` | `syncPathNull('barrage')` |
-| Games.vue | `startTeamPlayoff()` | `syncToFirebase()` | `syncTeamPlayoff()` |
-| AddTeam.vue | `addTeam()` | `syncToFirebase()` | `syncTeams()` |
-| AddTeam.vue | `importList()` | `syncToFirebase()` | `syncTeams()` |
-| Cadrage.vue | `swapCadrageLane()` | `syncToFirebase()` | `syncCadrageFull()` |
+| Component   | Method                                      | Was                         | Now                                                           |
+| ----------- | ------------------------------------------- | --------------------------- | ------------------------------------------------------------- |
+| Games.vue   | `finishRound()`                             | `syncToFirebaseNow()`       | `syncGamesAndTeams()`                                         |
+| Games.vue   | `restoreRoundGames()` (cadrage branch)      | `syncToFirebase()`          | `syncPathNull('playOff/playOffBracket/playOffStage')`         |
+| Games.vue   | `restoreRoundGames()` (full playoff branch) | implicit via `startRound()` | `syncPathNull('playOff/playOffBracket/playOffStage/cadrage')` |
+| Games.vue   | `restoreRoundGames()` (barrage branch)      | `syncToFirebase()`          | `syncPathNull('barrage')`                                     |
+| Games.vue   | `startTeamPlayoff()`                        | `syncToFirebase()`          | `syncTeamPlayoff()`                                           |
+| AddTeam.vue | `addTeam()`                                 | `syncToFirebase()`          | `syncTeams()`                                                 |
+| AddTeam.vue | `importList()`                              | `syncToFirebase()`          | `syncTeams()`                                                 |
+| Cadrage.vue | `swapCadrageLane()`                         | `syncToFirebase()`          | `syncCadrageFull()`                                           |
 
 ## Test Plan
 

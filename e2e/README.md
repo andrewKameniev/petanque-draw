@@ -26,6 +26,7 @@ npx playwright test e2e/swiss.spec.js
 npx playwright test -g "8 teams — swiss + cadrage"
 ```
 
+
 ## Test Account
 
 Tests use a shared Firebase test account:

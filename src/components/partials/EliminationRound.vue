@@ -101,7 +101,11 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['setTournamentBEliminationRound', 'completeTournamentBElimination', 'syncToFirebase']),
+    ...mapActions(useMainStore, [
+      'setTournamentBEliminationRound',
+      'completeTournamentBElimination',
+      'syncEliminationGames',
+    ]),
     getDefaultTargetSize() {
       const teamCount = this.teams?.length || 0;
       let size = 2;
@@ -134,7 +138,7 @@ export default {
       this.$emit('completed');
     },
     onScoreChange() {
-      this.syncToFirebase();
+      this.syncEliminationGames();
     },
   },
 };

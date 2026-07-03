@@ -727,7 +727,7 @@ export default {
       const round = this.activeScoringRound;
       if (typeof round === 'string' && round.startsWith('ex')) {
         const tbKey = this.activeScoresKey;
-        return this.tirParticipants.filter((p) => p[tbKey] && Object.keys(p[tbKey]).length > 0);
+        return this.tirParticipants.filter((p) => p[tbKey]);
       }
       return this.tirParticipants;
     },

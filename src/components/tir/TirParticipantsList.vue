@@ -28,6 +28,10 @@
         @click="selectParticipant(participant, index)"
       >
         <span class="tir-plist__rank">{{ index + 1 }}</span>
+        <img v-if="getAvatar(participant)" :src="getAvatar(participant)" class="tir-plist__avatar" alt="" />
+        <span v-else class="tir-plist__avatar tir-plist__avatar--default">
+          <User :size="20" />
+        </span>
         <div class="tir-plist__info">
           <span class="tir-plist__name">{{ participant.name }}</span>
           <span v-if="getClub(participant)" class="tir-plist__club">{{ getClub(participant) }}</span>
@@ -72,13 +76,13 @@
 </template>
 
 <script>
-import { CheckCircle, AlertCircle, Circle } from 'lucide-vue-next';
+import { CheckCircle, AlertCircle, Circle, User } from 'lucide-vue-next';
 import TirParticipantView from './TirParticipantView.vue';
 import { SCORING, ATELIER_KEYS, findPlayoffMatchForParticipant, getMatchPlayerThrows } from '@/services/tir';
 
 export default {
   name: 'TirParticipantsList',
-  components: { CheckCircle, AlertCircle, Circle, TirParticipantView },
+  components: { CheckCircle, AlertCircle, Circle, User, TirParticipantView },
   props: {
     tournament: { type: Object, required: true },
     readOnly: { type: Boolean, default: false },
@@ -357,6 +361,22 @@ export default {
       const players = Object.values(team.players);
       return players[0]?.club || participant.city || '';
     },
+    getAvatar(participant) {
+      const teams = this.tournament.teams;
+      if (!teams) return null;
+      for (const team of teams) {
+        if (team.players) {
+          const player = team.players.find(
+            (p) =>
+              `${p.surname || ''} ${p.name || ''}`.trim() === participant.name ||
+              `${p.name || ''} ${p.surname || ''}`.trim() === participant.name,
+          );
+          if (player?.avatar_url) return player.avatar_url;
+        }
+        if (team.title === participant.name && team.players?.[0]?.avatar_url) return team.players[0].avatar_url;
+      }
+      return null;
+    },
     getStatusClass(participant) {
       if (this.isComplete(participant)) return 'tir-plist__status--complete';
       if (this.getThrows(participant) > 0) return 'tir-plist__status--partial';
@@ -436,6 +456,23 @@ export default {
   color: var(--color-text-muted);
 }
 
+.tir-plist__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 25%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--color-border);
+}
+
+.tir-plist__avatar--default {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
 .tir-plist__info {
   flex: 1;
   min-width: 0;
@@ -467,7 +504,7 @@ export default {
 .tir-plist__progress-segments {
   flex: 1;
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
 .tir-plist__progress-segment {
@@ -516,5 +553,11 @@ export default {
 
 .tir-plist__status--partial {
   color: var(--tir-touche);
+}
+
+@media (max-width: 768px) {
+  .tir-plist__row {
+    padding: 8px 14px;
+  }
 }
 </style>

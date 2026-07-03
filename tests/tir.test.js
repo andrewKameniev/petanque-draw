@@ -14,6 +14,7 @@ import {
   rankParticipants,
   getDirectQualifiers,
   getR2Candidates,
+  getR2QualifiersWithTies,
   generateSeededBracket,
   createMatch,
   buildPlayoffBracket,
@@ -191,20 +192,131 @@ describe('getDirectQualifiers', () => {
 });
 
 describe('getR2Candidates', () => {
-  it('returns positions 5-16 from R1 ranking', () => {
+  it('returns positions 5-20 from R1 ranking', () => {
     const participants = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
       const scores = { 0: { 6: i >= 10 ? 'manque' : 'carreau' } };
       participants.push(makeParticipant(`P${i}`, scores));
     }
     const candidates = getR2Candidates(participants);
-    expect(candidates).toHaveLength(12);
+    expect(candidates).toHaveLength(16);
   });
 
   it('respects maxR2 parameter', () => {
-    const participants = Array.from({ length: 20 }, (_, i) => makeParticipant(`P${i}`, {}));
+    const participants = Array.from({ length: 25 }, (_, i) => makeParticipant(`P${i}`, {}));
     const candidates = getR2Candidates(participants, 4, 8);
     expect(candidates).toHaveLength(8);
+  });
+});
+
+describe('getR2QualifiersWithTies', () => {
+  function makeParticipantsWithScores(scoreArray) {
+    return scoreArray.map((score, i) => {
+      const scores = {};
+      let remaining = score;
+      const atelier = {};
+      let throwIdx = 0;
+      while (remaining >= 5 && throwIdx < 20) {
+        atelier[throwIdx] = 'carreau';
+        remaining -= 5;
+        throwIdx++;
+      }
+      while (remaining >= 3 && throwIdx < 20) {
+        atelier[throwIdx] = 'reussi';
+        remaining -= 3;
+        throwIdx++;
+      }
+      while (remaining >= 1 && throwIdx < 20) {
+        atelier[throwIdx] = 'touche';
+        remaining -= 1;
+        throwIdx++;
+      }
+      scores[0] = atelier;
+      return { id: `P${i}`, name: `P${i}`, scores };
+    });
+  }
+
+  it('returns exactly 16 qualifiers when no ties at boundary', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 30; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    expect(qualifiers).toHaveLength(16);
+    qualifiers.forEach((p) => {
+      expect(p.id).not.toBe('P0');
+      expect(p.id).not.toBe('P1');
+      expect(p.id).not.toBe('P2');
+      expect(p.id).not.toBe('P3');
+    });
+  });
+
+  it('includes players tied with 20th place (positions 20-21)', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 19; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    scoreArray.push(40);
+    scoreArray.push(40);
+    scoreArray.push(30);
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    expect(qualifiers).toHaveLength(17);
+  });
+
+  it('includes all players tied with 20th place (positions 20-25)', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 19; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    for (let i = 0; i < 7; i++) {
+      scoreArray.push(40);
+    }
+    scoreArray.push(30);
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    expect(qualifiers).toHaveLength(22);
+  });
+
+  it('excludes top 4 from R2 qualifiers', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 25; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    const top4Ids = ['P0', 'P1', 'P2', 'P3'];
+    qualifiers.forEach((p) => {
+      expect(top4Ids).not.toContain(p.id);
+    });
+  });
+
+  it('does not include players below the tie group', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 19; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    scoreArray.push(40);
+    scoreArray.push(40);
+    scoreArray.push(40);
+    scoreArray.push(20);
+    scoreArray.push(10);
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    const qualifierIds = qualifiers.map((p) => p.id);
+    expect(qualifierIds).not.toContain('P22');
+    expect(qualifierIds).not.toContain('P23');
+  });
+
+  it('returns all participants below top 4 when fewer than 20 total', () => {
+    const scoreArray = [];
+    for (let i = 0; i < 15; i++) {
+      scoreArray.push(100 - i * 3);
+    }
+    const participants = makeParticipantsWithScores(scoreArray);
+    const qualifiers = getR2QualifiersWithTies(participants, 0);
+    expect(qualifiers).toHaveLength(11);
   });
 });
 

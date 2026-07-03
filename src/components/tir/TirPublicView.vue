@@ -253,6 +253,7 @@ import {
   getTiebreakerKey,
   buildTableRows,
   rankWithTiebreakers,
+  getR2QualifiersWithTies,
 } from '@/services/tir';
 
 export default {
@@ -555,7 +556,7 @@ export default {
         participants: this.participants,
         directIds: r1Ranked.slice(0, 4).map((p) => p.id),
         r2Ids,
-        r2CandidateIds: r1Ranked.slice(4, 16).map((p) => p.id),
+        r2CandidateIds: getR2QualifiersWithTies(this.participants, tbCount).map((p) => p.id),
         playoff: this.tournament.tirPlayoff,
         currentRound: this.currentRound,
         isTwoRoundSystem: this.isTwoRoundSystem,

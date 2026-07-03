@@ -46,8 +46,8 @@ Optional mode selected before tournament start (`tirConfig.rounds: 2`).
 ### Flow
 
 1. **Round 1**: All players compete (scores in `participant.scores`)
-2. **After R1**: Top 4 qualify directly to quarterfinals; places 5-16 advance to Round 2
-3. **Round 2**: 12 players repeat all exercises (scores in `participant.scores2`)
+2. **After R1**: Top 4 qualify directly to quarterfinals; places 5-20 advance to Round 2 (players tied with 20th place are also included)
+3. **Round 2**: Qualified players repeat all exercises (scores in `participant.scores2`)
 4. **Qualification**: Top 4 from R2 by combined score (R1 + R2) join the 4 direct qualifiers
 5. **Playoff**: 8 seeded players → QF → SF → Final + 3rd place
 

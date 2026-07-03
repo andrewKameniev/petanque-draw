@@ -237,7 +237,7 @@
 <script>
 import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { getScoreTotal, getScoreCarreauCount, rankWithTiebreakers, getCombinedTotal } from '@/services/tir';
+import { getScoreTotal, getScoreCarreauCount, rankWithTiebreakers, getCombinedTotal, getPlayoffPlaces } from '@/services/tir';
 import { Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp } from 'lucide-vue-next';
 
 export default {
@@ -297,39 +297,7 @@ export default {
       return this.tournament.tirPlayoff;
     },
     playoffPlaces() {
-      const places = {};
-      if (!this.playoff) return places;
-      const final = this.playoff.final;
-      const thirdPlace = this.playoff.thirdPlace;
-      if (final?.winner) {
-        places[final.winner] = 1;
-        const loser = final.player1 === final.winner ? final.player2 : final.player1;
-        if (loser) places[loser] = 2;
-      }
-      if (thirdPlace?.winner) {
-        places[thirdPlace.winner] = 3;
-        const loser = thirdPlace.player1 === thirdPlace.winner ? thirdPlace.player2 : thirdPlace.player1;
-        if (loser) places[loser] = 4;
-      } else if (thirdPlace && !thirdPlace.winner) {
-        if (thirdPlace.player1) places[thirdPlace.player1] = '3-4';
-        if (thirdPlace.player2) places[thirdPlace.player2] = '3-4';
-      }
-      if (this.playoff.rounds) {
-        let nextPlace = 5;
-        for (let i = this.playoff.rounds.length - 1; i >= 0; i--) {
-          const roundLosers = this.playoff.rounds[i].matches
-            .filter((m) => m.loser && !places[m.loser])
-            .map((m) => m.loser);
-          if (!roundLosers.length) continue;
-          const endPlace = nextPlace + roundLosers.length - 1;
-          const label = roundLosers.length > 1 ? `${nextPlace}-${endPlace}` : String(nextPlace);
-          roundLosers.forEach((name) => {
-            places[name] = label;
-          });
-          nextPlace = endPlace + 1;
-        }
-      }
-      return places;
+      return getPlayoffPlaces(this.playoff);
     },
     playoffRounds() {
       if (!this.playoff) return [];

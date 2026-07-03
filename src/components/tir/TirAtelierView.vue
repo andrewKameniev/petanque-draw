@@ -25,24 +25,26 @@
     <!-- Participants list for this atelier -->
     <div class="tir-aview__list">
       <div v-for="(participant, index) in participants" :key="participant.id" class="tir-aview__row">
-        <div class="tir-aview__row-info">
-          <span class="tir-aview__row-rank">{{ index + 1 }}</span>
-          <span class="tir-aview__row-name">{{ participant.name }}</span>
-          <span class="tir-aview__row-score"
-            >{{ getAtelierScore(participant) }}/{{ maxAtelierScore }} {{ $t('ranking.points') }}</span
-          >
-          <span class="tir-aview__row-throws"
-            >{{ getAtelierThrows(participant) }} / {{ distances.length }} {{ $t('tir.throws') }}</span
-          >
+        <div class="tir-aview__row-header" @click="toggleExpand(participant.id)">
+          <div class="tir-aview__row-info">
+            <span class="tir-aview__row-rank">{{ index + 1 }}</span>
+            <span class="tir-aview__row-name">{{ participant.name }}</span>
+            <span class="tir-aview__row-score"
+              >{{ getAtelierScore(participant) }}/{{ maxAtelierScore }} {{ $t('ranking.points') }}</span
+            >
+            <span class="tir-aview__row-throws"
+              >{{ getAtelierThrows(participant) }} / {{ distances.length }} {{ $t('tir.throws') }}</span
+            >
+          </div>
+          <div class="tir-aview__row-status">
+            <CheckCircle v-if="isComplete(participant)" :size="16" class="tir-aview__icon--complete" />
+            <AlertCircle v-else-if="getAtelierThrows(participant) > 0" :size="16" class="tir-aview__icon--partial" />
+            <Circle v-else :size="16" class="tir-aview__icon--empty" />
+          </div>
+          <div class="tir-aview__row-expand">
+            <ChevronDown :size="16" :class="{ 'tir-aview__chevron--open': expandedId === participant.id }" />
+          </div>
         </div>
-        <div class="tir-aview__row-status">
-          <CheckCircle v-if="isComplete(participant)" :size="16" class="tir-aview__icon--complete" />
-          <AlertCircle v-else-if="getAtelierThrows(participant) > 0" :size="16" class="tir-aview__icon--partial" />
-          <Circle v-else :size="16" class="tir-aview__icon--empty" />
-        </div>
-        <button class="tir-aview__row-expand" @click="toggleExpand(participant.id)">
-          <ChevronDown :size="16" :class="{ 'tir-aview__chevron--open': expandedId === participant.id }" />
-        </button>
         <!-- Inline scoring grid -->
         <div v-if="expandedId === participant.id" class="tir-aview__row-grid">
           <div class="tir-pview__grid">
@@ -266,6 +268,22 @@ export default {
   gap: 8px;
 }
 
+.tir-aview__row-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  margin: -4px;
+  transition: background 0.15s;
+}
+
+.tir-aview__row-header:hover {
+  background: var(--color-surface-alt);
+}
+
 .tir-aview__row-info {
   flex: 1;
   display: flex;
@@ -320,11 +338,7 @@ export default {
 
 .tir-aview__row-expand {
   padding: 4px;
-  border: none;
-  background: none;
-  cursor: pointer;
   color: var(--color-text-muted);
-  transition: transform 0.2s;
 }
 
 .tir-aview__chevron--open {

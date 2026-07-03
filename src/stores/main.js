@@ -858,12 +858,16 @@ export const useMainStore = defineStore('main', {
         }
       });
       this.tournaments = tournaments;
+      console.log('Tournaments:', JSON.parse(JSON.stringify(tournaments)));
       if (!Object.keys(this.tournaments).length) {
         this.addTournament();
       }
       const pinned = localStorage.getItem('petanqueDrawPinned');
       if (pinned && this.tournaments[pinned]) {
         this.setActiveTournament(pinned);
+      } else if (pinned && this.userTournamentMap[pinned] && this.userTournamentMap[pinned].role !== 'owner') {
+        const entry = this.userTournamentMap[pinned];
+        this.loadSharedTournament(pinned, entry.ownerUid);
       } else {
         this.setActiveTournament(
           this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id,

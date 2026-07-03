@@ -104,8 +104,60 @@ export function getDirectQualifiers(participants, count = 4) {
   return rankByR1(participants).slice(0, count);
 }
 
-export function getR2Candidates(participants, directCount = 4, maxR2 = 12) {
+export function getR2Candidates(participants, directCount = 4, maxR2 = 16) {
   return rankByR1(participants).slice(directCount, directCount + maxR2);
+}
+
+export function getR2QualifiersWithTies(participants, tiebreakerCount, directCount = 4, r2EndPosition = 20) {
+  const ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
+
+  if (ranked.length <= r2EndPosition) {
+    return ranked.slice(directCount);
+  }
+
+  const baseQualifiers = ranked.slice(directCount, r2EndPosition);
+  const lastQualifier = ranked[r2EndPosition - 1];
+  const lastScore = getScoreTotal(lastQualifier, 'scores');
+  const lastCarreau = getScoreCarreauCount(lastQualifier, 'scores');
+  const lastReussi = getScoreReussiCount(lastQualifier, 'scores');
+
+  const lastTbScores = [];
+  for (let i = 1; i <= tiebreakerCount; i++) {
+    const tbKey = getTiebreakerKey(i);
+    lastTbScores.push(
+      getScoreTotal(lastQualifier, tbKey),
+      getScoreCarreauCount(lastQualifier, tbKey),
+      getScoreReussiCount(lastQualifier, tbKey),
+    );
+  }
+
+  const extraQualifiers = [];
+  for (let i = r2EndPosition; i < ranked.length; i++) {
+    const p = ranked[i];
+    if (getScoreTotal(p, 'scores') !== lastScore) break;
+    if (getScoreCarreauCount(p, 'scores') !== lastCarreau) break;
+    if (getScoreReussiCount(p, 'scores') !== lastReussi) break;
+    let tied = true;
+    for (let j = 0; j < lastTbScores.length; j += 3) {
+      const tbKey = getTiebreakerKey(Math.floor(j / 3) + 1);
+      if (getScoreTotal(p, tbKey) !== lastTbScores[j]) {
+        tied = false;
+        break;
+      }
+      if (getScoreCarreauCount(p, tbKey) !== lastTbScores[j + 1]) {
+        tied = false;
+        break;
+      }
+      if (getScoreReussiCount(p, tbKey) !== lastTbScores[j + 2]) {
+        tied = false;
+        break;
+      }
+    }
+    if (!tied) break;
+    extraQualifiers.push(p);
+  }
+
+  return [...baseQualifiers, ...extraQualifiers];
 }
 
 export function getTiebreakerKey(round) {
@@ -169,8 +221,7 @@ export function findTiesAtBoundary(rankedParticipants, boundaryIndex, mainKey, t
 export function detectTiebreakersNeeded(participants, tiebreakerCount) {
   const ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
   const top4Ties = findTiesAtBoundary(ranked, 4, 'scores', tiebreakerCount);
-  const r2Ties = findTiesAtBoundary(ranked, 16, 'scores', tiebreakerCount);
-  return { top4Ties, r2Ties, ranked };
+  return { top4Ties, r2Ties: [], ranked };
 }
 
 export function isTiebreakerComplete(participant, tbKey) {

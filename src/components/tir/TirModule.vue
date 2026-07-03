@@ -597,6 +597,7 @@ import {
   getTiebreakerKey,
   isTiebreakerComplete,
   rankWithTiebreakers,
+  getR2QualifiersWithTies,
 } from '@/services/tir';
 
 export default {
@@ -884,7 +885,7 @@ export default {
         participants: this.tirParticipants,
         directIds: this.directQualifiers.map((p) => p.id),
         r2Ids: this.round2ParticipantIds,
-        r2CandidateIds: this.r1RankedParticipants.slice(4, 16).map((p) => p.id),
+        r2CandidateIds: getR2QualifiersWithTies(this.tirParticipants, this.tiebreakerCount).map((p) => p.id),
         playoff: this.tournament.tirPlayoff,
         currentRound: this.currentRound,
         isTwoRoundSystem: this.isTwoRoundSystem,
@@ -1053,8 +1054,7 @@ export default {
       this.activeParticipant = null;
     },
     startRound2() {
-      const ranked = rankWithTiebreakers(this.tirParticipants, 'scores', this.tiebreakerCount);
-      const r2Qualifiers = ranked.slice(4, 16);
+      const r2Qualifiers = getR2QualifiersWithTies(this.tirParticipants, this.tiebreakerCount);
       this.tournament.tirR2Participants = r2Qualifiers.map((p) => p.id);
       r2Qualifiers.forEach((p) => {
         if (!p.scores2) p.scores2 = {};

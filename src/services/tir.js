@@ -48,6 +48,19 @@ export function getScoreReussiCount(participant, key) {
   return count;
 }
 
+export function getScoreToucheCount(participant, key) {
+  if (!participant[key]) return 0;
+  let count = 0;
+  Object.values(participant[key]).forEach((atelier) => {
+    if (atelier && typeof atelier === 'object') {
+      Object.values(atelier).forEach((val) => {
+        if (val === 'touche') count++;
+      });
+    }
+  });
+  return count;
+}
+
 export function getCombinedTotal(participant) {
   return getScoreTotal(participant, 'scores') + getScoreTotal(participant, 'scores2');
 }
@@ -82,7 +95,10 @@ export function isAtelierComplete(participant, key, atelierIdx, distancesCount) 
 export function rankParticipants(participants, key) {
   return [...participants].sort(
     (a, b) =>
-      getScoreTotal(b, key) - getScoreTotal(a, key) || getScoreCarreauCount(b, key) - getScoreCarreauCount(a, key),
+      getScoreTotal(b, key) - getScoreTotal(a, key) ||
+      getScoreCarreauCount(b, key) - getScoreCarreauCount(a, key) ||
+      getScoreReussiCount(b, key) - getScoreReussiCount(a, key) ||
+      getScoreToucheCount(b, key) - getScoreToucheCount(a, key),
   );
 }
 
@@ -94,9 +110,12 @@ export function rankByCombined(participants) {
   return [...participants].sort(
     (a, b) =>
       getCombinedTotal(b) - getCombinedTotal(a) ||
-      getScoreCarreauCount(b, 'scores') +
-        getScoreCarreauCount(b, 'scores2') -
-        (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')),
+      getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2') -
+        (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')) ||
+      getScoreReussiCount(b, 'scores') + getScoreReussiCount(b, 'scores2') -
+        (getScoreReussiCount(a, 'scores') + getScoreReussiCount(a, 'scores2')) ||
+      getScoreToucheCount(b, 'scores') + getScoreToucheCount(b, 'scores2') -
+        (getScoreToucheCount(a, 'scores') + getScoreToucheCount(a, 'scores2')),
   );
 }
 
@@ -138,14 +157,16 @@ export function rankWithTiebreakers(participants, mainKey, tiebreakerCount) {
     const diff =
       getScoreTotal(b, mainKey) - getScoreTotal(a, mainKey) ||
       getScoreCarreauCount(b, mainKey) - getScoreCarreauCount(a, mainKey) ||
-      getScoreReussiCount(b, mainKey) - getScoreReussiCount(a, mainKey);
+      getScoreReussiCount(b, mainKey) - getScoreReussiCount(a, mainKey) ||
+      getScoreToucheCount(b, mainKey) - getScoreToucheCount(a, mainKey);
     if (diff !== 0) return diff;
     for (let i = 1; i <= tiebreakerCount; i++) {
       const tbKey = getTiebreakerKey(i);
       const tbDiff =
         getScoreTotal(b, tbKey) - getScoreTotal(a, tbKey) ||
         getScoreCarreauCount(b, tbKey) - getScoreCarreauCount(a, tbKey) ||
-        getScoreReussiCount(b, tbKey) - getScoreReussiCount(a, tbKey);
+        getScoreReussiCount(b, tbKey) - getScoreReussiCount(a, tbKey) ||
+        getScoreToucheCount(b, tbKey) - getScoreToucheCount(a, tbKey);
       if (tbDiff !== 0) return tbDiff;
     }
     return 0;
@@ -402,6 +423,10 @@ export function buildTableRows({
       playoffLastScore = matchScores.qf;
     }
 
+    const carreauCount = getScoreCarreauCount(p, 'scores') + (isR2 ? getScoreCarreauCount(p, 'scores2') : 0);
+    const reussiCount = getScoreReussiCount(p, 'scores') + (isR2 ? getScoreReussiCount(p, 'scores2') : 0);
+    const toucheCount = getScoreToucheCount(p, 'scores') + (isR2 ? getScoreToucheCount(p, 'scores2') : 0);
+
     return {
       id: p.id,
       name: p.name,
@@ -415,6 +440,9 @@ export function buildTableRows({
       place,
       rowClass,
       combinedNum: combined,
+      carreauCount,
+      reussiCount,
+      toucheCount,
       playoffStage,
       playoffLastScore,
       isDirect,
@@ -428,29 +456,18 @@ export function buildTableRows({
 
     if (playoff && hasPlayoffScores) {
       const playoffParticipants = [...qualifiedRows, ...r2Rows];
+      const places = getPlayoffPlaces(playoff);
 
-      const finalMatch = playoff.final;
-      if (finalMatch?.winner) {
-        const winner = finalMatch.winner;
-        const loser = winner === finalMatch.player1 ? finalMatch.player2 : finalMatch.player1;
-        const thirdWinner = playoff.thirdPlace?.winner;
-
-        playoffParticipants.forEach((row) => {
-          if (row.name === winner) {
-            row.rowClass = 'place-gold';
-            row.place = '1';
-            row.placeNum = 1;
-          } else if (row.name === loser) {
-            row.rowClass = 'place-silver';
-            row.place = '2';
-            row.placeNum = 2;
-          } else if (thirdWinner && row.name === thirdWinner) {
-            row.rowClass = 'place-bronze';
-            row.place = '3';
-            row.placeNum = 3;
-          }
-        });
-      }
+      playoffParticipants.forEach((row) => {
+        const place = places[row.name];
+        if (place === undefined) return;
+        const placeNum = typeof place === 'number' ? place : parseInt(String(place).split('-')[0]);
+        row.place = String(place);
+        row.placeNum = placeNum;
+        if (placeNum === 1) row.rowClass = 'place-gold';
+        else if (placeNum === 2) row.rowClass = 'place-silver';
+        else if (placeNum === 3) row.rowClass = 'place-bronze';
+      });
 
       playoffParticipants.sort((a, b) => {
         if (a.placeNum || b.placeNum) return (a.placeNum || 99) - (b.placeNum || 99);
@@ -460,16 +477,55 @@ export function buildTableRows({
           stageB - stageA ||
           b.playoffLastScore - a.playoffLastScore ||
           (b.isDirect ? 1 : 0) - (a.isDirect ? 1 : 0) ||
-          b.combinedNum - a.combinedNum
+          b.combinedNum - a.combinedNum ||
+          b.carreauCount - a.carreauCount ||
+          b.reussiCount - a.reussiCount ||
+          b.toucheCount - a.toucheCount
         );
       });
 
       return [...playoffParticipants, ...eliminatedRows];
     }
 
-    return [...qualifiedRows, ...r2Rows.sort((a, b) => b.combinedNum - a.combinedNum), ...eliminatedRows];
+    return [...qualifiedRows, ...r2Rows.sort((a, b) => b.combinedNum - a.combinedNum || b.carreauCount - a.carreauCount || b.reussiCount - a.reussiCount || b.toucheCount - a.toucheCount), ...eliminatedRows];
   }
   return allPlayers;
+}
+
+export function getPlayoffPlaces(playoff) {
+  const places = {};
+  if (!playoff) return places;
+  const final = playoff.final;
+  const thirdPlace = playoff.thirdPlace;
+  if (final?.winner) {
+    places[final.winner] = 1;
+    const loser = final.player1 === final.winner ? final.player2 : final.player1;
+    if (loser) places[loser] = 2;
+  }
+  if (thirdPlace?.winner) {
+    places[thirdPlace.winner] = 3;
+    const loser = thirdPlace.player1 === thirdPlace.winner ? thirdPlace.player2 : thirdPlace.player1;
+    if (loser) places[loser] = 4;
+  } else if (thirdPlace && !thirdPlace.winner) {
+    if (thirdPlace.player1) places[thirdPlace.player1] = '3-4';
+    if (thirdPlace.player2) places[thirdPlace.player2] = '3-4';
+  }
+  if (playoff.rounds) {
+    let nextPlace = Object.keys(places).length ? Math.max(...Object.values(places).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v)))) + 1 : 5;
+    for (let i = playoff.rounds.length - 1; i >= 0; i--) {
+      const roundLosers = playoff.rounds[i].matches
+        .filter((m) => m.loser && !places[m.loser])
+        .map((m) => m.loser);
+      if (!roundLosers.length) continue;
+      const endPlace = nextPlace + roundLosers.length - 1;
+      const label = roundLosers.length > 1 ? `${nextPlace}-${endPlace}` : String(nextPlace);
+      roundLosers.forEach((name) => {
+        places[name] = label;
+      });
+      nextPlace = endPlace + 1;
+    }
+  }
+  return places;
 }
 
 export function getPlayoffMatchScores(playerName, playoff) {

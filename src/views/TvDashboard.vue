@@ -1061,7 +1061,7 @@ export default {
   align-items: stretch;
   justify-content: space-between;
   border-bottom: 2px solid #e5e7eb;
-  background: #081c69;
+  background: #061843;
 }
 
 .tv__header-left {
@@ -1089,6 +1089,7 @@ export default {
   border-radius: 11px;
   text-align: center;
   line-height: 1.3;
+  min-width: 230px;
 }
 
 .tv__system-label {
@@ -1123,6 +1124,7 @@ export default {
   border: 2px solid #53b7d2;
   border-radius: 11px;
   padding: 13px 28px;
+  min-width: 230px;
 }
 
 .tv__timer-box--ended {

@@ -113,8 +113,16 @@
                 @click="openSharedTournament(item)"
               >
                 <div class="active-overlay__item-top">
+                  <Pin v-if="String(pinnedId) === String(item.id)" :size="14" class="active-overlay__item-pin active-overlay__item-pin--shared" />
                   <span class="active-overlay__item-name">{{ item.name }}</span>
                   <span class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
+                  <button
+                    class="active-overlay__item-pin-btn"
+                    @click.stop="togglePinShared(item.id)"
+                    :title="String(pinnedId) === String(item.id) ? $t('common.unpin') : $t('common.pin')"
+                  >
+                    <Pin :size="14" />
+                  </button>
                   <button
                     class="active-overlay__item-leave"
                     @click.stop="handleLeaveShared(item.id)"
@@ -346,6 +354,15 @@ export default {
     },
     async handleLeaveShared(tournamentId) {
       await this.leaveSharedTournament(tournamentId);
+    },
+    togglePinShared(id) {
+      if (String(this.pinnedId) === String(id)) {
+        localStorage.removeItem('petanqueDrawPinned');
+        this.pinnedIdLocal = null;
+      } else {
+        localStorage.setItem('petanqueDrawPinned', id);
+        this.pinnedIdLocal = id;
+      }
     },
     getTeamFormat(item) {
       if (!item.firstTeamPlayers) return '';
@@ -639,7 +656,17 @@ export default {
 
 .active-overlay__item--shared {
   background: var(--color-shared-bg, rgb(99 102 241 / 8%));
-  border-left: 3px solid var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.active-overlay__item--shared:hover {
+  border-color: var(--color-primary);
+  background: rgb(99 102 241 / 12%);
+}
+
+.active-overlay__item--shared.active-overlay__item--active {
+  border-color: var(--color-primary);
+  background: rgb(99 102 241 / 15%);
 }
 
 .active-overlay__item-role {
@@ -652,13 +679,32 @@ export default {
   color: var(--color-btn-text);
 }
 
+.active-overlay__item-pin-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary);
+  padding: 0.2rem;
+  margin-left: auto;
+  display: flex;
+  opacity: 0.5;
+}
+
+.active-overlay__item-pin-btn:hover {
+  opacity: 1;
+}
+
+.active-overlay__item-pin--shared {
+  color: var(--color-primary);
+}
+
 .active-overlay__item-leave {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-danger, #e53e3e);
   padding: 0.2rem;
-  margin-left: auto;
+  margin-left: 0;
   display: flex;
   opacity: 0.6;
 }

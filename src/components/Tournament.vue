@@ -78,13 +78,13 @@
             </span>
             <button
               class="bottom-actions__btn bottom-actions__btn--success"
-              @click="$refs.tirModule.exportResults('csv')"
+              @click="exportTirToPortal"
             >
               <Download :size="16" />
               {{ $t('tir.exportResults') }}
             </button>
             <button
-              v-if="tournament.portalIdTournament"
+              v-if="tournamentWrapper.portalIdTournament || tournament.portalIdTournament"
               class="bottom-actions__btn bottom-actions__btn--gold"
               @click="showProtocol = !showProtocol"
             >
@@ -396,6 +396,7 @@ import {
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
+import { getPlayoffPlaces, getCombinedTotal, getScoreCarreauCount, getScoreReussiCount, getScoreToucheCount, rankWithTiebreakers } from '@/services/tir';
 
 export default {
   name: 'Tournament',
@@ -544,6 +545,107 @@ export default {
       localStorage.removeItem('petanqueDrawPinned');
       this.pinnedState = null;
       this.showMessage({ title: this.$t('common.unpin'), text: this.$t('messages.tournamentUnpinned') });
+    },
+    async exportTirToPortal() {
+      const portalId = this.tournamentWrapper.portalIdTournament || this.tournament.portalIdTournament;
+      if (!portalId) {
+        this.$refs.tirModule.exportResults('csv');
+        return;
+      }
+      const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
+      if (!token) {
+        this.showMessage({ title: this.$t('messages.error'), text: 'API token not configured', type: 'error' });
+        return;
+      }
+      let portalTeams;
+      try {
+        const res = await fetch(
+          `https://portal.petanque.org.ua/tournament/team_export/${portalId}?format=json`,
+        );
+        if (!res.ok) throw new Error(`Portal responded ${res.status}`);
+        const data = await res.json();
+        portalTeams = data.teams;
+      } catch (e) {
+        this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
+        return;
+      }
+
+      const participants = this.tournament.tirParticipants || [];
+      const playoff = this.tournament.tirPlayoff;
+      const playoffPlaces = getPlayoffPlaces(playoff);
+      const tirConfig = this.tournament.tirConfig || { rounds: 1 };
+      const isTwoRound = tirConfig.rounds === 2;
+      const tiebreakerCount = this.tournament.tirTiebreakerCount || 0;
+
+      let ranked;
+      if (isTwoRound) {
+        ranked = [...participants].sort(
+          (a, b) =>
+            getCombinedTotal(b) - getCombinedTotal(a) ||
+            getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2') -
+              (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')) ||
+            getScoreReussiCount(b, 'scores') + getScoreReussiCount(b, 'scores2') -
+              (getScoreReussiCount(a, 'scores') + getScoreReussiCount(a, 'scores2')) ||
+            getScoreToucheCount(b, 'scores') + getScoreToucheCount(b, 'scores2') -
+              (getScoreToucheCount(a, 'scores') + getScoreToucheCount(a, 'scores2')),
+        );
+      } else {
+        ranked = rankWithTiebreakers(participants, 'scores', tiebreakerCount);
+      }
+
+      const playoffNames = Object.keys(playoffPlaces);
+      const maxPlayoffPlace = playoffNames.length
+        ? Math.max(...Object.values(playoffPlaces).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v))))
+        : 0;
+
+      let nextPlace = maxPlayoffPlace + 1;
+      const allPlaces = { ...playoffPlaces };
+      ranked.forEach((p) => {
+        if (!allPlaces[p.name]) {
+          allPlaces[p.name] = nextPlace;
+          nextPlace++;
+        }
+      });
+
+      const teams = participants
+        .map((p) => {
+          const portalTeamId = portalTeams.find((pt) => pt.name === p.name)?.id;
+          if (!portalTeamId) return null;
+          const place = allPlaces[p.name];
+          if (place === undefined) return null;
+          const placeStr = String(place);
+          const entry = { team_id: portalTeamId, place_min: parseInt(placeStr.split('-')[0]) };
+          if (placeStr.includes('-')) {
+            entry.place_max = parseInt(placeStr.split('-')[1]);
+          }
+          return entry;
+        })
+        .filter(Boolean);
+
+      if (!teams.length) {
+        this.showMessage({ title: this.$t('messages.error'), text: 'No matching participants found on portal', type: 'error' });
+        return;
+      }
+
+      try {
+        const response = await fetch('https://portal.petanque.org.ua/api/tournament/results/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: token },
+          body: JSON.stringify({ tournament_id: Number(portalId), teams }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          this.showMessage({
+            title: this.$t('messages.success'),
+            text: `Updated ${data.updated_teams?.length || 0} teams`,
+          });
+        } else {
+          const error = await response.json().catch(() => ({}));
+          this.showMessage({ title: this.$t('messages.error'), text: error.error || `Error ${response.status}`, type: 'error' });
+        }
+      } catch (e) {
+        this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
+      }
     },
     onMessageInput() {
       this.syncTournamentMessage();

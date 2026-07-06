@@ -656,6 +656,9 @@ export default {
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
+    tournamentName() {
+      return this.currentTournament?.name || this.tournament.name;
+    },
     tirConfig() {
       return this.tournament.tirConfig || { junior: false, rounds: 1 };
     },
@@ -1387,9 +1390,9 @@ export default {
     exportResults(format) {
       const data = this.buildExportData();
       if (format === 'json') {
-        this.downloadFile(JSON.stringify(data, null, 2), `${this.tournament.name}_tir.json`, 'application/json');
+        this.downloadFile(JSON.stringify(data, null, 2), `${this.tournamentName}_tir.json`, 'application/json');
       } else {
-        this.downloadFile(this.buildCsv(data), `${this.tournament.name}_tir.csv`, 'text/csv');
+        this.downloadFile(this.buildCsv(data), `${this.tournamentName}_tir.csv`, 'text/csv');
       }
     },
     buildExportData() {
@@ -1412,7 +1415,7 @@ export default {
         })
         .sort((a, b) => (b.combined || b.r1_score) - (a.combined || a.r1_score));
 
-      const result = { tournament: this.tournament.name, participants: playerRows };
+      const result = { tournament: this.tournamentName, participants: playerRows };
 
       if (playoff) {
         result.playoff = {};

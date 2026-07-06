@@ -338,7 +338,7 @@
         <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">
           {{ $t('games.resultsError') }}
         </div>
-        <div class="text-center mt-5" v-if="!isPublicView">
+        <div class="text-center mt-5" v-if="!isPublicView && isOwnerOrAdmin">
           <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveResults">
             <Save :size="16" class="mr-1" /> {{ $t('games.saveResults') }}
           </button>
@@ -430,7 +430,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'isOwnerOrAdmin']),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },

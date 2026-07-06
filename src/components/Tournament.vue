@@ -269,7 +269,7 @@
               </button>
             </span>
             <button
-              v-if="tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.teams?.length"
+              v-if="(tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.teams?.length"
               class="bottom-actions__btn bottom-actions__btn--gold"
               @click="showProtocol = !showProtocol"
             >
@@ -342,7 +342,7 @@
     />
     <Protocol
       v-if="
-        showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system !== 'tir'
+        showProtocol && (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.system !== 'tir'
       "
       @close="showProtocol = false"
       :tournament="tournament"
@@ -350,7 +350,7 @@
     />
     <TirProtocol
       v-if="
-        showProtocol && tournament.portalIdTournament && tournament.tournamentIsFinished && tournament.system === 'tir'
+        showProtocol && (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.system === 'tir'
       "
       @close="showProtocol = false"
       :tournament="tournament"

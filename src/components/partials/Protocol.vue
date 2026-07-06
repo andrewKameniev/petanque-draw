@@ -56,20 +56,20 @@
         <div class="protocol-page">
           <h2 class="text-center is-size-3 mb-2">
             Підсумковий протокол <br />
-            {{ tournament.name }}
+            {{ tournamentName }}
           </h2>
           <table class="table is-bordered protocol-info-table">
             <tbody>
               <tr>
                 <td>Дата початку змагань</td>
                 <td contenteditable="plaintext-only">
-                  {{ formatDateToHumanReadable(tournament.date) }}
+                  {{ formatDateToHumanReadable(tournamentDate) }}
                 </td>
               </tr>
               <tr>
                 <td>Дата закінчення змагань</td>
                 <td contenteditable="plaintext-only">
-                  {{ formatDateToHumanReadable(tournament.date) }}
+                  {{ formatDateToHumanReadable(tournamentDate) }}
                 </td>
               </tr>
               <tr>
@@ -404,7 +404,7 @@ import {
 } from '@/protocol-helpers';
 import Ranking from '@/components/partials/Ranking';
 import playersNames from '../../data.json';
-import { mapActions } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import {
   Star,
@@ -477,11 +477,21 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   watch: {
-    'tournament.name'() {
+    tournamentName() {
       this.updateProtocolTitle();
     },
   },
   computed: {
+    ...mapState(useMainStore, ['currentTournament']),
+    tournamentName() {
+      return this.currentTournament?.name || this.tournament.name;
+    },
+    tournamentDate() {
+      return this.currentTournament?.date || this.tournament.date;
+    },
+    tournamentPortalId() {
+      return this.currentTournament?.portalIdTournament || this.tournament.portalIdTournament;
+    },
     protocolStorageKey() {
       return `protocol_${this.tournament.id}`;
     },
@@ -550,7 +560,7 @@ export default {
     getTeamPlaceInGroups,
     formatDateToHumanReadable,
     async refreshPlayersFromPortal() {
-      let portalId = this.tournament.portalIdTournament;
+      let portalId = this.tournamentPortalId;
       if (!portalId) {
         portalId = prompt('Введіть ID турніру на порталі (з URL: portal.petanque.org.ua/tournament/XXX)');
         if (!portalId) return;
@@ -620,7 +630,7 @@ export default {
       if (!el) return;
       const titleEl = el.querySelector('h2');
       if (titleEl) {
-        titleEl.innerHTML = `Підсумковий протокол <br>\n${this.tournament.name}`;
+        titleEl.innerHTML = `Підсумковий протокол <br>\n${this.tournamentName}`;
       }
     },
     resetProtocol() {
@@ -702,7 +712,7 @@ export default {
       await html2pdf()
         .set({
           margin: [10, 5, 10, 5],
-          filename: `${this.tournament.name}_protocol.pdf`,
+          filename: `${this.tournamentName}_protocol.pdf`,
           pagebreak: { mode: ['avoid-all'], before: '.pdf-page-break', avoid: ['.team-group', 'tr'] },
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, scrollY: 0, useCORS: true },

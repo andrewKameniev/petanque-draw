@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <template v-if="!readOnly">
+      <template v-if="!readOnly && isOwnerOrAdmin">
         <div v-if="canFinishRound" class="team-playoff__actions">
           <button class="team-playoff__advance-btn" @click="finishRound">
             {{ $t('teamPlayoff.finishRound') }}
@@ -122,7 +122,7 @@ export default {
     this.unsubscribeTournament();
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'isOwnerOrAdmin']),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },

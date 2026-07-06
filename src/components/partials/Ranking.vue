@@ -31,7 +31,7 @@
       <div v-if="!isForProtocol && !readOnly" class="ranking-header">
         <div class="ranking-header__actions ml-auto">
           <button
-            v-if="isTournamentOrg && tournament.portalIdTournament"
+            v-if="isTournamentOrg && portalIdTournament"
             class="button is-small btn-purple-outline"
             @click="showExportConfirm = true"
           >
@@ -724,7 +724,7 @@ export default {
       let portalTeams;
       try {
         const res = await fetch(
-          `https://portal.petanque.org.ua/tournament/team_export/${this.tournament.portalIdTournament}?format=json`,
+          `https://portal.petanque.org.ua/tournament/team_export/${this.portalIdTournament}?format=json`,
         );
         if (!res.ok) throw new Error(`Portal responded ${res.status}`);
         const data = await res.json();
@@ -759,7 +759,7 @@ export default {
             Authorization: token,
           },
           body: JSON.stringify({
-            tournament_id: Number(this.tournament.portalIdTournament),
+            tournament_id: Number(this.portalIdTournament),
             teams,
           }),
         });
@@ -800,7 +800,10 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['user']),
+    ...mapState(useMainStore, ['user', 'currentTournament']),
+    portalIdTournament() {
+      return this.currentTournament?.portalIdTournament || this.tournament.portalIdTournament;
+    },
     groupsNames() {
       return tournamentNames;
     },

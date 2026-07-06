@@ -45,17 +45,17 @@
       <div id="protocol" class="mb-3">
         <h2 class="text-center is-size-3 mb-2">
           Підсумковий протокол <br />
-          {{ tournament.name }}
+          {{ tournamentName }}
         </h2>
         <table class="table is-bordered">
           <tbody>
             <tr>
               <td>Дата початку змагань</td>
-              <td contenteditable="plaintext-only">{{ formatDate(tournament.date) || '-' }}</td>
+              <td contenteditable="plaintext-only">{{ formatDate(tournamentDate) || '-' }}</td>
             </tr>
             <tr>
               <td>Дата закінчення змагань</td>
-              <td contenteditable="plaintext-only">{{ formatDate(tournament.date) || '-' }}</td>
+              <td contenteditable="plaintext-only">{{ formatDate(tournamentDate) || '-' }}</td>
             </tr>
             <tr>
               <td>Місце/місто проведення</td>
@@ -235,7 +235,7 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getScoreTotal, getScoreCarreauCount, rankWithTiebreakers, getCombinedTotal, getPlayoffPlaces } from '@/services/tir';
 import { Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp } from 'lucide-vue-next';
@@ -260,6 +260,13 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   computed: {
+    ...mapState(useMainStore, ['currentTournament']),
+    tournamentName() {
+      return this.currentTournament?.name || this.tournament.name;
+    },
+    tournamentDate() {
+      return this.currentTournament?.date || this.tournament.date;
+    },
     participants() {
       return this.tournament.tirParticipants || [];
     },
@@ -405,7 +412,7 @@ export default {
       const { default: html2pdf } = await import('html2pdf.js');
       html2pdf(document.getElementById('protocol'), {
         margin: 1,
-        filename: `${this.tournament.name}_protocol.pdf`,
+        filename: `${this.tournamentName}_protocol.pdf`,
       });
     },
   },

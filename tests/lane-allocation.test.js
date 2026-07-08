@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { assignLanes, drawGroupsRound, generateConstrainedGroups } from '@/services/draw';
+import { assignLanes, drawGroupsRound, generateConstrainedGroups, drawSwissRound } from '@/services/draw';
+import { sortTeams } from '@/helpers';
 
 function makeTeam(title) {
   return {
@@ -16,14 +17,14 @@ function makeTeam(title) {
   };
 }
 
-function makeTournament(teamCount) {
+function makeTournament(teamCount, system = 'groups') {
   const teams = [];
   for (let i = 0; i < teamCount; i++) {
     teams.push(makeTeam(`Team ${i + 1}`));
   }
   return {
     teams,
-    system: 'groups',
+    system,
     useRating: false,
     roundRobinCircle: 1,
     preferences: {
@@ -52,6 +53,62 @@ function simulateRounds(tournament, roundCount) {
   }
   return rounds;
 }
+
+function simulateSwissRounds(tournament, roundCount) {
+  const rounds = [];
+  for (let r = 0; r < roundCount; r++) {
+    const rankingTeams = sortTeams([...tournament.teams]);
+    const { round: games } = drawSwissRound(tournament, rankingTeams, r + 1);
+    if (!games) break;
+    const scheduled = assignLanes(games, tournament);
+    scheduled.forEach((game) => {
+      const t1 = tournament.teams.find((t) => t.title === game.team_1);
+      const t2 = tournament.teams.find((t) => t.title === game.team_2);
+      if (t1 && game.lane != null) t1.lanes.push(game.lane);
+      if (t2 && game.team_2 !== 'Technical' && game.lane != null) t2.lanes.push(game.lane);
+      if (t1) t1.opponents.push(game.team_2);
+      if (t2 && game.team_2 !== 'Technical') {
+        const t2obj = tournament.teams.find((t) => t.title === game.team_2);
+        if (t2obj) t2obj.opponents.push(game.team_1);
+      }
+    });
+    rounds.push(scheduled);
+  }
+  return rounds;
+}
+
+describe('assignLanes - 19 teams Swiss (odd count, full lane utilization)', () => {
+  it('never assigns same lane to a team in consecutive rounds', () => {
+    let consecutiveFound = false;
+    // Run multiple iterations since shuffleArray introduces randomness
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const tournament = makeTournament(19, 'swiss');
+      simulateSwissRounds(tournament, 5);
+
+      for (const team of tournament.teams) {
+        for (let i = 1; i < team.lanes.length; i++) {
+          if (team.lanes[i] === team.lanes[i - 1]) {
+            consecutiveFound = true;
+            break;
+          }
+        }
+        if (consecutiveFound) break;
+      }
+      if (consecutiveFound) break;
+    }
+    expect(consecutiveFound).toBe(false);
+  });
+
+  it('assigns unique lanes within each round', () => {
+    const tournament = makeTournament(19, 'swiss');
+    const rounds = simulateSwissRounds(tournament, 5);
+
+    rounds.forEach((round) => {
+      const lanes = round.filter((g) => g.lane != null).map((g) => g.lane);
+      expect(new Set(lanes).size).toBe(lanes.length);
+    });
+  });
+});
 
 describe('assignLanes - consecutive lane avoidance', () => {
   it('avoids assigning same lane in consecutive rounds when possible', () => {

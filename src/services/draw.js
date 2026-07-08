@@ -362,6 +362,37 @@ export function assignLanes(games, tournament) {
     }
   });
 
+  // Swap-repair: resolve consecutive-lane conflicts by swapping with non-conflicting games
+  function hasConsecutiveConflict(game, lane) {
+    if (isSupermele) {
+      const players = [...(game.team_1_players || []), ...(game.team_2_players || [])];
+      return players.some((p) => getLastLane(p) === lane);
+    }
+    return getLastLane(game.team_1) === lane || getLastLane(game.team_2) === lane;
+  }
+
+  let improved = true;
+  let passes = 0;
+  while (improved && passes < scheduledMatches.length) {
+    improved = false;
+    passes++;
+    for (let i = 0; i < scheduledMatches.length; i++) {
+      const gameA = scheduledMatches[i];
+      if (!hasConsecutiveConflict(gameA, gameA.lane)) continue;
+      for (let j = 0; j < scheduledMatches.length; j++) {
+        if (i === j) continue;
+        const gameB = scheduledMatches[j];
+        if (!hasConsecutiveConflict(gameA, gameB.lane) && !hasConsecutiveConflict(gameB, gameA.lane)) {
+          const tmp = gameA.lane;
+          gameA.lane = gameB.lane;
+          gameB.lane = tmp;
+          improved = true;
+          break;
+        }
+      }
+    }
+  }
+
   technicalGames.forEach((game) => scheduledMatches.push(game));
   return scheduledMatches.sort((a, b) => a.lane - b.lane);
 }

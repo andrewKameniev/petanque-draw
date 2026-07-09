@@ -483,14 +483,15 @@ function sortSwissWithLiveStats(tournament) {
       const t2 = teamMap[game.team_2];
       const s1 = Number(game.team_1_score);
       const s2 = Number(game.team_2_score);
+      const isTechnical = game.team_2 === 'Technical';
       if (t1) {
         t1.opponents.push(game.team_2);
         t1.pointsPlus += s1;
         t1.pointsMinus += s2;
-        t1.gamesPlayed++;
+        if (!isTechnical) t1.gamesPlayed++;
         if (s1 > s2) t1.wins++;
       }
-      if (t2 && game.team_2 !== 'Technical') {
+      if (t2 && !isTechnical) {
         t2.opponents.push(game.team_1);
         t2.pointsPlus += s2;
         t2.pointsMinus += s1;

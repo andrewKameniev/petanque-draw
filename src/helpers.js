@@ -477,8 +477,8 @@ function sortSwissWithLiveStats(tournament) {
 
   tournament.games.forEach((roundGames) => {
     roundGames.forEach((game) => {
-      if (game.status !== 'finished') return;
       if (game.team_1_score == null || game.team_2_score == null) return;
+      if (game.status === 'in_progress' || game.status === 'not_started') return;
       const t1 = teamMap[game.team_1];
       const t2 = teamMap[game.team_2];
       const s1 = Number(game.team_1_score);

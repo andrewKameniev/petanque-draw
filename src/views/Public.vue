@@ -1322,12 +1322,18 @@ export default {
   line-height: 1;
 }
 
-.match-lane-left--active,
-.match-lane-left--finished {
+.match-lane-left--active {
   top: 8px;
   transform: none;
   color: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.match-lane-left--finished {
+  top: 8px;
+  transform: none;
+  color: var(--color-success);
+  border-color: var(--color-success);
 }
 
 .cadrage-public-section {

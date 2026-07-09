@@ -293,9 +293,7 @@
                 v-for="(team, index) in rankingTeams"
                 :key="team.title"
                 :class="{
-                  'playoff-highlight':
-                    (tournament.playOff || tournament.preferences?.playOffEnabled) &&
-                    index < tournament.preferences?.playOffTeams,
+                  'playoff-highlight': isPrizeHighlighted(index),
                   'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
                   'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
                   'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,

@@ -171,7 +171,12 @@
               <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
                 $t('teamPlayoff.matchFinished')
               }}</span>
-              <div v-if="game.score_history && game.score_history.length" class="score-history">
+              <div
+                v-if="
+                  tournament.preferences.cochonettesEnabledPlayoff && game.score_history && game.score_history.length
+                "
+                class="score-history"
+              >
                 <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
                   <span class="score-history__num">{{ i + 1 }}</span>
                   <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>

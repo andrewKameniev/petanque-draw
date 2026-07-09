@@ -488,7 +488,7 @@ function sortSwissWithLiveStats(tournament) {
         t1.opponents.push(game.team_2);
         t1.pointsPlus += s1;
         t1.pointsMinus += s2;
-        if (!isTechnical) t1.gamesPlayed++;
+        t1.gamesPlayed++;
         if (s1 > s2) t1.wins++;
       }
       if (t2 && !isTechnical) {

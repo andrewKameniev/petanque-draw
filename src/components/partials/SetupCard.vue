@@ -791,7 +791,7 @@ export default {
   cursor: pointer;
 }
 
-.setup-card__timer-header input[type='checkbox'] {
+.setup-card__timer-header input[type='checkbox']:not(:checked) {
   background-color: #fff;
 }
 

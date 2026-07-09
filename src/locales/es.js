@@ -123,6 +123,8 @@ export default {
     points: 'Puntos',
     pointsMobile: 'P',
     pointsTooltip: 'Puntos anotados: puntos recibidos',
+    games: 'Partidos',
+    gamesMobile: 'J',
     wins: 'Victorias',
     winsMobile: 'V',
     team: 'Equipo',

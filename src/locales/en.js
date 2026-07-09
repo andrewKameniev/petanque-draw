@@ -124,6 +124,8 @@ export default {
     points: 'Points',
     pointsMobile: 'P',
     pointsTooltip: 'Points scored: points conceded',
+    games: 'Games',
+    gamesMobile: 'G',
     wins: 'Wins',
     winsMobile: 'W',
     team: 'Team',

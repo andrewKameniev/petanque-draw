@@ -137,6 +137,8 @@ export default {
     points: 'Очки',
     pointsMobile: 'О',
     pointsTooltip: 'Набрані очки: пропущені очки',
+    games: 'Ігри',
+    gamesMobile: 'І',
     wins: 'Перемоги',
     winsMobile: 'П',
     team: 'Команда',

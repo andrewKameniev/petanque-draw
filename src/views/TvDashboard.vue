@@ -393,6 +393,7 @@
             <tr>
               <th>#</th>
               <th>Команда</th>
+              <th>І</th>
               <th>В</th>
               <th>КБ</th>
               <th>МБ</th>
@@ -410,6 +411,7 @@
             >
               <td>{{ currentTablePage * tablePageSize + index + 1 }}</td>
               <td class="tv__table-name">{{ formatName(team.title) }}</td>
+              <td>{{ team.gamesPlayed }}</td>
               <td>{{ team.wins }}</td>
               <td>{{ team.buhgolts }}</td>
               <td>{{ team.smallBuhgolts }}</td>

@@ -502,15 +502,26 @@ function sortSwissWithLiveStats(tournament) {
     }
   });
 
+  const completedRounds = activeRoundIdx >= 0 ? tournament.games.slice(0, activeRoundIdx) : tournament.games;
+  const pastGamesCount = {};
+  tournament.teams.forEach((t) => {
+    pastGamesCount[t.title] = 0;
+  });
+  completedRounds.forEach((round) => {
+    round.forEach((game) => {
+      if (game.team_1 in pastGamesCount) pastGamesCount[game.team_1]++;
+      if (game.team_2 !== 'Technical' && game.team_2 in pastGamesCount) pastGamesCount[game.team_2]++;
+    });
+  });
+
   const teams = tournament.teams.map((team) => {
-    const pastGames = (team.opponents || []).filter((o) => o !== 'Technical').length;
     return {
       ...team,
       wins: team.wins + liveWins[team.title],
       opponents: [...(team.opponents || []), ...liveOpponents[team.title]],
       pointsPlus: team.pointsPlus + livePointsPlus[team.title],
       pointsMinus: team.pointsMinus + livePointsMinus[team.title],
-      gamesPlayed: pastGames + liveGamesPlayed[team.title],
+      gamesPlayed: pastGamesCount[team.title] + liveGamesPlayed[team.title],
     };
   });
 

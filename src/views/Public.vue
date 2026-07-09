@@ -1332,8 +1332,8 @@ export default {
 .match-lane-left--finished {
   top: 8px;
   transform: none;
-  color: var(--color-success);
-  border-color: var(--color-success);
+  color: var(--color-match-winner);
+  border-color: var(--color-match-winner);
 }
 
 .cadrage-public-section {
@@ -1635,6 +1635,10 @@ export default {
   padding-bottom: 24px;
   min-height: 200px;
   overflow-x: auto;
+}
+
+.tabs-content-area:has(.ranking-tooltip) {
+  overflow: visible;
 }
 
 .tabs-content-area :deep(table) {

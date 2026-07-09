@@ -20,7 +20,7 @@ const defaultPreferences = {
   playB: false,
   timeLimitEnabled: false,
   timeLimit: 45,
-  playoffTimeLimit: 30,
+  playoffTimeLimit: 70,
   noTimeLimitFinale: false,
   cochonettesEnabled: false,
   cochonettesEnabledPlayoff: false,

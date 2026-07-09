@@ -149,7 +149,8 @@ export default {
       this.$emit('distanceChange', newValue);
     },
     currentMan() {
-      const throws = this.team1.players?.[0]?.stat?.[this.currentMan];
+      const activePlayer = this.team1.players?.find((p) => !p.wasChanged);
+      const throws = activePlayer?.stat?.[this.currentMan];
       this.localManDistance = throws?.[0]?.distance || null;
     },
   },
@@ -181,6 +182,10 @@ export default {
       this.isHorizontalSwipe = false;
     },
     onTouchMove(event) {
+      if (event.touches.length > 1) {
+        this.isHorizontalSwipe = false;
+        return;
+      }
       const deltaX = Math.abs(event.touches[0].clientX - this.startX);
       const deltaY = Math.abs(event.touches[0].clientY - this.startY);
       if (deltaX > 10 && deltaX > deltaY) {
@@ -190,6 +195,7 @@ export default {
     },
     onTouchEnd(event) {
       if (!this.isHorizontalSwipe) return;
+      this.isHorizontalSwipe = false;
 
       const endX = event.changedTouches[0].clientX;
       const deltaX = endX - this.startX;

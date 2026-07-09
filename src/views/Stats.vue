@@ -262,7 +262,8 @@ export default {
       };
     },
     manCount() {
-      return this.team1.players?.[0]?.stat?.length || 0;
+      const activePlayer = this.team1.players?.find((p) => !p.wasChanged);
+      return activePlayer?.stat?.length || 0;
     },
     throwInfo() {
       return {
@@ -523,6 +524,7 @@ export default {
 
       const newPlayer = {
         name: newPlayerName,
+        replacedFrom: playerIndex,
         stat: [],
       };
       for (let i = 0; i < this.currentMan; i++) {
@@ -572,7 +574,8 @@ export default {
     },
     addPlayersStats(players) {
       players.forEach((player, index) => {
-        if (index === 2) {
+        const effectiveIndex = player.replacedFrom !== undefined ? player.replacedFrom : index;
+        if (effectiveIndex === 2) {
           this.throwInfo.type = 't';
         } else {
           this.throwInfo.type = 'p';
@@ -590,7 +593,8 @@ export default {
       }
     },
     nextMan() {
-      if (this.team1.players[0].stat.length <= this.currentMan) {
+      const activePlayer = this.team1.players.find((p) => !p.wasChanged);
+      if (activePlayer && activePlayer.stat.length <= this.currentMan) {
         this.addPlayersStats(this.team1.players);
         this.addPlayersStats(this.team2.players);
         if (this.currentMan) {

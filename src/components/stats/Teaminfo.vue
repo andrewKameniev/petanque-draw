@@ -51,12 +51,12 @@
         </div>
         <div v-else class="team-card__stat-line">
           <span class="team-card__stat-badge team-card__stat-badge--points">
-            P: vol {{ commonTeamStat.points.volume / team.players.length }}% int
-            {{ commonTeamStat.points.intensity / team.players.length }}%
+            P: vol {{ commonTeamStat.points.volume / activePlayers.length }}% int
+            {{ commonTeamStat.points.intensity / activePlayers.length }}%
           </span>
           <span class="team-card__stat-badge team-card__stat-badge--tirs">
-            T: vol {{ commonTeamStat.tirs.volume / team.players.length }}% int
-            {{ commonTeamStat.tirs.intensity / team.players.length }}%
+            T: vol {{ commonTeamStat.tirs.volume / activePlayers.length }}% int
+            {{ commonTeamStat.tirs.intensity / activePlayers.length }}%
           </span>
         </div>
       </div>
@@ -383,7 +383,7 @@ export default {
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background: var(--color-bg-input);
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 700;
   text-align: center;
   color: var(--color-text);
@@ -495,7 +495,7 @@ export default {
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background: var(--color-bg-input);
-  font-size: 1rem;
+  font-size: 16px;
   color: var(--color-text);
   outline: none;
 }

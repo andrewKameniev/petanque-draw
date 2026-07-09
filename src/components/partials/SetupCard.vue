@@ -791,6 +791,10 @@ export default {
   cursor: pointer;
 }
 
+.setup-card__timer-header input[type='checkbox'] {
+  background-color: #fff;
+}
+
 .setup-card__timer-body {
   margin-top: 0.75rem;
   padding-top: 0.75rem;

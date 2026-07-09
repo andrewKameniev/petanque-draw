@@ -249,6 +249,7 @@ export default {
     timeLimitHint: 'Максимальна тривалість гри в хвилинах',
     timeLimitSwiss: 'Швейцарські раунди',
     timeLimitPlayoff: 'Плей-оф',
+    noTimeLimit: 'Без обмеження',
     noTimeLimitFinale: 'Без обмеження часу у фіналі',
     perRoundScoring: 'Рахунок по раундам (групи)',
     perRoundScoringGeneric: 'Рахунок по раундам',

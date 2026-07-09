@@ -249,6 +249,7 @@ export default {
     timeLimitHint: 'Maximum game duration in minutes',
     timeLimitSwiss: 'Swiss rounds',
     timeLimitPlayoff: 'Playoff',
+    noTimeLimit: 'No limit',
     noTimeLimitFinale: 'No time limit in finale',
     perRoundScoring: 'Per-round scoring (groups)',
     perRoundScoringGeneric: 'Per-round scoring',

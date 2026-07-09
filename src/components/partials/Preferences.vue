@@ -87,6 +87,7 @@
                   <label class="prefs__label prefs__label--sub">{{ $t('modals.timeLimitPlayoff') }}</label>
                   <div class="select is-fullwidth">
                     <select v-model.number="tournament.preferences.playoffTimeLimit">
+                      <option :value="0">{{ $t('modals.noTimeLimit') }}</option>
                       <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
                     </select>
                   </div>

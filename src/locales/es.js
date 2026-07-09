@@ -248,6 +248,7 @@ export default {
     timeLimitHint: 'Duración máxima de la partida en minutos',
     timeLimitSwiss: 'Rondas suizas',
     timeLimitPlayoff: 'Play-off',
+    noTimeLimit: 'Sin límite',
     noTimeLimitFinale: 'Sin límite de tiempo en la final',
     perRoundScoring: 'Puntuación por ronda (grupos)',
     perRoundScoringGeneric: 'Puntuación por ronda',

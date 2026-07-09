@@ -251,6 +251,7 @@ export default {
     timeLimitHint: 'Durée maximale de la partie en minutes',
     timeLimitSwiss: 'Tours suisses',
     timeLimitPlayoff: 'Play-off',
+    noTimeLimit: 'Sans limite',
     noTimeLimitFinale: 'Pas de limite de temps en finale',
     perRoundScoring: 'Score par mène (poules)',
     perRoundScoringGeneric: 'Score par mène',

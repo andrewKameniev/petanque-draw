@@ -461,47 +461,59 @@ function sortSwissWithLiveStats(tournament) {
     return sortTeams(tournament.teams.map((t) => ({ ...t, gamesPlayed: 0 })));
   }
 
-  const teamMap = {};
-  tournament.teams.forEach((team) => {
-    teamMap[team.title] = {
+  const activeRoundIdx = tournament.roundIsActive ? tournament.games.length - 1 : -1;
+  const activeRoundGames = activeRoundIdx >= 0 ? tournament.games[activeRoundIdx] : [];
+
+  const liveWins = {};
+  const livePointsPlus = {};
+  const livePointsMinus = {};
+  const liveOpponents = {};
+  const liveGamesPlayed = {};
+
+  tournament.teams.forEach((t) => {
+    liveWins[t.title] = 0;
+    livePointsPlus[t.title] = 0;
+    livePointsMinus[t.title] = 0;
+    liveOpponents[t.title] = [];
+    liveGamesPlayed[t.title] = 0;
+  });
+
+  activeRoundGames.forEach((game) => {
+    if (game.team_1_score == null || game.team_2_score == null) return;
+    if (game.status === 'in_progress' || game.status === 'not_started') return;
+    const t1 = game.team_1;
+    const t2 = game.team_2;
+    const s1 = Number(game.team_1_score);
+    const s2 = Number(game.team_2_score);
+    const isTechnical = t2 === 'Technical';
+    if (t1 in liveWins) {
+      liveOpponents[t1].push(t2);
+      livePointsPlus[t1] += s1;
+      livePointsMinus[t1] += s2;
+      liveGamesPlayed[t1]++;
+      if (s1 > s2) liveWins[t1]++;
+    }
+    if (!isTechnical && t2 in liveWins) {
+      liveOpponents[t2].push(t1);
+      livePointsPlus[t2] += s2;
+      livePointsMinus[t2] += s1;
+      liveGamesPlayed[t2]++;
+      if (s2 > s1) liveWins[t2]++;
+    }
+  });
+
+  const teams = tournament.teams.map((team) => {
+    const pastGames = (team.opponents || []).filter((o) => o !== 'Technical').length;
+    return {
       ...team,
-      wins: 0,
-      opponents: [],
-      pointsPlus: 0,
-      pointsMinus: 0,
-      buhgolts: 0,
-      smallBuhgolts: 0,
-      gamesPlayed: 0,
+      wins: team.wins + liveWins[team.title],
+      opponents: [...(team.opponents || []), ...liveOpponents[team.title]],
+      pointsPlus: team.pointsPlus + livePointsPlus[team.title],
+      pointsMinus: team.pointsMinus + livePointsMinus[team.title],
+      gamesPlayed: pastGames + liveGamesPlayed[team.title],
     };
   });
 
-  tournament.games.forEach((roundGames) => {
-    roundGames.forEach((game) => {
-      if (game.team_1_score == null || game.team_2_score == null) return;
-      if (game.status === 'in_progress' || game.status === 'not_started') return;
-      const t1 = teamMap[game.team_1];
-      const t2 = teamMap[game.team_2];
-      const s1 = Number(game.team_1_score);
-      const s2 = Number(game.team_2_score);
-      const isTechnical = game.team_2 === 'Technical';
-      if (t1) {
-        t1.opponents.push(game.team_2);
-        t1.pointsPlus += s1;
-        t1.pointsMinus += s2;
-        t1.gamesPlayed++;
-        if (s1 > s2) t1.wins++;
-      }
-      if (t2 && !isTechnical) {
-        t2.opponents.push(game.team_1);
-        t2.pointsPlus += s2;
-        t2.pointsMinus += s1;
-        t2.gamesPlayed++;
-        if (s2 > s1) t2.wins++;
-      }
-    });
-  });
-
-  const teams = Object.values(teamMap);
   return sortTeams(teams);
 }
 

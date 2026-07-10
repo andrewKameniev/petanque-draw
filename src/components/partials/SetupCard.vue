@@ -780,6 +780,7 @@ export default {
 
 .setup-card__timer-section {
   margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
   padding: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 0.5rem;
@@ -794,6 +795,10 @@ export default {
   font-size: 1rem;
   color: var(--color-text);
   cursor: pointer;
+}
+
+.setup-card__timer-header svg {
+  color: var(--color-text-muted, #888);
 }
 
 .setup-card__timer-header--static {

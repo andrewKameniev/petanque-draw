@@ -207,12 +207,6 @@
       <span class="setup-card__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
     </div>
 
-    <div v-if="tournament.system === 'swiss' && !localSetupPlayOff" class="setup-card__field">
-      <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
-      <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1" />
-      <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
-    </div>
-
     <div v-if="tournament.system !== 'tir'" class="setup-card__timer-section">
       <label class="setup-card__timer-header">
         <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
@@ -273,6 +267,12 @@
     </button>
 
     <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
+
+      <div v-if="tournament.system === 'swiss' && !localSetupPlayOff" class="setup-card__field">
+        <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
+        <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1" />
+        <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
+      </div>
 
       <div class="setup-card__field">
         <label v-if="tournament.system !== 'playoff'" class="setup-card__checkbox">

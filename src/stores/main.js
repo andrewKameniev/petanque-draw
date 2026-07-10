@@ -29,7 +29,7 @@ const defaultPreferences = {
   groupFormat: 'round_robin',
   groupSwissRounds: 3,
   swissRoundsCount: null,
-  prizePlaces: null,
+  prizePlaces: 3,
   isTestTournament: false,
   cadrageLosersToB: false,
 };

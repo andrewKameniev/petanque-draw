@@ -186,9 +186,7 @@
             {{ $t('games.finishRound') }}
           </button>
           <a
-            v-if="
-              !tournament.playOff && (tournament.system !== 'swiss' || tournament.groups?.length || tournament.barrage)
-            "
+            v-if="!tournament.playOff"
             href="#"
             class="restore-round-link"
             @click.prevent="showRestoreConfirm = true"

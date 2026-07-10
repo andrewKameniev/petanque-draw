@@ -4,10 +4,10 @@
       <div class="modal-background" @click.self="$emit('close-modal')"></div>
       <div class="modal-content">
         <div class="box">
+          <button class="modal-close is-large" aria-label="close" @click="$emit('close-modal')"></button>
           <slot></slot>
         </div>
       </div>
-      <button class="modal-close is-large" aria-label="close" @click="$emit('close-modal')"></button>
     </div>
   </Teleport>
 </template>
@@ -36,14 +36,20 @@ export default {
   overflow-y: auto;
 }
 
-@media (max-width: 768px) {
-  .modal-close {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 10001;
-    background: rgb(0 0 0 / 40%);
-    border-radius: 50%;
-  }
+.box {
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  background: var(--color-border, rgb(0 0 0 / 10%));
+  border-radius: 50%;
+}
+
+.modal-close:hover {
+  background: var(--color-text-muted, rgb(0 0 0 / 30%));
 }
 </style>

@@ -399,6 +399,11 @@ export default {
   gap: 0.5rem;
 }
 
+.confirm-playoff__inline-field .confirm-playoff__select {
+  max-width: none;
+  width: auto;
+}
+
 .confirm-playoff__collapse-toggle {
   display: inline-flex;
   align-items: center;

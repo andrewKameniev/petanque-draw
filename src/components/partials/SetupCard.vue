@@ -406,6 +406,14 @@ export default {
         this.localGroupRoundsCount = this.defaultGroupRounds;
       }
     },
+    optimalSwissRounds: {
+      handler(val) {
+        if (!this.tournament.preferences.swissRoundsCount) {
+          this.tournament.preferences.swissRoundsCount = val;
+        }
+      },
+      immediate: true,
+    },
   },
   computed: {
     localTeamsInGroup: {
@@ -549,6 +557,11 @@ export default {
       if (!this.qualifyPerGroupEven) return this.$t('teams.qualifyUnevenWarning');
       const perGroup = playOffTeams / this.groupCount;
       return this.$t('teams.qualifyPerGroup', { count: perGroup });
+    },
+    optimalSwissRounds() {
+      const count = this.tournament.teams?.length || 0;
+      if (count < 2) return 1;
+      return Math.ceil(Math.log2(count));
     },
   },
   methods: {

@@ -134,8 +134,8 @@
       class="setup-card__timer-section"
     >
       <label class="setup-card__timer-header">
-        <input type="checkbox" v-model="localSetupPlayOff" data-testid="checkbox-playoff" />
         <Trophy :size="18" />
+        <input type="checkbox" v-model="localSetupPlayOff" data-testid="checkbox-playoff" />
         <span>{{ $t('setup.enablePlayOff') }}</span>
       </label>
       <div v-if="localSetupPlayOff" class="setup-card__timer-body">
@@ -210,8 +210,8 @@
 
     <div v-if="tournament.system !== 'tir'" class="setup-card__timer-section">
       <label class="setup-card__timer-header">
-        <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
         <Timer :size="18" />
+        <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
         <span>{{ $t('modals.timeLimit') }}</span>
       </label>
       <span class="setup-card__hint">{{ $t('modals.timeLimitHint') }}</span>

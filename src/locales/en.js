@@ -234,6 +234,8 @@ export default {
     tournamentPreferences: 'Tournament preferences',
     maxScore: 'Maximum score',
     technicalScore: 'Technical score',
+    technicalScoreWinner: 'Winner',
+    technicalScoreLoser: 'Loser',
     technicalScoreHint: 'Score awarded for a technical win (walkover)',
     maxScoreHint: 'Game ends when a team reaches this score',
     playOffTeams: 'How many teams advance to playoff?',

@@ -55,11 +55,11 @@
             <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
             <div class="prefs__inputs prefs__inputs--double">
               <div class="prefs__input-group">
-                <span class="prefs__input-label">{{ $t('games.first') }}</span>
+                <span class="prefs__input-label">{{ $t('modals.technicalScoreWinner') }}</span>
                 <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number" />
               </div>
               <div class="prefs__input-group">
-                <span class="prefs__input-label">{{ $t('games.technical') }} 2</span>
+                <span class="prefs__input-label">{{ $t('modals.technicalScoreLoser') }}</span>
                 <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number" />
               </div>
             </div>

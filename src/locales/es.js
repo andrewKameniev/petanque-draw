@@ -233,6 +233,8 @@ export default {
     tournamentPreferences: 'Preferencias del torneo',
     maxScore: 'Puntuación máxima',
     technicalScore: 'Puntuación técnica',
+    technicalScoreWinner: 'Ganador',
+    technicalScoreLoser: 'Perdedor',
     technicalScoreHint: 'Puntuación concedida por una victoria técnica (walkover)',
     maxScoreHint: 'La partida termina cuando un equipo alcanza esta puntuación',
     playOffTeams: '¿Cuántos equipos avanzan al play-off?',

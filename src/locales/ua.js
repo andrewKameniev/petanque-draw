@@ -234,6 +234,8 @@ export default {
     tournamentPreferences: 'Налаштування турніру',
     maxScore: 'Максимально можливий рахунок',
     technicalScore: 'Рахунок для технічної перемоги',
+    technicalScoreWinner: 'Переможець',
+    technicalScoreLoser: 'Програвший',
     technicalScoreHint: 'Рахунок, який присвоюється за технічну перемогу (неявка)',
     maxScoreHint: 'Гра завершується, коли команда досягає цього рахунку',
     playOffTeams: 'Скільки команд переходять у плей-оф?',

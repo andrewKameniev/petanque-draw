@@ -236,6 +236,8 @@ export default {
     tournamentPreferences: 'Préférences du tournoi',
     maxScore: 'Score maximum',
     technicalScore: 'Score technique',
+    technicalScoreWinner: 'Gagnant',
+    technicalScoreLoser: 'Perdant',
     technicalScoreHint: 'Score attribué pour une victoire technique (forfait)',
     maxScoreHint: "La partie se termine lorsqu'une équipe atteint ce score",
     playOffTeams: "Combien d'équipes avancent en play-off ?",

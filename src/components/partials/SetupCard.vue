@@ -131,13 +131,14 @@
         tournament.system !== 'poules' &&
         tournament.system !== 'playoff'
       "
-      class="setup-card__field"
+      class="setup-card__timer-section"
     >
-      <label class="setup-card__checkbox">
+      <label class="setup-card__timer-header">
         <input type="checkbox" v-model="localSetupPlayOff" data-testid="checkbox-playoff" />
-        {{ $t('setup.enablePlayOff') }}
+        <Trophy :size="18" />
+        <span>{{ $t('setup.enablePlayOff') }}</span>
       </label>
-      <div v-if="localSetupPlayOff" class="setup-card__sub">
+      <div v-if="localSetupPlayOff" class="setup-card__timer-body">
         <div v-if="!localWithBarrage">
           <label class="setup-card__label">{{ $t('modals.playOffTeams') }}</label>
           <select
@@ -300,7 +301,7 @@
         <label class="setup-card__label">{{ $t('modals.technicalScore') }}</label>
         <div class="setup-card__row">
           <div class="setup-card__row-item">
-            <span class="setup-card__hint">{{ $t('games.first') }}</span>
+            <span class="setup-card__hint">{{ $t('modals.technicalScoreWinner') }}</span>
             <input
               class="setup-card__input"
               type="number"
@@ -309,7 +310,7 @@
             />
           </div>
           <div class="setup-card__row-item">
-            <span class="setup-card__hint">{{ $t('games.technical') }} 2</span>
+            <span class="setup-card__hint">{{ $t('modals.technicalScoreLoser') }}</span>
             <input
               class="setup-card__input"
               type="number"
@@ -358,11 +359,11 @@
 
 <script>
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
-import { Play, Trash2, ChevronDown, Timer, ListOrdered } from 'lucide-vue-next';
+import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy } from 'lucide-vue-next';
 
 export default {
   name: 'SetupCard',
-  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered },
+  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy },
   emits: [
     'draw',
     'remove',
@@ -810,7 +811,7 @@ export default {
 }
 
 .setup-card__collapse-content {
-  padding-top: 0.25rem;
+  padding-top: 0.75rem;
 }
 
 .setup-card__nested {

@@ -163,7 +163,10 @@
               }"
               >{{ game.team_2 }}</span
             >
-            <div v-if="game.score_history && game.score_history.length" class="score-history">
+            <div
+              v-if="activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length"
+              class="score-history"
+            >
               <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
                 <span class="score-history__num">{{ i + 1 }}</span>
                 <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -306,7 +309,14 @@
                 <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
                   $t('teamPlayoff.matchFinished')
                 }}</span>
-                <div v-if="game.score_history && game.score_history.length" class="score-history">
+                <div
+                  v-if="
+                    activeTournamentView.preferences.cochonettesEnabled &&
+                    game.score_history &&
+                    game.score_history.length
+                  "
+                  class="score-history"
+                >
                   <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
                     <span class="score-history__num">{{ i + 1 }}</span>
                     <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -382,7 +392,10 @@
             <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
               $t('teamPlayoff.matchFinished')
             }}</span>
-            <div v-if="game.score_history && game.score_history.length" class="score-history">
+            <div
+              v-if="activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length"
+              class="score-history"
+            >
               <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
                 <span class="score-history__num">{{ i + 1 }}</span>
                 <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -1322,12 +1335,18 @@ export default {
   line-height: 1;
 }
 
-.match-lane-left--active,
-.match-lane-left--finished {
+.match-lane-left--active {
   top: 8px;
   transform: none;
   color: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.match-lane-left--finished {
+  top: 8px;
+  transform: none;
+  color: var(--color-match-winner);
+  border-color: var(--color-match-winner);
 }
 
 .cadrage-public-section {
@@ -1629,6 +1648,10 @@ export default {
   padding-bottom: 24px;
   min-height: 200px;
   overflow-x: auto;
+}
+
+.tabs-content-area:has(.ranking-tooltip) {
+  overflow: visible;
 }
 
 .tabs-content-area :deep(table) {

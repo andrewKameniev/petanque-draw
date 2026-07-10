@@ -206,6 +206,7 @@
                 <tr>
                   <th>#</th>
                   <th>{{ $t('ranking.team') }}</th>
+                  <th align="center">{{ $t('ranking.games') }}</th>
                   <th align="center">{{ $t('ranking.wins') }}</th>
                   <th align="center">{{ $t('ranking.buh') }}</th>
                   <th align="center">{{ $t('ranking.sbuh') }}</th>
@@ -225,6 +226,7 @@
                 >
                   <td>{{ ci * rankingChunkSize + index + 1 }}</td>
                   <td>{{ teamTitles[team.title] }}</td>
+                  <td align="center">{{ team.gamesPlayed }}</td>
                   <td align="center" class="td-highlight">{{ team.wins }}</td>
                   <td align="center">{{ team.buhgolts }}</td>
                   <td align="center">{{ team.smallBuhgolts }}</td>
@@ -243,6 +245,10 @@
               <tr>
                 <th>#</th>
                 <th>{{ $t('ranking.team') }}</th>
+                <th align="center">
+                  <span class="is-hidden-mobile">{{ $t('ranking.games') }}</span>
+                  <span class="is-hidden-tablet">{{ $t('ranking.gamesMobile') }}</span>
+                </th>
                 <th align="center">
                   <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                   <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
@@ -287,6 +293,7 @@
                 v-for="(team, index) in rankingTeams"
                 :key="team.title"
                 :class="{
+                  'playoff-highlight': isPrizeHighlighted(index),
                   'place-gold': !tournament.playOff && tournament.tournamentIsFinished && index === 0,
                   'place-silver': !tournament.playOff && tournament.tournamentIsFinished && index === 1,
                   'place-bronze': !tournament.playOff && tournament.tournamentIsFinished && index === 2,
@@ -299,6 +306,7 @@
                   <span :class="{ 'text-line-through': team.withdrawn }">{{ team.title }}</span>
                   <span v-if="team.withdrawn" class="withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
                 </td>
+                <td align="center">{{ team.gamesPlayed }}</td>
                 <td align="center" class="td-highlight">{{ team.wins }}</td>
                 <td align="center">{{ team.buhgolts }}</td>
                 <td align="center">{{ team.smallBuhgolts }}</td>

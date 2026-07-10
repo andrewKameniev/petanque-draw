@@ -4,17 +4,17 @@
       <h2 class="prefs__title">{{ $t('modals.tournamentPreferences') }}</h2>
       <div class="prefs__body">
         <div class="prefs__list">
-          <div class="prefs__item">
-            <label class="prefs__label">
+          <div class="prefs__section">
+            <label class="prefs__section-header">
+              <Trophy :size="18" />
               <input
                 type="checkbox"
                 v-model="tournament.preferences.playOffEnabled"
                 :disabled="!!tournament.playOff"
-                style="margin-right: 0.5rem"
               />
-              {{ $t('setup.enablePlayOff') }}
+              <span>{{ $t('setup.enablePlayOff') }}</span>
             </label>
-            <div v-if="tournament.preferences.playOffEnabled" class="prefs__nested">
+            <div v-if="tournament.preferences.playOffEnabled" class="prefs__section-body">
               <label class="prefs__label">{{ $t('modals.playOffTeams') }}</label>
               <input
                 class="prefs__input"
@@ -28,6 +28,87 @@
               }}</span>
             </div>
           </div>
+
+          <div class="prefs__section">
+            <label class="prefs__section-header">
+              <Timer :size="18" />
+              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
+              <span>{{ $t('modals.timeLimit') }}</span>
+            </label>
+            <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
+            <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__section-body">
+              <div class="prefs__inputs" :class="{ 'prefs__inputs--double': tournament.preferences.playOffEnabled }">
+                <div class="prefs__input-group">
+                  <label class="prefs__label prefs__label--sub">{{
+                    tournament.preferences.playOffEnabled ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit')
+                  }}</label>
+                  <div class="select is-fullwidth">
+                    <select v-model.number="tournament.preferences.timeLimit">
+                      <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div v-if="tournament.preferences.playOffEnabled" class="prefs__input-group">
+                  <label class="prefs__label prefs__label--sub">{{ $t('modals.timeLimitPlayoff') }}</label>
+                  <div class="select is-fullwidth">
+                    <select v-model.number="tournament.preferences.playoffTimeLimit">
+                      <option :value="0">{{ $t('modals.noTimeLimit') }}</option>
+                      <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <label v-if="tournament.preferences.playOffEnabled" class="prefs__label prefs__label--sub">
+                <input
+                  type="checkbox"
+                  v-model="tournament.preferences.noTimeLimitFinale"
+                  style="margin-right: 0.5rem"
+                />
+                {{ $t('modals.noTimeLimitFinale') }}
+              </label>
+              <div class="mt-3">
+                <label class="prefs__label">{{ $t('modals.cochonettes') }}</label>
+                <div class="select is-fullwidth">
+                  <select v-model.number="tournament.preferences.cochonettes">
+                    <option :value="1">1</option>
+                    <option :value="2">2</option>
+                  </select>
+                </div>
+                <span class="prefs__hint">{{ $t('modals.cochonettesHint') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="prefs__section">
+            <div class="prefs__section-header prefs__section-header--static">
+              <ListOrdered :size="18" />
+              <span>{{ $t('modals.perRoundScoringGeneric') }}</span>
+            </div>
+            <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
+            <div class="prefs__section-body">
+              <label v-if="tournament.system !== 'playoff'" class="prefs__label">
+                <input
+                  type="checkbox"
+                  v-model="tournament.preferences.cochonettesEnabled"
+                  style="margin-right: 0.5rem"
+                />
+                {{ $t('modals.perRoundScoringStage') }}
+              </label>
+              <label
+                v-if="tournament.preferences.playOffEnabled || tournament.playOff"
+                class="prefs__label"
+                style="margin-top: 0.5rem"
+              >
+                <input
+                  type="checkbox"
+                  v-model="tournament.preferences.cochonettesEnabledPlayoff"
+                  style="margin-right: 0.5rem"
+                />
+                {{ $t('modals.timeLimitPlayoff') }}
+              </label>
+            </div>
+          </div>
+
           <div class="prefs__item" v-if="tournament.system === 'swiss'">
             <label class="prefs__label">{{ $t('modals.swissRoundsCount') }}</label>
             <input
@@ -55,81 +136,15 @@
             <label class="prefs__label">{{ $t('modals.technicalScore') }}</label>
             <div class="prefs__inputs prefs__inputs--double">
               <div class="prefs__input-group">
-                <span class="prefs__input-label">{{ $t('games.first') }}</span>
+                <span class="prefs__input-label">{{ $t('modals.technicalScoreWinner') }}</span>
                 <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number" />
               </div>
               <div class="prefs__input-group">
-                <span class="prefs__input-label">{{ $t('games.technical') }} 2</span>
+                <span class="prefs__input-label">{{ $t('modals.technicalScoreLoser') }}</span>
                 <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number" />
               </div>
             </div>
             <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
-          </div>
-          <div class="prefs__item">
-            <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" style="margin-right: 0.5rem" />
-              {{ $t('modals.timeLimit') }}
-            </label>
-            <span class="prefs__hint">{{ $t('modals.timeLimitHint') }}</span>
-            <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__nested">
-              <div class="prefs__inputs" :class="{ 'prefs__inputs--double': tournament.preferences.playOffEnabled }">
-                <div class="prefs__input-group">
-                  <label class="prefs__label prefs__label--sub">{{
-                    tournament.preferences.playOffEnabled ? $t('modals.timeLimitSwiss') : $t('modals.timeLimit')
-                  }}</label>
-                  <div class="select is-fullwidth">
-                    <select v-model.number="tournament.preferences.timeLimit">
-                      <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div v-if="tournament.preferences.playOffEnabled" class="prefs__input-group">
-                  <label class="prefs__label prefs__label--sub">{{ $t('modals.timeLimitPlayoff') }}</label>
-                  <div class="select is-fullwidth">
-                    <select v-model.number="tournament.preferences.playoffTimeLimit">
-                      <option v-for="t in timeLimitOptions" :key="t" :value="t">{{ t }} {{ $t('modals.min') }}</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <label v-if="tournament.preferences.playOffEnabled" class="prefs__label prefs__label--sub">
-                <input
-                  type="checkbox"
-                  v-model="tournament.preferences.noTimeLimitFinale"
-                  style="margin-right: 0.5rem"
-                />
-                {{ $t('modals.noTimeLimitFinale') }}
-              </label>
-            </div>
-          </div>
-          <div v-if="tournament.preferences.timeLimitEnabled" class="prefs__item">
-            <label class="prefs__label">{{ $t('modals.cochonettes') }}</label>
-            <div class="select is-fullwidth">
-              <select v-model.number="tournament.preferences.cochonettes">
-                <option :value="1">1</option>
-                <option :value="2">2</option>
-              </select>
-            </div>
-            <span class="prefs__hint">{{ $t('modals.cochonettesHint') }}</span>
-          </div>
-          <div class="prefs__item">
-            <label class="prefs__label">
-              <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" style="margin-right: 0.5rem" />
-              {{ $t('modals.perRoundScoring') }}
-            </label>
-            <label
-              v-if="tournament.preferences.playOffEnabled || tournament.playOff"
-              class="prefs__label"
-              style="margin-top: 0.5rem"
-            >
-              <input
-                type="checkbox"
-                v-model="tournament.preferences.cochonettesEnabledPlayoff"
-                style="margin-right: 0.5rem"
-              />
-              {{ $t('modals.perRoundScoringPlayoff') }}
-            </label>
-            <span class="prefs__hint">{{ $t('modals.perRoundScoringHint') }}</span>
           </div>
           <div class="prefs__item">
             <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
@@ -169,11 +184,11 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2, Timer, Trophy, ListOrdered } from 'lucide-vue-next';
 
 export default {
   name: 'Preferences',
-  components: { Modal, Trash2 },
+  components: { Modal, Trash2, Timer, Trophy, ListOrdered },
   emits: ['close-modal', 'remove-tournament'],
   computed: {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
@@ -364,5 +379,56 @@ export default {
 .prefs__btn--danger:hover {
   background: var(--color-error);
   color: var(--color-btn-text);
+}
+
+.prefs__section {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-bg-soft, #fafafa);
+}
+
+.prefs__section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.prefs__section-header svg {
+  color: var(--color-text-muted, #888);
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.prefs__section-header--static {
+  cursor: default;
+}
+
+.prefs__section-body {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.prefs__section input[type='checkbox']:not(:checked) {
+  background-color: #fff;
+}
+
+.prefs__section .prefs__input {
+  background: #fff;
+}
+
+.prefs__section-body .prefs__label {
+  font-weight: 400;
+}
+
+.mt-3 {
+  margin-top: 0.75rem;
 }
 </style>

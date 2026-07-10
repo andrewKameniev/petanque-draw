@@ -456,6 +456,78 @@ function accumulateGroupStats(group, allRoundGames, { filterByGroup = null, requ
   });
 }
 
+function sortSwissWithLiveStats(tournament) {
+  if (!tournament.games?.length) {
+    return sortTeams(tournament.teams.map((t) => ({ ...t, gamesPlayed: 0 })));
+  }
+
+  const activeRoundIdx = tournament.roundIsActive ? tournament.games.length - 1 : -1;
+  const activeRoundGames = activeRoundIdx >= 0 ? tournament.games[activeRoundIdx] : [];
+
+  const liveWins = {};
+  const livePointsPlus = {};
+  const livePointsMinus = {};
+  const liveOpponents = {};
+  const liveGamesPlayed = {};
+
+  tournament.teams.forEach((t) => {
+    liveWins[t.title] = 0;
+    livePointsPlus[t.title] = 0;
+    livePointsMinus[t.title] = 0;
+    liveOpponents[t.title] = [];
+    liveGamesPlayed[t.title] = 0;
+  });
+
+  activeRoundGames.forEach((game) => {
+    if (game.team_1_score == null || game.team_2_score == null) return;
+    if (game.status === 'in_progress' || game.status === 'not_started') return;
+    const t1 = game.team_1;
+    const t2 = game.team_2;
+    const s1 = Number(game.team_1_score);
+    const s2 = Number(game.team_2_score);
+    const isTechnical = t2 === 'Technical';
+    if (t1 in liveWins) {
+      liveOpponents[t1].push(t2);
+      livePointsPlus[t1] += s1;
+      livePointsMinus[t1] += s2;
+      liveGamesPlayed[t1]++;
+      if (s1 > s2) liveWins[t1]++;
+    }
+    if (!isTechnical && t2 in liveWins) {
+      liveOpponents[t2].push(t1);
+      livePointsPlus[t2] += s2;
+      livePointsMinus[t2] += s1;
+      liveGamesPlayed[t2]++;
+      if (s2 > s1) liveWins[t2]++;
+    }
+  });
+
+  const completedRounds = activeRoundIdx >= 0 ? tournament.games.slice(0, activeRoundIdx) : tournament.games;
+  const pastGamesCount = {};
+  tournament.teams.forEach((t) => {
+    pastGamesCount[t.title] = 0;
+  });
+  completedRounds.forEach((round) => {
+    round.forEach((game) => {
+      if (game.team_1 in pastGamesCount) pastGamesCount[game.team_1]++;
+      if (game.team_2 !== 'Technical' && game.team_2 in pastGamesCount) pastGamesCount[game.team_2]++;
+    });
+  });
+
+  const teams = tournament.teams.map((team) => {
+    return {
+      ...team,
+      wins: team.wins + liveWins[team.title],
+      opponents: [...(team.opponents || []), ...liveOpponents[team.title]],
+      pointsPlus: team.pointsPlus + livePointsPlus[team.title],
+      pointsMinus: team.pointsMinus + livePointsMinus[team.title],
+      gamesPlayed: pastGamesCount[team.title] + liveGamesPlayed[team.title],
+    };
+  });
+
+  return sortTeams(teams);
+}
+
 function getTeamsRanking(tournament, activeRound) {
   if (tournament.teams) {
     if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
@@ -520,7 +592,7 @@ function getTeamsRanking(tournament, activeRound) {
     } else if (tournament.system === 'tir') {
       return tournament.teams || [];
     } else {
-      return sortTeams(tournament.teams);
+      return sortSwissWithLiveStats(tournament);
     }
   } else {
     return [];

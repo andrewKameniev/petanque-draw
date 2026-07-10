@@ -20,7 +20,7 @@ const defaultPreferences = {
   playB: false,
   timeLimitEnabled: false,
   timeLimit: 45,
-  playoffTimeLimit: 30,
+  playoffTimeLimit: 70,
   noTimeLimitFinale: false,
   cochonettesEnabled: false,
   cochonettesEnabledPlayoff: false,
@@ -29,7 +29,7 @@ const defaultPreferences = {
   groupFormat: 'round_robin',
   groupSwissRounds: 3,
   swissRoundsCount: null,
-  prizePlaces: null,
+  prizePlaces: 3,
   isTestTournament: false,
   cadrageLosersToB: false,
 };

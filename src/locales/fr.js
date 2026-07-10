@@ -255,6 +255,7 @@ export default {
     noTimeLimitFinale: 'Pas de limite de temps en finale',
     perRoundScoring: 'Score par mène (poules)',
     perRoundScoringGeneric: 'Score par mène',
+    perRoundScoringStage: 'Phase de groupes',
     perRoundScoringPlayoff: 'Score par mène (play-off)',
     perRoundScoringHint: 'Suivre le score de chaque mène (cochonnet) séparément',
     cochonettes: 'Cochonnets supplémentaires',

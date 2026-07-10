@@ -274,22 +274,26 @@
         <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
       </div>
 
-      <div class="setup-card__field">
-        <label v-if="tournament.system !== 'playoff'" class="setup-card__checkbox">
-          <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
-          {{ $t('modals.perRoundScoring') }}
-        </label>
-        <label
-          v-if="localSetupPlayOff || tournament.system === 'playoff'"
-          class="setup-card__checkbox"
-          :class="{ 'mt-2': tournament.system !== 'playoff' }"
-        >
-          <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" />
-          {{
-            tournament.system === 'playoff' ? $t('modals.perRoundScoringGeneric') : $t('modals.perRoundScoringPlayoff')
-          }}
-        </label>
+      <div class="setup-card__timer-section">
+        <div class="setup-card__timer-header setup-card__timer-header--static">
+          <ListOrdered :size="18" />
+          <span>{{ $t('modals.perRoundScoringGeneric') }}</span>
+        </div>
         <span class="setup-card__hint">{{ $t('modals.perRoundScoringHint') }}</span>
+        <div class="setup-card__timer-body">
+          <label v-if="tournament.system !== 'playoff'" class="setup-card__checkbox">
+            <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
+            {{ $t('modals.perRoundScoringStage') }}
+          </label>
+          <label
+            v-if="localSetupPlayOff || tournament.system === 'playoff'"
+            class="setup-card__checkbox"
+            :class="{ 'mt-2': tournament.system !== 'playoff' }"
+          >
+            <input type="checkbox" v-model="tournament.preferences.cochonettesEnabledPlayoff" />
+            {{ $t('modals.timeLimitPlayoff') }}
+          </label>
+        </div>
       </div>
 
       <div class="setup-card__field">
@@ -354,11 +358,11 @@
 
 <script>
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
-import { Play, Trash2, ChevronDown, Timer } from 'lucide-vue-next';
+import { Play, Trash2, ChevronDown, Timer, ListOrdered } from 'lucide-vue-next';
 
 export default {
   name: 'SetupCard',
-  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer },
+  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered },
   emits: [
     'draw',
     'remove',
@@ -789,6 +793,10 @@ export default {
   font-size: 1rem;
   color: var(--color-text);
   cursor: pointer;
+}
+
+.setup-card__timer-header--static {
+  cursor: default;
 }
 
 .setup-card__timer-header input[type='checkbox']:not(:checked) {

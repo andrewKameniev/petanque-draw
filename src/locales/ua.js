@@ -253,6 +253,7 @@ export default {
     noTimeLimitFinale: 'Без обмеження часу у фіналі',
     perRoundScoring: 'Рахунок по раундам (групи)',
     perRoundScoringGeneric: 'Рахунок по раундам',
+    perRoundScoringStage: 'Групова стадія',
     perRoundScoringPlayoff: 'Рахунок по раундам (плей-оф)',
     perRoundScoringHint: 'Відстежувати рахунок по кожному кошонету окремо в матчі',
     cochonettes: 'Додаткові кошонети',

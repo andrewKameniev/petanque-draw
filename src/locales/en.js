@@ -32,6 +32,8 @@ export default {
     preferences: 'Preferences',
     rating: 'Rating',
     playersInTeam: 'How many players in a team?',
+    supermeleTetATet: 'Tête-à-tête for odd count',
+    supermeleTetATetHint: 'When odd number of teams — instead of a bye, the last pair plays 1v1',
     teamsInGroup: 'How many team in group?',
     allTeams: 'All teams (round robin)',
     roundsCount: 'Number of rounds',

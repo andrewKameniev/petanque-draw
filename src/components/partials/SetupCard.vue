@@ -110,6 +110,11 @@
         <option value="2">2</option>
         <option value="3">3</option>
       </select>
+      <label v-if="tournament.supermelePlayers === 2" class="setup-card__checkbox" style="margin-top: 0.75rem">
+        <input type="checkbox" v-model="tournament.supermeleTetATet" />
+        {{ $t('teams.supermeleTetATet') }}
+      </label>
+      <span v-if="tournament.supermelePlayers === 2" class="setup-card__hint">{{ $t('teams.supermeleTetATetHint') }}</span>
     </div>
 
     <div v-if="tournament.system === 'tir'" class="setup-card__field">

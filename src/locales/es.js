@@ -31,6 +31,8 @@ export default {
     preferences: 'Preferencias',
     rating: 'Rating',
     playersInTeam: '¿Cuántos jugadores hay en un equipo?',
+    supermeleTetATet: 'Tête-à-tête para número impar',
+    supermeleTetATetHint: 'Si hay un número impar de equipos — en lugar de bye, el último par juega 1 contra 1',
     teamsInGroup: '¿Cuántos equipos hay en un grupo?',
     allTeams: 'Todos los equipos (todos contra todos)',
     roundsCount: 'Número de rondas',

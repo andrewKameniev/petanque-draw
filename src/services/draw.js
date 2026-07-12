@@ -159,11 +159,15 @@ export function drawSupermeleRound(tournament, rankingTeams) {
   const round = [];
   const playersCount = tournament.teams.length;
   const isDoubles = tournament.supermelePlayers === 2;
+  const allowTetATet = isDoubles && tournament.supermeleTetATet;
+
   let gamesCount = Math.floor(playersCount / tournament.supermelePlayers);
-  while (gamesCount % 2 !== 0) {
-    gamesCount = isDoubles ? gamesCount - 1 : gamesCount + 1;
+  if (!allowTetATet) {
+    while (gamesCount % 2 !== 0) {
+      gamesCount = isDoubles ? gamesCount - 1 : gamesCount + 1;
+    }
   }
-  if (playersCount > gamesCount * 3) {
+  if (!allowTetATet && playersCount > gamesCount * 3) {
     gamesCount += 2;
   }
 
@@ -203,7 +207,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
     return opponentSets.get(a)?.has(b);
   }
 
-  if (isFirstRound) {
+  if (isFirstRound && !tournament.useRating) {
     for (let i = 1; i <= superMeleScheme.doubles; i++) {
       if (teamsToDraw.length < 2) break;
       const p1 = getRandomWithOneExclusion(teamsToDraw.length);
@@ -228,7 +232,11 @@ export function drawSupermeleRound(tournament, rankingTeams) {
       titles.forEach(removeByTitle);
     }
   } else {
-    teamsToDraw.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+    if (isFirstRound) {
+      teamsToDraw.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else {
+      teamsToDraw.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+    }
 
     for (let i = 1; i <= superMeleScheme.doubles; i++) {
       if (teamsToDraw.length < 2) break;
@@ -275,6 +283,14 @@ export function drawSupermeleRound(tournament, rankingTeams) {
     }
   }
 
+  let tetATetTeam = null;
+  if (allowTetATet && teamsForRound.length % 2 !== 0) {
+    const doubleIdx = teamsForRound.findLastIndex((t) => t.players.length === 2);
+    if (doubleIdx !== -1) {
+      tetATetTeam = teamsForRound.splice(doubleIdx, 1)[0];
+    }
+  }
+
   while (teamsForRound.length >= 2) {
     round.push({
       team_1: teamsForRound[0].title,
@@ -286,6 +302,19 @@ export function drawSupermeleRound(tournament, rankingTeams) {
       status: 'not_started',
     });
     teamsForRound.splice(0, 2);
+  }
+
+  if (tetATetTeam) {
+    const [p1, p2] = tetATetTeam.players;
+    round.push({
+      team_1: p1,
+      team_1_players: [p1],
+      team_1_score: null,
+      team_2: p2,
+      team_2_players: [p2],
+      team_2_score: null,
+      status: 'not_started',
+    });
   }
 
   return round;

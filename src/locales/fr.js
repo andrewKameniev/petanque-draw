@@ -31,6 +31,8 @@ export default {
     preferences: 'Préférences',
     rating: 'Classement',
     playersInTeam: 'Combien de joueurs dans une équipe ?',
+    supermeleTetATet: 'Tête-à-tête pour nombre impair',
+    supermeleTetATetHint: 'Si nombre impair d\'équipes — au lieu d\'un bye, la dernière paire joue en 1 contre 1',
     teamsInGroup: "Combien d'équipes dans un groupe ?",
     allTeams: 'Toutes les équipes (chacun contre chacun)',
     roundsCount: 'Nombre de tours',

@@ -44,6 +44,7 @@ function createTournamentData(overrides = {}) {
     playoff: false,
     isCadrage: false,
     supermelePlayers: 2,
+    supermeleTetATet: true,
     tournamentIsFinished: false,
     preferences: { ...defaultPreferences },
     ...overrides,

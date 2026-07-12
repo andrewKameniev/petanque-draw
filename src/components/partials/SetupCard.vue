@@ -105,11 +105,22 @@
     </div>
 
     <div v-if="tournament.system === 'supermele'" class="setup-card__field">
-      <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
+      <label class="setup-card__label">{{ $t('teams.supermeleMode') }}</label>
+      <select class="setup-card__select" v-model="tournament.supermeleMode">
+        <option value="ideal">{{ $t('teams.supermeleModeIdeal') }}</option>
+        <option value="standard">{{ $t('teams.supermeleModeStandard') }}</option>
+      </select>
+      <span class="setup-card__hint">{{ $t('teams.supermeleModeHint') }}</span>
+      <label class="setup-card__label" style="margin-top: 0.75rem">{{ $t('teams.playersInTeam') }}</label>
       <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
         <option value="2">2</option>
         <option value="3">3</option>
       </select>
+      <label class="setup-card__checkbox" style="margin-top: 0.75rem">
+        <input type="checkbox" v-model="tournament.supermeleTetATet" />
+        {{ $t('teams.supermeleTetATet') }}
+      </label>
+      <span class="setup-card__hint">{{ $t('teams.supermeleTetATetHint') }}</span>
     </div>
 
     <div v-if="tournament.system === 'tir'" class="setup-card__field">
@@ -280,7 +291,7 @@
 
     <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
 
-      <div v-if="tournament.system === 'swiss' && !localSetupPlayOff" class="setup-card__field">
+      <div v-if="(tournament.system === 'swiss' && !localSetupPlayOff) || tournament.system === 'supermele'" class="setup-card__field">
         <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
         <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1" />
         <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>

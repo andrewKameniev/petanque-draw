@@ -236,24 +236,49 @@
           <p class="docs__intro">{{ $t('docs.supermeleSystem.intro') }}</p>
 
           <div class="docs__card">
+            <h3>{{ $t('docs.supermeleSystem.modes.title') }}</h3>
+            <p><strong>{{ $t('docs.supermeleSystem.modes.ideal') }}</strong></p>
+            <p>{{ $t('docs.supermeleSystem.modes.idealDesc') }}</p>
+            <ul class="docs__list">
+              <li>{{ $t('docs.supermeleSystem.modes.idealRound1') }}</li>
+              <li>{{ $t('docs.supermeleSystem.modes.idealRound2') }}</li>
+            </ul>
+            <p style="margin-top: 0.75rem"><strong>{{ $t('docs.supermeleSystem.modes.standard') }}</strong></p>
+            <p>{{ $t('docs.supermeleSystem.modes.standardDesc') }}</p>
+          </div>
+
+          <div class="docs__card">
             <h3>{{ $t('docs.supermeleSystem.howItWorks.title') }}</h3>
             <ul class="docs__list">
               <li>{{ $t('docs.supermeleSystem.howItWorks.individual') }}</li>
-              <li>{{ $t('docs.supermeleSystem.howItWorks.shuffle') }}</li>
-              <li>{{ $t('docs.supermeleSystem.howItWorks.optimal') }}</li>
+              <li>{{ $t('docs.supermeleSystem.howItWorks.doublesPreferred') }}</li>
+              <li>{{ $t('docs.supermeleSystem.howItWorks.triplesPreferred') }}</li>
               <li>{{ $t('docs.supermeleSystem.howItWorks.avoidRepeat') }}</li>
             </ul>
           </div>
 
           <div class="docs__card">
-            <h3>{{ $t('docs.supermeleSystem.math.title') }}</h3>
-            <p>{{ $t('docs.supermeleSystem.math.text') }}</p>
-            <code class="docs__code">{{ $t('docs.supermeleSystem.math.example') }}</code>
+            <h3>{{ $t('docs.supermeleSystem.avoidTechnical.title') }}</h3>
+            <p>{{ $t('docs.supermeleSystem.avoidTechnical.text') }}</p>
+            <ul class="docs__list">
+              <li>{{ $t('docs.supermeleSystem.avoidTechnical.tetATet') }}</li>
+              <li>{{ $t('docs.supermeleSystem.avoidTechnical.joinTriple') }}</li>
+              <li>{{ $t('docs.supermeleSystem.avoidTechnical.triplesConvert') }}</li>
+            </ul>
+            <code class="docs__code">{{ $t('docs.supermeleSystem.avoidTechnical.example') }}</code>
           </div>
 
           <div class="docs__card">
             <h3>{{ $t('docs.supermeleSystem.ranking.title') }}</h3>
             <p>{{ $t('docs.supermeleSystem.ranking.text') }}</p>
+            <code class="docs__code">{{ $t('docs.supermeleSystem.ranking.criteria') }}</code>
+            <p style="margin-top: 0.5rem">{{ $t('docs.supermeleSystem.ranking.noBuchholz') }}</p>
+            <p style="margin-top: 0.75rem"><strong>{{ $t('docs.supermeleSystem.ranking.pointsTitle') }}</strong></p>
+            <ul class="docs__list">
+              <li>{{ $t('docs.supermeleSystem.ranking.win') }}</li>
+              <li>{{ $t('docs.supermeleSystem.ranking.pointsPlus') }}</li>
+              <li>{{ $t('docs.supermeleSystem.ranking.pointsMinus') }}</li>
+            </ul>
           </div>
         </section>
 

@@ -159,87 +159,196 @@ export function drawSupermeleRound(tournament, rankingTeams) {
   const round = [];
   const playersCount = tournament.teams.length;
   const isDoubles = tournament.supermelePlayers === 2;
-  let gamesCount = Math.floor(playersCount / tournament.supermelePlayers);
-  while (gamesCount % 2 !== 0) {
-    gamesCount = isDoubles ? gamesCount - 1 : gamesCount + 1;
-  }
-  if (playersCount > gamesCount * 3) {
-    gamesCount += 2;
-  }
+  const avoidTechnical = !!tournament.supermeleTetATet;
 
-  let superMeleScheme = {
-    doubles: isDoubles ? gamesCount : 0,
-    triples: !isDoubles ? gamesCount : 0,
-  };
-  let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+  let superMeleScheme;
+  let technicalPlayer = null;
 
-  while (sum !== playersCount) {
-    if (isDoubles) {
+  if (isDoubles && avoidTechnical) {
+    const doublesCount = Math.floor(playersCount / 2);
+    const leftover = playersCount % 2;
+    if (leftover === 1) {
+      const totalWithTriple = doublesCount - 1 + 1;
+      if (totalWithTriple % 2 === 0) {
+        superMeleScheme = { doubles: doublesCount - 1, triples: 1 };
+      } else {
+        superMeleScheme = { doubles: doublesCount, triples: 0 };
+        technicalPlayer = true;
+      }
+    } else {
+      superMeleScheme = { doubles: doublesCount, triples: 0 };
+    }
+  } else if (!isDoubles && avoidTechnical) {
+    const triplesCount = Math.floor(playersCount / 3);
+    const leftover = playersCount - triplesCount * 3;
+    if (leftover === 0) {
+      superMeleScheme = { doubles: 0, triples: triplesCount };
+    } else if (leftover === 2) {
+      superMeleScheme = { doubles: 1, triples: triplesCount };
+    } else {
+      superMeleScheme = { doubles: 2, triples: triplesCount - 1 };
+    }
+    const totalTeams = superMeleScheme.doubles + superMeleScheme.triples;
+    if (totalTeams % 2 !== 0 && superMeleScheme.triples >= 2) {
+      superMeleScheme.triples -= 2;
+      superMeleScheme.doubles += 3;
+    }
+  } else if (isDoubles) {
+    let gamesCount = Math.floor(playersCount / 2);
+    while (gamesCount % 2 !== 0) {
+      gamesCount--;
+    }
+    if (playersCount > gamesCount * 3) {
+      gamesCount += 2;
+    }
+    superMeleScheme = { doubles: gamesCount, triples: 0 };
+    let sum = superMeleScheme.doubles * 2;
+    while (sum !== playersCount) {
       superMeleScheme.doubles--;
       superMeleScheme.triples++;
-    } else {
+      sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+      if (superMeleScheme.doubles < 0) {
+        superMeleScheme.doubles = 0;
+        break;
+      }
+    }
+  } else {
+    let gamesCount = Math.floor(playersCount / 3);
+    while (gamesCount % 2 !== 0) {
+      gamesCount++;
+    }
+    superMeleScheme = { doubles: 0, triples: gamesCount };
+    let sum = superMeleScheme.triples * 3;
+    while (sum !== playersCount) {
       superMeleScheme.triples--;
       superMeleScheme.doubles++;
-    }
-    sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
-    if (superMeleScheme.doubles < 0 || superMeleScheme.triples < 0) {
-      superMeleScheme.doubles = Math.max(superMeleScheme.doubles, 0);
-      superMeleScheme.triples = Math.max(superMeleScheme.triples, 0);
-      break;
+      sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+      if (superMeleScheme.triples < 0) {
+        superMeleScheme.triples = 0;
+        break;
+      }
     }
   }
 
+  const isFirstRound = !tournament.games || tournament.games.length === 0;
   const teamsToDraw = JSON.parse(JSON.stringify(rankingTeams));
+
+  if (technicalPlayer) {
+    const sorted = [...teamsToDraw].sort(
+      (a, b) => a.wins - b.wins || (a.pointsPlus - a.pointsMinus) - (b.pointsPlus - b.pointsMinus),
+    );
+    let techPlayer = sorted.find((t) => !(t.opponents || []).includes('Technical'));
+    if (!techPlayer) techPlayer = sorted[0];
+    round.push({
+      team_1: techPlayer.title,
+      team_1_players: [techPlayer.title],
+      team_1_score: tournament.preferences.technical.technicalFirst,
+      team_2: 'Technical',
+      team_2_players: [],
+      team_2_score: tournament.preferences.technical.technicalSecond,
+      status: 'finished',
+      winner: techPlayer.title,
+    });
+    const techIdx = teamsToDraw.findIndex((t) => t.title === techPlayer.title);
+    teamsToDraw.splice(techIdx, 1);
+  }
+
   const opponentSets = new Map(teamsToDraw.map((t) => [t.title, new Set(t.opponents || [])]));
   const teamsForRound = [];
 
-  function removeTeams(indices) {
-    indices.sort((a, b) => b - a);
-    for (const idx of indices) {
-      teamsToDraw.splice(idx, 1);
+  function removeByTitle(title) {
+    const idx = teamsToDraw.findIndex((t) => t.title === title);
+    if (idx !== -1) teamsToDraw.splice(idx, 1);
+  }
+
+  function wereTeammates(a, b) {
+    return opponentSets.get(a)?.has(b);
+  }
+
+  const useBalancedPairing = tournament.supermeleMode !== 'standard';
+
+  if (!useBalancedPairing || (isFirstRound && !tournament.useRating)) {
+    for (let i = 1; i <= superMeleScheme.doubles; i++) {
+      if (teamsToDraw.length < 2) break;
+      const p1 = getRandomWithOneExclusion(teamsToDraw.length);
+      let p2 = getRandomWithOneExclusion(teamsToDraw.length, p1);
+      teamsForRound.push({
+        title: teamsToDraw[p1].title + ', ' + teamsToDraw[p2].title,
+        players: [teamsToDraw[p1].title, teamsToDraw[p2].title],
+      });
+      const titles = [teamsToDraw[p1].title, teamsToDraw[p2].title];
+      titles.forEach(removeByTitle);
+    }
+    for (let j = 1; j <= superMeleScheme.triples; j++) {
+      if (teamsToDraw.length < 3) break;
+      const p1 = getRandomWithOneExclusion(teamsToDraw.length);
+      const p2 = getRandomWithOneExclusion(teamsToDraw.length, p1);
+      const p3 = getRandomWithOneExclusion(teamsToDraw.length, p1, p2);
+      teamsForRound.push({
+        title: teamsToDraw[p1].title + ', ' + teamsToDraw[p2].title + ', ' + teamsToDraw[p3].title,
+        players: [teamsToDraw[p1].title, teamsToDraw[p2].title, teamsToDraw[p3].title],
+      });
+      const titles = [teamsToDraw[p1].title, teamsToDraw[p2].title, teamsToDraw[p3].title];
+      titles.forEach(removeByTitle);
+    }
+  } else {
+    if (isFirstRound) {
+      teamsToDraw.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else {
+      teamsToDraw.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+    }
+
+    for (let i = 1; i <= superMeleScheme.doubles; i++) {
+      if (teamsToDraw.length < 2) break;
+      const top = teamsToDraw[0];
+      let bottomIdx = teamsToDraw.length - 1;
+      let attempts = 0;
+      while (attempts < teamsToDraw.length - 1 && wereTeammates(top.title, teamsToDraw[bottomIdx].title)) {
+        bottomIdx--;
+        attempts++;
+      }
+      if (bottomIdx <= 0) bottomIdx = teamsToDraw.length - 1;
+      const bottom = teamsToDraw[bottomIdx];
+      teamsForRound.push({
+        title: top.title + ', ' + bottom.title,
+        players: [top.title, bottom.title],
+      });
+      removeByTitle(top.title);
+      removeByTitle(bottom.title);
+    }
+
+    for (let j = 1; j <= superMeleScheme.triples; j++) {
+      if (teamsToDraw.length < 3) break;
+      const top = teamsToDraw[0];
+      let bottomIdx = teamsToDraw.length - 1;
+      let attempts = 0;
+      while (attempts < teamsToDraw.length - 1 && wereTeammates(top.title, teamsToDraw[bottomIdx].title)) {
+        bottomIdx--;
+        attempts++;
+      }
+      if (bottomIdx <= 0) bottomIdx = teamsToDraw.length - 1;
+      const bottom = teamsToDraw[bottomIdx];
+      const midIdx = Math.floor(teamsToDraw.length / 2);
+      let mid = teamsToDraw[midIdx];
+      if (mid.title === top.title || mid.title === bottom.title) {
+        mid = teamsToDraw[midIdx === 0 ? 1 : midIdx - 1] || teamsToDraw[1];
+      }
+      teamsForRound.push({
+        title: top.title + ', ' + mid.title + ', ' + bottom.title,
+        players: [top.title, mid.title, bottom.title],
+      });
+      removeByTitle(top.title);
+      removeByTitle(mid.title);
+      removeByTitle(bottom.title);
     }
   }
 
-  for (let i = 1; i <= superMeleScheme.doubles; i++) {
-    if (teamsToDraw.length < 2) break;
-    const player1 = getRandomWithOneExclusion(teamsToDraw.length);
-    let player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-    let tryToFindOpponent = 0;
-    while (tryToFindOpponent < 100 && opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player2].title)) {
-      player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-      tryToFindOpponent++;
+  let tetATetTeam = null;
+  if (avoidTechnical && teamsForRound.length % 2 !== 0) {
+    const doubleIdx = teamsForRound.findLastIndex((t) => t.players.length === 2);
+    if (doubleIdx !== -1) {
+      tetATetTeam = teamsForRound.splice(doubleIdx, 1)[0];
     }
-    teamsForRound.push({
-      title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title,
-      players: [teamsToDraw[player1].title, teamsToDraw[player2].title],
-    });
-    removeTeams([player1, player2]);
-  }
-
-  for (let j = 1; j <= superMeleScheme.triples; j++) {
-    if (teamsToDraw.length < 3) break;
-    const player1 = getRandomWithOneExclusion(teamsToDraw.length);
-    let player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-    let player3 = getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-    let tryToFindOpponent = 1;
-    while (tryToFindOpponent < 100 && opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player2].title)) {
-      player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-      tryToFindOpponent++;
-    }
-    let tryToFindOpponent2 = 1;
-    while (
-      tryToFindOpponent2 < 100 &&
-      opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player3].title) &&
-      opponentSets.get(teamsToDraw[player2].title).has(teamsToDraw[player3].title)
-    ) {
-      player3 = getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-      tryToFindOpponent2++;
-    }
-    teamsForRound.push({
-      title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title + ', ' + teamsToDraw[player3].title,
-      players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title],
-    });
-    removeTeams([player1, player2, player3]);
   }
 
   while (teamsForRound.length >= 2) {
@@ -253,6 +362,19 @@ export function drawSupermeleRound(tournament, rankingTeams) {
       status: 'not_started',
     });
     teamsForRound.splice(0, 2);
+  }
+
+  if (tetATetTeam) {
+    const [p1, p2] = tetATetTeam.players;
+    round.push({
+      team_1: p1,
+      team_1_players: [p1],
+      team_1_score: null,
+      team_2: p2,
+      team_2_players: [p2],
+      team_2_score: null,
+      status: 'not_started',
+    });
   }
 
   return round;

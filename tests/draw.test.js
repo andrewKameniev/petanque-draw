@@ -330,6 +330,30 @@ describe('drawSupermeleRound', () => {
     const tetATetGame = round.find((g) => g.team_1_players.length === 1 && g.team_2_players.length === 1);
     expect(tetATetGame).toBeUndefined();
   });
+
+  it('triples with avoidTechnical: 10 players uses 2 triples + 2 doubles (no technical)', () => {
+    const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`P${i + 1}`));
+    const tournament = makeTournament(teams, {
+      system: 'supermele', supermelePlayers: 3, supermeleTetATet: true,
+    });
+    const round = drawSupermeleRound(tournament, teams);
+    const technical = round.find((g) => g.team_2 === 'Technical');
+    expect(technical).toBeUndefined();
+    const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
+    expect(allPlayers).toHaveLength(10);
+  });
+
+  it('triples with avoidTechnical: 11 players uses 3 triples + 1 double (no technical)', () => {
+    const teams = Array.from({ length: 11 }, (_, i) => makeTeam(`P${i + 1}`));
+    const tournament = makeTournament(teams, {
+      system: 'supermele', supermelePlayers: 3, supermeleTetATet: true,
+    });
+    const round = drawSupermeleRound(tournament, teams);
+    const technical = round.find((g) => g.team_2 === 'Technical');
+    expect(technical).toBeUndefined();
+    const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
+    expect(allPlayers).toHaveLength(11);
+  });
 });
 
 describe('assignLanes', () => {

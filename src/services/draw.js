@@ -159,17 +159,17 @@ export function drawSupermeleRound(tournament, rankingTeams) {
   const round = [];
   const playersCount = tournament.teams.length;
   const isDoubles = tournament.supermelePlayers === 2;
-  const allowTetATet = isDoubles && tournament.supermeleTetATet;
+  const avoidTechnical = !!tournament.supermeleTetATet;
 
   let superMeleScheme;
   let technicalPlayer = null;
 
-  if (isDoubles && allowTetATet) {
+  if (isDoubles && avoidTechnical) {
     const doublesCount = Math.floor(playersCount / 2);
     const leftover = playersCount % 2;
     if (leftover === 1) {
-      const tripleGivesEven = (doublesCount - 1 + 1) % 2 === 0;
-      if (tripleGivesEven) {
+      const totalWithTriple = doublesCount - 1 + 1;
+      if (totalWithTriple % 2 === 0) {
         superMeleScheme = { doubles: doublesCount - 1, triples: 1 };
       } else {
         superMeleScheme = { doubles: doublesCount, triples: 0 };
@@ -177,6 +177,21 @@ export function drawSupermeleRound(tournament, rankingTeams) {
       }
     } else {
       superMeleScheme = { doubles: doublesCount, triples: 0 };
+    }
+  } else if (!isDoubles && avoidTechnical) {
+    const triplesCount = Math.floor(playersCount / 3);
+    const leftover = playersCount - triplesCount * 3;
+    if (leftover === 0) {
+      superMeleScheme = { doubles: 0, triples: triplesCount };
+    } else if (leftover === 2) {
+      superMeleScheme = { doubles: 1, triples: triplesCount };
+    } else {
+      superMeleScheme = { doubles: 2, triples: triplesCount - 1 };
+    }
+    const totalTeams = superMeleScheme.doubles + superMeleScheme.triples;
+    if (totalTeams % 2 !== 0 && superMeleScheme.triples >= 2) {
+      superMeleScheme.triples -= 2;
+      superMeleScheme.doubles += 3;
     }
   } else if (isDoubles) {
     let gamesCount = Math.floor(playersCount / 2);
@@ -327,7 +342,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
   }
 
   let tetATetTeam = null;
-  if (allowTetATet && teamsForRound.length % 2 !== 0) {
+  if (avoidTechnical && teamsForRound.length % 2 !== 0) {
     const doubleIdx = teamsForRound.findLastIndex((t) => t.players.length === 2);
     if (doubleIdx !== -1) {
       tetATetTeam = teamsForRound.splice(doubleIdx, 1)[0];

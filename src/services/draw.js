@@ -265,7 +265,9 @@ export function drawSupermeleRound(tournament, rankingTeams) {
     return opponentSets.get(a)?.has(b);
   }
 
-  if (isFirstRound && !tournament.useRating) {
+  const useBalancedPairing = tournament.supermeleMode !== 'standard';
+
+  if (!useBalancedPairing || (isFirstRound && !tournament.useRating)) {
     for (let i = 1; i <= superMeleScheme.doubles; i++) {
       if (teamsToDraw.length < 2) break;
       const p1 = getRandomWithOneExclusion(teamsToDraw.length);

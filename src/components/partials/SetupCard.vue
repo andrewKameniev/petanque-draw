@@ -105,7 +105,13 @@
     </div>
 
     <div v-if="tournament.system === 'supermele'" class="setup-card__field">
-      <label class="setup-card__label">{{ $t('teams.playersInTeam') }}</label>
+      <label class="setup-card__label">{{ $t('teams.supermeleMode') }}</label>
+      <select class="setup-card__select" v-model="tournament.supermeleMode">
+        <option value="ideal">{{ $t('teams.supermeleModeIdeal') }}</option>
+        <option value="standard">{{ $t('teams.supermeleModeStandard') }}</option>
+      </select>
+      <span class="setup-card__hint">{{ $t('teams.supermeleModeHint') }}</span>
+      <label class="setup-card__label" style="margin-top: 0.75rem">{{ $t('teams.playersInTeam') }}</label>
       <select class="setup-card__select" v-model.number="tournament.supermelePlayers">
         <option value="2">2</option>
         <option value="3">3</option>

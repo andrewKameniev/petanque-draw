@@ -243,6 +243,7 @@ export default {
     playOffAlreadyStarted: 'Cannot change — playoff has already started',
     swissRoundsCount: 'Number of Swiss rounds',
     swissRoundsCountHint: 'Informational — how many rounds are planned for this tournament',
+    swissRoundsOptimalHint: 'For {teams} teams the optimal number of rounds is {rounds}',
     prizePlaces: 'Prize places',
     prizePlacesHint: 'Number of top teams highlighted in the ranking',
     fieldsStart: 'From which field should the numbering begin?',

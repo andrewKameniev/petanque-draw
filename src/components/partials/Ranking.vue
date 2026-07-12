@@ -349,6 +349,7 @@
                 v-for="(team, index) in rankingTeams"
                 :key="team.title"
                 :class="{
+                  'playoff-highlight': isPrizeHighlighted(index),
                   'place-gold': tournament.tournamentIsFinished && index === 0,
                   'place-silver': tournament.tournamentIsFinished && index === 1,
                   'place-bronze': tournament.tournamentIsFinished && index === 2,

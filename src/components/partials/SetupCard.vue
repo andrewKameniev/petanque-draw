@@ -285,7 +285,7 @@
 
     <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
 
-      <div v-if="tournament.system === 'swiss' && !localSetupPlayOff" class="setup-card__field">
+      <div v-if="(tournament.system === 'swiss' && !localSetupPlayOff) || tournament.system === 'supermele'" class="setup-card__field">
         <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
         <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1" />
         <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>

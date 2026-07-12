@@ -189,57 +189,90 @@ export function drawSupermeleRound(tournament, rankingTeams) {
     }
   }
 
+  const isFirstRound = !tournament.games || tournament.games.length === 0;
   const teamsToDraw = JSON.parse(JSON.stringify(rankingTeams));
   const opponentSets = new Map(teamsToDraw.map((t) => [t.title, new Set(t.opponents || [])]));
   const teamsForRound = [];
 
-  function removeTeams(indices) {
-    indices.sort((a, b) => b - a);
-    for (const idx of indices) {
-      teamsToDraw.splice(idx, 1);
-    }
+  function removeByTitle(title) {
+    const idx = teamsToDraw.findIndex((t) => t.title === title);
+    if (idx !== -1) teamsToDraw.splice(idx, 1);
   }
 
-  for (let i = 1; i <= superMeleScheme.doubles; i++) {
-    if (teamsToDraw.length < 2) break;
-    const player1 = getRandomWithOneExclusion(teamsToDraw.length);
-    let player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-    let tryToFindOpponent = 0;
-    while (tryToFindOpponent < 100 && opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player2].title)) {
-      player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-      tryToFindOpponent++;
-    }
-    teamsForRound.push({
-      title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title,
-      players: [teamsToDraw[player1].title, teamsToDraw[player2].title],
-    });
-    removeTeams([player1, player2]);
+  function wereTeammates(a, b) {
+    return opponentSets.get(a)?.has(b);
   }
 
-  for (let j = 1; j <= superMeleScheme.triples; j++) {
-    if (teamsToDraw.length < 3) break;
-    const player1 = getRandomWithOneExclusion(teamsToDraw.length);
-    let player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-    let player3 = getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-    let tryToFindOpponent = 1;
-    while (tryToFindOpponent < 100 && opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player2].title)) {
-      player2 = getRandomWithOneExclusion(teamsToDraw.length, player1);
-      tryToFindOpponent++;
+  if (isFirstRound) {
+    for (let i = 1; i <= superMeleScheme.doubles; i++) {
+      if (teamsToDraw.length < 2) break;
+      const p1 = getRandomWithOneExclusion(teamsToDraw.length);
+      let p2 = getRandomWithOneExclusion(teamsToDraw.length, p1);
+      teamsForRound.push({
+        title: teamsToDraw[p1].title + ', ' + teamsToDraw[p2].title,
+        players: [teamsToDraw[p1].title, teamsToDraw[p2].title],
+      });
+      const titles = [teamsToDraw[p1].title, teamsToDraw[p2].title];
+      titles.forEach(removeByTitle);
     }
-    let tryToFindOpponent2 = 1;
-    while (
-      tryToFindOpponent2 < 100 &&
-      opponentSets.get(teamsToDraw[player1].title).has(teamsToDraw[player3].title) &&
-      opponentSets.get(teamsToDraw[player2].title).has(teamsToDraw[player3].title)
-    ) {
-      player3 = getRandomWithOneExclusion(teamsToDraw.length, player1, player2);
-      tryToFindOpponent2++;
+    for (let j = 1; j <= superMeleScheme.triples; j++) {
+      if (teamsToDraw.length < 3) break;
+      const p1 = getRandomWithOneExclusion(teamsToDraw.length);
+      const p2 = getRandomWithOneExclusion(teamsToDraw.length, p1);
+      const p3 = getRandomWithOneExclusion(teamsToDraw.length, p1, p2);
+      teamsForRound.push({
+        title: teamsToDraw[p1].title + ', ' + teamsToDraw[p2].title + ', ' + teamsToDraw[p3].title,
+        players: [teamsToDraw[p1].title, teamsToDraw[p2].title, teamsToDraw[p3].title],
+      });
+      const titles = [teamsToDraw[p1].title, teamsToDraw[p2].title, teamsToDraw[p3].title];
+      titles.forEach(removeByTitle);
     }
-    teamsForRound.push({
-      title: teamsToDraw[player1].title + ', ' + teamsToDraw[player2].title + ', ' + teamsToDraw[player3].title,
-      players: [teamsToDraw[player1].title, teamsToDraw[player2].title, teamsToDraw[player3].title],
-    });
-    removeTeams([player1, player2, player3]);
+  } else {
+    teamsToDraw.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+
+    for (let i = 1; i <= superMeleScheme.doubles; i++) {
+      if (teamsToDraw.length < 2) break;
+      const top = teamsToDraw[0];
+      let bottomIdx = teamsToDraw.length - 1;
+      let attempts = 0;
+      while (attempts < teamsToDraw.length - 1 && wereTeammates(top.title, teamsToDraw[bottomIdx].title)) {
+        bottomIdx--;
+        attempts++;
+      }
+      if (bottomIdx <= 0) bottomIdx = teamsToDraw.length - 1;
+      const bottom = teamsToDraw[bottomIdx];
+      teamsForRound.push({
+        title: top.title + ', ' + bottom.title,
+        players: [top.title, bottom.title],
+      });
+      removeByTitle(top.title);
+      removeByTitle(bottom.title);
+    }
+
+    for (let j = 1; j <= superMeleScheme.triples; j++) {
+      if (teamsToDraw.length < 3) break;
+      const top = teamsToDraw[0];
+      let bottomIdx = teamsToDraw.length - 1;
+      let attempts = 0;
+      while (attempts < teamsToDraw.length - 1 && wereTeammates(top.title, teamsToDraw[bottomIdx].title)) {
+        bottomIdx--;
+        attempts++;
+      }
+      if (bottomIdx <= 0) bottomIdx = teamsToDraw.length - 1;
+      const bottom = teamsToDraw[bottomIdx];
+      const midIdx = Math.floor(teamsToDraw.length / 2);
+      let mid = teamsToDraw[midIdx];
+      if (mid.title === top.title || mid.title === bottom.title) {
+        mid = teamsToDraw[midIdx === 0 ? 1 : midIdx - 1] || teamsToDraw[1];
+      }
+      teamsForRound.push({
+        title: top.title + ', ' + mid.title + ', ' + bottom.title,
+        players: [top.title, mid.title, bottom.title],
+      });
+      removeByTitle(top.title);
+      removeByTitle(mid.title);
+      removeByTitle(bottom.title);
+    }
   }
 
   while (teamsForRound.length >= 2) {

@@ -1,13 +1,22 @@
 # Supermele
 
-Social/fun format. Individual players register alone. Teams are randomly reformed EVERY round.
+Social/fun format. Individual players register alone. Teams are reformed EVERY round using balanced pairing.
 
 ## How It Works
 
 - Players are individual participants (not fixed teams)
-- Each round: shuffle all players into random doubles (2-player) or triples (3-player)
+- **Round 1**: fully random team formation
+- **Round 2+**: balanced pairing — strongest player paired with weakest (by wins), equalizing team strength each round
 - The app calculates the optimal doubles/triples mix to include everyone
-- Tracks which players were teammates to avoid repeats (best-effort, 100 attempts)
+- Tracks which players were teammates to avoid repeats
+
+## Balanced Pairing (Round 2+)
+
+Players are sorted by wins (then by point difference). Teams are formed by pairing from opposite ends:
+- Doubles: top player + bottom player
+- Triples: top player + middle player + bottom player
+
+This ensures fair, competitive games every round. The "no repeat teammates" constraint is still enforced — if the ideal partner was already a teammate, the algorithm picks the next best candidate.
 
 ## Team Formation Math
 

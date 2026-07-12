@@ -161,40 +161,83 @@ export function drawSupermeleRound(tournament, rankingTeams) {
   const isDoubles = tournament.supermelePlayers === 2;
   const allowTetATet = isDoubles && tournament.supermeleTetATet;
 
-  let gamesCount = Math.floor(playersCount / tournament.supermelePlayers);
-  if (!allowTetATet) {
-    while (gamesCount % 2 !== 0) {
-      gamesCount = isDoubles ? gamesCount - 1 : gamesCount + 1;
+  let superMeleScheme;
+  let technicalPlayer = null;
+
+  if (isDoubles && allowTetATet) {
+    const doublesCount = Math.floor(playersCount / 2);
+    const leftover = playersCount % 2;
+    if (leftover === 1) {
+      const tripleGivesEven = (doublesCount - 1 + 1) % 2 === 0;
+      if (tripleGivesEven) {
+        superMeleScheme = { doubles: doublesCount - 1, triples: 1 };
+      } else {
+        superMeleScheme = { doubles: doublesCount, triples: 0 };
+        technicalPlayer = true;
+      }
+    } else {
+      superMeleScheme = { doubles: doublesCount, triples: 0 };
     }
-  }
-  if (!allowTetATet && playersCount > gamesCount * 3) {
-    gamesCount += 2;
-  }
-
-  let superMeleScheme = {
-    doubles: isDoubles ? gamesCount : 0,
-    triples: !isDoubles ? gamesCount : 0,
-  };
-  let sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
-
-  while (sum !== playersCount) {
-    if (isDoubles) {
+  } else if (isDoubles) {
+    let gamesCount = Math.floor(playersCount / 2);
+    while (gamesCount % 2 !== 0) {
+      gamesCount--;
+    }
+    if (playersCount > gamesCount * 3) {
+      gamesCount += 2;
+    }
+    superMeleScheme = { doubles: gamesCount, triples: 0 };
+    let sum = superMeleScheme.doubles * 2;
+    while (sum !== playersCount) {
       superMeleScheme.doubles--;
       superMeleScheme.triples++;
-    } else {
+      sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+      if (superMeleScheme.doubles < 0) {
+        superMeleScheme.doubles = 0;
+        break;
+      }
+    }
+  } else {
+    let gamesCount = Math.floor(playersCount / 3);
+    while (gamesCount % 2 !== 0) {
+      gamesCount++;
+    }
+    superMeleScheme = { doubles: 0, triples: gamesCount };
+    let sum = superMeleScheme.triples * 3;
+    while (sum !== playersCount) {
       superMeleScheme.triples--;
       superMeleScheme.doubles++;
-    }
-    sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
-    if (superMeleScheme.doubles < 0 || superMeleScheme.triples < 0) {
-      superMeleScheme.doubles = Math.max(superMeleScheme.doubles, 0);
-      superMeleScheme.triples = Math.max(superMeleScheme.triples, 0);
-      break;
+      sum = superMeleScheme.doubles * 2 + superMeleScheme.triples * 3;
+      if (superMeleScheme.triples < 0) {
+        superMeleScheme.triples = 0;
+        break;
+      }
     }
   }
 
   const isFirstRound = !tournament.games || tournament.games.length === 0;
   const teamsToDraw = JSON.parse(JSON.stringify(rankingTeams));
+
+  if (technicalPlayer) {
+    const sorted = [...teamsToDraw].sort(
+      (a, b) => a.wins - b.wins || (a.pointsPlus - a.pointsMinus) - (b.pointsPlus - b.pointsMinus),
+    );
+    let techPlayer = sorted.find((t) => !(t.opponents || []).includes('Technical'));
+    if (!techPlayer) techPlayer = sorted[0];
+    round.push({
+      team_1: techPlayer.title,
+      team_1_players: [techPlayer.title],
+      team_1_score: tournament.preferences.technical.technicalFirst,
+      team_2: 'Technical',
+      team_2_players: [],
+      team_2_score: tournament.preferences.technical.technicalSecond,
+      status: 'finished',
+      winner: techPlayer.title,
+    });
+    const techIdx = teamsToDraw.findIndex((t) => t.title === techPlayer.title);
+    teamsToDraw.splice(techIdx, 1);
+  }
+
   const opponentSets = new Map(teamsToDraw.map((t) => [t.title, new Set(t.opponents || [])]));
   const teamsForRound = [];
 

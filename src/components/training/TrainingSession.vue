@@ -677,6 +677,7 @@ export default {
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 12px;
+  background: var(--color-surface);
 }
 
 .tir-pview__atelier-card-header {
@@ -851,6 +852,7 @@ export default {
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 10px;
+  background: var(--color-surface);
 }
 
 .tsession__compact-card-header {

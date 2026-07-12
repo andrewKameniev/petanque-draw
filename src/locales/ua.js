@@ -243,6 +243,7 @@ export default {
     playOffAlreadyStarted: 'Неможливо змінити — плей-оф вже розпочато',
     swissRoundsCount: 'Кількість швейцарських раундів',
     swissRoundsCountHint: 'Інформаційно — скільки раундів заплановано для цього турніру',
+    swissRoundsOptimalHint: 'Для {teams} команд оптимальна кількість раундів — {rounds}',
     prizePlaces: 'Призові місця',
     prizePlacesHint: 'Кількість найкращих команд, що виділяються у рейтингу',
     fieldsStart: 'З якого майданчика починати нумерацію?',

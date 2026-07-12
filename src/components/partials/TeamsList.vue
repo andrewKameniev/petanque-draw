@@ -369,14 +369,13 @@ export default {
 
 .team-card__rank {
   min-width: 24px;
-  height: 24px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--color-text-muted, #999);
-  margin-top: 2px;
 }
 
 .team-card__body {

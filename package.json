@@ -1,6 +1,6 @@
 {
   "name": "petanque-draw",
-  "version": "1.27.2",
+  "version": "1.27.4",
   "private": true,
   "type": "module",
   "scripts": {

@@ -213,6 +213,10 @@
       <label class="setup-card__label">{{ $t('modals.swissRoundsCount') }}</label>
       <input class="setup-card__input" type="number" v-model.number="tournament.preferences.swissRoundsCount" min="1" />
       <span class="setup-card__hint">{{ $t('modals.swissRoundsCountHint') }}</span>
+      <span v-if="tournament.teams?.length >= 4" class="setup-card__hint setup-card__hint--info">
+        <Info :size="14" />
+        {{ $t('modals.swissRoundsOptimalHint', { teams: tournament.teams.length, rounds: optimalSwissRounds }) }}
+      </span>
     </div>
 
     <div v-if="tournament.system !== 'tir'" class="setup-card__timer-section">
@@ -366,11 +370,11 @@
 
 <script>
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
-import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy } from 'lucide-vue-next';
+import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info } from 'lucide-vue-next';
 
 export default {
   name: 'SetupCard',
-  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy },
+  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info },
   emits: [
     'draw',
     'remove',
@@ -684,6 +688,13 @@ export default {
 
 .setup-card__hint--warn {
   color: var(--color-error, #dc3545);
+}
+
+.setup-card__hint--info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-primary);
 }
 
 .setup-card__row {

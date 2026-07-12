@@ -242,6 +242,7 @@ export default {
     playOffAlreadyStarted: 'No se puede cambiar — el play-off ya ha comenzado',
     swissRoundsCount: 'Número de rondas suizas',
     swissRoundsCountHint: 'Informativo — cuántas rondas están previstas para este torneo',
+    swissRoundsOptimalHint: 'Para {teams} equipos el número óptimo de rondas es {rounds}',
     prizePlaces: 'Puestos premiados',
     prizePlacesHint: 'Número de mejores equipos destacados en la clasificación',
     fieldsStart: '¿Desde qué pista debe empezar la numeración?',

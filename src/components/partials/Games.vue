@@ -186,9 +186,7 @@
             {{ $t('games.finishRound') }}
           </button>
           <a
-            v-if="
-              !tournament.playOff && (tournament.system !== 'swiss' || tournament.groups?.length || tournament.barrage)
-            "
+            v-if="!tournament.playOff"
             href="#"
             class="restore-round-link"
             @click.prevent="showRestoreConfirm = true"
@@ -393,7 +391,7 @@ export default {
       return this.tournament.teams.length - 1;
     },
     maxSwissRounds() {
-      return Math.ceil(Math.log2(this.tournament.teams?.length));
+      return this.tournament.preferences?.swissRoundsCount || Math.ceil(Math.log2(this.tournament.teams?.length));
     },
     poulesRoundLabel() {
       const round = this.tournament.poulesRound || 1;
@@ -1221,8 +1219,9 @@ export default {
 .restore-round-link {
   display: block;
   margin-top: 12px;
-  font-size: 13px;
-  color: var(--color-text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-danger-light);
   text-decoration: underline;
 }
 

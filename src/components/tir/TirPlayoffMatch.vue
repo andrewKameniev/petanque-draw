@@ -76,31 +76,35 @@
       <div class="tir-pmatch__circles-grid">
         <div v-for="distance in distances" :key="distance" class="tir-pmatch__circles-row">
           <div class="tir-pmatch__circles tir-pmatch__circles--left">
-            <span
+            <button
               v-for="opt in resultOptions"
               :key="opt.key"
+              type="button"
               class="tir-pmatch__circle"
               :class="[
                 `tir-pmatch__circle--${opt.key}`,
                 { 'tir-pmatch__circle--active': getScore(1, aIdx, distance) === opt.key },
               ]"
-              @click="!readOnly && setScore(1, aIdx, distance, opt.key)"
+              :disabled="readOnly"
+              @click="setScore(1, aIdx, distance, opt.key)"
             >
-            </span>
+            </button>
           </div>
           <div class="tir-pmatch__distance">{{ distance }}m</div>
           <div class="tir-pmatch__circles tir-pmatch__circles--right">
-            <span
+            <button
               v-for="opt in resultOptions"
               :key="opt.key"
+              type="button"
               class="tir-pmatch__circle"
               :class="[
                 `tir-pmatch__circle--${opt.key}`,
                 { 'tir-pmatch__circle--active': getScore(2, aIdx, distance) === opt.key },
               ]"
-              @click="!readOnly && setScore(2, aIdx, distance, opt.key)"
+              :disabled="readOnly"
+              @click="setScore(2, aIdx, distance, opt.key)"
             >
-            </span>
+            </button>
           </div>
         </div>
       </div>
@@ -534,6 +538,8 @@ export default {
 }
 
 .tir-pmatch__circle {
+  appearance: none;
+  padding: 0;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -542,6 +548,10 @@ export default {
   opacity: 0.4;
   transition: all 0.15s;
   cursor: pointer;
+}
+
+.tir-pmatch__circle:disabled {
+  cursor: default;
 }
 
 .tir-pmatch__circle--active {

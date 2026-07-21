@@ -675,7 +675,7 @@ export default {
       return this.$route.query.tournament;
     },
     colorSchema() {
-      return this.tournament?.preferences?.colorSchema || '';
+      return this.activeTournamentView?.preferences?.colorSchema || '';
     },
     tournamentMessageLines() {
       if (!this.tournament?.tournamentMessage) return [];

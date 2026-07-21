@@ -164,7 +164,9 @@
               >{{ game.team_2 }}</span
             >
             <div
-              v-if="activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length"
+              v-if="
+                activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length
+              "
               class="score-history"
             >
               <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
@@ -393,7 +395,9 @@
               $t('teamPlayoff.matchFinished')
             }}</span>
             <div
-              v-if="activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length"
+              v-if="
+                activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length
+              "
               class="score-history"
             >
               <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
@@ -540,6 +544,7 @@ export default {
     this._unsubscribeAll();
     document.removeEventListener('visibilitychange', this._onVisibilityChange);
     window.removeEventListener('online', this._onResume);
+    document.documentElement.removeAttribute('data-color-schema');
   },
   watch: {
     isLoading(val) {
@@ -553,6 +558,16 @@ export default {
       if (!newTabs.find((t) => t.id === this.activeTab)) {
         this.activeTab = newTabs[0]?.id || 'teams';
       }
+    },
+    colorSchema: {
+      handler(val) {
+        if (val) {
+          document.documentElement.setAttribute('data-color-schema', val);
+        } else {
+          document.documentElement.removeAttribute('data-color-schema');
+        }
+      },
+      immediate: true,
     },
   },
   computed: {
@@ -658,6 +673,9 @@ export default {
         return this.parseRef().tournamentId;
       }
       return this.$route.query.tournament;
+    },
+    colorSchema() {
+      return this.tournament?.preferences?.colorSchema || '';
     },
     tournamentMessageLines() {
       if (!this.tournament?.tournamentMessage) return [];

@@ -7,11 +7,7 @@
           <div class="prefs__section">
             <label class="prefs__section-header">
               <Trophy :size="18" />
-              <input
-                type="checkbox"
-                v-model="tournament.preferences.playOffEnabled"
-                :disabled="!!tournament.playOff"
-              />
+              <input type="checkbox" v-model="tournament.preferences.playOffEnabled" :disabled="!!tournament.playOff" />
               <span>{{ $t('setup.enablePlayOff') }}</span>
             </label>
             <div v-if="tournament.preferences.playOffEnabled" class="prefs__section-body">
@@ -158,6 +154,16 @@
             </label>
             <span class="prefs__hint">{{ $t('setup.testTournamentHint') }}</span>
           </div>
+          <div v-if="showColorSchema" class="prefs__item">
+            <label class="prefs__label"><Palette :size="16" /> Колірна схема</label>
+            <div class="select is-fullwidth">
+              <select v-model="tournament.preferences.colorSchema">
+                <option value="">За замовчуванням</option>
+                <option value="turquoise">Бірюзова</option>
+                <option value="autumn">Осіння</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
       <div class="prefs__footer">
@@ -184,20 +190,30 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
-import { Trash2, Timer, Trophy, ListOrdered } from 'lucide-vue-next';
+import { Trash2, Timer, Trophy, ListOrdered, Palette } from 'lucide-vue-next';
 
 export default {
   name: 'Preferences',
-  components: { Modal, Trash2, Timer, Trophy, ListOrdered },
+  components: { Modal, Trash2, Timer, Trophy, ListOrdered, Palette },
   emits: ['close-modal', 'remove-tournament'],
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
+    ...mapState(useMainStore, [
+      'tournaments',
+      'currentTournamentIndex',
+      'currentTournament',
+      'activeTournament',
+      'user',
+    ]),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
     tournamentStarted() {
       const t = this.tournament;
       return !!(t.games?.length || t.playOff || t.cadrage || t.playOffBracket);
+    },
+    showColorSchema() {
+      const uid = this.user?.uid;
+      return uid === 'JMlbXSWdMBgUhYCJWQKCpDVQb3J2' || uid === '1GiIRmnuOrbTUB2VRgjj2HhHGoB3';
     },
     timeLimitOptions() {
       const options = [];

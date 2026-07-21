@@ -746,6 +746,10 @@ function formatSwissDescription(tournament, locale, labels) {
   return desc;
 }
 
+function isValidSlug(slug) {
+  return /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/.test(slug);
+}
+
 export {
   tournamentNames,
   getGameResultInGroup,
@@ -763,4 +767,5 @@ export {
   buildEliminationGames,
   pluralizeRounds,
   formatSwissDescription,
+  isValidSlug,
 };

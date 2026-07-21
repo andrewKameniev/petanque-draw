@@ -82,6 +82,13 @@
 
     "tournamentOrgs": {
       ".read": "auth != null"
+    },
+
+    "customRoutes": {
+      ".read": true,
+      "$slug": {
+        ".write": "auth != null && (!data.exists() || data.child('createdBy').val() === auth.uid)"
+      }
     }
   }
 }

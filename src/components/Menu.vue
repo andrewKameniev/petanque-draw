@@ -91,6 +91,12 @@
                   {{ $t('common.archivedTournaments') }}
                 </router-link>
               </li>
+              <li>
+                <router-link to="/routes" @click="$emit('closeMenu')">
+                  <Link2 :size="22" />
+                  {{ $t('common.customRoutes') }}
+                </router-link>
+              </li>
             </ul>
           </template>
 
@@ -237,12 +243,12 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { useTheme } from '@/composables/useTheme';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
-import { Paintbrush } from 'lucide-vue-next';
+import { Paintbrush, Link2 } from 'lucide-vue-next';
 import { version } from '../../package.json';
 
 export default {
   name: 'Menu',
-  components: { ThemeSwitcher, Paintbrush },
+  components: { ThemeSwitcher, Paintbrush, Link2 },
   setup() {
     const { theme, toggleTheme } = useTheme();
     return { theme, toggleTheme };

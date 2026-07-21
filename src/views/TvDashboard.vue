@@ -429,7 +429,7 @@
           <span v-if="flatRanking.length" class="tv__table-total">Всього команд: {{ flatRanking.length }}</span>
         </div>
       </div>
-      <div class="tv__qr-section">
+      <div v-if="!hideQr" class="tv__qr-section">
         <div class="tv__qr-item">
           <span class="tv__qr-label">Результати онлайн</span>
           <div class="tv__qr-box">
@@ -711,6 +711,9 @@ export default {
         else waiting++;
       });
       return { finished, active, waiting };
+    },
+    hideQr() {
+      return this.$route.query.qr === '0';
     },
     qrPublicUrl() {
       if (!this.userId || !this.tournamentId) return null;

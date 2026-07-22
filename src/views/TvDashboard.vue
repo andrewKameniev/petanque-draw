@@ -648,7 +648,7 @@ export default {
     },
     cochonettesLine() {
       const prefs = this.tournament?.preferences;
-      if (!prefs?.cochonettesEnabled || !prefs?.cochonettes) return '';
+      if (!prefs?.timeLimitEnabled || !prefs?.cochonettes) return '';
       return `+${prefs.cochonettes} кошонет`;
     },
     displayRound() {
@@ -932,6 +932,7 @@ export default {
       const parts = name.trim().split(/\s+/);
       if (parts.length === 1) return parts[0].toUpperCase();
       const surname = parts[0].toUpperCase();
+      if (surname.length >= 11) return surname;
       const initial = parts[1][0].toUpperCase() + '.';
       return `${surname} ${initial}`;
     },
@@ -1060,12 +1061,12 @@ export default {
 }
 
 .tv.tv--autumn {
-  --tv-bg: #b85c38;
-  --tv-bg-light: #d4734e;
-  --tv-bg-dark: #8b4427;
-  --tv-qualified: #c4694a;
+  --tv-bg: #e6b422;
+  --tv-bg-light: #f0c940;
+  --tv-bg-dark: #c99a1a;
+  --tv-qualified: #d4a820;
   --tv-card-active-border: #2e3b8e;
-  --tv-ribbon: #b85c38;
+  --tv-ribbon: #e6b422;
 }
 
 .tv__left {

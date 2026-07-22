@@ -1,0 +1,51 @@
+[data-color-schema='turquoise'] {
+  --color-primary: #3d7a6d;
+  --color-primary-light: #5a9e8e;
+  --color-primary-bg: #e6f5f1;
+  --color-primary-bg-hover: #ccebe3;
+  --color-primary-shadow: rgb(61 122 109 / 25%);
+  --color-highlight: rgb(90 158 142 / 12%);
+  --color-card-shadow: rgb(61 122 109 / 8%);
+  --color-ranking-primary-bg: rgb(61 122 109 / 85%);
+  --color-match-border-active: #3d7a6d;
+  --color-body-bg: #6fb3a3;
+  --color-surface: #8ec7ba;
+  --color-badge-purple: #e6f5f1;
+}
+
+[data-color-schema='turquoise'][data-theme='dark'] {
+  --color-primary: #6fb3a3;
+  --color-primary-light: #8ec7ba;
+  --color-primary-bg: #1a2f2b;
+  --color-primary-bg-hover: #243d37;
+  --color-primary-shadow: rgb(111 179 163 / 25%);
+  --color-highlight: rgb(111 179 163 / 18%);
+  --color-card-shadow: rgb(0 0 0 / 35%);
+  --color-ranking-primary-bg: rgb(111 179 163 / 85%);
+  --color-match-border-active: #6fb3a3;
+}
+
+[data-color-schema='autumn'] {
+  --color-primary: #e6b422;
+  --color-primary-light: #f0c940;
+  --color-primary-bg: #fdf8e8;
+  --color-primary-bg-hover: #fbf0cc;
+  --color-primary-shadow: rgb(230 180 34 / 25%);
+  --color-highlight: rgb(230 180 34 / 12%);
+  --color-card-shadow: rgb(230 180 34 / 8%);
+  --color-ranking-primary-bg: rgb(230 180 34 / 85%);
+  --color-match-border-active: #e6b422;
+  --color-badge-purple: #fdf8e8;
+}
+
+[data-color-schema='autumn'][data-theme='dark'] {
+  --color-primary: #f0c940;
+  --color-primary-light: #f5d760;
+  --color-primary-bg: #2d2810;
+  --color-primary-bg-hover: #3d3518;
+  --color-primary-shadow: rgb(240 201 64 / 25%);
+  --color-highlight: rgb(240 201 64 / 18%);
+  --color-card-shadow: rgb(0 0 0 / 35%);
+  --color-ranking-primary-bg: rgb(240 201 64 / 85%);
+  --color-match-border-active: #f0c940;
+}

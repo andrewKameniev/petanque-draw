@@ -11,6 +11,8 @@ const Stats = () => import('@/views/Stats.vue');
 const Training = () => import('@/views/Training.vue');
 const Archived = () => import('@/views/Archived.vue');
 const Draw = () => import('@/components/Draw.vue');
+const PublicSlug = () => import('@/views/PublicSlug.vue');
+const CustomRoutes = () => import('@/views/CustomRoutes.vue');
 import i18n, { loadLocaleModule } from '@/i18n';
 import { useMainStore } from '@/stores/main';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -84,12 +86,23 @@ const router = createRouter({
       component: Archived,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/public/:slug',
+      name: 'PublicSlug',
+      component: PublicSlug,
+    },
+    {
+      path: '/routes',
+      name: 'CustomRoutes',
+      component: CustomRoutes,
+      meta: { requiresAuth: true },
+    },
   ],
 });
 
 app.use(pinia).use(router).use(i18n);
 
-const publicRoutes = ['/tournament', '/tv', '/stats/share'];
+const publicRoutes = ['/tournament', '/tv', '/stats/share', '/public'];
 function isPublicRoute(path) {
   return publicRoutes.some((route) => path.startsWith(route));
 }

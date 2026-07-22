@@ -180,6 +180,10 @@
                 </svg>
                 {{ $t('common.archivedTournaments') }}
               </router-link>
+              <router-link class="user-dropdown__item" to="/routes" @click="userDropdownOpen = false">
+                <Link2 :size="20" />
+                {{ $t('common.customRoutes') }}
+              </router-link>
               <router-link class="user-dropdown__item" to="/docs" @click="userDropdownOpen = false">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -238,11 +242,11 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
-import { Pin, Flame, Shuffle, BarChart3, Target, X } from 'lucide-vue-next';
+import { Pin, Flame, Shuffle, BarChart3, Target, X, Link2 } from 'lucide-vue-next';
 
 export default {
   name: 'Navbar',
-  components: { LanguageSwitcher, ThemeSwitcher, Pin, Flame, Shuffle, BarChart3, Target, X },
+  components: { LanguageSwitcher, ThemeSwitcher, Pin, Flame, Shuffle, BarChart3, Target, X, Link2 },
   data() {
     return {
       userDropdownOpen: false,

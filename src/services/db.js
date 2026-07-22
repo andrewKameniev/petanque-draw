@@ -110,6 +110,24 @@ export const collaboratorService = {
   },
 };
 
+export const customRoutesService = {
+  get(slug) {
+    return get(ref(db, `customRoutes/${slug}`));
+  },
+  getAll() {
+    return get(ref(db, 'customRoutes'));
+  },
+  create(slug, data) {
+    return set(ref(db, `customRoutes/${slug}`), data);
+  },
+  update(slug, data) {
+    return update(ref(db, `customRoutes/${slug}`), data);
+  },
+  remove(slug) {
+    return remove(ref(db, `customRoutes/${slug}`));
+  },
+};
+
 export const trainingService = {
   getAll(uid) {
     return get(ref(db, `${uid}/training/list`));

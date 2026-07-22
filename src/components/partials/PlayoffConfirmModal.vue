@@ -355,7 +355,7 @@ export default {
   font-size: 1rem;
   border: 1px solid var(--color-border, #e0e0e0);
   border-radius: 6px;
-  background: var(--color-bg-input, #fff);
+  background-color: #fff;
 }
 
 .confirm-playoff__checkbox {

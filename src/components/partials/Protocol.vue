@@ -937,9 +937,15 @@ export default {
 .protocol-actions__primary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.75rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
+}
+
+.protocol-actions__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .protocol-actions__secondary {

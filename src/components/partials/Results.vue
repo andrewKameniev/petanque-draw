@@ -121,7 +121,7 @@
                 >
                   <Pencil :size="14" />
                 </button>
-                <div v-if="game.score_history && game.score_history.length" class="score-history">
+                <div v-if="previewTournament.preferences.cochonettesEnabled && game.score_history && game.score_history.length" class="score-history">
                   <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
                     <span class="score-history__num">{{ ei + 1 }}</span>
                     <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -510,7 +510,7 @@
                 }"
                 >{{ game.team_2 }}</span
               >
-              <div v-if="game.score_history && game.score_history.length" class="score-history">
+              <div v-if="previewTournament.preferences.cochonettesEnabled && game.score_history && game.score_history.length" class="score-history">
                 <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
                   <span class="score-history__num">{{ ei + 1 }}</span>
                   <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>

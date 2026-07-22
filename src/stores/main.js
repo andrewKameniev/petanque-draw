@@ -32,6 +32,7 @@ const defaultPreferences = {
   prizePlaces: 3,
   isTestTournament: false,
   cadrageLosersToB: false,
+  colorSchema: '',
 };
 
 function createTournamentData(overrides = {}) {
@@ -412,7 +413,11 @@ export const useMainStore = defineStore('main', {
               }
               return;
             }
-            if (path === 'roundTimer' && value?.timerStatus === 'ended' && local.main.roundTimer?.timerStatus === 'running') {
+            if (
+              path === 'roundTimer' &&
+              value?.timerStatus === 'ended' &&
+              local.main.roundTimer?.timerStatus === 'running'
+            ) {
               const endsAt = new Date(local.main.roundTimer.timerEndsAt).getTime();
               if (endsAt > Date.now()) return;
             }
@@ -499,7 +504,11 @@ export const useMainStore = defineStore('main', {
         simplePaths.forEach((path) => {
           subscribePath(path, (value, local) => {
             if (value !== undefined) {
-              if (path === 'roundTimer' && value?.timerStatus === 'ended' && local.roundTimer?.timerStatus === 'running') {
+              if (
+                path === 'roundTimer' &&
+                value?.timerStatus === 'ended' &&
+                local.roundTimer?.timerStatus === 'running'
+              ) {
                 const endsAt = new Date(local.roundTimer.timerEndsAt).getTime();
                 if (endsAt > Date.now()) return;
               }

@@ -5,15 +5,12 @@
   <div v-else-if="!tournament" class="tv-loading">
     <p class="tv-loading__text">Турнір не знайдено</p>
   </div>
-  <div v-else class="tv">
-    <!-- Two-column layout: left (header+grid+footer) | right (table+QR) -->
+  <div v-else class="tv" :class="tvSchemaClass">
+    <!-- Left column: header + content -->
     <div class="tv__left">
-      <!-- Header -->
       <header class="tv__header">
-        <div class="tv__header-left">
-          <img src="../assets/img/tv-logo.png" alt="" class="tv__header-logo" />
-        </div>
-        <div class="tv__header-center">
+        <img :src="headerImage" alt="" class="tv__header-img" />
+        <div class="tv__header-overlay">
           <div class="tv__system-box">
             <span class="tv__system-label">СИСТЕМА</span>
             <span class="tv__system-text">{{ systemSummary }}</span>
@@ -34,14 +31,22 @@
               <span v-if="cochonettesLine" class="tv__timer-cochonettes">{{ cochonettesLine }}</span>
             </div>
           </div>
-        </div>
-        <div class="tv__header-right">
-          <div class="tv__clock">{{ currentTime }}</div>
-          <div class="tv__date">{{ currentDate }}</div>
+          <div class="tv__clock-box">
+            <div class="tv__clock">{{ currentTime }}</div>
+            <div class="tv__date">{{ currentDate }}</div>
+          </div>
         </div>
       </header>
 
-      <!-- Matches grid -->
+      <div class="tv__sponsors-strip">
+        <div class="tv__marquee">
+          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+        </div>
+      </div>
+
       <main class="tv__main">
         <section
           v-if="
@@ -83,7 +88,10 @@
                       >{{ formatName(game.team_2) }}</span
                     >
                   </div>
-                  <div v-if="game.score_history && game.score_history.length" class="tv__card-history">
+                  <div
+                    v-if="showScoreHistory && game.score_history && game.score_history.length"
+                    class="tv__card-history"
+                  >
                     <span v-for="(entry, i) in game.score_history" :key="i" class="tv__card-chip">
                       <span class="tv__card-chip-num">{{ i + 1 }}</span>
                       <span class="tv__card-chip-score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -94,7 +102,7 @@
             </div>
           </div>
           <!-- Default: flat grid -->
-          <div v-else class="tv__matches-grid" :style="gridStyle">
+          <div v-else class="tv__matches-grid" :class="gridDensity" :style="gridStyle">
             <div v-for="(game, index) in sortedGames" :key="index" class="tv__card" :class="cardClass(game)">
               <div class="tv__card-top">
                 <span class="tv__card-lane" :class="laneClass(game)">{{ game._lane }}</span>
@@ -116,7 +124,7 @@
                   >{{ formatName(game.team_2) }}</span
                 >
               </div>
-              <div v-if="game.score_history && game.score_history.length" class="tv__card-history">
+              <div v-if="showScoreHistory && game.score_history && game.score_history.length" class="tv__card-history">
                 <span v-for="(entry, i) in game.score_history" :key="i" class="tv__card-chip">
                   <span class="tv__card-chip-num">{{ i + 1 }}</span>
                   <span class="tv__card-chip-score">{{ entry.s1 }}-{{ entry.s2 }}</span>
@@ -313,30 +321,9 @@
           </div>
         </section>
       </main>
-
-      <!-- Bottom status bar -->
-      <footer class="tv__footer">
-        <span class="tv__footer-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          {{ phaseLabel }}
-        </span>
-        <span class="tv__footer-spacer"></span>
-        <span class="tv__footer-item tv__footer-item--stat">
-          <span class="tv__footer-dot tv__footer-dot--finished"></span> ЗАВЕРШЕНИХ: {{ matchStats.finished }}
-        </span>
-        <span class="tv__footer-item tv__footer-item--stat">
-          <span class="tv__footer-dot tv__footer-dot--active"></span> АКТИВНИХ МАТЧІВ: {{ matchStats.active }}
-        </span>
-        <span class="tv__footer-item tv__footer-item--stat">
-          <span class="tv__footer-dot tv__footer-dot--waiting"></span> ОЧІКУЮТЬ: {{ matchStats.waiting }}
-        </span>
-      </footer>
     </div>
 
-    <!-- Right column: standings table + QR codes -->
+    <!-- Right column: standings table -->
     <aside v-if="tournament.roundIsActive || (tournament.games && tournament.games.length > 0)" class="tv__sidebar">
       <!-- Groups mode: per-group tables -->
       <div v-if="isGroupsMode" class="tv__table-wrapper tv__table-wrapper--groups">
@@ -429,7 +416,7 @@
           <span v-if="flatRanking.length" class="tv__table-total">Всього команд: {{ flatRanking.length }}</span>
         </div>
       </div>
-      <div class="tv__qr-section">
+      <!-- <div class="tv__qr-section">
         <div class="tv__qr-item">
           <span class="tv__qr-label">Результати онлайн</span>
           <div class="tv__qr-box">
@@ -442,19 +429,29 @@
             <img src="../assets/img/donate-qr.jpg" alt="Donate" class="tv__qr-img" />
           </div>
         </div>
-      </div>
+      </div> -->
     </aside>
+
+    <!-- Sponsors marquee (full width) -->
+    <footer class="tv__footer">
+      <div class="tv__marquee">
+        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+      </div>
+    </footer>
   </div>
 </template>
 
 <script>
 import { tournamentService } from '@/services/db';
 import { getTeamsRanking, pluralizeRounds } from '@/helpers';
-import QrcodeVue from 'qrcode.vue';
+import headerMan from '@/assets/img/tv-header.png';
+import headerWoman from '@/assets/img/tv-header-woman.png';
 
 export default {
   name: 'TvDashboard',
-  components: { QrcodeVue },
   data() {
     return {
       isLoading: true,
@@ -466,7 +463,7 @@ export default {
       currentGroupPage: 0,
       groupRotationKey: 0,
       tableRotationKey: 0,
-      tablePageSize: 20,
+      tablePageSize: 27,
       qrCanvas: null,
     };
   },
@@ -513,6 +510,17 @@ export default {
         return decoded.split(':')[1];
       }
       return this.$route.query.tournament;
+    },
+    headerImage() {
+      return this.$route.query.header === 'woman' ? headerWoman : headerMan;
+    },
+    colorSchema() {
+      return this.tournament?.preferences?.colorSchema || '';
+    },
+    tvSchemaClass() {
+      if (this.colorSchema === 'autumn') return 'tv--autumn';
+      if (!this.colorSchema || this.colorSchema === 'turquoise') return '';
+      return 'tv--default';
     },
     activeRound() {
       if (!this.tournament?.games?.length) return 1;
@@ -566,13 +574,28 @@ export default {
     showPlayoffBracket() {
       return !!this.tournament?.playOff && !!this.tournament?.playOffBracket;
     },
+    showScoreHistory() {
+      const prefs = this.tournament?.preferences;
+      if (!prefs) return false;
+      if (this.tournament.playOff) return !!prefs.cochonettesEnabledPlayoff;
+      return !!prefs.cochonettesEnabled;
+    },
+    gridDensity() {
+      const count = this.sortedGames.length;
+      if (this.isGroupsMode) return '';
+      if (count <= 6) return 'tv__matches-grid--sparse';
+      if (count <= 12) return 'tv__matches-grid--medium';
+      return '';
+    },
     gridStyle() {
       const count = this.sortedGames.length;
       let cols;
       if (this.isGroupsMode) {
         cols = this.tournament.groups.length;
-      } else if (count <= 8) {
+      } else if (count <= 6) {
         cols = 1;
+      } else if (count <= 12) {
+        cols = 2;
       } else if (count <= 16) {
         cols = 2;
       } else if (count <= 24) {
@@ -625,7 +648,7 @@ export default {
     },
     cochonettesLine() {
       const prefs = this.tournament?.preferences;
-      if (!prefs?.cochonettesEnabled || !prefs?.cochonettes) return '';
+      if (!prefs?.timeLimitEnabled || !prefs?.cochonettes) return '';
       return `+${prefs.cochonettes} кошонет`;
     },
     displayRound() {
@@ -711,12 +734,6 @@ export default {
         else waiting++;
       });
       return { finished, active, waiting };
-    },
-    qrPublicUrl() {
-      if (!this.userId || !this.tournamentId) return null;
-      const shortRef = `${this.userId}.${parseInt(this.tournamentId).toString(36)}`;
-      const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-      return `${window.location.origin}${domain}tournament?ref=${shortRef}`;
     },
     // Bracket computations
     bracketBoxWidth() {
@@ -915,6 +932,7 @@ export default {
       const parts = name.trim().split(/\s+/);
       if (parts.length === 1) return parts[0].toUpperCase();
       const surname = parts[0].toUpperCase();
+      if (surname.length >= 11) return surname;
       const initial = parts[1][0].toUpperCase() + '.';
       return `${surname} ${initial}`;
     },
@@ -1001,25 +1019,69 @@ export default {
 
 <style>
 .tv {
+  --tv-bg: #5a9e8e;
+  --tv-bg-light: #6fb3a3;
+  --tv-bg-dark: #3d7a6d;
+  --tv-qualified: #6fa89a;
+  --tv-text: #111827;
+  --tv-text-secondary: #374151;
+  --tv-text-muted: #6b7280;
+  --tv-white: #fff;
+  --tv-border: #e5e7eb;
+  --tv-card-active-border: #2e3b8e;
+  --tv-card-finished-border: #22c55e;
+  --tv-card-waiting-border: #d1d5db;
+  --tv-timer-danger: #dc2626;
+  --tv-winner: #15803d;
+  --tv-ribbon: #5a9e8e;
+
   width: 1920px;
   height: 1080px;
   overflow: hidden;
-  background: #fff !important;
-  color: #111827;
+  background: var(--tv-bg) !important;
+  color: var(--tv-text);
   font-family: Inter, Roboto, Arial, sans-serif;
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template:
+    'left sidebar' 1fr
+    'footer footer' 70px / 1fr 360px;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 9999;
 }
 
+.tv.tv--default {
+  --tv-bg: #471aa0;
+  --tv-bg-light: #5e35b1;
+  --tv-bg-dark: #3a1580;
+  --tv-qualified: #6b4eab;
+  --tv-card-active-border: #f5a623;
+  --tv-ribbon: #471aa0;
+}
+
+.tv.tv--autumn {
+  --tv-bg: #e6b422;
+  --tv-bg-light: #f0c940;
+  --tv-bg-dark: #c99a1a;
+  --tv-qualified: #d4a820;
+  --tv-card-active-border: #2e3b8e;
+  --tv-ribbon: #e6b422;
+}
+
 .tv__left {
+  grid-area: left;
   display: grid;
-  grid-template-rows: 150px 1fr 50px;
+  grid-template-rows: 150px 50px 1fr;
   min-height: 0;
   overflow: hidden;
+}
+
+.tv__sponsors-strip {
+  overflow: hidden;
+  background: var(--tv-white);
+  display: flex;
+  align-items: center;
 }
 
 .tv-loading {
@@ -1028,7 +1090,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff !important;
+  background: #5a9e8e !important;
   font-family: Inter, Roboto, Arial, sans-serif;
   position: fixed;
   top: 0;
@@ -1039,15 +1101,15 @@ export default {
 .tv-loading__spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #4b1fc4;
+  border: 4px solid rgb(255 255 255 / 30%);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: tv-spin 0.8s linear infinite;
 }
 
 .tv-loading__text {
   font-size: 28px;
-  color: #6b7280;
+  color: #fff;
 }
 
 @keyframes tv-spin {
@@ -1059,34 +1121,30 @@ export default {
 /* Header */
 
 .tv__header {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  border-bottom: 2px solid #e5e7eb;
-  background: #061843;
+  position: relative;
+  overflow: hidden;
 }
 
-.tv__header-left {
-  display: flex;
-  align-items: stretch;
-}
-
-.tv__header-logo {
+.tv__header-img {
+  width: 100%;
   height: 100%;
-  width: auto;
+  object-fit: cover;
   display: block;
 }
 
-.tv__header-center {
+.tv__header-overlay {
+  position: absolute;
+  inset: 0 0 0 40%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
-  padding: 8px 0;
+  padding: 0 24px;
 }
 
 .tv__system-box {
-  background: #182f8c;
-  color: #fff;
+  background: var(--tv-bg-light);
+  color: var(--tv-white);
   padding: 13px 28px;
   border-radius: 11px;
   text-align: center;
@@ -1122,8 +1180,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 13px;
-  background: #ddf4f9;
-  border: 2px solid #53b7d2;
+  background: var(--tv-white);
+  border: 2px solid var(--tv-bg-light);
   border-radius: 11px;
   padding: 13px 28px;
   min-width: 230px;
@@ -1131,11 +1189,11 @@ export default {
 
 .tv__timer-box--ended {
   background: #fef2f2;
-  border-color: #dc2626;
+  border-color: var(--tv-timer-danger);
 }
 
 .tv__timer-icon {
-  color: #53b7d2;
+  color: var(--tv-bg);
 }
 
 .tv__timer-icon svg {
@@ -1144,7 +1202,7 @@ export default {
 }
 
 .tv__timer-box--ended .tv__timer-icon {
-  color: #dc2626;
+  color: var(--tv-timer-danger);
 }
 
 .tv__timer-value {
@@ -1152,7 +1210,7 @@ export default {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: #3e899e;
+  color: var(--tv-bg-dark);
 }
 
 .tv__timer-meta {
@@ -1160,34 +1218,30 @@ export default {
   flex-direction: column;
   font-size: 20px;
   font-weight: 600;
-  color: #3e899e;
+  color: var(--tv-bg-dark);
 }
 
 .tv__timer-cochonettes {
   font-size: 15px;
-  color: #53b7d2;
+  color: var(--tv-bg);
   font-weight: 700;
 }
 
-.tv__header-right {
+.tv__clock-box {
   text-align: right;
-  padding: 8px 22px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .tv__clock {
   font-size: 43px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #fff;
+  color: var(--tv-white);
 }
 
 .tv__date {
   font-size: 20px;
   font-weight: 600;
-  color: white;
+  color: var(--tv-white);
 }
 
 /* Main layout */
@@ -1222,13 +1276,13 @@ export default {
 .tv__registration-text {
   font-size: 48px;
   font-weight: 800;
-  color: #111827;
+  color: var(--tv-text);
 }
 
 .tv__registration-teams {
   font-size: 28px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--tv-text-muted);
   margin-top: 12px;
 }
 
@@ -1257,7 +1311,7 @@ export default {
 .tv__col-header {
   font-size: 22px;
   font-weight: 600;
-  color: #333;
+  color: var(--tv-text);
   text-align: center;
   padding: 4px 0 8px;
   letter-spacing: 0.3px;
@@ -1281,8 +1335,8 @@ export default {
 
 .tv__card {
   border-radius: 6px;
-  border: 1.5px solid #e5e7eb;
-  background: #fff;
+  border: 1.5px solid var(--tv-border);
+  background: var(--tv-white);
   padding: 4px 10px;
   display: flex;
   flex-direction: column;
@@ -1295,17 +1349,17 @@ export default {
 
 .tv__card--active {
   background-image: url('@/assets/img/card-bg-active.png');
-  border-color: #2e3b8e;
+  border-color: var(--tv-card-active-border);
 }
 
 .tv__card--finished {
   background-image: url('@/assets/img/card-bg-finished.png');
-  border-color: #22c55e;
+  border-color: var(--tv-card-finished-border);
 }
 
 .tv__card--waiting {
   background-image: url('@/assets/img/card-bg-upcoming.png');
-  border-color: #d1d5db;
+  border-color: var(--tv-card-waiting-border);
 }
 
 .tv__card-top {
@@ -1324,34 +1378,34 @@ export default {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #fff;
-  color: #6b7280;
+  background: var(--tv-white);
+  color: var(--tv-text-muted);
   font-size: 16px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--tv-card-waiting-border);
   flex-shrink: 0;
   line-height: 1;
 }
 
 .tv__card-lane--active {
-  background: #fff;
-  color: #2e3b8e;
-  border-color: #2e3b8e;
+  background: var(--tv-white);
+  color: var(--tv-card-active-border);
+  border-color: var(--tv-card-active-border);
 }
 
 .tv__card-lane--finished {
-  background: #fff;
-  color: #22c55e;
-  border-color: #22c55e;
+  background: var(--tv-white);
+  color: var(--tv-card-finished-border);
+  border-color: var(--tv-card-finished-border);
 }
 
 .tv__card-name {
   font-size: 16px;
   font-weight: 600;
-  color: #374151;
+  color: var(--tv-text-secondary);
   flex: 1;
   min-width: 0;
   overflow-wrap: break-word;
@@ -1366,21 +1420,21 @@ export default {
 }
 
 .tv__card-name--winner {
-  color: #15803d;
+  color: var(--tv-winner);
   font-weight: 800;
 }
 
 .tv__card-score {
   font-size: 22px;
   font-weight: 800;
-  color: #111827;
+  color: var(--tv-text);
   text-align: center;
   min-width: 55px;
   letter-spacing: 1px;
 }
 
 .tv__card-score--waiting {
-  color: #9ca3af;
+  color: var(--tv-text-muted);
 }
 
 .tv__card-history {
@@ -1397,7 +1451,7 @@ export default {
   padding: 1px 6px 1px 2px;
   border-radius: 8px;
   background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--tv-border);
 }
 
 .tv__card-chip-num {
@@ -1407,8 +1461,8 @@ export default {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #4b1fc4;
-  color: #fff;
+  background: var(--tv-bg-dark);
+  color: var(--tv-white);
   font-size: 8px;
   font-weight: 700;
 }
@@ -1416,18 +1470,69 @@ export default {
 .tv__card-chip-score {
   font-size: 11px;
   font-weight: 600;
-  color: #111827;
+  color: var(--tv-text);
+}
+
+/* Grid density: medium (7-12 pairs, 2 columns, larger content) */
+
+.tv__matches-grid--medium .tv__card {
+  padding: 8px 18px;
+}
+
+.tv__matches-grid--medium .tv__card-lane {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+}
+
+.tv__matches-grid--medium .tv__card-name {
+  font-size: 24px;
+}
+
+.tv__matches-grid--medium .tv__card-score {
+  font-size: 32px;
+  min-width: 80px;
+}
+
+.tv__matches-grid--medium .tv__card-main {
+  gap: 12px;
+}
+
+/* Grid density: sparse (1-6 pairs, 1 column, largest content) */
+
+.tv__matches-grid--sparse .tv__card {
+  padding: 8px 16px;
+}
+
+.tv__matches-grid--sparse .tv__card-lane {
+  width: 46px;
+  height: 46px;
+  font-size: 20px;
+}
+
+.tv__matches-grid--sparse .tv__card-name {
+  font-size: 22px;
+}
+
+.tv__matches-grid--sparse .tv__card-score {
+  font-size: 30px;
+  min-width: 75px;
+}
+
+.tv__matches-grid--sparse .tv__card-main {
+  gap: 12px;
 }
 
 /* Sidebar */
 
 .tv__sidebar {
+  grid-area: sidebar;
   display: flex;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  background: #fff;
-  border-left: 2px solid #e5e7eb;
+  background: var(--tv-white);
+  border-left: 2px solid var(--tv-border);
 }
 
 .tv__table-wrapper {
@@ -1440,7 +1545,7 @@ export default {
 .tv__table-title {
   font-size: 18px;
   font-weight: 800;
-  color: #111827;
+  color: var(--tv-text);
   margin-bottom: 8px;
   letter-spacing: 0.3px;
   text-align: center;
@@ -1455,10 +1560,10 @@ export default {
 .tv__table thead th {
   font-size: 15px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--tv-text-muted);
   text-align: left;
   padding: 5px 4px;
-  border-bottom: 1.5px solid #e5e7eb;
+  border-bottom: 1.5px solid var(--tv-border);
 }
 
 .tv__table thead th:first-child {
@@ -1477,19 +1582,19 @@ export default {
 }
 
 .tv__table tbody tr:nth-child(even) td {
-  background: #f0f1f3;
+  background: rgb(0 0 0 / 7%);
 }
 
 .tv__table tbody td {
   padding: 5px 4px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--tv-border);
   font-variant-numeric: tabular-nums;
 }
 
 .tv__table tbody td:first-child {
   text-align: center;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--tv-text-muted);
 }
 
 .tv__table tbody td:nth-child(n + 3) {
@@ -1498,7 +1603,7 @@ export default {
 
 .tv__table-name {
   font-weight: 600;
-  color: #111827;
+  color: var(--tv-text);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1506,7 +1611,8 @@ export default {
 }
 
 .tv__table tbody tr.tv__table-row--qualified td {
-  background: #ecfdf5;
+  background: var(--tv-qualified);
+  color: var(--tv-white);
 }
 
 .tv__table-footer {
@@ -1515,7 +1621,7 @@ export default {
   align-items: center;
   margin-top: 8px;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--tv-text-muted);
   font-weight: 500;
 }
 
@@ -1529,7 +1635,7 @@ export default {
 
 .tv__table-qualify {
   margin-left: auto;
-  color: #059669;
+  color: var(--tv-bg-dark);
   font-weight: 600;
 }
 
@@ -1548,7 +1654,7 @@ export default {
 .tv__group-header {
   font-size: 18px;
   font-weight: 800;
-  color: #111827;
+  color: var(--tv-text);
   margin-bottom: 6px;
   letter-spacing: 0.3px;
   text-align: center;
@@ -1571,7 +1677,7 @@ export default {
 
 .tv__rotation-ribbon {
   height: 4px;
-  background: #e5e7eb;
+  background: var(--tv-border);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 10px;
@@ -1580,7 +1686,7 @@ export default {
 .tv__rotation-ribbon-bar {
   height: 100%;
   width: 100%;
-  background: #2e3b8e;
+  background: var(--tv-ribbon);
   border-radius: 2px;
   animation: ribbon-shrink 12s linear forwards;
 }
@@ -1643,47 +1749,35 @@ export default {
 /* Footer */
 
 .tv__footer {
+  grid-area: footer;
+  overflow: hidden;
+  background: var(--tv-white);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 18px;
-  background: #fff;
-  border-top: 2px solid #e5e7eb;
-  font-size: 15px;
-  font-weight: 600;
 }
 
-.tv__footer-item {
+.tv__marquee {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #374151;
+  height: 100%;
+  width: max-content;
+  animation: tv-marquee 40s linear infinite;
 }
 
-.tv__footer-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.tv__marquee-img {
+  height: 50px;
+  width: auto;
+  flex-shrink: 0;
 }
 
-.tv__footer-dot--finished {
-  background: #22c55e;
-}
+@keyframes tv-marquee {
+  from {
+    transform: translateX(0);
+  }
 
-.tv__footer-dot--active {
-  background: #2e3b8e;
-}
-
-.tv__footer-dot--waiting {
-  background: #9ca3af;
-}
-
-.tv__footer-spacer {
-  flex: 1;
-}
-
-.tv__footer-item--stat {
-  gap: 4px;
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* Bracket */
@@ -1713,26 +1807,26 @@ export default {
 }
 
 .tv__game-box {
-  fill: #fff;
-  stroke: #6b7280;
+  fill: var(--tv-white);
+  stroke: var(--tv-text-muted);
   stroke-width: 1.5;
 }
 
 .tv__game-divider {
-  stroke: #9ca3af;
+  stroke: var(--tv-text-muted);
   stroke-width: 1.5;
 }
 
 .tv__round-header {
   font-size: 14px;
   font-weight: 700;
-  fill: #374151;
+  fill: var(--tv-text-secondary);
   text-anchor: middle;
 }
 
 .tv__team-name {
   font-size: 15px;
-  fill: #374151;
+  fill: var(--tv-text-secondary);
 }
 
 .tv__team-name.tv__team-winner {
@@ -1742,7 +1836,7 @@ export default {
 .tv__team-score {
   font-size: 16px;
   font-weight: 700;
-  fill: #374151;
+  fill: var(--tv-text-secondary);
   text-anchor: middle;
 }
 
@@ -1788,7 +1882,7 @@ export default {
 
 .tv__connector-line {
   fill: none;
-  stroke: #4b5563;
+  stroke: var(--tv-text-muted);
   stroke-width: 2.5;
 }
 
@@ -1851,6 +1945,6 @@ export default {
 .tv__podium-name {
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--tv-white);
 }
 </style>

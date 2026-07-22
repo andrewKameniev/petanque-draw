@@ -769,6 +769,28 @@ export default {
       const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
       const firstPlayoffStageLabel = bracket?.stages?.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
 
+      if (bracket && currentStage === 0) {
+        const restoredBracket = JSON.parse(JSON.stringify(bracket));
+        const finalIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === 1);
+        if (finalIndex !== -1) {
+          restoredBracket.stages[finalIndex].teams.forEach((game) => {
+            game.team_1_score = null;
+            game.team_2_score = null;
+            game.status = 'not_started';
+            delete game.winner;
+          });
+        }
+        if (restoredBracket.thirdPlace) {
+          restoredBracket.thirdPlace.team_1_score = null;
+          restoredBracket.thirdPlace.team_2_score = null;
+          restoredBracket.thirdPlace.status = 'not_started';
+          delete restoredBracket.thirdPlace.winner;
+        }
+        this.setPlayOffBracket(restoredBracket);
+        this.setPlayOffStage(1);
+        return;
+      }
+
       if (bracket && currentStage && currentStage < firstPlayoffStageLabel) {
         const restoredBracket = JSON.parse(JSON.stringify(bracket));
         const currentIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === currentStage);
@@ -778,6 +800,8 @@ export default {
             game.team_2 = null;
             game.team_1_score = null;
             game.team_2_score = null;
+            game.status = 'not_started';
+            delete game.winner;
           });
         }
         if (currentStage === 1 && restoredBracket.thirdPlace) {

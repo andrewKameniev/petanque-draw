@@ -667,6 +667,11 @@ export default {
       this.revertFinishTournament();
       if (this.tournament.playOff?.length || this.tournament.cadrage?.length) {
         this.activeTab = 'games';
+        this.$nextTick(() => {
+          if (this.$refs.games) {
+            this.$refs.games.restoreRoundGames();
+          }
+        });
         return;
       }
       const lastRound = this.tournament.games[this.tournament.games.length - 1];

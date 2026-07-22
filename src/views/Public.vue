@@ -111,85 +111,6 @@
           </div>
         </div>
       </div>
-      <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
-      <PlayOff
-        v-else-if="activeTournamentView?.playOff && activeTournamentView.system !== 'tir'"
-        ref="playOff"
-        :active-tournament="activeTournamentView"
-        :is-public-view="true"
-        :hide-header="true"
-        @openResults="activeTab = 'ranking'"
-        class="playoff-public-wrapper"
-      />
-      <div v-else-if="activeTournamentView?.cadrage" class="cadrage-public-section">
-        <h3 class="cadrage-public-section__title">{{ $t('games.cadrage') }}</h3>
-        <RoundTimer
-          v-if="showPublicTimer"
-          :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
-          :timer-ends-at="activeTournamentView.roundTimer.timerEndsAt"
-          :timer-status="activeTournamentView.roundTimer.timerStatus"
-          :cochonettes-enabled="!!activeTournamentView.preferences.timeLimitEnabled"
-          :cochonettes="activeTournamentView.preferences.cochonettes || 1"
-          :read-only="true"
-          class="mb-3"
-        />
-        <div class="match-list">
-          <div
-            class="match-item"
-            :class="{
-              'match-item--in-progress': game.status === 'in_progress',
-              'match-item--finished': game.status === 'finished',
-              'match-item--upcoming': !game.status || game.status === 'not_started',
-            }"
-            v-for="(game, index) in activeTournamentView.cadrage"
-            :key="'cadrage-' + index"
-          >
-            <span
-              class="match-lane-left"
-              :class="{
-                'match-lane-left--active': game.status === 'in_progress',
-                'match-lane-left--finished': game.status === 'finished',
-              }"
-              >{{ index + (activeTournamentView.preferences?.fieldsStart || 1) }}</span
-            >
-            <span
-              class="match-team match-team-right"
-              :class="{
-                'match-team--winner':
-                  game.status === 'finished' && Number(game.team_1_score) > Number(game.team_2_score),
-              }"
-              >{{ formatTeamName(game.team_1) }}</span
-            >
-            <span class="match-vs">
-              <template v-if="game.status === 'in_progress' || game.status === 'finished'">
-                <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-              </template>
-              <template v-else>
-                <span class="match-score match-score--pending">-- : --</span>
-              </template>
-            </span>
-            <span
-              class="match-team"
-              :class="{
-                'match-team--winner':
-                  game.status === 'finished' && Number(game.team_2_score) > Number(game.team_1_score),
-              }"
-              >{{ formatTeamName(game.team_2) }}</span
-            >
-            <div
-              v-if="
-                activeTournamentView.preferences.cochonettesEnabled && game.score_history && game.score_history.length
-              "
-              class="score-history"
-            >
-              <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
-                <span class="score-history__num">{{ i + 1 }}</span>
-                <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
       <!-- TIR: single view, no tabs -->
       <TirPublicView v-if="activeTournamentView?.system === 'tir'" :tournament="activeTournamentView" class="mt-3" />
 
@@ -209,8 +130,20 @@
         </div>
         <div class="tabs-content-area">
           <div v-if="activeTab === 'round'">
+            <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
+            <PlayOff
+              v-else-if="activeTournamentView?.playOff"
+              ref="playOff"
+              :active-tournament="activeTournamentView"
+              :is-public-view="true"
+              :hide-header="true"
+              @openResults="activeTab = 'ranking'"
+              class="playoff-public-wrapper"
+            />
+            <template v-else>
             <div class="round-header">
-              <span
+              <span v-if="activeTournamentView?.cadrage">{{ $t('games.cadrage') }}</span>
+              <span v-else
                 >{{ $t('common.round') }} {{ activeRound
                 }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></span
               >
@@ -230,7 +163,61 @@
               :read-only="true"
               class="mb-3"
             />
-            <div class="match-list">
+            <div v-if="activeTournamentView?.cadrage" class="match-list">
+              <div
+                class="match-item"
+                :class="{
+                  'match-item--highlighted': isTeamHighlighted(game),
+                  'match-item--in-progress': game.status === 'in_progress',
+                  'match-item--finished': game.status === 'finished',
+                  'match-item--upcoming': !game.status || game.status === 'not_started',
+                }"
+                v-for="(game, index) in activeTournamentView.cadrage"
+                :key="'cadrage-' + index"
+              >
+                <span
+                  class="match-lane-left"
+                  :class="{
+                    'match-lane-left--active': game.status === 'in_progress',
+                    'match-lane-left--finished': game.status === 'finished',
+                  }"
+                  >{{ index + (activeTournamentView.preferences?.fieldsStart || 1) }}</span
+                >
+                <span
+                  class="match-team match-team-right"
+                  :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_1),
+                    'match-team--winner':
+                      game.status === 'finished' && Number(game.team_1_score) > Number(game.team_2_score),
+                  }"
+                  >{{ formatTeamName(game.team_1) }}</span
+                >
+                <span class="match-vs">
+                  <template v-if="game.status === 'in_progress' || game.status === 'finished'">
+                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="match-score match-score--pending">-- : --</span>
+                  </template>
+                </span>
+                <span
+                  class="match-team"
+                  :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_2),
+                    'match-team--winner':
+                      game.status === 'finished' && Number(game.team_2_score) > Number(game.team_1_score),
+                  }"
+                  >{{ formatTeamName(game.team_2) }}</span
+                >
+                <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
+                  <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+                </span>
+                <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
+                  $t('teamPlayoff.matchFinished')
+                }}</span>
+              </div>
+            </div>
+            <div v-else class="match-list">
               <template v-if="activeTournamentView?.groups && activeTournamentView.groups.length > 1">
                 <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
                   <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
@@ -399,6 +386,7 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div v-if="activeTab === 'teams'">
             <TeamsList
@@ -554,7 +542,11 @@ export default {
       const isPlayoffOnly = t?.system === 'playoff' || (t?.playOff && !t?.games?.length);
       const list = [];
       if (this.showCurrentRound) {
-        list.push({ id: 'round', label: `${this.$t('common.round')} ${this.activeRound}`, icon: 'PlayCircle' });
+        let roundLabel;
+        if (t?.playOff || t?.teamPlayoff) roundLabel = this.$t('games.playOff');
+        else if (t?.cadrage) roundLabel = this.$t('games.cadrage');
+        else roundLabel = `${this.$t('common.round')} ${this.activeRound}`;
+        list.push({ id: 'round', label: roundLabel, icon: 'PlayCircle' });
       }
       list.push({ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' });
       if (!isPlayoffOnly) {
@@ -565,7 +557,9 @@ export default {
     },
     showCurrentRound() {
       const t = this.activeTournamentView;
-      return t?.games && t.roundIsActive && !t.tournamentIsFinished && !t.cadrage && !t.playOff && t.system !== 'tir';
+      if (t?.cadrage && !t.tournamentIsFinished) return true;
+      if ((t?.playOff || t?.teamPlayoff) && !t.tournamentIsFinished && t.system !== 'tir') return true;
+      return t?.games && t.roundIsActive && !t.tournamentIsFinished && t.system !== 'tir';
     },
     activeRound() {
       const t = this.activeTournamentView;
@@ -1402,18 +1396,6 @@ export default {
   border-color: var(--color-match-winner);
 }
 
-.cadrage-public-section {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.cadrage-public-section__title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
 
 
 .round-header {
@@ -1841,7 +1823,7 @@ export default {
 
 .winner-card__avatar {
   width: 40px;
-  height: 60px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

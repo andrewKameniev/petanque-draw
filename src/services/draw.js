@@ -97,7 +97,7 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
       const fewestTechnicals = teamsToDraw.reduce(
         (best, t, i) => {
           const count = t.opponents.filter((o) => o === 'Technical').length;
-          return count < best.count ? { count, index: i } : best;
+          return count < best.count || (count === best.count && i > best.index) ? { count, index: i } : best;
         },
         { count: Infinity, index: technicalTeamIndex },
       );

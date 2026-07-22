@@ -135,7 +135,7 @@
         </section>
 
         <!-- Playoff bracket view -->
-        <section v-else class="tv__bracket">
+        <section v-else class="tv__bracket" :class="{ 'tv__bracket--small': isSmallBracket }">
           <div class="tv__bracket-container">
             <svg :viewBox="`0 0 ${bracketWidth} ${bracketHeight}`" class="tv__bracket-svg">
               <g v-for="(stage, si) in bracketStages" :key="si">
@@ -306,17 +306,20 @@
             <div class="tv__podium-card tv__podium-card--gold">
               <div class="tv__podium-icon">🥇</div>
               <div class="tv__podium-place">1-е місце</div>
-              <div class="tv__podium-name">{{ podium.first ? formatName(podium.first) : '—' }}</div>
+              <div class="tv__podium-name">{{ podium.first || '—' }}</div>
+              <div v-if="podium.firstClub" class="tv__podium-club">{{ podium.firstClub }}</div>
             </div>
             <div class="tv__podium-card tv__podium-card--silver">
               <div class="tv__podium-icon">🥈</div>
               <div class="tv__podium-place">2-е місце</div>
-              <div class="tv__podium-name">{{ podium.second ? formatName(podium.second) : '—' }}</div>
+              <div class="tv__podium-name">{{ podium.second || '—' }}</div>
+              <div v-if="podium.secondClub" class="tv__podium-club">{{ podium.secondClub }}</div>
             </div>
             <div class="tv__podium-card tv__podium-card--bronze">
               <div class="tv__podium-icon">🥉</div>
               <div class="tv__podium-place">3-є місце</div>
-              <div class="tv__podium-name">{{ podium.third ? formatName(podium.third) : '—' }}</div>
+              <div class="tv__podium-name">{{ podium.third || '—' }}</div>
+              <div v-if="podium.thirdClub" class="tv__podium-club">{{ podium.thirdClub }}</div>
             </div>
           </div>
         </section>
@@ -574,6 +577,11 @@ export default {
     showPlayoffBracket() {
       return !!this.tournament?.playOff && !!this.tournament?.playOffBracket;
     },
+    isSmallBracket() {
+      const stages = this.tournament?.playOffBracket?.stages;
+      if (!stages?.length) return false;
+      return stages[0].teams.length <= 4;
+    },
     showScoreHistory() {
       const prefs = this.tournament?.preferences;
       if (!prefs) return false;
@@ -760,11 +768,30 @@ export default {
         const x = padding + si * (this.bracketBoxWidth + this.bracketColGap);
         const gamesCount = stage.teams.length;
         const spacing = firstH / gamesCount;
-        const games = stage.teams.map((game, gi) => ({
-          x,
-          y: headerH + padding + gi * spacing + (spacing - this.bracketBoxHeight) / 2,
-          data: game,
-        }));
+        const games = stage.teams.map((game, gi) => {
+          let data = game;
+          if (si > 0) {
+            const prevStage = stages[si - 1];
+            const needsTeam1 = !game.team_1 && prevStage.teams[gi * 2];
+            const needsTeam2 = !game.team_2 && prevStage.teams[gi * 2 + 1];
+            if (needsTeam1 || needsTeam2) {
+              data = { ...game };
+              if (needsTeam1) {
+                const prev = prevStage.teams[gi * 2];
+                if (prev.winner) data.team_1 = prev.winner;
+              }
+              if (needsTeam2) {
+                const prev = prevStage.teams[gi * 2 + 1];
+                if (prev.winner) data.team_2 = prev.winner;
+              }
+            }
+          }
+          return {
+            x,
+            y: headerH + padding + gi * spacing + (spacing - this.bracketBoxHeight) / 2,
+            data,
+          };
+        });
         let label;
         if (stage.stageLabel === 'cadrage') label = 'Кадраж';
         else if (stage.stageLabel === 1) label = 'Фінал';
@@ -859,7 +886,21 @@ export default {
       if (tp && tp.team_1_score != null && tp.team_2_score != null) {
         third = Number(tp.team_1_score) > Number(tp.team_2_score) ? tp.team_1 : tp.team_2;
       }
-      return { first, second, third };
+      const getClub = (name) => {
+        if (!name || !this.tournament?.teams) return null;
+        const team = this.tournament.teams.find((t) => t.title === name);
+        if (team?.club?.name) return team.club.name;
+        if (team?.players?.length && team.players[0].club) return team.players[0].club;
+        return null;
+      };
+      return {
+        first,
+        second,
+        third,
+        firstClub: getClub(first),
+        secondClub: getClub(second),
+        thirdClub: getClub(third),
+      };
     },
   },
   methods: {
@@ -1065,6 +1106,7 @@ export default {
   --tv-bg-light: #f0c940;
   --tv-bg-dark: #c99a1a;
   --tv-qualified: #d4a820;
+  --tv-qualified-alt: #e8c23a;
   --tv-card-active-border: #2e3b8e;
   --tv-ribbon: #e6b422;
 }
@@ -1615,6 +1657,10 @@ export default {
   color: var(--tv-white);
 }
 
+.tv__table tbody tr.tv__table-row--qualified:nth-child(even) td {
+  background: var(--tv-qualified-alt, var(--tv-qualified));
+}
+
 .tv__table-footer {
   display: flex;
   justify-content: space-between;
@@ -1886,6 +1932,36 @@ export default {
   stroke-width: 2.5;
 }
 
+.tv__bracket--small {
+  flex-direction: column;
+}
+
+.tv__bracket--small .tv__bracket-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tv__bracket--small .tv__bracket-svg {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.tv__bracket--small .tv__podium {
+  flex-direction: row;
+  min-width: unset;
+  flex-shrink: 0;
+  padding: 12px 24px;
+  align-self: center;
+}
+
+.tv__bracket--small .tv__podium-card {
+  flex: 1;
+  min-width: 180px;
+}
+
 .tv__podium {
   display: flex;
   flex-direction: column;
@@ -1946,5 +2022,11 @@ export default {
   font-size: 18px;
   font-weight: 700;
   color: var(--tv-white);
+}
+
+.tv__podium-club {
+  font-size: 12px;
+  color: rgb(255 255 255 / 60%);
+  margin-top: 4px;
 }
 </style>

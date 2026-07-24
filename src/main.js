@@ -102,6 +102,8 @@ const router = createRouter({
 
 app.use(pinia).use(router).use(i18n);
 
+useMainStore().setRouter(router);
+
 const publicRoutes = ['/tournament', '/tv', '/stats/share', '/public'];
 function isPublicRoute(path) {
   return publicRoutes.some((route) => path.startsWith(route));

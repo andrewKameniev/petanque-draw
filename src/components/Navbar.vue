@@ -339,21 +339,21 @@ export default {
     chooseTournament(id) {
       this.setActiveTournament(id);
       if (this.$route.path !== '/') {
-        this.$router.push('/');
+        this.$router.push({ path: '/', query: { t: id } });
       }
     },
     chooseTournamentFromOverlay(id) {
       this.setActiveTournament(id);
       this.activeOverlayOpen = false;
       if (this.$route.path !== '/') {
-        this.$router.push('/');
+        this.$router.push({ path: '/', query: { t: id } });
       }
     },
     async openSharedTournament(item) {
       await this.loadSharedTournament(item.id, item.ownerUid);
       this.activeOverlayOpen = false;
       if (this.$route.path !== '/') {
-        this.$router.push('/');
+        this.$router.push({ path: '/', query: { t: item.id } });
       }
     },
     async handleLeaveShared(tournamentId) {
@@ -379,7 +379,7 @@ export default {
       this.addTournament();
       this.userDropdownOpen = false;
       if (this.$route.path !== '/') {
-        this.$router.push('/');
+        this.$router.push({ path: '/', query: { t: this.currentTournamentIndex } });
       }
     },
     signOutUser() {

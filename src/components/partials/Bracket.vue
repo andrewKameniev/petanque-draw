@@ -219,11 +219,26 @@ export default {
         const totalHeight = this.firstStageHeight;
         const gamesCount = stage.teams.length;
         const spacing = totalHeight / gamesCount;
-        const games = stage.teams.map((game, gi) => ({
-          x,
-          y: this.headerHeight + this.padding + gi * spacing + (spacing - this.boxHeight) / 2,
-          data: game,
-        }));
+        const games = stage.teams.map((game, gi) => {
+          let data = game;
+          if (si > 0) {
+            const prevStage = this.bracket.stages[si - 1];
+            const prev1 = prevStage.teams[gi * 2];
+            const prev2 = prevStage.teams[gi * 2 + 1];
+            const needsTeam1 = !game.team_1 && prev1;
+            const needsTeam2 = !game.team_2 && prev2;
+            if (needsTeam1 || needsTeam2) {
+              data = { ...game };
+              if (needsTeam1 && prev1.winner) data.team_1 = prev1.winner;
+              if (needsTeam2 && prev2.winner) data.team_2 = prev2.winner;
+            }
+          }
+          return {
+            x,
+            y: this.headerHeight + this.padding + gi * spacing + (spacing - this.boxHeight) / 2,
+            data,
+          };
+        });
         let label;
         if (stage.stageLabel === 'cadrage') {
           label = this.$t('games.cadrage');

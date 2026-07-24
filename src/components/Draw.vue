@@ -177,12 +177,12 @@ export default {
     };
   },
   watch: {
-    '$route.query.t'(newT) {
-      if (!newT || !this.user || String(this.currentTournamentIndex) === String(newT)) return;
-      if (this.tournaments[newT]) {
-        this.setActiveTournament(newT);
-      } else if (this.userTournamentMap?.[newT] && this.userTournamentMap[newT].role !== 'owner') {
-        this.loadSharedTournament(newT, this.userTournamentMap[newT].ownerUid);
+    '$route.query.t'(tournamentId) {
+      if (!tournamentId || !this.user || String(this.currentTournamentIndex) === String(tournamentId)) return;
+      if (this.tournaments[tournamentId]) {
+        this.setActiveTournament(tournamentId);
+      } else if (this.userTournamentMap?.[tournamentId] && this.userTournamentMap[tournamentId].role !== 'owner') {
+        this.loadSharedTournament(tournamentId, this.userTournamentMap[tournamentId].ownerUid);
       }
     },
   },

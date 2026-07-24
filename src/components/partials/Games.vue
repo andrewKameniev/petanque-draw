@@ -79,14 +79,23 @@
         </h2>
         <div v-if="showTimerSection" class="round-timer-section">
           <RoundTimer
-            v-if="tournament.roundTimer?.timerStatus === 'running' || tournament.roundTimer?.timerStatus === 'ended'"
+            v-if="
+              tournament.roundTimer?.timerStatus === 'running' ||
+              tournament.roundTimer?.timerStatus === 'ended' ||
+              tournament.roundTimer?.timerStatus === 'paused'
+            "
             :timer-started-at="tournament.roundTimer.timerStartedAt"
             :timer-ends-at="tournament.roundTimer.timerEndsAt"
             :timer-status="tournament.roundTimer.timerStatus"
+            :remaining-ms="tournament.roundTimer.remainingMs || 0"
             :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
             :cochonettes="tournament.preferences.cochonettes || 1"
+            :read-only="!isOwnerOrAdmin"
             @timer-ended="onTimerEnded"
             @restart="onTimerRestart"
+            @pause="pauseRoundTimer"
+            @resume="resumeRoundTimer"
+            @reset="clearRoundTimer"
           />
           <button v-else-if="isOwnerOrAdmin" class="start-timer-btn" @click="startRoundTimer">
             <Timer :size="16" />
@@ -185,12 +194,7 @@
           <button class="finish-round-btn" data-testid="btn-finish-round" @click="validateAndFinishRound">
             {{ $t('games.finishRound') }}
           </button>
-          <a
-            v-if="!tournament.playOff"
-            href="#"
-            class="restore-round-link"
-            @click.prevent="showRestoreConfirm = true"
-          >
+          <a v-if="!tournament.playOff" href="#" class="restore-round-link" @click.prevent="showRestoreConfirm = true">
             {{ $t('games.restoreRound') }}
           </a>
         </div>
@@ -261,6 +265,11 @@
             'finish-match-preview__row--winner': finishConfirmGame.team_1_score > finishConfirmGame.team_2_score,
           }"
         >
+          <WinnerTrophyIcon
+            v-if="finishConfirmGame.team_1_score > finishConfirmGame.team_2_score"
+            :size="56"
+            class="finish-match-preview__trophy"
+          />
           <span class="finish-match-preview__name">{{ finishConfirmGame.team_1 }}</span>
           <span class="finish-match-preview__score">{{ finishConfirmGame.team_1_score }}</span>
         </div>
@@ -270,6 +279,11 @@
             'finish-match-preview__row--winner': finishConfirmGame.team_2_score > finishConfirmGame.team_1_score,
           }"
         >
+          <WinnerTrophyIcon
+            v-if="finishConfirmGame.team_2_score > finishConfirmGame.team_1_score"
+            :size="56"
+            class="finish-match-preview__trophy"
+          />
           <span class="finish-match-preview__name">{{ finishConfirmGame.team_2 }}</span>
           <span class="finish-match-preview__score">{{ finishConfirmGame.team_2_score }}</span>
         </div>
@@ -299,6 +313,7 @@ import {
 import Game from '@/components/partials/Game.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
 import { ChevronDown, Timer } from 'lucide-vue-next';
+import WinnerTrophyIcon from '@/components/icons/WinnerTrophyIcon.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
@@ -312,6 +327,7 @@ export default {
     TeamPlayoff,
     ChevronDown,
     Timer,
+    WinnerTrophyIcon,
     ConfirmRemoveModal,
     FinishedBanner,
     RoundTimer,
@@ -502,6 +518,8 @@ export default {
       'endRoundTimer',
       'clearRoundTimer',
       'restartRoundTimer',
+      'pauseRoundTimer',
+      'resumeRoundTimer',
       'subscribeTournament',
       'unsubscribeTournament',
       'finishTournament',
@@ -1252,7 +1270,7 @@ export default {
 .finish-match-preview {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   border-radius: 8px;
   padding: 4px;
   margin: 0.25rem 0;
@@ -1261,14 +1279,20 @@ export default {
 .finish-match-preview__row {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  background: var(--color-bg, #fff);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
 }
 
 .finish-match-preview__row--winner {
-  background: var(--color-success-bg, #dcfce7);
-  font-weight: 700;
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.finish-match-preview__trophy {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
 }
 
 .finish-match-preview__name {
@@ -1282,16 +1306,20 @@ export default {
   white-space: nowrap;
 }
 
+.finish-match-preview__row--winner .finish-match-preview__name {
+  font-weight: 700;
+}
+
 .finish-match-preview__score {
   font-size: 1.5rem;
   font-weight: 700;
   min-width: 1.5rem;
   text-align: center;
-  color: var(--color-text);
+  color: var(--color-text-muted);
   margin-left: 0.75rem;
 }
 
 .finish-match-preview__row--winner .finish-match-preview__score {
-  color: var(--color-success, #16a34a);
+  color: var(--color-success);
 }
 </style>

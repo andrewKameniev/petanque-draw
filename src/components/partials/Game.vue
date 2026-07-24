@@ -33,6 +33,9 @@
           @blur="onBlur"
           v-if="!compactView"
         />
+        <span v-else class="compact-score" :class="{ 'compact-score--empty': !hasCompactScores }">
+          {{ hasCompactScores ? game.team_1_score : '–' }}
+        </span>
       </div>
       <span class="text-center score-block">
         <span class="lane-block is-size-7" :class="{ 'lane-block--clickable': canSwapLane }" @click="startSwap">
@@ -70,6 +73,9 @@
           @blur="onBlur"
           v-if="!compactView"
         />
+        <span v-else class="compact-score" :class="{ 'compact-score--empty': !hasCompactScores }">
+          {{ hasCompactScores ? game.team_2_score : '–' }}
+        </span>
       </div>
       <span v-if="!compactView" class="game-row__action">
         <button v-if="canFinishGame" class="game-row__finish-btn" @click.stop="$emit('finish', gameIndex)">
@@ -281,6 +287,14 @@ export default {
     fieldsStart() {
       return this.tournament.preferences.fieldsStart;
     },
+    hasCompactScores() {
+      return (
+        this.game.team_1_score != null &&
+        this.game.team_1_score !== '' &&
+        this.game.team_2_score != null &&
+        this.game.team_2_score !== ''
+      );
+    },
     cochonettesEnabled() {
       if (this.isPlayoff || this.isThird) {
         return !!this.tournament.preferences.cochonettesEnabledPlayoff;
@@ -415,6 +429,19 @@ export default {
   font-size: 9px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.compact-score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.compact-score--empty {
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
 @media all and (max-width: 768px) {

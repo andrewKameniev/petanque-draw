@@ -86,11 +86,14 @@
           <RoundTimer
             v-if="
               showTimerSection &&
-              (tournament.roundTimer?.timerStatus === 'running' || tournament.roundTimer?.timerStatus === 'ended')
+              (tournament.roundTimer?.timerStatus === 'running' ||
+                tournament.roundTimer?.timerStatus === 'ended' ||
+                tournament.roundTimer?.timerStatus === 'paused')
             "
             :timer-started-at="tournament.roundTimer.timerStartedAt"
             :timer-ends-at="tournament.roundTimer.timerEndsAt"
             :timer-status="tournament.roundTimer.timerStatus"
+            :remaining-ms="tournament.roundTimer.remainingMs || 0"
             :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
             :cochonettes="tournament.preferences.cochonettes || 1"
             :read-only="true"
@@ -288,14 +291,22 @@
         <template v-else>
           <div v-if="showTimerSection" class="round-timer-section">
             <RoundTimer
-              v-if="tournament.roundTimer?.timerStatus === 'running' || tournament.roundTimer?.timerStatus === 'ended'"
+              v-if="
+                tournament.roundTimer?.timerStatus === 'running' ||
+                tournament.roundTimer?.timerStatus === 'ended' ||
+                tournament.roundTimer?.timerStatus === 'paused'
+              "
               :timer-started-at="tournament.roundTimer.timerStartedAt"
               :timer-ends-at="tournament.roundTimer.timerEndsAt"
               :timer-status="tournament.roundTimer.timerStatus"
+              :remaining-ms="tournament.roundTimer.remainingMs || 0"
               :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
               :cochonettes="tournament.preferences.cochonettes || 1"
               @timer-ended="onTimerEnded"
               @restart="onTimerRestart"
+              @pause="pauseRoundTimer"
+              @resume="resumeRoundTimer"
+              @reset="clearRoundTimer"
             />
             <button v-else class="start-timer-btn" @click="startRoundTimer">
               <Timer :size="16" />
@@ -583,6 +594,8 @@ export default {
       'endRoundTimer',
       'clearRoundTimer',
       'restartRoundTimer',
+      'pauseRoundTimer',
+      'resumeRoundTimer',
     ]),
     onTimerEnded() {
       this.endRoundTimer();

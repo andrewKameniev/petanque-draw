@@ -14,6 +14,10 @@ const defaultPreferences = {
   playOffTeams: 8,
   playOffEnabled: false,
   fieldsStart: 1,
+  lanesPoolEnabled: false,
+  lanesPoolFrom: 1,
+  lanesPoolTo: 10,
+  lanesExcluded: '',
   withCadrage: false,
   withBarrage: false,
   barrageTeams: 8,
@@ -73,7 +77,6 @@ function isNewFormat(tournament) {
 
 export const useMainStore = defineStore('main', {
   state: () => ({
-    _router: null,
     tournaments: {},
     message: {
       show: false,
@@ -708,7 +711,7 @@ export const useMainStore = defineStore('main', {
         this._accessWatcherUnsub = null;
       }
     },
-    async getTournaments() {
+    async getTournaments({ routeQueryT } = {}) {
       const mapSnapshot = await userMapService.getAll(this.user.uid);
       const dbRef = ref(database, `${this.user.uid}/tournaments/`);
       const snapshot = await get(dbRef);
@@ -765,9 +768,9 @@ export const useMainStore = defineStore('main', {
         } else if (!Object.keys(this.userTournamentMap).length) {
           Object.assign(active, all);
         }
-        this.setTournaments(active);
+        this.setTournaments(active, { routeQueryT });
       } else {
-        this.setTournaments({});
+        this.setTournaments({}, { routeQueryT });
       }
 
       this.savedTournamentIds = Object.entries(this.userTournamentMap)
@@ -847,7 +850,7 @@ export const useMainStore = defineStore('main', {
         });
       });
     },
-    setTournaments(tournaments) {
+    setTournaments(tournaments, { routeQueryT } = {}) {
       Object.keys(tournaments).forEach((key) => {
         const t = tournaments[key];
         if (isNewFormat(t)) {
@@ -880,12 +883,10 @@ export const useMainStore = defineStore('main', {
         }
       });
       this.tournaments = tournaments;
-      console.log('Tournaments:', JSON.parse(JSON.stringify(tournaments)));
       if (!Object.keys(this.tournaments).length) {
         this.addTournament();
       }
-      const routeT = this._getRouteQueryT();
-      const pinned = routeT || localStorage.getItem('petanqueDrawPinned');
+      const pinned = routeQueryT || localStorage.getItem('petanqueDrawPinned');
       if (pinned && this.tournaments[pinned]) {
         this.setActiveTournament(pinned);
       } else if (pinned && this.userTournamentMap[pinned] && this.userTournamentMap[pinned].role !== 'owner') {
@@ -918,25 +919,8 @@ export const useMainStore = defineStore('main', {
         set(ref(db, `emails/${emailKey}`), value.uid);
       }
     },
-    setRouter(router) {
-      this._router = router;
-    },
-    _getRouteQueryT() {
-      if (!this._router) return null;
-      const query = this._router.currentRoute?.value?.query;
-      return query?.t || null;
-    },
-    _updateRouteQuery(tournamentId) {
-      if (!this._router) return;
-      const current = this._router.currentRoute?.value;
-      if (!current || current.path !== '/') return;
-      const currentT = current.query?.t;
-      if (String(currentT) === String(tournamentId)) return;
-      this._router.replace({ path: '/', query: { t: tournamentId } });
-    },
     setActiveTournament(index) {
       this.currentTournamentIndex = index;
-      this._updateRouteQuery(index);
     },
     changeTournamentName(name) {
       this.tournaments[this.currentTournamentIndex].name = name;
@@ -1129,6 +1113,24 @@ export const useMainStore = defineStore('main', {
         timerStatus: 'running',
         timeLimitMinutes: minutes,
       };
+      this._syncPath(`${prefix}roundTimer`, data.roundTimer);
+    },
+    pauseRoundTimer() {
+      const { data, prefix } = this._getTarget();
+      if (!data?.roundTimer || data.roundTimer.timerStatus !== 'running') return;
+      const remainingMs = Math.max(0, new Date(data.roundTimer.timerEndsAt).getTime() - Date.now());
+      data.roundTimer.timerStatus = 'paused';
+      data.roundTimer.remainingMs = remainingMs;
+      this._syncPath(`${prefix}roundTimer`, data.roundTimer);
+    },
+    resumeRoundTimer() {
+      const { data, prefix } = this._getTarget();
+      if (!data?.roundTimer || data.roundTimer.timerStatus !== 'paused') return;
+      const endsAt = new Date(Date.now() + data.roundTimer.remainingMs).toISOString();
+      data.roundTimer.timerStatus = 'running';
+      data.roundTimer.timerEndsAt = endsAt;
+      data.roundTimer.timerStartedAt = new Date().toISOString();
+      delete data.roundTimer.remainingMs;
       this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     clearRoundTimer() {

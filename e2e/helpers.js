@@ -52,9 +52,15 @@ async function ensureCleanTournament(page) {
       await dismissModals(page);
       await prefsBtn.click({ force: true });
       const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
-      const opened = await removeBtn.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+      const opened = await removeBtn
+        .waitFor({ state: 'visible', timeout: 3000 })
+        .then(() => true)
+        .catch(() => false);
       if (!opened) {
-        await page.locator('.modal-close').click().catch(() => {});
+        await page
+          .locator('.modal-close')
+          .click()
+          .catch(() => {});
         await page.goto('/#/');
         continue;
       }
@@ -129,7 +135,10 @@ async function drawFirstRound(page) {
   const gameRow = page.locator('[data-testid="game-row"]').first();
   for (let attempt = 0; attempt < 5; attempt++) {
     await drawBtn.click();
-    const appeared = await gameRow.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
+    const appeared = await gameRow
+      .waitFor({ state: 'visible', timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
     if (appeared) return;
     if (!(await drawBtn.isVisible().catch(() => false))) {
       await gameRow.waitFor({ state: 'visible', timeout: 10000 });
@@ -337,9 +346,15 @@ async function deleteCurrentTournament(page) {
     await dismissModals(page);
     await prefsBtn.click({ force: true });
     const removeBtn = page.locator('[data-testid="btn-remove-tournament"]');
-    const opened = await removeBtn.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+    const opened = await removeBtn
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .then(() => true)
+      .catch(() => false);
     if (!opened) {
-      await page.locator('.modal-close').click().catch(() => {});
+      await page
+        .locator('.modal-close')
+        .click()
+        .catch(() => {});
       return false;
     }
     await removeBtn.click();

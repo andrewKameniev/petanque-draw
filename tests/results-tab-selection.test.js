@@ -383,7 +383,7 @@ describe('computePoulesGroupRankings', () => {
 });
 
 describe('assignPlayoffLanes', () => {
-  it('assigns sequential lanes to non-bye games', () => {
+  it('assigns shuffled lanes to non-bye games, byes get null', () => {
     const stages = [
       {
         teams: [
@@ -397,7 +397,11 @@ describe('assignPlayoffLanes', () => {
     ];
 
     assignPlayoffLanes(stages);
-    expect(stages[0].laneOrder).toEqual([0, null, 1, null, 2]);
+    const laneOrder = stages[0].laneOrder;
+    expect(laneOrder[1]).toBeNull();
+    expect(laneOrder[3]).toBeNull();
+    const realLanes = laneOrder.filter((l) => l !== null).sort();
+    expect(realLanes).toEqual([0, 1, 2]);
   });
 
   it('handles stage with no byes', () => {
@@ -412,7 +416,8 @@ describe('assignPlayoffLanes', () => {
     ];
 
     assignPlayoffLanes(stages);
-    expect(stages[0].laneOrder).toEqual([0, 1, 2]);
+    const realLanes = stages[0].laneOrder.filter((l) => l !== null).sort();
+    expect(realLanes).toEqual([0, 1, 2]);
   });
 
   it('handles stage with all byes', () => {
@@ -438,8 +443,10 @@ describe('assignPlayoffLanes', () => {
     ];
 
     assignPlayoffLanes(stages);
-    expect(stages[0].laneOrder).toEqual([null, 0]);
-    expect(stages[1].laneOrder).toEqual([0, 1]);
+    expect(stages[0].laneOrder[0]).toBeNull();
+    expect(stages[0].laneOrder[1]).toBe(0);
+    const stage2Lanes = stages[1].laneOrder.filter((l) => l !== null).sort();
+    expect(stage2Lanes).toEqual([0, 1]);
   });
 
   it('returns the stages array', () => {

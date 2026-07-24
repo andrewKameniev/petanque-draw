@@ -185,12 +185,24 @@ export default {
         this.loadSharedTournament(tournamentId, this.userTournamentMap[tournamentId].ownerUid);
       }
     },
+    currentTournamentIndex(id) {
+      if (!id || !this.user || this.$route.path !== '/') return;
+      if (String(this.$route.query.t) !== String(id)) {
+        this.$router.replace({ path: '/', query: { t: id } });
+      }
+    },
   },
   mounted() {
     this.isLoading = false;
   },
   methods: {
-    ...mapActions(useMainStore, ['setActiveTournament', 'loadSharedTournament', 'loginUser', 'getTournaments', 'showMessage']),
+    ...mapActions(useMainStore, [
+      'setActiveTournament',
+      'loadSharedTournament',
+      'loginUser',
+      'getTournaments',
+      'showMessage',
+    ]),
     async resetPassword() {
       try {
         this.resetErrors();
@@ -264,7 +276,14 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['message', 'tournaments', 'currentTournamentIndex', 'user', 'currentTournament', 'userTournamentMap']),
+    ...mapState(useMainStore, [
+      'message',
+      'tournaments',
+      'currentTournamentIndex',
+      'user',
+      'currentTournament',
+      'userTournamentMap',
+    ]),
     tournament() {
       return this.currentTournament;
     },

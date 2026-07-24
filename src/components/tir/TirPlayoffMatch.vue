@@ -87,8 +87,7 @@
               ]"
               :disabled="readOnly"
               @click="setScore(1, aIdx, distance, opt.key)"
-            >
-            </button>
+            ></button>
           </div>
           <div class="tir-pmatch__distance">{{ distance }}m</div>
           <div class="tir-pmatch__circles tir-pmatch__circles--right">
@@ -103,8 +102,7 @@
               ]"
               :disabled="readOnly"
               @click="setScore(2, aIdx, distance, opt.key)"
-            >
-            </button>
+            ></button>
           </div>
         </div>
       </div>

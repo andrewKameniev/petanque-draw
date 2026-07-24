@@ -76,10 +76,7 @@
                 {{ $t('teams.saveTournament') }}
               </button>
             </span>
-            <button
-              class="bottom-actions__btn bottom-actions__btn--success"
-              @click="exportTirToPortal"
-            >
+            <button class="bottom-actions__btn bottom-actions__btn--success" @click="exportTirToPortal">
               <Download :size="16" />
               {{ $t('tir.exportResults') }}
             </button>
@@ -269,7 +266,11 @@
               </button>
             </span>
             <button
-              v-if="(tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.teams?.length"
+              v-if="
+                (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
+                tournament.tournamentIsFinished &&
+                tournament.teams?.length
+              "
               class="bottom-actions__btn bottom-actions__btn--gold"
               @click="showProtocol = !showProtocol"
             >
@@ -342,7 +343,10 @@
     />
     <Protocol
       v-if="
-        showProtocol && (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.system !== 'tir'
+        showProtocol &&
+        (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
+        tournament.tournamentIsFinished &&
+        tournament.system !== 'tir'
       "
       @close="showProtocol = false"
       :tournament="tournament"
@@ -350,7 +354,10 @@
     />
     <TirProtocol
       v-if="
-        showProtocol && (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) && tournament.tournamentIsFinished && tournament.system === 'tir'
+        showProtocol &&
+        (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
+        tournament.tournamentIsFinished &&
+        tournament.system === 'tir'
       "
       @close="showProtocol = false"
       :tournament="tournament"
@@ -396,7 +403,14 @@ import {
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
-import { getPlayoffPlaces, getCombinedTotal, getScoreCarreauCount, getScoreReussiCount, getScoreToucheCount, rankWithTiebreakers } from '@/services/tir';
+import {
+  getPlayoffPlaces,
+  getCombinedTotal,
+  getScoreCarreauCount,
+  getScoreReussiCount,
+  getScoreToucheCount,
+  rankWithTiebreakers,
+} from '@/services/tir';
 
 export default {
   name: 'Tournament',
@@ -559,9 +573,7 @@ export default {
       }
       let portalTeams;
       try {
-        const res = await fetch(
-          `https://portal.petanque.org.ua/tournament/team_export/${portalId}?format=json`,
-        );
+        const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${portalId}?format=json`);
         if (!res.ok) throw new Error(`Portal responded ${res.status}`);
         const data = await res.json();
         portalTeams = data.teams;
@@ -582,11 +594,14 @@ export default {
         ranked = [...participants].sort(
           (a, b) =>
             getCombinedTotal(b) - getCombinedTotal(a) ||
-            getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2') -
+            getScoreCarreauCount(b, 'scores') +
+              getScoreCarreauCount(b, 'scores2') -
               (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')) ||
-            getScoreReussiCount(b, 'scores') + getScoreReussiCount(b, 'scores2') -
+            getScoreReussiCount(b, 'scores') +
+              getScoreReussiCount(b, 'scores2') -
               (getScoreReussiCount(a, 'scores') + getScoreReussiCount(a, 'scores2')) ||
-            getScoreToucheCount(b, 'scores') + getScoreToucheCount(b, 'scores2') -
+            getScoreToucheCount(b, 'scores') +
+              getScoreToucheCount(b, 'scores2') -
               (getScoreToucheCount(a, 'scores') + getScoreToucheCount(a, 'scores2')),
         );
       } else {
@@ -595,7 +610,11 @@ export default {
 
       const playoffNames = Object.keys(playoffPlaces);
       const maxPlayoffPlace = playoffNames.length
-        ? Math.max(...Object.values(playoffPlaces).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v))))
+        ? Math.max(
+            ...Object.values(playoffPlaces).map((v) =>
+              typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v),
+            ),
+          )
         : 0;
 
       let nextPlace = maxPlayoffPlace + 1;
@@ -623,7 +642,11 @@ export default {
         .filter(Boolean);
 
       if (!teams.length) {
-        this.showMessage({ title: this.$t('messages.error'), text: 'No matching participants found on portal', type: 'error' });
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: 'No matching participants found on portal',
+          type: 'error',
+        });
         return;
       }
 
@@ -641,7 +664,11 @@ export default {
           });
         } else {
           const error = await response.json().catch(() => ({}));
-          this.showMessage({ title: this.$t('messages.error'), text: error.error || `Error ${response.status}`, type: 'error' });
+          this.showMessage({
+            title: this.$t('messages.error'),
+            text: error.error || `Error ${response.status}`,
+            type: 'error',
+          });
         }
       } catch (e) {
         this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
@@ -661,6 +688,7 @@ export default {
       this.tournament.preferences.noTimeLimitFinale = config.noTimeLimitFinale;
       this.tournament.preferences.cadrageLosersToB = config.cadrageLosersToB || false;
       this._playoffConfig = config;
+      this.savePreferences();
       this.setPlayOffList();
     },
     revertLastRound() {
@@ -802,8 +830,7 @@ export default {
 
       this.activeTab = 'games';
 
-      const hasCadrageLosersToB =
-        this.tournament.preferences?.cadrageLosersToB && this.tournament.cadrage?.length;
+      const hasCadrageLosersToB = this.tournament.preferences?.cadrageLosersToB && this.tournament.cadrage?.length;
 
       if (hasCadrageLosersToB && (this.tournamentWrapper.tournamentB || this.tournamentWrapper.groupB)) {
         const store = useMainStore();
@@ -856,8 +883,7 @@ export default {
     _buildCadrageLosers() {
       const cadrageLosers = [];
       this.tournament.cadrage.forEach((game) => {
-        const loserTitle =
-          Number(game.team_1_score) > Number(game.team_2_score) ? game.team_2 : game.team_1;
+        const loserTitle = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_2 : game.team_1;
         const loserTeam = this.flatRankingTeams.find((t) => t.title === loserTitle);
         if (loserTeam) {
           cadrageLosers.push({ ...loserTeam });

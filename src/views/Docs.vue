@@ -237,13 +237,17 @@
 
           <div class="docs__card">
             <h3>{{ $t('docs.supermeleSystem.modes.title') }}</h3>
-            <p><strong>{{ $t('docs.supermeleSystem.modes.ideal') }}</strong></p>
+            <p>
+              <strong>{{ $t('docs.supermeleSystem.modes.ideal') }}</strong>
+            </p>
             <p>{{ $t('docs.supermeleSystem.modes.idealDesc') }}</p>
             <ul class="docs__list">
               <li>{{ $t('docs.supermeleSystem.modes.idealRound1') }}</li>
               <li>{{ $t('docs.supermeleSystem.modes.idealRound2') }}</li>
             </ul>
-            <p style="margin-top: 0.75rem"><strong>{{ $t('docs.supermeleSystem.modes.standard') }}</strong></p>
+            <p style="margin-top: 0.75rem">
+              <strong>{{ $t('docs.supermeleSystem.modes.standard') }}</strong>
+            </p>
             <p>{{ $t('docs.supermeleSystem.modes.standardDesc') }}</p>
           </div>
 
@@ -273,7 +277,9 @@
             <p>{{ $t('docs.supermeleSystem.ranking.text') }}</p>
             <code class="docs__code">{{ $t('docs.supermeleSystem.ranking.criteria') }}</code>
             <p style="margin-top: 0.5rem">{{ $t('docs.supermeleSystem.ranking.noBuchholz') }}</p>
-            <p style="margin-top: 0.75rem"><strong>{{ $t('docs.supermeleSystem.ranking.pointsTitle') }}</strong></p>
+            <p style="margin-top: 0.75rem">
+              <strong>{{ $t('docs.supermeleSystem.ranking.pointsTitle') }}</strong>
+            </p>
             <ul class="docs__list">
               <li>{{ $t('docs.supermeleSystem.ranking.win') }}</li>
               <li>{{ $t('docs.supermeleSystem.ranking.pointsPlus') }}</li>

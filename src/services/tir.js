@@ -110,11 +110,14 @@ export function rankByCombined(participants) {
   return [...participants].sort(
     (a, b) =>
       getCombinedTotal(b) - getCombinedTotal(a) ||
-      getScoreCarreauCount(b, 'scores') + getScoreCarreauCount(b, 'scores2') -
+      getScoreCarreauCount(b, 'scores') +
+        getScoreCarreauCount(b, 'scores2') -
         (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')) ||
-      getScoreReussiCount(b, 'scores') + getScoreReussiCount(b, 'scores2') -
+      getScoreReussiCount(b, 'scores') +
+        getScoreReussiCount(b, 'scores2') -
         (getScoreReussiCount(a, 'scores') + getScoreReussiCount(a, 'scores2')) ||
-      getScoreToucheCount(b, 'scores') + getScoreToucheCount(b, 'scores2') -
+      getScoreToucheCount(b, 'scores') +
+        getScoreToucheCount(b, 'scores2') -
         (getScoreToucheCount(a, 'scores') + getScoreToucheCount(a, 'scores2')),
   );
 }
@@ -487,7 +490,17 @@ export function buildTableRows({
       return [...playoffParticipants, ...eliminatedRows];
     }
 
-    return [...qualifiedRows, ...r2Rows.sort((a, b) => b.combinedNum - a.combinedNum || b.carreauCount - a.carreauCount || b.reussiCount - a.reussiCount || b.toucheCount - a.toucheCount), ...eliminatedRows];
+    return [
+      ...qualifiedRows,
+      ...r2Rows.sort(
+        (a, b) =>
+          b.combinedNum - a.combinedNum ||
+          b.carreauCount - a.carreauCount ||
+          b.reussiCount - a.reussiCount ||
+          b.toucheCount - a.toucheCount,
+      ),
+      ...eliminatedRows,
+    ];
   }
   return allPlayers;
 }
@@ -511,11 +524,13 @@ export function getPlayoffPlaces(playoff) {
     if (thirdPlace.player2) places[thirdPlace.player2] = '3-4';
   }
   if (playoff.rounds) {
-    let nextPlace = Object.keys(places).length ? Math.max(...Object.values(places).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v)))) + 1 : 5;
+    let nextPlace = Object.keys(places).length
+      ? Math.max(
+          ...Object.values(places).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v))),
+        ) + 1
+      : 5;
     for (let i = playoff.rounds.length - 1; i >= 0; i--) {
-      const roundLosers = playoff.rounds[i].matches
-        .filter((m) => m.loser && !places[m.loser])
-        .map((m) => m.loser);
+      const roundLosers = playoff.rounds[i].matches.filter((m) => m.loser && !places[m.loser]).map((m) => m.loser);
       if (!roundLosers.length) continue;
       const endPlace = nextPlace + roundLosers.length - 1;
       const label = roundLosers.length > 1 ? `${nextPlace}-${endPlace}` : String(nextPlace);

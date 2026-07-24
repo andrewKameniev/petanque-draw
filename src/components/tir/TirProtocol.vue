@@ -237,7 +237,13 @@
 <script>
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { getScoreTotal, getScoreCarreauCount, rankWithTiebreakers, getCombinedTotal, getPlayoffPlaces } from '@/services/tir';
+import {
+  getScoreTotal,
+  getScoreCarreauCount,
+  rankWithTiebreakers,
+  getCombinedTotal,
+  getPlayoffPlaces,
+} from '@/services/tir';
 import { Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp } from 'lucide-vue-next';
 
 export default {

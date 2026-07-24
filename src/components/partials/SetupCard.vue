@@ -13,23 +13,53 @@
       <label class="setup-card__label">{{ $t('teams.system') }}</label>
       <div class="setup-card__radios">
         <label class="setup-card__radio" v-if="tournament.teams?.length > 4">
-          <input type="radio" name="system" value="swiss" v-model="tournament.system" data-testid="radio-system-swiss" />
+          <input
+            type="radio"
+            name="system"
+            value="swiss"
+            v-model="tournament.system"
+            data-testid="radio-system-swiss"
+          />
           {{ $t('teams.swiss') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="groups" v-model="tournament.system" data-testid="radio-system-groups" />
+          <input
+            type="radio"
+            name="system"
+            value="groups"
+            v-model="tournament.system"
+            data-testid="radio-system-groups"
+          />
           {{ $t('teams.groups') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="playoff" v-model="tournament.system" data-testid="radio-system-playoff" />
+          <input
+            type="radio"
+            name="system"
+            value="playoff"
+            v-model="tournament.system"
+            data-testid="radio-system-playoff"
+          />
           {{ $t('teams.playoff') }}
         </label>
         <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
-          <input type="radio" name="system" value="poules" v-model="tournament.system" data-testid="radio-system-poules" />
+          <input
+            type="radio"
+            name="system"
+            value="poules"
+            v-model="tournament.system"
+            data-testid="radio-system-poules"
+          />
           {{ $t('teams.poules') }}
         </label>
         <label class="setup-card__radio">
-          <input type="radio" name="system" value="supermele" v-model="tournament.system" data-testid="radio-system-supermele" />
+          <input
+            type="radio"
+            name="system"
+            value="supermele"
+            v-model="tournament.system"
+            data-testid="radio-system-supermele"
+          />
           {{ $t('teams.supermele') }}
         </label>
         <label class="setup-card__radio">
@@ -290,8 +320,10 @@
     </button>
 
     <div v-if="showAdvancedSettings && tournament.system !== 'tir'" class="setup-card__collapse-content">
-
-      <div v-if="(tournament.system === 'swiss' && !localSetupPlayOff) || tournament.system === 'supermele'" class="setup-card__field">
+      <div
+        v-if="(tournament.system === 'swiss' && !localSetupPlayOff) || tournament.system === 'supermele'"
+        class="setup-card__field"
+      >
         <label class="setup-card__label">{{ $t('modals.prizePlaces') }}</label>
         <input class="setup-card__input" type="number" v-model.number="tournament.preferences.prizePlaces" min="1" />
         <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
@@ -350,10 +382,53 @@
         <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
       </div>
 
-      <div class="setup-card__field">
-        <label class="setup-card__label">{{ $t('modals.fieldsStart') }}</label>
-        <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1" />
-        <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
+      <div class="setup-card__timer-section">
+        <div class="setup-card__timer-header setup-card__timer-header--static">
+          <LayoutGrid :size="18" />
+          <span>{{ $t('modals.lanesSection') }}</span>
+        </div>
+        <span class="setup-card__hint">{{ $t('modals.lanesSectionHint') }}</span>
+        <div class="setup-card__timer-body">
+          <label class="setup-card__checkbox">
+            <input type="checkbox" v-model="tournament.preferences.lanesPoolEnabled" />
+            {{ $t('modals.lanesPool') }}
+          </label>
+          <span class="setup-card__hint">{{ $t('modals.lanesPoolHint') }}</span>
+          <div v-if="tournament.preferences.lanesPoolEnabled" class="setup-card__row mt-2">
+            <div class="setup-card__row-item">
+              <span class="setup-card__hint">{{ $t('modals.lanesPoolFrom') }}</span>
+              <input
+                class="setup-card__input"
+                type="number"
+                v-model.number="tournament.preferences.lanesPoolFrom"
+                min="1"
+              />
+            </div>
+            <div class="setup-card__row-item">
+              <span class="setup-card__hint">{{ $t('modals.lanesPoolTo') }}</span>
+              <input
+                class="setup-card__input"
+                type="number"
+                v-model.number="tournament.preferences.lanesPoolTo"
+                min="1"
+              />
+            </div>
+          </div>
+          <template v-if="!tournament.preferences.lanesPoolEnabled">
+            <label class="setup-card__label mt-2">{{ $t('modals.fieldsStart') }}</label>
+            <input class="setup-card__input" type="number" v-model="tournament.preferences.fieldsStart" min="1" />
+            <span class="setup-card__hint">{{ $t('modals.fieldsStartHint') }}</span>
+          </template>
+          <label class="setup-card__label mt-2">{{ $t('modals.lanesExcluded') }}</label>
+          <input
+            class="setup-card__input"
+            type="text"
+            v-model="tournament.preferences.lanesExcluded"
+            placeholder="1, 2, 3"
+          />
+          <span class="setup-card__hint">{{ $t('modals.lanesExcludedHint') }}</span>
+          <span v-if="lanesError" class="setup-card__error">{{ lanesError }}</span>
+        </div>
       </div>
 
       <div class="setup-card__field">
@@ -366,7 +441,12 @@
     </div>
 
     <div class="setup-card__actions">
-      <button class="setup-card__start" data-testid="btn-draw-first-round" @click="$emit('draw')">
+      <button
+        class="setup-card__start"
+        data-testid="btn-draw-first-round"
+        :disabled="!!lanesError"
+        @click="$emit('draw')"
+      >
         <Play :size="18" />
         {{ $t('setup.drawFirstRound') }}
       </button>
@@ -381,11 +461,11 @@
 
 <script>
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
-import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info } from 'lucide-vue-next';
+import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info, LayoutGrid } from 'lucide-vue-next';
 
 export default {
   name: 'SetupCard',
-  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info },
+  components: { GroupDrawMethod, Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info, LayoutGrid },
   emits: [
     'draw',
     'remove',
@@ -431,6 +511,7 @@ export default {
     optimalSwissRounds: {
       handler(val) {
         if (!this.tournament.preferences.swissRoundsCount) {
+          // eslint-disable-next-line vue/no-mutating-props
           this.tournament.preferences.swissRoundsCount = val;
         }
       },
@@ -585,6 +666,44 @@ export default {
       if (count < 2) return 1;
       return Math.ceil(Math.log2(count));
     },
+    minLanesRequired() {
+      return Math.floor((this.tournament.teams?.length || 0) / 2);
+    },
+    parsedExcludedLanes() {
+      const raw = this.tournament.preferences.lanesExcluded || '';
+      return raw
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n));
+    },
+    availableLanesCount() {
+      const prefs = this.tournament.preferences;
+      const usePool = prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo;
+      const totalLanes = usePool ? prefs.lanesPoolTo - prefs.lanesPoolFrom + 1 : this.minLanesRequired;
+      const excluded = this.parsedExcludedLanes;
+      if (!usePool) return totalLanes - excluded.length;
+      const poolStart = prefs.lanesPoolFrom;
+      const poolEnd = prefs.lanesPoolTo;
+      const relevantExcluded = excluded.filter((n) => n >= poolStart && n <= poolEnd);
+      return totalLanes - relevantExcluded.length;
+    },
+    lanesError() {
+      if (this.minLanesRequired === 0) return null;
+      const prefs = this.tournament.preferences;
+      if (prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo) {
+        const poolSize = prefs.lanesPoolTo - prefs.lanesPoolFrom + 1;
+        if (poolSize < this.minLanesRequired) {
+          return this.$t('modals.lanesErrorNotEnough', { min: this.minLanesRequired, available: poolSize });
+        }
+      }
+      if (this.availableLanesCount < this.minLanesRequired) {
+        return this.$t('modals.lanesErrorNotEnough', {
+          min: this.minLanesRequired,
+          available: this.availableLanesCount,
+        });
+      }
+      return null;
+    },
   },
   methods: {
     pluralizeParticipants(n) {
@@ -706,6 +825,14 @@ export default {
   align-items: center;
   gap: 0.25rem;
   color: var(--color-primary);
+}
+
+.setup-card__error {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-error);
+  margin-top: 0.5rem;
+  font-weight: 500;
 }
 
 .setup-card__row {

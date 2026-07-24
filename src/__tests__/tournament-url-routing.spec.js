@@ -22,6 +22,7 @@ vi.mock('@/services/db', () => ({
   userMapService: { set: vi.fn(), update: vi.fn(), remove: vi.fn(), getAll: vi.fn() },
   collaboratorService: { add: vi.fn(), remove: vi.fn(), findUserByEmail: vi.fn() },
 }));
+
 const mockGet = vi.fn(() => Promise.resolve({ exists: () => false }));
 
 vi.mock('firebase/database', () => ({
@@ -36,19 +37,6 @@ vi.mock('firebase/database', () => ({
 
 const { useMainStore } = await import('../stores/main');
 
-function createMockRouter(query = {}) {
-  const currentRoute = { value: { path: '/', query } };
-  return {
-    currentRoute,
-    replace: vi.fn((to) => {
-      if (typeof to === 'object') {
-        currentRoute.value.path = to.path || '/';
-        currentRoute.value.query = to.query || {};
-      }
-    }),
-  };
-}
-
 describe('Tournament URL routing (?t= query param)', () => {
   let store;
 
@@ -59,58 +47,36 @@ describe('Tournament URL routing (?t= query param)', () => {
     store.user = { uid: 'test-uid', email: 'test@test.com' };
   });
 
-  describe('setActiveTournament updates URL', () => {
-    it('pushes ?t= to router when on / route', () => {
-      const router = createMockRouter();
-      store.setRouter(router);
-      store.addTournament();
-      const id = store.currentTournamentIndex;
-
-      expect(router.replace).toHaveBeenCalledWith({ path: '/', query: { t: id } });
-    });
-
-    it('does not push when not on / route', () => {
-      const router = createMockRouter();
-      router.currentRoute.value.path = '/stats';
-      store.setRouter(router);
-      store.addTournament();
-
-      expect(router.replace).not.toHaveBeenCalled();
-    });
-
-    it('does not push duplicate when ID matches current query', () => {
-      const router = createMockRouter({ t: '123' });
-      store.setRouter(router);
-      store.tournaments = { 123: { id: '123', main: { teams: [], games: [], system: 'swiss', preferences: {} } } };
-      store.setActiveTournament('123');
-
-      expect(router.replace).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('setTournaments reads ?t= from URL first', () => {
-    it('activates tournament from route query over localStorage', () => {
-      const router = createMockRouter({ t: 'url-tournament' });
-      store.setRouter(router);
+  describe('setTournaments uses routeQueryT over localStorage', () => {
+    it('activates tournament from routeQueryT over localStorage', () => {
       localStorage.setItem('petanqueDrawPinned', 'local-tournament');
 
-      store.tournaments = {};
       const tournaments = {
-        'url-tournament': { id: 'url-tournament', name: 'URL', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
-        'local-tournament': { id: 'local-tournament', name: 'Local', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+        'url-tournament': {
+          id: 'url-tournament',
+          name: 'URL',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
+        'local-tournament': {
+          id: 'local-tournament',
+          name: 'Local',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
       };
-      store.setTournaments(tournaments);
+      store.setTournaments(tournaments, { routeQueryT: 'url-tournament' });
 
       expect(store.currentTournamentIndex).toBe('url-tournament');
     });
 
-    it('falls back to localStorage when no ?t= in route', () => {
-      const router = createMockRouter({});
-      store.setRouter(router);
+    it('falls back to localStorage when no routeQueryT', () => {
       localStorage.setItem('petanqueDrawPinned', 'pinned-id');
 
       const tournaments = {
-        'pinned-id': { id: 'pinned-id', name: 'Pinned', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+        'pinned-id': {
+          id: 'pinned-id',
+          name: 'Pinned',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
         other: { id: 'other', name: 'Other', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
       };
       store.setTournaments(tournaments);
@@ -118,10 +84,7 @@ describe('Tournament URL routing (?t= query param)', () => {
       expect(store.currentTournamentIndex).toBe('pinned-id');
     });
 
-    it('falls back to last tournament when neither URL nor localStorage match', () => {
-      const router = createMockRouter({});
-      store.setRouter(router);
-
+    it('falls back to last tournament when neither routeQueryT nor localStorage match', () => {
       const tournaments = {
         first: { id: 'first', name: 'First', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
         last: { id: 'last', name: 'Last', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
@@ -131,9 +94,7 @@ describe('Tournament URL routing (?t= query param)', () => {
       expect(store.currentTournamentIndex).toBe('last');
     });
 
-    it('loads shared tournament when ?t= matches userTournamentMap', () => {
-      const router = createMockRouter({ t: 'shared-123' });
-      store.setRouter(router);
+    it('loads shared tournament when routeQueryT matches userTournamentMap', () => {
       store.userTournamentMap = {
         'shared-123': { role: 'scorer', ownerUid: 'owner-abc', status: 'active', name: 'Shared' },
       };
@@ -146,97 +107,106 @@ describe('Tournament URL routing (?t= query param)', () => {
       const tournaments = {
         mine: { id: 'mine', name: 'Mine', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
       };
-      store.setTournaments(tournaments);
+      store.setTournaments(tournaments, { routeQueryT: 'shared-123' });
 
       expect(store.currentTournamentIndex).not.toBe('mine');
+    });
+
+    it('ignores routeQueryT when it does not match any tournament or map entry', () => {
+      const tournaments = {
+        real: { id: 'real', name: 'Real', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+      };
+      store.setTournaments(tournaments, { routeQueryT: 'nonexistent' });
+
+      expect(store.currentTournamentIndex).toBe('real');
     });
   });
 
   describe('tab isolation', () => {
-    it('two stores with different routers activate different tournaments', () => {
+    it('two stores with different routeQueryT activate different tournaments', () => {
       const pinia1 = createPinia();
       const pinia2 = createPinia();
 
       setActivePinia(pinia1);
       const store1 = useMainStore();
       store1.user = { uid: 'test-uid', email: 'test@test.com' };
-      const router1 = createMockRouter({ t: 'tournament-A' });
-      store1.setRouter(router1);
 
       setActivePinia(pinia2);
       const store2 = useMainStore();
       store2.user = { uid: 'test-uid', email: 'test@test.com' };
-      const router2 = createMockRouter({ t: 'tournament-B' });
-      store2.setRouter(router2);
 
       const tournamentsData = {
-        'tournament-A': { id: 'tournament-A', name: 'Women', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
-        'tournament-B': { id: 'tournament-B', name: 'Men', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+        'tournament-A': {
+          id: 'tournament-A',
+          name: 'Women',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
+        'tournament-B': {
+          id: 'tournament-B',
+          name: 'Men',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
       };
 
-      store1.setTournaments({ ...tournamentsData });
-      store2.setTournaments({ ...tournamentsData });
+      store1.setTournaments({ ...tournamentsData }, { routeQueryT: 'tournament-A' });
+      store2.setTournaments({ ...tournamentsData }, { routeQueryT: 'tournament-B' });
 
       expect(store1.currentTournamentIndex).toBe('tournament-A');
       expect(store2.currentTournamentIndex).toBe('tournament-B');
     });
 
-    it('localStorage pinned does not affect tab with ?t= in URL', () => {
+    it('localStorage pinned does not affect store when routeQueryT is provided', () => {
       localStorage.setItem('petanqueDrawPinned', 'wrong-tournament');
 
-      const router = createMockRouter({ t: 'correct-tournament' });
-      store.setRouter(router);
-
       const tournaments = {
-        'wrong-tournament': { id: 'wrong-tournament', name: 'Wrong', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
-        'correct-tournament': { id: 'correct-tournament', name: 'Correct', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+        'wrong-tournament': {
+          id: 'wrong-tournament',
+          name: 'Wrong',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
+        'correct-tournament': {
+          id: 'correct-tournament',
+          name: 'Correct',
+          main: { teams: [], games: [], system: 'swiss', preferences: {} },
+        },
       };
-      store.setTournaments(tournaments);
+      store.setTournaments(tournaments, { routeQueryT: 'correct-tournament' });
 
       expect(store.currentTournamentIndex).toBe('correct-tournament');
     });
   });
 
-  describe('_getRouteQueryT', () => {
-    it('returns null when no router set', () => {
-      expect(store._getRouteQueryT()).toBeNull();
-    });
-
-    it('returns null when no ?t= param', () => {
-      store.setRouter(createMockRouter({}));
-      expect(store._getRouteQueryT()).toBeNull();
-    });
-
-    it('returns tournament id from ?t= param', () => {
-      store.setRouter(createMockRouter({ t: '12345' }));
-      expect(store._getRouteQueryT()).toBe('12345');
+  describe('setActiveTournament', () => {
+    it('sets currentTournamentIndex', () => {
+      store.tournaments = { 123: { id: '123', main: { teams: [], games: [], system: 'swiss', preferences: {} } } };
+      store.setActiveTournament('123');
+      expect(store.currentTournamentIndex).toBe('123');
     });
   });
 
-  describe('_updateRouteQuery', () => {
-    it('calls router.replace with tournament id', () => {
-      const router = createMockRouter({});
-      store.setRouter(router);
-      store._updateRouteQuery('99999');
+  describe('getTournaments passes routeQueryT through', () => {
+    it('accepts routeQueryT option', async () => {
+      const { get } = await import('firebase/database');
+      const { userMapService } = await import('@/services/db');
 
-      expect(router.replace).toHaveBeenCalledWith({ path: '/', query: { t: '99999' } });
-    });
+      userMapService.getAll.mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({
+          t1: { status: 'active', role: 'owner', name: 'T1' },
+          t2: { status: 'active', role: 'owner', name: 'T2' },
+        }),
+      });
+      get.mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({
+          t1: { id: 't1', name: 'T1', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+          t2: { id: 't2', name: 'T2', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
+        }),
+      });
 
-    it('skips replace when already the same', () => {
-      const router = createMockRouter({ t: '99999' });
-      store.setRouter(router);
-      store._updateRouteQuery('99999');
+      await store.getTournaments({ routeQueryT: 't1' });
 
-      expect(router.replace).not.toHaveBeenCalled();
-    });
-
-    it('skips replace when not on / path', () => {
-      const router = createMockRouter({});
-      router.currentRoute.value.path = '/training';
-      store.setRouter(router);
-      store._updateRouteQuery('99999');
-
-      expect(router.replace).not.toHaveBeenCalled();
+      expect(store.currentTournamentIndex).toBe('t1');
     });
   });
 });

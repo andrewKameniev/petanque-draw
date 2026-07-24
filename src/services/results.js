@@ -111,17 +111,24 @@ export function computePoulesGroupRankings(tournament) {
 }
 
 /**
- * Assigns sequential lane numbers to playoff bracket stages, skipping bye games.
+ * Assigns shuffled lane numbers to playoff bracket stages, skipping bye games.
+ * Lanes are randomized so that seeding position doesn't dictate the terrain.
  */
 export function assignPlayoffLanes(stages) {
   stages.forEach((stage) => {
+    const realGameCount = stage.teams.filter((game) => !game.isBye).length;
+    const lanes = Array.from({ length: realGameCount }, (_, i) => i);
+    for (let i = lanes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [lanes[i], lanes[j]] = [lanes[j], lanes[i]];
+    }
     const laneOrder = [];
-    let lane = 0;
+    let laneIdx = 0;
     stage.teams.forEach((game) => {
       if (game.isBye) {
         laneOrder.push(null);
       } else {
-        laneOrder.push(lane++);
+        laneOrder.push(lanes[laneIdx++]);
       }
     });
     stage.laneOrder = laneOrder;

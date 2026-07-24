@@ -113,7 +113,11 @@
                 @click="openSharedTournament(item)"
               >
                 <div class="active-overlay__item-top">
-                  <Pin v-if="String(pinnedId) === String(item.id)" :size="14" class="active-overlay__item-pin active-overlay__item-pin--shared" />
+                  <Pin
+                    v-if="String(pinnedId) === String(item.id)"
+                    :size="14"
+                    class="active-overlay__item-pin active-overlay__item-pin--shared"
+                  />
                   <span class="active-overlay__item-name">{{ item.name }}</span>
                   <span class="active-overlay__item-role">{{ $t(`collaborators.${item.role}`) }}</span>
                   <button

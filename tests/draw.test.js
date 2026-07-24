@@ -243,11 +243,19 @@ describe('drawSupermeleRound', () => {
 
   it('balanced pairing: top player paired with bottom from round 2', () => {
     const teams = [
-      makeTeam('P1', 2), makeTeam('P2', 2), makeTeam('P3', 1), makeTeam('P4', 1),
-      makeTeam('P5', 0), makeTeam('P6', 0), makeTeam('P7', 0), makeTeam('P8', 0),
+      makeTeam('P1', 2),
+      makeTeam('P2', 2),
+      makeTeam('P3', 1),
+      makeTeam('P4', 1),
+      makeTeam('P5', 0),
+      makeTeam('P6', 0),
+      makeTeam('P7', 0),
+      makeTeam('P8', 0),
     ];
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, games: [[]],
+      system: 'supermele',
+      supermelePlayers: 2,
+      games: [[]],
     });
     const round = drawSupermeleRound(tournament, teams);
     const firstGame = round[0];
@@ -260,12 +268,17 @@ describe('drawSupermeleRound', () => {
 
   it('rating-based pairing on first round when useRating is enabled', () => {
     const teams = [
-      makeTeam('P1', 0, [], 100), makeTeam('P2', 0, [], 90),
-      makeTeam('P3', 0, [], 50), makeTeam('P4', 0, [], 40),
-      makeTeam('P5', 0, [], 20), makeTeam('P6', 0, [], 10),
+      makeTeam('P1', 0, [], 100),
+      makeTeam('P2', 0, [], 90),
+      makeTeam('P3', 0, [], 50),
+      makeTeam('P4', 0, [], 40),
+      makeTeam('P5', 0, [], 20),
+      makeTeam('P6', 0, [], 10),
     ];
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, useRating: true,
+      system: 'supermele',
+      supermelePlayers: 2,
+      useRating: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const firstTeamPlayers = round[0].team_1_players;
@@ -276,7 +289,9 @@ describe('drawSupermeleRound', () => {
   it('tête-à-tête: odd doubles count splits last double into 1v1', () => {
     const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 2,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const tetATetGame = round.find((g) => g.team_1_players.length === 1 && g.team_2_players.length === 1);
@@ -288,7 +303,9 @@ describe('drawSupermeleRound', () => {
   it('tête-à-tête: even player count with even doubles has no 1v1', () => {
     const teams = Array.from({ length: 8 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 2,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const tetATetGame = round.find((g) => g.team_1_players.length === 1 && g.team_2_players.length === 1);
@@ -298,11 +315,15 @@ describe('drawSupermeleRound', () => {
   it('tête-à-tête: odd players gives technical + 1v1 when triple doesnt help', () => {
     const teams = Array.from({ length: 11 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 2,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const technical = round.find((g) => g.team_2 === 'Technical');
-    const tetATet = round.find((g) => g.team_1_players.length === 1 && g.team_2_players.length === 1 && g.team_2 !== 'Technical');
+    const tetATet = round.find(
+      (g) => g.team_1_players.length === 1 && g.team_2_players.length === 1 && g.team_2 !== 'Technical',
+    );
     expect(technical).toBeDefined();
     expect(tetATet).toBeDefined();
     const allPlayers = round.flatMap((g) => [...g.team_1_players, ...g.team_2_players]);
@@ -312,7 +333,9 @@ describe('drawSupermeleRound', () => {
   it('tête-à-tête: odd players uses triple when it gives even teams', () => {
     const teams = Array.from({ length: 9 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 2,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const technical = round.find((g) => g.team_2 === 'Technical');
@@ -324,7 +347,9 @@ describe('drawSupermeleRound', () => {
   it('without tetATet: no 1v1 games produced', () => {
     const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 2, supermeleTetATet: false,
+      system: 'supermele',
+      supermelePlayers: 2,
+      supermeleTetATet: false,
     });
     const round = drawSupermeleRound(tournament, teams);
     const tetATetGame = round.find((g) => g.team_1_players.length === 1 && g.team_2_players.length === 1);
@@ -334,7 +359,9 @@ describe('drawSupermeleRound', () => {
   it('triples with avoidTechnical: 10 players uses 2 triples + 2 doubles (no technical)', () => {
     const teams = Array.from({ length: 10 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 3, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 3,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const technical = round.find((g) => g.team_2 === 'Technical');
@@ -346,7 +373,9 @@ describe('drawSupermeleRound', () => {
   it('triples with avoidTechnical: 11 players uses 3 triples + 1 double (no technical)', () => {
     const teams = Array.from({ length: 11 }, (_, i) => makeTeam(`P${i + 1}`));
     const tournament = makeTournament(teams, {
-      system: 'supermele', supermelePlayers: 3, supermeleTetATet: true,
+      system: 'supermele',
+      supermelePlayers: 3,
+      supermeleTetATet: true,
     });
     const round = drawSupermeleRound(tournament, teams);
     const technical = round.find((g) => g.team_2 === 'Technical');

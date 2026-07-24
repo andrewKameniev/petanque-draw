@@ -266,14 +266,14 @@ export default {
       document.body.style.overflow = val ? 'hidden' : '';
     },
   },
-  computed: mapState(useMainStore, ['isAdmin', 'user']),
+  computed: mapState(useMainStore, ['isAdmin', 'user', 'currentTournamentIndex']),
   methods: {
     ...mapActions(useMainStore, ['loginUser', 'addTournament']),
     addNewTournament() {
       this.addTournament();
       this.$emit('closeMenu');
       if (this.$route.path !== '/') {
-        this.$router.push('/');
+        this.$router.push({ path: '/', query: { t: this.currentTournamentIndex } });
       }
     },
     toggleLang() {

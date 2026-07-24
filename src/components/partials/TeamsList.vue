@@ -194,8 +194,20 @@ export default {
     groupsNames() {
       return tournamentNames;
     },
+    isSinglePlayerTournament() {
+      if (this.tournament?.system === 'tir') return true;
+      if (!this.tournament?.teams?.length) return false;
+      return this.tournament.teams.every((t) => !t.players?.length || t.players.length === 1);
+    },
     sortedTeams() {
       if (!this.tournament?.teams) return [];
+      if (this.isSinglePlayerTournament) {
+        return [...this.tournament.teams].sort((a, b) => {
+          const clubA = this.getTeamClub(a) || '';
+          const clubB = this.getTeamClub(b) || '';
+          return clubA.localeCompare(clubB) || a.title.localeCompare(b.title);
+        });
+      }
       if (!this.tournament.games?.length && !this.tournament.roundIsActive) {
         return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
       }

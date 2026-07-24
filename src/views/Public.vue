@@ -86,7 +86,7 @@
           <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
         </div>
         <div v-if="activeTournamentView?.playOff" class="btn-bracket-group">
-          <button class="button is-small btn-bracket" @click="$refs.playOff && ($refs.playOff.showBracket = true)">
+          <button class="button is-small btn-bracket" @click="openBracket">
             <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
             {{ $t('games.showBracket') }}
           </button>
@@ -797,6 +797,18 @@ export default {
     },
   },
   methods: {
+    openBracket() {
+      if (this.activeTab === 'round' && this.$refs.playOff) {
+        this.$refs.playOff.showBracket = true;
+        return;
+      }
+      this.activeTab = 'round';
+      this.$nextTick(() => {
+        if (this.$refs.playOff) {
+          this.$refs.playOff.showBracket = true;
+        }
+      });
+    },
     getGameStreams(game, index) {
       return getGameStreams(game, this.activeTournamentView, index);
     },

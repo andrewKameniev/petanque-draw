@@ -107,20 +107,28 @@ function isPublicRoute(path) {
   return publicRoutes.some((route) => path.startsWith(route));
 }
 
+let authInitialResolved = false;
+
+function getRouteQueryT() {
+  return router.currentRoute.value?.query?.t || null;
+}
+
 const authReadyPromise = auth.authStateReady().then(async () => {
   const store = useMainStore();
   const user = auth.currentUser;
   store.loginUser(user || false);
   if (user && !isPublicRoute(router.currentRoute.value.path)) {
-    await store.getTournaments();
+    await store.getTournaments({ routeQueryT: getRouteQueryT() });
   }
+  authInitialResolved = true;
 });
 
 onAuthStateChanged(auth, async (user) => {
+  if (!authInitialResolved) return;
   const store = useMainStore();
   store.loginUser(user || false);
   if (user && !isPublicRoute(router.currentRoute.value.path)) {
-    await store.getTournaments();
+    await store.getTournaments({ routeQueryT: getRouteQueryT() });
   }
 });
 
@@ -139,7 +147,12 @@ router.beforeEach(async (to) => {
     if (!store.user) {
       if (to.meta.requiresAuth) return '/';
     } else if (!Object.keys(store.tournaments).length) {
-      await store.getTournaments();
+      await store.getTournaments({ routeQueryT: to.query?.t || null });
+    }
+    if (to.path === '/' && store.currentTournamentIndex) {
+      if (String(to.query.t) !== String(store.currentTournamentIndex)) {
+        return { path: '/', query: { t: store.currentTournamentIndex } };
+      }
     }
   }
   const modules = routeLocaleMap[to.name];

@@ -73,6 +73,7 @@ function isNewFormat(tournament) {
 
 export const useMainStore = defineStore('main', {
   state: () => ({
+    _router: null,
     tournaments: {},
     message: {
       show: false,
@@ -883,7 +884,8 @@ export const useMainStore = defineStore('main', {
       if (!Object.keys(this.tournaments).length) {
         this.addTournament();
       }
-      const pinned = localStorage.getItem('petanqueDrawPinned');
+      const routeT = this._getRouteQueryT();
+      const pinned = routeT || localStorage.getItem('petanqueDrawPinned');
       if (pinned && this.tournaments[pinned]) {
         this.setActiveTournament(pinned);
       } else if (pinned && this.userTournamentMap[pinned] && this.userTournamentMap[pinned].role !== 'owner') {
@@ -916,8 +918,25 @@ export const useMainStore = defineStore('main', {
         set(ref(db, `emails/${emailKey}`), value.uid);
       }
     },
+    setRouter(router) {
+      this._router = router;
+    },
+    _getRouteQueryT() {
+      if (!this._router) return null;
+      const query = this._router.currentRoute?.value?.query;
+      return query?.t || null;
+    },
+    _updateRouteQuery(tournamentId) {
+      if (!this._router) return;
+      const current = this._router.currentRoute?.value;
+      if (!current || current.path !== '/') return;
+      const currentT = current.query?.t;
+      if (String(currentT) === String(tournamentId)) return;
+      this._router.replace({ path: '/', query: { t: tournamentId } });
+    },
     setActiveTournament(index) {
       this.currentTournamentIndex = index;
+      this._updateRouteQuery(index);
     },
     changeTournamentName(name) {
       this.tournaments[this.currentTournamentIndex].name = name;
@@ -945,7 +964,7 @@ export const useMainStore = defineStore('main', {
           delete this.userTournamentMap[tournamentId];
           delete this.tournaments[tournamentId];
           if (Object.keys(this.tournaments).length >= 1) {
-            this.currentTournamentIndex = Object.keys(this.tournaments)[0];
+            this.setActiveTournament(Object.keys(this.tournaments)[0]);
           } else {
             this.addTournament();
           }
@@ -1221,7 +1240,7 @@ export const useMainStore = defineStore('main', {
         ...dataOverrides,
       });
       this.tournaments[tournamentId] = tournament;
-      this.currentTournamentIndex = tournamentId;
+      this.setActiveTournament(tournamentId);
 
       const mapEntry = { status: 'active', role: 'owner', name: tournament.name };
       this.userTournamentMap[tournamentId] = mapEntry;
@@ -1365,7 +1384,11 @@ export const useMainStore = defineStore('main', {
       }
       if (String(this.currentTournamentIndex) === String(tournamentId)) {
         const remaining = Object.keys(this.tournaments);
-        this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+        if (remaining.length) {
+          this.setActiveTournament(remaining[remaining.length - 1]);
+        } else {
+          this.currentTournamentIndex = null;
+        }
       }
       this.unsubscribeTournament();
     },
@@ -1390,7 +1413,11 @@ export const useMainStore = defineStore('main', {
       delete this.tournaments[tournamentId];
       if (String(this.currentTournamentIndex) === String(tournamentId)) {
         const remaining = Object.keys(this.tournaments);
-        this.currentTournamentIndex = remaining.length ? remaining[remaining.length - 1] : null;
+        if (remaining.length) {
+          this.setActiveTournament(remaining[remaining.length - 1]);
+        } else {
+          this.currentTournamentIndex = null;
+        }
       }
       if (this.userTournamentMap[tournamentId]) {
         delete this.userTournamentMap[tournamentId];

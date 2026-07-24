@@ -179,16 +179,19 @@ export default {
         modes: {
           title: 'Modes',
           ideal: 'Ideal (default)',
-          idealDesc: 'Balanced team formation — strongest player paired with weakest each round. Equalizes team strength so games stay competitive.',
+          idealDesc:
+            'Balanced team formation — strongest player paired with weakest each round. Equalizes team strength so games stay competitive.',
           idealRound1: 'Round 1: random (or by rating if enabled)',
           idealRound2: 'Round 2+: sorted by wins then point difference, paired top with bottom',
           standard: 'Standard',
-          standardDesc: 'Fully random team formation every round. Only constraint: avoid pairing the same players together twice.',
+          standardDesc:
+            'Fully random team formation every round. Only constraint: avoid pairing the same players together twice.',
         },
         howItWorks: {
           title: 'How Drawing Works',
           individual: 'Players are individual participants (not fixed teams)',
-          doublesPreferred: 'Doubles preferred: all doubles by default. Odd player count adds a triple or gives technical',
+          doublesPreferred:
+            'Doubles preferred: all doubles by default. Odd player count adds a triple or gives technical',
           triplesPreferred: 'Triples preferred: all triples. Leftover players form doubles',
           avoidRepeat: 'Tracks teammates — same pair never plays together twice (best-effort)',
         },
@@ -207,8 +210,8 @@ export default {
           noBuchholz: 'No Buchholz — meaningless when teammates change every round.',
           pointsTitle: 'How points count:',
           win: 'If your team won — you get +1 win',
-          pointsPlus: 'Your team\'s score added to your Points+',
-          pointsMinus: 'Opponent\'s score added to your Points−',
+          pointsPlus: "Your team's score added to your Points+",
+          pointsMinus: "Opponent's score added to your Points−",
         },
       },
 
@@ -580,7 +583,8 @@ export default {
         modes: {
           title: 'Режими',
           ideal: 'Ідеальний (за замовчуванням)',
-          idealDesc: 'Збалансоване формування команд — найсильніший гравець з найслабшим. Вирівнює силу команд щоб ігри були конкурентними.',
+          idealDesc:
+            'Збалансоване формування команд — найсильніший гравець з найслабшим. Вирівнює силу команд щоб ігри були конкурентними.',
           idealRound1: 'Раунд 1: рандом (або за рейтингом якщо увімкнено)',
           idealRound2: 'Раунд 2+: сортування за перемогами та різницею очок, парування верх з низом',
           standard: 'Стандартний',
@@ -595,7 +599,7 @@ export default {
         },
         avoidTechnical: {
           title: 'Уникнення технічної перемоги',
-          text: 'Коли увімкнено (за замовчуванням) — додаток розбиває або об\'єднує команди замість технічної:',
+          text: "Коли увімкнено (за замовчуванням) — додаток розбиває або об'єднує команди замість технічної:",
           tetATet: 'Непарна кількість дублетів → останній дублет розбивається на 1v1 (тет-а-тет)',
           joinTriple: 'Непарна кількість гравців → зайвий гравець приєднується до команди як триплет',
           triplesConvert: 'Режим триплетів → конвертація триплетів в дублети для парної кількості команд',
@@ -931,17 +935,17 @@ export default {
         },
         howItWorks: {
           title: 'Comment fonctionne le tirage',
-          individual: 'Joueurs individuels (pas d\'équipes fixes)',
+          individual: "Joueurs individuels (pas d'équipes fixes)",
           doublesPreferred: 'Doublettes : toutes doublettes par défaut. Nombre impair → triplette ou technique',
           triplesPreferred: 'Triplettes : toutes triplettes. Le reste forme des doublettes',
           avoidRepeat: 'Suivi des partenaires — même paire ne joue jamais ensemble deux fois',
         },
         avoidTechnical: {
           title: 'Éviter la victoire technique',
-          text: 'Quand activé (par défaut) — divise ou regroupe les équipes au lieu d\'une technique :',
+          text: "Quand activé (par défaut) — divise ou regroupe les équipes au lieu d'une technique :",
           tetATet: 'Nombre impair de doublettes → dernière doublette en 1v1 (tête-à-tête)',
           joinTriple: 'Nombre impair de joueurs → joueur restant rejoint une équipe en triplette',
-          triplesConvert: 'Mode triplettes → conversion en doublettes pour nombre pair d\'équipes',
+          triplesConvert: "Mode triplettes → conversion en doublettes pour nombre pair d'équipes",
           example: 'Ex : 10 joueurs → 5 doublettes (impair) → 2 matchs + 1 tête-à-tête',
         },
         ranking: {

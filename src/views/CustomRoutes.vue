@@ -38,10 +38,7 @@
 
       <div v-else class="custom-routes__list">
         <div v-for="route in routes" :key="route.slug" class="custom-routes__item">
-          <div
-            class="custom-routes__item-qr"
-            @click="expandedQr = expandedQr === route.slug ? null : route.slug"
-          >
+          <div class="custom-routes__item-qr" @click="expandedQr = expandedQr === route.slug ? null : route.slug">
             <QrcodeVue :value="getFullUrl(route.slug)" :size="expandedQr === route.slug ? 280 : 120" level="H" />
           </div>
 
@@ -53,10 +50,7 @@
 
             <div class="custom-routes__item-link">
               <div class="select is-fullwidth">
-                <select
-                  :value="route.ref || ''"
-                  @change="linkTournament(route.slug, $event.target.value)"
-                >
+                <select :value="route.ref || ''" @change="linkTournament(route.slug, $event.target.value)">
                   <option value="">{{ $t('common.selectTournament') }}</option>
                   <option v-for="t in tournamentOptions" :key="t.id" :value="t.ref">
                     {{ t.name }}

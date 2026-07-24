@@ -122,7 +122,7 @@
   --color-table-bg: rgb(255 255 255 / 50%);
   --color-modal-bg: var(--grey-0);
   --color-overlay-bg: rgb(0 0 0 / 50%);
-  --color-bg-input: var(--grey-50);
+  --color-bg-input: #fff;
 
   /* Borders */
   --color-border: var(--grey-450);
@@ -138,6 +138,7 @@
   /* Status */
   --color-success: var(--green-800);
   --color-success-hover: var(--green-900);
+  --color-success-bg: rgb(220 252 231);
   --color-error: var(--red-400);
   --color-error-hover: var(--red-600);
   --color-error-bg: var(--red-50);
@@ -314,6 +315,7 @@
   /* Status */
   --color-success: #34b86c;
   --color-success-hover: #2a9d5c;
+  --color-success-bg: rgb(52 184 108 / 15%);
   --color-error: #fb7185;
   --color-error-hover: #f43f5e;
   --color-error-bg: #2d1b1e;

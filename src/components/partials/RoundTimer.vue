@@ -1,7 +1,7 @@
 <template>
   <div
     class="round-timer"
-    :class="{ 'round-timer--ended': isEnded, 'round-timer--clickable': !readOnly }"
+    :class="{ 'round-timer--ended': isEnded, 'round-timer--paused': isPaused, 'round-timer--clickable': !readOnly }"
     @click="onTimerClick"
   >
     <div class="round-timer__display">
@@ -9,9 +9,29 @@
       <span v-if="isEnded && !showRestart" class="round-timer__text round-timer__text--ended">
         {{ $t('timer.timeLimitEnded') }}
       </span>
+      <span v-else-if="isPaused && !showRestart" class="round-timer__text round-timer__text--paused">
+        {{ formattedTime }}
+      </span>
       <span v-else-if="!showRestart" class="round-timer__text">
         {{ formattedTime }}
       </span>
+      <div v-if="!readOnly && !showRestart && (isRunning || isPaused)" class="round-timer__actions">
+        <button
+          class="round-timer__action-btn"
+          @click.stop="onPauseResume"
+          :title="isPaused ? $t('timer.resume') : $t('timer.pause')"
+        >
+          <Play v-if="isPaused" :size="20" />
+          <Pause v-else :size="20" />
+        </button>
+        <button
+          class="round-timer__action-btn round-timer__action-btn--reset"
+          @click.stop="onReset"
+          :title="$t('timer.reset')"
+        >
+          <TimerReset :size="20" />
+        </button>
+      </div>
       <div v-if="showRestart" class="round-timer__restart">
         <button v-for="opt in restartOptions" :key="opt" class="round-timer__restart-btn" @click.stop="restart(opt)">
           {{ opt }}
@@ -42,20 +62,21 @@
 </template>
 
 <script>
-import { Timer } from 'lucide-vue-next';
+import { Timer, Pause, Play, TimerReset } from 'lucide-vue-next';
 
 export default {
   name: 'RoundTimer',
-  components: { Timer },
+  components: { Timer, Pause, Play, TimerReset },
   props: {
     timerStartedAt: { type: String, default: null },
     timerEndsAt: { type: String, default: null },
     timerStatus: { type: String, default: 'not_started' },
+    remainingMs: { type: Number, default: 0 },
     cochonettesEnabled: { type: Boolean, default: false },
     cochonettes: { type: Number, default: 1 },
     readOnly: { type: Boolean, default: false },
   },
-  emits: ['timer-ended', 'restart'],
+  emits: ['timer-ended', 'restart', 'pause', 'resume', 'reset'],
   data() {
     return {
       now: Date.now(),
@@ -73,12 +94,19 @@ export default {
       }
       return false;
     },
-    remainingMs() {
+    isPaused() {
+      return this.timerStatus === 'paused';
+    },
+    isRunning() {
+      return this.timerStatus === 'running' && !this.isEnded;
+    },
+    timeLeftMs() {
+      if (this.isPaused) return this.remainingMs || 0;
       if (!this.timerEndsAt || this.isEnded) return 0;
       return Math.max(0, new Date(this.timerEndsAt).getTime() - this.now);
     },
     formattedTime() {
-      const totalSeconds = Math.ceil(this.remainingMs / 1000);
+      const totalSeconds = Math.ceil(this.timeLeftMs / 1000);
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -94,7 +122,7 @@ export default {
       if (val === 'running') {
         this.startTick();
         this.showRestart = false;
-      } else if (val === 'ended' || val === 'not_started') {
+      } else if (val === 'paused' || val === 'ended' || val === 'not_started') {
         this.stopTick();
       }
     },
@@ -135,6 +163,16 @@ export default {
       this.showRestart = false;
       this.$emit('restart', minutes);
     },
+    onPauseResume() {
+      if (this.isPaused) {
+        this.$emit('resume');
+      } else {
+        this.$emit('pause');
+      }
+    },
+    onReset() {
+      this.$emit('reset');
+    },
   },
 };
 </script>
@@ -160,6 +198,11 @@ export default {
   border-color: var(--color-danger-light);
 }
 
+.round-timer--paused {
+  background: var(--color-warning-bg, #fffbeb);
+  border-color: var(--color-warning, #f59e0b);
+}
+
 .round-timer__display {
   display: flex;
   align-items: center;
@@ -174,6 +217,10 @@ export default {
   color: var(--color-danger-light);
 }
 
+.round-timer--paused .round-timer__icon {
+  color: var(--color-warning, #f59e0b);
+}
+
 .round-timer__text {
   font-size: 1.25rem;
   font-weight: 700;
@@ -186,6 +233,39 @@ export default {
   font-size: 1rem;
 }
 
+.round-timer__text--paused {
+  color: var(--color-warning, #f59e0b);
+}
+
+.round-timer__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 0.5rem;
+}
+
+.round-timer__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.round-timer__action-btn:hover {
+  opacity: 0.8;
+}
+
+.round-timer__action-btn--reset {
+  background: var(--color-muted, #6b7280);
+}
+
 .round-timer__cochonettes {
   font-size: 0.9rem;
   font-weight: 600;
@@ -195,18 +275,18 @@ export default {
 .round-timer__restart {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .round-timer__restart-btn {
-  padding: 4px 10px;
-  font-size: 0.8rem;
+  padding: 8px 14px;
+  font-size: 0.9rem;
   font-weight: 600;
   background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -215,7 +295,7 @@ export default {
 }
 
 .round-timer__restart-btn--go {
-  padding: 4px 8px;
+  padding: 8px 10px;
 }
 
 .round-timer__restart-btn:disabled {
@@ -224,12 +304,12 @@ export default {
 }
 
 .round-timer__restart-input {
-  width: 50px;
-  padding: 4px 6px;
-  font-size: 0.8rem;
+  width: 55px;
+  padding: 8px 6px;
+  font-size: 0.9rem;
   font-weight: 600;
   border: 1px solid var(--color-primary);
-  border-radius: 6px;
+  border-radius: 8px;
   text-align: center;
   outline: none;
   background: var(--color-surface, #fff);

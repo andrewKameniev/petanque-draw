@@ -235,7 +235,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
 
   if (technicalPlayer) {
     const sorted = [...teamsToDraw].sort(
-      (a, b) => a.wins - b.wins || (a.pointsPlus - a.pointsMinus) - (b.pointsPlus - b.pointsMinus),
+      (a, b) => a.wins - b.wins || a.pointsPlus - a.pointsMinus - (b.pointsPlus - b.pointsMinus),
     );
     let techPlayer = sorted.find((t) => !(t.opponents || []).includes('Technical'));
     if (!techPlayer) techPlayer = sorted[0];
@@ -295,7 +295,7 @@ export function drawSupermeleRound(tournament, rankingTeams) {
     if (isFirstRound) {
       teamsToDraw.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else {
-      teamsToDraw.sort((a, b) => b.wins - a.wins || (b.pointsPlus - b.pointsMinus) - (a.pointsPlus - a.pointsMinus));
+      teamsToDraw.sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
     }
 
     for (let i = 1; i <= superMeleScheme.doubles; i++) {
@@ -393,12 +393,24 @@ export function assignLanes(games, tournament) {
   const isSupermele = tournament.system === 'supermele';
   const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
   const teamsMatrix = {};
-  const firstLane = tournament.preferences.fieldsStart - 1;
-  const laneCount = Math.floor(tournament.teams.length / 2);
+  const prefs = tournament.preferences;
+  const usePool = prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo;
+  const firstLane = usePool ? prefs.lanesPoolFrom - 1 : prefs.fieldsStart - 1;
+  const laneCount = usePool ? prefs.lanesPoolTo - prefs.lanesPoolFrom + 1 : Math.floor(tournament.teams.length / 2);
+
+  const excludedLanes = new Set();
+  if (prefs.lanesExcluded) {
+    prefs.lanesExcluded
+      .split(',')
+      .map((s) => parseInt(s.trim(), 10))
+      .filter((n) => !isNaN(n))
+      .forEach((n) => excludedLanes.add(n - 1));
+  }
 
   tournament.teams.forEach((team) => {
     teamsMatrix[team.title] = {};
     for (let i = firstLane; i < firstLane + laneCount; i++) {
+      if (excludedLanes.has(i)) continue;
       teamsMatrix[team.title][i] = 0;
     }
     if (team.lanes && team.lanes.length) {
@@ -459,7 +471,7 @@ export function assignLanes(games, tournament) {
   }
 
   const scheduledMatches = [];
-  let availableLanes = Array.from({ length: laneCount }, (_, i) => i + firstLane);
+  let availableLanes = Array.from({ length: laneCount }, (_, i) => i + firstLane).filter((l) => !excludedLanes.has(l));
 
   games.forEach((game) => {
     if (game.team_2 !== 'Technical') {

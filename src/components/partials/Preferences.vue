@@ -142,10 +142,55 @@
             </div>
             <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
           </div>
-          <div class="prefs__item">
-            <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
-            <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number" />
-            <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
+          <div class="prefs__section">
+            <div class="prefs__section-header prefs__section-header--static">
+              <LayoutGrid :size="18" />
+              <span>{{ $t('modals.lanesSection') }}</span>
+            </div>
+            <span class="prefs__hint">{{ $t('modals.lanesSectionHint') }}</span>
+            <div class="prefs__section-body">
+              <label class="prefs__label">
+                <input type="checkbox" v-model="tournament.preferences.lanesPoolEnabled" style="margin-right: 0.5rem" />
+                {{ $t('modals.lanesPool') }}
+              </label>
+              <span class="prefs__hint">{{ $t('modals.lanesPoolHint') }}</span>
+              <div v-if="tournament.preferences.lanesPoolEnabled" class="prefs__inputs prefs__inputs--double mt-3">
+                <div class="prefs__input-group">
+                  <span class="prefs__input-label">{{ $t('modals.lanesPoolFrom') }}</span>
+                  <input
+                    class="prefs__input"
+                    v-model.number="tournament.preferences.lanesPoolFrom"
+                    type="number"
+                    min="1"
+                  />
+                </div>
+                <div class="prefs__input-group">
+                  <span class="prefs__input-label">{{ $t('modals.lanesPoolTo') }}</span>
+                  <input
+                    class="prefs__input"
+                    v-model.number="tournament.preferences.lanesPoolTo"
+                    type="number"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div v-if="!tournament.preferences.lanesPoolEnabled" class="mt-3">
+                <label class="prefs__label">{{ $t('modals.fieldsStart') }}</label>
+                <input class="prefs__input" v-model="tournament.preferences.fieldsStart" type="number" />
+                <span class="prefs__hint">{{ $t('modals.fieldsStartHint') }}</span>
+              </div>
+              <div class="mt-3">
+                <label class="prefs__label">{{ $t('modals.lanesExcluded') }}</label>
+                <input
+                  class="prefs__input"
+                  v-model="tournament.preferences.lanesExcluded"
+                  type="text"
+                  placeholder="1, 2, 3"
+                />
+                <span class="prefs__hint">{{ $t('modals.lanesExcludedHint') }}</span>
+              </div>
+              <span v-if="lanesError" class="prefs__error">{{ lanesError }}</span>
+            </div>
           </div>
           <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">
@@ -190,11 +235,11 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
-import { Trash2, Timer, Trophy, ListOrdered, Palette } from 'lucide-vue-next';
+import { Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid } from 'lucide-vue-next';
 
 export default {
   name: 'Preferences',
-  components: { Modal, Trash2, Timer, Trophy, ListOrdered, Palette },
+  components: { Modal, Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid },
   emits: ['close-modal', 'remove-tournament'],
   computed: {
     ...mapState(useMainStore, [
@@ -220,10 +265,49 @@ export default {
       for (let i = 20; i <= 120; i += 5) options.push(i);
       return options;
     },
+    minLanesRequired() {
+      return Math.floor((this.tournament.teams?.length || 0) / 2);
+    },
+    availableLanesCount() {
+      const prefs = this.tournament.preferences;
+      const usePool = prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo;
+      const totalLanes = usePool ? prefs.lanesPoolTo - prefs.lanesPoolFrom + 1 : this.minLanesRequired;
+      const excluded = this.parsedExcludedLanes;
+      if (!usePool) return totalLanes - excluded.length;
+      const poolStart = prefs.lanesPoolFrom;
+      const poolEnd = prefs.lanesPoolTo;
+      const relevantExcluded = excluded.filter((n) => n >= poolStart && n <= poolEnd);
+      return totalLanes - relevantExcluded.length;
+    },
+    parsedExcludedLanes() {
+      const raw = this.tournament.preferences.lanesExcluded || '';
+      return raw
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n));
+    },
+    lanesError() {
+      if (this.minLanesRequired === 0) return null;
+      const prefs = this.tournament.preferences;
+      if (prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo) {
+        const poolSize = prefs.lanesPoolTo - prefs.lanesPoolFrom + 1;
+        if (poolSize < this.minLanesRequired) {
+          return this.$t('modals.lanesErrorNotEnough', { min: this.minLanesRequired, available: poolSize });
+        }
+      }
+      if (this.availableLanesCount < this.minLanesRequired) {
+        return this.$t('modals.lanesErrorNotEnough', {
+          min: this.minLanesRequired,
+          available: this.availableLanesCount,
+        });
+      }
+      return null;
+    },
   },
   methods: {
     ...mapActions(useMainStore, ['savePreferences', 'showMessage']),
     save() {
+      if (this.lanesError) return;
       this.savePreferences();
       this.showMessage({ title: this.$t('messages.preferencesSaved') });
       this.$emit('close-modal');
@@ -405,7 +489,7 @@ export default {
   padding: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 0.5rem;
-  background: var(--color-bg-soft, #fafafa);
+  background: var(--color-surface-alt);
 }
 
 .prefs__section-header {
@@ -436,15 +520,23 @@ export default {
 }
 
 .prefs__section input[type='checkbox']:not(:checked) {
-  background-color: #fff;
+  background-color: var(--color-surface);
 }
 
 .prefs__section .prefs__input {
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .prefs__section-body .prefs__label {
   font-weight: 400;
+}
+
+.prefs__error {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-error);
+  margin-top: 0.5rem;
+  font-weight: 500;
 }
 
 .mt-3 {

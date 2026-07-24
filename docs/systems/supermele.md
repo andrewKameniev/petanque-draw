@@ -13,11 +13,13 @@ Balanced team formation that equalizes team strength each round:
 - **Round 2+**: players sorted by wins (then point difference), top paired with bottom
 
 Example with 8 players after round 1 (sorted by wins):
+
 ```
 Wins: 1  1  1  1  0  0  0  0
        ↕           ↕
       Team1       Team2
 ```
+
 Player with 1 win pairs with player with 0 wins.
 
 For triples: top + middle + bottom from the sorted list.
@@ -45,6 +47,7 @@ When enabled, the algorithm splits or joins teams instead of giving a technical:
 - If none of the above works — technical win is given to the weakest player
 
 Examples (doubles, avoid-technical ON):
+
 ```
 8 players  → 4 doubles = 2 matches
 9 players  → 3 doubles + 1 triple = 4 teams = 2 matches
@@ -69,12 +72,14 @@ No Buchholz — meaningless when teammates change every round.
 ### How points are counted
 
 After each round, for every player:
+
 - **Win**: if your team won the game, you get +1 win
 - **Points plus**: your team's score is added to your pointsPlus
 - **Points minus**: opponent team's score is added to your pointsMinus
 - **Teammates**: recorded to avoid repeat pairings (stored in `opponents` array)
 
 Example: Player A is in a double (A, B) that wins 13:8.
+
 - A gets: wins +1, pointsPlus +13, pointsMinus +8
 - B gets the same
 

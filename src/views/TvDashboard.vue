@@ -450,6 +450,7 @@
 <script>
 import { tournamentService } from '@/services/db';
 import { getTeamsRanking, pluralizeRounds } from '@/helpers';
+import { getGameLaneNumber } from '@/services/lanes';
 import headerMan from '@/assets/img/tv-header.png';
 import headerWoman from '@/assets/img/tv-header-woman.png';
 
@@ -541,15 +542,17 @@ export default {
     },
     sortedGames() {
       const games = this.currentGames;
-      const start = this.tournament?.preferences?.fieldsStart || 1;
       if (!this.isGroupsMode) {
-        return games.map((g, i) => ({ ...g, _lane: i + start }));
+        return games.map((game, index) => ({
+          ...game,
+          _lane: getGameLaneNumber(game, this.tournament, index),
+        }));
       }
       const grouped = {};
       games.forEach((game, i) => {
         const g = game.group ?? 0;
         if (!grouped[g]) grouped[g] = [];
-        grouped[g].push({ ...game, _lane: i + start });
+        grouped[g].push({ ...game, _lane: getGameLaneNumber(game, this.tournament, i) });
       });
       const keys = Object.keys(grouped).sort((a, b) => a - b);
       const maxLen = Math.max(...keys.map((k) => grouped[k].length));
@@ -563,12 +566,11 @@ export default {
     },
     groupedColumns() {
       const games = this.currentGames;
-      const start = this.tournament?.preferences?.fieldsStart || 1;
       const grouped = {};
       games.forEach((game, i) => {
         const g = game.group ?? 0;
         if (!grouped[g]) grouped[g] = [];
-        grouped[g].push({ ...game, _lane: i + start });
+        grouped[g].push({ ...game, _lane: getGameLaneNumber(game, this.tournament, i) });
       });
       return Object.keys(grouped)
         .sort((a, b) => a - b)
@@ -986,10 +988,6 @@ export default {
       if (game.status === 'finished') return 'tv__card-lane--finished';
       if (game.status === 'in_progress') return 'tv__card-lane--active';
       return '';
-    },
-    gameLane(index) {
-      const start = this.tournament?.preferences?.fieldsStart || 1;
-      return index + start;
     },
     gameScore(game, team) {
       if (!game.status || game.status === 'not_started') return '--';

@@ -1,3 +1,5 @@
+import { getGameLaneNumber } from '@/services/lanes';
+
 export function getGameStreams(game, tournament, gameIndex) {
   const streams = [];
   const seen = new Set();
@@ -21,8 +23,7 @@ export function getGameStreams(game, tournament, gameIndex) {
   }
 
   if (presets.lanes) {
-    const fieldsStart = tournament.preferences?.fieldsStart || 1;
-    const lane = String(gameIndex + fieldsStart);
+    const lane = String(getGameLaneNumber(game, tournament, gameIndex));
     const laneUrls = presets.lanes[lane] || [];
     for (const url of laneUrls) {
       if (url && !seen.has(url)) {

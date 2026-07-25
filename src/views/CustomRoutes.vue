@@ -113,12 +113,19 @@ export default {
     tournamentOptions() {
       if (!this.userTournamentMap) return [];
       return Object.entries(this.userTournamentMap)
-        .filter(([id, entry]) => entry.role === 'owner' && entry.status !== 'archived' && this.tournaments[id])
-        .map(([id]) => ({
-          id,
-          name: this.tournaments[id].name || this.userTournamentMap[id].name,
-          ref: `${this.user.uid}.${parseInt(id).toString(36)}`,
-        }))
+        .filter(([, entry]) => {
+          const canLink = ['owner', 'admin', 'scorer'].includes(entry.role);
+          const hasOwner = entry.role === 'owner' || !!entry.ownerUid;
+          return canLink && hasOwner && entry.status !== 'archived';
+        })
+        .map(([id, entry]) => {
+          const ownerUid = entry.role === 'owner' ? this.user.uid : entry.ownerUid;
+          return {
+            id,
+            name: this.tournaments[id]?.name || entry.name || id,
+            ref: `${ownerUid}.${parseInt(id).toString(36)}`,
+          };
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
     },
   },

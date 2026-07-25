@@ -111,6 +111,16 @@
               :class="{ 'games-toolbar__arrow--up': !compactView }"
             />
           </button>
+          <button
+            v-if="isOwnerOrAdmin"
+            class="games-toolbar__shuffle"
+            data-testid="btn-shuffle-lanes"
+            :disabled="hasAnyFinishedGame"
+            @click="shuffleLanes"
+          >
+            <Shuffle :size="16" />
+            {{ $t('games.shuffleLanes') }}
+          </button>
         </div>
         <div class="games-list" v-if="tournament.barrage">
           <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
@@ -312,7 +322,7 @@ import {
 } from '@/services/draw';
 import Game from '@/components/partials/Game.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
-import { ChevronDown, Timer } from 'lucide-vue-next';
+import { ChevronDown, Shuffle, Timer } from 'lucide-vue-next';
 import WinnerTrophyIcon from '@/components/icons/WinnerTrophyIcon.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
@@ -327,6 +337,7 @@ export default {
     PlayOff,
     TeamPlayoff,
     ChevronDown,
+    Shuffle,
     Timer,
     WinnerTrophyIcon,
     ConfirmRemoveModal,
@@ -1195,6 +1206,33 @@ export default {
 .games-toolbar__toggle:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.games-toolbar__shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0.5rem 0.9rem;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.games-toolbar__shuffle:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-btn-text, #fff);
+}
+
+.games-toolbar__shuffle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .games-toolbar__arrow {

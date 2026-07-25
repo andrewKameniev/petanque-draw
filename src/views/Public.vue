@@ -181,7 +181,7 @@
                       'match-lane-left--active': game.status === 'in_progress',
                       'match-lane-left--finished': game.status === 'finished',
                     }"
-                    >{{ index + (activeTournamentView.preferences?.fieldsStart || 1) }}</span
+                    >{{ displayLane(game, index) }}</span
                   >
                   <span
                     class="match-team match-team-right"
@@ -240,7 +240,7 @@
                           'match-lane-left--active': game.status === 'in_progress',
                           'match-lane-left--finished': game.status === 'finished',
                         }"
-                        >{{ game._laneIndex + activeTournamentView.preferences.fieldsStart }}</span
+                        >{{ game._lane }}</span
                       >
                       <span
                         class="match-team match-team-right"
@@ -331,7 +331,7 @@
                       'match-lane-left--active': game.status === 'in_progress',
                       'match-lane-left--finished': game.status === 'finished',
                     }"
-                    >{{ index + activeTournamentView.preferences.fieldsStart }}</span
+                    >{{ displayLane(game, index) }}</span
                   >
                   <span
                     class="match-team match-team-right"
@@ -451,6 +451,7 @@ import {
   tournamentNames,
 } from '@/helpers';
 import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass } from '@/services/streams';
+import { getGameLaneNumber } from '@/services/lanes';
 import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 import PlayOff from '@/components/partials/PlayOff.vue';
@@ -617,7 +618,11 @@ export default {
       games.forEach((game, idx) => {
         const g = game.group ?? 0;
         if (!grouped[g]) grouped[g] = [];
-        grouped[g].push({ ...game, _laneIndex: idx });
+        grouped[g].push({
+          ...game,
+          _laneIndex: idx,
+          _lane: getGameLaneNumber(game, t, idx),
+        });
       });
       return Object.keys(grouped)
         .sort((a, b) => a - b)
@@ -811,6 +816,9 @@ export default {
     },
   },
   methods: {
+    displayLane(game, index) {
+      return getGameLaneNumber(game, this.activeTournamentView, index);
+    },
     openBracket() {
       if (this.activeTab === 'round' && this.$refs.playOff) {
         this.$refs.playOff.showBracket = true;

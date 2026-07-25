@@ -317,6 +317,7 @@ import WinnerTrophyIcon from '@/components/icons/WinnerTrophyIcon.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
+import { getGameLaneNumber } from '@/services/lanes';
 
 export default {
   name: 'Games',
@@ -661,10 +662,11 @@ export default {
       this.shuffleLanesStore(reshuffled);
     },
     swapLane({ fromIndex, targetLane }) {
-      const fieldsStart = this.tournament.preferences.fieldsStart;
-      const targetIndex = targetLane - fieldsStart;
       const games = this.tournament.games[this.activeRound - 1];
-      if (targetIndex < 0 || targetIndex >= games.length || targetIndex === fromIndex) return;
+      const targetIndex = games.findIndex(
+        (game, index) => getGameLaneNumber(game, this.tournament, index) === Number(targetLane),
+      );
+      if (targetIndex === -1 || targetIndex === fromIndex) return;
       this.swapLanesStore({ roundIndex: this.activeRound - 1, indexA: fromIndex, indexB: targetIndex });
     },
     drawRound() {

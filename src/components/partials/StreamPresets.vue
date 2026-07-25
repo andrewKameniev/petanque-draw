@@ -75,6 +75,7 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getStreamIconComponent, getStreamIconClass } from '@/services/streams';
+import { getAvailableLaneNumbers } from '@/services/lanes';
 import { Plus, X, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 
@@ -98,9 +99,8 @@ export default {
       return this.tournament.streamPresets?.lanes || {};
     },
     lanesList() {
-      const start = this.tournament.preferences?.fieldsStart || 1;
       const count = Math.max(this.tournament.teams?.length ? Math.floor(this.tournament.teams.length / 2) : 4, 1);
-      return Array.from({ length: count }, (_, i) => i + start);
+      return getAvailableLaneNumbers(this.tournament, count);
     },
   },
   methods: {

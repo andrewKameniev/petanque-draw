@@ -141,7 +141,7 @@
             >
               <span class="match-team match-team-right">{{ game.team_1 }}</span>
               <span class="match-vs">
-                <span class="match-lane">{{ index + (activeTournament.preferences?.fieldsStart || 1) }}</span>
+                <span class="match-lane">{{ displayLane(game, index) }}</span>
               </span>
               <span class="match-team">{{ game.team_2 }}</span>
             </div>
@@ -192,6 +192,7 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
+import { getGameLaneNumber } from '@/services/lanes';
 import { GitFork, Users, List, Trophy as TrophyIcon, FileText, Pencil } from 'lucide-vue-next';
 
 export default {
@@ -397,6 +398,9 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, ['fetchSavedTournaments', 'removeSavedTournament', 'renameSavedTournament']),
+    displayLane(game, index) {
+      return getGameLaneNumber(game, this.activeTournament, index);
+    },
     getFormatTag(item) {
       if (item.system === 'tir') return this.$t('teams.tir');
       const players = item.teams?.[0]?.players?.length;

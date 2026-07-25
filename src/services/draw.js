@@ -1,4 +1,5 @@
 import { sortTeams, shuffleArray } from '@/helpers';
+import { getAvailableLaneNumbers } from '@/services/lanes';
 
 export function getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) {
   const exclusions = [indexToExclude1, indexToExclude2].filter((v) => v !== null);
@@ -393,26 +394,15 @@ export function assignLanes(games, tournament) {
   const isSupermele = tournament.system === 'supermele';
   const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
   const teamsMatrix = {};
-  const prefs = tournament.preferences;
-  const usePool = prefs.lanesPoolEnabled && prefs.lanesPoolFrom && prefs.lanesPoolTo;
-  const firstLane = usePool ? prefs.lanesPoolFrom - 1 : prefs.fieldsStart - 1;
-  const laneCount = usePool ? prefs.lanesPoolTo - prefs.lanesPoolFrom + 1 : Math.floor(tournament.teams.length / 2);
-
-  const excludedLanes = new Set();
-  if (prefs.lanesExcluded) {
-    prefs.lanesExcluded
-      .split(',')
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !isNaN(n))
-      .forEach((n) => excludedLanes.add(n - 1));
-  }
+  const requiredLaneCount = Math.floor(tournament.teams.length / 2);
+  const configuredLanes = getAvailableLaneNumbers(tournament, requiredLaneCount).map((lane) => lane - 1);
+  const laneCount = configuredLanes.length;
 
   tournament.teams.forEach((team) => {
     teamsMatrix[team.title] = {};
-    for (let i = firstLane; i < firstLane + laneCount; i++) {
-      if (excludedLanes.has(i)) continue;
-      teamsMatrix[team.title][i] = 0;
-    }
+    configuredLanes.forEach((lane) => {
+      teamsMatrix[team.title][lane] = 0;
+    });
     if (team.lanes && team.lanes.length) {
       team.lanes.forEach((lane) => {
         if (teamsMatrix[team.title][lane] !== undefined) {
@@ -471,7 +461,7 @@ export function assignLanes(games, tournament) {
   }
 
   const scheduledMatches = [];
-  let availableLanes = Array.from({ length: laneCount }, (_, i) => i + firstLane).filter((l) => !excludedLanes.has(l));
+  let availableLanes = shuffleArray([...configuredLanes]);
 
   games.forEach((game) => {
     if (game.team_2 !== 'Technical') {

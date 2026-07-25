@@ -102,6 +102,7 @@
 <script>
 import { gameHasError } from '@/helpers';
 import { getGameStreams, getStreamIconComponent } from '@/services/streams';
+import { getGameLaneNumber } from '@/services/lanes';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { X, Pencil, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
@@ -276,6 +277,9 @@ export default {
       }
     },
     displayLane() {
+      if (!this.isPlayoff && !this.isCadrage && !this.isThird) {
+        return getGameLaneNumber(this.game, this.tournament, this.gameIndex);
+      }
       if (this.laneNumber != null) {
         return this.laneNumber + this.fieldsStart;
       }

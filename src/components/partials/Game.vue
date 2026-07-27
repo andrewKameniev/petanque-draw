@@ -138,7 +138,7 @@ export default {
     ]),
     gameHasError,
     onScoreInput(field) {
-      const prevVal = this._prevScores?.[field] ?? null;
+      const committedVal = this._committedScores?.[field] ?? null;
       this.clampScore(field);
       const newVal = Number(this.currentGame[field]);
       if (this.currentGame.status === 'not_started' || !this.currentGame.status) {
@@ -146,11 +146,20 @@ export default {
         this.currentGame.updated_at = new Date().toISOString();
       }
       this.$emit('update', this.gameIndex);
-      if (this.cochonettesEnabled && !isNaN(newVal) && newVal > 0 && newVal > prevVal) {
-        this.$nextTick(() => document.activeElement?.blur());
+      if (this.cochonettesEnabled && !isNaN(newVal) && newVal > 0 && newVal > committedVal) {
+        if (!this._wasCleared?.[field]) {
+          this.$nextTick(() => document.activeElement?.blur());
+        }
       }
-      if (!this._prevScores) this._prevScores = {};
-      this._prevScores[field] = isNaN(newVal) ? null : newVal;
+      if (!this._wasCleared) this._wasCleared = {};
+      if (
+        newVal < committedVal ||
+        isNaN(newVal) ||
+        this.currentGame[field] === '' ||
+        this.currentGame[field] === null
+      ) {
+        this._wasCleared[field] = true;
+      }
     },
     clampScore(field) {
       const val = Number(this.currentGame[field]);
@@ -168,7 +177,13 @@ export default {
         }
       }
     },
-    onFocus() {
+    onFocus(e) {
+      if (!this._committedScores) this._committedScores = {};
+      if (!this._wasCleared) this._wasCleared = {};
+      const field = e.target.id?.startsWith('opponent_') ? 'team_2_score' : 'team_1_score';
+      const val = Number(this.currentGame[field]);
+      this._committedScores[field] = isNaN(val) ? null : val;
+      this._wasCleared[field] = false;
       if (this.isCadrage) {
         this.setActiveCadrageIndex(this.gameIndex);
       } else if (this.isPlayoff || this.isThird) {
@@ -178,7 +193,11 @@ export default {
         this.setActiveGameMatchPath(`${this.activeRound}/${this.gameIndex}`);
       }
     },
-    onBlur() {
+    onBlur(e) {
+      if (!this._committedScores) this._committedScores = {};
+      const field = e.target.id?.startsWith('opponent_') ? 'team_2_score' : 'team_1_score';
+      const val = Number(this.currentGame[field]);
+      this._committedScores[field] = isNaN(val) ? null : val;
       if (this.isCadrage) {
         this.setActiveCadrageIndex(null);
       } else if (this.isPlayoff || this.isThird) {

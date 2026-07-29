@@ -1,5 +1,5 @@
 <template>
-  <div class="participant-games">
+  <div class="participant-games" @click.stop>
     <div class="participant-games__header">
       <div class="participant-games__title-row">
         <span class="participant-games__title">{{ teamTitle }}</span>

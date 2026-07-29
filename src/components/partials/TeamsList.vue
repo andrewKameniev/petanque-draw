@@ -45,20 +45,16 @@
           <div class="team-card__body">
             <div class="team-card__header">
               <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
-                <a
+                <img
                   v-for="club in getUniqueClubs(team)"
                   :key="club.id"
-                  :href="'https://portal.petanque.org.ua/club/' + club.id"
-                  target="_blank"
-                  class="team-card__club-link"
-                  @click.stop
-                >
-                  <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
-                </a>
+                  v-show="club.logo"
+                  :src="club.logo"
+                  class="team-card__club-logo"
+                  alt=""
+                />
               </div>
-              <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link" @click.stop>
-                <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
-              </a>
+              <img v-else-if="getClubLogo(team)" :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
               <div class="team-card__title-block">
                 <span class="team-card__name">{{ team.title }}</span>
                 <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club" @click.stop>{{

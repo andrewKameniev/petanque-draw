@@ -337,7 +337,11 @@
         <span class="setup-card__hint">{{ $t('modals.perRoundScoringHint') }}</span>
         <div class="setup-card__timer-body">
           <label v-if="tournament.system !== 'playoff'" class="setup-card__checkbox">
-            <input type="checkbox" v-model="tournament.preferences.cochonettesEnabled" />
+            <input
+              type="checkbox"
+              v-model="tournament.preferences.cochonettesEnabled"
+              data-testid="checkbox-cochonettes"
+            />
             {{ $t('modals.perRoundScoringStage') }}
           </label>
           <label

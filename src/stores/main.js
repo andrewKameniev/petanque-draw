@@ -1402,6 +1402,32 @@ export const useMainStore = defineStore('main', {
         const tournament = snapshot.val();
         tournament.id = tournamentId;
         tournament._ownerUid = ownerUid;
+        if (isNewFormat(tournament)) {
+          const mainDefaults = createTournamentData();
+          tournament.main = {
+            ...mainDefaults,
+            ...tournament.main,
+            preferences: { ...mainDefaults.preferences, ...(tournament.main.preferences || {}) },
+          };
+          if (tournament.tournamentB) {
+            tournament.tournamentB = {
+              ...mainDefaults,
+              ...tournament.tournamentB,
+              isTournamentB: true,
+              preferences: { ...mainDefaults.preferences, ...(tournament.tournamentB.preferences || {}) },
+            };
+          }
+          tournament.activeGroup = tournament.activeGroup || 'A';
+        } else {
+          const defaults = createTournamentData();
+          Object.assign(tournament, {
+            ...defaults,
+            ...tournament,
+            teams: tournament.teams || [],
+            games: tournament.games || [],
+            preferences: { ...defaults.preferences, ...(tournament.preferences || {}) },
+          });
+        }
         this.tournaments[tournamentId] = tournament;
         this.setActiveTournament(tournamentId);
         this.subscribeTournament();

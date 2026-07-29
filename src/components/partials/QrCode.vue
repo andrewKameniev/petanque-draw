@@ -111,7 +111,7 @@ export default {
       return (this.activeTournament || this.currentTournament)?.system === 'tir';
     },
     shortRef() {
-      return `${this.user.uid}.${parseInt(this.currentTournamentIndex).toString(36)}`;
+      return `${this._getTournamentOwnerUid()}.${parseInt(this.currentTournamentIndex).toString(36)}`;
     },
     tournamentLink() {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
@@ -132,7 +132,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['showMessage', 'addCollaborator', 'removeCollaborator']),
+    ...mapActions(useMainStore, ['showMessage', 'addCollaborator', 'removeCollaborator', '_getTournamentOwnerUid']),
     copyLink() {
       navigator.clipboard.writeText(this.tournamentLink);
       this.linkCopied = true;

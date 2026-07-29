@@ -3,13 +3,28 @@
     <Users :size="40" class="teams-empty__icon" />
     <p class="teams-empty__text">{{ $t('common.noTeams') }}</p>
   </div>
-  <div
-    v-else-if="
-      (tournament.system === 'groups' || tournament.system === 'poules' || tournament.groups?.length) &&
-      (activeRound > 1 || tournament.roundIsActive)
-    "
-    class="mb-5"
-  >
+  <template v-else>
+    <div v-if="allClubs.length > 1" class="club-filter">
+      <button
+        v-for="club in allClubs"
+        :key="club.id"
+        class="club-filter__chip"
+        :class="{ 'club-filter__chip--active': activeClubFilter === club.id }"
+        @click="toggleClubFilter(club.id)"
+        :title="club.name"
+      >
+        <img v-if="club.logo" :src="club.logo" class="club-filter__logo" :alt="club.name" />
+        <span v-else class="club-filter__fallback">{{ club.name.charAt(0) }}</span>
+        <span class="club-filter__count">{{ club.count }}</span>
+      </button>
+    </div>
+    <div
+      v-if="
+        (tournament.system === 'groups' || tournament.system === 'poules' || tournament.groups?.length) &&
+        (activeRound > 1 || tournament.roundIsActive)
+      "
+      class="mb-5"
+    >
     <div v-for="(group, index) in sortedGroups" :key="index">
       <h4 class="mt-5 text-center" v-if="sortedGroups.length > 1">
         {{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}
@@ -19,7 +34,12 @@
           v-for="(team, teamIndex) in group"
           :key="team.title"
           class="team-card"
-          :class="{ 'team-card--highlighted': isTeamHighlighted(team.title) }"
+          :class="{
+            'team-card--highlighted': isTeamHighlighted(team.title),
+            'team-card--expanded': expandedTeam === team.title,
+            'team-card--clickable': hasGamesStarted,
+          }"
+          @click="hasGamesStarted && toggleExpand(team.title)"
         >
           <div class="team-card__rank">{{ teamIndex + 1 }}</div>
           <div class="team-card__body">
@@ -31,22 +51,31 @@
                   :href="'https://portal.petanque.org.ua/club/' + club.id"
                   target="_blank"
                   class="team-card__club-link"
+                  @click.stop
                 >
                   <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
                 </a>
               </div>
-              <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link">
+              <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link" @click.stop>
                 <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
               </a>
               <div class="team-card__title-block">
                 <span class="team-card__name">{{ team.title }}</span>
-                <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{
+                <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club" @click.stop>{{
                   getTeamClub(team)
                 }}</a>
               </div>
               <span v-if="tournament.useRating" class="rating-badge"
                 ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
               >
+              <button
+                v-if="hasGamesStarted"
+                class="team-card__expand-btn"
+                :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+                @click.stop="toggleExpand(team.title)"
+              >
+                <ChevronDown :size="16" />
+              </button>
             </div>
             <div v-if="team.players && team.players.length" class="team-card__players">
               <PlayerChip
@@ -56,6 +85,12 @@
                 :is-captain="isCaptain(team, pIdx)"
               />
             </div>
+            <ParticipantGames
+              v-if="expandedTeam === team.title"
+              :team-title="team.title"
+              :tournament="tournament"
+              @close="expandedTeam = null"
+            />
           </div>
         </div>
       </div>
@@ -63,17 +98,36 @@
         <tr
           v-for="(team, teamIndex) in group"
           :key="team.title"
-          :class="{ 'search-highlight': isTeamHighlighted(team.title) }"
+          :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
+          @click="hasGamesStarted && toggleExpand(team.title)"
         >
           <td style="width: 30px">{{ teamIndex + 1 }}.</td>
           <td>
-            {{ team.title }}
-            <div class="is-size-7" v-if="team.players && team.players.length > 1">
-              (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
-                >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
-              >)
+            <div class="team-table-row">
+              <span>
+                {{ team.title }}
+                <div class="is-size-7" v-if="team.players && team.players.length > 1">
+                  (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
+                    >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
+                  >)
+                </div>
+                <div class="is-size-7 has-text-grey" v-if="getTeamClub(team)">{{ getTeamClub(team) }}</div>
+              </span>
+              <button
+                v-if="hasGamesStarted"
+                class="team-card__expand-btn team-card__expand-btn--table"
+                :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+                @click.stop="toggleExpand(team.title)"
+              >
+                <ChevronDown :size="16" />
+              </button>
             </div>
-            <div class="is-size-7 has-text-grey" v-if="getTeamClub(team)">{{ getTeamClub(team) }}</div>
+            <ParticipantGames
+              v-if="expandedTeam === team.title"
+              :team-title="team.title"
+              :tournament="tournament"
+              @close="expandedTeam = null"
+            />
           </td>
           <td class="td-100" v-if="tournament.useRating">
             <span class="rating-badge"
@@ -89,7 +143,12 @@
       v-for="(team, teamIndex) in sortedTeams"
       :key="team.title"
       class="team-card"
-      :class="{ 'team-card--highlighted': isTeamHighlighted(team.title) }"
+      :class="{
+        'team-card--highlighted': isTeamHighlighted(team.title),
+        'team-card--expanded': expandedTeam === team.title,
+        'team-card--clickable': hasGamesStarted,
+      }"
+      @click="hasGamesStarted && toggleExpand(team.title)"
     >
       <div class="team-card__rank">{{ teamIndex + 1 }}</div>
       <div class="team-card__body">
@@ -101,22 +160,31 @@
               :href="'https://portal.petanque.org.ua/club/' + club.id"
               target="_blank"
               class="team-card__club-link"
+              @click.stop
             >
               <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
             </a>
           </div>
-          <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link">
+          <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link" @click.stop>
             <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
           </a>
           <div class="team-card__title-block">
             <span class="team-card__name">{{ team.title }}</span>
-            <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club">{{
+            <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club" @click.stop>{{
               getTeamClub(team)
             }}</a>
           </div>
           <span v-if="tournament.useRating" class="rating-badge"
             ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
           >
+          <button
+            v-if="hasGamesStarted"
+            class="team-card__expand-btn"
+            :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+            @click.stop="toggleExpand(team.title)"
+          >
+            <ChevronDown :size="16" />
+          </button>
           <button v-if="showRemove" class="team-remove-btn" @click.prevent="removeTeam(team.title)">
             <X :size="16" />
           </button>
@@ -129,67 +197,125 @@
             :is-captain="isCaptain(team, pIdx)"
           />
         </div>
+        <ParticipantGames
+          v-if="expandedTeam === team.title"
+          :team-title="team.title"
+          :tournament="tournament"
+          @close="expandedTeam = null"
+        />
       </div>
     </div>
   </div>
-  <table v-else id="table-list" class="table is-fullwidth">
-    <tr v-for="team in sortedTeams" :key="team.title" :class="{ 'search-highlight': isTeamHighlighted(team.title) }">
-      <td>
-        {{ team.title }}
-        <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
-          (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
-            >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
-          >)
-        </div>
-        <div class="is-size-7 has-text-grey is-hidden-tablet" v-if="getTeamClub(team)">
-          {{ getTeamClub(team) }}
-        </div>
-      </td>
-      <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
-        <span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
-          >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
-        >
-      </td>
-      <td class="is-hidden-mobile is-size-7" v-else></td>
-      <td class="is-hidden-mobile is-size-7 has-text-grey" v-if="getTeamClub(team)">
-        <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i"
-          >{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"
-        /></span>
-      </td>
-      <td class="is-hidden-mobile" v-else></td>
-      <td class="td-100" v-if="tournament.useRating">
-        <span class="rating-badge"><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span>
-      </td>
-      <td
-        class="td-50"
-        v-if="
-          !previewTournament &&
-          (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
-        "
+  <div v-else class="teams-table-wrapper">
+    <table id="table-list" class="table is-fullwidth">
+      <tr
+        v-for="team in sortedTeams"
+        :key="team.title"
+        :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
+        @click="hasGamesStarted && toggleExpand(team.title)"
       >
-        <button class="team-remove-btn" @click="removeTeam(team.title)">
-          <X :size="16" />
-        </button>
-      </td>
-    </tr>
-  </table>
+        <td>
+          <div class="team-table-row">
+            <span>
+              {{ team.title }}
+              <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
+                (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
+                  >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
+                >)
+              </div>
+              <div class="is-size-7 has-text-grey is-hidden-tablet" v-if="getTeamClub(team)">
+                {{ getTeamClub(team) }}
+              </div>
+            </span>
+            <button
+              v-if="hasGamesStarted"
+              class="team-card__expand-btn team-card__expand-btn--table"
+              :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+              @click.stop="toggleExpand(team.title)"
+            >
+              <ChevronDown :size="16" />
+            </button>
+          </div>
+          <ParticipantGames
+            v-if="expandedTeam === team.title"
+            :team-title="team.title"
+            :tournament="tournament"
+            @close="expandedTeam = null"
+          />
+        </td>
+        <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
+          <span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
+            >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
+          >
+        </td>
+        <td class="is-hidden-mobile is-size-7" v-else></td>
+        <td class="is-hidden-mobile is-size-7 has-text-grey" v-if="getTeamClub(team)">
+          <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i"
+            >{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"
+          /></span>
+        </td>
+        <td class="is-hidden-mobile" v-else></td>
+        <td class="td-100" v-if="tournament.useRating">
+          <span class="rating-badge"><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span>
+        </td>
+        <td
+          class="td-50"
+          v-if="
+            !previewTournament &&
+            (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
+          "
+        >
+          <button class="team-remove-btn" @click="removeTeam(team.title)">
+            <X :size="16" />
+          </button>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </template>
 </template>
 
 <script>
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
-import { Users, X, Star } from 'lucide-vue-next';
+import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
+import ParticipantGames from '@/components/partials/ParticipantGames.vue';
 
 export default {
   name: 'TeamsList',
-  components: { Users, X, Star, PlayerChip },
+  components: { Users, X, Star, ChevronDown, PlayerChip, ParticipantGames },
   props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
+  data() {
+    return {
+      expandedTeam: null,
+      activeClubFilter: null,
+    };
+  },
   computed: {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
       return this.previewTournament || this.activeTournament || this.currentTournament;
+    },
+    allClubs() {
+      if (!this.tournament?.teams?.length) return [];
+      const clubMap = new Map();
+      this.tournament.teams.forEach((team) => {
+        if (!team.players?.length) return;
+        const seenInTeam = new Set();
+        team.players.forEach((p) => {
+          if (!p.club_id || !p.club) return;
+          if (!clubMap.has(p.club_id)) {
+            clubMap.set(p.club_id, { id: p.club_id, name: p.club, logo: p.club_logo_url || null, count: 0 });
+          }
+          if (!seenInTeam.has(p.club_id)) {
+            seenInTeam.add(p.club_id);
+            clubMap.get(p.club_id).count++;
+          }
+        });
+      });
+      return [...clubMap.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
     },
     groupsNames() {
       return tournamentNames;
@@ -201,46 +327,50 @@ export default {
     },
     sortedTeams() {
       if (!this.tournament?.teams) return [];
+      let teams;
       if (this.isSinglePlayerTournament) {
-        return [...this.tournament.teams].sort((a, b) => {
+        teams = [...this.tournament.teams].sort((a, b) => {
           const clubA = this.getTeamClub(a) || '';
           const clubB = this.getTeamClub(b) || '';
           return clubA.localeCompare(clubB) || a.title.localeCompare(b.title);
         });
-      }
-      if (!this.tournament.games?.length && !this.tournament.roundIsActive) {
-        return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
-      }
-      if (this.tournament.system === 'swiss') {
-        return sortTeams([...this.tournament.teams]);
-      }
-      if (this.tournament.system === 'supermele') {
-        return [...this.tournament.teams].sort(
+      } else if (!this.tournament.games?.length && !this.tournament.roundIsActive) {
+        teams = [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
+      } else if (this.tournament.system === 'swiss') {
+        teams = sortTeams([...this.tournament.teams]);
+      } else if (this.tournament.system === 'supermele') {
+        teams = [...this.tournament.teams].sort(
           (a, b) =>
             (b.wins || 0) - (a.wins || 0) ||
             (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
             (b.pointsPlus || 0) - (a.pointsPlus || 0) ||
             (b.rating || 0) - (a.rating || 0),
         );
-      }
-      if (
+      } else if (
         (this.tournament.system === 'groups' || this.tournament.system === 'poules') &&
         this.tournament.games?.length
       ) {
-        return [...this.tournament.teams].sort(
+        teams = [...this.tournament.teams].sort(
           (a, b) =>
             (b.wins || 0) - (a.wins || 0) ||
             (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
             (b.pointsPlus || 0) - (a.pointsPlus || 0),
         );
+      } else {
+        teams = [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
       }
-      return [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
+      if (this.activeClubFilter) {
+        teams = teams.filter((t) => t.players?.some((p) => p.club_id === this.activeClubFilter));
+      }
+      return teams;
     },
     sortedGroups() {
       if (!this.tournament.groups) return [];
-      if (!this.tournament.games?.length) return this.tournament.groups;
-      if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
-        return this.tournament.groups.map((group) => {
+      let groups;
+      if (!this.tournament.games?.length) {
+        groups = this.tournament.groups;
+      } else if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
+        groups = this.tournament.groups.map((group) => {
           const teamWins = {};
           const teamPointsPlus = {};
           const teamPointsMinus = {};
@@ -276,15 +406,20 @@ export default {
           });
           return rankGroupByRegulations(group, this.tournament.games || []);
         });
+      } else {
+        groups = this.tournament.groups.map((group) => {
+          return [...group].sort(
+            (a, b) =>
+              (b.wins || 0) - (a.wins || 0) ||
+              (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
+              (b.pointsPlus || 0) - (a.pointsPlus || 0),
+          );
+        });
       }
-      return this.tournament.groups.map((group) => {
-        return [...group].sort(
-          (a, b) =>
-            (b.wins || 0) - (a.wins || 0) ||
-            (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
-            (b.pointsPlus || 0) - (a.pointsPlus || 0),
-        );
-      });
+      if (this.activeClubFilter) {
+        groups = groups.map((g) => g.filter((t) => t.players?.some((p) => p.club_id === this.activeClubFilter)));
+      }
+      return groups;
     },
     hasRichData() {
       if (!this.tournament?.teams?.length) return false;
@@ -298,9 +433,25 @@ export default {
         (this.tournament.system === 'supermele' || (!this.tournament.games?.length && !this.tournament.playOff))
       );
     },
+    hasGamesStarted() {
+      if (this.tournament.system === 'supermele' || this.tournament.system === 'tir') return false;
+      return !!(
+        this.tournament.games?.length ||
+        this.tournament.cadrage?.length ||
+        this.tournament.playOff?.length ||
+        this.tournament.playOffBracket ||
+        this.tournament.teamPlayoff
+      );
+    },
   },
   methods: {
     ...mapActions(useMainStore, ['removeTeam']),
+    toggleExpand(teamTitle) {
+      this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
+    },
+    toggleClubFilter(clubId) {
+      this.activeClubFilter = this.activeClubFilter === clubId ? null : clubId;
+    },
     isTeamHighlighted(title) {
       if (!this.highlightedTeam) return false;
       if (this.highlightedTeam === title) return true;
@@ -357,6 +508,78 @@ export default {
 </script>
 
 <style scoped>
+.club-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.club-filter__chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.club-filter__chip:hover {
+  border-color: var(--color-primary, #7c3aed);
+}
+
+.club-filter__chip--active {
+  border-color: var(--color-primary, #7c3aed);
+  box-shadow: 0 0 0 2px rgb(124 58 237 / 20%);
+}
+
+.club-filter__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.club-filter__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--color-bg-input, #f0f0f0);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #888);
+}
+
+.club-filter__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--color-text-muted, #888);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.club-filter__chip--active .club-filter__count {
+  background: var(--color-primary, #7c3aed);
+}
+
 .teams-cards {
   display: flex;
   flex-direction: column;
@@ -520,6 +743,61 @@ export default {
     width: 38px;
     height: 38px;
   }
+}
+
+.team-card--expanded {
+  border-color: var(--color-primary, #7c3aed);
+  box-shadow: 0 2px 8px rgb(124 58 237 / 8%);
+}
+
+.team-card--clickable {
+  cursor: pointer;
+}
+
+.team-table-row--clickable {
+  cursor: pointer;
+}
+
+.team-card__expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border, #eee);
+  background: var(--color-surface, #fff);
+  color: var(--color-text-muted, #999);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.team-card__expand-btn:hover {
+  border-color: var(--color-primary, #7c3aed);
+  color: var(--color-primary, #7c3aed);
+  background: rgb(124 58 237 / 6%);
+}
+
+.team-card__expand-btn--active {
+  border-color: var(--color-primary, #7c3aed);
+  color: var(--color-primary, #7c3aed);
+  background: rgb(124 58 237 / 10%);
+  transform: rotate(180deg);
+}
+
+.team-card__expand-btn--table {
+  margin-left: auto;
+}
+
+.team-table-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.teams-table-wrapper {
+  width: 100%;
 }
 
 .teams-empty {

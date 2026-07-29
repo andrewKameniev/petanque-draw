@@ -559,6 +559,24 @@ export default {
   color: var(--color-text-muted, #888);
 }
 
+@media (max-width: 500px) {
+  .club-filter {
+    gap: 0.35rem;
+  }
+
+  .club-filter__chip {
+    width: calc((100% - 5 * 0.35rem) / 6);
+    padding: 3px;
+  }
+
+  .club-filter__logo,
+  .club-filter__fallback {
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+  }
+}
+
 .club-filter__count {
   position: absolute;
   top: -4px;

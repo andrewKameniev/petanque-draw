@@ -1,7 +1,7 @@
 <template>
   <div class="content tabs-content">
     <div v-if="tournament.games?.length || hasPlayOffResults">
-      <div v-if="(isForProtocol && !onlyPlayOff) || !isForProtocol">
+      <div>
         <div
           v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || hasPlayOffResults)"
           class="round-tabs-row mb-4"
@@ -618,14 +618,22 @@ export default {
   },
   created() {
     const t = this.previewTournament || this.activeTournament || this.currentTournament;
-    this.selectedRound = getDefaultSelectedRound(t);
+    if (this.onlyQualifying) {
+      this.selectedRound = -1;
+    } else {
+      this.selectedRound = getDefaultSelectedRound(t);
+    }
   },
   watch: {
     previewTournament(newVal) {
-      this.selectedRound = getDefaultSelectedRound(newVal || this.activeTournament || this.currentTournament);
+      if (this.onlyQualifying) {
+        this.selectedRound = -1;
+      } else {
+        this.selectedRound = getDefaultSelectedRound(newVal || this.activeTournament || this.currentTournament);
+      }
     },
     hasPlayOffResults(val) {
-      if (val) this.selectedRound = 'playoff';
+      if (val && !this.onlyQualifying) this.selectedRound = 'playoff';
     },
   },
   computed: {

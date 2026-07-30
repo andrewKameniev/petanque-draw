@@ -139,7 +139,9 @@
                   :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1"
                 >
                   {{
-                    tournament.system === 'swiss' ? index + 1 : getTeamPlaceInGroups(team.place, rankingTeams.length)
+                    tournament.system === 'swiss'
+                      ? getSwissPlace(team.title)
+                      : getTeamPlaceInGroups(team.place, rankingTeams.length)
                   }}
                 </td>
                 <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
@@ -221,7 +223,7 @@
                 >
                   {{
                     tournament.system === 'swiss'
-                      ? participantChunkOffsets[ci + 1] + index + 1
+                      ? getSwissPlace(team.title)
                       : getTeamPlaceInGroups(team.place, rankingTeams.length)
                   }}
                 </td>
@@ -502,6 +504,9 @@ export default {
       return getTournamentRanking(this.tournament, this.rankingTeams);
     },
     participantsList() {
+      if (this.tournament.playOff?.length || this.tournament.playOffBracket) {
+        return this.tournamentRanking;
+      }
       return this.tournament.system === 'swiss' ? this.rankingTeams : getAllTeams(this.rankingTeams);
     },
     participantChunkSize() {
@@ -559,6 +564,10 @@ export default {
     },
     getTeamPlaceInGroups,
     formatDateToHumanReadable,
+    getSwissPlace(teamTitle) {
+      const index = this.rankingTeams.findIndex((t) => t.title === teamTitle);
+      return index !== -1 ? index + 1 : '';
+    },
     async refreshPlayersFromPortal() {
       let portalId = this.tournamentPortalId;
       if (!portalId) {

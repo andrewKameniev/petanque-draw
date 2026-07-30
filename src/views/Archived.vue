@@ -1472,7 +1472,7 @@ export default {
 
 .match-item--upcoming {
   border-color: #bdbdbd;
-  background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
 }
 
 .match-team {

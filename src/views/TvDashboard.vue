@@ -1388,17 +1388,17 @@ export default {
 }
 
 .tv__card--active {
-  background-image: url('@/assets/img/card-bg-active.png');
+  background-image: url('@/assets/img/card-bg-active.webp');
   border-color: var(--tv-card-active-border);
 }
 
 .tv__card--finished {
-  background-image: url('@/assets/img/card-bg-finished.png');
+  background-image: url('@/assets/img/card-bg-finished.webp');
   border-color: var(--tv-card-finished-border);
 }
 
 .tv__card--waiting {
-  background-image: url('@/assets/img/card-bg-upcoming.png');
+  background-image: url('@/assets/img/card-bg-upcoming.webp');
   border-color: var(--tv-card-waiting-border);
 }
 

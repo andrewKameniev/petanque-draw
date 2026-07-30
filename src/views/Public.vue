@@ -921,6 +921,7 @@ export default {
           'barrage',
           'tournamentIsFinished',
           'tournamentIsStarted',
+          'tirParticipants',
           'tirPlayoff',
           'tirRound',
           'tirStarted',

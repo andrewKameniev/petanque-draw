@@ -66,14 +66,6 @@
           >
             <UsersRound :size="14" />
           </button>
-          <button
-            v-if="isTeamInTournament(match.opponent)"
-            class="participant-games__match-goto-btn"
-            :title="match.opponent"
-            @click.stop="$emit('navigate-to-team', match.opponent)"
-          >
-            <ArrowRight :size="14" />
-          </button>
           <router-link
             v-if="!match.pending"
             class="participant-games__match-stats-btn"
@@ -82,6 +74,14 @@
           >
             <BarChart3 :size="14" />
           </router-link>
+          <button
+            v-if="isTeamInTournament(match.opponent)"
+            class="participant-games__match-goto-btn"
+            :title="match.opponent"
+            @click.stop="$emit('navigate-to-team', match.opponent)"
+          >
+            <ArrowUpRight :size="14" />
+          </button>
           <div v-if="expandedMatch === `${stage.key}-${mIdx}`" class="participant-games__match-rosters">
             <PlayerChip v-for="(player, pIdx) in getTeamPlayers(match.opponent)" :key="pIdx" :player="player" />
           </div>
@@ -92,14 +92,14 @@
 </template>
 
 <script>
-import { X, Trophy, Minus, UsersRound, BarChart3, ArrowRight } from 'lucide-vue-next';
+import { X, Trophy, Minus, UsersRound, BarChart3, ArrowUpRight } from 'lucide-vue-next';
 import { mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
 
 export default {
   name: 'ParticipantGames',
-  components: { X, Trophy, Minus, UsersRound, BarChart3, ArrowRight, PlayerChip },
+  components: { X, Trophy, Minus, UsersRound, BarChart3, ArrowUpRight, PlayerChip },
   props: {
     teamTitle: { type: String, required: true },
     tournament: { type: Object, required: true },

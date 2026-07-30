@@ -220,6 +220,7 @@
             :team-title="team.title"
             :tournament="tournament"
             @close="expandedTeam = null"
+            @navigate-to-team="navigateToTeam"
           />
         </div>
       </div>
@@ -260,6 +261,7 @@
               :team-title="team.title"
               :tournament="tournament"
               @close="expandedTeam = null"
+              @navigate-to-team="navigateToTeam"
             />
           </td>
           <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
@@ -494,7 +496,7 @@ export default {
     navigateToTeam(teamTitle) {
       this.expandedTeam = teamTitle;
       this.$nextTick(() => {
-        const els = this.$el.querySelectorAll('[data-team-title]');
+        const els = document.querySelectorAll('[data-team-title]');
         const el = [...els].find((e) => e.dataset.teamTitle === teamTitle);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });

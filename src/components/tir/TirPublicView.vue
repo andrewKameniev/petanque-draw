@@ -1456,7 +1456,7 @@ td.tir-table__muted {
 
 .tir-playoff__match--complete {
   border-color: var(--tir-carreau);
-  background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-finished.webp') center/cover no-repeat !important;
   background-color: var(--color-surface) !important;
   border-width: 2px;
 }
@@ -1472,7 +1472,7 @@ td.tir-table__muted {
 
 .tir-playoff__match--in-progress {
   border-color: var(--color-primary);
-  background: url('@/assets/img/card-bg-active.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-active.webp') center/cover no-repeat !important;
   background-color: var(--color-surface) !important;
   border-width: 2px;
 }
@@ -1494,7 +1494,7 @@ td.tir-table__muted {
 .tir-playoff__match--pending {
   opacity: 0.5;
   cursor: default;
-  background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
   background-color: var(--color-surface) !important;
 }
 

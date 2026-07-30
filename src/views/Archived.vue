@@ -534,8 +534,9 @@ export default {
       return getGameLaneNumber(game, this.activeTournament, index);
     },
     getFormatTag(item) {
-      if (item.system === 'tir') return this.$t('teams.tir');
-      const players = item.teams?.[0]?.players?.length;
+      const data = item.main || item;
+      if (data.system === 'tir') return this.$t('teams.tir');
+      const players = data.teams?.[0]?.players?.length;
       if (!players) return '';
       if (players === 1) return this.$t('common.formatTete');
       if (players === 2) return this.$t('common.formatDoublette');

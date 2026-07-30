@@ -27,6 +27,11 @@
           </div>
           <div v-if="activeKey && tournament" class="archived-sidebar__actions">
             <div class="sidebar-action-row">
+              <label class="sidebar-action-row__label"
+                >DB ID: <span class="sidebar-action-row__db-id" @click="copyDbId">{{ activeKey }}</span></label
+              >
+            </div>
+            <div class="sidebar-action-row">
               <label class="sidebar-action-row__label">Portal ID</label>
               <div class="sidebar-action-row__input-group">
                 <input
@@ -575,13 +580,18 @@ export default {
         this._unsubscribe = null;
       }
       if (!this.user?.uid) return;
-      const tournamentId = this.savedTournaments[key]?.id || key;
       this.isLoading = true;
+      const cached = this.savedTournaments[key];
+      if (cached?.teams) {
+        this.tournament = cached;
+        this.isLoading = false;
+        return;
+      }
       this._unsubscribe = tournamentService.subscribe(
         this.user.uid,
-        tournamentId,
+        key,
         (snapshot) => {
-          if (snapshot.exists()) {
+          if (snapshot.exists() && snapshot.val()?.teams) {
             this.tournament = snapshot.val();
           } else {
             this.tournament = this.savedTournaments[key] || null;
@@ -664,12 +674,11 @@ export default {
           this.activeTournament.tirParticipants.forEach(patchPlayer);
         }
         if (updated > 0) {
-          const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
           const basePath = this.tournament?.main ? 'main/' : '';
           if (this.activeTournament.teams) {
             await tournamentService.updatePath(
               this.user.uid,
-              tournamentId,
+              this.activeKey,
               `${basePath}teams`,
               this.activeTournament.teams,
             );
@@ -677,7 +686,7 @@ export default {
           if (this.activeTournament.tirParticipants) {
             await tournamentService.updatePath(
               this.user.uid,
-              tournamentId,
+              this.activeKey,
               `${basePath}tirParticipants`,
               this.activeTournament.tirParticipants,
             );
@@ -701,10 +710,13 @@ export default {
     },
     async savePortalId() {
       if (!this.portalIdInput) return;
-      const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
-      await tournamentService.updatePath(this.user.uid, tournamentId, 'portalIdTournament', String(this.portalIdInput));
-      this.tournament.portalIdTournament = String(this.portalIdInput);
+      const value = String(this.portalIdInput);
+      await tournamentService.updatePath(this.user.uid, this.activeKey, 'portalIdTournament', value);
+      this.tournament.portalIdTournament = value;
       this.portalIdInput = null;
+    },
+    copyDbId() {
+      navigator.clipboard.writeText(this.activeKey);
     },
     copyPublicLink() {
       navigator.clipboard.writeText(this.publicLink);
@@ -1219,6 +1231,15 @@ export default {
   letter-spacing: 0.03em;
   margin-bottom: 0.25rem;
   display: block;
+}
+
+.sidebar-action-row__db-id {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: all;
+  text-transform: none;
 }
 
 .sidebar-action-row__input-group {

@@ -790,15 +790,27 @@ export const useMainStore = defineStore('main', {
 
       const db = getDatabase();
       const results = {};
+      const migrated = [];
       await Promise.all(
         archivedIds.map(async (id) => {
           let snapshot = await get(ref(db, `${this.user.uid}/tournaments/${id}`));
-          if (!snapshot.exists()) {
-            snapshot = await get(ref(db, `${this.user.uid}/saved/${id}`));
+          if (!snapshot.exists() || !snapshot.val()?.teams) {
+            const savedSnapshot = await get(ref(db, `${this.user.uid}/saved/${id}`));
+            if (savedSnapshot.exists()) {
+              const data = savedSnapshot.val();
+              await set(ref(db, `${this.user.uid}/tournaments/${id}`), data);
+              await remove(ref(db, `${this.user.uid}/saved/${id}`));
+              results[id] = data;
+              migrated.push({ id, name: data.name || data.main?.name || id });
+              return;
+            }
           }
           if (snapshot.exists()) results[id] = snapshot.val();
         }),
       );
+      if (migrated.length) {
+        console.warn(`[Migration] Moved ${migrated.length} tournament(s) from saved/ to tournaments/:`, migrated);
+      }
       this.setSavedTournaments(results);
       this.savedTournamentIds = Object.keys(results);
     },

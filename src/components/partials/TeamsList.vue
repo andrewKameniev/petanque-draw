@@ -494,6 +494,7 @@ export default {
       this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
     },
     navigateToTeam(teamTitle) {
+      this.activeClubFilter = null;
       this.expandedTeam = teamTitle;
       this.$nextTick(() => {
         const els = document.querySelectorAll('[data-team-title]');

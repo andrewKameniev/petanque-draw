@@ -25,89 +25,220 @@
       "
       class="mb-5"
     >
-    <div v-for="(group, index) in sortedGroups" :key="index">
-      <h4 class="mt-5 text-center" v-if="sortedGroups.length > 1">
-        {{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}
-      </h4>
-      <div v-if="hasRichData" class="teams-cards">
-        <div
-          v-for="(team, teamIndex) in group"
-          :key="team.title"
-          class="team-card"
-          :class="{
-            'team-card--highlighted': isTeamHighlighted(team.title),
-            'team-card--expanded': expandedTeam === team.title,
-            'team-card--clickable': hasGamesStarted,
-          }"
-          @click="hasGamesStarted && toggleExpand(team.title)"
-        >
-          <div class="team-card__rank">{{ teamIndex + 1 }}</div>
-          <div class="team-card__body">
-            <div class="team-card__header">
-              <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
-                <img
-                  v-for="club in getUniqueClubs(team)"
-                  :key="club.id"
-                  v-show="club.logo"
-                  :src="club.logo"
-                  class="team-card__club-logo"
-                  alt=""
+      <div v-for="(group, index) in sortedGroups" :key="index">
+        <h4 class="mt-5 text-center" v-if="sortedGroups.length > 1">
+          {{ tournament.system === 'poules' ? 'Poule' : $t('common.group') }} {{ groupsNames[index] }}
+        </h4>
+        <div v-if="hasRichData" class="teams-cards">
+          <div
+            v-for="(team, teamIndex) in group"
+            :key="team.title"
+            class="team-card"
+            :class="{
+              'team-card--highlighted': isTeamHighlighted(team.title),
+              'team-card--expanded': expandedTeam === team.title,
+              'team-card--clickable': hasGamesStarted,
+            }"
+            @click="hasGamesStarted && toggleExpand(team.title)"
+          >
+            <div class="team-card__rank">{{ teamIndex + 1 }}</div>
+            <div class="team-card__body">
+              <div class="team-card__header">
+                <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
+                  <img
+                    v-for="club in getUniqueClubs(team)"
+                    :key="club.id"
+                    v-show="club.logo"
+                    :src="club.logo"
+                    class="team-card__club-logo"
+                    alt=""
+                  />
+                </div>
+                <img v-else-if="getClubLogo(team)" :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
+                <div class="team-card__title-block">
+                  <span class="team-card__name">{{ team.title }}</span>
+                  <a
+                    v-if="getTeamClub(team)"
+                    :href="getClubUrl(team)"
+                    target="_blank"
+                    class="team-card__club"
+                    @click.stop
+                    >{{ getTeamClub(team) }}</a
+                  >
+                </div>
+                <span v-if="tournament.useRating" class="rating-badge"
+                  ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
+                >
+                <button
+                  v-if="hasGamesStarted"
+                  class="team-card__expand-btn"
+                  :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+                  @click.stop="toggleExpand(team.title)"
+                >
+                  <ChevronDown :size="16" />
+                </button>
+              </div>
+              <div v-if="team.players && team.players.length" class="team-card__players">
+                <PlayerChip
+                  v-for="(player, pIdx) in team.players"
+                  :key="pIdx"
+                  :player="player"
+                  :is-captain="isCaptain(team, pIdx)"
                 />
               </div>
-              <img v-else-if="getClubLogo(team)" :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
-              <div class="team-card__title-block">
-                <span class="team-card__name">{{ team.title }}</span>
-                <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club" @click.stop>{{
-                  getTeamClub(team)
-                }}</a>
-              </div>
-              <span v-if="tournament.useRating" class="rating-badge"
-                ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
-              >
-              <button
-                v-if="hasGamesStarted"
-                class="team-card__expand-btn"
-                :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
-                @click.stop="toggleExpand(team.title)"
-              >
-                <ChevronDown :size="16" />
-              </button>
-            </div>
-            <div v-if="team.players && team.players.length" class="team-card__players">
-              <PlayerChip
-                v-for="(player, pIdx) in team.players"
-                :key="pIdx"
-                :player="player"
-                :is-captain="isCaptain(team, pIdx)"
+              <ParticipantGames
+                v-if="expandedTeam === team.title"
+                :team-title="team.title"
+                :tournament="tournament"
+                @close="expandedTeam = null"
               />
             </div>
-            <ParticipantGames
-              v-if="expandedTeam === team.title"
-              :team-title="team.title"
-              :tournament="tournament"
-              @close="expandedTeam = null"
-            />
           </div>
         </div>
+        <table v-else class="table">
+          <tr
+            v-for="(team, teamIndex) in group"
+            :key="team.title"
+            :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
+            @click="hasGamesStarted && toggleExpand(team.title)"
+          >
+            <td style="width: 30px">{{ teamIndex + 1 }}.</td>
+            <td>
+              <div class="team-table-row">
+                <span>
+                  {{ team.title }}
+                  <div class="is-size-7" v-if="team.players && team.players.length > 1">
+                    (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
+                      >{{ player.name }} {{ player.surname
+                      }}<span v-if="index < team.players.length - 1">, </span></span
+                    >)
+                  </div>
+                  <div class="is-size-7 has-text-grey" v-if="getTeamClub(team)">{{ getTeamClub(team) }}</div>
+                </span>
+                <button
+                  v-if="hasGamesStarted"
+                  class="team-card__expand-btn team-card__expand-btn--table"
+                  :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+                  @click.stop="toggleExpand(team.title)"
+                >
+                  <ChevronDown :size="16" />
+                </button>
+              </div>
+              <ParticipantGames
+                v-if="expandedTeam === team.title"
+                :team-title="team.title"
+                :tournament="tournament"
+                @close="expandedTeam = null"
+              />
+            </td>
+            <td class="td-100" v-if="tournament.useRating">
+              <span class="rating-badge"
+                ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
+              >
+            </td>
+          </tr>
+        </table>
       </div>
-      <table v-else class="table">
+    </div>
+    <div v-else-if="hasRichData" class="teams-cards">
+      <div
+        v-for="(team, teamIndex) in sortedTeams"
+        :key="team.title"
+        class="team-card"
+        :class="{
+          'team-card--highlighted': isTeamHighlighted(team.title),
+          'team-card--expanded': expandedTeam === team.title,
+          'team-card--clickable': hasGamesStarted,
+        }"
+        @click="hasGamesStarted && toggleExpand(team.title)"
+      >
+        <div class="team-card__rank">{{ teamIndex + 1 }}</div>
+        <div class="team-card__body">
+          <div class="team-card__header">
+            <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
+              <a
+                v-for="club in getUniqueClubs(team)"
+                :key="club.id"
+                :href="'https://portal.petanque.org.ua/club/' + club.id"
+                target="_blank"
+                class="team-card__club-link"
+                @click.stop
+              >
+                <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
+              </a>
+            </div>
+            <a
+              v-else-if="getClubLogo(team)"
+              :href="getClubUrl(team)"
+              target="_blank"
+              class="team-card__club-link"
+              @click.stop
+            >
+              <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
+            </a>
+            <div class="team-card__title-block">
+              <span class="team-card__name">{{ team.title }}</span>
+              <a
+                v-if="getTeamClub(team)"
+                :href="getClubUrl(team)"
+                target="_blank"
+                class="team-card__club"
+                @click.stop
+                >{{ getTeamClub(team) }}</a
+              >
+            </div>
+            <span v-if="tournament.useRating" class="rating-badge"
+              ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
+            >
+            <button
+              v-if="hasGamesStarted"
+              class="team-card__expand-btn"
+              :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
+              @click.stop="toggleExpand(team.title)"
+            >
+              <ChevronDown :size="16" />
+            </button>
+            <button v-if="showRemove" class="team-remove-btn" @click.prevent="removeTeam(team.title)">
+              <X :size="16" />
+            </button>
+          </div>
+          <div v-if="team.players && team.players.length" class="team-card__players">
+            <PlayerChip
+              v-for="(player, pIdx) in team.players"
+              :key="pIdx"
+              :player="player"
+              :is-captain="isCaptain(team, pIdx)"
+            />
+          </div>
+          <ParticipantGames
+            v-if="expandedTeam === team.title"
+            :team-title="team.title"
+            :tournament="tournament"
+            @close="expandedTeam = null"
+          />
+        </div>
+      </div>
+    </div>
+    <div v-else class="teams-table-wrapper">
+      <table id="table-list" class="table is-fullwidth">
         <tr
-          v-for="(team, teamIndex) in group"
+          v-for="team in sortedTeams"
           :key="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
           @click="hasGamesStarted && toggleExpand(team.title)"
         >
-          <td style="width: 30px">{{ teamIndex + 1 }}.</td>
           <td>
             <div class="team-table-row">
               <span>
                 {{ team.title }}
-                <div class="is-size-7" v-if="team.players && team.players.length > 1">
+                <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                   (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
                     >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
                   >)
                 </div>
-                <div class="is-size-7 has-text-grey" v-if="getTeamClub(team)">{{ getTeamClub(team) }}</div>
+                <div class="is-size-7 has-text-grey is-hidden-tablet" v-if="getTeamClub(team)">
+                  {{ getTeamClub(team) }}
+                </div>
               </span>
               <button
                 v-if="hasGamesStarted"
@@ -125,149 +256,37 @@
               @close="expandedTeam = null"
             />
           </td>
+          <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
+            <span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
+              >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
+            >
+          </td>
+          <td class="is-hidden-mobile is-size-7" v-else></td>
+          <td class="is-hidden-mobile is-size-7 has-text-grey" v-if="getTeamClub(team)">
+            <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i"
+              >{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"
+            /></span>
+          </td>
+          <td class="is-hidden-mobile" v-else></td>
           <td class="td-100" v-if="tournament.useRating">
             <span class="rating-badge"
               ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
             >
           </td>
+          <td
+            class="td-50"
+            v-if="
+              !previewTournament &&
+              (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
+            "
+          >
+            <button class="team-remove-btn" @click="removeTeam(team.title)">
+              <X :size="16" />
+            </button>
+          </td>
         </tr>
       </table>
     </div>
-  </div>
-  <div v-else-if="hasRichData" class="teams-cards">
-    <div
-      v-for="(team, teamIndex) in sortedTeams"
-      :key="team.title"
-      class="team-card"
-      :class="{
-        'team-card--highlighted': isTeamHighlighted(team.title),
-        'team-card--expanded': expandedTeam === team.title,
-        'team-card--clickable': hasGamesStarted,
-      }"
-      @click="hasGamesStarted && toggleExpand(team.title)"
-    >
-      <div class="team-card__rank">{{ teamIndex + 1 }}</div>
-      <div class="team-card__body">
-        <div class="team-card__header">
-          <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
-            <a
-              v-for="club in getUniqueClubs(team)"
-              :key="club.id"
-              :href="'https://portal.petanque.org.ua/club/' + club.id"
-              target="_blank"
-              class="team-card__club-link"
-              @click.stop
-            >
-              <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
-            </a>
-          </div>
-          <a v-else-if="getClubLogo(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club-link" @click.stop>
-            <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
-          </a>
-          <div class="team-card__title-block">
-            <span class="team-card__name">{{ team.title }}</span>
-            <a v-if="getTeamClub(team)" :href="getClubUrl(team)" target="_blank" class="team-card__club" @click.stop>{{
-              getTeamClub(team)
-            }}</a>
-          </div>
-          <span v-if="tournament.useRating" class="rating-badge"
-            ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
-          >
-          <button
-            v-if="hasGamesStarted"
-            class="team-card__expand-btn"
-            :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
-            @click.stop="toggleExpand(team.title)"
-          >
-            <ChevronDown :size="16" />
-          </button>
-          <button v-if="showRemove" class="team-remove-btn" @click.prevent="removeTeam(team.title)">
-            <X :size="16" />
-          </button>
-        </div>
-        <div v-if="team.players && team.players.length" class="team-card__players">
-          <PlayerChip
-            v-for="(player, pIdx) in team.players"
-            :key="pIdx"
-            :player="player"
-            :is-captain="isCaptain(team, pIdx)"
-          />
-        </div>
-        <ParticipantGames
-          v-if="expandedTeam === team.title"
-          :team-title="team.title"
-          :tournament="tournament"
-          @close="expandedTeam = null"
-        />
-      </div>
-    </div>
-  </div>
-  <div v-else class="teams-table-wrapper">
-    <table id="table-list" class="table is-fullwidth">
-      <tr
-        v-for="team in sortedTeams"
-        :key="team.title"
-        :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
-        @click="hasGamesStarted && toggleExpand(team.title)"
-      >
-        <td>
-          <div class="team-table-row">
-            <span>
-              {{ team.title }}
-              <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
-                (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
-                  >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
-                >)
-              </div>
-              <div class="is-size-7 has-text-grey is-hidden-tablet" v-if="getTeamClub(team)">
-                {{ getTeamClub(team) }}
-              </div>
-            </span>
-            <button
-              v-if="hasGamesStarted"
-              class="team-card__expand-btn team-card__expand-btn--table"
-              :class="{ 'team-card__expand-btn--active': expandedTeam === team.title }"
-              @click.stop="toggleExpand(team.title)"
-            >
-              <ChevronDown :size="16" />
-            </button>
-          </div>
-          <ParticipantGames
-            v-if="expandedTeam === team.title"
-            :team-title="team.title"
-            :tournament="tournament"
-            @close="expandedTeam = null"
-          />
-        </td>
-        <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
-          <span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
-            >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
-          >
-        </td>
-        <td class="is-hidden-mobile is-size-7" v-else></td>
-        <td class="is-hidden-mobile is-size-7 has-text-grey" v-if="getTeamClub(team)">
-          <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i"
-            >{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"
-          /></span>
-        </td>
-        <td class="is-hidden-mobile" v-else></td>
-        <td class="td-100" v-if="tournament.useRating">
-          <span class="rating-badge"><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span>
-        </td>
-        <td
-          class="td-50"
-          v-if="
-            !previewTournament &&
-            (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
-          "
-        >
-          <button class="team-remove-btn" @click="removeTeam(team.title)">
-            <X :size="16" />
-          </button>
-        </td>
-      </tr>
-    </table>
-  </div>
   </template>
 </template>
 

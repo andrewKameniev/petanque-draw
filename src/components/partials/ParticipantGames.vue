@@ -75,11 +75,7 @@
             <BarChart3 :size="14" />
           </router-link>
           <div v-if="expandedMatch === `${stage.key}-${mIdx}`" class="participant-games__match-rosters">
-            <PlayerChip
-              v-for="(player, pIdx) in getTeamPlayers(match.opponent)"
-              :key="pIdx"
-              :player="player"
-            />
+            <PlayerChip v-for="(player, pIdx) in getTeamPlayers(match.opponent)" :key="pIdx" :player="player" />
           </div>
         </div>
       </div>

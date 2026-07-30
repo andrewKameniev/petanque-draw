@@ -230,30 +230,33 @@
                 </div>
               </div>
             </div>
-            <div class="tournament-nav">
-              <button
-                v-for="(tab, index) in tabs"
-                :key="index"
-                class="tournament-nav__btn"
-                :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-                @click="activeTab = tab.id"
-              >
-                <component :is="tab.icon" :size="18" />
-                <span>{{ tab.label }}</span>
-              </button>
-            </div>
-            <div class="tabs-content-area">
-              <div v-if="activeTab === 'teams'">
-                <TeamsList :previewTournament="activeTournament" />
+            <TirPublicView v-if="activeTournament.system === 'tir'" :tournament="activeTournament" class="mt-3" />
+            <template v-else>
+              <div class="tournament-nav">
+                <button
+                  v-for="(tab, index) in tabs"
+                  :key="index"
+                  class="tournament-nav__btn"
+                  :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
+                  @click="activeTab = tab.id"
+                >
+                  <component :is="tab.icon" :size="18" />
+                  <span>{{ tab.label }}</span>
+                </button>
               </div>
-              <Results v-if="activeTab === 'results'" :previewTournament="activeTournament" />
-              <div v-if="activeTab === 'ranking'">
-                <Ranking :tournament="activeTournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
+              <div class="tabs-content-area">
+                <div v-if="activeTab === 'teams'">
+                  <TeamsList :previewTournament="activeTournament" />
+                </div>
+                <Results v-if="activeTab === 'results'" :previewTournament="activeTournament" />
+                <div v-if="activeTab === 'ranking'">
+                  <Ranking :tournament="activeTournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
+                </div>
+                <div v-if="activeTab === 'protocol'">
+                  <Protocol :tournament="activeTournament" :rankingTeams="rankingTeams" :skipGate="true" />
+                </div>
               </div>
-              <div v-if="activeTab === 'protocol'">
-                <Protocol :tournament="activeTournament" :rankingTeams="rankingTeams" :skipGate="true" />
-              </div>
-            </div>
+            </template>
           </template>
         </div>
       </div>
@@ -270,6 +273,7 @@ import TeamsList from '@/components/partials/TeamsList';
 import PlayOff from '@/components/partials/PlayOff.vue';
 import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
+import TirPublicView from '@/components/tir/TirPublicView.vue';
 import Footer from '@/components/partials/Footer.vue';
 import Navbar from '@/components/Navbar.vue';
 import Menu from '@/components/Menu.vue';
@@ -289,6 +293,7 @@ export default {
     PlayOff,
     TeamPlayoff,
     Cadrage,
+    TirPublicView,
     TeamsList,
     Results,
     Ranking,

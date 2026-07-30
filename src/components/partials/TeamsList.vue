@@ -33,6 +33,7 @@
           <div
             v-for="(team, teamIndex) in group"
             :key="team.title"
+            :data-team-title="team.title"
             class="team-card"
             :class="{
               'team-card--highlighted': isTeamHighlighted(team.title),
@@ -91,6 +92,7 @@
                 :team-title="team.title"
                 :tournament="tournament"
                 @close="expandedTeam = null"
+                @navigate-to-team="navigateToTeam"
               />
             </div>
           </div>
@@ -99,6 +101,7 @@
           <tr
             v-for="(team, teamIndex) in group"
             :key="team.title"
+            :data-team-title="team.title"
             :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
             @click="hasGamesStarted && toggleExpand(team.title)"
           >
@@ -129,6 +132,7 @@
                 :team-title="team.title"
                 :tournament="tournament"
                 @close="expandedTeam = null"
+                @navigate-to-team="navigateToTeam"
               />
             </td>
             <td class="td-100" v-if="tournament.useRating">
@@ -144,6 +148,7 @@
       <div
         v-for="(team, teamIndex) in sortedTeams"
         :key="team.title"
+        :data-team-title="team.title"
         class="team-card"
         :class="{
           'team-card--highlighted': isTeamHighlighted(team.title),
@@ -224,6 +229,7 @@
         <tr
           v-for="team in sortedTeams"
           :key="team.title"
+          :data-team-title="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
           @click="hasGamesStarted && toggleExpand(team.title)"
         >
@@ -324,6 +330,8 @@ export default {
           if (!p.club_id || !p.club) return;
           if (!clubMap.has(p.club_id)) {
             clubMap.set(p.club_id, { id: p.club_id, name: p.club, logo: p.club_logo_url || null, count: 0 });
+          } else if (!clubMap.get(p.club_id).logo && p.club_logo_url) {
+            clubMap.get(p.club_id).logo = p.club_logo_url;
           }
           if (!seenInTeam.has(p.club_id)) {
             seenInTeam.add(p.club_id);
@@ -482,6 +490,14 @@ export default {
     ...mapActions(useMainStore, ['removeTeam']),
     toggleExpand(teamTitle) {
       this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
+    },
+    navigateToTeam(teamTitle) {
+      this.expandedTeam = teamTitle;
+      this.$nextTick(() => {
+        const els = this.$el.querySelectorAll('[data-team-title]');
+        const el = [...els].find((e) => e.dataset.teamTitle === teamTitle);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     },
     toggleClubFilter(clubId) {
       this.activeClubFilter = this.activeClubFilter === clubId ? null : clubId;

@@ -376,6 +376,8 @@ export default {
     darkTheme: 'Tema oscuro',
     lightTheme: 'Tema claro',
     theme: 'Tema',
+    date: 'Fecha',
+    refreshLogos: 'Actualizar logos',
     customRoutes: 'Rutas personalizadas',
     createRoute: 'Crear ruta',
     slugLabel: 'Slug URL',

@@ -543,6 +543,87 @@ export function getPlayoffPlaces(playoff) {
   return places;
 }
 
+export function getTeamPlayoffPlaces(playoff) {
+  const places = {};
+  if (!playoff) return places;
+  if (playoff.final?.winner) {
+    places[playoff.final.winner] = 1;
+    const loser = playoff.final.team1 === playoff.final.winner ? playoff.final.team2 : playoff.final.team1;
+    if (loser) places[loser] = 2;
+  }
+  if (playoff.thirdPlace?.winner) {
+    places[playoff.thirdPlace.winner] = 3;
+    const loser =
+      playoff.thirdPlace.team1 === playoff.thirdPlace.winner ? playoff.thirdPlace.team2 : playoff.thirdPlace.team1;
+    if (loser) places[loser] = 4;
+  } else if (playoff.thirdPlace) {
+    if (playoff.thirdPlace.team1) places[playoff.thirdPlace.team1] = '3-4';
+    if (playoff.thirdPlace.team2) places[playoff.thirdPlace.team2] = '3-4';
+  }
+  if (playoff.rounds) {
+    let nextPlace = Object.keys(places).length
+      ? Math.max(
+          ...Object.values(places).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1] || v))),
+        ) + 1
+      : 5;
+    for (let i = playoff.rounds.length - 1; i >= 0; i--) {
+      const roundLosers = playoff.rounds[i].matches
+        .filter((m) => m.winner && !places[m.winner === m.team1 ? m.team2 : m.team1])
+        .map((m) => (m.winner === m.team1 ? m.team2 : m.team1));
+      if (!roundLosers.length) continue;
+      const endPlace = nextPlace + roundLosers.length - 1;
+      const label = roundLosers.length > 1 ? `${nextPlace}-${endPlace}` : nextPlace;
+      roundLosers.forEach((name) => {
+        places[name] = label;
+      });
+      nextPlace = endPlace + 1;
+    }
+  }
+  return places;
+}
+
+export function getBracketPlayoffPlaces(bracket) {
+  const places = {};
+  if (!bracket?.stages) return places;
+  const finalStage = bracket.stages.find((s) => s.stageLabel === 1);
+  if (finalStage?.teams?.length) {
+    const game = finalStage.teams[0];
+    if (game.team_1_score != null && game.team_2_score != null) {
+      const winner = Number(game.team_1_score) > Number(game.team_2_score) ? game.team_1 : game.team_2;
+      const loser = winner === game.team_1 ? game.team_2 : game.team_1;
+      places[winner] = 1;
+      if (loser) places[loser] = 2;
+    }
+  }
+  if (bracket.thirdPlace && bracket.thirdPlace.team_1_score != null && bracket.thirdPlace.team_2_score != null) {
+    const tp = bracket.thirdPlace;
+    const winner = Number(tp.team_1_score) > Number(tp.team_2_score) ? tp.team_1 : tp.team_2;
+    const loser = winner === tp.team_1 ? tp.team_2 : tp.team_1;
+    places[winner] = 3;
+    if (loser) places[loser] = 4;
+  }
+  const nonFinalStages = bracket.stages
+    .filter((s) => s.stageLabel !== 1 && s.stageLabel !== 'cadrage')
+    .sort((a, b) => a.stageLabel - b.stageLabel);
+  let nextPlace = Object.keys(places).length
+    ? Math.max(...Object.values(places).map((v) => (typeof v === 'number' ? v : parseInt(String(v).split('-')[1])))) + 1
+    : 5;
+  for (const stage of nonFinalStages) {
+    const losers = stage.teams
+      .filter((g) => !g.isBye && g.team_1_score != null && g.team_2_score != null)
+      .map((g) => (Number(g.team_1_score) > Number(g.team_2_score) ? g.team_2 : g.team_1))
+      .filter((name) => name && !places[name]);
+    if (!losers.length) continue;
+    const endPlace = nextPlace + losers.length - 1;
+    const label = losers.length > 1 ? `${nextPlace}-${endPlace}` : nextPlace;
+    losers.forEach((name) => {
+      places[name] = label;
+    });
+    nextPlace = endPlace + 1;
+  }
+  return places;
+}
+
 export function getPlayoffMatchScores(playerName, playoff) {
   const result = { qf: '', sf: '', final: '' };
   if (!playoff) return result;

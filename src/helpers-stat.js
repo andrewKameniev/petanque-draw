@@ -205,6 +205,7 @@ export function calculateTeamPlayersStat(team, system) {
           },
         },
         serie: [],
+        serieByRound: [],
       });
     } else {
       teamStat.push({
@@ -221,14 +222,17 @@ export function calculateTeamPlayersStat(team, system) {
     }
   });
 
-  if (team.players[0].stat?.length) {
+  const firstStat = team.players[0].stat;
+  if (firstStat && (Array.isArray(firstStat) ? firstStat.length : Object.keys(firstStat).length)) {
     team.players.forEach((player, index) => {
       const playerStat = Object.values(player.stat);
 
       playerStat?.forEach((man) => {
+        const roundThrows = [];
         if (man) {
           man.forEach((item) => {
             if (item.isMade) {
+              roundThrows.push(item);
               if (item.type === 'p') {
                 if (system === 'simple') {
                   if (item.success) {
@@ -283,6 +287,9 @@ export function calculateTeamPlayersStat(team, system) {
               teamStat[index].serie.push(item);
             }
           });
+        }
+        if (roundThrows.length) {
+          teamStat[index].serieByRound.push(roundThrows);
         }
       });
       if (system === 'simple') {

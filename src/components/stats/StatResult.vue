@@ -179,35 +179,24 @@ export default {
             {{ player.name || $t('stat.playerName') + ' ' + (index + 1) }}
           </div>
           <div v-if="system === 'simple'">
-            <div class="stat-result__series">
-              <div class="stat-result__series-row">
-                <span class="stat-result__series-label">{{ $t('stat.series') }}:</span>
+            <div class="stat-result__heatmap" v-if="teamStats[index].serieByRound?.length">
+              <div
+                v-for="(round, rIdx) in teamStats[index].serieByRound"
+                :key="rIdx"
+                class="stat-result__heatmap-col"
+                :class="{ 'stat-result__heatmap-col--gap': rIdx > 0 && rIdx % 5 === 0 }"
+              >
                 <span
-                  class="throw-result"
-                  :class="{ '-success': item.success }"
-                  v-for="(item, itemIndex) in teamStats[index].serie"
-                  :key="itemIndex"
-                ></span>
-              </div>
-              <div class="stat-result__series-row" v-if="teamStats[index].serie.filter((i) => i.type === 'p').length">
-                <span class="stat-result__series-label">{{ $t('stat.points') }}:</span>
-                <span
-                  class="throw-result"
-                  :class="{ '-success': item.success }"
-                  v-for="(item, itemIndex) in teamStats[index].serie.filter((i) => i.type === 'p')"
-                  :key="itemIndex"
-                ></span>
-              </div>
-              <div class="stat-result__series-row" v-if="teamStats[index].serie.filter((i) => i.type === 't').length">
-                <span class="stat-result__series-label">{{ $t('stat.tirs') }}:</span>
-                <span
-                  class="throw-result"
+                  v-for="(item, tIdx) in round"
+                  :key="tIdx"
+                  class="stat-result__heatmap-cell"
                   :class="{
-                    '-success': item.success,
-                    '-carro': item.x2 && item.type === 't' && item.success,
+                    'stat-result__heatmap-cell--point-hit': item.type === 'p' && item.success,
+                    'stat-result__heatmap-cell--point-miss': item.type === 'p' && !item.success,
+                    'stat-result__heatmap-cell--tir-hit': item.type === 't' && item.success && !item.x2,
+                    'stat-result__heatmap-cell--tir-miss': item.type === 't' && !item.success,
+                    'stat-result__heatmap-cell--carro': item.type === 't' && item.success && item.x2,
                   }"
-                  v-for="(item, itemIndex) in teamStats[index].serie.filter((i) => i.type === 't')"
-                  :key="itemIndex"
                 ></span>
               </div>
             </div>
@@ -509,26 +498,6 @@ export default {
   margin-bottom: 0.4rem;
 }
 
-.stat-result__series {
-  margin-bottom: 0.4rem;
-  line-height: 1.4;
-}
-
-.stat-result__series-row {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-wrap: wrap;
-  margin-bottom: 2px;
-}
-
-.stat-result__series-label {
-  font-size: 1rem;
-  color: var(--color-text-muted);
-  margin-right: 4px;
-  min-width: 45px;
-}
-
 .stat-result__important-label {
   font-size: 1rem;
   color: var(--color-text-muted);
@@ -537,20 +506,59 @@ export default {
   margin-bottom: 0.2rem;
 }
 
-.throw-result {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-error);
-  margin-right: 2px;
+.stat-result__heatmap {
+  display: inline-flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
 }
 
-.throw-result.-success {
-  background: var(--color-success);
+.stat-result__heatmap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.throw-result.-carro {
-  background: var(--color-primary);
+.stat-result__heatmap-col--gap {
+  margin-left: 6px;
+}
+
+.stat-result__heatmap-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.stat-result__heatmap-cell--point-hit {
+  background: #2d6a30;
+}
+
+.stat-result__heatmap-cell--point-miss {
+  background: #d4edda;
+}
+
+.stat-result__heatmap-cell--tir-hit {
+  background: #e67700;
+}
+
+.stat-result__heatmap-cell--tir-miss {
+  background: #fff3cd;
+}
+
+.stat-result__heatmap-cell--carro {
+  background: #dc2626;
+}
+
+@media screen and (max-width: 500px) {
+  .stat-result {
+    padding: 0.75rem 0.5rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
 }
 </style>

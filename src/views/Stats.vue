@@ -72,7 +72,7 @@
                 @click="currentTab = 'active'"
               >
                 <Play :size="15" />
-                {{ $t('stat.activeGames') }}
+                <span class="stats-tabs__label">{{ $t('stat.activeGames') }}</span>
                 <span class="stats-tabs__badge" v-if="savedGames.length">{{ savedGames.length }}</span>
               </button>
               <button
@@ -81,7 +81,7 @@
                 @click="currentTab = 'new'"
               >
                 <Plus :size="15" />
-                {{ $t('stat.newGameTab') }}
+                <span class="stats-tabs__label">{{ $t('stat.newGameTab') }}</span>
               </button>
               <button
                 class="stats-tabs__btn"
@@ -89,7 +89,7 @@
                 @click="currentTab = 'history'"
               >
                 <Archive :size="15" />
-                {{ $t('stat.history') }}
+                <span class="stats-tabs__label">{{ $t('stat.history') }}</span>
               </button>
             </div>
 
@@ -249,7 +249,9 @@ export default {
     this.getTags();
     this.changePlayers();
     this.syncPlayerUsageFromArchive();
-    if (this.savedGames.length === 0) {
+    if (this.$route.query.prefill) {
+      this.applyPrefill();
+    } else if (this.savedGames.length === 0) {
       this.currentTab = 'new';
     }
   },
@@ -602,6 +604,29 @@ export default {
         }
       }
     },
+    applyPrefill() {
+      const q = this.$route.query;
+      if (q.name) this.gameName = q.name;
+      if (q.type) {
+        this.gameType = Number(q.type);
+        this.changePlayers();
+      }
+      if (q.t1) {
+        const names = q.t1.split(',');
+        names.slice(0, this.gameType).forEach((name, i) => {
+          if (this.team1.players[i]) this.team1.players[i].name = name;
+        });
+        this.team1.bench = names.slice(this.gameType);
+      }
+      if (q.t2) {
+        const names = q.t2.split(',');
+        names.slice(0, this.gameType).forEach((name, i) => {
+          if (this.team2.players[i]) this.team2.players[i].name = name;
+        });
+        this.team2.bench = names.slice(this.gameType);
+      }
+      this.currentTab = 'new';
+    },
     changePlayers() {
       this.team1.players = [];
       this.team2.players = [];
@@ -667,6 +692,7 @@ export default {
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--color-text);
+  padding: 0 0.75rem;
 }
 
 .stats-page__results-grid {
@@ -904,12 +930,47 @@ export default {
   .stat-container {
     display: flex;
     flex-direction: column;
+    padding: 0.5rem 0;
   }
 
   .mobile-stat-container {
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .container:has(.stats-page__results) {
+    padding: 0;
+  }
+
+  .stats-tabs__label {
+    display: none;
+  }
+
+  .stats-tabs__btn {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .stats-tabs {
+    margin: 0 0.5rem;
+  }
+
+  .stats-tabs__content {
+    padding: 0 0.5rem;
+  }
+
+  .stats-page__results-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-surface, #fff);
+    padding: 0 0.5rem 0.5rem;
+    border-bottom: 1px solid var(--color-border, #eee);
+  }
+
+  .stats-page__results-header .stats-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
   }
 }
 

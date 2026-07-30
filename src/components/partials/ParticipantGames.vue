@@ -113,7 +113,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['currentTournament']),
     tournamentName() {
-      return this.currentTournament?.name || this.tournament.name || '';
+      return this.currentTournament?.name || this.tournament.name || this.tournament.main?.name || '';
     },
     gamesByStage() {
       const stages = [];

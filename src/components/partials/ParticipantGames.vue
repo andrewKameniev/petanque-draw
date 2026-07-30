@@ -66,6 +66,14 @@
           >
             <UsersRound :size="14" />
           </button>
+          <router-link
+            v-if="!match.pending"
+            class="participant-games__match-stats-btn"
+            :to="getStatsLink(match, stage.label)"
+            @click.stop
+          >
+            <BarChart3 :size="14" />
+          </router-link>
           <div v-if="expandedMatch === `${stage.key}-${mIdx}`" class="participant-games__match-rosters">
             <PlayerChip
               v-for="(player, pIdx) in getTeamPlayers(match.opponent)"
@@ -80,12 +88,14 @@
 </template>
 
 <script>
-import { X, Trophy, Minus, UsersRound } from 'lucide-vue-next';
+import { X, Trophy, Minus, UsersRound, BarChart3 } from 'lucide-vue-next';
+import { mapState } from 'pinia';
+import { useMainStore } from '@/stores/main';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
 
 export default {
   name: 'ParticipantGames',
-  components: { X, Trophy, Minus, UsersRound, PlayerChip },
+  components: { X, Trophy, Minus, UsersRound, BarChart3, PlayerChip },
   props: {
     teamTitle: { type: String, required: true },
     tournament: { type: Object, required: true },
@@ -97,6 +107,10 @@ export default {
     };
   },
   computed: {
+    ...mapState(useMainStore, ['currentTournament']),
+    tournamentName() {
+      return this.currentTournament?.name || this.tournament.name || '';
+    },
     gamesByStage() {
       const stages = [];
       let orderCounter = 1;
@@ -374,6 +388,19 @@ export default {
       const team = this.tournament.teams?.find((t) => t.title === teamTitle);
       return team?.players || [];
     },
+    getStatsLink(match, stageLabel) {
+      const myPlayers = this.getTeamPlayers(this.teamTitle);
+      const oppPlayers = this.getTeamPlayers(match.opponent);
+      const gameType = Math.min(Math.max(myPlayers.length, oppPlayers.length, 1), 3);
+      const formatPlayer = (p) => `${p.name} ${p.surname || ''}`.trim();
+      const t1 = myPlayers.map(formatPlayer).join(',');
+      const t2 = oppPlayers.map(formatPlayer).join(',');
+      const name = `${this.tournamentName} — ${stageLabel}`.trim();
+      return {
+        path: '/stats',
+        query: { prefill: '1', name, type: String(gameType), t1, t2 },
+      };
+    },
   },
 };
 </script>
@@ -626,6 +653,24 @@ export default {
 .participant-games__match-players-btn--active {
   background: var(--color-primary-bg, rgb(124 58 237 / 10%));
   color: var(--color-primary, #7c3aed);
+}
+
+.participant-games__match-stats-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--color-info, #4a90d9);
+  flex-shrink: 0;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.participant-games__match-stats-btn:hover {
+  background: rgb(74 144 217 / 10%);
+  color: var(--color-info, #3b7dd8);
 }
 
 .participant-games__match-rosters {

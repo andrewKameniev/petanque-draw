@@ -380,6 +380,8 @@ export default {
     darkTheme: 'Thème sombre',
     lightTheme: 'Thème clair',
     theme: 'Thème',
+    date: 'Date',
+    refreshLogos: 'Rafraîchir logos',
     customRoutes: 'Liens personnalisés',
     createRoute: 'Créer un lien',
     slugLabel: 'Slug URL',

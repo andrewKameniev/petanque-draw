@@ -227,6 +227,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding: 0 0.75rem;
 }
 
 .tracking__header-left,
@@ -241,6 +242,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
+  margin: 0 0.75rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -250,6 +252,12 @@ export default {
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
+}
+
+.tracking__status-item:nth-child(2) {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
 }
 
 .tracking__status-label {
@@ -270,11 +278,39 @@ export default {
   color: var(--color-text-muted);
 }
 
+@media (max-width: 500px) {
+  .tracking__status {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .tracking__status-item {
+    justify-content: space-between;
+  }
+
+  .tracking__status-item:nth-child(2) {
+    text-align: left;
+    justify-content: flex-start;
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .tracking__status-item:nth-child(2) .tracking__status-label {
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+}
+
 .tracking__distance {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+  padding: 0 0.75rem;
 }
 
 .tracking__distance-label {

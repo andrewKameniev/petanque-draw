@@ -219,6 +219,16 @@
           </button>
         </div>
         <label class="team-card__modal-sublabel">{{ $t('stat.newPlayerName') }}</label>
+        <div v-if="team.bench?.length" class="team-card__modal-bench">
+          <button
+            v-for="name in team.bench"
+            :key="name"
+            class="team-card__modal-bench-chip"
+            @click="replacePlayerName = name"
+          >
+            + {{ name }}
+          </button>
+        </div>
         <input type="text" class="team-card__modal-input" v-model="replacePlayerName" />
         <button
           class="team-card__modal-btn"
@@ -559,6 +569,28 @@ export default {
   background: var(--color-primary);
   color: var(--color-btn-text);
   border-color: var(--color-primary);
+}
+
+.team-card__modal-bench {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.team-card__modal-bench-chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #ddd);
+  background: var(--color-surface, #fff);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.team-card__modal-bench-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 @media screen and (max-width: 600px) {

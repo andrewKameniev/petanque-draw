@@ -279,6 +279,7 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
+import { getTeamPlayoffPlaces, getBracketPlayoffPlaces } from '@/services/tir';
 import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
 import ParticipantGames from '@/components/partials/ParticipantGames.vue';
@@ -338,6 +339,24 @@ export default {
         teams = [...this.tournament.teams].sort((a, b) => a.title.localeCompare(b.title));
       } else if (this.tournament.system === 'swiss') {
         teams = sortTeams([...this.tournament.teams]);
+        const places = this.tournament.teamPlayoff?.final?.winner
+          ? getTeamPlayoffPlaces(this.tournament.teamPlayoff)
+          : this.tournament.playOffBracket?.stages?.length
+            ? getBracketPlayoffPlaces(this.tournament.playOffBracket)
+            : null;
+        if (places && Object.keys(places).length) {
+          teams.sort((a, b) => {
+            const placeA = places[a.title];
+            const placeB = places[b.title];
+            if (placeA == null && placeB == null) return 0;
+            if (placeA == null) return 1;
+            if (placeB == null) return -1;
+            const numA = typeof placeA === 'number' ? placeA : parseInt(String(placeA).split('-')[0]);
+            const numB = typeof placeB === 'number' ? placeB : parseInt(String(placeB).split('-')[0]);
+            if (numA !== numB) return numA - numB;
+            return 0;
+          });
+        }
       } else if (this.tournament.system === 'supermele') {
         teams = [...this.tournament.teams].sort(
           (a, b) =>

@@ -67,7 +67,6 @@
             <UsersRound :size="14" />
           </button>
           <router-link
-            v-if="!match.pending"
             class="participant-games__match-stats-btn"
             :to="getStatsLink(match, stage.label)"
             @click.stop
@@ -113,7 +112,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['currentTournament']),
     tournamentName() {
-      return this.currentTournament?.name || this.tournament.name || '';
+      return this.currentTournament?.name || this.tournament.name || this.tournament.main?.name || '';
     },
     gamesByStage() {
       const stages = [];

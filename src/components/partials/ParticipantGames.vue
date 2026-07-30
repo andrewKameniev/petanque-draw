@@ -67,7 +67,6 @@
             <UsersRound :size="14" />
           </button>
           <router-link
-            v-if="!match.pending"
             class="participant-games__match-stats-btn"
             :to="getStatsLink(match, stage.label)"
             @click.stop

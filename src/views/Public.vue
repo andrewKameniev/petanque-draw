@@ -111,6 +111,46 @@
           </div>
         </div>
       </div>
+      <div v-if="isFinished && runnerUpTeams.length === 2" class="podium-runners">
+        <div class="podium-runner podium-runner--silver">
+          <div class="podium-runner__header">
+            <Medal :size="24" class="podium-runner__medal" />
+            <span class="podium-runner__place">2</span>
+          </div>
+          <div class="podium-runner__team-name">{{ runnerUpTeams[0].title }}</div>
+          <div v-if="runnerUpTeams[0].players && runnerUpTeams[0].players.length" class="podium-runner__players">
+            <div v-for="(p, i) in runnerUpTeams[0].players" :key="i" class="podium-runner__player">
+              <img v-if="p.avatar_url" :src="p.avatar_url" class="podium-runner__avatar" alt="" />
+              <div v-else class="podium-runner__avatar podium-runner__avatar--placeholder">
+                <Users :size="14" />
+              </div>
+              <div class="podium-runner__player-info">
+                <span class="podium-runner__player-name">{{ p.surname }} {{ p.name }}</span>
+                <span v-if="p.club" class="podium-runner__player-club">{{ p.club }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="podium-runner podium-runner--bronze">
+          <div class="podium-runner__header">
+            <Medal :size="24" class="podium-runner__medal" />
+            <span class="podium-runner__place">3</span>
+          </div>
+          <div class="podium-runner__team-name">{{ runnerUpTeams[1].title }}</div>
+          <div v-if="runnerUpTeams[1].players && runnerUpTeams[1].players.length" class="podium-runner__players">
+            <div v-for="(p, i) in runnerUpTeams[1].players" :key="i" class="podium-runner__player">
+              <img v-if="p.avatar_url" :src="p.avatar_url" class="podium-runner__avatar" alt="" />
+              <div v-else class="podium-runner__avatar podium-runner__avatar--placeholder">
+                <Users :size="14" />
+              </div>
+              <div class="podium-runner__player-info">
+                <span class="podium-runner__player-name">{{ p.surname }} {{ p.name }}</span>
+                <span v-if="p.club" class="podium-runner__player-club">{{ p.club }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- TIR: single view, no tabs -->
       <TirPublicView v-if="activeTournamentView?.system === 'tir'" :tournament="activeTournamentView" class="mt-3" />
 
@@ -464,7 +504,7 @@ import TeamSearch from '@/components/partials/TeamSearch.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
-import { Users, List, Trophy as TrophyIcon, PlayCircle } from 'lucide-vue-next';
+import { Users, List, Trophy as TrophyIcon, PlayCircle, Medal } from 'lucide-vue-next';
 export default {
   name: 'Public',
   components: {
@@ -486,6 +526,7 @@ export default {
     List,
     TrophyIcon,
     PlayCircle,
+    Medal,
     YoutubeIcon,
     Twitch,
     Facebook,
@@ -656,6 +697,20 @@ export default {
       const topTitle = Array.isArray(ranking[0]) ? ranking[0][0]?.title : ranking[0]?.title;
       if (!topTitle) return null;
       return t.teams.find((team) => team.title === topTitle) || null;
+    },
+    runnerUpTeams() {
+      const t = this.activeTournamentView;
+      if (!this.isFinished || !t?.teams) return [];
+      const tournamentRanking = getTournamentRanking(t, this.rankingTeams);
+      if (!tournamentRanking || tournamentRanking.length < 3) return [];
+      return tournamentRanking.slice(1, 3).map((entry) => {
+        const team = t.teams.find((tm) => tm.title === entry.title);
+        return {
+          title: entry.title,
+          players: team?.players || null,
+          club: team?.players?.length === 1 ? team.players[0].club : null,
+        };
+      });
     },
     userId() {
       if (this.$route.query.ref) {
@@ -1495,17 +1550,17 @@ export default {
 
 .match-item--in-progress {
   border-color: var(--color-match-border-active);
-  background: url('@/assets/img/card-bg-active.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-active.webp') center/cover no-repeat !important;
 }
 
 .match-item--finished {
   border-color: var(--color-match-border-finished);
-  background: url('@/assets/img/card-bg-finished.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-finished.webp') center/cover no-repeat !important;
 }
 
 .match-item--upcoming {
   border-color: var(--color-match-border-upcoming);
-  background: url('@/assets/img/card-bg-upcoming.png') center/cover no-repeat !important;
+  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
 }
 
 .match-team {
@@ -1885,5 +1940,175 @@ export default {
 .winner-card__player-club {
   font-size: 12px;
   color: rgb(245 200 66 / 70%);
+}
+
+.podium-runners {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.podium-runner {
+  flex: 1;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.podium-runner--silver {
+  background: linear-gradient(135deg, #2a2d35 0%, #3a3d45 50%, #2a2d35 100%);
+  border: 2px solid #aaa;
+  box-shadow:
+    0 4px 20px rgb(192 192 192 / 20%),
+    inset 0 0 30px rgb(192 192 192 / 5%);
+}
+
+.podium-runner--bronze {
+  background: linear-gradient(135deg, #2d2520 0%, #3d3025 50%, #2d2520 100%);
+  border: 2px solid #cd7f32;
+  box-shadow:
+    0 4px 20px rgb(205 127 50 / 20%),
+    inset 0 0 30px rgb(205 127 50 / 5%);
+}
+
+.podium-runner__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.podium-runner--silver .podium-runner__medal {
+  color: #c0c0c0;
+  filter: drop-shadow(0 0 6px rgb(192 192 192 / 40%));
+}
+
+.podium-runner--bronze .podium-runner__medal {
+  color: #cd7f32;
+  filter: drop-shadow(0 0 6px rgb(205 127 50 / 40%));
+}
+
+.podium-runner__place {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.podium-runner--silver .podium-runner__place {
+  color: #c0c0c0;
+}
+
+.podium-runner--bronze .podium-runner__place {
+  color: #cd7f32;
+}
+
+.podium-runner__team-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin-bottom: 12px;
+}
+
+.podium-runner__players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.podium-runner__player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-width: 150px;
+  backdrop-filter: blur(4px);
+}
+
+.podium-runner--silver .podium-runner__player {
+  background: linear-gradient(135deg, rgb(192 192 192 / 10%), rgb(192 192 192 / 4%));
+  border: 1px solid rgb(192 192 192 / 25%);
+}
+
+.podium-runner--bronze .podium-runner__player {
+  background: linear-gradient(135deg, rgb(205 127 50 / 10%), rgb(205 127 50 / 4%));
+  border: 1px solid rgb(205 127 50 / 25%);
+}
+
+.podium-runner__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.podium-runner--silver .podium-runner__avatar {
+  border: 2px solid rgb(192 192 192 / 40%);
+}
+
+.podium-runner--bronze .podium-runner__avatar {
+  border: 2px solid rgb(205 127 50 / 40%);
+}
+
+.podium-runner__avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.podium-runner--silver .podium-runner__avatar--placeholder {
+  background: rgb(192 192 192 / 12%);
+  color: #c0c0c0;
+}
+
+.podium-runner--bronze .podium-runner__avatar--placeholder {
+  background: rgb(205 127 50 / 12%);
+  color: #cd7f32;
+}
+
+.podium-runner__player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.podium-runner__player-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #eee;
+}
+
+.podium-runner__player-club {
+  font-size: 11px;
+}
+
+.podium-runner--silver .podium-runner__player-club {
+  color: rgb(192 192 192 / 70%);
+}
+
+.podium-runner--bronze .podium-runner__player-club {
+  color: rgb(205 127 50 / 70%);
+}
+
+@media screen and (max-width: 768px) {
+  .podium-runners {
+    flex-direction: column;
+  }
+
+  .podium-runner {
+    padding: 16px;
+  }
+
+  .podium-runner__team-name {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
 }
 </style>

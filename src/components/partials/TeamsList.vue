@@ -33,6 +33,7 @@
           <div
             v-for="(team, teamIndex) in group"
             :key="team.title"
+            :data-team-title="team.title"
             class="team-card"
             :class="{
               'team-card--highlighted': isTeamHighlighted(team.title),
@@ -45,26 +46,16 @@
             <div class="team-card__body">
               <div class="team-card__header">
                 <div v-if="!isSameClubTeam(team)" class="team-card__club-logos">
-                  <a
+                  <img
                     v-for="club in getUniqueClubs(team)"
                     :key="club.id"
-                    :href="'https://portal.petanque.org.ua/club/' + club.id"
-                    target="_blank"
-                    class="team-card__club-link"
-                    @click.stop
-                  >
-                    <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
-                  </a>
+                    v-show="club.logo"
+                    :src="club.logo"
+                    class="team-card__club-logo"
+                    alt=""
+                  />
                 </div>
-                <a
-                  v-else-if="getClubLogo(team)"
-                  :href="getClubUrl(team)"
-                  target="_blank"
-                  class="team-card__club-link"
-                  @click.stop
-                >
-                  <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
-                </a>
+                <img v-else-if="getClubLogo(team)" :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
                 <div class="team-card__title-block">
                   <span class="team-card__name">{{ team.title }}</span>
                   <a
@@ -101,6 +92,7 @@
                 :team-title="team.title"
                 :tournament="tournament"
                 @close="expandedTeam = null"
+                @navigate-to-team="navigateToTeam"
               />
             </div>
           </div>
@@ -109,6 +101,7 @@
           <tr
             v-for="(team, teamIndex) in group"
             :key="team.title"
+            :data-team-title="team.title"
             :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
             @click="hasGamesStarted && toggleExpand(team.title)"
           >
@@ -139,6 +132,7 @@
                 :team-title="team.title"
                 :tournament="tournament"
                 @close="expandedTeam = null"
+                @navigate-to-team="navigateToTeam"
               />
             </td>
             <td class="td-100" v-if="tournament.useRating">
@@ -154,6 +148,7 @@
       <div
         v-for="(team, teamIndex) in sortedTeams"
         :key="team.title"
+        :data-team-title="team.title"
         class="team-card"
         :class="{
           'team-card--highlighted': isTeamHighlighted(team.title),
@@ -225,6 +220,7 @@
             :team-title="team.title"
             :tournament="tournament"
             @close="expandedTeam = null"
+            @navigate-to-team="navigateToTeam"
           />
         </div>
       </div>
@@ -234,6 +230,7 @@
         <tr
           v-for="team in sortedTeams"
           :key="team.title"
+          :data-team-title="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
           @click="hasGamesStarted && toggleExpand(team.title)"
         >
@@ -264,6 +261,7 @@
               :team-title="team.title"
               :tournament="tournament"
               @close="expandedTeam = null"
+              @navigate-to-team="navigateToTeam"
             />
           </td>
           <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
@@ -494,6 +492,14 @@ export default {
     ...mapActions(useMainStore, ['removeTeam']),
     toggleExpand(teamTitle) {
       this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
+    },
+    navigateToTeam(teamTitle) {
+      this.expandedTeam = teamTitle;
+      this.$nextTick(() => {
+        const els = document.querySelectorAll('[data-team-title]');
+        const el = [...els].find((e) => e.dataset.teamTitle === teamTitle);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     },
     toggleClubFilter(clubId) {
       this.activeClubFilter = this.activeClubFilter === clubId ? null : clubId;

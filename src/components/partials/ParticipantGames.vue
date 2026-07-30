@@ -1,5 +1,5 @@
 <template>
-  <div class="participant-games">
+  <div class="participant-games" @click.stop>
     <div class="participant-games__header">
       <div class="participant-games__title-row">
         <span class="participant-games__title">{{ teamTitle }}</span>
@@ -74,6 +74,14 @@
           >
             <BarChart3 :size="14" />
           </router-link>
+          <button
+            v-if="isTeamInTournament(match.opponent)"
+            class="participant-games__match-goto-btn"
+            :title="match.opponent"
+            @click.stop="$emit('navigate-to-team', match.opponent)"
+          >
+            <ArrowUpRight :size="14" />
+          </button>
           <div v-if="expandedMatch === `${stage.key}-${mIdx}`" class="participant-games__match-rosters">
             <PlayerChip v-for="(player, pIdx) in getTeamPlayers(match.opponent)" :key="pIdx" :player="player" />
           </div>
@@ -84,19 +92,19 @@
 </template>
 
 <script>
-import { X, Trophy, Minus, UsersRound, BarChart3 } from 'lucide-vue-next';
+import { X, Trophy, Minus, UsersRound, BarChart3, ArrowUpRight } from 'lucide-vue-next';
 import { mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
 
 export default {
   name: 'ParticipantGames',
-  components: { X, Trophy, Minus, UsersRound, BarChart3, PlayerChip },
+  components: { X, Trophy, Minus, UsersRound, BarChart3, ArrowUpRight, PlayerChip },
   props: {
     teamTitle: { type: String, required: true },
     tournament: { type: Object, required: true },
   },
-  emits: ['close'],
+  emits: ['close', 'navigate-to-team'],
   data() {
     return {
       expandedMatch: null,
@@ -384,6 +392,9 @@ export default {
       const team = this.tournament.teams?.find((t) => t.title === teamTitle);
       return team?.players || [];
     },
+    isTeamInTournament(teamTitle) {
+      return teamTitle && teamTitle !== '—' && this.tournament.teams?.some((t) => t.title === teamTitle);
+    },
     getStatsLink(match, stageLabel) {
       const myPlayers = this.getTeamPlayers(this.teamTitle);
       const oppPlayers = this.getTeamPlayers(match.opponent);
@@ -649,6 +660,26 @@ export default {
 .participant-games__match-players-btn--active {
   background: var(--color-primary-bg, rgb(124 58 237 / 10%));
   color: var(--color-primary, #7c3aed);
+}
+
+.participant-games__match-goto-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted, #999);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.participant-games__match-goto-btn:hover {
+  background: rgb(22 163 74 / 10%);
+  color: #16a34a;
 }
 
 .participant-games__match-stats-btn {

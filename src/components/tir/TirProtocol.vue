@@ -67,7 +67,7 @@
             </tr>
             <tr>
               <td>Головний суддя</td>
-              <td contenteditable="plaintext-only"></td>
+              <td contenteditable="plaintext-only">{{ arbitr }}</td>
             </tr>
             <tr>
               <td>Дисципліна</td>
@@ -162,16 +162,36 @@
           <tbody>
             <tr v-for="(item, index) in arbitres" :key="index">
               <td>{{ index + 1 }}</td>
-              <td contenteditable="plaintext-only">{{ item.name }}</td>
-              <td contenteditable="plaintext-only"></td>
-              <td contenteditable="plaintext-only"></td>
-              <td contenteditable="plaintext-only"></td>
-              <td contenteditable="plaintext-only"></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="item.name"
+                @blur="updateArbiterField(index, 'name', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="item.role"
+                @blur="updateArbiterField(index, 'role', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="item.category"
+                @blur="updateArbiterField(index, 'category', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="item.certificate"
+                @blur="updateArbiterField(index, 'certificate', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="item.region"
+                @blur="updateArbiterField(index, 'region', $event)"
+              ></td>
             </tr>
           </tbody>
         </table>
         <div>
-          <table width="100%" class="is-fullwidth">
+          <table width="100%" class="is-fullwidth protocol-signature-table">
             <tbody>
               <tr>
                 <td>Головний суддя змагань</td>
@@ -211,9 +231,14 @@
       </div>
       <div class="protocol-actions">
         <div class="protocol-actions__row">
-          <button class="protocol-actions__btn protocol-actions__btn--success" @click="addArbitr">
-            <Plus :size="16" /> Додати суддю
-          </button>
+          <ProtocolArbiterControls
+            :user-id="user?.uid"
+            :current-arbiters="arbitres"
+            :tournament-name="tournamentName"
+            @add="addArbitr"
+            @apply-selection="applyArbiterSelection"
+            @apply-preset="applyArbiterPreset"
+          />
         </div>
         <div class="protocol-actions__row">
           <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
@@ -221,6 +246,13 @@
           </button>
           <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
             <FileDown :size="16" /> {{ $t('teams.exportPdf') }}
+          </button>
+          <button
+            class="protocol-actions__btn protocol-actions__btn--primary"
+            :disabled="exportingDocx"
+            @click="exportDocx"
+          >
+            <FileText :size="16" /> {{ exportingDocx ? '...' : $t('teams.exportDocx') }}
           </button>
           <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
             <Copy :size="16" /> {{ $t('teams.copyProtocol') }}
@@ -237,6 +269,8 @@
 <script>
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
+import { downloadProtocolDocx } from '@/services/protocol-docx';
+import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls';
 import {
   getScoreTotal,
   getScoreCarreauCount,
@@ -244,11 +278,11 @@ import {
   getCombinedTotal,
   getPlayoffPlaces,
 } from '@/services/tir';
-import { Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp } from 'lucide-vue-next';
+import { Star, Copy, Check, AlertTriangle, FileDown, FileText, ChevronUp } from 'lucide-vue-next';
 
 export default {
   name: 'TirProtocol',
-  components: { Star, Copy, Check, AlertTriangle, Plus, FileDown, ChevronUp },
+  components: { Star, Copy, Check, AlertTriangle, ProtocolArbiterControls, FileDown, FileText, ChevronUp },
   props: ['tournament'],
   emits: ['close'],
   data() {
@@ -256,7 +290,9 @@ export default {
       password: null,
       cardCopied: false,
       showBackTop: false,
+      arbitr: '',
       arbitres: [],
+      exportingDocx: false,
     };
   },
   mounted() {
@@ -266,7 +302,7 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'user']),
     tournamentName() {
       return this.currentTournament?.name || this.tournament.name;
     },
@@ -380,8 +416,23 @@ export default {
       const year = parts.find((p) => p.type === 'year')?.value;
       return `${day} ${month} ${year} року`;
     },
-    addArbitr() {
-      this.arbitres.push({ name: '' });
+    addArbitr(arbiter) {
+      this.arbitres.push(arbiter);
+      if (arbiter.role === 'Головний Арбітр') this.arbitr = arbiter.name;
+    },
+    applyArbiterSelection(arbiters) {
+      this.arbitres = arbiters;
+      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+    },
+    applyArbiterPreset(arbiters) {
+      this.arbitres = arbiters;
+      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+    },
+    updateArbiterField(index, field, event) {
+      this.arbitres[index][field] = event.currentTarget.textContent.trim();
+      if (field === 'name' || field === 'role') {
+        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      }
     },
     copyCard() {
       navigator.clipboard.writeText('5353542324470856');
@@ -420,6 +471,24 @@ export default {
         margin: 1,
         filename: `${this.tournamentName}_protocol.pdf`,
       });
+    },
+    async exportDocx() {
+      const element = document.getElementById('protocol');
+      if (!element || this.exportingDocx) return;
+
+      this.exportingDocx = true;
+      try {
+        await downloadProtocolDocx(element, this.tournamentName);
+      } catch (error) {
+        console.error('DOCX export error:', error);
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t('messages.docxExportFailed'),
+          type: 'error',
+        });
+      } finally {
+        this.exportingDocx = false;
+      }
     },
   },
 };

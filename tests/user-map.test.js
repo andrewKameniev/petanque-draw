@@ -50,7 +50,7 @@ vi.mock('@/helpers', () => ({
   tournamentNames: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
 }));
 
-import { useMainStore } from '@/stores/main';
+import { SUPER_ADMIN_EMAIL, useMainStore } from '@/stores/main';
 import { userMapService, collaboratorService } from '@/services/db';
 
 function makeSnapshot(val) {
@@ -179,6 +179,128 @@ describe('User Tournament Map', () => {
       expect(store.tournaments[123]).toBeUndefined();
       expect(store.savedTournamentIds).toContain('123');
     });
+
+    it('propagates an owner archive to admin collaborators only', async () => {
+      store.tournaments[123].collaborators = {
+        admin1: { role: 'admin', email: 'admin@test.com' },
+        scorer1: { role: 'scorer', email: 'scorer@test.com' },
+      };
+
+      await store.addToSaved({ id: 123, collaborators: store.tournaments[123].collaborators });
+
+      expect(userMapService.update).toHaveBeenCalledWith('admin1', '123', {
+        status: 'archived',
+        archiveStatusVersion: 1,
+      });
+      expect(userMapService.update).not.toHaveBeenCalledWith('scorer1', '123', expect.anything());
+    });
+  });
+
+  describe('removeSavedTournament', () => {
+    it('returns a shared admin tournament to the active list without deleting owner data', async () => {
+      store.userTournamentMap = {
+        shared1: {
+          status: 'archived',
+          role: 'admin',
+          ownerUid: 'owner1',
+          name: 'Shared Tournament',
+        },
+      };
+      store.savedTournaments = { shared1: { name: 'Shared Tournament', teams: [] } };
+      store.savedTournamentIds = ['shared1'];
+
+      await store.removeSavedTournament('shared1');
+
+      expect(userMapService.update).toHaveBeenCalledWith('user1', 'shared1', {
+        status: 'active',
+        archiveStatusVersion: 1,
+      });
+      expect(mockRemove).not.toHaveBeenCalled();
+      expect(store.userTournamentMap.shared1.status).toBe('active');
+      expect(store.savedTournaments.shared1).toBeUndefined();
+    });
+  });
+
+  describe('unarchiveTournament', () => {
+    it('makes an owner tournament active and restores it to the active store', async () => {
+      store.userTournamentMap = {
+        own1: { status: 'archived', role: 'owner', name: 'My Tournament' },
+      };
+      store.savedTournaments = {
+        own1: {
+          name: 'My Tournament',
+          teams: [{ title: 'A' }],
+          games: [],
+          collaborators: {
+            admin1: { role: 'admin', email: 'admin@test.com' },
+            scorer1: { role: 'scorer', email: 'scorer@test.com' },
+          },
+        },
+      };
+      store.savedTournamentIds = ['own1'];
+
+      const restored = await store.unarchiveTournament('own1');
+
+      expect(restored).toBe(true);
+      expect(userMapService.update).toHaveBeenCalledWith('user1', 'own1', {
+        status: 'active',
+        archiveStatusVersion: 1,
+      });
+      expect(userMapService.update).toHaveBeenCalledWith('admin1', 'own1', {
+        status: 'active',
+        archiveStatusVersion: 1,
+      });
+      expect(userMapService.update).not.toHaveBeenCalledWith('scorer1', 'own1', expect.anything());
+      expect(store.userTournamentMap.own1.status).toBe('active');
+      expect(store.tournaments.own1.name).toBe('My Tournament');
+      expect(store.savedTournaments.own1).toBeUndefined();
+      expect(store.savedTournamentIds).toEqual([]);
+    });
+
+    it('makes an admin tournament active without copying owner data into the local owner list', async () => {
+      store.userTournamentMap = {
+        shared1: {
+          status: 'archived',
+          role: 'admin',
+          ownerUid: 'owner1',
+          name: 'Shared Tournament',
+        },
+      };
+      store.savedTournaments = {
+        shared1: { name: 'Shared Tournament', teams: [{ title: 'A' }], games: [] },
+      };
+      store.savedTournamentIds = ['shared1'];
+
+      const restored = await store.unarchiveTournament('shared1');
+
+      expect(restored).toBe(true);
+      expect(store.userTournamentMap.shared1).toMatchObject({
+        status: 'active',
+        archiveStatusVersion: 1,
+      });
+      expect(store.tournaments.shared1).toBeUndefined();
+      expect(store.savedTournaments.shared1).toBeUndefined();
+    });
+  });
+
+  describe('renameSavedTournament', () => {
+    it('updates an archived admin tournament at the owner path', async () => {
+      store.userTournamentMap = {
+        shared1: {
+          status: 'archived',
+          role: 'admin',
+          ownerUid: 'owner1',
+          name: 'Shared Tournament',
+        },
+      };
+      store.savedTournaments = { shared1: { name: 'Shared Tournament', teams: [] } };
+
+      store.renameSavedTournament('shared1', 'Renamed Tournament', 'owner1');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockUpdate).toHaveBeenCalledWith('owner1/tournaments/shared1', { name: 'Renamed Tournament' });
+      expect(userMapService.update).toHaveBeenCalledWith('user1', 'shared1', { name: 'Renamed Tournament' });
+    });
   });
 
   describe('addCollaborator', () => {
@@ -194,6 +316,10 @@ describe('User Tournament Map', () => {
 
       expect(result).toBe(false);
       expect(collaboratorService.add).not.toHaveBeenCalled();
+      expect(store.message).toMatchObject({
+        type: 'error',
+        text: 'messages.userNotFound',
+      });
     });
 
     it('rejects adding self', async () => {
@@ -220,8 +346,33 @@ describe('User Tournament Map', () => {
         role: 'scorer',
         ownerUid: 'user1',
         name: 'Test',
+        archiveStatusVersion: 1,
       });
       expect(store.currentTournament.collaborators).toEqual({ user2: { role: 'scorer', email: 'friend@test.com' } });
+    });
+
+    it('normalizes email addresses before looking up and saving a collaborator', async () => {
+      collaboratorService.findUserByEmail.mockResolvedValue(makeSnapshot('user2'));
+
+      await store.addCollaborator(' Friend@Test.COM ', 'scorer');
+
+      expect(collaboratorService.findUserByEmail).toHaveBeenCalledWith('friend@test.com');
+      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'user2', {
+        role: 'scorer',
+        email: 'friend@test.com',
+      });
+    });
+
+    it('adds the configured super admin with the admin role', async () => {
+      collaboratorService.findUserByEmail.mockResolvedValue(makeSnapshot('super-admin-uid'));
+
+      await store.addCollaborator(SUPER_ADMIN_EMAIL, 'admin');
+
+      expect(collaboratorService.findUserByEmail).toHaveBeenCalledWith('nemo15.alex@gmail.com');
+      expect(collaboratorService.add).toHaveBeenCalledWith('user1', 't1', 'super-admin-uid', {
+        role: 'admin',
+        email: 'nemo15.alex@gmail.com',
+      });
     });
   });
 

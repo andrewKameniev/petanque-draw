@@ -183,6 +183,12 @@
       {exerciseId}: Exercise
     {exerciseId}/
       {dateISO}: TrainingResult
+  arbiterRegistry/
+    updatedAt: number
+    source: string
+    arbiters: [{ name, role?, category, certificate, region }]
+  arbiterPresets/
+    {presetId}: { name, createdAt, arbiters: [{ name, role, category, certificate, region }] }
 
 tokens/
   {uid}/{tournamentId}: {         // For public link sharing

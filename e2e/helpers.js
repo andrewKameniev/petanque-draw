@@ -309,14 +309,6 @@ async function dismissModals(page) {
   }
 }
 
-async function waitForStableState(page) {
-  await page
-    .locator('[data-testid="input-team-title"], [data-testid="tournament-name-row"], [data-testid="game-row"]')
-    .first()
-    .waitFor({ state: 'visible', timeout: 5000 })
-    .catch(() => {});
-}
-
 async function deleteCurrentTournament(page) {
   await dismissModals(page);
   await page.waitForTimeout(500);

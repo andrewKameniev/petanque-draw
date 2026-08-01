@@ -1,10 +1,26 @@
 import { regions } from '@/helpers';
 
+export function getProtocolTournamentMeta(tournament, tournamentMeta, currentTournament) {
+  const sources = [tournamentMeta, tournament, currentTournament];
+  const getValue = (field) => sources.find((source) => source?.[field] != null)?.[field];
+
+  return {
+    id: getValue('id'),
+    name: getValue('name') || '',
+    date: getValue('date') || '',
+    portalIdTournament: getValue('portalIdTournament'),
+  };
+}
+
 export function formatName(name) {
   return name.substring(0, 1).toUpperCase() + name.substring(1, name.length).toLowerCase();
 }
 
 export function getPlayerThirdName(surname, name, playersNames) {
+  const fullName = `${surname || ''} ${name || ''}`;
+  const isLatinName = /[A-Za-z]/.test(fullName) && !/[А-Яа-яІіЇїЄєҐґ]/.test(fullName);
+  if (isLatinName) return '';
+
   const s = surname.toUpperCase();
   const n = name.toUpperCase();
   const playerInfo = playersNames.find((item) => item.includes(s + ' ' + n) || item.includes(n + ' ' + s));
@@ -18,6 +34,95 @@ export function getPlayerThirdName(surname, name, playersNames) {
   } else {
     return '!!! ДОПИШІТЬ МЕНЕ!!!';
   }
+}
+
+function normalizePortalPlayerId(id) {
+  return id == null ? '' : String(id).trim();
+}
+
+function normalizePortalPlayerName(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLocaleUpperCase('uk-UA');
+}
+
+function portalPlayerNameKey(player) {
+  const surname = normalizePortalPlayerName(player?.surname);
+  const name = normalizePortalPlayerName(player?.name);
+  return surname && name ? `${surname}|${name}` : '';
+}
+
+function buildPortalPlayerIndex(portalTeams) {
+  const byId = new Map();
+  const byName = new Map();
+
+  portalTeams.forEach((team) => {
+    (team.players || []).forEach((player) => {
+      const id = normalizePortalPlayerId(player.id);
+      if (id) byId.set(id, player);
+
+      const nameKey = portalPlayerNameKey(player);
+      if (!nameKey) return;
+      const matches = byName.get(nameKey) || [];
+      matches.push(player);
+      byName.set(nameKey, matches);
+    });
+  });
+
+  return { byId, byName };
+}
+
+function findPortalPlayer(player, index) {
+  const id = normalizePortalPlayerId(player.id);
+  if (id && index.byId.has(id)) return index.byId.get(id);
+
+  const matches = index.byName.get(portalPlayerNameKey(player)) || [];
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1 && player.club_id != null) {
+    const clubId = normalizePortalPlayerId(player.club_id);
+    return matches.find((match) => normalizePortalPlayerId(match.club_id) === clubId) || null;
+  }
+  return null;
+}
+
+function portalFieldChanged(currentValue, portalValue) {
+  return String(currentValue ?? '').trim() !== String(portalValue ?? '').trim();
+}
+
+export function refreshTournamentPlayerDetails(teams, portalTeams) {
+  const index = buildPortalPlayerIndex(portalTeams);
+  const fields = ['second_name', 'surname', 'name', 'club_id', 'sport_title'];
+  const stats = { total: 0, matched: 0, changed: 0, missing: 0 };
+
+  teams.forEach((team) => {
+    (team.players || []).forEach((player, playerIndex) => {
+      stats.total += 1;
+      const portalPlayer = findPortalPlayer(player, index);
+      if (!portalPlayer) {
+        stats.missing += 1;
+        return;
+      }
+
+      stats.matched += 1;
+      const updatedPlayer = { ...player };
+      let changed = false;
+      fields.forEach((field) => {
+        if (!Object.prototype.hasOwnProperty.call(portalPlayer, field)) return;
+        if ((field === 'surname' || field === 'name') && !portalPlayer[field]) return;
+        if (!portalFieldChanged(player[field], portalPlayer[field])) return;
+        updatedPlayer[field] = portalPlayer[field] ?? '';
+        changed = true;
+      });
+
+      if (changed) {
+        team.players.splice(playerIndex, 1, updatedPlayer);
+        stats.changed += 1;
+      }
+    });
+  });
+
+  return stats;
 }
 
 export function formatDateToHumanReadable(dateString) {
@@ -77,7 +182,8 @@ export function buildTeamTitle(players, titleCounts, mixedTeamCount) {
   const firstPlayerClubName = regions[players[0].club_id];
   if (firstPlayerClubName) {
     if (players.every((player) => regions[player.club_id] === firstPlayerClubName)) {
-      let title = `Команда ${firstPlayerClubName.replace(/ка$/, 'кої')} області`;
+      const regionGenitive = firstPlayerClubName === 'Київ' ? 'Київської' : firstPlayerClubName.replace(/ка$/, 'кої');
+      let title = `Команда ${regionGenitive} області`;
       if (titleCounts[title]) {
         titleCounts[title]++;
       } else {

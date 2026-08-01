@@ -134,6 +134,7 @@
               v-model="player.name"
               class="setup__input"
               :placeholder="$t('stat.playerName') + ' ' + (index + 1)"
+              @input="clearPortalPlayerId(player)"
             />
           </div>
         </div>
@@ -156,6 +157,7 @@
               v-model="player.name"
               class="setup__input"
               :placeholder="$t('stat.playerName') + ' ' + (index + 1)"
+              @input="clearPortalPlayerId(player)"
             />
           </div>
         </div>
@@ -219,6 +221,9 @@ export default {
     },
   },
   methods: {
+    clearPortalPlayerId(player) {
+      delete player.portalPlayerId;
+    },
     addTagToGame(tag) {
       this.gameTags.push(tag);
     },

@@ -49,6 +49,7 @@ vi.mock('@/helpers', () => ({
 }));
 
 import { useMainStore } from '@/stores/main';
+import { userMapService } from '@/services/db';
 
 function makeSnapshot(val) {
   return { exists: () => val !== null, val: () => val };
@@ -81,6 +82,104 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
     expect(store.savedTournaments.t1).toEqual(tournamentData);
     expect(mockSet).not.toHaveBeenCalled();
     expect(mockRemove).not.toHaveBeenCalled();
+  });
+
+  it('loads archived admin tournaments from the owner path', async () => {
+    const sharedTournament = { name: 'Shared Tournament', teams: [{ title: 'A' }], games: [] };
+    store.userTournamentMap = {
+      shared1: {
+        status: 'archived',
+        role: 'admin',
+        ownerUid: 'owner1',
+        name: 'Shared Tournament',
+      },
+    };
+    mockGet.mockImplementation((path) => {
+      if (path === 'owner1/tournaments/shared1') return Promise.resolve(makeSnapshot(sharedTournament));
+      return Promise.resolve(makeSnapshot(null));
+    });
+
+    await store.fetchSavedTournaments();
+
+    expect(mockGet).toHaveBeenCalledWith('owner1/tournaments/shared1');
+    expect(store.savedTournaments.shared1).toEqual(sharedTournament);
+    expect(store.savedTournamentIds).toEqual(['shared1']);
+    expect(mockSet).not.toHaveBeenCalled();
+    expect(mockRemove).not.toHaveBeenCalled();
+  });
+
+  it('migrates a legacy active admin tournament to the archive when it is finished', async () => {
+    const sharedTournament = {
+      name: 'Finished Shared Tournament',
+      tournamentIsFinished: true,
+      teams: [{ title: 'A' }],
+      games: [],
+    };
+    store.userTournamentMap = {
+      shared1: {
+        status: 'active',
+        role: 'admin',
+        ownerUid: 'owner1',
+        name: 'Finished Shared Tournament',
+      },
+    };
+    mockGet.mockImplementation((path) => {
+      if (path === 'owner1/tournaments/shared1') return Promise.resolve(makeSnapshot(sharedTournament));
+      return Promise.resolve(makeSnapshot(null));
+    });
+
+    await store.fetchSavedTournaments();
+
+    expect(userMapService.update).toHaveBeenCalledWith('user1', 'shared1', {
+      status: 'archived',
+      archiveStatusVersion: 1,
+    });
+    expect(store.userTournamentMap.shared1.status).toBe('archived');
+    expect(store.savedTournaments.shared1).toEqual(sharedTournament);
+  });
+
+  it('does not archive an unfinished legacy admin tournament', async () => {
+    const sharedTournament = {
+      name: 'Active Shared Tournament',
+      tournamentIsFinished: false,
+      teams: [{ title: 'A' }],
+      games: [],
+    };
+    store.userTournamentMap = {
+      shared1: {
+        status: 'active',
+        role: 'admin',
+        ownerUid: 'owner1',
+        name: 'Active Shared Tournament',
+      },
+    };
+    mockGet.mockImplementation((path) => {
+      if (path === 'owner1/tournaments/shared1') return Promise.resolve(makeSnapshot(sharedTournament));
+      return Promise.resolve(makeSnapshot(null));
+    });
+
+    await store.fetchSavedTournaments();
+
+    expect(userMapService.update).not.toHaveBeenCalled();
+    expect(store.userTournamentMap.shared1.status).toBe('active');
+    expect(store.savedTournaments).toEqual({});
+  });
+
+  it('does not include archived scorer tournaments', async () => {
+    store.userTournamentMap = {
+      shared1: {
+        status: 'archived',
+        role: 'scorer',
+        ownerUid: 'owner1',
+        name: 'Shared Tournament',
+      },
+    };
+
+    await store.fetchSavedTournaments();
+
+    expect(store.savedTournaments).toEqual({});
+    expect(store.savedTournamentIds).toEqual([]);
+    expect(mockGet).not.toHaveBeenCalled();
   });
 
   it('migrates from saved/ when tournaments/ has no teams', async () => {

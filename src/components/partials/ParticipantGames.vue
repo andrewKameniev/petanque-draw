@@ -66,11 +66,7 @@
           >
             <UsersRound :size="14" />
           </button>
-          <router-link
-            class="participant-games__match-stats-btn"
-            :to="getStatsLink(match, stage.label)"
-            @click.stop
-          >
+          <router-link class="participant-games__match-stats-btn" :to="getStatsLink(match, stage.label)" @click.stop>
             <BarChart3 :size="14" />
           </router-link>
           <button
@@ -399,12 +395,27 @@ export default {
       const oppPlayers = this.getTeamPlayers(match.opponent);
       const gameType = Math.min(Math.max(myPlayers.length, oppPlayers.length, 1), 3);
       const formatPlayer = (p) => `${p.name} ${p.surname || ''}`.trim();
+      const serializePlayers = (players) =>
+        JSON.stringify(
+          players.map((player) => ({
+            name: formatPlayer(player),
+            portalPlayerId: player.id != null ? String(player.id) : null,
+          })),
+        );
       const t1 = myPlayers.map(formatPlayer).join(',');
       const t2 = oppPlayers.map(formatPlayer).join(',');
       const name = `${this.tournamentName} — ${stageLabel}`.trim();
       return {
         path: '/stats',
-        query: { prefill: '1', name, type: String(gameType), t1, t2 },
+        query: {
+          prefill: '1',
+          name,
+          type: String(gameType),
+          t1,
+          t2,
+          p1: serializePlayers(myPlayers),
+          p2: serializePlayers(oppPlayers),
+        },
       };
     },
   },

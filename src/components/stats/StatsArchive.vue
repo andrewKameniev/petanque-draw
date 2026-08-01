@@ -2,21 +2,37 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getDate, gameTypes } from '@/helpers-stat';
-import { statsService } from '@/services/db';
+import { statsPlayerIdentityService, statsService } from '@/services/db';
 import StatResult from '@/components/stats/StatResult.vue';
 import StatsAnalysis from '@/components/stats/StatsAnalysis.vue';
+import StatsPlayerMerge from '@/components/stats/StatsPlayerMerge.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
-import { BarChart3, Trash2, Tag, X, Share2, Pencil, Check } from 'lucide-vue-next';
+import { BarChart3, Trash2, Tag, X, Share2, Pencil, Check, UsersRound } from 'lucide-vue-next';
 export default {
   name: 'StatsArchive',
   props: ['tags'],
-  components: { ConfirmRemoveModal, StatsAnalysis, StatResult, BarChart3, Trash2, Tag, X, Share2, Pencil, Check },
+  components: {
+    ConfirmRemoveModal,
+    StatsAnalysis,
+    StatsPlayerMerge,
+    StatResult,
+    BarChart3,
+    Trash2,
+    Tag,
+    X,
+    Share2,
+    Pencil,
+    Check,
+    UsersRound,
+  },
   data() {
     return {
       isLoading: false,
       confirmRemoveId: null,
       statsList: null,
+      playerIdentities: null,
       showStatAnalysis: false,
+      showPlayerMerge: false,
       filterGamesTag: [],
       editingGameKey: null,
       editName: '',
@@ -26,9 +42,15 @@ export default {
   mounted() {
     this.isLoading = true;
 
-    statsService
-      .getAll(this.user.uid)
-      .then((snapshot) => {
+    Promise.all([
+      statsService.getAll(this.user.uid),
+      statsPlayerIdentityService.getAll(this.user.uid).catch((error) => {
+        console.error('Error loading player identities:', error);
+        return null;
+      }),
+    ])
+      .then(([snapshot, identitiesSnapshot]) => {
+        this.playerIdentities = identitiesSnapshot?.exists() ? identitiesSnapshot.val() : {};
         if (snapshot.exists()) {
           this.statsList = Object.keys(snapshot.val())
             .reverse()
@@ -85,6 +107,20 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, ['showMessage']),
+    toggleAnalysis() {
+      this.showStatAnalysis = !this.showStatAnalysis;
+      if (this.showStatAnalysis) this.showPlayerMerge = false;
+    },
+    togglePlayerMerge() {
+      this.showPlayerMerge = !this.showPlayerMerge;
+      if (this.showPlayerMerge) this.showStatAnalysis = false;
+    },
+    updatePlayerIdentity(portalPlayerId, identity) {
+      this.playerIdentities = {
+        ...(this.playerIdentities || {}),
+        [portalPlayerId]: identity,
+      };
+    },
     removeGame(id) {
       statsService
         .remove(this.user.uid, id)
@@ -165,13 +201,23 @@ export default {
       if (game.team1?.players) {
         updatedData.team1 = {
           ...game.team1,
-          players: game.team1.players.map((p, i) => ({ ...p, name: this.editPlayers.team1[i] || p.name })),
+          players: game.team1.players.map((p, i) => {
+            const name = this.editPlayers.team1[i] || p.name;
+            const updatedPlayer = { ...p, name };
+            if (name !== p.name) delete updatedPlayer.portalPlayerId;
+            return updatedPlayer;
+          }),
         };
       }
       if (game.team2?.players) {
         updatedData.team2 = {
           ...game.team2,
-          players: game.team2.players.map((p, i) => ({ ...p, name: this.editPlayers.team2[i] || p.name })),
+          players: game.team2.players.map((p, i) => {
+            const name = this.editPlayers.team2[i] || p.name;
+            const updatedPlayer = { ...p, name };
+            if (name !== p.name) delete updatedPlayer.portalPlayerId;
+            return updatedPlayer;
+          }),
         };
       }
       statsService
@@ -202,9 +248,13 @@ export default {
     />
 
     <div class="archive__header">
-      <button class="archive__btn archive__btn--analysis" @click="showStatAnalysis = !showStatAnalysis">
+      <button class="archive__btn archive__btn--analysis" @click="toggleAnalysis">
         <BarChart3 :size="16" />
         {{ showStatAnalysis ? $t('common.hide') : $t('common.show') }} {{ $t('stat.analysis') }}
+      </button>
+      <button class="archive__btn archive__btn--merge" @click="togglePlayerMerge">
+        <UsersRound :size="16" />
+        {{ showPlayerMerge ? $t('common.hide') : $t('stat.mergePlayers') }}
       </button>
     </div>
 
@@ -216,7 +266,7 @@ export default {
     </div>
 
     <template v-else>
-      <div v-if="tags && Object.keys(tags).length && !showStatAnalysis" class="archive__filters">
+      <div v-if="tags && Object.keys(tags).length && !showStatAnalysis && !showPlayerMerge" class="archive__filters">
         <div class="archive__filters-label">
           <Tag :size="14" />
           {{ $t('stat.chooseOnly') }}
@@ -238,7 +288,15 @@ export default {
         </div>
       </div>
 
-      <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags" />
+      <StatsAnalysis v-if="showStatAnalysis" :stats="statsList" :tags="tags" :identities="playerIdentities" />
+
+      <StatsPlayerMerge
+        v-else-if="showPlayerMerge"
+        :stats="statsList"
+        :identities="playerIdentities"
+        :user-id="user.uid"
+        @identitiesUpdated="updatePlayerIdentity"
+      />
 
       <div v-else-if="filteredGames && gamesCount > 0" class="archive__list">
         <div class="archive__game" v-for="(item, gameKey) in filteredGames" :key="item.date">
@@ -360,7 +418,7 @@ export default {
 
 .archive__header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 0.5rem;
 }
@@ -397,6 +455,16 @@ export default {
 
 .archive__btn--analysis:hover {
   background: var(--color-primary-light);
+}
+
+.archive__btn--merge {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.archive__btn--merge:hover {
+  background: var(--color-primary-bg);
 }
 
 .archive__skeleton {

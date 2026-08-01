@@ -46,7 +46,22 @@
         ".write": "auth.uid === $uid"
       },
 
+      "statPlayerIdentities": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      },
+
       "training": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      },
+
+      "arbiterRegistry": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid"
+      },
+
+      "arbiterPresets": {
         ".read": "auth.uid === $uid",
         ".write": "auth.uid === $uid"
       }

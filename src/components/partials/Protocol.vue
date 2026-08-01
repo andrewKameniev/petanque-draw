@@ -52,6 +52,33 @@
           регламент, може не бути всіх даних по гравцям. Перевіряйте вручну, будь ласка!</span
         >
       </div>
+      <div class="protocol-tools">
+        <section class="protocol-tools__section">
+          <div class="protocol-tools__header">
+            <div>
+              <span class="protocol-tools__eyebrow">Підготовка протоколу</span>
+              <h3>Дані учасників</h3>
+              <p>Оновіть інформацію з порталу та приберіть службові позначки перед експортом.</p>
+            </div>
+          </div>
+          <div class="protocol-tools__actions">
+            <button
+              class="protocol-actions__btn protocol-actions__btn--outline"
+              :disabled="refreshing"
+              @click="refreshPlayersFromPortal"
+            >
+              <RefreshCw :size="16" :class="{ spin: refreshing }" />
+              {{ refreshing ? 'Оновлення...' : 'Оновити дані гравців' }}
+            </button>
+            <button class="protocol-actions__btn protocol-actions__btn--outline" @click="removeDopyshit">
+              <Eraser :size="16" /> Прибрати "ДОПИШІТЬ МЕНЕ"
+            </button>
+            <button class="protocol-actions__btn protocol-actions__btn--ghost" @click="resetProtocol">
+              <RotateCcw :size="16" /> Скинути зміни
+            </button>
+          </div>
+        </section>
+      </div>
       <div id="protocol" class="mb-3" @input="saveProtocolToStorage">
         <div class="protocol-page">
           <h2 class="text-center is-size-3 mb-2">
@@ -115,7 +142,7 @@
                   contenteditable="plaintext-only"
                 >
                   <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
-                  <span v-else-if="team.players">{{
+                  <span v-else-if="team.players" :key="playerDetailsKey(team.players[0])">{{
                     formatName(team.players[0].surname) +
                     ' ' +
                     formatName(team.players[0].name) +
@@ -155,7 +182,7 @@
               <template v-if="team.players?.length > 1">
                 <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
                   <td contenteditable="plaintext-only">
-                    <span class="is-capitalized">{{
+                    <span class="is-capitalized" :key="playerDetailsKey(player)">{{
                       formatName(player.surname) +
                       ' ' +
                       formatName(player.name) +
@@ -198,7 +225,7 @@
                   contenteditable="plaintext-only"
                 >
                   <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
-                  <span v-else-if="team.players">{{
+                  <span v-else-if="team.players" :key="playerDetailsKey(team.players[0])">{{
                     formatName(team.players[0].surname) +
                     ' ' +
                     formatName(team.players[0].name) +
@@ -238,7 +265,7 @@
               <template v-if="team.players?.length > 1">
                 <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
                   <td contenteditable="plaintext-only">
-                    <span class="is-capitalized">{{
+                    <span class="is-capitalized" :key="playerDetailsKey(player)">{{
                       formatName(player.surname) +
                       ' ' +
                       formatName(player.name) +
@@ -296,16 +323,37 @@
             <tbody>
               <tr v-for="(item, index) in arbitres" :key="index">
                 <td>{{ index + 1 }}</td>
-                <td contenteditable="plaintext-only" v-text="item.name"></td>
-                <td contenteditable="plaintext-only"></td>
-                <td contenteditable="plaintext-only"></td>
-                <td v-if="showArbitrCertificate" contenteditable="plaintext-only"></td>
-                <td contenteditable="plaintext-only"></td>
+                <td
+                  contenteditable="plaintext-only"
+                  v-text="item.name"
+                  @blur="updateArbiterField(index, 'name', $event)"
+                ></td>
+                <td
+                  contenteditable="plaintext-only"
+                  v-text="item.role"
+                  @blur="updateArbiterField(index, 'role', $event)"
+                ></td>
+                <td
+                  contenteditable="plaintext-only"
+                  v-text="item.category"
+                  @blur="updateArbiterField(index, 'category', $event)"
+                ></td>
+                <td
+                  v-if="showArbitrCertificate"
+                  contenteditable="plaintext-only"
+                  v-text="item.certificate"
+                  @blur="updateArbiterField(index, 'certificate', $event)"
+                ></td>
+                <td
+                  contenteditable="plaintext-only"
+                  v-text="item.region"
+                  @blur="updateArbiterField(index, 'region', $event)"
+                ></td>
               </tr>
             </tbody>
           </table>
           <div>
-            <table width="100%" class="is-fullwidth">
+            <table width="100%" class="is-fullwidth protocol-signature-table">
               <tbody>
                 <tr>
                   <td>Головний суддя змагань</td>
@@ -344,46 +392,70 @@
           </div>
         </div>
       </div>
-      <div class="protocol-actions">
-        <div class="protocol-actions__primary">
-          <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
-            <FileDown :size="16" /> {{ $t('teams.exportPdf') }}
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
-            <Copy :size="16" /> {{ $t('teams.copyProtocol') }}
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
-            {{ $t('common.close') }}
-          </button>
-        </div>
-        <div class="protocol-actions__secondary">
-          <button class="protocol-actions__btn protocol-actions__btn--success" @click="addArbitr">
-            <Plus :size="16" /> Додати суддю
-          </button>
-          <a
-            href="https://docs.google.com/spreadsheets/d/1yXDjYCX3nISBCt8-S-vmvIU31rb4SmhtRsWc8PbQy7Q/edit?usp=sharing"
-            target="_blank"
-            class="protocol-actions__btn protocol-actions__btn--outline"
-          >
-            <ExternalLink :size="16" /> Список суддів ФПУ
-          </a>
-          <button
-            class="protocol-actions__btn protocol-actions__btn--outline"
-            @click="refreshPlayersFromPortal"
-            :disabled="refreshing"
-          >
-            <RefreshCw :size="16" :class="{ spin: refreshing }" /> Оновити дані гравців
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--outline" @click="removeDopyshit">
-            <Eraser :size="16" /> Прибрати "ДОПИШІТЬ МЕНЕ"
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--ghost" @click="resetProtocol">
-            <RotateCcw :size="16" /> Скинути зміни
-          </button>
-          <label class="protocol-actions__checkbox">
-            <input type="checkbox" v-model="showArbitrCertificate" /> № посвідчення суддів
+      <div class="protocol-tools protocol-tools--bottom">
+        <section class="protocol-tools__section protocol-tools__section--arbiters">
+          <div class="protocol-tools__header">
+            <div>
+              <span class="protocol-tools__eyebrow">Суддівська колегія</span>
+              <h3>Керування суддями</h3>
+              <p>Оберіть суддів із реєстру або застосуйте готовий склад.</p>
+            </div>
+            <span class="protocol-tools__count">{{ arbitres.length }}</span>
+          </div>
+          <div class="protocol-tools__actions">
+            <ProtocolArbiterControls
+              :user-id="user?.uid"
+              :current-arbiters="arbitres"
+              :tournament-name="tournamentName"
+              @add="addArbitr"
+              @apply-selection="applyArbiterSelection"
+              @apply-preset="applyArbiterPreset"
+            />
+            <a
+              href="https://docs.google.com/spreadsheets/d/1yXDjYCX3nISBCt8-S-vmvIU31rb4SmhtRsWc8PbQy7Q/edit?usp=sharing"
+              target="_blank"
+              class="protocol-actions__btn protocol-actions__btn--outline"
+            >
+              <ExternalLink :size="16" /> Список суддів ФПУ
+            </a>
+          </div>
+          <label class="protocol-actions__checkbox protocol-tools__checkbox">
+            <input v-model="showArbitrCertificate" type="checkbox" /> № посвідчення суддів
           </label>
-        </div>
+        </section>
+      </div>
+      <div class="protocol-tools protocol-tools--export">
+        <section class="protocol-tools__section protocol-tools__section--export">
+          <div class="protocol-tools__header">
+            <div>
+              <span class="protocol-tools__eyebrow">Готовий документ</span>
+              <h3>Експорт протоколу</h3>
+              <p>Завантажте протокол у потрібному форматі або скопіюйте його для подальшого редагування.</p>
+            </div>
+          </div>
+          <div class="protocol-tools__actions">
+            <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
+              <FileDown :size="16" /> {{ $t('teams.exportPdf') }}
+            </button>
+            <button
+              class="protocol-actions__btn protocol-actions__btn--primary"
+              :disabled="exportingDocx"
+              @click="exportDocx"
+            >
+              <FileText :size="16" /> {{ exportingDocx ? '...' : $t('teams.exportDocx') }}
+            </button>
+            <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
+              <Copy :size="16" /> {{ $t('teams.copyProtocol') }}
+            </button>
+            <button
+              v-if="!hideClose"
+              class="protocol-actions__btn protocol-actions__btn--outline"
+              @click="$emit('close')"
+            >
+              {{ $t('common.close') }}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
     <button class="protocol-back-top" @click="scrollToggle">
@@ -403,20 +475,24 @@ import {
   getAllTeams,
   countPlayers,
   buildTeamTitle,
+  getProtocolTournamentMeta,
+  refreshTournamentPlayerDetails,
 } from '@/protocol-helpers';
 import Ranking from '@/components/partials/Ranking';
+import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls';
 import playersNames from '../../data.json';
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
+import { downloadProtocolDocx } from '@/services/protocol-docx';
 import {
   Star,
   Copy,
   Check,
   Info,
   AlertTriangle,
-  Plus,
   ExternalLink,
   FileDown,
+  FileText,
   RefreshCw,
   Eraser,
   RotateCcw,
@@ -433,15 +509,17 @@ export default {
     Check,
     Info,
     AlertTriangle,
-    Plus,
+    ProtocolArbiterControls,
     ExternalLink,
     FileDown,
+    FileText,
     RefreshCw,
     Eraser,
     RotateCcw,
     ChevronUp,
   },
-  props: ['tournament', 'rankingTeams', 'skipGate'],
+  props: ['tournament', 'tournamentMeta', 'rankingTeams', 'skipGate', 'hideClose'],
+  emits: ['close'],
   data() {
     return {
       password: null,
@@ -453,6 +531,7 @@ export default {
       protocolTitles: {},
       arbitr: '',
       refreshing: false,
+      exportingDocx: false,
       showArbitrCertificate: false,
       showBackTop: false,
       arbitres: [],
@@ -484,18 +563,21 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'user']),
+    protocolTournamentMeta() {
+      return getProtocolTournamentMeta(this.tournament, this.tournamentMeta, this.currentTournament);
+    },
     tournamentName() {
-      return this.currentTournament?.name || this.tournament.name;
+      return this.protocolTournamentMeta.name;
     },
     tournamentDate() {
-      return this.currentTournament?.date || this.tournament.date;
+      return this.protocolTournamentMeta.date;
     },
     tournamentPortalId() {
-      return this.currentTournament?.portalIdTournament || this.tournament.portalIdTournament;
+      return this.protocolTournamentMeta.portalIdTournament;
     },
     protocolStorageKey() {
-      return `protocol_${this.tournament.id}`;
+      return `protocol_${this.protocolTournamentMeta.id}`;
     },
     playersCount() {
       return countPlayers(this.tournament.teams);
@@ -569,6 +651,7 @@ export default {
       return index !== -1 ? index + 1 : '';
     },
     async refreshPlayersFromPortal() {
+      if (this.refreshing) return;
       let portalId = this.tournamentPortalId;
       if (!portalId) {
         portalId = prompt('Введіть ID турніру на порталі (з URL: portal.petanque.org.ua/tournament/XXX)');
@@ -576,47 +659,36 @@ export default {
       }
       this.refreshing = true;
       try {
-        console.warn('Fetching portal data for tournament:', portalId);
-        const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${portalId}?format=json`);
-        if (!res.ok) throw new Error('Failed to fetch');
+        const url = new window.URL(
+          `https://portal.petanque.org.ua/tournament/team_export/${encodeURIComponent(portalId)}`,
+        );
+        url.searchParams.set('format', 'json');
+        url.searchParams.set('_fresh', Date.now().toString());
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Portal responded ${res.status}`);
         const data = await res.json();
-        console.warn('Portal data received:', data.teams?.length, 'teams');
-        const portalPlayers = new Map();
-        data.teams.forEach((team) => {
-          if (team.players) {
-            team.players.forEach((p) => {
-              if (p.id) portalPlayers.set(p.id, p);
-            });
-          }
-        });
-        console.warn('Portal players indexed:', portalPlayers.size);
-        let updated = 0;
-        this.tournament.teams.forEach((team, tIdx) => {
-          if (team.players) {
-            team.players.forEach((player, pIdx) => {
-              const portalPlayer = portalPlayers.get(player.id);
-              if (portalPlayer) {
-                const newPlayer = { ...player };
-                if (portalPlayer.second_name) newPlayer.second_name = portalPlayer.second_name;
-                if (portalPlayer.surname) newPlayer.surname = portalPlayer.surname;
-                if (portalPlayer.name) newPlayer.name = portalPlayer.name;
-                if (portalPlayer.club_id) newPlayer.club_id = portalPlayer.club_id;
-                if (portalPlayer.sport_title) newPlayer.sport_title = portalPlayer.sport_title;
-                // eslint-disable-next-line vue/no-mutating-props
-                this.tournament.teams[tIdx].players.splice(pIdx, 1, newPlayer);
-                updated++;
-              } else {
-                console.warn('Player not found on portal:', player.id, player.surname, player.name);
-              }
-            });
-          }
-        });
-        console.warn('Updated players:', updated);
+        if (!Array.isArray(data?.teams)) throw new Error('Portal returned an invalid tournament export');
+
+        // The protocol intentionally works on the selected tournament's local copy.
+        const stats = refreshTournamentPlayerDetails(this.tournament.teams, data.teams);
         this.$forceUpdate();
-        this.showMessage({ title: 'Оновлено', text: `Оновлено ${updated} гравців з порталу` });
+        await this.$nextTick();
+        this.saveProtocolToStorage();
+
+        const missingText = stats.missing ? ` Не знайдено: ${stats.missing}.` : '';
+        this.showMessage({
+          title: stats.changed ? 'Оновлено' : 'Без змін',
+          text: stats.changed
+            ? `Оновлено ${stats.changed} з ${stats.matched} знайдених гравців.${missingText}`
+            : `Дані ${stats.matched} знайдених гравців уже актуальні.${missingText}`,
+        });
       } catch (e) {
         console.error('Refresh error:', e);
-        this.showMessage({ title: 'Помилка', text: 'Не вдалося завантажити дані з порталу', type: 'error' });
+        this.showMessage({
+          title: 'Помилка',
+          text: `Не вдалося завантажити дані з порталу: ${e.message}`,
+          type: 'error',
+        });
       } finally {
         this.refreshing = false;
       }
@@ -631,8 +703,40 @@ export default {
       if (!saved) return;
       const el = document.getElementById('protocol');
       if (!el) return;
-      el.innerHTML = saved;
-      this.updateProtocolTitle();
+
+      const template = document.createElement('template');
+      template.innerHTML = saved;
+      const savedProtocol = template.content;
+      const arbitersHeading = [...savedProtocol.querySelectorAll('h3')].find((heading) =>
+        heading.textContent.includes('Судді змагання'),
+      );
+      const arbitersTable = arbitersHeading?.nextElementSibling;
+
+      if (arbitersTable?.matches('table')) {
+        const headers = [...arbitersTable.querySelectorAll('thead th')].map((header) => header.textContent.trim());
+        const hasCertificate = headers.some((header) => header.includes('посвідчення'));
+        this.showArbitrCertificate = hasCertificate;
+        this.arbitres = [...arbitersTable.querySelectorAll('tbody tr')].map((row) => {
+          const cells = [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim());
+          return {
+            name: cells[1] || '',
+            role: cells[2] || 'Арбітр',
+            category: cells[3] || 'АФПУ',
+            certificate: hasCertificate ? cells[4] || '' : '',
+            region: cells[hasCertificate ? 5 : 4] || '',
+          };
+        });
+        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      }
+
+      const savedEditableCells = [...savedProtocol.querySelectorAll('[contenteditable]')];
+      this.$nextTick(() => {
+        const editableCells = [...el.querySelectorAll('[contenteditable]')];
+        editableCells.forEach((cell, index) => {
+          if (savedEditableCells[index]) cell.innerHTML = savedEditableCells[index].innerHTML;
+        });
+        this.updateProtocolTitle();
+      });
     },
     updateProtocolTitle() {
       const el = document.getElementById('protocol');
@@ -661,12 +765,38 @@ export default {
       });
       this.showMessage({ title: 'Готово', text: `Прибрано ${nodes.length} міток` });
     },
-    addArbitr() {
-      this.arbitres.push({
-        name: '',
-      });
+    addArbitr(arbiter) {
+      this.arbitres.push(arbiter);
+      if (arbiter.role === 'Головний Арбітр') this.arbitr = arbiter.name;
+      this.$nextTick(() => this.saveProtocolToStorage());
+    },
+    applyArbiterSelection(arbiters) {
+      this.arbitres = arbiters;
+      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.$nextTick(() => this.saveProtocolToStorage());
+    },
+    applyArbiterPreset(arbiters) {
+      this.arbitres = arbiters;
+      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.$nextTick(() => this.saveProtocolToStorage());
+    },
+    updateArbiterField(index, field, event) {
+      this.arbitres[index][field] = event.currentTarget.textContent.trim();
+      if (field === 'name' || field === 'role') {
+        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      }
     },
     formatName,
+    playerDetailsKey(player) {
+      return [
+        player?.id,
+        player?.surname,
+        player?.name,
+        player?.second_name,
+        player?.club_id,
+        player?.sport_title,
+      ].join('|');
+    },
     getPlayerThirdName(surname, name) {
       return getPlayerThirdName(surname, name, playersNames);
     },
@@ -742,6 +872,24 @@ export default {
       el.querySelectorAll('.is-hidden-tablet').forEach((h) => {
         h.style.removeProperty('display');
       });
+    },
+    async exportDocx() {
+      const element = document.getElementById('protocol');
+      if (!element || this.exportingDocx) return;
+
+      this.exportingDocx = true;
+      try {
+        await downloadProtocolDocx(element, this.tournamentName);
+      } catch (error) {
+        console.error('DOCX export error:', error);
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t('messages.docxExportFailed'),
+          type: 'error',
+        });
+      } finally {
+        this.exportingDocx = false;
+      }
     },
     setTeamTitle(team, players) {
       let title;
@@ -932,36 +1080,112 @@ export default {
   margin-top: 2px;
 }
 
-.protocol-actions {
-  display: flex;
-  flex-direction: column;
+.protocol-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.protocol-tools--bottom {
   margin-top: 1.5rem;
-  padding: 1.25rem;
-  border-radius: 10px;
-  background: var(--color-bg-input);
+  margin-bottom: 0;
+}
+
+.protocol-tools--export {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.protocol-tools__section {
+  padding: 1.15rem;
   border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-input);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
 }
 
-.protocol-actions__primary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
+.protocol-tools__section--arbiters {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary-bg), var(--color-bg-input) 58%);
 }
 
-.protocol-actions__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.protocol-tools__section--export {
+  position: relative;
+  overflow: hidden;
+  padding-top: 1.35rem;
 }
 
-.protocol-actions__secondary {
+.protocol-tools__section--export::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  content: '';
+}
+
+.protocol-tools__header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.protocol-tools__eyebrow {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.protocol-tools__header h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.protocol-tools__header p {
+  max-width: 560px;
+  margin: 0.3rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.protocol-tools__count {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-btn-text);
+  font-weight: 700;
+}
+
+.protocol-tools__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.protocol-actions__checkbox.protocol-tools__checkbox {
+  width: fit-content;
+  margin-top: 0.9rem;
+  margin-left: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .protocol-actions__btn {
@@ -1032,6 +1256,18 @@ export default {
   color: var(--color-text-secondary);
   cursor: pointer;
   margin-left: auto;
+}
+
+@media (max-width: 700px) {
+  .protocol-tools__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .protocol-tools__actions .protocol-actions__btn {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 .spin {
@@ -1177,7 +1413,7 @@ export default {
 
 .protocol-back-top {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   right: 1.5rem;
   width: 40px;
   height: 40px;

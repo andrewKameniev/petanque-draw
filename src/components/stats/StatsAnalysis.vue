@@ -3,9 +3,10 @@ import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import VueSelect from 'vue3-select-component';
 import 'vue3-select-component/dist/styles.css';
-import VueDatePicker from '@vuepic/vue-datepicker';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { calculatePlayerStat, getDate, extractPlayers } from '@/helpers-stat';
+import { calculatePlayerStat, getDate } from '@/helpers-stat';
+import { buildPlayerIdentityIndex, extractPlayerIdentities, getPlayerIdentityKey } from '@/helpers-stat-identities';
 import { defineAsyncComponent } from 'vue';
 import { gameTypes, throwDistances } from '@/helpers-stat.js';
 import { X } from 'lucide-vue-next';
@@ -13,7 +14,7 @@ import { X } from 'lucide-vue-next';
 export default {
   name: 'StatsAnalysis',
   components: { VueSelect, VueDatePicker, apexchart: defineAsyncComponent(() => import('vue3-apexcharts')), X },
-  props: ['stats', 'tags'],
+  props: ['stats', 'tags', 'identities'],
   data() {
     return {
       date: null,
@@ -102,7 +103,17 @@ export default {
       };
     },
     playersList() {
-      return extractPlayers(this.stats).map((name) => ({ label: name, value: name }));
+      return extractPlayerIdentities(this.stats, this.identities).map((player) => ({
+        label: player.portalPlayerId ? `${player.name} · ID ${player.portalPlayerId}` : player.name,
+        value: player.key,
+        name: player.name,
+      }));
+    },
+    selectedPlayerName() {
+      return this.playersList.find((player) => player.value === this.player)?.name || this.player;
+    },
+    playerIdentityIndex() {
+      return buildPlayerIdentityIndex(this.identities);
     },
   },
   methods: {
@@ -117,7 +128,7 @@ export default {
       let timeFrom = this.date ? this.date[0].getTime() : null;
       let timeTo = this.date && this.date[1] ? this.date[1].getTime() : Date.now();
 
-      Object.entries(this.stats).forEach(([key, game]) => {
+      Object.entries(this.stats || {}).forEach(([key, game]) => {
         if ((timeFrom && key < timeFrom) || (timeTo && key > timeTo)) return;
 
         if (this.filterGamesType && this.filterGamesType !== game.team1.players.length) return;
@@ -128,7 +139,9 @@ export default {
         }
 
         const checkAndAddStat = (team) => {
-          const player = team.players.find((player) => player?.name.trim() === this.player.trim());
+          const player = team.players.find(
+            (player) => getPlayerIdentityKey(player, this.playerIdentityIndex) === this.player,
+          );
           if (player) {
             this.playerStatList.push({
               date: key,
@@ -270,7 +283,7 @@ export default {
 
     <div v-if="player && playerStatList.length" class="analysis__results">
       <div class="analysis__player-header">
-        <span class="analysis__player-name">{{ player }}</span>
+        <span class="analysis__player-name">{{ selectedPlayerName }}</span>
         <span class="analysis__player-games">{{ playerStatList.length }} {{ $t('stat.games') }}</span>
       </div>
 

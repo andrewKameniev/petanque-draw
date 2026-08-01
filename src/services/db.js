@@ -72,10 +72,43 @@ export const statsService = {
   },
 };
 
+export const statsPlayerIdentityService = {
+  getAll(uid) {
+    return get(ref(db, `${uid}/statPlayerIdentities/`));
+  },
+  save(uid, portalPlayerId, data) {
+    return set(ref(db, `${uid}/statPlayerIdentities/${portalPlayerId}`), data);
+  },
+  updateAll(uid, data) {
+    return update(ref(db, `${uid}/statPlayerIdentities/`), data);
+  },
+};
+
 export const tournamentOrgsService = {
   check(email) {
     const key = email.replace(/\./g, ',');
     return get(ref(db, `tournamentOrgs/${key}`));
+  },
+};
+
+export const arbiterRegistryService = {
+  get(uid) {
+    return get(ref(db, `${uid}/arbiterRegistry`));
+  },
+  save(uid, data) {
+    return set(ref(db, `${uid}/arbiterRegistry`), data);
+  },
+};
+
+export const arbiterPresetService = {
+  getAll(uid) {
+    return get(ref(db, `${uid}/arbiterPresets`));
+  },
+  save(uid, presetId, data) {
+    return set(ref(db, `${uid}/arbiterPresets/${presetId}`), data);
+  },
+  remove(uid, presetId) {
+    return remove(ref(db, `${uid}/arbiterPresets/${presetId}`));
   },
 };
 

@@ -8,7 +8,14 @@
           <div class="archived-sidebar__card">
             <div class="archived-sidebar__header">{{ $t('common.archivedTournaments') }}</div>
             <div class="archived-sidebar__list">
+              <template v-if="isArchiveLoading">
+                <div v-for="n in 7" :key="`archive-sidebar-skeleton-${n}`" class="archive-sidebar-skeleton-row">
+                  <span class="archive-skeleton__bone archive-sidebar-skeleton-row__name"></span>
+                  <span class="archive-skeleton__bone archive-sidebar-skeleton-row__meta"></span>
+                </div>
+              </template>
               <button
+                v-else
                 v-for="[key, item] in tournamentEntries"
                 :key="key"
                 class="archived-sidebar__item"
@@ -25,7 +32,18 @@
               </button>
             </div>
           </div>
-          <div v-if="activeKey && tournament" class="archived-sidebar__actions">
+          <div v-if="isArchiveLoading" class="archived-sidebar__actions archive-sidebar-actions-skeleton">
+            <span class="archive-skeleton__bone archive-sidebar-actions-skeleton__label"></span>
+            <span class="archive-skeleton__bone archive-sidebar-actions-skeleton__input"></span>
+            <span
+              class="archive-skeleton__bone archive-sidebar-actions-skeleton__label archive-sidebar-actions-skeleton__label--short"
+            ></span>
+            <div class="archive-sidebar-actions-skeleton__buttons">
+              <span class="archive-skeleton__bone"></span>
+              <span class="archive-skeleton__bone"></span>
+            </div>
+          </div>
+          <div v-else-if="activeKey && tournament" class="archived-sidebar__actions">
             <div class="sidebar-action-row">
               <label class="sidebar-action-row__label"
                 >DB ID: <span class="sidebar-action-row__db-id" @click="copyDbId">{{ activeKey }}</span></label
@@ -69,8 +87,57 @@
         </aside>
 
         <div class="archived-content">
+          <div v-if="showLoadingSkeleton" class="archive-skeleton" aria-hidden="true">
+            <div class="archive-skeleton__heading">
+              <span class="archive-skeleton__bone archive-skeleton__title"></span>
+              <span class="archive-skeleton__bone archive-skeleton__icon"></span>
+              <span class="archive-skeleton__bone archive-skeleton__header-button"></span>
+            </div>
+
+            <div class="archive-skeleton__summary">
+              <span class="archive-skeleton__bone archive-skeleton__status"></span>
+              <div
+                v-for="width in ['42%', '64%', '30%', '48%', '36%']"
+                :key="width"
+                class="archive-skeleton__summary-row"
+              >
+                <span class="archive-skeleton__bone archive-skeleton__summary-label"></span>
+                <span class="archive-skeleton__bone archive-skeleton__summary-value" :style="{ width }"></span>
+              </div>
+            </div>
+
+            <div class="archive-skeleton__panel">
+              <div class="archive-skeleton__tabs">
+                <div v-for="n in 4" :key="`archive-tab-skeleton-${n}`" class="archive-skeleton__tab">
+                  <span class="archive-skeleton__bone archive-skeleton__tab-icon"></span>
+                  <span class="archive-skeleton__bone archive-skeleton__tab-label"></span>
+                </div>
+              </div>
+              <div class="archive-skeleton__panel-body">
+                <div class="archive-skeleton__toolbar">
+                  <span class="archive-skeleton__bone archive-skeleton__toolbar-pill"></span>
+                  <span
+                    class="archive-skeleton__bone archive-skeleton__toolbar-pill archive-skeleton__toolbar-pill--short"
+                  ></span>
+                  <span class="archive-skeleton__toolbar-spacer"></span>
+                  <span class="archive-skeleton__bone archive-skeleton__toolbar-button"></span>
+                  <span class="archive-skeleton__bone archive-skeleton__toolbar-button"></span>
+                </div>
+                <div class="archive-skeleton__table">
+                  <div class="archive-skeleton__table-row archive-skeleton__table-row--header">
+                    <span v-for="n in 3" :key="`archive-header-cell-${n}`" class="archive-skeleton__bone"></span>
+                  </div>
+                  <div v-for="n in 9" :key="`archive-table-row-${n}`" class="archive-skeleton__table-row">
+                    <span class="archive-skeleton__bone archive-skeleton__cell-place"></span>
+                    <span class="archive-skeleton__bone" :style="{ width: `${52 + ((n * 7) % 32)}%` }"></span>
+                    <span class="archive-skeleton__bone" :style="{ width: `${66 + ((n * 5) % 25)}%` }"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div
-            v-if="activeKey && savedTournaments[activeKey]"
+            v-else-if="activeKey && savedTournaments[activeKey]"
             class="tournament-selector"
             @click="selectorOpen = !selectorOpen"
             v-click-outside="closeSelector"
@@ -101,6 +168,10 @@
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
+            <button class="button btn-make-active" @click.stop="makeActive">
+              <ArchiveRestore :size="16" />
+              <span class="is-hidden-mobile">{{ $t('common.makeActive') }}</span>
+            </button>
             <button class="button btn-remove-archived" @click.stop="removeTournament">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
                 <path
@@ -127,7 +198,7 @@
             </div>
           </div>
 
-          <div v-if="!activeKey && !isLoading" class="empty-state">
+          <div v-if="!showLoadingSkeleton && !activeKey" class="empty-state">
             <svg class="empty-state__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -141,7 +212,7 @@
             <router-link to="/" class="button empty-state__btn">{{ $t('common.draw') }}</router-link>
           </div>
 
-          <template v-if="activeTournament && !isLoading">
+          <template v-if="activeTournament && !showLoadingSkeleton">
             <div class="tournament-info-card mt-3 mb-3">
               <span class="badge badge-corner" :class="badgeClass">
                 {{ badgeLabel }}
@@ -258,7 +329,13 @@
                   <Ranking :tournament="activeTournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
                 </div>
                 <div v-if="activeTab === 'protocol'">
-                  <Protocol :tournament="activeTournament" :rankingTeams="rankingTeams" :skipGate="true" />
+                  <Protocol
+                    :tournament="activeTournament"
+                    :tournament-meta="protocolTournamentMeta"
+                    :rankingTeams="rankingTeams"
+                    :skipGate="true"
+                    :hide-close="true"
+                  />
                 </div>
               </div>
             </template>
@@ -287,7 +364,17 @@ import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
-import { GitFork, Users, List, Trophy as TrophyIcon, FileText, Pencil, Link2, RefreshCw } from 'lucide-vue-next';
+import {
+  GitFork,
+  Users,
+  List,
+  Trophy as TrophyIcon,
+  FileText,
+  Pencil,
+  Link2,
+  RefreshCw,
+  ArchiveRestore,
+} from 'lucide-vue-next';
 
 export default {
   name: 'Archived',
@@ -311,6 +398,7 @@ export default {
     Pencil,
     Link2,
     RefreshCw,
+    ArchiveRestore,
   },
   data() {
     return {
@@ -319,6 +407,7 @@ export default {
       selectorOpen: false,
       menuOpen: false,
       tournament: null,
+      isArchiveLoading: true,
       isLoading: false,
       editingName: false,
       publicLinkCopied: false,
@@ -339,12 +428,15 @@ export default {
       },
     },
   },
-  created() {
-    this.fetchSavedTournaments().then(() => {
+  async created() {
+    try {
+      await this.fetchSavedTournaments();
       if (this.tournamentKeys.length) {
         this.activeKey = this.tournamentKeys[this.tournamentKeys.length - 1];
       }
-    });
+    } finally {
+      this.isArchiveLoading = false;
+    }
   },
   watch: {
     savedTournaments: {
@@ -371,7 +463,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useMainStore, ['savedTournaments', 'user']),
+    ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap']),
     tournamentEntries() {
       return Object.entries(this.savedTournaments).reverse();
     },
@@ -381,6 +473,23 @@ export default {
     activeTournament() {
       if (this.tournament?.main) return this.tournament.main;
       return this.tournament;
+    },
+    activeMapEntry() {
+      return this.userTournamentMap?.[this.activeKey] || null;
+    },
+    activeOwnerUid() {
+      if (this.activeMapEntry?.role === 'admin') return this.activeMapEntry.ownerUid;
+      return this.user?.uid;
+    },
+    showLoadingSkeleton() {
+      return this.isArchiveLoading || this.isLoading;
+    },
+    protocolTournamentMeta() {
+      if (!this.tournament) return null;
+      return {
+        ...this.tournament,
+        id: this.tournament.id || this.activeKey,
+      };
     },
     tabs() {
       const tabs = [
@@ -503,9 +612,9 @@ export default {
       return true;
     },
     publicLink() {
-      if (!this.activeKey || !this.user?.uid) return '';
+      if (!this.activeKey || !this.activeOwnerUid) return '';
       const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
-      const ref = `${this.user.uid}.${parseInt(tournamentId).toString(36)}`;
+      const ref = `${this.activeOwnerUid}.${parseInt(tournamentId).toString(36)}`;
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tournament?ref=${ref}`;
     },
@@ -529,7 +638,12 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['fetchSavedTournaments', 'removeSavedTournament', 'renameSavedTournament']),
+    ...mapActions(useMainStore, [
+      'fetchSavedTournaments',
+      'removeSavedTournament',
+      'renameSavedTournament',
+      'unarchiveTournament',
+    ]),
     displayLane(game, index) {
       return getGameLaneNumber(game, this.activeTournament, index);
     },
@@ -544,9 +658,13 @@ export default {
       return '';
     },
     selectTournament(key) {
+      const tournamentChanged = key !== this.activeKey;
       this.activeKey = key;
       this.selectorOpen = false;
       this.activeTab = 'ranking';
+      if (tournamentChanged) {
+        this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+      }
     },
     closeSelector() {
       this.selectorOpen = false;
@@ -561,7 +679,7 @@ export default {
     saveName(value) {
       const name = value.trim();
       if (name && name !== this.savedTournaments[this.activeKey].name) {
-        this.renameSavedTournament(this.activeKey, name);
+        this.renameSavedTournament(this.activeKey, name, this.activeOwnerUid);
       }
       this.editingName = false;
     },
@@ -575,12 +693,22 @@ export default {
       this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
       this.tournament = null;
     },
+    async makeActive() {
+      const key = this.activeKey;
+      if (!key) return;
+      const restored = await this.unarchiveTournament(key);
+      if (!restored) return;
+
+      const remaining = this.tournamentKeys.filter((tournamentKey) => tournamentKey !== key);
+      this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
+      this.tournament = null;
+    },
     subscribeTournament(key) {
       if (this._unsubscribe) {
         this._unsubscribe();
         this._unsubscribe = null;
       }
-      if (!this.user?.uid) return;
+      if (!this.activeOwnerUid) return;
       this.isLoading = true;
       const cached = this.savedTournaments[key];
       if (cached?.teams) {
@@ -589,7 +717,7 @@ export default {
         return;
       }
       this._unsubscribe = tournamentService.subscribe(
-        this.user.uid,
+        this.activeOwnerUid,
         key,
         (snapshot) => {
           if (snapshot.exists() && snapshot.val()?.teams) {
@@ -678,7 +806,7 @@ export default {
           const basePath = this.tournament?.main ? 'main/' : '';
           if (this.activeTournament.teams) {
             await tournamentService.updatePath(
-              this.user.uid,
+              this.activeOwnerUid,
               this.activeKey,
               `${basePath}teams`,
               this.activeTournament.teams,
@@ -686,7 +814,7 @@ export default {
           }
           if (this.activeTournament.tirParticipants) {
             await tournamentService.updatePath(
-              this.user.uid,
+              this.activeOwnerUid,
               this.activeKey,
               `${basePath}tirParticipants`,
               this.activeTournament.tirParticipants,
@@ -712,7 +840,7 @@ export default {
     async savePortalId() {
       if (!this.portalIdInput) return;
       const value = String(this.portalIdInput);
-      await tournamentService.updatePath(this.user.uid, this.activeKey, 'portalIdTournament', value);
+      await tournamentService.updatePath(this.activeOwnerUid, this.activeKey, 'portalIdTournament', value);
       this.tournament.portalIdTournament = value;
       this.portalIdInput = null;
     },
@@ -1049,6 +1177,22 @@ export default {
   margin-left: 0.5rem;
 }
 
+.btn-make-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: transparent;
+}
+
+.btn-make-active:hover {
+  color: var(--color-btn-text, #fff);
+  background: var(--color-primary);
+}
+
 .btn-remove-archived:hover {
   background: var(--color-danger, #e74c3c);
   color: var(--color-white);
@@ -1115,6 +1259,297 @@ export default {
   display: flex;
   gap: 1.5rem;
   margin-top: 1rem;
+}
+
+.archive-skeleton__bone {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--color-surface-alt, #ececf2);
+}
+
+.archive-skeleton__bone::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 52%), transparent);
+  transform: translateX(-100%);
+  animation: archive-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+.archive-sidebar-skeleton-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 38px;
+  padding: 0.6rem 0.25rem;
+}
+
+.archive-sidebar-skeleton-row__name {
+  width: min(70%, 270px);
+  height: 13px;
+}
+
+.archive-sidebar-skeleton-row__meta {
+  width: 76px;
+  height: 12px;
+}
+
+.archive-sidebar-actions-skeleton__label {
+  width: 42%;
+  height: 10px;
+}
+
+.archive-sidebar-actions-skeleton__label--short {
+  width: 28%;
+}
+
+.archive-sidebar-actions-skeleton__input {
+  width: 100%;
+  height: 34px;
+}
+
+.archive-sidebar-actions-skeleton__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 0.5rem;
+}
+
+.archive-sidebar-actions-skeleton__buttons .archive-skeleton__bone {
+  height: 36px;
+}
+
+.archive-skeleton {
+  width: 100%;
+  padding-top: 0.2rem;
+}
+
+.archive-skeleton__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 64px;
+  padding: 0.75rem 0;
+}
+
+.archive-skeleton__title {
+  width: min(68%, 620px);
+  height: 34px;
+  border-radius: 8px;
+}
+
+.archive-skeleton__icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.archive-skeleton__header-button {
+  width: 112px;
+  height: 36px;
+  margin-left: auto;
+}
+
+.archive-skeleton__summary {
+  position: relative;
+  min-height: 190px;
+  padding: 1.5rem;
+  border: 2px solid color-mix(in srgb, var(--color-primary) 38%, var(--color-border));
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.archive-skeleton__status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 108px;
+  height: 34px;
+  border-radius: 14px;
+}
+
+.archive-skeleton__summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 29px;
+}
+
+.archive-skeleton__summary-label {
+  width: 82px;
+  height: 13px;
+}
+
+.archive-skeleton__summary-value {
+  max-width: 480px;
+  height: 15px;
+}
+
+.archive-skeleton__panel {
+  margin-top: 0.9rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.archive-skeleton__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  min-height: 72px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.archive-skeleton__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.archive-skeleton__tab-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.archive-skeleton__tab-label {
+  width: 62px;
+  height: 10px;
+}
+
+.archive-skeleton__panel-body {
+  padding: 1rem;
+}
+
+.archive-skeleton__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 48px;
+}
+
+.archive-skeleton__toolbar-pill {
+  width: 142px;
+  height: 34px;
+}
+
+.archive-skeleton__toolbar-pill--short {
+  width: 126px;
+}
+
+.archive-skeleton__toolbar-spacer {
+  flex: 1;
+}
+
+.archive-skeleton__toolbar-button {
+  width: 160px;
+  height: 34px;
+}
+
+.archive-skeleton__table {
+  width: min(100%, 720px);
+  margin: 0.75rem auto 0;
+}
+
+.archive-skeleton__table-row {
+  display: grid;
+  grid-template-columns: 10% 34% 56%;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 43px;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.archive-skeleton__table-row .archive-skeleton__bone {
+  width: 84%;
+  height: 13px;
+}
+
+.archive-skeleton__table-row--header {
+  min-height: 38px;
+}
+
+.archive-skeleton__table-row--header .archive-skeleton__bone {
+  width: 62%;
+  height: 11px;
+}
+
+.archive-skeleton__cell-place {
+  width: 24px !important;
+}
+
+@keyframes archive-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .archive-skeleton__heading {
+    min-height: 54px;
+  }
+
+  .archive-skeleton__title {
+    width: 58%;
+    height: 24px;
+  }
+
+  .archive-skeleton__header-button {
+    width: 42px;
+    height: 34px;
+  }
+
+  .archive-skeleton__summary {
+    min-height: 162px;
+    padding: 1.15rem;
+  }
+
+  .archive-skeleton__status {
+    width: 78px;
+    height: 28px;
+  }
+
+  .archive-skeleton__summary-row {
+    min-height: 25px;
+  }
+
+  .archive-skeleton__summary-label {
+    width: 62px;
+  }
+
+  .archive-skeleton__tabs {
+    min-height: 62px;
+  }
+
+  .archive-skeleton__toolbar-button,
+  .archive-skeleton__toolbar-pill--short {
+    display: none;
+  }
+
+  .archive-skeleton__toolbar-pill {
+    width: 132px;
+  }
+
+  .archive-skeleton__table-row {
+    grid-template-columns: 14% 36% 50%;
+    min-height: 39px;
+    padding: 0 0.25rem;
+  }
+
+  .archive-skeleton__table-row:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-skeleton__bone::after {
+    animation: none;
+  }
 }
 
 .archived-sidebar {

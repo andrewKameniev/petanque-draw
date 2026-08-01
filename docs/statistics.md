@@ -57,17 +57,18 @@ Binary: each throw is either a success (1) or failure (0).
 ### French System
 
 Granular grading using letters A through I:
-| Grade | Volume | Intensity | Meaning |
-|-------|--------|-----------|---------|
-| A | 1.5 | 1.0 | Excellent |
-| B | 1.0 | 1.0 | Very good |
-| C | 0.5 | 1.0 | Good |
-| D | 0 | 0.5 | Neutral |
-| E | -0.5 | 0.5 | Below average |
-| F | -0.5 | 0 | Poor |
-| G | -1.0 | 0 | Bad |
-| H | -1.5 | 0 | Very bad |
-| I | -2.0 | 0 | Worst |
+
+| Grade | Volume | Intensity | Meaning       |
+| ----- | ------ | --------- | ------------- |
+| A     | 1.5    | 1.0       | Excellent     |
+| B     | 1.0    | 1.0       | Very good     |
+| C     | 0.5    | 1.0       | Good          |
+| D     | 0      | 0.5       | Neutral       |
+| E     | -0.5   | 0.5       | Below average |
+| F     | -0.5   | 0         | Poor          |
+| G     | -1.0   | 0         | Bad           |
+| H     | -1.5   | 0         | Very bad      |
+| I     | -2.0   | 0         | Worst         |
 
 Volume = contribution to scoring. Intensity = effort/engagement level.
 

@@ -5,6 +5,9 @@ import { database } from '@/firebase';
 import { userMapService, collaboratorService } from '@/services/db';
 import i18n from '@/i18n';
 
+export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
+const ARCHIVE_STATUS_VERSION = 1;
+
 const defaultPreferences = {
   technical: {
     technicalFirst: 13,
@@ -778,11 +781,15 @@ export const useMainStore = defineStore('main', {
         .map(([id]) => id);
     },
     async fetchSavedTournaments() {
-      const archivedIds = Object.entries(this.userTournamentMap)
-        .filter(([, entry]) => entry.status === 'archived' && entry.role === 'owner')
-        .map(([id]) => id);
+      const archivedEntries = Object.entries(this.userTournamentMap).filter(
+        ([, entry]) =>
+          (entry.role === 'owner' && entry.status === 'archived') ||
+          (entry.role === 'admin' &&
+            entry.ownerUid &&
+            (entry.status === 'archived' || entry.archiveStatusVersion !== ARCHIVE_STATUS_VERSION)),
+      );
 
-      if (!archivedIds.length) {
+      if (!archivedEntries.length) {
         this.setSavedTournaments({});
         this.savedTournamentIds = [];
         return;
@@ -792,9 +799,15 @@ export const useMainStore = defineStore('main', {
       const results = {};
       const migrated = [];
       await Promise.all(
-        archivedIds.map(async (id) => {
-          let snapshot = await get(ref(db, `${this.user.uid}/tournaments/${id}`));
-          if (!snapshot.exists() || !snapshot.val()?.teams) {
+        archivedEntries.map(async ([id, entry]) => {
+          const ownerUid = entry.role === 'owner' ? this.user.uid : entry.ownerUid;
+          let snapshot = await get(ref(db, `${ownerUid}/tournaments/${id}`));
+          const tournamentData = snapshot.exists() ? snapshot.val() : null;
+          const hasTournamentData = tournamentData && (tournamentData.teams || tournamentData.main?.teams);
+
+          // Only owners can have data in the legacy saved/ location. Shared
+          // tournaments always remain under their owner's tournaments/ path.
+          if (entry.role === 'owner' && !hasTournamentData) {
             const savedSnapshot = await get(ref(db, `${this.user.uid}/saved/${id}`));
             if (savedSnapshot.exists()) {
               const data = savedSnapshot.val();
@@ -805,7 +818,25 @@ export const useMainStore = defineStore('main', {
               return;
             }
           }
-          if (snapshot.exists()) results[id] = snapshot.val();
+
+          if (!snapshot.exists()) return;
+
+          const isFinished = !!(tournamentData?.tournamentIsFinished || tournamentData?.main?.tournamentIsFinished);
+          const shouldMigrateAdminArchive =
+            entry.role === 'admin' &&
+            entry.status !== 'archived' &&
+            entry.archiveStatusVersion !== ARCHIVE_STATUS_VERSION &&
+            isFinished;
+
+          if (entry.status !== 'archived' && !shouldMigrateAdminArchive) return;
+
+          if (shouldMigrateAdminArchive) {
+            const archiveUpdate = { status: 'archived', archiveStatusVersion: ARCHIVE_STATUS_VERSION };
+            await userMapService.update(this.user.uid, id, archiveUpdate);
+            Object.assign(entry, archiveUpdate);
+          }
+
+          results[id] = tournamentData;
         }),
       );
       if (migrated.length) {
@@ -1262,61 +1293,87 @@ export const useMainStore = defineStore('main', {
 
       this._doSync();
     },
-    addToSaved(tournament) {
+    async addToSaved(tournament) {
       const id = String(tournament.id || this.currentTournamentIndex);
       const mapUpdate = { status: 'archived' };
 
-      userMapService
-        .update(this.user.uid, id, mapUpdate)
-        .then(() => {
-          if (this.userTournamentMap[id]) {
-            this.userTournamentMap[id].status = 'archived';
-          }
-          if (!this.savedTournamentIds.includes(id)) {
-            this.savedTournamentIds.push(id);
-          }
-          delete this.tournaments[id];
-          if (String(this.currentTournamentIndex) === id) {
-            const remaining = Object.keys(this.tournaments);
-            if (remaining.length) {
-              this.setActiveTournament(remaining[remaining.length - 1]);
-            } else {
-              this.addTournament();
-            }
-          }
-          this.showMessage({
-            title: i18n.global.t('messages.saved'),
-            text: i18n.global.t('messages.tournamentSavedList'),
-          });
-        })
-        .catch((error) => {
-          console.error('Error archiving:', error);
-          this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
-        });
-    },
-    removeSavedTournament(id) {
-      const db = getDatabase();
-      const dataRef = ref(db, `${this.user.uid}/tournaments/${id}`);
+      try {
+        await userMapService.update(this.user.uid, id, mapUpdate);
 
-      remove(dataRef)
-        .then(() => {
-          userMapService.remove(this.user.uid, id);
-          delete this.savedTournaments[id];
-          delete this.userTournamentMap[id];
-          this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
-          this.showMessage({
-            title: i18n.global.t('messages.removed'),
-            text: i18n.global.t('messages.tournamentRemovedSaved'),
-          });
-        })
-        .catch((error) => {
-          console.error('Error deleting data:', error);
-          this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
+        const mapEntry = this.userTournamentMap[id];
+        if (mapEntry?.role === 'owner') {
+          const adminCollaboratorUids = Object.entries(tournament.collaborators || {})
+            .filter(([, collaborator]) => {
+              const role = typeof collaborator === 'string' ? collaborator : collaborator.role;
+              return role === 'admin';
+            })
+            .map(([uid]) => uid);
+          const collaboratorArchiveUpdate = {
+            status: 'archived',
+            archiveStatusVersion: ARCHIVE_STATUS_VERSION,
+          };
+          await Promise.all(
+            adminCollaboratorUids.map((uid) => userMapService.update(uid, id, collaboratorArchiveUpdate)),
+          );
+        }
+
+        if (mapEntry) {
+          mapEntry.status = 'archived';
+        }
+        if (!this.savedTournamentIds.includes(id)) {
+          this.savedTournamentIds.push(id);
+        }
+        delete this.tournaments[id];
+        if (String(this.currentTournamentIndex) === id) {
+          const remaining = Object.keys(this.tournaments);
+          if (remaining.length) {
+            this.setActiveTournament(remaining[remaining.length - 1]);
+          } else {
+            this.addTournament();
+          }
+        }
+        this.showMessage({
+          title: i18n.global.t('messages.saved'),
+          text: i18n.global.t('messages.tournamentSavedList'),
         });
+      } catch (error) {
+        console.error('Error archiving:', error);
+        this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
+      }
     },
-    renameSavedTournament(id, name) {
+    async removeSavedTournament(id) {
       const db = getDatabase();
-      update(ref(db, `${this.user.uid}/tournaments/${id}`), { name }).then(() => {
+      const mapEntry = this.userTournamentMap[id];
+
+      try {
+        if (mapEntry?.role === 'owner') {
+          await remove(ref(db, `${this.user.uid}/tournaments/${id}`));
+          await userMapService.remove(this.user.uid, id);
+          delete this.userTournamentMap[id];
+        } else {
+          // Removing a shared tournament from the archive must never delete
+          // the owner's data. Return it to this collaborator's active list.
+          await userMapService.update(this.user.uid, id, {
+            status: 'active',
+            archiveStatusVersion: ARCHIVE_STATUS_VERSION,
+          });
+          if (mapEntry) mapEntry.status = 'active';
+        }
+
+        delete this.savedTournaments[id];
+        this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
+        this.showMessage({
+          title: i18n.global.t('messages.removed'),
+          text: i18n.global.t('messages.tournamentRemovedSaved'),
+        });
+      } catch (error) {
+        console.error('Error deleting data:', error);
+        this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
+      }
+    },
+    renameSavedTournament(id, name, ownerUid = this.user.uid) {
+      const db = getDatabase();
+      update(ref(db, `${ownerUid}/tournaments/${id}`), { name }).then(() => {
         if (this.savedTournaments[id]) this.savedTournaments[id].name = name;
         if (this.userTournamentMap[id]) this.userTournamentMap[id].name = name;
         userMapService.update(this.user.uid, id, { name });
@@ -1330,7 +1387,8 @@ export const useMainStore = defineStore('main', {
       this._doSync();
     },
     async addCollaborator(email, role) {
-      const snapshot = await collaboratorService.findUserByEmail(email);
+      const normalizedEmail = email.trim().toLowerCase();
+      const snapshot = await collaboratorService.findUserByEmail(normalizedEmail);
       if (!snapshot.exists()) {
         this.showMessage({
           title: i18n.global.t('messages.error'),
@@ -1359,7 +1417,7 @@ export const useMainStore = defineStore('main', {
       const tournamentId = this.currentTournamentIndex;
       const tournament = this.currentTournament;
 
-      const collabData = { role, email };
+      const collabData = { role, email: normalizedEmail };
       await collaboratorService.add(this.user.uid, tournamentId, collaboratorUid, collabData);
 
       const mapEntry = {
@@ -1367,6 +1425,7 @@ export const useMainStore = defineStore('main', {
         role,
         ownerUid: this.user.uid,
         name: tournament.name,
+        archiveStatusVersion: ARCHIVE_STATUS_VERSION,
       };
       await userMapService.set(collaboratorUid, tournamentId, mapEntry);
 
@@ -1487,17 +1546,82 @@ export const useMainStore = defineStore('main', {
         }
       });
     },
-    unarchiveTournament(id) {
-      userMapService.update(this.user.uid, id, { status: 'active' }).then(() => {
+    async unarchiveTournament(id) {
+      const mapEntry = this.userTournamentMap[id];
+      if (!mapEntry) return false;
+
+      try {
+        await userMapService.update(this.user.uid, id, {
+          status: 'active',
+          archiveStatusVersion: ARCHIVE_STATUS_VERSION,
+        });
+
+        const restoredTournament = this.savedTournaments[id];
+        if (mapEntry.role === 'owner' && restoredTournament) {
+          const adminCollaboratorUids = Object.entries(restoredTournament.collaborators || {})
+            .filter(([, collaborator]) => {
+              const role = typeof collaborator === 'string' ? collaborator : collaborator.role;
+              return role === 'admin';
+            })
+            .map(([uid]) => uid);
+          const collaboratorActiveUpdate = {
+            status: 'active',
+            archiveStatusVersion: ARCHIVE_STATUS_VERSION,
+          };
+          await Promise.all(
+            adminCollaboratorUids.map((uid) => userMapService.update(uid, id, collaboratorActiveUpdate)),
+          );
+
+          if (isNewFormat(restoredTournament)) {
+            const mainDefaults = createTournamentData();
+            restoredTournament.main = {
+              ...mainDefaults,
+              ...restoredTournament.main,
+              preferences: { ...mainDefaults.preferences, ...(restoredTournament.main.preferences || {}) },
+            };
+            if (restoredTournament.tournamentB) {
+              restoredTournament.tournamentB = {
+                ...mainDefaults,
+                ...restoredTournament.tournamentB,
+                isTournamentB: true,
+                preferences: {
+                  ...mainDefaults.preferences,
+                  ...(restoredTournament.tournamentB.preferences || {}),
+                },
+              };
+            }
+            restoredTournament.activeGroup = restoredTournament.activeGroup || 'A';
+            restoredTournament.id = restoredTournament.id || id;
+            this.tournaments[id] = restoredTournament;
+          } else {
+            const defaults = createTournamentData();
+            this.tournaments[id] = {
+              ...defaults,
+              ...restoredTournament,
+              id: restoredTournament.id || id,
+              teams: restoredTournament.teams || [],
+              games: restoredTournament.games || [],
+              preferences: { ...defaults.preferences, ...(restoredTournament.preferences || {}) },
+            };
+          }
+        }
+
         if (this.userTournamentMap[id]) {
           this.userTournamentMap[id].status = 'active';
+          this.userTournamentMap[id].archiveStatusVersion = ARCHIVE_STATUS_VERSION;
         }
+        delete this.savedTournaments[id];
         this.savedTournamentIds = this.savedTournamentIds.filter((k) => k !== id);
         this.showMessage({
           title: i18n.global.t('messages.saved'),
           text: i18n.global.t('messages.tournamentUnarchived'),
         });
-      });
+        return true;
+      } catch (error) {
+        console.error('Error restoring tournament:', error);
+        this.showMessage({ title: i18n.global.t('messages.error'), text: error, type: 'error' });
+        return false;
+      }
     },
   },
 });

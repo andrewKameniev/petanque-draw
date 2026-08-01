@@ -45,12 +45,29 @@
         </button>
         <div v-if="collabOpen" class="qr-modal__collab-body">
           <p class="qr-modal__collab-legend">{{ $t('collaborators.legend') }}</p>
+          <button
+            class="button qr-modal__super-admin-btn"
+            :class="{ 'qr-modal__super-admin-btn--added': superAdminIsAdded }"
+            :disabled="collabLoading || superAdminIsAdded"
+            @click="handleAddSuperAdmin"
+          >
+            <Check v-if="superAdminIsAdded" :size="17" />
+            <ShieldCheck v-else :size="17" />
+            <span class="qr-modal__super-admin-copy">
+              <span>{{
+                superAdminIsAdded ? $t('collaborators.superAdminAdded') : $t('collaborators.addSuperAdmin')
+              }}</span>
+              <small>{{ superAdminEmail }}</small>
+            </span>
+          </button>
           <div class="qr-modal__collab-form">
             <input
               v-model="collabEmail"
               type="email"
               class="input"
+              :class="{ 'is-danger': collabError }"
               :placeholder="$t('collaborators.emailPlaceholder')"
+              @input="collabError = ''"
               @keyup.enter="handleAddCollaborator"
             />
             <div class="qr-modal__collab-actions">
@@ -65,6 +82,7 @@
               </button>
             </div>
           </div>
+          <p v-if="collabError" class="qr-modal__collab-error">{{ collabError }}</p>
           <ul v-if="collaboratorsList.length" class="qr-modal__collab-list">
             <li v-for="collab in collaboratorsList" :key="collab.uid" class="qr-modal__collab-item">
               <span class="qr-modal__collab-email">{{ collab.email }}</span>
@@ -85,12 +103,12 @@
 import QrcodeVue from 'qrcode.vue';
 import Modal from '@/components/Modal';
 import { mapState, mapActions } from 'pinia';
-import { useMainStore } from '@/stores/main';
-import { Copy, Check, Monitor, Users, ChevronDown, UserPlus, X } from 'lucide-vue-next';
+import { SUPER_ADMIN_EMAIL, useMainStore } from '@/stores/main';
+import { Copy, Check, Monitor, Users, ChevronDown, UserPlus, X, ShieldCheck } from 'lucide-vue-next';
 
 export default {
   name: 'QrCode',
-  components: { Modal, QrcodeVue, Copy, Check, Monitor, Users, ChevronDown, UserPlus, X },
+  components: { Modal, QrcodeVue, Copy, Check, Monitor, Users, ChevronDown, UserPlus, X, ShieldCheck },
   data() {
     return {
       size: 300,
@@ -100,6 +118,8 @@ export default {
       collabEmail: '',
       collabRole: 'scorer',
       collabLoading: false,
+      collabError: '',
+      superAdminEmail: SUPER_ADMIN_EMAIL,
     };
   },
   computed: {
@@ -130,6 +150,11 @@ export default {
         email: typeof val === 'string' ? uid : val.email,
       }));
     },
+    superAdminIsAdded() {
+      return this.collaboratorsList.some(
+        (collaborator) => collaborator.email?.toLowerCase() === SUPER_ADMIN_EMAIL && collaborator.role === 'admin',
+      );
+    },
   },
   methods: {
     ...mapActions(useMainStore, ['showMessage', 'addCollaborator', 'removeCollaborator', '_getTournamentOwnerUid']),
@@ -149,10 +174,31 @@ export default {
     },
     async handleAddCollaborator() {
       if (!this.collabEmail || this.collabLoading) return;
+      const email = this.collabEmail.trim().toLowerCase();
+      const added = await this.addCollaboratorWithFeedback(email, this.collabRole);
+      if (added) this.collabEmail = '';
+    },
+    async handleAddSuperAdmin() {
+      if (this.collabLoading || this.superAdminIsAdded) return;
+      await this.addCollaboratorWithFeedback(SUPER_ADMIN_EMAIL, 'admin');
+    },
+    async addCollaboratorWithFeedback(email, role) {
+      this.collabError = '';
       this.collabLoading = true;
-      await this.addCollaborator(this.collabEmail.trim(), this.collabRole);
-      this.collabEmail = '';
-      this.collabLoading = false;
+      try {
+        const added = await this.addCollaborator(email, role);
+        if (!added) {
+          const isCurrentUser = email === this.user?.email?.trim().toLowerCase();
+          this.collabError = this.$t(isCurrentUser ? 'messages.cannotAddSelf' : 'messages.userNotFound');
+        }
+        return added;
+      } catch (error) {
+        console.error('Error adding collaborator:', error);
+        this.collabError = this.$t('messages.failedSaving');
+        return false;
+      } finally {
+        this.collabLoading = false;
+      }
     },
     async handleRemoveCollaborator(uid) {
       await this.removeCollaborator(uid);
@@ -299,6 +345,42 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.qr-modal__super-admin-btn {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.qr-modal__super-admin-btn--added {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.qr-modal__super-admin-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.qr-modal__super-admin-copy small {
+  margin-top: 0.15rem;
+  color: var(--color-text-secondary, #888);
+  font-size: 0.72rem;
+}
+
+.qr-modal__collab-error {
+  margin: 0.45rem 0 0;
+  color: var(--color-error);
+  font-size: 0.85rem;
 }
 
 .qr-modal__collab-actions {

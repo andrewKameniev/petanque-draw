@@ -187,7 +187,7 @@
 import Footer from '@/components/partials/Footer.vue';
 import Navbar from '@/components/Navbar.vue';
 import Menu from '@/components/Menu.vue';
-import { statsService } from '@/services/db';
+import { statsPlayerIdentityService, statsService } from '@/services/db';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import StatsArchive from '@/components/stats/StatsArchive.vue';
@@ -518,14 +518,17 @@ export default {
       this.currentTab = 'new';
     },
     changePlayerInTeam(teamIndex, playerIndex, playerName) {
-      this['team' + teamIndex].players[playerIndex].name = playerName;
+      const player = this['team' + teamIndex].players[playerIndex];
+      if (player.name !== playerName) delete player.portalPlayerId;
+      player.name = playerName;
     },
-    replacePlayerInTeam(teamIndex, playerIndex, newPlayerName) {
+    replacePlayerInTeam(teamIndex, playerIndex, newPlayerName, portalPlayerId = null) {
       const team = this['team' + teamIndex];
       team.players[playerIndex].wasChanged = true;
 
       const newPlayer = {
         name: newPlayerName,
+        ...(portalPlayerId != null ? { portalPlayerId: String(portalPlayerId) } : {}),
         replacedFrom: playerIndex,
         stat: [],
       };
@@ -606,26 +609,69 @@ export default {
     },
     applyPrefill() {
       const q = this.$route.query;
+      const parsePlayers = (serializedPlayers, legacyNames) => {
+        if (serializedPlayers) {
+          try {
+            const parsed = JSON.parse(String(serializedPlayers));
+            if (Array.isArray(parsed)) {
+              return parsed.map((player) => ({
+                name: String(player?.name || '').trim(),
+                ...(player?.portalPlayerId != null ? { portalPlayerId: String(player.portalPlayerId) } : {}),
+              }));
+            }
+          } catch (error) {
+            console.error('Invalid stats player prefill:', error);
+          }
+        }
+        return legacyNames
+          ? String(legacyNames)
+              .split(',')
+              .map((name) => ({ name: name.trim() }))
+          : [];
+      };
+
       if (q.name) this.gameName = q.name;
       if (q.type) {
         this.gameType = Number(q.type);
         this.changePlayers();
       }
-      if (q.t1) {
-        const names = q.t1.split(',');
-        names.slice(0, this.gameType).forEach((name, i) => {
-          if (this.team1.players[i]) this.team1.players[i].name = name;
+      const team1Players = parsePlayers(q.p1, q.t1);
+      const team2Players = parsePlayers(q.p2, q.t2);
+      if (team1Players.length) {
+        team1Players.slice(0, this.gameType).forEach((player, i) => {
+          if (this.team1.players[i]) Object.assign(this.team1.players[i], player);
         });
-        this.team1.bench = names.slice(this.gameType);
+        this.team1.bench = team1Players.slice(this.gameType);
       }
-      if (q.t2) {
-        const names = q.t2.split(',');
-        names.slice(0, this.gameType).forEach((name, i) => {
-          if (this.team2.players[i]) this.team2.players[i].name = name;
+      if (team2Players.length) {
+        team2Players.slice(0, this.gameType).forEach((player, i) => {
+          if (this.team2.players[i]) Object.assign(this.team2.players[i], player);
         });
-        this.team2.bench = names.slice(this.gameType);
+        this.team2.bench = team2Players.slice(this.gameType);
       }
+      this.registerPortalPlayers([...team1Players, ...team2Players]);
       this.currentTab = 'new';
+    },
+    async registerPortalPlayers(players) {
+      const portalPlayers = players.filter((player) => player.portalPlayerId && player.name);
+      if (!this.user?.uid || !portalPlayers.length) return;
+      try {
+        const snapshot = await statsPlayerIdentityService.getAll(this.user.uid);
+        const existing = snapshot.exists() ? snapshot.val() : {};
+        const updates = {};
+        portalPlayers.forEach((player) => {
+          const current = existing[player.portalPlayerId] || {};
+          updates[player.portalPlayerId] = {
+            ...current,
+            portalPlayerId: player.portalPlayerId,
+            name: player.name,
+            aliases: current.aliases || [],
+          };
+        });
+        await statsPlayerIdentityService.updateAll(this.user.uid, updates);
+      } catch (error) {
+        console.error('Error registering portal players for statistics:', error);
+      }
     },
     changePlayers() {
       this.team1.players = [];

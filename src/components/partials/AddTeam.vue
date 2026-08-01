@@ -200,6 +200,7 @@ export default {
 
 .add-team-card__input {
   flex: 1;
+  min-width: 0;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;

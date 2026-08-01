@@ -221,15 +221,20 @@
         <label class="team-card__modal-sublabel">{{ $t('stat.newPlayerName') }}</label>
         <div v-if="team.bench?.length" class="team-card__modal-bench">
           <button
-            v-for="name in team.bench"
-            :key="name"
+            v-for="(player, index) in team.bench"
+            :key="getBenchPlayerName(player) || index"
             class="team-card__modal-bench-chip"
-            @click="replacePlayerName = name"
+            @click="selectBenchPlayer(player)"
           >
-            + {{ name }}
+            + {{ getBenchPlayerName(player) }}
           </button>
         </div>
-        <input type="text" class="team-card__modal-input" v-model="replacePlayerName" />
+        <input
+          type="text"
+          class="team-card__modal-input"
+          v-model="replacePlayerName"
+          @input="replacePortalPlayerId = null"
+        />
         <button
           class="team-card__modal-btn"
           :disabled="replacePlayerIndex === null || !replacePlayerName"
@@ -259,6 +264,7 @@ export default {
       changePlayerIndex: null,
       replacePlayerModalOpen: false,
       replacePlayerName: '',
+      replacePortalPlayerId: null,
       replacePlayerIndex: null,
     };
   },
@@ -282,11 +288,25 @@ export default {
     },
     showReplacePlayerModal() {
       this.replacePlayerName = '';
+      this.replacePortalPlayerId = null;
       this.replacePlayerIndex = null;
       this.replacePlayerModalOpen = true;
     },
+    getBenchPlayerName(player) {
+      return typeof player === 'string' ? player : player?.name || '';
+    },
+    selectBenchPlayer(player) {
+      this.replacePlayerName = this.getBenchPlayerName(player);
+      this.replacePortalPlayerId = typeof player === 'object' ? player.portalPlayerId || null : null;
+    },
     confirmReplacePlayer() {
-      this.$emit('replacePlayer', this.iterator, this.replacePlayerIndex, this.replacePlayerName);
+      this.$emit(
+        'replacePlayer',
+        this.iterator,
+        this.replacePlayerIndex,
+        this.replacePlayerName,
+        this.replacePortalPlayerId,
+      );
       this.replacePlayerModalOpen = false;
     },
     updateScore(value) {

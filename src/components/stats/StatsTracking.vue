@@ -18,18 +18,26 @@
     </div>
 
     <div class="tracking__status">
-      <div class="tracking__status-item">
-        <span class="tracking__status-label">{{ $t('stat.man') }}</span>
-        <span class="tracking__status-value"
-          >{{ currentMan + 1 }}<span class="tracking__status-dim">/{{ manCount }}</span></span
-        >
+      <div v-if="gameName" class="tracking__status-context">
+        <span class="tracking__status-icon" aria-hidden="true">
+          <Trophy :size="17" :stroke-width="2" />
+        </span>
+        <span class="tracking__status-name" :title="gameName">{{ gameName }}</span>
       </div>
-      <div class="tracking__status-item" v-if="gameName">
-        <span class="tracking__status-label">{{ gameName }}</span>
-      </div>
-      <div class="tracking__status-item">
-        <span class="tracking__status-label">{{ $t('stat.score') }}</span>
-        <span class="tracking__status-value">{{ currentScore.team1 }} : {{ currentScore.team2 }}</span>
+      <div class="tracking__status-metrics" aria-live="polite">
+        <div class="tracking__status-item">
+          <span class="tracking__status-label">{{ $t('stat.man') }}</span>
+          <span class="tracking__status-value tracking__status-value--round">
+            {{ currentMan + 1 }}<span class="tracking__status-dim">/{{ manCount }}</span>
+          </span>
+        </div>
+        <div class="tracking__status-divider" aria-hidden="true"></div>
+        <div class="tracking__status-item tracking__status-item--score">
+          <span class="tracking__status-label">{{ $t('stat.score') }}</span>
+          <span class="tracking__status-value tracking__status-value--score">
+            {{ currentScore.team1 }}<span class="tracking__status-colon">:</span>{{ currentScore.team2 }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -101,11 +109,11 @@
 import Teaminfo from '@/components/stats/Teaminfo.vue';
 import Loader from '@/components/Loader.vue';
 import { throwDistances } from '@/helpers-stat.js';
-import { ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2 } from 'lucide-vue-next';
+import { ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2, Trophy } from 'lucide-vue-next';
 
 export default {
   name: 'StatsTracking',
-  components: { Teaminfo, Loader, ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2 },
+  components: { Teaminfo, Loader, ChevronsDown, Plus, Check, ChevronLeft, ChevronRight, Trash2, Trophy },
   props: [
     'team1',
     'team2',
@@ -173,8 +181,8 @@ export default {
     onChangePlayer(iterator, playerIndex, playerName) {
       this.$emit('changePlayer', iterator, playerIndex, playerName);
     },
-    onReplacePlayer(iterator, playerIndex, playerName) {
-      this.$emit('replacePlayer', iterator, playerIndex, playerName);
+    onReplacePlayer(iterator, playerIndex, playerName, portalPlayerId = null) {
+      this.$emit('replacePlayer', iterator, playerIndex, playerName, portalPlayerId);
     },
     onTouchStart(event) {
       this.startX = event.touches[0].clientX;
@@ -240,68 +248,158 @@ export default {
 .tracking__status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+  padding: 0.9rem 1rem;
   margin: 0 0.75rem;
-  background: var(--color-surface);
+  background: linear-gradient(135deg, var(--color-surface) 55%, var(--color-primary-bg));
   border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px var(--color-card-shadow);
+}
+
+.tracking__status::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--color-primary);
+}
+
+.tracking__status-context {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.tracking__status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-bg-hover);
   border-radius: 10px;
+}
+
+.tracking__status-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracking__status-metrics {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1fr) 1px minmax(6.5rem, 1fr);
+  align-items: stretch;
+  gap: 0.85rem;
+  min-width: 15rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-surface-semi);
+  border: 1px solid var(--color-border-light);
+  border-radius: 11px;
 }
 
 .tracking__status-item {
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
-.tracking__status-item:nth-child(2) {
-  flex: 1;
-  text-align: center;
-  justify-content: center;
+.tracking__status-item--score {
+  min-width: 0;
+}
+
+.tracking__status-divider {
+  width: 1px;
+  background: var(--color-border);
 }
 
 .tracking__status-label {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
 .tracking__status-value {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
+  line-height: 1;
   color: var(--color-text);
+  white-space: nowrap;
+}
+
+.tracking__status-value--round {
+  color: var(--color-primary);
+}
+
+.tracking__status-value--score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking__status-colon {
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .tracking__status-dim {
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
-@media (max-width: 500px) {
+@media (max-width: 700px) {
   .tracking__status {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.6rem 0.75rem;
+    gap: 0.8rem;
+    padding: 0.85rem 0.9rem 0.9rem;
+  }
+
+  .tracking__status-context {
+    padding: 0 0.1rem;
+  }
+
+  .tracking__status-name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .tracking__status-metrics {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 370px) {
+  .tracking__status-metrics {
+    grid-template-columns: minmax(4.5rem, 1fr) 1px minmax(5.5rem, 1fr);
+    gap: 0.55rem;
+    padding-inline: 0.6rem;
   }
 
   .tracking__status-item {
-    justify-content: space-between;
-  }
-
-  .tracking__status-item:nth-child(2) {
-    text-align: left;
-    justify-content: flex-start;
-    font-size: 0.85rem;
-    padding: 0.25rem 0;
-    border-top: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .tracking__status-item:nth-child(2) .tracking__status-label {
-    font-size: 0.85rem;
-    line-height: 1.3;
+    gap: 0.35rem;
   }
 }
 
@@ -366,6 +464,12 @@ export default {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+@media (max-width: 500px) {
+  .tracking__nav {
+    padding-inline: 0.75rem;
+  }
 }
 
 /* Buttons */

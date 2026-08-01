@@ -350,6 +350,7 @@
       "
       @close="showProtocol = false"
       :tournament="tournament"
+      :tournament-meta="tournamentWrapper"
       :rankingTeams="rankingTeams"
     />
     <TirProtocol

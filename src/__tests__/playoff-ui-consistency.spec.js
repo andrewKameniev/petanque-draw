@@ -97,6 +97,7 @@ describe('playoff UI consistency', () => {
     expect(Bracket.components.BracketFullscreenButton).toBe(BracketFullscreenButton);
     expect(DoubleElimination.components.BracketFullscreenButton).toBe(BracketFullscreenButton);
     expect(bracketView).toContain('data-testid="toggle-single-elimination-fullscreen"');
+    expect(bracketView).toContain('{{ singleMatchId(si, gi) }}');
     expect(bracketView).toMatch(/\.bracket-modal--embedded\s*{[\s\S]*?border: 1px solid var\(--color-border\);/);
     expect(doubleView).toMatch(/\.double-elimination__match--pending,[\s\S]*?background: var\(--color-surface-alt\);/);
   });

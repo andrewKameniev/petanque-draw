@@ -36,6 +36,10 @@
           >
             <g v-for="(stage, si) in stages" :key="si">
               <g v-for="(game, gi) in stage.games" :key="gi">
+                <rect :x="game.x" :y="game.y - 14" width="34" height="12" rx="2" class="match-id-badge" />
+                <text :x="game.x + 17" :y="game.y - 5" class="match-id-text">
+                  {{ singleMatchId(si, gi) }}
+                </text>
                 <rect :x="game.x" :y="game.y" :width="boxWidth" :height="boxHeight" rx="6" ry="6" class="game-box" />
                 <line
                   :x1="game.x + 1"
@@ -576,6 +580,17 @@ export default {
   fill: var(--color-surface-alt);
   stroke: var(--bracket-connector);
   stroke-width: 1;
+}
+
+.match-id-badge {
+  fill: var(--color-surface-alt);
+}
+
+.match-id-text {
+  fill: var(--color-text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-anchor: middle;
 }
 
 .game-divider {

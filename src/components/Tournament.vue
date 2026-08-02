@@ -1126,6 +1126,10 @@ export default {
     },
     autoFillScores() {
       autoFillScoresFn(this.tournament, this.activeRound);
+      if (this.tournament.playOffBracket?.format === 'double') {
+        this.setPlayOffBracket(this.tournament.playOffBracket);
+        return;
+      }
       this.syncGames();
     },
   },

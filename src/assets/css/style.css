@@ -1,5 +1,6 @@
 @import url('./variables.css');
 @import url('./color-schemas.css');
+@import url('./public-game-card.css');
 
 html {
   background-color: var(--color-body-bg);

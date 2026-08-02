@@ -93,4 +93,16 @@ describe('playoff UI consistency', () => {
       ),
     ).toBe(true);
   });
+
+  it('keeps every public match card on one shared stylesheet', () => {
+    const gameView = readFileSync(new URL('../components/partials/Game.vue', import.meta.url), 'utf8');
+    const publicView = readFileSync(new URL('../views/Public.vue', import.meta.url), 'utf8');
+    const cardStyles = readFileSync(new URL('../assets/css/public-game-card.css', import.meta.url), 'utf8');
+
+    expect(gameView).not.toContain('.public-game-card .match-lane-left--finished');
+    expect(publicView).not.toContain('.match-lane-left--finished {');
+    expect(publicView.match(/class="match-item public-game-card"/g)).toHaveLength(3);
+    expect(cardStyles).toContain('.public-game-card .match-lane-left--finished');
+    expect(cardStyles).not.toContain('background: var(--color-success)');
+  });
 });

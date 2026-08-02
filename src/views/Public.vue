@@ -200,7 +200,7 @@
               />
               <div v-if="activeTournamentView?.cadrage" class="match-list">
                 <div
-                  class="match-item"
+                  class="match-item public-game-card"
                   :class="{
                     'match-item--highlighted': isTeamHighlighted(game),
                     'match-item--in-progress': game.status === 'in_progress',
@@ -259,7 +259,7 @@
                   <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
                     <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
                     <div
-                      class="match-item"
+                      class="match-item public-game-card"
                       :class="{
                         'match-item--highlighted': isTeamHighlighted(game),
                         'match-item--in-progress': game.status === 'in_progress',
@@ -350,7 +350,7 @@
                 </template>
                 <div
                   v-else
-                  class="match-item"
+                  class="match-item public-game-card"
                   :class="{
                     'match-item--highlighted': isTeamHighlighted(game),
                     'match-item--in-progress': game.status === 'in_progress',
@@ -1443,39 +1443,6 @@ export default {
   }
 }
 
-.match-lane-left {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  background: var(--color-match-lane-bg);
-  border: 1px solid var(--color-match-lane-border);
-  line-height: 1;
-}
-
-.match-lane-left--active {
-  top: 8px;
-  transform: none;
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.match-lane-left--finished {
-  top: 8px;
-  transform: none;
-  color: var(--color-match-winner);
-  border-color: var(--color-match-winner);
-}
-
 .round-header {
   display: flex;
   align-items: center;
@@ -1511,229 +1478,6 @@ export default {
 
 .match-group:first-child .match-group__title {
   margin-top: 0;
-}
-
-.match-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px 12px 42px;
-  border-radius: 14px;
-  background: var(--color-surface, var(--color-white));
-  border: 1px solid var(--color-border);
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-  margin-bottom: 8px;
-}
-
-[data-theme='dark'] .match-item--finished,
-[data-theme='dark'] .match-item--in-progress,
-[data-theme='dark'] .match-item--upcoming {
-  background: var(--color-surface) !important;
-}
-
-.match-item:hover {
-  border-color: var(--color-match-border-hover);
-}
-
-.match-item--in-progress {
-  border-color: var(--color-match-border-active);
-  background: url('@/assets/img/card-bg-active.webp') center/cover no-repeat !important;
-}
-
-.match-item--finished {
-  border-color: var(--color-match-border-finished);
-  background: url('@/assets/img/card-bg-finished.webp') center/cover no-repeat !important;
-}
-
-.match-item--upcoming {
-  border-color: var(--color-match-border-upcoming);
-  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
-}
-
-.match-team {
-  min-width: 0;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--color-text);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow-wrap: break-word;
-  transition: color 0.15s;
-}
-
-.match-team--highlighted {
-  color: var(--color-primary);
-}
-
-.match-item--highlighted {
-  background: var(--color-primary-bg) !important;
-}
-
-.match-team-right {
-  text-align: right;
-}
-
-.match-vs {
-  text-align: center;
-}
-
-.match-lane {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-surface-alt, var(--color-primary-bg));
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.match-score {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.match-score--pending {
-  color: var(--color-match-score-pending);
-  font-weight: 400;
-}
-
-.match-team--winner {
-  color: var(--color-match-winner) !important;
-  font-weight: 700;
-}
-
-.match-status-badge {
-  grid-column: 1 / -1;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 0;
-}
-
-.match-status-badge--progress {
-  color: var(--color-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.match-progress-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  animation: live-pulse 1.5s ease-in-out infinite;
-}
-
-.match-status-badge--finished {
-  color: var(--tir-winner-text);
-}
-
-.match-status-badge--live {
-  color: var(--color-stream-youtube);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-}
-
-.match-live-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--color-stream-youtube);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.match-live-link.stream-icon--twitch {
-  color: var(--color-stream-twitch);
-}
-
-.match-live-link.stream-icon--facebook {
-  color: var(--color-stream-facebook);
-}
-
-.match-live-link.stream-icon--instagram {
-  color: var(--color-stream-instagram);
-}
-
-.match-live-link:hover {
-  opacity: 0.8;
-}
-
-.match-live-label {
-  font-weight: 600;
-  margin-left: 2px;
-}
-
-.match-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-stream-youtube);
-  animation: live-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes live-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.score-history {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding-top: 6px;
-}
-
-.score-history__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px 2px 4px;
-  border-radius: 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-}
-
-.score-history__num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-btn-text);
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.score-history__score {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
 }
 
 .tabs-content-area {

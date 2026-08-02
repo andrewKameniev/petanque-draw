@@ -215,8 +215,10 @@ export default {
     streamClass: getStreamIconClass,
     isPublicTeamHighlighted(teamName) {
       if (!this.highlightedTeam) return false;
-      if (this.highlightedTeam === teamName) return true;
-      return this.teamClubMap?.[teamName] === this.highlightedTeam;
+      const query = this.highlightedTeam.toLowerCase();
+      return (
+        teamName?.toLowerCase().includes(query) || this.teamClubMap?.[teamName]?.toLowerCase().includes(query) || false
+      );
     },
     onScoreInput(field) {
       const committedVal = this._committedScores?.[field] ?? null;

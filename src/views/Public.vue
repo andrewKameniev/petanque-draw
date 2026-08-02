@@ -85,12 +85,6 @@
           <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
           <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
         </div>
-        <div v-if="activeTournamentView?.playOff && !isDoubleElimination" class="btn-bracket-group">
-          <button class="button is-small btn-bracket" @click="openBracket">
-            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
-            {{ $t('games.showBracket') }}
-          </button>
-        </div>
       </div>
       <div v-if="isFinished && winnerTeam" class="winner-card">
         <div class="winner-card__trophy">
@@ -450,6 +444,12 @@
             :bracket-only="true"
             class="playoff-public-wrapper"
           />
+          <Bracket
+            v-else-if="activeTab === 'bracket' && hasPlayoffBracket"
+            :bracket="activeTournamentView.playOffBracket"
+            :embedded="true"
+            class="playoff-public-wrapper"
+          />
           <div v-if="activeTab === 'teams'">
             <TeamsList
               :previewTournament="activeTournamentView"
@@ -505,6 +505,7 @@ import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 import PlayOff from '@/components/partials/PlayOff.vue';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
+import Bracket from '@/components/partials/Bracket.vue';
 import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
@@ -523,6 +524,7 @@ export default {
     ThemeSwitcher,
     PlayOff,
     DoubleElimination,
+    Bracket,
     TeamPlayoff,
     TeamsList,
     Results,
@@ -615,7 +617,7 @@ export default {
         else roundLabel = `${this.$t('common.round')} ${this.activeRound}`;
         list.push({ id: 'round', label: roundLabel, icon: 'PlayCircle' });
       }
-      if (this.isDoubleElimination) {
+      if (this.hasPlayoffBracket) {
         list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: 'GitFork' });
       }
       list.push({ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' });
@@ -634,6 +636,9 @@ export default {
     },
     isDoubleElimination() {
       return this.activeTournamentView?.playOffBracket?.format === 'double';
+    },
+    hasPlayoffBracket() {
+      return !!this.activeTournamentView?.playOffBracket?.stages?.length;
     },
     activeRound() {
       const t = this.activeTournamentView;
@@ -891,18 +896,6 @@ export default {
   methods: {
     displayLane(game, index) {
       return getGameLaneNumber(game, this.activeTournamentView, index);
-    },
-    openBracket() {
-      if (this.activeTab === 'round' && this.$refs.playOff) {
-        this.$refs.playOff.showBracket = true;
-        return;
-      }
-      this.activeTab = 'round';
-      this.$nextTick(() => {
-        if (this.$refs.playOff) {
-          this.$refs.playOff.showBracket = true;
-        }
-      });
     },
     getGameStreams(game, index) {
       return getGameStreams(game, this.activeTournamentView, index);
@@ -1232,30 +1225,6 @@ export default {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-}
-
-.btn-bracket-group {
-  position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-bracket {
-  background: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-}
-
-.btn-bracket:hover {
-  color: var(--color-white);
-}
-
-@media screen and (max-width: 768px) {
-  .btn-bracket {
-    font-size: 1rem;
-  }
 }
 
 .tournament-info-row {

@@ -1,8 +1,8 @@
 <template>
-  <Teleport to="body">
-    <div class="modal is-active">
-      <div class="modal-background" @click.self="$emit('close-modal')"></div>
-      <div class="modal-content bracket-modal">
+  <Teleport to="body" :disabled="embedded">
+    <div :class="embedded ? 'bracket-embedded' : 'modal is-active'">
+      <div v-if="!embedded" class="modal-background" @click.self="$emit('close-modal')"></div>
+      <div :class="['bracket-modal', { 'modal-content': !embedded, 'bracket-modal--embedded': embedded }]">
         <div class="bracket-container" ref="container">
           <svg :width="svgWidth" :height="svgHeight" class="bracket-svg">
             <g v-for="(stage, si) in stages" :key="si">
@@ -186,7 +186,12 @@
           </svg>
         </div>
       </div>
-      <button class="modal-close is-large bracket-close" aria-label="close" @click="$emit('close-modal')"></button>
+      <button
+        v-if="!embedded"
+        class="modal-close is-large bracket-close"
+        aria-label="close"
+        @click="$emit('close-modal')"
+      ></button>
     </div>
   </Teleport>
 </template>
@@ -194,13 +199,16 @@
 <script>
 export default {
   name: 'Bracket',
-  props: ['bracket'],
+  props: {
+    bracket: { type: Object, required: true },
+    embedded: { type: Boolean, default: false },
+  },
   emits: ['close-modal'],
   mounted() {
-    document.documentElement.style.overflow = 'hidden';
+    if (!this.embedded) document.documentElement.style.overflow = 'hidden';
   },
   beforeUnmount() {
-    document.documentElement.style.overflow = '';
+    if (!this.embedded) document.documentElement.style.overflow = '';
   },
   data() {
     return {
@@ -406,6 +414,24 @@ export default {
   max-width: 95vw;
   max-height: 90vh;
   overflow: auto;
+}
+
+.bracket-embedded {
+  width: 100%;
+  overflow: auto hidden;
+  border: 1px solid var(--color-primary);
+  border-radius: 16px;
+  background: var(--color-surface);
+  overscroll-behavior-inline: contain;
+}
+
+.bracket-modal--embedded {
+  width: max-content;
+  max-width: none;
+  max-height: none;
+  margin-inline: auto;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .bracket-container {

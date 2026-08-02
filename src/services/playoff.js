@@ -90,3 +90,288 @@ export function buildCadrageGames(playOffList, teamToPlayOff) {
   }
   return cadrageGames;
 }
+
+function nextPowerOfTwo(value) {
+  return Math.pow(2, Math.ceil(Math.log2(Math.max(2, value))));
+}
+
+/**
+ * Balanced seed positions (8 players: 1-8, 5-4, 3-6, 7-2). Byes therefore
+ * go to the highest seeds and seeds 1/2 cannot meet before the upper final.
+ */
+export function getBracketSeedOrder(size) {
+  let order = [1, 2];
+  while (order.length < size) {
+    const total = order.length * 2 + 1;
+    order = order.flatMap((seed, index) => (index % 2 === 0 ? [seed, total - seed] : [total - seed, seed]));
+  }
+  return order;
+}
+
+function source(type, matchId) {
+  return { type, matchId };
+}
+
+function createDoubleMatch(id, source1, source2) {
+  return {
+    id,
+    source_1: source1,
+    source_2: source2,
+    team_1: null,
+    team_1_score: null,
+    team_2: null,
+    team_2_score: null,
+    status: 'not_started',
+  };
+}
+
+function createDoubleStage(id, bracket, round, sequence, matches) {
+  return {
+    id,
+    bracket,
+    round,
+    sequence,
+    stageLabel: id,
+    teamsCount: matches.length * 2,
+    teams: matches,
+    laneOrder: matches.map((_, index) => index),
+  };
+}
+
+/**
+ * Builds a dependency-driven double-elimination bracket for any participant
+ * count. Non-power-of-two fields are padded with seeded byes. The lower bracket
+ * crosses upper-round losers to the opposite side, preventing an immediate
+ * rematch after a drop whenever the field contains at least four participants.
+ */
+export function buildDoubleEliminationBracket(participants) {
+  const entrants = participants.filter((participant) => participant?.title && !participant.isBye);
+  if (entrants.length < 2) throw new Error('Double elimination requires at least two participants');
+
+  const size = nextPowerOfTwo(entrants.length);
+  const upperRoundCount = Math.log2(size);
+  const seedOrder = getBracketSeedOrder(size);
+  const seededSlots = seedOrder.map((seed) => ({
+    type: 'seed',
+    seed,
+    team: entrants[seed - 1]?.title || null,
+  }));
+  const stages = [];
+
+  let previousUpper = [];
+  for (let round = 1; round <= upperRoundCount; round++) {
+    const matchCount = size / Math.pow(2, round);
+    const matches = [];
+    for (let index = 0; index < matchCount; index++) {
+      const id = `U${round}M${index + 1}`;
+      const first = round === 1 ? seededSlots[index * 2] : source('winner', previousUpper[index * 2].id);
+      const second = round === 1 ? seededSlots[index * 2 + 1] : source('winner', previousUpper[index * 2 + 1].id);
+      matches.push(createDoubleMatch(id, first, second));
+    }
+    stages.push(createDoubleStage(`upper-${round}`, 'upper', round, round === 1 ? 1 : (round - 1) * 2, matches));
+    previousUpper = matches;
+  }
+
+  let previousLower = [];
+  for (let pair = 1; pair < upperRoundCount; pair++) {
+    const matchCount = size / Math.pow(2, pair + 1);
+    const consolidationRound = pair * 2 - 1;
+    const consolidation = [];
+    for (let index = 0; index < matchCount; index++) {
+      const id = `L${consolidationRound}M${index + 1}`;
+      const first = pair === 1 ? source('loser', `U1M${index * 2 + 1}`) : source('winner', previousLower[index * 2].id);
+      const second =
+        pair === 1 ? source('loser', `U1M${index * 2 + 2}`) : source('winner', previousLower[index * 2 + 1].id);
+      consolidation.push(createDoubleMatch(id, first, second));
+    }
+    stages.push(createDoubleStage(`lower-${consolidationRound}`, 'lower', consolidationRound, pair * 2, consolidation));
+
+    const dropRound = consolidationRound + 1;
+    const dropMatches = [];
+    for (let index = 0; index < matchCount; index++) {
+      const id = `L${dropRound}M${index + 1}`;
+      const crossedUpperIndex = matchCount - index;
+      dropMatches.push(
+        createDoubleMatch(
+          id,
+          source('winner', consolidation[index].id),
+          source('loser', `U${pair + 1}M${crossedUpperIndex}`),
+        ),
+      );
+    }
+    stages.push(createDoubleStage(`lower-${dropRound}`, 'lower', dropRound, pair * 2 + 1, dropMatches));
+    previousLower = dropMatches;
+  }
+
+  const upperFinal = `U${upperRoundCount}M1`;
+  const lowerFinal = previousLower[0]?.id || upperFinal;
+  const grandFinalOne = createDoubleMatch(
+    'GF1',
+    source('winner', upperFinal),
+    upperRoundCount === 1 ? source('loser', upperFinal) : source('winner', lowerFinal),
+  );
+  const grandSequence = Math.max(...stages.map((stage) => stage.sequence)) + 1;
+  stages.push(createDoubleStage('grand-final-1', 'grand', 1, grandSequence, [grandFinalOne]));
+
+  const bracket = {
+    format: 'double',
+    version: 1,
+    size,
+    participantCount: entrants.length,
+    grandFinalMode: 'single',
+    stages,
+    champion: null,
+    runnerUp: null,
+    placements: {},
+  };
+  advanceDoubleEliminationBracket(bracket);
+  return bracket;
+}
+
+function matchMap(bracket) {
+  return new Map(bracket.stages.flatMap((stage) => stage.teams).map((match) => [match.id, match]));
+}
+
+function resolveSource(input, matches) {
+  if (!input) return { ready: false, team: null };
+  if (input.type === 'seed') return { ready: true, team: input.team || null };
+  const dependency = matches.get(input.matchId);
+  if (!dependency || dependency.status !== 'finished' || dependency.resultCommitted === false) {
+    return { ready: false, team: null };
+  }
+  return { ready: true, team: input.type === 'winner' ? dependency.winner || null : dependency.loser || null };
+}
+
+function setResolvedTeam(match, field, value) {
+  if (match[field] === value) return false;
+  match[field] = value;
+  return true;
+}
+
+function finishAutomaticBye(match, first, second) {
+  if (!first.ready || !second.ready || !!first.team === !!second.team) return false;
+  match.team_1 = first.team;
+  match.team_2 = second.team;
+  match.team_1_score = null;
+  match.team_2_score = null;
+  match.isBye = true;
+  match.status = 'finished';
+  match.resultCommitted = true;
+  match.winner = first.team || second.team;
+  match.loser = null;
+  return true;
+}
+
+export function getDoubleEliminationPlacements(bracket) {
+  const placements = {};
+  if (bracket.champion) placements[bracket.champion] = 1;
+  if (bracket.runnerUp) placements[bracket.runnerUp] = 2;
+
+  let nextPlace = 3;
+  const lowerStages = bracket.stages.filter((stage) => stage.bracket === 'lower').sort((a, b) => b.round - a.round);
+  lowerStages.forEach((stage) => {
+    const eliminated = stage.teams
+      .filter((match) => match.resultCommitted !== false)
+      .map((match) => match.loser)
+      .filter((team) => team && !placements[team]);
+    if (!eliminated.length) return;
+    const label = eliminated.length === 1 ? nextPlace : `${nextPlace}-${nextPlace + eliminated.length - 1}`;
+    eliminated.forEach((team) => {
+      placements[team] = label;
+    });
+    nextPlace += eliminated.length;
+  });
+  return placements;
+}
+
+/** Resolve newly available entrants, automatic byes, and the champion. */
+export function advanceDoubleEliminationBracket(bracket) {
+  const matches = matchMap(bracket);
+  let changed = true;
+  let passes = 0;
+  while (changed && passes < bracket.stages.length + 2) {
+    changed = false;
+    passes++;
+    bracket.stages.forEach((stage) => {
+      stage.teams.forEach((match) => {
+        if (match.status === 'finished' || match.status === 'skipped') return;
+        const first = resolveSource(match.source_1, matches);
+        const second = resolveSource(match.source_2, matches);
+        if (first.ready) changed = setResolvedTeam(match, 'team_1', first.team) || changed;
+        if (second.ready) changed = setResolvedTeam(match, 'team_2', second.team) || changed;
+        if (finishAutomaticBye(match, first, second)) changed = true;
+      });
+    });
+  }
+
+  const firstFinal = matches.get('GF1');
+  if (firstFinal?.status === 'finished' && firstFinal.resultCommitted !== false) {
+    bracket.champion = firstFinal.winner;
+    bracket.runnerUp = firstFinal.loser;
+  }
+  bracket.placements = getDoubleEliminationPlacements(bracket);
+  return bracket;
+}
+
+export function findDoubleEliminationMatch(bracket, matchId) {
+  for (let stageIndex = 0; stageIndex < bracket.stages.length; stageIndex++) {
+    const gameIndex = bracket.stages[stageIndex].teams.findIndex((match) => match.id === matchId);
+    if (gameIndex !== -1) return { stageIndex, gameIndex, match: bracket.stages[stageIndex].teams[gameIndex] };
+  }
+  return null;
+}
+
+export function recordDoubleEliminationResult(bracket, matchId, team1Score, team2Score) {
+  const found = findDoubleEliminationMatch(bracket, matchId);
+  if (!found) throw new Error(`Unknown double-elimination match: ${matchId}`);
+  stageDoubleEliminationResult(found.match, team1Score, team2Score);
+  found.match.resultCommitted = true;
+  return advanceDoubleEliminationBracket(bracket);
+}
+
+export function stageDoubleEliminationResult(match, team1Score, team2Score) {
+  const first = Number(team1Score);
+  const second = Number(team2Score);
+  if (!match.team_1 || !match.team_2 || !Number.isFinite(first) || !Number.isFinite(second) || first === second) {
+    throw new Error('A playable match requires two teams and a non-drawn score');
+  }
+  match.team_1_score = first;
+  match.team_2_score = second;
+  match.status = 'finished';
+  match.isBye = false;
+  match.resultCommitted = false;
+  match.winner = first > second ? match.team_1 : match.team_2;
+  match.loser = first > second ? match.team_2 : match.team_1;
+  return match;
+}
+
+export function getNextDoubleEliminationStage(bracket) {
+  return getReadyDoubleEliminationStages(bracket)[0] || null;
+}
+
+export function getReadyDoubleEliminationStages(bracket) {
+  return bracket.stages
+    .filter((stage) =>
+      stage.teams.some(
+        (match) => match.status !== 'finished' && match.status !== 'skipped' && match.team_1 && match.team_2,
+      ),
+    )
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+export function getEditableDoubleEliminationStages(bracket) {
+  const readyIds = new Set(getReadyDoubleEliminationStages(bracket).map((stage) => stage.id));
+  return bracket.stages
+    .filter((stage) => readyIds.has(stage.id) || stage.teams.some((match) => match.resultCommitted === false))
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+export function getPublicDoubleEliminationMatches(stage) {
+  return (stage?.teams || []).filter(
+    (match) => match.team_1 && match.team_2 && !match.isBye && match.status !== 'skipped',
+  );
+}
+
+export function getDoubleEliminationParticipantCount(tournament) {
+  return tournament?.playOffBracket?.participantCount || tournament?.teams?.length || 0;
+}

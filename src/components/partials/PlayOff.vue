@@ -7,238 +7,147 @@
     }"
     style="padding-top: 0; margin-top: 0"
   >
-    <div
-      class="is-flex is-justify-content-space-between is-align-items-center mb-2"
-      v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)"
-    >
-      <h2 v-if="playOffStageCurrent !== 0" style="margin: 0">{{ $t('games.playOff') }}</h2>
-      <button
-        v-if="!isPublicView && playOffStageCurrent !== 0"
-        class="button btn-purple-outline"
-        @click="showBracket = true"
+    <DoubleElimination
+      v-if="playOffBracket?.format === 'double'"
+      :active-tournament="tournament"
+      :is-public-view="!!isPublicView"
+      :hide-header="!!hideHeader"
+      :matches-only="!!matchesOnly"
+    />
+    <template v-else>
+      <div
+        class="is-flex is-justify-content-space-between is-align-items-center mb-2"
+        v-if="!hideHeader && (!isPublicView || playOffStageCurrent !== 0)"
       >
-        <GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem" />
-        {{ $t('games.showBracket') }}
-      </button>
-    </div>
-    <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
-      <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')" />
-      <template
-        v-else-if="
-          playOffStageCurrent &&
-          playOffStageCurrent !== 0 &&
-          currentPlayOffBracketIndex >= 0 &&
-          playOffBracket.stages?.[currentPlayOffBracketIndex]
-        "
-      >
-        <div class="playoff-stage-header">
-          <h2 class="text-center playoff-stage-title" data-testid="playoff-stage-heading">
-            {{ playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal') }}
-          </h2>
-          <div class="playoff-search-wrapper">
-            <button
-              class="playoff-search-btn"
-              @click="showSearch = !showSearch"
-              :class="{ 'playoff-search-btn--active': highlightedTeam }"
-            >
-              <Search :size="16" />
-              <UserRound :size="16" />
-            </button>
-            <div v-if="showSearch" class="playoff-search-popover">
-              <input
-                ref="searchInput"
-                v-model="searchQuery"
-                class="playoff-search-input"
-                :placeholder="$t('teams.searchTeam')"
-                @keydown.escape="showSearch = false"
-                @keydown.enter="applySearch"
-              />
-              <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
-                <li
-                  v-for="club in filteredClubs"
-                  :key="'club-' + club"
-                  class="playoff-search-item playoff-search-item--club"
-                  :class="{ 'playoff-search-item--active': highlightedTeam === club }"
-                  @click="selectTeam(club)"
-                >
-                  <Building2 :size="12" />
-                  {{ club }}
-                </li>
-              </ul>
-              <ul class="playoff-search-list">
-                <li
-                  v-for="team in filteredTeams"
-                  :key="team"
-                  class="playoff-search-item"
-                  :class="{ 'playoff-search-item--active': isTeamHighlighted(team) }"
-                  @click="selectTeam(team)"
-                >
-                  {{ team }}
-                </li>
-                <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">
-                  {{ $t('teams.noResults') }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <template v-if="isPublicView">
-          <RoundTimer
-            v-if="
-              showTimerSection &&
-              (tournament.roundTimer?.timerStatus === 'running' ||
-                tournament.roundTimer?.timerStatus === 'ended' ||
-                tournament.roundTimer?.timerStatus === 'paused')
-            "
-            :timer-started-at="tournament.roundTimer.timerStartedAt"
-            :timer-ends-at="tournament.roundTimer.timerEndsAt"
-            :timer-status="tournament.roundTimer.timerStatus"
-            :remaining-ms="tournament.roundTimer.remainingMs || 0"
-            :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
-            :cochonettes="tournament.preferences.cochonettes || 1"
-            :read-only="true"
-            class="mb-3"
-          />
-          <div class="match-list">
-            <div
-              class="match-item"
-              v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams"
-              :key="ind"
-              v-show="!game.isBye"
-              :class="{
-                'match-item--highlighted': isGameHighlighted(game),
-                'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress',
-                'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished',
-                'match-item--upcoming':
-                  !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started'),
-              }"
-            >
-              <span
-                class="match-lane-left"
-                :class="{
-                  'match-lane-left--active': !tournament.tournamentIsFinished && game.status === 'in_progress',
-                  'match-lane-left--finished': tournament.tournamentIsFinished || game.status === 'finished',
-                }"
-                >{{ (currentStageLaneOrder[ind] ?? ind) + tournament.preferences.fieldsStart }}</span
+        <h2 v-if="playOffStageCurrent !== 0" style="margin: 0">{{ $t('games.playOff') }}</h2>
+        <button
+          v-if="!isPublicView && playOffStageCurrent !== 0"
+          class="button btn-purple-outline"
+          @click="showBracket = true"
+        >
+          <GitFork :size="16" style="transform: rotate(90deg); margin-right: 0.3rem" />
+          {{ $t('games.showBracket') }}
+        </button>
+      </div>
+      <div class="column play-off-stage-wrapper" data-testid="playoff-wrapper" v-if="playOffBracket">
+        <FinishedBanner v-if="playOffStageCurrent === 0 && !isPublicView" @openResults="$emit('openResults')" />
+        <template
+          v-else-if="
+            playOffStageCurrent &&
+            playOffStageCurrent !== 0 &&
+            currentPlayOffBracketIndex >= 0 &&
+            playOffBracket.stages?.[currentPlayOffBracketIndex]
+          "
+        >
+          <div class="playoff-stage-header">
+            <h2 class="text-center playoff-stage-title" data-testid="playoff-stage-heading">
+              {{
+                playOffStageCurrent === 1 ? $t('games.final') : '1/' + playOffStageCurrent + ' ' + $t('games.ofFinal')
+              }}
+            </h2>
+            <div class="playoff-search-wrapper">
+              <button
+                class="playoff-search-btn"
+                @click="showSearch = !showSearch"
+                :class="{ 'playoff-search-btn--active': highlightedTeam }"
               >
-              <span
-                class="match-team match-team-right"
-                :class="{
-                  'match-team--highlighted': isTeamNameHighlighted(game.team_1),
-                  'match-team--winner':
-                    (tournament.tournamentIsFinished || game.status === 'finished') &&
-                    Number(game.team_1_score) > Number(game.team_2_score),
-                }"
-                >{{ game.team_1 }}</span
-              >
-              <span class="match-vs">
-                <template
-                  v-if="tournament.tournamentIsFinished || game.status === 'in_progress' || game.status === 'finished'"
-                >
-                  <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                </template>
-                <template v-else>
-                  <span class="match-score match-score--pending">-- : --</span>
-                </template>
-              </span>
-              <span
-                class="match-team"
-                :class="{
-                  'match-team--highlighted': isTeamNameHighlighted(game.team_2),
-                  'match-team--winner':
-                    (tournament.tournamentIsFinished || game.status === 'finished') &&
-                    Number(game.team_2_score) > Number(game.team_1_score),
-                }"
-                >{{ game.team_2 }}</span
-              >
-              <span v-if="getGameStreams(game, ind).length" class="match-status-badge match-status-badge--live">
-                <span v-if="game.status === 'in_progress'" class="match-live-dot"></span>
-                <span class="match-live-label">{{
-                  game.status === 'in_progress' ? $t('games.live') : $t('games.stream')
-                }}</span>
-                <a
-                  v-for="(streamUrl, si) in getGameStreams(game, ind)"
-                  :key="si"
-                  :href="streamUrl"
-                  target="_blank"
-                  rel="noopener"
-                  class="match-live-link"
-                  :class="getStreamIconClass(streamUrl)"
-                >
-                  <component :is="getStreamIcon(streamUrl)" :size="16" />
-                </a>
-              </span>
-              <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
-                <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-              </span>
-              <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
-                $t('teamPlayoff.matchFinished')
-              }}</span>
-              <div
-                v-if="
-                  tournament.preferences.cochonettesEnabledPlayoff && game.score_history && game.score_history.length
-                "
-                class="score-history"
-              >
-                <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
-                  <span class="score-history__num">{{ i + 1 }}</span>
-                  <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-                </span>
+                <Search :size="16" />
+                <UserRound :size="16" />
+              </button>
+              <div v-if="showSearch" class="playoff-search-popover">
+                <input
+                  ref="searchInput"
+                  v-model="searchQuery"
+                  class="playoff-search-input"
+                  :placeholder="$t('teams.searchTeam')"
+                  @keydown.escape="showSearch = false"
+                  @keydown.enter="applySearch"
+                />
+                <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
+                  <li
+                    v-for="club in filteredClubs"
+                    :key="'club-' + club"
+                    class="playoff-search-item playoff-search-item--club"
+                    :class="{ 'playoff-search-item--active': highlightedTeam === club }"
+                    @click="selectTeam(club)"
+                  >
+                    <Building2 :size="12" />
+                    {{ club }}
+                  </li>
+                </ul>
+                <ul class="playoff-search-list">
+                  <li
+                    v-for="team in filteredTeams"
+                    :key="team"
+                    class="playoff-search-item"
+                    :class="{ 'playoff-search-item--active': isTeamHighlighted(team) }"
+                    @click="selectTeam(team)"
+                  >
+                    {{ team }}
+                  </li>
+                  <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">
+                    {{ $t('teams.noResults') }}
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
-          <div
-            v-if="
-              playOffStageCurrent === 1 &&
-              tournament.playOff.length > 1 &&
-              playOffBracket.thirdPlace &&
-              (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)
-            "
-          >
-            <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
+          <template v-if="isPublicView">
+            <RoundTimer
+              v-if="
+                showTimerSection &&
+                (tournament.roundTimer?.timerStatus === 'running' ||
+                  tournament.roundTimer?.timerStatus === 'ended' ||
+                  tournament.roundTimer?.timerStatus === 'paused')
+              "
+              :timer-started-at="tournament.roundTimer.timerStartedAt"
+              :timer-ends-at="tournament.roundTimer.timerEndsAt"
+              :timer-status="tournament.roundTimer.timerStatus"
+              :remaining-ms="tournament.roundTimer.remainingMs || 0"
+              :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
+              :cochonettes="tournament.preferences.cochonettes || 1"
+              :read-only="true"
+              class="mb-3"
+            />
             <div class="match-list">
               <div
                 class="match-item"
+                v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams"
+                :key="ind"
+                v-show="!game.isBye"
                 :class="{
-                  'match-item--in-progress':
-                    !tournament.tournamentIsFinished && playOffBracket.thirdPlace.status === 'in_progress',
-                  'match-item--finished':
-                    tournament.tournamentIsFinished || playOffBracket.thirdPlace.status === 'finished',
+                  'match-item--highlighted': isGameHighlighted(game),
+                  'match-item--in-progress': !tournament.tournamentIsFinished && game.status === 'in_progress',
+                  'match-item--finished': tournament.tournamentIsFinished || game.status === 'finished',
                   'match-item--upcoming':
-                    !tournament.tournamentIsFinished &&
-                    (!playOffBracket.thirdPlace.status || playOffBracket.thirdPlace.status === 'not_started'),
+                    !tournament.tournamentIsFinished && (!game.status || game.status === 'not_started'),
                 }"
               >
                 <span
                   class="match-lane-left"
                   :class="{
-                    'match-lane-left--active':
-                      !tournament.tournamentIsFinished && playOffBracket.thirdPlace.status === 'in_progress',
-                    'match-lane-left--finished':
-                      tournament.tournamentIsFinished || playOffBracket.thirdPlace.status === 'finished',
+                    'match-lane-left--active': !tournament.tournamentIsFinished && game.status === 'in_progress',
+                    'match-lane-left--finished': tournament.tournamentIsFinished || game.status === 'finished',
                   }"
-                  >{{ 1 + tournament.preferences.fieldsStart }}</span
+                  >{{ (currentStageLaneOrder[ind] ?? ind) + tournament.preferences.fieldsStart }}</span
                 >
                 <span
                   class="match-team match-team-right"
                   :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_1),
                     'match-team--winner':
-                      playOffBracket.thirdPlace.status === 'finished' &&
-                      Number(playOffBracket.thirdPlace.team_1_score) > Number(playOffBracket.thirdPlace.team_2_score),
+                      (tournament.tournamentIsFinished || game.status === 'finished') &&
+                      Number(game.team_1_score) > Number(game.team_2_score),
                   }"
-                  >{{ playOffBracket.thirdPlace.team_1 }}</span
+                  >{{ game.team_1 }}</span
                 >
                 <span class="match-vs">
                   <template
                     v-if="
-                      playOffBracket.thirdPlace.status === 'in_progress' ||
-                      playOffBracket.thirdPlace.status === 'finished'
+                      tournament.tournamentIsFinished || game.status === 'in_progress' || game.status === 'finished'
                     "
                   >
-                    <span class="match-score"
-                      >{{ playOffBracket.thirdPlace.team_1_score ?? 0 }} :
-                      {{ playOffBracket.thirdPlace.team_2_score ?? 0 }}</span
-                    >
+                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
                   </template>
                   <template v-else>
                     <span class="match-score match-score--pending">-- : --</span>
@@ -247,22 +156,20 @@
                 <span
                   class="match-team"
                   :class="{
+                    'match-team--highlighted': isTeamNameHighlighted(game.team_2),
                     'match-team--winner':
-                      playOffBracket.thirdPlace.status === 'finished' &&
-                      Number(playOffBracket.thirdPlace.team_2_score) > Number(playOffBracket.thirdPlace.team_1_score),
+                      (tournament.tournamentIsFinished || game.status === 'finished') &&
+                      Number(game.team_2_score) > Number(game.team_1_score),
                   }"
-                  >{{ playOffBracket.thirdPlace.team_2 }}</span
+                  >{{ game.team_2 }}</span
                 >
-                <span
-                  v-if="getGameStreams(playOffBracket.thirdPlace, 1).length"
-                  class="match-status-badge match-status-badge--live"
-                >
-                  <span v-if="playOffBracket.thirdPlace.status === 'in_progress'" class="match-live-dot"></span>
+                <span v-if="getGameStreams(game, ind).length" class="match-status-badge match-status-badge--live">
+                  <span v-if="game.status === 'in_progress'" class="match-live-dot"></span>
                   <span class="match-live-label">{{
-                    playOffBracket.thirdPlace.status === 'in_progress' ? $t('games.live') : $t('games.stream')
+                    game.status === 'in_progress' ? $t('games.live') : $t('games.stream')
                   }}</span>
                   <a
-                    v-for="(streamUrl, si) in getGameStreams(playOffBracket.thirdPlace, 1)"
+                    v-for="(streamUrl, si) in getGameStreams(game, ind)"
                     :key="si"
                     :href="streamUrl"
                     target="_blank"
@@ -273,100 +180,207 @@
                     <component :is="getStreamIcon(streamUrl)" :size="16" />
                   </a>
                 </span>
-                <span
-                  v-else-if="playOffBracket.thirdPlace.status === 'in_progress'"
-                  class="match-status-badge match-status-badge--progress"
-                >
+                <span v-else-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
                   <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
                 </span>
-                <span
-                  v-else-if="playOffBracket.thirdPlace.status === 'finished'"
-                  class="match-status-badge match-status-badge--finished"
-                  >{{ $t('teamPlayoff.matchFinished') }}</span
+                <span v-else-if="game.status === 'finished'" class="match-status-badge match-status-badge--finished">{{
+                  $t('teamPlayoff.matchFinished')
+                }}</span>
+                <div
+                  v-if="
+                    tournament.preferences.cochonettesEnabledPlayoff && game.score_history && game.score_history.length
+                  "
+                  class="score-history"
                 >
+                  <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
+                    <span class="score-history__num">{{ i + 1 }}</span>
+                    <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </template>
-        <template v-else>
-          <div v-if="showTimerSection" class="round-timer-section">
-            <RoundTimer
+            <div
               v-if="
-                tournament.roundTimer?.timerStatus === 'running' ||
-                tournament.roundTimer?.timerStatus === 'ended' ||
-                tournament.roundTimer?.timerStatus === 'paused'
+                playOffStageCurrent === 1 &&
+                tournament.playOff.length > 1 &&
+                playOffBracket.thirdPlace &&
+                (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)
               "
-              :timer-started-at="tournament.roundTimer.timerStartedAt"
-              :timer-ends-at="tournament.roundTimer.timerEndsAt"
-              :timer-status="tournament.roundTimer.timerStatus"
-              :remaining-ms="tournament.roundTimer.remainingMs || 0"
-              :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
-              :cochonettes="tournament.preferences.cochonettes || 1"
-              @timer-ended="onTimerEnded"
-              @restart="onTimerRestart"
-              @pause="pauseRoundTimer"
-              @resume="resumeRoundTimer"
-              @reset="clearRoundTimer"
+            >
+              <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
+              <div class="match-list">
+                <div
+                  class="match-item"
+                  :class="{
+                    'match-item--in-progress':
+                      !tournament.tournamentIsFinished && playOffBracket.thirdPlace.status === 'in_progress',
+                    'match-item--finished':
+                      tournament.tournamentIsFinished || playOffBracket.thirdPlace.status === 'finished',
+                    'match-item--upcoming':
+                      !tournament.tournamentIsFinished &&
+                      (!playOffBracket.thirdPlace.status || playOffBracket.thirdPlace.status === 'not_started'),
+                  }"
+                >
+                  <span
+                    class="match-lane-left"
+                    :class="{
+                      'match-lane-left--active':
+                        !tournament.tournamentIsFinished && playOffBracket.thirdPlace.status === 'in_progress',
+                      'match-lane-left--finished':
+                        tournament.tournamentIsFinished || playOffBracket.thirdPlace.status === 'finished',
+                    }"
+                    >{{ 1 + tournament.preferences.fieldsStart }}</span
+                  >
+                  <span
+                    class="match-team match-team-right"
+                    :class="{
+                      'match-team--winner':
+                        playOffBracket.thirdPlace.status === 'finished' &&
+                        Number(playOffBracket.thirdPlace.team_1_score) > Number(playOffBracket.thirdPlace.team_2_score),
+                    }"
+                    >{{ playOffBracket.thirdPlace.team_1 }}</span
+                  >
+                  <span class="match-vs">
+                    <template
+                      v-if="
+                        playOffBracket.thirdPlace.status === 'in_progress' ||
+                        playOffBracket.thirdPlace.status === 'finished'
+                      "
+                    >
+                      <span class="match-score"
+                        >{{ playOffBracket.thirdPlace.team_1_score ?? 0 }} :
+                        {{ playOffBracket.thirdPlace.team_2_score ?? 0 }}</span
+                      >
+                    </template>
+                    <template v-else>
+                      <span class="match-score match-score--pending">-- : --</span>
+                    </template>
+                  </span>
+                  <span
+                    class="match-team"
+                    :class="{
+                      'match-team--winner':
+                        playOffBracket.thirdPlace.status === 'finished' &&
+                        Number(playOffBracket.thirdPlace.team_2_score) > Number(playOffBracket.thirdPlace.team_1_score),
+                    }"
+                    >{{ playOffBracket.thirdPlace.team_2 }}</span
+                  >
+                  <span
+                    v-if="getGameStreams(playOffBracket.thirdPlace, 1).length"
+                    class="match-status-badge match-status-badge--live"
+                  >
+                    <span v-if="playOffBracket.thirdPlace.status === 'in_progress'" class="match-live-dot"></span>
+                    <span class="match-live-label">{{
+                      playOffBracket.thirdPlace.status === 'in_progress' ? $t('games.live') : $t('games.stream')
+                    }}</span>
+                    <a
+                      v-for="(streamUrl, si) in getGameStreams(playOffBracket.thirdPlace, 1)"
+                      :key="si"
+                      :href="streamUrl"
+                      target="_blank"
+                      rel="noopener"
+                      class="match-live-link"
+                      :class="getStreamIconClass(streamUrl)"
+                    >
+                      <component :is="getStreamIcon(streamUrl)" :size="16" />
+                    </a>
+                  </span>
+                  <span
+                    v-else-if="playOffBracket.thirdPlace.status === 'in_progress'"
+                    class="match-status-badge match-status-badge--progress"
+                  >
+                    <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+                  </span>
+                  <span
+                    v-else-if="playOffBracket.thirdPlace.status === 'finished'"
+                    class="match-status-badge match-status-badge--finished"
+                    >{{ $t('teamPlayoff.matchFinished') }}</span
+                  >
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div v-if="showTimerSection" class="round-timer-section">
+              <RoundTimer
+                v-if="
+                  tournament.roundTimer?.timerStatus === 'running' ||
+                  tournament.roundTimer?.timerStatus === 'ended' ||
+                  tournament.roundTimer?.timerStatus === 'paused'
+                "
+                :timer-started-at="tournament.roundTimer.timerStartedAt"
+                :timer-ends-at="tournament.roundTimer.timerEndsAt"
+                :timer-status="tournament.roundTimer.timerStatus"
+                :remaining-ms="tournament.roundTimer.remainingMs || 0"
+                :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
+                :cochonettes="tournament.preferences.cochonettes || 1"
+                @timer-ended="onTimerEnded"
+                @restart="onTimerRestart"
+                @pause="pauseRoundTimer"
+                @resume="resumeRoundTimer"
+                @reset="clearRoundTimer"
+              />
+              <button v-else class="start-timer-btn" @click="startRoundTimer">
+                <Timer :size="16" />
+                {{ $t('timer.startTimer') }}
+              </button>
+            </div>
+            <Game
+              v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams"
+              :key="ind"
+              v-show="!game.isBye"
+              :active-tournament="tournament"
+              :game="game"
+              :game-index="ind"
+              :is-playoff="true"
+              :lane-number="currentStageLaneOrder[ind]"
+              :class="{ 'game--highlighted': isGameHighlighted(game) }"
+              :active-round="currentPlayOffBracketIndex"
+              :compact-view="false"
+              @save="saveResults"
+              @swapLane="swapPlayoffLane"
+              @finish="onGameFinish"
+              @update="onPlayoffGameUpdate"
             />
-            <button v-else class="start-timer-btn" @click="startRoundTimer">
-              <Timer :size="16" />
-              {{ $t('timer.startTimer') }}
+            <div
+              v-if="
+                playOffStageCurrent === 1 &&
+                tournament.playOff.length > 1 &&
+                playOffBracket.thirdPlace &&
+                (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)
+              "
+            >
+              <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
+              <Game
+                :game="playOffBracket.thirdPlace"
+                :is-third="true"
+                :active-tournament="tournament"
+                :compact-view="false"
+                :game-index="1"
+                @save="saveResults"
+                @update="onThirdPlaceUpdate"
+                @finish="onThirdPlaceFinish"
+              />
+            </div>
+          </template>
+          <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">
+            {{ $t('games.resultsError') }}
+          </div>
+          <div class="text-center mt-5" v-if="!isPublicView && isOwnerOrAdmin">
+            <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveResults">
+              <Save :size="16" class="mr-1" /> {{ $t('games.saveResults') }}
             </button>
           </div>
-          <Game
-            v-for="(game, ind) in playOffBracket.stages[currentPlayOffBracketIndex].teams"
-            :key="ind"
-            v-show="!game.isBye"
-            :active-tournament="tournament"
-            :game="game"
-            :game-index="ind"
-            :is-playoff="true"
-            :lane-number="currentStageLaneOrder[ind]"
-            :class="{ 'game--highlighted': isGameHighlighted(game) }"
-            :active-round="currentPlayOffBracketIndex"
-            :compact-view="false"
-            @save="saveResults"
-            @swapLane="swapPlayoffLane"
-            @finish="onGameFinish"
-            @update="onPlayoffGameUpdate"
-          />
-          <div
-            v-if="
-              playOffStageCurrent === 1 &&
-              tournament.playOff.length > 1 &&
-              playOffBracket.thirdPlace &&
-              (playOffBracket.thirdPlace.team_1 || playOffBracket.thirdPlace.team_2)
-            "
-          >
-            <h3 class="text-center mt-5">{{ $t('games.thirdPlace') }}</h3>
-            <Game
-              :game="playOffBracket.thirdPlace"
-              :is-third="true"
-              :active-tournament="tournament"
-              :compact-view="false"
-              :game-index="1"
-              @save="saveResults"
-              @update="onThirdPlaceUpdate"
-              @finish="onThirdPlaceFinish"
-            />
-          </div>
         </template>
-        <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">
-          {{ $t('games.resultsError') }}
-        </div>
-        <div class="text-center mt-5" v-if="!isPublicView && isOwnerOrAdmin">
-          <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveResults">
-            <Save :size="16" class="mr-1" /> {{ $t('games.saveResults') }}
-          </button>
-        </div>
-      </template>
-    </div>
-    <Bracket v-if="showBracket" :bracket="playOffBracket" @close-modal="showBracket = false" />
+      </div>
+      <Bracket v-if="showBracket" :bracket="playOffBracket" @close-modal="showBracket = false" />
+    </template>
   </div>
 </template>
 
 <script>
 import Bracket from './Bracket';
+import DoubleElimination from './DoubleElimination.vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, shuffleArray, updateScoreHistory } from '@/helpers';
@@ -391,9 +405,10 @@ import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIco
 
 export default {
   name: 'PlayOff',
-  props: ['activeTournament', 'isPublicView', 'hideHeader'],
+  props: ['activeTournament', 'isPublicView', 'hideHeader', 'matchesOnly'],
   emits: ['openResults'],
   components: {
+    DoubleElimination,
     Game,
     Bracket,
     Save,

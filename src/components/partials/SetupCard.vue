@@ -132,6 +132,21 @@
         {{ $t('setup.straightPlayoffTechWins') }}
       </span>
       <GroupDrawMethod v-if="hasTeamRatings" v-model="tournament.preferences.groupDrawMethod" />
+      <label class="setup-card__label mt-2">{{ $t('doubleElimination.formatLabel') }}</label>
+      <select
+        class="setup-card__select"
+        v-model="tournament.preferences.playOffFormat"
+        data-testid="select-playoff-format"
+      >
+        <option value="single">{{ $t('doubleElimination.singleElimination') }}</option>
+        <option value="double">{{ $t('doubleElimination.title') }}</option>
+      </select>
+      <span class="setup-card__hint">{{ $t('doubleElimination.formatHint') }}</span>
+      <template v-if="tournament.preferences.playOffFormat === 'double'">
+        <span class="setup-card__hint">{{
+          $t('doubleElimination.playerCountHint', { count: tournament.teams.length })
+        }}</span>
+      </template>
     </div>
 
     <div v-if="tournament.system === 'supermele'" class="setup-card__field">
@@ -206,6 +221,20 @@
           >
             {{ qualifyPerGroupInfo }}
           </span>
+          <label class="setup-card__label mt-2">{{ $t('doubleElimination.formatLabel') }}</label>
+          <select
+            class="setup-card__select"
+            v-model="tournament.preferences.playOffFormat"
+            data-testid="select-playoff-format"
+          >
+            <option value="single">{{ $t('doubleElimination.singleElimination') }}</option>
+            <option value="double">{{ $t('doubleElimination.title') }}</option>
+          </select>
+          <template v-if="tournament.preferences.playOffFormat === 'double'">
+            <span class="setup-card__hint">{{
+              $t('doubleElimination.playerCountHint', { count: tournament.preferences.playOffTeams })
+            }}</span>
+          </template>
         </div>
         <label class="setup-card__checkbox setup-card__checkbox--sub">
           <input type="checkbox" v-model="localWithCadrage" data-testid="checkbox-cadrage" />
@@ -606,8 +635,13 @@ export default {
     },
     teamToPlayOffValues() {
       const values = [];
-      for (let i = 2; i <= this.tournament.teams.length; i *= 2) {
-        values.push(i);
+      const total = this.tournament.teams.length;
+      if (this.tournament.preferences.playOffFormat === 'double') {
+        for (let i = 2; i <= Math.min(16, total); i++) values.push(i);
+        for (let i = 20; i <= total; i += 4) values.push(i);
+        if (!values.includes(total)) values.push(total);
+      } else {
+        for (let i = 2; i <= total; i *= 2) values.push(i);
       }
       if (this.localWithCadrage) {
         values.pop();

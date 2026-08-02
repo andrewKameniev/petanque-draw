@@ -1,49 +1,11 @@
 <template>
   <div class="container protocol-container">
-    <div class="protocol-gate" v-if="!skipGate && password !== 499">
-      <div class="protocol-gate__card">
-        <div class="protocol-gate__badge">
-          <Star :size="14" />
-          Платна опція
-        </div>
-        <p class="protocol-gate__desc">
-          Ви отримуєте на 80% готовий протокол. Треба дописати тільки тренерів команд і трохи відформатувати текстовий
-          документ.
-        </p>
-        <div class="protocol-gate__payment">
-          <span class="protocol-gate__price">300 грн</span>
-          <span class="protocol-gate__card-number">5353 5423 2447 0856</span>
-          <button class="protocol-gate__copy" @click="copyCard" :title="cardCopied ? 'Скопійовано!' : 'Скопіювати'">
-            <Copy v-if="!cardCopied" :size="18" />
-            <Check v-else :size="18" />
-          </button>
-        </div>
-        <div class="protocol-gate__contact">
-          Після оплати пишіть у Telegram <strong>@andrewkamenev</strong> або дзвоніть
-          <a href="tel:+380951804418"><strong>+38-095-180-44-18</strong></a>
-        </div>
-        <div class="protocol-gate__tips">
-          <div class="protocol-gate__tip">
-            <Info :size="16" />
-            Ввести арбітрів можна тут же, або вже коли експортуєте у текстовий формат
-          </div>
-          <div class="protocol-gate__tip">
-            <Info :size="16" />
-            Кнопка "Скопіювати протокол" і відредагувати у текстовому редакторі — найкращий варіант
-          </div>
-        </div>
-      </div>
-      <div class="protocol-gate__password">
-        <label class="protocol-gate__label" for="protocolPassword">Пароль</label>
-        <input
-          class="protocol-gate__input"
-          id="protocolPassword"
-          type="number"
-          v-model="password"
-          placeholder="Введіть пароль"
-        />
-      </div>
-    </div>
+    <ProtocolGate
+      v-if="!skipGate && password !== 499"
+      v-model:password="password"
+      :card-copied="cardCopied"
+      @copy-card="copyCard"
+    />
     <div v-else>
       <div class="protocol-warning">
         <AlertTriangle :size="18" />
@@ -52,33 +14,12 @@
           регламент, може не бути всіх даних по гравцям. Перевіряйте вручну, будь ласка!</span
         >
       </div>
-      <div class="protocol-tools">
-        <section class="protocol-tools__section">
-          <div class="protocol-tools__header">
-            <div>
-              <span class="protocol-tools__eyebrow">Підготовка протоколу</span>
-              <h3>Дані учасників</h3>
-              <p>Оновіть інформацію з порталу та приберіть службові позначки перед експортом.</p>
-            </div>
-          </div>
-          <div class="protocol-tools__actions">
-            <button
-              class="protocol-actions__btn protocol-actions__btn--outline"
-              :disabled="refreshing"
-              @click="refreshPlayersFromPortal"
-            >
-              <RefreshCw :size="16" :class="{ spin: refreshing }" />
-              {{ refreshing ? 'Оновлення...' : 'Оновити дані гравців' }}
-            </button>
-            <button class="protocol-actions__btn protocol-actions__btn--outline" @click="removeDopyshit">
-              <Eraser :size="16" /> Прибрати "ДОПИШІТЬ МЕНЕ"
-            </button>
-            <button class="protocol-actions__btn protocol-actions__btn--ghost" @click="resetProtocol">
-              <RotateCcw :size="16" /> Скинути зміни
-            </button>
-          </div>
-        </section>
-      </div>
+      <ProtocolParticipantTools
+        :refreshing="refreshing"
+        @refresh="refreshPlayersFromPortal"
+        @remove-markers="removeDopyshit"
+        @reset="resetProtocol"
+      />
       <div id="protocol" class="mb-3" @input="saveProtocolToStorage">
         <div class="protocol-page">
           <h2 class="text-center is-size-3 mb-2">
@@ -392,71 +333,22 @@
           </div>
         </div>
       </div>
-      <div class="protocol-tools protocol-tools--bottom">
-        <section class="protocol-tools__section protocol-tools__section--arbiters">
-          <div class="protocol-tools__header">
-            <div>
-              <span class="protocol-tools__eyebrow">Суддівська колегія</span>
-              <h3>Керування суддями</h3>
-              <p>Оберіть суддів із реєстру або застосуйте готовий склад.</p>
-            </div>
-            <span class="protocol-tools__count">{{ arbitres.length }}</span>
-          </div>
-          <div class="protocol-tools__actions">
-            <ProtocolArbiterControls
-              :user-id="user?.uid"
-              :current-arbiters="arbitres"
-              :tournament-name="tournamentName"
-              @add="addArbitr"
-              @apply-selection="applyArbiterSelection"
-              @apply-preset="applyArbiterPreset"
-            />
-            <a
-              href="https://docs.google.com/spreadsheets/d/1yXDjYCX3nISBCt8-S-vmvIU31rb4SmhtRsWc8PbQy7Q/edit?usp=sharing"
-              target="_blank"
-              class="protocol-actions__btn protocol-actions__btn--outline"
-            >
-              <ExternalLink :size="16" /> Список суддів ФПУ
-            </a>
-          </div>
-          <label class="protocol-actions__checkbox protocol-tools__checkbox">
-            <input v-model="showArbitrCertificate" type="checkbox" /> № посвідчення суддів
-          </label>
-        </section>
-      </div>
-      <div class="protocol-tools protocol-tools--export">
-        <section class="protocol-tools__section protocol-tools__section--export">
-          <div class="protocol-tools__header">
-            <div>
-              <span class="protocol-tools__eyebrow">Готовий документ</span>
-              <h3>Експорт протоколу</h3>
-              <p>Завантажте протокол у потрібному форматі або скопіюйте його для подальшого редагування.</p>
-            </div>
-          </div>
-          <div class="protocol-tools__actions">
-            <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
-              <FileDown :size="16" /> {{ $t('teams.exportPdf') }}
-            </button>
-            <button
-              class="protocol-actions__btn protocol-actions__btn--primary"
-              :disabled="exportingDocx"
-              @click="exportDocx"
-            >
-              <FileText :size="16" /> {{ exportingDocx ? '...' : $t('teams.exportDocx') }}
-            </button>
-            <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
-              <Copy :size="16" /> {{ $t('teams.copyProtocol') }}
-            </button>
-            <button
-              v-if="!hideClose"
-              class="protocol-actions__btn protocol-actions__btn--outline"
-              @click="$emit('close')"
-            >
-              {{ $t('common.close') }}
-            </button>
-          </div>
-        </section>
-      </div>
+      <ProtocolFooter
+        :user-id="user?.uid"
+        :arbitres="arbitres"
+        :tournament-name="tournamentName"
+        :show-arbitr-certificate="showArbitrCertificate"
+        :exporting-docx="exportingDocx"
+        :hide-close="hideClose"
+        @update:show-arbitr-certificate="showArbitrCertificate = $event"
+        @add-arbiter="addArbitr"
+        @apply-arbiter-selection="applyArbiterSelection"
+        @apply-arbiter-preset="applyArbiterPreset"
+        @export-pdf="exportPdf"
+        @export-docx="exportDocx"
+        @copy-protocol="copyProtocol"
+        @close="$emit('close')"
+      />
     </div>
     <button class="protocol-back-top" @click="scrollToggle">
       <ChevronUp :size="20" :class="{ 'protocol-back-top__icon--down': !showBackTop }" />
@@ -479,44 +371,34 @@ import {
   refreshTournamentPlayerDetails,
 } from '@/protocol-helpers';
 import Ranking from '@/components/partials/Ranking';
-import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls';
+import ProtocolFooter from '@/components/partials/ProtocolFooter.vue';
+import ProtocolGate from '@/components/partials/ProtocolGate.vue';
+import ProtocolParticipantTools from '@/components/partials/ProtocolParticipantTools.vue';
 import playersNames from '../../data.json';
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { downloadProtocolDocx } from '@/services/protocol-docx';
 import {
-  Star,
-  Copy,
-  Check,
-  Info,
-  AlertTriangle,
-  ExternalLink,
-  FileDown,
-  FileText,
-  RefreshCw,
-  Eraser,
-  RotateCcw,
-  ChevronUp,
-} from 'lucide-vue-next';
+  clearProtocolHtml,
+  copyProtocolElement,
+  exportProtocolPdf,
+  fetchPortalTournamentTeams,
+  readProtocolHtml,
+  removeProtocolMarkers,
+  saveProtocolHtml,
+} from '@/services/protocol-runtime';
+import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
 
 export default {
   name: 'Protocol',
   components: {
     Ranking,
     Results,
-    Star,
-    Copy,
-    Check,
-    Info,
     AlertTriangle,
-    ProtocolArbiterControls,
-    ExternalLink,
-    FileDown,
-    FileText,
-    RefreshCw,
-    Eraser,
-    RotateCcw,
     ChevronUp,
+    ProtocolFooter,
+    ProtocolGate,
+    ProtocolParticipantTools,
   },
   props: ['tournament', 'tournamentMeta', 'rankingTeams', 'skipGate', 'hideClose'],
   emits: ['close'],
@@ -532,7 +414,7 @@ export default {
       arbitr: '',
       refreshing: false,
       exportingDocx: false,
-      showArbitrCertificate: false,
+      showArbitrCertificate: true,
       showBackTop: false,
       arbitres: [],
     };
@@ -659,18 +541,8 @@ export default {
       }
       this.refreshing = true;
       try {
-        const url = new window.URL(
-          `https://portal.petanque.org.ua/tournament/team_export/${encodeURIComponent(portalId)}`,
-        );
-        url.searchParams.set('format', 'json');
-        url.searchParams.set('_fresh', Date.now().toString());
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`Portal responded ${res.status}`);
-        const data = await res.json();
-        if (!Array.isArray(data?.teams)) throw new Error('Portal returned an invalid tournament export');
-
         // The protocol intentionally works on the selected tournament's local copy.
-        const stats = refreshTournamentPlayerDetails(this.tournament.teams, data.teams);
+        const stats = refreshTournamentPlayerDetails(this.tournament.teams, await fetchPortalTournamentTeams(portalId));
         this.$forceUpdate();
         await this.$nextTick();
         this.saveProtocolToStorage();
@@ -694,12 +566,10 @@ export default {
       }
     },
     saveProtocolToStorage() {
-      const el = document.getElementById('protocol');
-      if (!el) return;
-      localStorage.setItem(this.protocolStorageKey, el.innerHTML);
+      saveProtocolHtml(this.protocolStorageKey, document.getElementById('protocol'));
     },
     restoreProtocolFromStorage() {
-      const saved = localStorage.getItem(this.protocolStorageKey);
+      const saved = readProtocolHtml(this.protocolStorageKey);
       if (!saved) return;
       const el = document.getElementById('protocol');
       if (!el) return;
@@ -747,23 +617,14 @@ export default {
       }
     },
     resetProtocol() {
-      localStorage.removeItem(this.protocolStorageKey);
+      clearProtocolHtml(this.protocolStorageKey);
       location.reload();
     },
     removeDopyshit() {
       const el = document.getElementById('protocol');
-      if (!el) return;
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      while (walker.nextNode()) {
-        if (walker.currentNode.textContent.includes('ДОПИШІТЬ МЕНЕ')) {
-          nodes.push(walker.currentNode);
-        }
-      }
-      nodes.forEach((node) => {
-        node.textContent = node.textContent.replace(/\s*!!! ДОПИШІТЬ МЕНЕ!!!\s*/g, '');
-      });
-      this.showMessage({ title: 'Готово', text: `Прибрано ${nodes.length} міток` });
+      const count = removeProtocolMarkers(el);
+      this.saveProtocolToStorage?.();
+      this.showMessage({ title: 'Готово', text: `Прибрано ${count} міток` });
     },
     addArbitr(arbiter) {
       this.arbitres.push(arbiter);
@@ -802,16 +663,8 @@ export default {
     },
     copyProtocol() {
       const element = document.getElementById('protocol');
-
-      const range = document.createRange();
-      range.selectNodeContents(element);
-
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-
       try {
-        const successful = document.execCommand('copy');
+        const successful = copyProtocolElement(element);
         if (successful) {
           this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.protocolCopied') });
         } else {
@@ -824,53 +677,19 @@ export default {
       } catch (err) {
         console.error('Error copying to clipboard:', err);
       }
-
-      selection.removeAllRanges();
     },
     async exportPdf() {
-      const { default: html2pdf } = await import('html2pdf.js');
       const el = document.getElementById('protocol');
-
-      el.classList.add('is-exporting');
-
-      const overflows = [];
-      el.querySelectorAll('.table-container').forEach((tc) => {
-        overflows.push({ el: tc, overflow: tc.style.overflow, maxWidth: tc.style.maxWidth });
-        tc.style.overflow = 'visible';
-        tc.style.maxWidth = 'none';
-      });
-      el.querySelectorAll('.is-hidden-mobile').forEach((h) => {
-        h.style.setProperty('display', 'inline', 'important');
-      });
-      el.querySelectorAll('.is-hidden-tablet').forEach((h) => {
-        h.style.setProperty('display', 'none', 'important');
-      });
-
-      await new Promise((r) => setTimeout(r, 300));
-
-      await html2pdf()
-        .set({
+      await exportProtocolPdf(el, {
+        normalizeResponsive: true,
+        html2pdf: {
           margin: [10, 5, 10, 5],
           filename: `${this.tournamentName}_protocol.pdf`,
           pagebreak: { mode: ['avoid-all'], before: '.pdf-page-break', avoid: ['.team-group', 'tr'] },
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, scrollY: 0, useCORS: true },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        })
-        .from(el)
-        .save();
-
-      el.classList.remove('is-exporting');
-
-      overflows.forEach(({ el: tc, overflow, maxWidth }) => {
-        tc.style.overflow = overflow;
-        tc.style.maxWidth = maxWidth;
-      });
-      el.querySelectorAll('.is-hidden-mobile').forEach((h) => {
-        h.style.removeProperty('display');
-      });
-      el.querySelectorAll('.is-hidden-tablet').forEach((h) => {
-        h.style.removeProperty('display');
+        },
       });
     },
     async exportDocx() {

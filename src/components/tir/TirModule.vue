@@ -34,6 +34,15 @@
         <Trophy :size="18" />
         <span>{{ $t('games.playOff') }}</span>
       </button>
+      <button
+        v-if="tournament.tournamentIsFinished"
+        class="tir-nav__btn tir-nav__btn--protocol"
+        :class="{ 'tir-nav__btn--active': view === 'protocol' }"
+        @click="view = 'protocol'"
+      >
+        <FileText :size="18" />
+        <span>{{ $t('teams.protocol') }}</span>
+      </button>
     </div>
 
     <!-- Participants list -->
@@ -562,6 +571,12 @@
         </div>
       </template>
     </div>
+
+    <TirProtocol
+      v-if="view === 'protocol'"
+      :tournament="tournament"
+      :tournament-meta="tournamentMeta || currentTournament"
+    />
   </div>
 </template>
 
@@ -573,6 +588,7 @@ import TirParticipantView from './TirParticipantView.vue';
 import TirParticipantsList from './TirParticipantsList.vue';
 import TirAtelierView from './TirAtelierView.vue';
 import TirPlayoffMatch from './TirPlayoffMatch.vue';
+import TirProtocol from './TirProtocol.vue';
 import {
   Users,
   Grid3x3,
@@ -584,6 +600,7 @@ import {
   Trophy,
   Pencil,
   Download,
+  FileText,
 } from 'lucide-vue-next';
 
 import {
@@ -608,6 +625,7 @@ export default {
     TirParticipantsList,
     TirAtelierView,
     TirPlayoffMatch,
+    TirProtocol,
     Users,
     Grid3x3,
     TableProperties,
@@ -618,6 +636,10 @@ export default {
     Trophy,
     Pencil,
     Download,
+    FileText,
+  },
+  props: {
+    tournamentMeta: { type: Object, default: null },
   },
   emits: ['finish'],
   data() {

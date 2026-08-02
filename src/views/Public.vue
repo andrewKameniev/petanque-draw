@@ -81,11 +81,11 @@
           <span class="has-text-grey-dark">{{ $t('games.cadrage') }}:</span>
           <span class="has-text-weight-semibold">{{ cadrageRange }}</span>
         </div>
-        <div class="tournament-info-row" v-if="activeTournamentView?.playOff">
+        <div class="tournament-info-row" v-if="activeTournamentView?.playOff || isDoubleElimination">
           <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
           <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
         </div>
-        <div v-if="activeTournamentView?.playOff" class="btn-bracket-group">
+        <div v-if="activeTournamentView?.playOff && !isDoubleElimination" class="btn-bracket-group">
           <button class="button is-small btn-bracket" @click="openBracket">
             <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
             {{ $t('games.showBracket') }}
@@ -172,11 +172,12 @@
           <div v-if="activeTab === 'round'">
             <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
             <PlayOff
-              v-else-if="activeTournamentView?.playOff"
+              v-else-if="activeTournamentView?.playOff || isDoubleElimination"
               ref="playOff"
               :active-tournament="activeTournamentView"
               :is-public-view="true"
               :hide-header="true"
+              :matches-only="isDoubleElimination"
               @openResults="activeTab = 'ranking'"
               class="playoff-public-wrapper"
             />
@@ -442,6 +443,13 @@
               </div>
             </template>
           </div>
+          <DoubleElimination
+            v-if="activeTab === 'bracket' && isDoubleElimination"
+            :active-tournament="activeTournamentView"
+            :is-public-view="true"
+            :bracket-only="true"
+            class="playoff-public-wrapper"
+          />
           <div v-if="activeTab === 'teams'">
             <TeamsList
               :previewTournament="activeTournamentView"
@@ -492,9 +500,11 @@ import {
 } from '@/helpers';
 import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass } from '@/services/streams';
 import { getGameLaneNumber } from '@/services/lanes';
+import { getDoubleEliminationParticipantCount } from '@/services/playoff';
 import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 import PlayOff from '@/components/partials/PlayOff.vue';
+import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
@@ -512,6 +522,7 @@ export default {
     LanguageSwitcher,
     ThemeSwitcher,
     PlayOff,
+    DoubleElimination,
     TeamPlayoff,
     TeamsList,
     Results,
@@ -604,6 +615,9 @@ export default {
         else roundLabel = `${this.$t('common.round')} ${this.activeRound}`;
         list.push({ id: 'round', label: roundLabel, icon: 'PlayCircle' });
       }
+      if (this.isDoubleElimination) {
+        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: 'GitFork' });
+      }
       list.push({ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' });
       if (!isPlayoffOnly) {
         list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' });
@@ -613,9 +627,13 @@ export default {
     },
     showCurrentRound() {
       const t = this.activeTournamentView;
+      if (this.isDoubleElimination) return true;
       if (t?.cadrage && !t.tournamentIsFinished) return true;
       if ((t?.playOff || t?.teamPlayoff) && !t.tournamentIsFinished && t.system !== 'tir') return true;
       return t?.games && t.roundIsActive && !t.tournamentIsFinished && t.system !== 'tir';
+    },
+    isDoubleElimination() {
+      return this.activeTournamentView?.playOffBracket?.format === 'double';
     },
     activeRound() {
       const t = this.activeTournamentView;
@@ -816,8 +834,8 @@ export default {
     },
     playOffTeamsCount() {
       const t = this.activeTournamentView;
-      if (!t?.playOff?.length) return 0;
-      return t.playOff.length * 2;
+      if (t?.playOffBracket?.format === 'double') return getDoubleEliminationParticipantCount(t);
+      return t?.playOff?.length ? t.playOff.length * 2 : 0;
     },
     isInPlayoff() {
       const t = this.activeTournamentView;
@@ -1345,6 +1363,10 @@ export default {
 }
 
 .tournament-nav__btn--round.tournament-nav__btn--active {
+  color: var(--color-primary);
+}
+
+.tournament-nav__btn--bracket.tournament-nav__btn--active {
   color: var(--color-primary);
 }
 

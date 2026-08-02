@@ -90,7 +90,10 @@ function tableCellToDocx(cell, docx, width, border, options = {}) {
     },
     shading:
       cell.tagName === 'TH' || (isSignatureTable && options.columnIndex === 0)
-        ? { type: ShadingType.CLEAR, fill: isSignatureTable ? 'F4F5F7' : 'EDEDED' }
+        ? {
+            type: ShadingType.CLEAR,
+            fill: isSignatureTable ? options.signatureFill || 'F4F5F7' : options.headerFill || 'EDEDED',
+          }
         : undefined,
     margins: isSignatureTable
       ? { top: 45, right: 100, bottom: 45, left: 100 }
@@ -116,23 +119,36 @@ function isProtocolSignatureTable(table) {
   );
 }
 
-function getTableColumnWidths(table) {
+function getExplicitTableColumnWidths(table) {
+  const value = table.dataset?.docxColumnWidths || table.getAttribute?.('data-docx-column-widths');
+  if (!value) return null;
+
+  const widths = String(value)
+    .split(',')
+    .map((width) => Number(width.trim()))
+    .filter((width) => Number.isFinite(width) && width > 0);
+  return widths.length === getTableColumnCount(table) ? widths : null;
+}
+
+function getTableColumnWidths(table, tableWidth = DOCX_TABLE_WIDTH) {
   if (Array.isArray(table.docxColumnWidths)) return table.docxColumnWidths;
+  const explicitWidths = getExplicitTableColumnWidths(table);
+  if (explicitWidths) return explicitWidths;
   if (isProtocolSignatureTable(table)) return DOCX_SIGNATURE_COLUMN_WIDTHS;
 
   const columnCount = getTableColumnCount(table);
-  if (columnCount <= 1) return [DOCX_TABLE_WIDTH];
+  if (columnCount <= 1) return [tableWidth];
 
   const firstHeaderText = textLines(table.rows[0]?.cells[0]).join(' ');
   const hasNumberColumn = /^№(?:\s*з\/п)?$/i.test(firstHeaderText);
   if (!hasNumberColumn) {
-    const width = Math.floor(DOCX_TABLE_WIDTH / columnCount);
+    const width = Math.floor(tableWidth / columnCount);
     return Array.from({ length: columnCount }, (_, index) =>
-      index === columnCount - 1 ? DOCX_TABLE_WIDTH - width * (columnCount - 1) : width,
+      index === columnCount - 1 ? tableWidth - width * (columnCount - 1) : width,
     );
   }
 
-  const remainingWidth = DOCX_TABLE_WIDTH - DOCX_NUMBER_COLUMN_WIDTH;
+  const remainingWidth = tableWidth - DOCX_NUMBER_COLUMN_WIDTH;
   const dataColumnWidth = Math.floor(remainingWidth / (columnCount - 1));
   return Array.from({ length: columnCount }, (_, index) => {
     if (index === 0) return DOCX_NUMBER_COLUMN_WIDTH;
@@ -141,11 +157,12 @@ function getTableColumnWidths(table) {
   });
 }
 
-function tableToDocx(table, docx) {
+function tableToDocx(table, docx, options = {}) {
   const { AlignmentType, BorderStyle, HeightRule, Table, TableLayoutType, TableRow, WidthType } = docx;
-  const border = { style: BorderStyle.SINGLE, size: 6, color: '7F7F7F' };
+  const border = { style: BorderStyle.SINGLE, size: 6, color: options.borderColor || '7F7F7F' };
   const isSignatureTable = isProtocolSignatureTable(table);
-  const columnWidths = getTableColumnWidths(table);
+  const columnWidths = getTableColumnWidths(table, options.tableWidth);
+  const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const occupiedUntilRow = Array(columnWidths.length).fill(0);
   const rows = Array.from(table.rows).map((row, rowIndex) => {
     let columnIndex = 0;
@@ -161,7 +178,12 @@ function tableToDocx(table, docx) {
         }
       }
       columnIndex += columnSpan;
-      return tableCellToDocx(cell, docx, width, border, { isSignatureTable, columnIndex: cellColumnIndex });
+      return tableCellToDocx(cell, docx, width, border, {
+        isSignatureTable,
+        columnIndex: cellColumnIndex,
+        headerFill: options.headerFill,
+        signatureFill: options.signatureFill,
+      });
     });
 
     return new TableRow({
@@ -177,7 +199,7 @@ function tableToDocx(table, docx) {
     columnWidths,
     alignment: AlignmentType.CENTER,
     layout: TableLayoutType.FIXED,
-    width: { size: DOCX_TABLE_WIDTH, type: WidthType.DXA },
+    width: { size: tableWidth, type: WidthType.DXA },
     borders: {
       top: border,
       right: border,
@@ -204,7 +226,7 @@ function syntheticTableCell(tagName, innerText, classes = [], columnSpan = 1) {
   };
 }
 
-function playoffStageToDocx(label, games, docx) {
+function playoffStageToDocx(label, games, docx, options = {}) {
   const rows = [
     {
       cells: [syntheticTableCell('TH', label, ['has-text-centered'], 3)],
@@ -239,10 +261,11 @@ function playoffStageToDocx(label, games, docx) {
       docxColumnWidths: [4750, 1660, 4750],
     },
     docx,
+    options,
   );
 }
 
-function playoffSectionToDocxChildren(section, docx) {
+function playoffSectionToDocxChildren(section, docx, options = {}) {
   const { Paragraph } = docx;
   const children = [];
   let stageLabel = '';
@@ -250,7 +273,7 @@ function playoffSectionToDocxChildren(section, docx) {
 
   const flushStage = () => {
     if (!stageLabel || !stageGames.length) return;
-    children.push(playoffStageToDocx(stageLabel, stageGames, docx));
+    children.push(playoffStageToDocx(stageLabel, stageGames, docx, options));
     children.push(new Paragraph({ spacing: { after: 80, line: 40 } }));
     stageLabel = '';
     stageGames = [];
@@ -284,7 +307,7 @@ function playoffSectionToDocxChildren(section, docx) {
   return children;
 }
 
-export function protocolElementToDocxChildren(element, docx) {
+export function protocolElementToDocxChildren(element, docx, options = {}) {
   const { Paragraph } = docx;
   const children = [];
 
@@ -292,12 +315,12 @@ export function protocolElementToDocxChildren(element, docx) {
     if (!node?.tagName || isHiddenDuplicate(node)) return;
 
     if (node.classList?.contains('playoff-section')) {
-      children.push(...playoffSectionToDocxChildren(node, docx));
+      children.push(...playoffSectionToDocxChildren(node, docx, options));
       return;
     }
 
     if (node.tagName === 'TABLE') {
-      children.push(tableToDocx(node, docx));
+      children.push(tableToDocx(node, docx, options));
       children.push(new Paragraph({ spacing: { after: 0, line: 40 } }));
       return;
     }
@@ -310,6 +333,7 @@ export function protocolElementToDocxChildren(element, docx) {
           paragraphFromText(text, docx, {
             heading: headingLevel,
             centered: node.classList?.contains('text-center'),
+            pageBreakBefore: node.classList?.contains('docx-page-break'),
           }),
         );
       }
@@ -351,9 +375,29 @@ export function sanitizeDocxFilename(filename) {
   );
 }
 
-export async function createProtocolDocxBlob(element) {
+export async function createProtocolDocxBlob(element, options = {}) {
   const docx = await import('docx');
-  const { Document, Packer, PageOrientation } = docx;
+  const { AlignmentType, Document, Footer, Packer, PageNumber, PageOrientation, Paragraph, TextRun } = docx;
+  const isLandscape = options.orientation === 'landscape';
+  const orientation = isLandscape ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT;
+  const margins =
+    options.margins ||
+    (isLandscape
+      ? { top: 560, right: 560, bottom: 560, left: 1700, footer: 720 }
+      : { top: 720, right: 360, bottom: 720, left: 360 });
+  const footers = options.pageNumbers
+    ? {
+        default: new Footer({
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              spacing: { after: 0 },
+              children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
+            }),
+          ],
+        }),
+      }
+    : undefined;
   const documentFile = new Document({
     styles: {
       default: {
@@ -362,16 +406,34 @@ export async function createProtocolDocxBlob(element) {
           paragraph: { spacing: { after: 80, line: 240 } },
         },
       },
+      paragraphStyles: [
+        ...[1, 2, 3, 4].map((level) => ({
+          id: `Heading${level}`,
+          name: `Heading ${level}`,
+          basedOn: 'Normal',
+          next: 'Normal',
+          quickFormat: true,
+          run: {
+            font: 'Times New Roman',
+            size: Math.max(24, 36 - level * 4),
+            bold: true,
+            color: '000000',
+            italics: false,
+          },
+          paragraph: { spacing: { before: 120, after: 160, line: 240 } },
+        })),
+      ],
     },
     sections: [
       {
         properties: {
           page: {
-            size: { orientation: PageOrientation.PORTRAIT },
-            margin: { top: 720, right: 360, bottom: 720, left: 360 },
+            size: { orientation },
+            margin: margins,
           },
         },
-        children: protocolElementToDocxChildren(element, docx),
+        footers,
+        children: protocolElementToDocxChildren(element, docx, options),
       },
     ],
   });
@@ -379,8 +441,8 @@ export async function createProtocolDocxBlob(element) {
   return Packer.toBlob(documentFile);
 }
 
-export async function downloadProtocolDocx(element, tournamentName) {
-  const blob = await createProtocolDocxBlob(element);
+export async function downloadProtocolDocx(element, tournamentName, options = {}) {
+  const blob = await createProtocolDocxBlob(element, options);
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

@@ -228,6 +228,7 @@ export default {
     unfishGame() {
       this.currentGame.status = 'in_progress';
       delete this.currentGame.winner;
+      delete this.currentGame.loser;
       this.$emit('update', this.gameIndex);
     },
     removeScoreEntry(index) {

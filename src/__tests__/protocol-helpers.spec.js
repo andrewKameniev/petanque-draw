@@ -10,6 +10,7 @@ import {
   buildTeamTitle,
   getProtocolTournamentMeta,
   refreshTournamentPlayerDetails,
+  refreshTirParticipantDetails,
 } from '../protocol-helpers';
 import { regions } from '../helpers';
 
@@ -242,6 +243,60 @@ describe('refreshTournamentPlayerDetails', () => {
 
     expect(refreshTournamentPlayerDetails(teams, portalTeams).changed).toBe(0);
     expect(teams[0].players[0]).toBe(player);
+  });
+});
+
+describe('refreshTirParticipantDetails', () => {
+  it('matches a TIR team name and fills protocol identity, region source, and sporting title', () => {
+    const participants = [{ id: 1, name: 'Коваль Олександр' }];
+    const portalTeams = [
+      {
+        id: 91,
+        name: 'Коваль Олександр',
+        players: [
+          {
+            surname: 'Коваль',
+            name: 'Олександр',
+            second_name: 'Петрович',
+            club_id: 2,
+            sport_title: 'candidate',
+          },
+        ],
+      },
+    ];
+
+    expect(refreshTirParticipantDetails(participants, portalTeams)).toEqual({
+      total: 1,
+      matched: 1,
+      changed: 1,
+      missing: 0,
+    });
+    expect(participants[0]).toEqual({
+      id: 1,
+      name: 'Коваль Олександр',
+      protocolName: 'Коваль Олександр Петрович',
+      portalTeamId: 91,
+      club_id: 2,
+      sport_title: 'candidate',
+    });
+    expect(regions[participants[0].club_id]).toBe('Харківська');
+  });
+
+  it('does not guess when portal names are ambiguous', () => {
+    const participants = [{ name: 'Коваль Олександр' }];
+    const portalTeams = [1, 2].map((id) => ({
+      id,
+      name: 'Коваль Олександр',
+      players: [{ surname: 'Коваль', name: 'Олександр', club_id: id }],
+    }));
+
+    expect(refreshTirParticipantDetails(participants, portalTeams)).toEqual({
+      total: 1,
+      matched: 0,
+      changed: 0,
+      missing: 1,
+    });
+    expect(participants[0]).toEqual({ name: 'Коваль Олександр' });
   });
 });
 

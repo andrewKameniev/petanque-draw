@@ -12,6 +12,17 @@
         </select>
       </div>
 
+      <div v-if="!localWithBarrage" class="confirm-playoff__field">
+        <label class="confirm-playoff__label">{{ $t('doubleElimination.formatLabel') }}</label>
+        <select class="confirm-playoff__select" v-model="localPlayOffFormat" data-testid="confirm-playoff-format">
+          <option value="single">{{ $t('doubleElimination.singleElimination') }}</option>
+          <option value="double">{{ $t('doubleElimination.title') }}</option>
+        </select>
+        <span class="confirm-playoff__hint">{{
+          $t('doubleElimination.playerCountHint', { count: localPlayOffTeams })
+        }}</span>
+      </div>
+
       <div v-if="isSwiss" class="confirm-playoff__field">
         <label class="confirm-playoff__checkbox">
           <input type="checkbox" v-model="localWithCadrage" data-testid="confirm-cadrage" />
@@ -217,6 +228,7 @@ export default {
     noTimeLimitFinale: { type: Boolean, default: false },
     rankingTeams: { type: Array, default: () => [] },
     cadrageLosersToB: { type: Boolean, default: false },
+    playOffFormat: { type: String, default: 'single' },
   },
   data() {
     return {
@@ -228,6 +240,7 @@ export default {
       localPlayoffTimeLimit: this.playoffTimeLimit,
       localNoTimeLimitFinale: this.noTimeLimitFinale,
       localCadrageLosersToB: this.cadrageLosersToB,
+      localPlayOffFormat: this.playOffFormat,
       localWithElimination: false,
       localEliminationCount: 2,
       localGroupBMode: 'swiss',
@@ -245,8 +258,12 @@ export default {
   computed: {
     teamToPlayOffValues() {
       const values = [];
-      for (let i = 2; i <= this.teamsCount; i *= 2) {
-        values.push(i);
+      if (this.localPlayOffFormat === 'double') {
+        for (let i = 2; i <= Math.min(16, this.teamsCount); i++) values.push(i);
+        for (let i = 20; i <= this.teamsCount; i += 4) values.push(i);
+        if (!values.includes(this.teamsCount)) values.push(this.teamsCount);
+      } else {
+        for (let i = 2; i <= this.teamsCount; i *= 2) values.push(i);
       }
       if (this.localWithCadrage) {
         values.pop();
@@ -311,6 +328,8 @@ export default {
         withElimination: this.localWithElimination,
         eliminationCount: this.localEliminationCount,
         groupBMode: this.localGroupBMode,
+        playOffFormat: this.localPlayOffFormat,
+        grandFinalMode: 'single',
       });
     },
   },
@@ -350,7 +369,8 @@ export default {
 .confirm-playoff__select {
   display: block;
   width: 100%;
-  max-width: 120px;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.4rem 0.75rem;
   font-size: 1rem;
   border: 1px solid var(--color-border, #e0e0e0);
@@ -378,6 +398,7 @@ export default {
   color: var(--color-text-muted, #888);
   margin-top: 0.25rem;
   margin-left: 1.5rem;
+  overflow-wrap: anywhere;
 }
 
 .confirm-playoff__hint--sub {

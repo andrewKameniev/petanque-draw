@@ -58,7 +58,7 @@
 
     <!-- POST-START: Tir module (no tabs) -->
     <template v-else-if="tournament.system === 'tir'">
-      <TirModule ref="tirModule" @finish="showFinishConfirm = true" />
+      <TirModule ref="tirModule" :tournament-meta="tournamentWrapper" @finish="showFinishConfirm = true" />
       <div class="bottom-actions">
         <div class="bottom-actions__row">
           <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
@@ -79,13 +79,6 @@
             <button class="bottom-actions__btn bottom-actions__btn--success" @click="exportTirToPortal">
               <Download :size="16" />
               {{ $t('tir.exportResults') }}
-            </button>
-            <button
-              v-if="tournamentWrapper.portalIdTournament || tournament.portalIdTournament"
-              class="bottom-actions__btn bottom-actions__btn--gold"
-              @click="showProtocol = !showProtocol"
-            >
-              {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
             </button>
           </template>
         </div>
@@ -330,6 +323,7 @@
       :no-time-limit-finale="!!tournament.preferences.noTimeLimitFinale"
       :ranking-teams="flatRankingTeams"
       :cadrage-losers-to-b="!!tournament.preferences.cadrageLosersToB"
+      :play-off-format="tournament.preferences.playOffFormat || 'single'"
       @confirm="onPlayoffConfirm"
       @cancel="showPlayoffConfirm = false"
     />
@@ -353,16 +347,6 @@
       :tournament-meta="tournamentWrapper"
       :rankingTeams="rankingTeams"
     />
-    <TirProtocol
-      v-if="
-        showProtocol &&
-        (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
-        tournament.tournamentIsFinished &&
-        tournament.system === 'tir'
-      "
-      @close="showProtocol = false"
-      :tournament="tournament"
-    />
   </div>
 </template>
 
@@ -377,7 +361,12 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal';
 import { getTeamsRanking, shuffleArray } from '@/helpers';
-import { buildPlayOffScheme, buildCadrageGames } from '@/services/playoff';
+import {
+  buildPlayOffScheme,
+  buildCadrageGames,
+  buildDoubleEliminationBracket,
+  getNextDoubleEliminationStage,
+} from '@/services/playoff';
 import QrCode from '@/components/partials/QrCode';
 import Preferences from '@/components/partials/Preferences';
 import Protocol from '@/components/partials/Protocol';
@@ -403,7 +392,6 @@ import {
   saveResultsForRound,
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
-import TirProtocol from '@/components/tir/TirProtocol.vue';
 import {
   getPlayoffPlaces,
   getCombinedTotal,
@@ -480,6 +468,8 @@ export default {
       'startRound',
       'removeTournament',
       'setPlayOff',
+      'setPlayOffBracket',
+      'setPlayOffStage',
       'setCadrage',
       'setBarrage',
       'finishTournament',
@@ -688,6 +678,8 @@ export default {
       this.tournament.preferences.playoffTimeLimit = config.playoffTimeLimit;
       this.tournament.preferences.noTimeLimitFinale = config.noTimeLimitFinale;
       this.tournament.preferences.cadrageLosersToB = config.cadrageLosersToB || false;
+      this.tournament.preferences.playOffFormat = config.playOffFormat || 'single';
+      this.tournament.preferences.grandFinalMode = 'single';
       this._playoffConfig = config;
       this.savePreferences();
       this.setPlayOffList();
@@ -826,8 +818,15 @@ export default {
       this.activeTab = 'games';
     },
     startPlayOff(playOffList) {
-      const playOffScheme = buildPlayOffScheme(playOffList, !!this.tournament.cadrage);
-      this.setPlayOff(playOffScheme);
+      if (this.tournament.preferences.playOffFormat === 'double') {
+        const bracket = buildDoubleEliminationBracket(playOffList);
+        this.setPlayOff(bracket.stages[0].teams);
+        this.setPlayOffBracket(bracket);
+        this.setPlayOffStage(getNextDoubleEliminationStage(bracket)?.id || 0);
+      } else {
+        const playOffScheme = buildPlayOffScheme(playOffList, !!this.tournament.cadrage);
+        this.setPlayOff(playOffScheme);
+      }
 
       this.activeTab = 'games';
 
@@ -926,8 +925,15 @@ export default {
 
       this.savePreferences();
 
-      const playOffScheme = buildPlayOffScheme(playOffList, false);
-      this.setPlayOff(playOffScheme);
+      if (this.tournament.preferences.playOffFormat === 'double') {
+        const bracket = buildDoubleEliminationBracket(playOffList);
+        this.setPlayOff(bracket.stages[0].teams);
+        this.setPlayOffBracket(bracket);
+        this.setPlayOffStage(getNextDoubleEliminationStage(bracket)?.id || 0);
+      } else {
+        const playOffScheme = buildPlayOffScheme(playOffList, false);
+        this.setPlayOff(playOffScheme);
+      }
       this.syncDrawStart();
       this.activeTab = 'games';
     },
@@ -942,12 +948,20 @@ export default {
       if (this.tournament.system === 'tir') {
         this.tournament.tirStarted = true;
         if (!this.tournament.tirParticipants) {
-          this.tournament.tirParticipants = this.tournament.teams.map((t) => ({
-            id: Date.now() + Math.random(),
-            name: t.title,
-            city: '',
-            scores: {},
-          }));
+          this.tournament.tirParticipants = this.tournament.teams.map((team) => {
+            const player = Array.isArray(team.players) ? team.players[0] : null;
+            const protocolName = [player?.surname, player?.name, player?.second_name].filter(Boolean).join(' ');
+            return {
+              id: Date.now() + Math.random(),
+              name: team.title,
+              city: '',
+              scores: {},
+              protocolName: protocolName || team.title,
+              portalTeamId: team.portalTeamId || null,
+              club_id: player?.club_id || null,
+              sport_title: player?.sport_title || null,
+            };
+          });
         }
         if (!this.tournament.tirConfig) {
           this.tournament.tirConfig = { junior: this.tirJunior, rounds: this.tirTwoRounds ? 2 : 1 };
@@ -1249,7 +1263,6 @@ export default {
     Trophy,
     Radio,
     Download,
-    TirProtocol,
     StreamPresets,
   },
 };

@@ -41,7 +41,7 @@
             </button>
           </div>
           <button
-            v-if="hasPlayOffResults && !isForProtocol"
+            v-if="hasPlayOffResults && !isForProtocol && tournament.playOffBracket?.format !== 'double'"
             class="button is-small btn-purple-outline mb-1"
             @click="showBracket = true"
           >
@@ -229,7 +229,7 @@
             <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po' + index">
               <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage' && stage.stageLabel !== 1">
                 <div class="results-card-round-label">
-                  {{ '1/' + stage.stageLabel + ' ' + $t('games.ofFinal') }}
+                  {{ playoffStageLabel(stage) }}
                 </div>
                 <div class="results-card-list">
                   <div
@@ -346,7 +346,7 @@
             <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po' + index">
               <template v-if="stageHasContent(stage) && stage.stageLabel !== 'cadrage' && stage.stageLabel !== 1">
                 <div class="playoff-stage-label">
-                  {{ '1/' + stage.stageLabel + ' ' + $t('games.ofFinal') }}
+                  {{ playoffStageLabel(stage) }}
                 </div>
                 <div v-for="(game, i) in stage.teams" :key="'s' + index + 'g' + i" class="playoff-game">
                   <span
@@ -566,7 +566,11 @@
       <List :size="40" class="results-empty__icon" />
       <p class="results-empty__text">{{ $t('games.noGames') }}</p>
     </div>
-    <Bracket v-if="showBracket" :bracket="tournament.playOffBracket" @close-modal="showBracket = false" />
+    <Bracket
+      v-if="showBracket && tournament.playOffBracket?.format !== 'double'"
+      :bracket="tournament.playOffBracket"
+      @close-modal="showBracket = false"
+    />
     <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null" />
     <EditResultModal
       v-if="editingPlayoffGame"
@@ -648,7 +652,12 @@ export default {
       return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
     },
     canEditPlayoff() {
-      return !!this.user && !this.previewTournament && !this.isForProtocol;
+      return (
+        !!this.user &&
+        !this.previewTournament &&
+        !this.isForProtocol &&
+        this.tournament.playOffBracket?.format !== 'double'
+      );
     },
     tournament() {
       return this.previewTournament || this.activeTournament || this.currentTournament;
@@ -710,6 +719,22 @@ export default {
     ...mapActions(useMainStore, ['showMessage', 'syncBracketMatch']),
     stageHasContent(stage) {
       return stage.teams?.some((g) => g.team_1 || g.team_2);
+    },
+    playoffStageLabel(stage) {
+      if (this.tournament.playOffBracket?.format !== 'double') {
+        return '1/' + stage.stageLabel + ' ' + this.$t('games.ofFinal');
+      }
+      if (stage.bracket === 'upper') {
+        const upperStages = this.tournament.playOffBracket.stages.filter((candidate) => candidate.bracket === 'upper');
+        if (stage.id === upperStages[upperStages.length - 1]?.id) return this.$t('doubleElimination.winnersFinal');
+        return this.$t('doubleElimination.upperRound', { round: stage.round });
+      }
+      if (stage.bracket === 'lower') {
+        const lowerStages = this.tournament.playOffBracket.stages.filter((candidate) => candidate.bracket === 'lower');
+        if (stage.id === lowerStages[lowerStages.length - 1]?.id) return this.$t('doubleElimination.losersFinal');
+        return this.$t('doubleElimination.lowerRound', { round: stage.round });
+      }
+      return stage.round === 1 ? this.$t('doubleElimination.grandFinal') : this.$t('doubleElimination.resetFinal');
     },
     openEditModal(game) {
       if (!this.canEditResults) return;

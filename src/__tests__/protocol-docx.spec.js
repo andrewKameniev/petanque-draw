@@ -107,6 +107,63 @@ describe('protocol DOCX export', () => {
     expect(gridWidths.reduce((sum, width) => sum + width, 0)).toBe(11160);
   });
 
+  it('supports the landscape TIR protocol geometry and page-number footer', async () => {
+    const labels = ['№ з/п', 'ПІП', 'Регіон', 'Тренер', 'Розряд', '1 тур', '2 тур', 'Загалом', 'Відбір', 'Місце'];
+    const table = {
+      tagName: 'TABLE',
+      classList: classList(),
+      dataset: { docxColumnWidths: '690,3285,1905,2865,1305,645,645,960,1230,1155' },
+      rows: [
+        {
+          cells: labels.map((label) => ({
+            tagName: 'TH',
+            innerText: label,
+            classList: classList(),
+            colSpan: 1,
+            rowSpan: 1,
+            querySelector: () => null,
+          })),
+          parentElement: { tagName: 'THEAD' },
+        },
+      ],
+    };
+
+    const blob = await createProtocolDocxBlob(
+      {
+        children: [
+          {
+            tagName: 'H3',
+            innerText: 'Учасники та результати',
+            classList: classList('text-center', 'docx-page-break'),
+            children: [],
+          },
+          table,
+        ],
+      },
+      {
+        orientation: 'landscape',
+        tableWidth: 14640,
+        pageNumbers: true,
+        borderColor: '000000',
+        headerFill: 'FFFFFF',
+      },
+    );
+    const zip = await JSZip.loadAsync(new Uint8Array(await blob.arrayBuffer()));
+    const documentXml = await zip.file('word/document.xml').async('string');
+    const footerXml = await zip.file('word/footer1.xml').async('string');
+    const gridWidths = [...documentXml.matchAll(/<w:gridCol w:w="(\d+)"\/>/g)].map((match) => Number(match[1]));
+
+    expect(gridWidths).toEqual([690, 3285, 1905, 2865, 1305, 645, 645, 960, 1230, 1155]);
+    expect(gridWidths.reduce((sum, width) => sum + width, 0)).toBe(14685);
+    expect(documentXml).toContain('w:w="16838"');
+    expect(documentXml).toContain('w:h="11906"');
+    expect(documentXml).toContain('w:orient="landscape"');
+    expect(documentXml).toContain('w:left="1700"');
+    expect(documentXml).toContain('<w:pageBreakBefore/>');
+    expect(documentXml).toContain('w:fill="FFFFFF"');
+    expect(footerXml).toContain('PAGE');
+  });
+
   it('exports playoff stages as bordered team-score-team tables', async () => {
     const span = (text, className) => ({
       tagName: 'SPAN',

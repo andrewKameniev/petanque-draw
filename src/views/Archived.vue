@@ -42,6 +42,12 @@
               <span class="archive-skeleton__bone"></span>
               <span class="archive-skeleton__bone"></span>
             </div>
+            <div
+              class="archive-sidebar-actions-skeleton__buttons archive-sidebar-actions-skeleton__buttons--management"
+            >
+              <span class="archive-skeleton__bone"></span>
+              <span class="archive-skeleton__bone"></span>
+            </div>
           </div>
           <div v-else-if="activeKey && tournament" class="archived-sidebar__actions">
             <div class="sidebar-action-row">
@@ -81,6 +87,23 @@
               <button class="archived-links__btn" @click="copyPublicLink">
                 <Link2 :size="14" />
                 {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
+              </button>
+            </div>
+            <div class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management">
+              <button class="button btn-make-active" @click="makeActive">
+                <ArchiveRestore :size="16" />
+                <span>{{ $t('common.makeActive') }}</span>
+              </button>
+              <button class="button btn-remove-archived" @click="removeTournament">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                <span>{{ $t('common.remove') }}</span>
               </button>
             </div>
           </div>
@@ -168,21 +191,23 @@
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-            <button class="button btn-make-active" @click.stop="makeActive">
-              <ArchiveRestore :size="16" />
-              <span class="is-hidden-mobile">{{ $t('common.makeActive') }}</span>
-            </button>
-            <button class="button btn-remove-archived" @click.stop="removeTournament">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
-            </button>
+            <div class="tournament-selector__mobile-actions">
+              <button class="button btn-make-active" @click.stop="makeActive">
+                <ArchiveRestore :size="16" />
+                <span class="is-hidden-mobile">{{ $t('common.makeActive') }}</span>
+              </button>
+              <button class="button btn-remove-archived" @click.stop="removeTournament">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
+              </button>
+            </div>
             <div class="tournament-selector__dropdown" v-if="selectorOpen">
               <a
                 href="#"
@@ -306,7 +331,14 @@
                 </div>
               </div>
             </div>
-            <TirPublicView v-if="activeTournament.system === 'tir'" :tournament="activeTournament" class="mt-3" />
+            <TirPublicView
+              v-if="activeTournament.system === 'tir'"
+              :key="activeKey"
+              :tournament="activeTournament"
+              :protocol-available="activeTournament.tournamentIsFinished"
+              :protocol-tournament-meta="protocolTournamentMeta"
+              class="mt-3"
+            />
             <template v-else>
               <div class="tournament-nav">
                 <button
@@ -449,7 +481,12 @@ export default {
     },
     activeKey: {
       handler(key) {
-        if (key) this.subscribeTournament(key);
+        if (key) {
+          const selected = this.savedTournaments?.[key];
+          const tournament = selected?.main || selected;
+          this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
+          this.subscribeTournament(key);
+        }
       },
       immediate: true,
     },
@@ -661,7 +698,9 @@ export default {
       const tournamentChanged = key !== this.activeKey;
       this.activeKey = key;
       this.selectorOpen = false;
-      this.activeTab = 'ranking';
+      const selected = this.savedTournaments?.[key];
+      const tournament = selected?.main || selected;
+      this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
       if (tournamentChanged) {
         this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
       }
@@ -711,7 +750,7 @@ export default {
       if (!this.activeOwnerUid) return;
       this.isLoading = true;
       const cached = this.savedTournaments[key];
-      if (cached?.teams) {
+      if (cached?.teams || cached?.tirParticipants || cached?.main) {
         this.tournament = cached;
         this.isLoading = false;
         return;
@@ -720,8 +759,9 @@ export default {
         this.activeOwnerUid,
         key,
         (snapshot) => {
-          if (snapshot.exists() && snapshot.val()?.teams) {
-            this.tournament = snapshot.val();
+          const value = snapshot.val();
+          if (snapshot.exists() && (value?.teams || value?.tirParticipants || value?.main)) {
+            this.tournament = value;
           } else {
             this.tournament = this.savedTournaments[key] || null;
           }
@@ -906,6 +946,7 @@ export default {
 .tournament-selector {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -914,6 +955,14 @@ export default {
   margin: 1rem auto;
   width: fit-content;
   max-width: 100%;
+}
+
+.tournament-selector__mobile-actions {
+  display: flex;
+  flex-basis: 100%;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
 }
 
 .tournament-selector__name {
@@ -1174,14 +1223,12 @@ export default {
   color: var(--color-danger, #e74c3c);
   border-color: var(--color-danger, #e74c3c);
   background: transparent;
-  margin-left: 0.5rem;
 }
 
 .btn-make-active {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  margin-left: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-primary);
   border-color: var(--color-primary);
@@ -1319,6 +1366,11 @@ export default {
 
 .archive-sidebar-actions-skeleton__buttons .archive-skeleton__bone {
   height: 36px;
+}
+
+.archive-sidebar-actions-skeleton__buttons--management {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .archive-skeleton {
@@ -1722,6 +1774,11 @@ export default {
   flex-wrap: wrap;
 }
 
+.sidebar-action-row--management {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
 .archived-content {
   flex: 1;
   min-width: 0;
@@ -1775,6 +1832,10 @@ export default {
     justify-content: flex-start;
     padding: 0.75rem 0;
     margin: 0;
+  }
+
+  .tournament-selector__mobile-actions {
+    display: none;
   }
 }
 </style>

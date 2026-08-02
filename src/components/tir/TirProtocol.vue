@@ -1,39 +1,11 @@
 <template>
-  <div class="container protocol-container">
-    <div class="protocol-gate" v-if="password !== 499">
-      <div class="protocol-gate__card">
-        <div class="protocol-gate__badge">
-          <Star :size="14" />
-          Платна опція
-        </div>
-        <p class="protocol-gate__desc">
-          Ви отримуєте на 80% готовий протокол. Треба дописати тільки тренерів та трохи відформатувати текстовий
-          документ.
-        </p>
-        <div class="protocol-gate__payment">
-          <span class="protocol-gate__price">300 грн</span>
-          <span class="protocol-gate__card-number">5353 5423 2447 0856</span>
-          <button class="protocol-gate__copy" @click="copyCard" :title="cardCopied ? 'Скопійовано!' : 'Скопіювати'">
-            <Copy v-if="!cardCopied" :size="18" />
-            <Check v-else :size="18" />
-          </button>
-        </div>
-        <div class="protocol-gate__contact">
-          Після оплати пишіть у Telegram <strong>@andrewkamenev</strong> або дзвоніть
-          <a href="tel:+380951804418"><strong>+38-095-180-44-18</strong></a>
-        </div>
-      </div>
-      <div class="protocol-gate__password">
-        <label class="protocol-gate__label" for="protocolPassword">Пароль</label>
-        <input
-          class="protocol-gate__input"
-          id="protocolPassword"
-          type="number"
-          v-model="password"
-          placeholder="Введіть пароль"
-        />
-      </div>
-    </div>
+  <div class="container protocol-container tir-protocol-container">
+    <ProtocolGate
+      v-if="!skipGate && password !== 499"
+      v-model:password="password"
+      :card-copied="cardCopied"
+      @copy-card="copyCard"
+    />
     <div v-else>
       <div class="protocol-warning">
         <AlertTriangle :size="18" />
@@ -42,13 +14,23 @@
           будь ласка!</span
         >
       </div>
-      <div id="protocol" class="mb-3">
+      <ProtocolParticipantTools
+        :refreshing="refreshing"
+        @refresh="refreshPlayersFromPortal"
+        @remove-markers="removeDopyshit"
+        @reset="resetProtocol"
+      />
+      <div id="protocol" class="mb-3" @input="saveProtocolToStorage">
         <h2 class="text-center is-size-3 mb-2">
           Підсумковий протокол <br />
           {{ tournamentName }}
         </h2>
-        <table class="table is-bordered">
+        <table class="table is-bordered protocol-info-table" data-docx-column-widths="3360,11280">
           <tbody>
+            <tr>
+              <td>Назва змагань</td>
+              <td contenteditable="plaintext-only">{{ tournamentName }}</td>
+            </tr>
             <tr>
               <td>Дата початку змагань</td>
               <td contenteditable="plaintext-only">{{ formatDate(tournamentDate) || '-' }}</td>
@@ -70,63 +52,76 @@
               <td contenteditable="plaintext-only">{{ arbitr }}</td>
             </tr>
             <tr>
-              <td>Дисципліна</td>
-              <td>Тир</td>
-            </tr>
-            <tr>
-              <td>Загальна кількість учасників</td>
+              <td>Загальна кількість гравців</td>
               <td>{{ participants.length }}</td>
             </tr>
           </tbody>
         </table>
         <br />
-        <h3 class="text-center is-size-4 mb-2">Результати відбіркових змагань</h3>
-        <table class="table is-bordered">
+        <h3 class="text-center is-size-4 mb-2 docx-page-break">Учасники та результати</h3>
+        <table class="table is-bordered tir-protocol-results-table" :data-docx-column-widths="resultsColumnWidths">
           <thead>
             <tr class="has-text-centered">
               <th style="white-space: nowrap">№ з/п</th>
               <th>ПІП</th>
-              <th>Місто/Регіон</th>
-              <th>Тренер(и)</th>
-              <th>Спортивний розряд/звання</th>
-              <th>Рахунок R1</th>
-              <th v-if="isTwoRound">Рахунок R2</th>
-              <th v-if="isTwoRound">Сума</th>
-              <th>Підсумкове місце</th>
+              <th>Регіон</th>
+              <th>Тренер</th>
+              <th>Спортивний розряд</th>
+              <th>1 тур</th>
+              <th v-if="isTwoRound">2 тур</th>
+              <th v-if="isTwoRound">Загалом</th>
+              <th>Місце після відбору</th>
+              <th>Загальне підсумкове місце</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(p, index) in rankedParticipants" :key="p.id">
               <td class="has-text-centered">{{ index + 1 }}</td>
-              <td contenteditable="plaintext-only">{{ p.name }}</td>
-              <td contenteditable="plaintext-only">{{ p.city || '' }}</td>
-              <td contenteditable="plaintext-only"></td>
-              <td contenteditable="plaintext-only"></td>
-              <td class="has-text-centered">{{ getR1Score(p) }}</td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="getParticipantProtocolName(p)"
+                @blur="updateParticipantField(p, 'protocolName', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="getParticipantRegion(p)"
+                @blur="updateParticipantField(p, 'city', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="p.coach || ''"
+                @blur="updateParticipantField(p, 'coach', $event)"
+              ></td>
+              <td
+                contenteditable="plaintext-only"
+                v-text="getParticipantSportTitle(p)"
+                @blur="updateParticipantField(p, 'sport_title', $event)"
+              ></td>
+              <td class="has-text-centered has-text-weight-bold">{{ getR1Score(p) }}</td>
               <td v-if="isTwoRound" class="has-text-centered">
                 {{ hasR2Scores(p) ? getR2Score(p) : '—' }}
               </td>
               <td v-if="isTwoRound" class="has-text-centered has-text-weight-bold">
                 {{ hasR2Scores(p) ? getCombined(p) : getR1Score(p) }}
               </td>
-              <td class="has-text-centered">{{ getPlace(index) }}</td>
+              <td class="has-text-centered">{{ getQualificationPlace(p) }}</td>
+              <td class="has-text-centered has-text-weight-bold">{{ getPlace(index) }}</td>
             </tr>
           </tbody>
         </table>
 
         <template v-if="playoff">
           <br />
-          <h3 class="text-center is-size-4 mb-2">Результати ігор на виліт (плей-оф)</h3>
+          <h3 class="text-center is-size-4 mb-2">Ігри на вибування</h3>
           <template v-for="(round, rIdx) in playoffRounds" :key="rIdx">
             <h4 class="is-size-5 mb-1">{{ round.title }}</h4>
-            <table class="table is-bordered mb-3">
+            <table class="table is-bordered mb-3" data-docx-column-widths="4740,1005,1005,5055">
               <thead>
                 <tr class="has-text-centered">
                   <th>Учасник 1</th>
                   <th>Рахунок</th>
-                  <th>Учасник 2</th>
                   <th>Рахунок</th>
-                  <th>Переможець</th>
+                  <th>Учасник 2</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,11 +130,10 @@
                     {{ match.player1 || '—' }}
                   </td>
                   <td class="has-text-centered">{{ match.score1 ?? '—' }}</td>
+                  <td class="has-text-centered">{{ match.score2 ?? '—' }}</td>
                   <td :class="{ 'has-text-weight-bold': match.winner === match.player2 }">
                     {{ match.player2 || '—' }}
                   </td>
-                  <td class="has-text-centered">{{ match.score2 ?? '—' }}</td>
-                  <td class="has-text-weight-bold">{{ match.winner || '—' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -147,15 +141,15 @@
         </template>
 
         <br />
-        <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
-        <table class="table is-bordered">
+        <h3 class="text-center is-size-4 mb-2 docx-page-break">Судді турніру</h3>
+        <table class="table is-bordered" :data-docx-column-widths="arbiterColumnWidths">
           <thead class="has-text-centered">
             <tr>
               <th style="width: 40px">№ з/п</th>
               <th>Прізвище, ім'я, по батькові</th>
               <th style="width: 22%">Посада</th>
               <th style="width: 14%">Суддівська категорія</th>
-              <th>№ посвідчення</th>
+              <th v-if="showArbitrCertificate">№ посвідчення</th>
               <th>Регіон</th>
             </tr>
           </thead>
@@ -163,6 +157,7 @@
             <tr v-for="(item, index) in arbitres" :key="index">
               <td>{{ index + 1 }}</td>
               <td
+                v-if="showArbitrCertificate"
                 contenteditable="plaintext-only"
                 v-text="item.name"
                 @blur="updateArbiterField(index, 'name', $event)"
@@ -191,7 +186,7 @@
           </tbody>
         </table>
         <div>
-          <table width="100%" class="is-fullwidth protocol-signature-table">
+          <table width="100%" class="is-fullwidth protocol-signature-table" data-docx-column-widths="5000,2500,7140">
             <tbody>
               <tr>
                 <td>Головний суддя змагань</td>
@@ -218,7 +213,7 @@
                 <td class="has-text-right" contenteditable="plaintext-only"></td>
               </tr>
               <tr>
-                <td>Президент ГС «Федерація петанку України»</td>
+                <td>Президент Федерації петанку України</td>
                 <td class="has-text-centered">
                   ___________________ <br />
                   (підпис)
@@ -229,36 +224,22 @@
           </table>
         </div>
       </div>
-      <div class="protocol-actions">
-        <div class="protocol-actions__row">
-          <ProtocolArbiterControls
-            :user-id="user?.uid"
-            :current-arbiters="arbitres"
-            :tournament-name="tournamentName"
-            @add="addArbitr"
-            @apply-selection="applyArbiterSelection"
-            @apply-preset="applyArbiterPreset"
-          />
-        </div>
-        <div class="protocol-actions__row">
-          <button class="protocol-actions__btn protocol-actions__btn--outline" @click="$emit('close')">
-            {{ $t('common.close') }}
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--primary" @click="exportPdf">
-            <FileDown :size="16" /> {{ $t('teams.exportPdf') }}
-          </button>
-          <button
-            class="protocol-actions__btn protocol-actions__btn--primary"
-            :disabled="exportingDocx"
-            @click="exportDocx"
-          >
-            <FileText :size="16" /> {{ exportingDocx ? '...' : $t('teams.exportDocx') }}
-          </button>
-          <button class="protocol-actions__btn protocol-actions__btn--primary" @click="copyProtocol">
-            <Copy :size="16" /> {{ $t('teams.copyProtocol') }}
-          </button>
-        </div>
-      </div>
+      <ProtocolFooter
+        :user-id="user?.uid"
+        :arbitres="arbitres"
+        :tournament-name="tournamentName"
+        :show-arbitr-certificate="showArbitrCertificate"
+        :exporting-docx="exportingDocx"
+        :hide-close="hideClose"
+        @update:show-arbitr-certificate="showArbitrCertificate = $event"
+        @add-arbiter="addArbitr"
+        @apply-arbiter-selection="applyArbiterSelection"
+        @apply-arbiter-preset="applyArbiterPreset"
+        @export-pdf="exportPdf"
+        @export-docx="exportDocx"
+        @copy-protocol="copyProtocol"
+        @close="$emit('close')"
+      />
     </div>
     <button class="protocol-back-top" @click="scrollToggle">
       <ChevronUp :size="20" :class="{ 'protocol-back-top__icon--down': !showBackTop }" />
@@ -269,8 +250,21 @@
 <script>
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
+import { regions } from '@/helpers';
+import { getProtocolTournamentMeta, refreshTirParticipantDetails } from '@/protocol-helpers';
 import { downloadProtocolDocx } from '@/services/protocol-docx';
-import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls';
+import {
+  clearProtocolHtml,
+  copyProtocolElement,
+  exportProtocolPdf,
+  fetchPortalTournamentTeams,
+  readProtocolHtml,
+  removeProtocolMarkers,
+  saveProtocolHtml,
+} from '@/services/protocol-runtime';
+import ProtocolFooter from '@/components/partials/ProtocolFooter.vue';
+import ProtocolGate from '@/components/partials/ProtocolGate.vue';
+import ProtocolParticipantTools from '@/components/partials/ProtocolParticipantTools.vue';
 import {
   getScoreTotal,
   getScoreCarreauCount,
@@ -278,12 +272,23 @@ import {
   getCombinedTotal,
   getPlayoffPlaces,
 } from '@/services/tir';
-import { Star, Copy, Check, AlertTriangle, FileDown, FileText, ChevronUp } from 'lucide-vue-next';
+import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
 
 export default {
   name: 'TirProtocol',
-  components: { Star, Copy, Check, AlertTriangle, ProtocolArbiterControls, FileDown, FileText, ChevronUp },
-  props: ['tournament'],
+  components: {
+    AlertTriangle,
+    ChevronUp,
+    ProtocolFooter,
+    ProtocolGate,
+    ProtocolParticipantTools,
+  },
+  props: {
+    tournament: { type: Object, required: true },
+    tournamentMeta: { type: Object, default: null },
+    skipGate: { type: Boolean, default: false },
+    hideClose: { type: Boolean, default: false },
+  },
   emits: ['close'],
   data() {
     return {
@@ -293,21 +298,33 @@ export default {
       arbitr: '',
       arbitres: [],
       exportingDocx: false,
+      refreshing: false,
+      showArbitrCertificate: true,
     };
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll);
+    this.$nextTick(() => this.restoreProtocolFromStorage());
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   computed: {
     ...mapState(useMainStore, ['currentTournament', 'user']),
+    protocolTournamentMeta() {
+      return getProtocolTournamentMeta(this.tournament, this.tournamentMeta, this.currentTournament);
+    },
+    tournamentPortalId() {
+      return this.protocolTournamentMeta.portalIdTournament || '';
+    },
+    protocolStorageKey() {
+      return `tir_protocol_${this.protocolTournamentMeta.id || this.tournamentName}`;
+    },
     tournamentName() {
-      return this.currentTournament?.name || this.tournament.name;
+      return this.protocolTournamentMeta.name || this.tournament.name || '';
     },
     tournamentDate() {
-      return this.currentTournament?.date || this.tournament.date;
+      return this.protocolTournamentMeta.date || this.tournament.date || '';
     },
     participants() {
       return this.tournament.tirParticipants || [];
@@ -321,19 +338,28 @@ export default {
     tiebreakerCount() {
       return this.tournament.tirTiebreakerCount || 0;
     },
-    rankedParticipants() {
-      let ranked;
+    resultsColumnWidths() {
+      return this.isTwoRound
+        ? '690,3285,1905,2865,1305,645,645,960,1230,1155'
+        : '690,3285,1905,2865,1305,960,1800,1830';
+    },
+    arbiterColumnWidths() {
+      return this.showArbitrCertificate ? '960,3930,2085,1485,1440,1980' : '960,4380,2385,1785,2370';
+    },
+    qualificationRankedParticipants() {
       if (this.isTwoRound) {
-        ranked = [...this.participants].sort(
+        return [...this.participants].sort(
           (a, b) =>
             getCombinedTotal(b) - getCombinedTotal(a) ||
             getScoreCarreauCount(b, 'scores') +
               getScoreCarreauCount(b, 'scores2') -
               (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')),
         );
-      } else {
-        ranked = rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
       }
+      return rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
+    },
+    rankedParticipants() {
+      const ranked = this.qualificationRankedParticipants;
       if (!this.playoff) return ranked;
       const places = this.playoffPlaces;
       return [...ranked].sort((a, b) => {
@@ -355,8 +381,8 @@ export default {
         this.playoff.rounds.forEach((round) => {
           const count = round.matches.length;
           let title = 'Раунд';
-          if (count === 4) title = 'Чвертьфінал';
-          else if (count === 2) title = 'Півфінал';
+          if (count === 4) title = '1/4 фіналу';
+          else if (count === 2) title = 'Півфінали';
           else if (count === 8) title = '1/8 фіналу';
           rounds.push({ title, matches: round.matches });
         });
@@ -394,6 +420,12 @@ export default {
     getCombined(p) {
       return getCombinedTotal(p);
     },
+    getQualificationPlace(participant) {
+      const index = this.qualificationRankedParticipants.findIndex(
+        (candidate) => candidate === participant || (participant.id != null && candidate.id === participant.id),
+      );
+      return index === -1 ? '—' : index + 1;
+    },
     _placeNum(place) {
       if (place === undefined) return 9999;
       if (typeof place === 'number') return place;
@@ -404,6 +436,20 @@ export default {
       if (!this.playoff) return index + 1;
       if (this.playoffPlaces[name] !== undefined) return this.playoffPlaces[name];
       return index + 1;
+    },
+    getParticipantProtocolName(participant) {
+      return participant.protocolName || participant.name || '';
+    },
+    getParticipantRegion(participant) {
+      return regions[participant.club_id] || participant.city || '';
+    },
+    getParticipantSportTitle(participant) {
+      return participant.sport_title === 'candidate' ? 'КМСУ' : participant.sport_title || '';
+    },
+    updateParticipantField(participant, field, event) {
+      participant[field] = event.currentTarget.textContent.trim();
+      if (field === 'city') participant.club_id = null;
+      this.saveProtocolToStorage?.();
     },
     formatDate(dateString) {
       if (!dateString) return '';
@@ -416,23 +462,111 @@ export default {
       const year = parts.find((p) => p.type === 'year')?.value;
       return `${day} ${month} ${year} року`;
     },
+    async refreshPlayersFromPortal() {
+      if (this.refreshing) return;
+      let portalId = this.tournamentPortalId;
+      if (!portalId) {
+        portalId = window.prompt('Введіть ID турніру на порталі (з URL: portal.petanque.org.ua/tournament/XXX)');
+        if (!portalId) return;
+      }
+
+      this.refreshing = true;
+      try {
+        const stats = refreshTirParticipantDetails(this.participants, await fetchPortalTournamentTeams(portalId));
+        this.$forceUpdate();
+        await this.$nextTick();
+        this.saveProtocolToStorage();
+
+        const missingText = stats.missing ? ` Не знайдено: ${stats.missing}.` : '';
+        this.showMessage({
+          title: stats.changed ? 'Оновлено' : 'Без змін',
+          text: stats.changed
+            ? `Оновлено ${stats.changed} з ${stats.matched} знайдених гравців.${missingText}`
+            : `Дані ${stats.matched} знайдених гравців уже актуальні.${missingText}`,
+        });
+      } catch (error) {
+        console.error('Refresh error:', error);
+        this.showMessage({
+          title: 'Помилка',
+          text: `Не вдалося завантажити дані з порталу: ${error.message}`,
+          type: 'error',
+        });
+      } finally {
+        this.refreshing = false;
+      }
+    },
+    saveProtocolToStorage() {
+      saveProtocolHtml(this.protocolStorageKey, document.getElementById('protocol'));
+    },
+    restoreProtocolFromStorage() {
+      const saved = readProtocolHtml(this.protocolStorageKey);
+      const element = document.getElementById('protocol');
+      if (!saved || !element) return;
+
+      const template = document.createElement('template');
+      template.innerHTML = saved;
+      const savedProtocol = template.content;
+      const arbitersHeading = [...savedProtocol.querySelectorAll('h3')].find((heading) =>
+        heading.textContent.includes('Судді турніру'),
+      );
+      const arbitersTable = arbitersHeading?.nextElementSibling;
+
+      if (arbitersTable?.matches('table')) {
+        const headers = [...arbitersTable.querySelectorAll('thead th')].map((header) => header.textContent.trim());
+        const hasCertificate = headers.some((header) => header.includes('посвідчення'));
+        this.showArbitrCertificate = hasCertificate;
+        this.arbitres = [...arbitersTable.querySelectorAll('tbody tr')].map((row) => {
+          const cells = [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim());
+          return {
+            name: cells[1] || '',
+            role: cells[2] || 'Арбітр',
+            category: cells[3] || 'АФПУ',
+            certificate: hasCertificate ? cells[4] || '' : '',
+            region: cells[hasCertificate ? 5 : 4] || '',
+          };
+        });
+        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      }
+
+      const savedEditableCells = [...savedProtocol.querySelectorAll('[contenteditable]')];
+      this.$nextTick(() => {
+        const editableCells = [...element.querySelectorAll('[contenteditable]')];
+        editableCells.forEach((cell, index) => {
+          if (savedEditableCells[index]) cell.innerHTML = savedEditableCells[index].innerHTML;
+        });
+      });
+    },
+    resetProtocol() {
+      clearProtocolHtml(this.protocolStorageKey);
+      location.reload();
+    },
+    removeDopyshit() {
+      const element = document.getElementById('protocol');
+      const count = removeProtocolMarkers(element);
+      this.saveProtocolToStorage?.();
+      this.showMessage({ title: 'Готово', text: `Прибрано ${count} міток` });
+    },
     addArbitr(arbiter) {
       this.arbitres.push(arbiter);
       if (arbiter.role === 'Головний Арбітр') this.arbitr = arbiter.name;
+      this.$nextTick(() => this.saveProtocolToStorage());
     },
     applyArbiterSelection(arbiters) {
       this.arbitres = arbiters;
       this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.$nextTick(() => this.saveProtocolToStorage());
     },
     applyArbiterPreset(arbiters) {
       this.arbitres = arbiters;
       this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.$nextTick(() => this.saveProtocolToStorage());
     },
     updateArbiterField(index, field, event) {
       this.arbitres[index][field] = event.currentTarget.textContent.trim();
       if (field === 'name' || field === 'role') {
         this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
       }
+      this.saveProtocolToStorage();
     },
     copyCard() {
       navigator.clipboard.writeText('5353542324470856');
@@ -444,13 +578,8 @@ export default {
     },
     copyProtocol() {
       const element = document.getElementById('protocol');
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
       try {
-        const successful = document.execCommand('copy');
+        const successful = copyProtocolElement(element);
         if (successful) {
           this.showMessage({ title: this.$t('messages.success'), text: this.$t('messages.protocolCopied') });
         } else {
@@ -463,13 +592,18 @@ export default {
       } catch (err) {
         console.error('Error copying to clipboard:', err);
       }
-      selection.removeAllRanges();
     },
     async exportPdf() {
-      const { default: html2pdf } = await import('html2pdf.js');
-      html2pdf(document.getElementById('protocol'), {
-        margin: 1,
-        filename: `${this.tournamentName}_protocol.pdf`,
+      const element = document.getElementById('protocol');
+      await exportProtocolPdf(element, {
+        html2pdf: {
+          margin: [10, 10, 10, 10],
+          filename: `${this.tournamentName}_protocol.pdf`,
+          pagebreak: { mode: ['css', 'legacy'], before: '.docx-page-break', avoid: ['tr'] },
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+          jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
+        },
       });
     },
     async exportDocx() {
@@ -478,7 +612,14 @@ export default {
 
       this.exportingDocx = true;
       try {
-        await downloadProtocolDocx(element, this.tournamentName);
+        await downloadProtocolDocx(element, this.tournamentName, {
+          orientation: 'landscape',
+          tableWidth: 14640,
+          pageNumbers: true,
+          borderColor: '000000',
+          headerFill: 'FFFFFF',
+          signatureFill: 'FFFFFF',
+        });
       } catch (error) {
         console.error('DOCX export error:', error);
         this.showMessage({
@@ -493,3 +634,27 @@ export default {
   },
 };
 </script>
+
+<style>
+.tir-protocol-container #protocol {
+  width: 297mm;
+  min-width: 297mm;
+  min-height: 210mm;
+  box-sizing: border-box;
+  padding: 10mm;
+  margin-right: auto;
+  margin-left: auto;
+  background: #fff;
+  border: 1px solid #c8c8c8;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
+}
+
+.tir-protocol-container #protocol.is-exporting {
+  width: 277mm;
+  min-width: 277mm;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+</style>

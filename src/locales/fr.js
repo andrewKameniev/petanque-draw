@@ -5,6 +5,7 @@ export default {
     formatLabel: 'Format des play-offs',
     formatHint: 'Après une première défaite, chaque équipe continue dans le tableau inférieur.',
     singleElimination: 'Élimination directe',
+    singleEliminationRule: 'Une défaite élimine une équipe du tournoi.',
     grandFinalRule: 'Règle de la grande finale',
     resetOption: 'Réinitialisation du tableau (recommandé)',
     singleOption: 'Une seule grande finale',

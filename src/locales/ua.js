@@ -5,6 +5,7 @@ export default {
     formatLabel: 'Формат плей-оф',
     formatHint: 'Після першої поразки команда отримує другий шанс у нижній сітці.',
     singleElimination: 'Одинарне вибування',
+    singleEliminationRule: 'Одна поразка вибиває команду з турніру.',
     grandFinalRule: 'Правило гранд-фіналу',
     resetOption: 'Скидання сітки (рекомендовано)',
     singleOption: 'Один вирішальний гранд-фінал',

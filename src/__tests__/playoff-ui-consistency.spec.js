@@ -3,9 +3,11 @@ import { readFileSync } from 'node:fs';
 import { URL } from 'node:url';
 
 let Bracket;
+let BracketFullscreenButton;
 let DoubleElimination;
 let Game;
 let PlayOff;
+let PlayoffHeader;
 let PlayoffMatchPanel;
 
 beforeAll(async () => {
@@ -15,15 +17,19 @@ beforeAll(async () => {
   });
   [
     { default: Bracket },
+    { default: BracketFullscreenButton },
     { default: DoubleElimination },
     { default: Game },
     { default: PlayOff },
+    { default: PlayoffHeader },
     { default: PlayoffMatchPanel },
   ] = await Promise.all([
     import('@/components/partials/Bracket.vue'),
+    import('@/components/partials/BracketFullscreenButton.vue'),
     import('@/components/partials/DoubleElimination.vue'),
     import('@/components/partials/Game.vue'),
     import('@/components/partials/PlayOff.vue'),
+    import('@/components/partials/PlayoffHeader.vue'),
     import('@/components/partials/PlayoffMatchPanel.vue'),
   ]);
 });
@@ -81,6 +87,34 @@ describe('playoff UI consistency', () => {
     expect(publicView).toContain(':embedded="true"');
     expect(publicView).not.toContain('btn-bracket-group');
     expect(Bracket.props.embedded.default).toBe(false);
+  });
+
+  it('shares the public bracket header and fullscreen control across elimination formats', () => {
+    const bracketView = readFileSync(new URL('../components/partials/Bracket.vue', import.meta.url), 'utf8');
+    const doubleView = readFileSync(new URL('../components/partials/DoubleElimination.vue', import.meta.url), 'utf8');
+
+    expect(Bracket.components.PlayoffHeader).toBe(PlayoffHeader);
+    expect(Bracket.components.BracketFullscreenButton).toBe(BracketFullscreenButton);
+    expect(DoubleElimination.components.BracketFullscreenButton).toBe(BracketFullscreenButton);
+    expect(bracketView).toContain('data-testid="toggle-single-elimination-fullscreen"');
+    expect(bracketView).toMatch(/\.bracket-modal--embedded\s*{[\s\S]*?border: 1px solid var\(--color-border\);/);
+    expect(doubleView).toMatch(/\.double-elimination__match--pending,[\s\S]*?background: var\(--color-surface-alt\);/);
+  });
+
+  it('labels unresolved single-elimination teams by their source match', () => {
+    const context = {
+      $t: (key) =>
+        ({
+          'doubleElimination.pending': 'Pending',
+          'doubleElimination.winnerOf': 'Winner',
+          'games.exempt': 'Bye',
+        })[key],
+      singleMatchId: Bracket.methods.singleMatchId,
+    };
+
+    expect(Bracket.methods.teamLabel.call(context, {}, 0, 0, 1)).toBe('Pending');
+    expect(Bracket.methods.teamLabel.call(context, {}, 1, 0, 1)).toBe('Winner P1M1');
+    expect(Bracket.methods.teamLabel.call(context, {}, 1, 0, 2)).toBe('Winner P1M2');
   });
 
   it('removes the single-elimination stage wrapper box on mobile', () => {

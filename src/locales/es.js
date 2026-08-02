@@ -5,6 +5,7 @@ export default {
     formatLabel: 'Formato del play-off',
     formatHint: 'Tras la primera derrota, cada equipo continúa en el cuadro inferior.',
     singleElimination: 'Eliminación simple',
+    singleEliminationRule: 'Una derrota elimina a un equipo del torneo.',
     grandFinalRule: 'Regla de la gran final',
     resetOption: 'Reinicio del cuadro (recomendado)',
     singleOption: 'Una gran final decisiva',

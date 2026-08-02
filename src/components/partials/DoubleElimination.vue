@@ -36,17 +36,13 @@
         }"
         data-testid="double-elimination-bracket-view"
       >
-        <button
+        <BracketFullscreenButton
           v-if="isPublicView && bracketOnly && !tvView"
-          type="button"
-          class="double-elimination__fullscreen"
+          :is-fullscreen="isFullscreen"
           :aria-label="isFullscreen ? $t('common.close') : $t('games.showBracket')"
           data-testid="toggle-double-elimination-fullscreen"
-          @click="toggleFullscreen"
-        >
-          <Minimize2 v-if="isFullscreen" :size="20" />
-          <Maximize2 v-else :size="20" />
-        </button>
+          @toggle="toggleFullscreen"
+        />
         <button
           v-if="showBracket && !isPublicView"
           type="button"
@@ -189,7 +185,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia';
-import { Maximize2, Minimize2, Trophy, X } from 'lucide-vue-next';
+import { Trophy, X } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, updateScoreHistory } from '@/helpers';
 import {
@@ -202,10 +198,11 @@ import {
 } from '@/services/playoff';
 import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
 import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
+import BracketFullscreenButton from '@/components/partials/BracketFullscreenButton.vue';
 
 export default {
   name: 'DoubleElimination',
-  components: { Maximize2, Minimize2, PlayoffHeader, PlayoffMatchPanel, Trophy, X },
+  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, Trophy, X },
   props: {
     activeTournament: { type: Object, default: null },
     isPublicView: { type: Boolean, default: false },
@@ -219,6 +216,7 @@ export default {
       scoreError: false,
       showBracket: false,
       isFullscreen: false,
+      usesFullscreenFallback: false,
       fullscreenScale: 1,
       fullscreenCanvasSize: { width: 0, height: 0 },
       connections: [],
@@ -370,21 +368,43 @@ export default {
     async toggleFullscreen() {
       const element = this.$refs.bracketSection;
       if (!element) return;
+      if (this.isFullscreen && this.usesFullscreenFallback) {
+        this.isFullscreen = false;
+        this.usesFullscreenFallback = false;
+        document.documentElement.classList.remove('is-clipped');
+        this.resetFullscreenFit();
+        return;
+      }
       if (document.fullscreenElement) {
         await document.exitFullscreen?.();
         this.isFullscreen = false;
       } else if (element.requestFullscreen) {
-        await element.requestFullscreen();
-        this.isFullscreen = true;
+        try {
+          await element.requestFullscreen();
+          if (document.fullscreenElement === element) {
+            this.isFullscreen = true;
+            this.usesFullscreenFallback = false;
+          } else {
+            this.activateFullscreenFallback();
+          }
+        } catch {
+          this.activateFullscreenFallback();
+        }
       } else {
-        this.isFullscreen = !this.isFullscreen;
-        document.documentElement.classList.toggle('is-clipped', this.isFullscreen);
+        this.activateFullscreenFallback();
       }
       if (!this.isFullscreen) this.resetFullscreenFit();
       this.$nextTick(this.observeConnectionCanvas);
     },
+    activateFullscreenFallback() {
+      this.usesFullscreenFallback = true;
+      this.isFullscreen = true;
+      document.documentElement.classList.add('is-clipped');
+    },
     onFullscreenChange() {
+      if (this.usesFullscreenFallback && !document.fullscreenElement) return;
       this.isFullscreen = document.fullscreenElement === this.$refs.bracketSection;
+      this.usesFullscreenFallback = false;
       if (!this.isFullscreen) this.resetFullscreenFit();
       this.$nextTick(this.observeConnectionCanvas);
     },
@@ -693,34 +713,6 @@ export default {
   background: var(--color-surface);
 }
 
-.double-elimination__fullscreen {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 4;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 1px solid rgb(255 255 255 / 28%);
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-primary), #3d1b9a);
-  box-shadow: 0 8px 22px rgb(74 31 169 / 28%);
-  color: #fff;
-  cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.double-elimination__fullscreen:hover,
-.double-elimination__fullscreen:focus-visible {
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 11px 28px rgb(74 31 169 / 38%);
-}
-
 .double-elimination__section--fullscreen {
   position: fixed;
   inset: 0;
@@ -912,6 +904,7 @@ export default {
 
 .double-elimination__match--pending,
 .double-elimination__match--skipped {
+  background: var(--color-surface-alt);
   opacity: 0.68;
 }
 

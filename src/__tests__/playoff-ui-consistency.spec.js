@@ -83,6 +83,13 @@ describe('playoff UI consistency', () => {
     expect(Bracket.props.embedded.default).toBe(false);
   });
 
+  it('removes the single-elimination stage wrapper box on mobile', () => {
+    const playoffView = readFileSync(new URL('../components/partials/PlayOff.vue', import.meta.url), 'utf8');
+
+    expect(playoffView).toMatch(/\.play-off-stage-wrapper\s*{\s*display: contents;/);
+    expect(playoffView).toMatch(/display: contents;\s*padding-right: 0;\s*padding-left: 0;/);
+  });
+
   it('keeps partial team and club highlighting in the shared public card', () => {
     expect(
       Game.methods.isPublicTeamHighlighted.call(

@@ -713,4 +713,12 @@ export default {
   background: var(--color-primary);
   color: var(--color-btn-text);
 }
+
+@media screen and (max-width: 768px) {
+  .play-off-stage-wrapper {
+    display: contents;
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
 </style>

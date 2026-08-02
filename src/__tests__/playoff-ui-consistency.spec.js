@@ -30,8 +30,12 @@ beforeAll(async () => {
 
 describe('playoff UI consistency', () => {
   it('uses the shared match panel for both elimination formats', () => {
+    const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
+
     expect(PlayOff.components.PlayoffMatchPanel).toBe(PlayoffMatchPanel);
     expect(DoubleElimination.components.PlayoffMatchPanel).toBe(PlayoffMatchPanel);
+    expect(panelView).toContain('background: var(--color-surface);');
+    expect(panelView).not.toContain('background: var(--color-primary-bg);');
   });
 
   it('normalizes a single-elimination round and third-place match for the shared panel', () => {

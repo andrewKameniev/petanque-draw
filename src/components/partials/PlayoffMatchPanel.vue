@@ -80,7 +80,7 @@ export default {
   padding: 1rem;
   border: 1px solid var(--color-primary);
   border-radius: 16px;
-  background: var(--color-primary-bg);
+  background: var(--color-surface);
 }
 
 .playoff-match-panel__header {

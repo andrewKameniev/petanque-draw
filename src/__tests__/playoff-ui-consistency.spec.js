@@ -92,6 +92,13 @@ describe('playoff UI consistency', () => {
     expect(Bracket.props.embedded.default).toBe(false);
   });
 
+  it('lets the playoff search dropdown escape a short public tab panel', () => {
+    const publicView = readFileSync(new URL('../views/Public.vue', import.meta.url), 'utf8');
+
+    expect(publicView).toContain("'tabs-content-area--playoff':");
+    expect(publicView).toMatch(/\.tabs-content-area--playoff\s*{\s*overflow: visible;/);
+  });
+
   it('shares the public bracket header and fullscreen control across elimination formats', () => {
     const bracketView = readFileSync(new URL('../components/partials/Bracket.vue', import.meta.url), 'utf8');
     const doubleView = readFileSync(new URL('../components/partials/DoubleElimination.vue', import.meta.url), 'utf8');

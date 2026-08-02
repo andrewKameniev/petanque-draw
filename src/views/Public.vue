@@ -162,7 +162,13 @@
             <span>{{ tab.label }}</span>
           </button>
         </div>
-        <div class="tabs-content-area">
+        <div
+          class="tabs-content-area"
+          :class="{
+            'tabs-content-area--playoff':
+              activeTab === 'round' && (activeTournamentView?.playOff || isDoubleElimination),
+          }"
+        >
           <div v-if="activeTab === 'round'">
             <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
             <PlayOff
@@ -1491,6 +1497,10 @@ export default {
 }
 
 .tabs-content-area:has(.ranking-tooltip) {
+  overflow: visible;
+}
+
+.tabs-content-area--playoff {
   overflow: visible;
 }
 

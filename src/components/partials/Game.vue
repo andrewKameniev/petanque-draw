@@ -441,6 +441,12 @@ export default {
 </script>
 
 <style scoped>
+.game-row-wrapper.game--highlighted {
+  border-radius: 14px;
+  outline: 2px solid var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-shadow, rgb(124 58 237 / 15%));
+}
+
 .game-row.has-background-danger {
   background: rgb(255 56 96 / 12%) !important;
 }

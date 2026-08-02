@@ -158,6 +158,41 @@ describe('playoff UI consistency', () => {
     ).toBe(true);
   });
 
+  it('applies playoff search selection consistently to admin and public games', () => {
+    const selection = { highlightedTeam: null, showSearch: true, searchQuery: 'кро' };
+    PlayOff.methods.selectTeam.call(selection, 'Спортивний петанк-клуб «Київ»');
+
+    expect(selection).toEqual({
+      highlightedTeam: 'Спортивний петанк-клуб «Київ»',
+      showSearch: false,
+      searchQuery: '',
+    });
+    expect(
+      PlayoffMatchPanel.methods.isEntryHighlighted.call(
+        {
+          highlightedTeam: selection.highlightedTeam,
+          teamClubMap: { 'КРОХА Андрій': 'Спортивний петанк-клуб «Київ»' },
+        },
+        { game: { team_1: 'КРОХА Андрій', team_2: 'РОЖОК Олександр' } },
+      ),
+    ).toBe(true);
+
+    const gameView = readFileSync(new URL('../components/partials/Game.vue', import.meta.url), 'utf8');
+    const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
+    expect(panelView).toContain(':class="{ \'game--highlighted\': isEntryHighlighted(entry) }"');
+    expect(gameView).toMatch(
+      /\.game-row-wrapper\.game--highlighted\s*{[\s\S]*?outline: 2px solid var\(--color-primary\);/,
+    );
+  });
+
+  it('keeps playoff search icons at one fixed size', () => {
+    const playoffView = readFileSync(new URL('../components/partials/PlayOff.vue', import.meta.url), 'utf8');
+
+    expect(playoffView.match(/:size="14"/g)).toHaveLength(3);
+    expect(playoffView).toMatch(/\.playoff-search-btn svg\s*{[\s\S]*?flex: 0 0 14px;/);
+    expect(playoffView).toMatch(/\.playoff-search-item__icon\s*{[\s\S]*?flex: 0 0 14px;/);
+  });
+
   it('keeps every public match card on one shared stylesheet', () => {
     const gameView = readFileSync(new URL('../components/partials/Game.vue', import.meta.url), 'utf8');
     const publicView = readFileSync(new URL('../views/Public.vue', import.meta.url), 'utf8');

@@ -26,7 +26,7 @@
         :highlighted-team="highlightedTeam"
         :team-club-map="teamClubMap"
         :tournament-finished="tournament.tournamentIsFinished"
-        :class="{ 'game--highlighted': !publicView && isEntryHighlighted(entry) }"
+        :class="{ 'game--highlighted': isEntryHighlighted(entry) }"
         @save="$emit('save')"
         @swapLane="$emit('swap-lane', { stage, entry, payload: $event })"
         @update="$emit('update', { stage, entry, gameIndex: $event })"

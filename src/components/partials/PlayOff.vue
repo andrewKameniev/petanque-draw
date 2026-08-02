@@ -82,10 +82,11 @@
                 <button
                   class="playoff-search-btn"
                   :class="{ 'playoff-search-btn--active': highlightedTeam }"
+                  :aria-pressed="!!highlightedTeam"
                   @click="showSearch = !showSearch"
                 >
-                  <Search :size="16" />
-                  <UserRound :size="16" />
+                  <Search :size="14" />
+                  <UserRound :size="14" />
                 </button>
                 <div v-if="showSearch" class="playoff-search-popover">
                   <input
@@ -104,7 +105,7 @@
                       :class="{ 'playoff-search-item--active': highlightedTeam === club }"
                       @click="selectTeam(club)"
                     >
-                      <Building2 :size="12" />
+                      <Building2 class="playoff-search-item__icon" :size="14" />
                       {{ club }}
                     </li>
                   </ul>
@@ -594,8 +595,9 @@ export default {
 }
 
 .playoff-search-btn svg {
-  width: 12px;
-  height: 12px;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
 }
 
 .playoff-search-btn:hover {
@@ -612,7 +614,7 @@ export default {
 }
 
 .playoff-search-btn--active {
-  background: var(--color-text-muted, #6b7280);
+  background: var(--color-primary);
 }
 
 .playoff-search-popover {
@@ -680,6 +682,12 @@ export default {
   align-items: center;
   gap: 0.4rem;
   font-weight: 500;
+}
+
+.playoff-search-item__icon {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
 }
 
 .playoff-search-empty {

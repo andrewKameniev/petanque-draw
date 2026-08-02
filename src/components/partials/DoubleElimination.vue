@@ -185,7 +185,7 @@
           :game-index="stage.teams.indexOf(match)"
           :active-round="stageIndex(stage)"
           :is-playoff="true"
-          :lane-number="activeLaneNumber(stage, gameIndex)"
+          :lane-number="publicLaneNumber(stage, gameIndex)"
           :compact-view="false"
           @update="(matchIndex) => onMatchUpdate(stage, matchIndex)"
           @finish="(matchIndex) => onMatchFinish(stage, matchIndex)"
@@ -213,8 +213,10 @@
           :game-index="stage.teams.indexOf(match)"
           :active-round="stageIndex(stage)"
           :is-playoff="true"
-          :lane-number="gameIndex"
+          :lane-number="activeLaneNumber(stage, gameIndex)"
           :compact-view="true"
+          :public-view="true"
+          :tournament-finished="tournament.tournamentIsFinished"
         />
       </section>
     </div>
@@ -560,6 +562,10 @@ export default {
         offset += this.stageMatches(activeStage).length;
       }
       return offset + gameIndex;
+    },
+    publicLaneNumber(stage, gameIndex) {
+      if (this.activeStageIds.includes(stage.id)) return this.activeLaneNumber(stage, gameIndex);
+      return stage.laneOrder?.[gameIndex] ?? gameIndex;
     },
     matchClass(match) {
       return {

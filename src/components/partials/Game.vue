@@ -1,6 +1,76 @@
 <template>
   <div class="game-row-wrapper">
     <div
+      v-if="publicView"
+      class="match-item public-game-card"
+      data-testid="public-game-card"
+      :class="{
+        'match-item--highlighted': isPublicGameHighlighted,
+        'match-item--in-progress': isPublicInProgress,
+        'match-item--finished': isPublicFinished,
+        'match-item--upcoming': isPublicUpcoming,
+      }"
+    >
+      <span
+        class="match-lane-left"
+        :class="{
+          'match-lane-left--active': isPublicInProgress,
+          'match-lane-left--finished': isPublicFinished,
+        }"
+        >{{ displayLane }}</span
+      >
+      <span
+        class="match-team match-team-right"
+        :class="{
+          'match-team--highlighted': isPublicTeamOneHighlighted,
+          'match-team--winner': isPublicFinished && Number(game.team_1_score) > Number(game.team_2_score),
+        }"
+        >{{ game.team_1 }}</span
+      >
+      <span class="match-vs">
+        <span v-if="isPublicInProgress || isPublicFinished" class="match-score">
+          {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
+        </span>
+        <span v-else class="match-score match-score--pending">-- : --</span>
+      </span>
+      <span
+        class="match-team"
+        :class="{
+          'match-team--highlighted': isPublicTeamTwoHighlighted,
+          'match-team--winner': isPublicFinished && Number(game.team_2_score) > Number(game.team_1_score),
+        }"
+        >{{ game.team_2 }}</span
+      >
+      <span v-if="resolvedStreams.length" class="match-status-badge match-status-badge--live">
+        <span v-if="isPublicInProgress" class="match-live-dot"></span>
+        <span class="match-live-label">{{ isPublicInProgress ? $t('games.live') : $t('games.stream') }}</span>
+        <a
+          v-for="(streamUrl, streamIndex) in resolvedStreams"
+          :key="streamIndex"
+          :href="streamUrl"
+          target="_blank"
+          rel="noopener"
+          class="match-live-link"
+          :class="streamClass(streamUrl)"
+        >
+          <component :is="streamIconFor(streamUrl)" :size="16" />
+        </a>
+      </span>
+      <span v-else-if="isPublicInProgress" class="match-status-badge match-status-badge--progress">
+        <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
+      </span>
+      <span v-else-if="isPublicFinished" class="match-status-badge match-status-badge--finished">
+        {{ $t('teamPlayoff.matchFinished') }}
+      </span>
+      <div v-if="cochonettesEnabled && game.score_history?.length" class="score-history">
+        <span v-for="(entry, index) in game.score_history" :key="index" class="score-history__chip">
+          <span class="score-history__num">{{ index + 1 }}</span>
+          <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
+        </span>
+      </div>
+    </div>
+    <div
+      v-else
       class="game-row"
       data-testid="game-row"
       :class="{
@@ -101,7 +171,7 @@
 
 <script>
 import { gameHasError } from '@/helpers';
-import { getGameStreams, getStreamIconComponent } from '@/services/streams';
+import { getGameStreams, getStreamIconClass, getStreamIconComponent } from '@/services/streams';
 import { getGameLaneNumber } from '@/services/lanes';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
@@ -121,6 +191,10 @@ export default {
     'isCadrage',
     'isThird',
     'laneNumber',
+    'publicView',
+    'highlightedTeam',
+    'teamClubMap',
+    'tournamentFinished',
   ],
   emits: ['save', 'swapLane', 'update', 'finish'],
   data() {
@@ -137,6 +211,13 @@ export default {
       'setActiveBracketMatchPath',
     ]),
     gameHasError,
+    streamIconFor: getStreamIconComponent,
+    streamClass: getStreamIconClass,
+    isPublicTeamHighlighted(teamName) {
+      if (!this.highlightedTeam) return false;
+      if (this.highlightedTeam === teamName) return true;
+      return this.teamClubMap?.[teamName] === this.highlightedTeam;
+    },
     onScoreInput(field) {
       const committedVal = this._committedScores?.[field] ?? null;
       this.clampScore(field);
@@ -255,6 +336,24 @@ export default {
     effectiveStatus() {
       return this.game.status || 'not_started';
     },
+    isPublicFinished() {
+      return !!this.tournamentFinished || this.effectiveStatus === 'finished';
+    },
+    isPublicInProgress() {
+      return !this.isPublicFinished && this.effectiveStatus === 'in_progress';
+    },
+    isPublicUpcoming() {
+      return !this.isPublicFinished && !this.isPublicInProgress;
+    },
+    isPublicTeamOneHighlighted() {
+      return this.isPublicTeamHighlighted(this.game.team_1);
+    },
+    isPublicTeamTwoHighlighted() {
+      return this.isPublicTeamHighlighted(this.game.team_2);
+    },
+    isPublicGameHighlighted() {
+      return this.isPublicTeamOneHighlighted || this.isPublicTeamTwoHighlighted;
+    },
     isInputDisabled() {
       if (this.game.team_2 === 'Technical') return true;
       if (this.effectiveStatus === 'finished' && this.tournament.system === 'groups') return false;
@@ -340,6 +439,211 @@ export default {
 </script>
 
 <style scoped>
+.public-game-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface, var(--color-white));
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.public-game-card:hover {
+  border-color: var(--color-match-border-hover);
+}
+
+.public-game-card.match-item--in-progress {
+  border-color: var(--color-match-border-active);
+  background: url('@/assets/img/card-bg-active.webp') center/cover no-repeat !important;
+}
+
+.public-game-card.match-item--finished {
+  border-color: var(--color-match-border-finished);
+  background: url('@/assets/img/card-bg-finished.webp') center/cover no-repeat !important;
+}
+
+.public-game-card.match-item--upcoming {
+  border-color: var(--color-match-border-upcoming);
+  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
+}
+
+:global([data-theme='dark']) .public-game-card {
+  background: var(--color-surface) !important;
+}
+
+.public-game-card.match-item--highlighted {
+  background: var(--color-primary-bg) !important;
+}
+
+.public-game-card .match-lane-left {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-surface-alt, var(--color-primary-bg));
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.public-game-card .match-lane-left--active {
+  background: var(--color-primary);
+  color: var(--color-btn-text);
+}
+
+.public-game-card .match-lane-left--finished {
+  background: var(--color-success);
+  color: var(--color-btn-text);
+}
+
+.public-game-card .match-team {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  transition: color 0.15s;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.public-game-card .match-team-right {
+  text-align: right;
+}
+
+.public-game-card .match-team--highlighted {
+  color: var(--color-primary);
+}
+
+.public-game-card .match-team--winner {
+  color: var(--color-match-winner) !important;
+  font-weight: 700;
+}
+
+.public-game-card .match-vs {
+  text-align: center;
+}
+
+.public-game-card .match-score {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.public-game-card .match-score--pending {
+  color: var(--color-match-score-pending);
+  font-weight: 400;
+}
+
+.public-game-card .match-status-badge {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.public-game-card .match-status-badge--progress {
+  color: var(--color-primary);
+}
+
+.public-game-card .match-status-badge--finished {
+  color: var(--tir-winner-text);
+}
+
+.public-game-card .match-status-badge--live,
+.public-game-card .match-live-link {
+  color: var(--color-stream-youtube);
+}
+
+.public-game-card .match-live-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.public-game-card .match-live-link.stream-icon--twitch {
+  color: var(--color-stream-twitch);
+}
+
+.public-game-card .match-live-link.stream-icon--facebook {
+  color: var(--color-stream-facebook);
+}
+
+.public-game-card .match-live-link.stream-icon--instagram {
+  color: var(--color-stream-instagram);
+}
+
+.public-game-card .match-progress-dot,
+.public-game-card .match-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentcolor;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+.public-game-card .score-history {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 6px;
+}
+
+.public-game-card .score-history__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.public-game-card .score-history__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.public-game-card .score-history__score {
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .game-row.has-background-danger {
   background: rgb(255 56 96 / 12%) !important;
 }

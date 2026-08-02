@@ -47,6 +47,13 @@ describe('playoff UI consistency', () => {
     expect(panelView).not.toContain('background: var(--color-primary-bg);');
   });
 
+  it('presents playoff result saving as a visible success action', () => {
+    const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
+
+    expect(panelView).toContain('class="button is-success playoff-match-panel__save"');
+    expect(panelView).not.toContain('background: var(--color-surface) !important;');
+  });
+
   it('normalizes a single-elimination round and third-place match for the shared panel', () => {
     const round = {
       teams: [

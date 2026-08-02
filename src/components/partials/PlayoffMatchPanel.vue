@@ -39,7 +39,7 @@
     <button
       v-if="!publicView && showSave"
       type="button"
-      class="button playoff-match-panel__save"
+      class="button is-success playoff-match-panel__save"
       data-testid="btn-save-playoff"
       @click="$emit('save')"
     >
@@ -131,18 +131,7 @@ export default {
   min-height: 2.5rem;
   padding: 0.55rem 1rem;
   margin: 1rem auto 0;
-  border: 1px solid var(--color-border) !important;
-  background: var(--color-surface) !important;
-  color: var(--color-text) !important;
-  font-weight: 600;
-  box-shadow: none !important;
-}
-
-.playoff-match-panel__save:hover,
-.playoff-match-panel__save:focus-visible {
-  border-color: var(--color-primary) !important;
-  color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px var(--color-primary-shadow) !important;
+  font-weight: 700;
 }
 
 :deep(.game-row-wrapper) {

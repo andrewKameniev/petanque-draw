@@ -1,6 +1,24 @@
-# Playoff (Single Elimination)
+# Playoff
 
-Knockout bracket. Supports 4, 8, 16, 32, 64 teams.
+The organizer can choose single or double elimination. Single elimination supports power-of-two fields. Double
+elimination supports any field size from 2 participants upward and assigns seeded byes up to the next power of two.
+
+## Double Elimination
+
+- Every participant starts in the winners bracket.
+- A first loss sends the participant to the losers bracket.
+- A loss in the losers bracket eliminates the participant.
+- Winners and losers rounds become playable together whenever their dependencies are complete.
+- The loser of the Winners' Final enters the Losers' Final.
+- The Winners' Final champion and Losers' Final champion play one decisive Grand Final.
+- Lower-bracket drops are crossed to reduce immediate rematches.
+
+The bracket viewer shows the complete winners/losers route on one horizontally scrollable canvas. Non-power-of-two
+fields give byes to the highest seeds.
+
+## Single Elimination
+
+Standard knockout bracket. Supports 4, 8, 16, 32, 64 teams.
 
 ## Seeding
 

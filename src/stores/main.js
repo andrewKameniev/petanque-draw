@@ -16,6 +16,8 @@ const defaultPreferences = {
   maxScore: 13,
   playOffTeams: 8,
   playOffEnabled: false,
+  playOffFormat: 'single',
+  grandFinalMode: 'single',
   fieldsStart: 1,
   lanesPoolEnabled: false,
   lanesPoolFrom: 1,
@@ -698,6 +700,11 @@ export const useMainStore = defineStore('main', {
         } else if (!recentSyncs.has(`${prefix}playOffBracket:thirdPlace`)) {
           Object.assign(localBracket.thirdPlace, remoteBracket.thirdPlace);
         }
+      }
+      if (remoteBracket.format === 'double') {
+        ['champion', 'runnerUp', 'placements', 'grandFinalMode', 'participantCount', 'size'].forEach((field) => {
+          if (remoteBracket[field] !== undefined) localBracket[field] = remoteBracket[field];
+        });
       }
     },
     unsubscribeTournament() {

@@ -404,6 +404,8 @@ export default {
 <style scoped>
 .navbar {
   position: relative;
+  z-index: 9999;
+  isolation: isolate;
   display: flex;
   align-items: center;
 }

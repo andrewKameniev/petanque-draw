@@ -585,6 +585,9 @@ export function getTeamPlayoffPlaces(playoff) {
 export function getBracketPlayoffPlaces(bracket) {
   const places = {};
   if (!bracket?.stages) return places;
+  if (bracket.format === 'double') {
+    return { ...(bracket.placements || {}) };
+  }
   const finalStage = bracket.stages.find((s) => s.stageLabel === 1);
   if (finalStage?.teams?.length) {
     const game = finalStage.teams[0];

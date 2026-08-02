@@ -30,6 +30,15 @@
         <Trophy :size="18" />
         <span>{{ $t('games.playOff') }}</span>
       </button>
+      <button
+        v-if="protocolAvailable"
+        class="tir-nav__btn"
+        :class="{ 'tir-nav__btn--active tir-nav__btn--protocol': view === 'protocol' }"
+        @click="view = 'protocol'"
+      >
+        <FileText :size="18" />
+        <span>{{ $t('teams.protocol') }}</span>
+      </button>
     </div>
 
     <!-- Participants view — scoring page style, read-only -->
@@ -238,13 +247,22 @@
         </button>
       </template>
     </div>
+
+    <TirProtocol
+      v-if="view === 'protocol'"
+      :tournament="tournament"
+      :tournament-meta="protocolTournamentMeta"
+      :skip-gate="true"
+      :hide-close="true"
+    />
   </div>
 </template>
 
 <script>
-import { Users, TableProperties, Trophy, ChevronRight } from 'lucide-vue-next';
+import { Users, TableProperties, Trophy, ChevronRight, FileText } from 'lucide-vue-next';
 import TirPlayoffComparison from './TirPlayoffComparison.vue';
 import TirParticipantsList from './TirParticipantsList.vue';
+import TirProtocol from './TirProtocol.vue';
 
 import {
   SCORING,
@@ -258,9 +276,20 @@ import {
 
 export default {
   name: 'TirPublicView',
-  components: { Users, TableProperties, Trophy, ChevronRight, TirPlayoffComparison, TirParticipantsList },
+  components: {
+    Users,
+    TableProperties,
+    Trophy,
+    ChevronRight,
+    FileText,
+    TirPlayoffComparison,
+    TirParticipantsList,
+    TirProtocol,
+  },
   props: {
     tournament: { type: Object, required: true },
+    protocolAvailable: { type: Boolean, default: false },
+    protocolTournamentMeta: { type: Object, default: null },
   },
   data() {
     return {

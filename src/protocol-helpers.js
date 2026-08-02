@@ -125,6 +125,66 @@ export function refreshTournamentPlayerDetails(teams, portalTeams) {
   return stats;
 }
 
+function portalTirNameKeys(team, player) {
+  const surname = String(player?.surname || '').trim();
+  const firstName = String(player?.name || '').trim();
+  const secondName = String(player?.second_name || '').trim();
+  return [
+    team?.name,
+    [surname, firstName].filter(Boolean).join(' '),
+    [firstName, surname].filter(Boolean).join(' '),
+    [surname, firstName, secondName].filter(Boolean).join(' '),
+    [firstName, secondName, surname].filter(Boolean).join(' '),
+  ]
+    .map(normalizePortalPlayerName)
+    .filter(Boolean);
+}
+
+export function refreshTirParticipantDetails(participants, portalTeams) {
+  const byName = new Map();
+  const byTeamId = new Map();
+  portalTeams.forEach((team) => {
+    const player = team.players?.[0];
+    if (!player) return;
+    const entry = { team, player };
+    if (team.id != null) byTeamId.set(String(team.id), entry);
+    portalTirNameKeys(team, player).forEach((key) => {
+      const matches = byName.get(key) || [];
+      if (!matches.includes(entry)) matches.push(entry);
+      byName.set(key, matches);
+    });
+  });
+
+  const stats = { total: participants.length, matched: 0, changed: 0, missing: 0 };
+  participants.forEach((participant) => {
+    const idMatch = participant.portalTeamId != null ? byTeamId.get(String(participant.portalTeamId)) : null;
+    const matches = idMatch ? [idMatch] : byName.get(normalizePortalPlayerName(participant.name)) || [];
+    if (matches.length !== 1) {
+      stats.missing += 1;
+      return;
+    }
+
+    const { team, player } = matches[0];
+    stats.matched += 1;
+    const protocolName = [player.surname, player.name, player.second_name].filter(Boolean).join(' ').trim();
+    const updates = {
+      protocolName: protocolName || participant.protocolName || participant.name,
+      portalTeamId: team.id,
+      club_id: player.club_id,
+      sport_title: player.sport_title,
+    };
+    let changed = false;
+    Object.entries(updates).forEach(([field, value]) => {
+      if (value == null || !portalFieldChanged(participant[field], value)) return;
+      participant[field] = value;
+      changed = true;
+    });
+    if (changed) stats.changed += 1;
+  });
+
+  return stats;
+}
+
 export function formatDateToHumanReadable(dateString) {
   if (!dateString) return '';
   const date = new Date(dateString);

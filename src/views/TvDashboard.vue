@@ -5,7 +5,11 @@
   <div v-else-if="!tournament" class="tv-loading">
     <p class="tv-loading__text">Турнір не знайдено</p>
   </div>
-  <div v-else class="tv" :class="tvSchemaClass">
+  <div
+    v-else
+    class="tv"
+    :class="[tvSchemaClass, { 'tv--double-elimination': showPlayoffBracket && isDoubleElimination }]"
+  >
     <!-- Left column: header + content -->
     <div class="tv__left">
       <header class="tv__header">
@@ -134,7 +138,18 @@
           </div>
         </section>
 
-        <!-- Playoff bracket view -->
+        <!-- Double-elimination playoff view -->
+        <section v-else-if="isDoubleElimination" class="tv__double-elimination">
+          <DoubleElimination
+            :active-tournament="tournament"
+            :is-public-view="true"
+            :hide-header="true"
+            :tv-view="true"
+            :bracket-only="true"
+          />
+        </section>
+
+        <!-- Single-elimination playoff bracket view -->
         <section v-else class="tv__bracket" :class="{ 'tv__bracket--small': isSmallBracket }">
           <div class="tv__bracket-container">
             <svg :viewBox="`0 0 ${bracketWidth} ${bracketHeight}`" class="tv__bracket-svg">
@@ -327,7 +342,13 @@
     </div>
 
     <!-- Right column: standings table -->
-    <aside v-if="tournament.roundIsActive || (tournament.games && tournament.games.length > 0)" class="tv__sidebar">
+    <aside
+      v-if="
+        !(showPlayoffBracket && isDoubleElimination) &&
+        (tournament.roundIsActive || (tournament.games && tournament.games.length > 0))
+      "
+      class="tv__sidebar"
+    >
       <!-- Groups mode: per-group tables -->
       <div v-if="isGroupsMode" class="tv__table-wrapper tv__table-wrapper--groups">
         <h2 class="tv__table-title">ТУРНІРНА ТАБЛИЦЯ</h2>
@@ -451,11 +472,13 @@
 import { tournamentService } from '@/services/db';
 import { getTeamsRanking, pluralizeRounds } from '@/helpers';
 import { getGameLaneNumber } from '@/services/lanes';
+import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import headerMan from '@/assets/img/tv-header.png';
 import headerWoman from '@/assets/img/tv-header-woman.png';
 
 export default {
   name: 'TvDashboard',
+  components: { DoubleElimination },
   data() {
     return {
       isLoading: true,
@@ -578,6 +601,9 @@ export default {
     },
     showPlayoffBracket() {
       return !!this.tournament?.playOff && !!this.tournament?.playOffBracket;
+    },
+    isDoubleElimination() {
+      return this.tournament?.playOffBracket?.format === 'double';
     },
     isSmallBracket() {
       const stages = this.tournament?.playOffBracket?.stages;
@@ -1107,6 +1133,12 @@ export default {
   --tv-qualified-alt: #e8c23a;
   --tv-card-active-border: #2e3b8e;
   --tv-ribbon: #e6b422;
+}
+
+.tv.tv--double-elimination {
+  grid-template:
+    'left' 1fr
+    'footer' 70px / 1fr;
 }
 
 .tv__left {
@@ -1825,6 +1857,14 @@ export default {
 }
 
 /* Bracket */
+
+.tv__double-elimination {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
 
 .tv__bracket {
   display: flex;

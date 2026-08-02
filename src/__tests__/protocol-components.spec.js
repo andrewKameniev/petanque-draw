@@ -51,6 +51,7 @@ vi.mock('@/components/Menu.vue', () => ({ default: {} }));
 
 import Protocol from '@/components/partials/Protocol.vue';
 import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls.vue';
+import TirProtocol from '@/components/tir/TirProtocol.vue';
 import Archived from '@/views/Archived.vue';
 
 const arbiterMethods = ProtocolArbiterControls.methods;
@@ -330,6 +331,16 @@ describe('ProtocolArbiterControls', () => {
 describe('Protocol component behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('shares the same gate, participant tools, and footer with the TIR protocol', () => {
+    expect(TirProtocol.components.ProtocolGate).toBe(Protocol.components.ProtocolGate);
+    expect(TirProtocol.components.ProtocolParticipantTools).toBe(Protocol.components.ProtocolParticipantTools);
+    expect(TirProtocol.components.ProtocolFooter).toBe(Protocol.components.ProtocolFooter);
+  });
+
+  it('shows arbiter certificate numbers by default', () => {
+    expect(Protocol.data().showArbitrCertificate).toBe(true);
   });
 
   it('paginates participant teams without splitting a team across pages', () => {
@@ -624,6 +635,40 @@ describe('Protocol component behavior', () => {
 });
 
 describe('Archived protocol integration', () => {
+  it('exposes protocol through the native TIR public tabs', async () => {
+    const { default: TirPublicView } = await vi.importActual('@/components/tir/TirPublicView.vue');
+
+    expect(TirPublicView.props.protocolAvailable.default).toBe(false);
+    expect(TirPublicView.props.protocolTournamentMeta.default).toBe(null);
+    expect(TirPublicView.components.TirProtocol.name).toBe('TirProtocol');
+  });
+
+  it('uses archived metadata in the TIR protocol and supports the archive gate controls', () => {
+    const archived = { name: 'Archived TIR', date: '2026-07-04' };
+    const context = {
+      tournamentMeta: archived,
+      tournament: { name: 'Main data' },
+      currentTournament: { name: 'Active' },
+    };
+
+    expect(TirProtocol.props.skipGate.default).toBe(false);
+    expect(TirProtocol.props.hideClose.default).toBe(false);
+    expect(TirProtocol.computed.protocolTournamentMeta.call(context)).toEqual({
+      id: undefined,
+      name: 'Archived TIR',
+      date: '2026-07-04',
+      portalIdTournament: undefined,
+    });
+    expect(
+      TirProtocol.computed.tournamentName.call({ protocolTournamentMeta: archived, tournament: context.tournament }),
+    ).toBe('Archived TIR');
+  });
+
+  it('uses the standard protocol region mapping for TIR participants', () => {
+    expect(TirProtocol.methods.getParticipantRegion({ club_id: 2, city: 'Fallback' })).toBe('Харківська');
+    expect(TirProtocol.methods.getParticipantRegion({ city: 'Київ' })).toBe('Київ');
+  });
+
   it('passes metadata from the selected archive instead of the current tournament', () => {
     const selected = {
       id: 'archive-1',

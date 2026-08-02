@@ -9,6 +9,7 @@ let Game;
 let PlayOff;
 let PlayoffHeader;
 let PlayoffMatchPanel;
+let Results;
 
 beforeAll(async () => {
   vi.stubGlobal('localStorage', {
@@ -23,6 +24,7 @@ beforeAll(async () => {
     { default: PlayOff },
     { default: PlayoffHeader },
     { default: PlayoffMatchPanel },
+    { default: Results },
   ] = await Promise.all([
     import('@/components/partials/Bracket.vue'),
     import('@/components/partials/BracketFullscreenButton.vue'),
@@ -31,6 +33,7 @@ beforeAll(async () => {
     import('@/components/partials/PlayOff.vue'),
     import('@/components/partials/PlayoffHeader.vue'),
     import('@/components/partials/PlayoffMatchPanel.vue'),
+    import('@/components/partials/Results.vue'),
   ]);
 });
 
@@ -123,6 +126,21 @@ describe('playoff UI consistency', () => {
 
     expect(playoffView).toMatch(/\.play-off-stage-wrapper\s*{\s*display: contents;/);
     expect(playoffView).toMatch(/display: contents;\s*padding-right: 0;\s*padding-left: 0;/);
+  });
+
+  it('removes the shared public playoff panel wrapper on mobile', () => {
+    const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
+
+    expect(panelView).toContain(':class="{ \'playoff-match-panel--public\': publicView }"');
+    expect(panelView).toMatch(/\.playoff-match-panel--public\s*{\s*display: contents;/);
+  });
+
+  it('renders public results through the shared game card component', () => {
+    const resultsView = readFileSync(new URL('../components/partials/Results.vue', import.meta.url), 'utf8');
+
+    expect(Results.components.Game).toBe(Game);
+    expect(resultsView).toContain(':public-view="true"');
+    expect(resultsView).not.toContain('class="match-item"');
   });
 
   it('keeps partial team and club highlighting in the shared public card', () => {

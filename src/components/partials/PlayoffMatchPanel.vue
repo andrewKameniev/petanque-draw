@@ -1,5 +1,9 @@
 <template>
-  <section class="playoff-match-panel" data-testid="playoff-match-panel">
+  <section
+    class="playoff-match-panel"
+    :class="{ 'playoff-match-panel--public': publicView }"
+    data-testid="playoff-match-panel"
+  >
     <header class="playoff-match-panel__header">
       <h3>{{ title }}</h3>
       <slot name="actions"></slot>
@@ -149,6 +153,10 @@ export default {
   .playoff-match-panel {
     padding: 0.75rem;
     border-radius: 12px;
+  }
+
+  .playoff-match-panel--public {
+    display: contents;
   }
 }
 </style>

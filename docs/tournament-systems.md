@@ -12,7 +12,7 @@ Detailed documentation for each system is in [docs/systems/](./systems/).
 
 ## Elimination Stages
 
-- [Playoff](./systems/playoff.md) — Single-elimination knockout bracket
+- [Playoff](./systems/playoff.md) — Single or double elimination knockout bracket
 - [Cadrage](./systems/cadrage.md) — Play-in round for bubble teams
 - [Barrage](./systems/barrage.md) — Round-robin qualification groups
 

@@ -362,6 +362,14 @@
           <p class="docs__intro">{{ $t('docs.playoffSystem.intro') }}</p>
 
           <div class="docs__card">
+            <h3>{{ $t('docs.playoffSystem.formatChoice.title') }}</h3>
+            <ul class="docs__list">
+              <li>{{ $t('docs.playoffSystem.formatChoice.single') }}</li>
+              <li>{{ $t('docs.playoffSystem.formatChoice.double') }}</li>
+            </ul>
+          </div>
+
+          <div class="docs__card">
             <h3>{{ $t('docs.playoffSystem.seeding.title') }}</h3>
             <p>{{ $t('docs.playoffSystem.seeding.text') }}</p>
           </div>
@@ -386,6 +394,21 @@
           </div>
 
           <div class="docs__card">
+            <h3>{{ $t('docs.playoffSystem.thirdPlace.title') }}</h3>
+            <p>{{ $t('docs.playoffSystem.thirdPlace.text') }}</p>
+          </div>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.playoffSystem.doubleElim.title') }}</h3>
+            <p>{{ $t('docs.playoffSystem.doubleElim.text') }}</p>
+            <ul class="docs__list">
+              <li>{{ $t('docs.playoffSystem.doubleElim.crossing') }}</li>
+              <li>{{ $t('docs.playoffSystem.doubleElim.grandFinal') }}</li>
+              <li>{{ $t('docs.playoffSystem.doubleElim.sizes') }}</li>
+            </ul>
+          </div>
+
+          <div class="docs__card">
             <h3>{{ $t('docs.playoffSystem.finalRanking.title') }}</h3>
             <ol class="docs__list docs__list--ordered">
               <li>{{ $t('docs.playoffSystem.finalRanking.first') }}</li>
@@ -394,6 +417,7 @@
               <li>{{ $t('docs.playoffSystem.finalRanking.fourth') }}</li>
               <li>{{ $t('docs.playoffSystem.finalRanking.rest') }}</li>
             </ol>
+            <p style="margin-top: 0.5rem">{{ $t('docs.playoffSystem.finalRanking.doubleNote') }}</p>
           </div>
         </section>
 

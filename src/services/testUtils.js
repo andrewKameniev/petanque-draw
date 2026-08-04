@@ -1,3 +1,5 @@
+import { getEditableDoubleEliminationStages, getPublicDoubleEliminationMatches } from '@/services/playoff';
+
 export function autoFillScores(tournament, activeRound) {
   const maxScore = tournament.preferences?.maxScore || 13;
   const fillGames = (games) => {
@@ -28,6 +30,13 @@ export function autoFillScores(tournament, activeRound) {
   };
 
   const fillBracket = (bracket, stage) => {
+    if (bracket.format === 'double') {
+      getEditableDoubleEliminationStages(bracket).forEach((activeStage) => {
+        fillGames(getPublicDoubleEliminationMatches(activeStage));
+      });
+      return;
+    }
+
     const currentStageIndex = stage
       ? bracket.stages?.findIndex((s) => s.stageLabel === stage)
       : bracket.stages?.findIndex((s) =>

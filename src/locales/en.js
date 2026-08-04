@@ -5,6 +5,7 @@ export default {
     formatLabel: 'Playoff format',
     formatHint: 'Double elimination gives every team a second chance after its first loss.',
     singleElimination: 'Single elimination',
+    singleEliminationRule: 'One loss eliminates a team from the tournament.',
     grandFinalRule: 'Grand final rule',
     resetOption: 'Bracket reset (recommended)',
     singleOption: 'One decisive grand final',

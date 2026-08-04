@@ -31,8 +31,8 @@ export function autoFillScores(tournament, activeRound) {
 
   const fillBracket = (bracket, stage) => {
     if (bracket.format === 'double') {
-      getEditableDoubleEliminationStages(bracket).forEach((activeStage) => {
-        fillGames(getPublicDoubleEliminationMatches(activeStage));
+      getEditableDoubleEliminationStages(bracket).forEach((editableStage) => {
+        fillGames(getPublicDoubleEliminationMatches(editableStage));
       });
       return;
     }
@@ -57,7 +57,7 @@ export function autoFillScores(tournament, activeRound) {
   if (tournament.cadrage?.length && !tournament.playOff?.length) {
     fillGames(tournament.cadrage);
   }
-  if (tournament.playOff?.length && tournament.playOffBracket) {
+  if ((tournament.playOff?.length || tournament.playOffBracket?.format === 'double') && tournament.playOffBracket) {
     fillBracket(tournament.playOffBracket, tournament.playOffStage);
   }
   if (tournament.roundIsActive && tournament.games?.length) {
@@ -67,7 +67,11 @@ export function autoFillScores(tournament, activeRound) {
   if (tB?.eliminationRound && !tB.eliminationRound.completed) {
     fillGames(tB.eliminationRound.games);
   }
-  if (tournament.activeGroup === 'B' && tB?.playOff && tB.playOffBracket) {
+  if (
+    tournament.activeGroup === 'B' &&
+    (tB?.playOff?.length || tB?.playOffBracket?.format === 'double') &&
+    tB.playOffBracket
+  ) {
     fillBracket(tB.playOffBracket, tB.playOffStage);
   }
   if (tournament.activeGroup === 'B' && tB?.roundIsActive && tB.games?.length) {

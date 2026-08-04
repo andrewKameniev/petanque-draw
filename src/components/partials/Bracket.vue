@@ -1,12 +1,45 @@
 <template>
-  <Teleport to="body">
-    <div class="modal is-active">
-      <div class="modal-background" @click.self="$emit('close-modal')"></div>
-      <div class="modal-content bracket-modal">
-        <div class="bracket-container" ref="container">
-          <svg :width="svgWidth" :height="svgHeight" class="bracket-svg">
+  <Teleport to="body" :disabled="embedded">
+    <div v-bind="$attrs" :class="embedded ? 'bracket-embedded' : 'modal is-active'">
+      <PlayoffHeader
+        v-if="embedded"
+        :title="$t('doubleElimination.singleElimination')"
+        :subtitle="$t('doubleElimination.singleEliminationRule')"
+        :badge="`${participantCount} ${$t('common.teamsLabel')}`"
+      />
+      <div v-if="!embedded" class="modal-background" @click.self="$emit('close-modal')"></div>
+      <div
+        ref="bracketSection"
+        :class="[
+          'bracket-modal',
+          {
+            'modal-content': !embedded,
+            'bracket-modal--embedded': embedded,
+            'bracket-modal--fullscreen': isFullscreen,
+          },
+        ]"
+      >
+        <BracketFullscreenButton
+          v-if="embedded"
+          :is-fullscreen="isFullscreen"
+          :aria-label="isFullscreen ? $t('common.close') : $t('games.showBracket')"
+          data-testid="toggle-single-elimination-fullscreen"
+          @toggle="toggleFullscreen"
+        />
+        <div class="bracket-container">
+          <svg
+            :width="svgWidth"
+            :height="svgHeight"
+            :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+            preserveAspectRatio="xMidYMid meet"
+            class="bracket-svg"
+          >
             <g v-for="(stage, si) in stages" :key="si">
               <g v-for="(game, gi) in stage.games" :key="gi">
+                <rect :x="game.x" :y="game.y - 14" width="34" height="12" rx="2" class="match-id-badge" />
+                <text :x="game.x + 17" :y="game.y - 5" class="match-id-text">
+                  {{ singleMatchId(si, gi) }}
+                </text>
                 <rect :x="game.x" :y="game.y" :width="boxWidth" :height="boxHeight" rx="6" ry="6" class="game-box" />
                 <line
                   :x1="game.x + 1"
@@ -48,10 +81,7 @@
                   class="team-name"
                   :class="{ 'team-winner': isWinner(game.data, 1) }"
                 >
-                  {{
-                    truncName(game.data.team_1, game.data.team_1_place || game.data.team_2_place) ||
-                    (game.data.isBye ? $t('games.exempt') : $t('games.someone'))
-                  }}
+                  {{ truncName(teamLabel(game.data, si, gi, 1), game.data.team_1_place || game.data.team_2_place) }}
                 </text>
                 <!-- Team 1 score -->
                 <path
@@ -83,10 +113,7 @@
                   class="team-name"
                   :class="{ 'team-winner': isWinner(game.data, 2) }"
                 >
-                  {{
-                    truncName(game.data.team_2, game.data.team_1_place || game.data.team_2_place) ||
-                    (game.data.isBye ? $t('games.exempt') : $t('games.lucky'))
-                  }}
+                  {{ truncName(teamLabel(game.data, si, gi, 2), game.data.team_1_place || game.data.team_2_place) }}
                 </text>
                 <!-- Team 2 score -->
                 <path
@@ -136,7 +163,7 @@
                 class="team-name"
                 :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 1) }"
               >
-                {{ truncName(thirdPlaceGame.data.team_1, false) || $t('games.someone') }}
+                {{ truncName(thirdPlaceTeamLabel(thirdPlaceGame.data, 1), false) }}
               </text>
               <path
                 v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
@@ -152,7 +179,7 @@
                 class="team-name"
                 :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 2) }"
               >
-                {{ truncName(thirdPlaceGame.data.team_2, false) || $t('games.lucky') }}
+                {{ truncName(thirdPlaceTeamLabel(thirdPlaceGame.data, 2), false) }}
               </text>
               <path
                 v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
@@ -186,21 +213,37 @@
           </svg>
         </div>
       </div>
-      <button class="modal-close is-large bracket-close" aria-label="close" @click="$emit('close-modal')"></button>
+      <button
+        v-if="!embedded"
+        class="modal-close is-large bracket-close"
+        aria-label="close"
+        @click="$emit('close-modal')"
+      ></button>
     </div>
   </Teleport>
 </template>
 
 <script>
+import BracketFullscreenButton from '@/components/partials/BracketFullscreenButton.vue';
+import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
+
 export default {
   name: 'Bracket',
-  props: ['bracket'],
+  inheritAttrs: false,
+  components: { BracketFullscreenButton, PlayoffHeader },
+  props: {
+    bracket: { type: Object, required: true },
+    embedded: { type: Boolean, default: false },
+  },
   emits: ['close-modal'],
   mounted() {
-    document.documentElement.style.overflow = 'hidden';
+    if (!this.embedded) document.documentElement.style.overflow = 'hidden';
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
   },
   beforeUnmount() {
-    document.documentElement.style.overflow = '';
+    if (!this.embedded) document.documentElement.style.overflow = '';
+    document.documentElement.classList.remove('is-clipped');
+    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
   },
   data() {
     return {
@@ -210,9 +253,16 @@ export default {
       rowGap: 16,
       headerHeight: 36,
       padding: 20,
+      isFullscreen: false,
+      usesFullscreenFallback: false,
     };
   },
   computed: {
+    participantCount() {
+      const firstStage =
+        this.bracket.stages?.find((stage) => stage.stageLabel !== 'cadrage') || this.bracket.stages?.[0];
+      return this.bracket.participantCount || firstStage?.teamsCount || firstStage?.teams?.length * 2 || 0;
+    },
     stages() {
       return this.bracket.stages.map((stage, si) => {
         const x = this.padding + si * (this.boxWidth + this.colGap);
@@ -319,6 +369,62 @@ export default {
     },
   },
   methods: {
+    singleMatchId(stageIndex, gameIndex) {
+      return `P${stageIndex + 1}M${gameIndex + 1}`;
+    },
+    teamLabel(game, stageIndex, gameIndex, team) {
+      const teamName = team === 1 ? game.team_1 : game.team_2;
+      if (teamName) return teamName;
+      if (game.isBye) return this.$t('games.exempt');
+      if (stageIndex === 0) return this.$t('doubleElimination.pending');
+      const sourceGameIndex = gameIndex * 2 + team - 1;
+      return `${this.$t('doubleElimination.winnerOf')} ${this.singleMatchId(stageIndex - 1, sourceGameIndex)}`;
+    },
+    thirdPlaceTeamLabel(game, team) {
+      const teamName = team === 1 ? game.team_1 : game.team_2;
+      if (teamName) return teamName;
+      const semifinalStageIndex = Math.max(0, this.stages.length - 2);
+      return `${this.$t('doubleElimination.loserOf')} ${this.singleMatchId(semifinalStageIndex, team - 1)}`;
+    },
+    async toggleFullscreen() {
+      const element = this.$refs.bracketSection;
+      if (!element) return;
+      if (this.isFullscreen && this.usesFullscreenFallback) {
+        this.isFullscreen = false;
+        this.usesFullscreenFallback = false;
+        document.documentElement.classList.remove('is-clipped');
+        return;
+      }
+      if (document.fullscreenElement) {
+        await document.exitFullscreen?.();
+        this.isFullscreen = false;
+      } else if (element.requestFullscreen) {
+        try {
+          await element.requestFullscreen();
+          if (document.fullscreenElement === element) {
+            this.isFullscreen = true;
+            this.usesFullscreenFallback = false;
+          } else {
+            this.activateFullscreenFallback();
+          }
+        } catch {
+          this.activateFullscreenFallback();
+        }
+      } else {
+        this.activateFullscreenFallback();
+      }
+    },
+    activateFullscreenFallback() {
+      this.usesFullscreenFallback = true;
+      this.isFullscreen = true;
+      document.documentElement.classList.add('is-clipped');
+    },
+    onFullscreenChange() {
+      if (this.usesFullscreenFallback && !document.fullscreenElement) return;
+      this.isFullscreen = document.fullscreenElement === this.$refs.bracketSection;
+      this.usesFullscreenFallback = false;
+      if (!this.isFullscreen) document.documentElement.classList.remove('is-clipped');
+    },
     truncName(name, hasPlace) {
       if (!name) return '';
       const textStart = hasPlace ? 30 : 10;
@@ -408,18 +514,83 @@ export default {
   overflow: auto;
 }
 
+.bracket-embedded {
+  width: 100%;
+}
+
+.bracket-modal--embedded {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin-inline: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 .bracket-container {
   padding: 10px 10px 20px;
 }
 
+.bracket-modal--embedded .bracket-container {
+  overflow: auto hidden;
+  overscroll-behavior-inline: contain;
+}
+
 .bracket-svg {
   display: block;
+  margin-inline: auto;
+}
+
+.bracket-modal--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+.bracket-modal--fullscreen .bracket-container {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.bracket-modal--fullscreen .bracket-svg {
+  width: 100%;
+  height: 100%;
 }
 
 .game-box {
   fill: var(--color-surface-alt);
   stroke: var(--bracket-connector);
   stroke-width: 1;
+}
+
+.match-id-badge {
+  fill: var(--color-surface-alt);
+}
+
+.match-id-text {
+  fill: var(--color-text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-anchor: middle;
 }
 
 .game-divider {

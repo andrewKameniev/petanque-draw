@@ -73,66 +73,21 @@
               <div v-if="selectedRound === -1" class="results-card-round-label">
                 {{ getRoundLabel(index) }}
               </div>
-              <div
+              <Game
                 v-for="(game, i) in round"
                 :key="i"
-                class="match-item"
-                :class="{
-                  'match-item--finished':
-                    tournament.tournamentIsFinished ||
-                    game.status === 'finished' ||
-                    (!isRoundActive(index) && game.team_1_score != null),
-                  'match-item--in-progress':
-                    !tournament.tournamentIsFinished && game.status === 'in_progress' && isRoundActive(index),
-                  'match-item--upcoming':
-                    !tournament.tournamentIsFinished &&
-                    (!game.status || game.status === 'not_started') &&
-                    !(!isRoundActive(index) && game.team_1_score != null),
-                  'match-item--highlighted': isGameHighlighted(game),
-                }"
-              >
-                <span
-                  class="match-team match-team-right"
-                  :class="{
-                    'match-team--winner': game.team_1_score > game.team_2_score,
-                  }"
-                  >{{ game.team_1 }}</span
-                >
-                <span class="match-vs">
-                  <template v-if="game.status === 'finished' || game.status === 'in_progress'">
-                    <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                  </template>
-                  <template v-else>
-                    <span class="match-score match-score--pending">– : –</span>
-                  </template>
-                </span>
-                <span
-                  class="match-team"
-                  :class="{
-                    'match-team--winner': game.team_2_score > game.team_1_score,
-                  }"
-                  >{{ game.team_2 }}</span
-                >
-                <button
-                  v-if="canEditResults"
-                  class="edit-result-btn edit-result-btn--card"
-                  :title="$t('results.editResult')"
-                  @click="openEditModal(game)"
-                >
-                  <Pencil :size="14" />
-                </button>
-                <div
-                  v-if="
-                    previewTournament.preferences.cochonettesEnabled && game.score_history && game.score_history.length
-                  "
-                  class="score-history"
-                >
-                  <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
-                    <span class="score-history__num">{{ ei + 1 }}</span>
-                    <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-                  </span>
-                </div>
-              </div>
+                :active-tournament="tournament"
+                :game="game"
+                :game-index="i"
+                :active-round="index"
+                :compact-view="true"
+                :public-view="true"
+                :highlighted-team="highlightedTeam || ''"
+                :team-club-map="teamClubMap || {}"
+                :tournament-finished="
+                  tournament.tournamentIsFinished || (!isRoundActive(index) && game.team_1_score != null)
+                "
+              />
             </template>
           </template>
         </div>
@@ -232,30 +187,22 @@
                   {{ playoffStageLabel(stage) }}
                 </div>
                 <div class="results-card-list">
-                  <div
-                    v-for="(game, i) in stage.teams.filter((g) => !g.isBye)"
+                  <Game
+                    v-for="(game, i) in stage.teams"
                     :key="'s' + index + 'g' + i"
-                    class="match-item"
-                    :class="playoffGameClass(game)"
-                  >
-                    <span
-                      class="match-team match-team-right"
-                      :class="{
-                        'match-team--winner': Number(game.team_1_score) > Number(game.team_2_score),
-                      }"
-                      >{{ game.team_1 }}</span
-                    >
-                    <span class="match-vs">
-                      <span class="match-score">{{ game.team_1_score ?? '--' }} : {{ game.team_2_score ?? '--' }}</span>
-                    </span>
-                    <span
-                      class="match-team"
-                      :class="{
-                        'match-team--winner': Number(game.team_2_score) > Number(game.team_1_score),
-                      }"
-                      >{{ game.team_2 }}</span
-                    >
-                  </div>
+                    v-show="!game.isBye"
+                    :active-tournament="tournament"
+                    :game="game"
+                    :game-index="i"
+                    :active-round="index"
+                    :compact-view="true"
+                    :public-view="true"
+                    :is-playoff="true"
+                    :lane-number="stage.laneOrder?.[i] ?? i"
+                    :highlighted-team="highlightedTeam || ''"
+                    :team-club-map="teamClubMap || {}"
+                    :tournament-finished="tournament.tournamentIsFinished"
+                  />
                 </div>
               </template>
             </template>
@@ -266,78 +213,41 @@
             >
               <div class="results-card-round-label">{{ $t('games.thirdPlace') }}</div>
               <div class="results-card-list">
-                <div class="match-item" :class="playoffGameClass(tournament.playOffBracket.thirdPlace)">
-                  <span
-                    class="match-team match-team-right"
-                    :class="{
-                      'match-team--winner':
-                        Number(tournament.playOffBracket.thirdPlace.team_1_score) >
-                        Number(tournament.playOffBracket.thirdPlace.team_2_score),
-                    }"
-                    >{{ tournament.playOffBracket.thirdPlace.team_1 }}</span
-                  >
-                  <span class="match-vs">
-                    <span class="match-score"
-                      >{{ tournament.playOffBracket.thirdPlace.team_1_score ?? '--' }} :
-                      {{ tournament.playOffBracket.thirdPlace.team_2_score ?? '--' }}</span
-                    >
-                  </span>
-                  <span
-                    class="match-team"
-                    :class="{
-                      'match-team--winner':
-                        Number(tournament.playOffBracket.thirdPlace.team_2_score) >
-                        Number(tournament.playOffBracket.thirdPlace.team_1_score),
-                    }"
-                    >{{ tournament.playOffBracket.thirdPlace.team_2 }}</span
-                  >
-                  <button
-                    v-if="canEditPlayoff"
-                    class="edit-result-btn edit-result-btn--card"
-                    :title="$t('results.editResult')"
-                    @click="openEditPlayoffModal(tournament.playOffBracket.thirdPlace, 'thirdPlace')"
-                  >
-                    <Pencil :size="14" />
-                  </button>
-                </div>
+                <Game
+                  :active-tournament="tournament"
+                  :game="tournament.playOffBracket.thirdPlace"
+                  :game-index="1"
+                  :active-round="tournament.playOffBracket.stages.length - 1"
+                  :compact-view="true"
+                  :public-view="true"
+                  :is-third="true"
+                  :lane-number="1"
+                  :highlighted-team="highlightedTeam || ''"
+                  :team-club-map="teamClubMap || {}"
+                  :tournament-finished="tournament.tournamentIsFinished"
+                />
               </div>
             </template>
             <template v-for="(stage, index) in tournament.playOffBracket.stages" :key="'po-final' + index">
               <template v-if="stageHasContent(stage) && stage.stageLabel === 1">
                 <div class="results-card-round-label">{{ $t('games.final') }}</div>
                 <div class="results-card-list">
-                  <div
-                    v-for="(game, i) in stage.teams.filter((g) => !g.isBye)"
+                  <Game
+                    v-for="(game, i) in stage.teams"
                     :key="'sf' + index + 'g' + i"
-                    class="match-item"
-                    :class="playoffGameClass(game)"
-                  >
-                    <span
-                      class="match-team match-team-right"
-                      :class="{
-                        'match-team--winner': Number(game.team_1_score) > Number(game.team_2_score),
-                      }"
-                      >{{ game.team_1 }}</span
-                    >
-                    <span class="match-vs">
-                      <span class="match-score">{{ game.team_1_score ?? '--' }} : {{ game.team_2_score ?? '--' }}</span>
-                    </span>
-                    <span
-                      class="match-team"
-                      :class="{
-                        'match-team--winner': Number(game.team_2_score) > Number(game.team_1_score),
-                      }"
-                      >{{ game.team_2 }}</span
-                    >
-                    <button
-                      v-if="canEditPlayoff"
-                      class="edit-result-btn edit-result-btn--card"
-                      :title="$t('results.editResult')"
-                      @click="openEditPlayoffModal(game, 'final', index, i)"
-                    >
-                      <Pencil :size="14" />
-                    </button>
-                  </div>
+                    v-show="!game.isBye"
+                    :active-tournament="tournament"
+                    :game="game"
+                    :game-index="i"
+                    :active-round="index"
+                    :compact-view="true"
+                    :public-view="true"
+                    :is-playoff="true"
+                    :lane-number="stage.laneOrder?.[i] ?? i"
+                    :highlighted-team="highlightedTeam || ''"
+                    :team-club-map="teamClubMap || {}"
+                    :tournament-finished="tournament.tournamentIsFinished"
+                  />
                 </div>
               </template>
             </template>
@@ -482,51 +392,19 @@
             {{ $t('games.cadrage') }}
           </h3>
           <div v-if="cardView && !isForProtocol" class="results-card-list">
-            <div
+            <Game
               v-for="(game, index) in tournament.cadrage"
               :key="'cad-' + index"
-              class="match-item"
-              :class="{
-                'match-item--finished': game.status === 'finished',
-                'match-item--in-progress': game.status === 'in_progress',
-                'match-item--upcoming': !game.status || game.status === 'not_started',
-                'match-item--highlighted': isGameHighlighted(game),
-              }"
-            >
-              <span
-                class="match-team match-team-right"
-                :class="{
-                  'match-team--winner': game.status === 'finished' && game.team_1_score > game.team_2_score,
-                }"
-                >{{ game.team_1 }}</span
-              >
-              <span class="match-vs">
-                <template v-if="game.status === 'in_progress' || game.status === 'finished'">
-                  <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                </template>
-                <template v-else>
-                  <span class="match-lane">– : –</span>
-                </template>
-              </span>
-              <span
-                class="match-team"
-                :class="{
-                  'match-team--winner': game.status === 'finished' && game.team_2_score > game.team_1_score,
-                }"
-                >{{ game.team_2 }}</span
-              >
-              <div
-                v-if="
-                  previewTournament.preferences.cochonettesEnabled && game.score_history && game.score_history.length
-                "
-                class="score-history"
-              >
-                <span v-for="(entry, ei) in game.score_history" :key="ei" class="score-history__chip">
-                  <span class="score-history__num">{{ ei + 1 }}</span>
-                  <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-                </span>
-              </div>
-            </div>
+              :active-tournament="tournament"
+              :game="game"
+              :game-index="index"
+              :active-round="0"
+              :compact-view="true"
+              :public-view="true"
+              :highlighted-team="highlightedTeam || ''"
+              :team-club-map="teamClubMap || {}"
+              :tournament-finished="tournament.tournamentIsFinished"
+            />
           </div>
           <div v-else class="table-container">
             <table class="table" :class="{ 'is-striped': !isForProtocol, 'is-bordered': isForProtocol }">
@@ -594,11 +472,12 @@ import { saveResultsForRound } from '@/services/draw';
 import { getDatabase, ref, update } from 'firebase/database';
 import Bracket from '@/components/partials/Bracket';
 import EditResultModal from '@/components/partials/EditResultModal.vue';
+import Game from '@/components/partials/Game.vue';
 import { GitFork, List, Pencil } from 'lucide-vue-next';
 
 export default {
   name: 'Results',
-  components: { Bracket, EditResultModal, GitFork, List, Pencil },
+  components: { Bracket, EditResultModal, Game, GitFork, List, Pencil },
   props: [
     'previewTournament',
     'isForProtocol',
@@ -842,11 +721,6 @@ export default {
     isRoundActive(index) {
       return index === (this.tournament.games?.length || 0) - 1 && this.tournament.roundIsActive;
     },
-    playoffGameClass(game) {
-      if (this.tournament.tournamentIsFinished || game.status === 'finished') return 'match-item--finished';
-      if (game.status === 'in_progress') return 'match-item--in-progress';
-      return 'match-item--upcoming';
-    },
   },
 };
 </script>
@@ -972,61 +846,7 @@ export default {
 .results-card-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.results-card-list .match-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-}
-
-.results-card-list .match-team {
-  min-width: 0;
-  font-weight: 600;
-  font-size: 14px;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-
-.results-card-list .match-team-right {
-  text-align: right;
-}
-
-.results-card-list .match-vs {
-  text-align: center;
-}
-
-.results-card-list .match-score {
-  font-size: 16px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.results-card-list .match-score--pending {
-  color: var(--color-text-muted);
-  font-weight: 400;
-}
-
-.results-card-list .match-team--winner {
-  color: var(--tir-winner, #2e7d32);
-}
-
-.results-card-list .edit-result-btn--card {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-}
-
-.results-card-list .score-history {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding-top: 6px;
+  gap: 0;
 }
 
 .results-card-round-label {

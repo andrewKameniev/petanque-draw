@@ -4,24 +4,14 @@
     :class="[{ 'double-elimination--tv': tvView }, tvDensityClass]"
     data-testid="double-elimination-bracket"
   >
-    <header v-if="!hideHeader" class="double-elimination__header">
-      <div>
-        <h2 class="double-elimination__title">{{ $t('doubleElimination.title') }}</h2>
-        <p class="double-elimination__subtitle">
-          {{ $t('doubleElimination.singleRule') }}
-        </p>
-      </div>
-      <span class="double-elimination__format">{{ bracket.participantCount }} {{ $t('common.teamsLabel') }}</span>
-      <button
-        v-if="!isPublicView"
-        type="button"
-        class="button double-elimination__bracket-btn"
-        data-testid="show-double-elimination-bracket"
-        @click="showBracket = true"
-      >
-        <GitFork :size="16" /> {{ $t('games.showBracket') }}
-      </button>
-    </header>
+    <PlayoffHeader
+      v-if="!hideHeader"
+      :title="$t('doubleElimination.title')"
+      :subtitle="$t('doubleElimination.singleRule')"
+      :badge="`${bracket.participantCount} ${$t('common.teamsLabel')}`"
+      :show-bracket-button="!isPublicView"
+      @show-bracket="showBracket = true"
+    />
 
     <div v-if="bracket.champion" class="double-elimination__champion" data-testid="double-elimination-champion">
       <Trophy :size="24" />
@@ -46,17 +36,13 @@
         }"
         data-testid="double-elimination-bracket-view"
       >
-        <button
+        <BracketFullscreenButton
           v-if="isPublicView && bracketOnly && !tvView"
-          type="button"
-          class="double-elimination__fullscreen"
+          :is-fullscreen="isFullscreen"
           :aria-label="isFullscreen ? $t('common.close') : $t('games.showBracket')"
           data-testid="toggle-double-elimination-fullscreen"
-          @click="toggleFullscreen"
-        >
-          <Minimize2 v-if="isFullscreen" :size="20" />
-          <Maximize2 v-else :size="20" />
-        </button>
+          @toggle="toggleFullscreen"
+        />
         <button
           v-if="showBracket && !isPublicView"
           type="button"
@@ -173,57 +159,33 @@
       </div>
     </Teleport>
 
-    <div v-if="showCurrentMatches" class="double-elimination__active" data-testid="double-elimination-active-round">
-      <h3>{{ $t('doubleElimination.playNow') }}</h3>
-      <section v-for="stage in activeStages" :key="stage.id" class="double-elimination__active-stage">
-        <h4>{{ stageLabel(stage) }}</h4>
-        <Game
-          v-for="(match, gameIndex) in stageMatches(stage)"
-          :key="match.id"
-          :active-tournament="tournament"
-          :game="match"
-          :game-index="stage.teams.indexOf(match)"
-          :active-round="stageIndex(stage)"
-          :is-playoff="true"
-          :lane-number="activeLaneNumber(stage, gameIndex)"
-          :compact-view="false"
-          @update="(matchIndex) => onMatchUpdate(stage, matchIndex)"
-          @finish="(matchIndex) => onMatchFinish(stage, matchIndex)"
-        />
-      </section>
-      <div v-if="scoreError" class="double-elimination__error">{{ $t('games.resultsError') }}</div>
-      <button class="button btn-save-results" data-testid="btn-save-playoff" @click="saveCurrentStage">
-        <Save :size="16" /> {{ $t('games.saveResults') }}
-      </button>
-    </div>
+    <PlayoffMatchPanel
+      v-if="showCurrentMatches"
+      :tournament="tournament"
+      :stages="adminMatchStages"
+      :title="$t('doubleElimination.playNow')"
+      :score-error="scoreError"
+      data-testid="double-elimination-active-round"
+      @update="onPanelMatchUpdate"
+      @finish="onPanelMatchFinish"
+      @save="saveCurrentStage"
+    />
 
-    <div
+    <PlayoffMatchPanel
       v-if="isPublicView && !bracketOnly && !tvView"
-      class="double-elimination__active double-elimination__public-rounds"
+      :tournament="tournament"
+      :stages="publicPanelStages"
+      :title="$t('games.playOff')"
+      :public-view="true"
+      :show-save="false"
       data-testid="double-elimination-public-rounds"
-    >
-      <h3>{{ $t('games.playOff') }}</h3>
-      <section v-for="stage in publicMatchStages" :key="stage.id" class="double-elimination__active-stage">
-        <h4>{{ stageLabel(stage) }}</h4>
-        <Game
-          v-for="(match, gameIndex) in publicMatches(stage)"
-          :key="match.id"
-          :active-tournament="tournament"
-          :game="match"
-          :game-index="stage.teams.indexOf(match)"
-          :active-round="stageIndex(stage)"
-          :is-playoff="true"
-          :lane-number="gameIndex"
-          :compact-view="true"
-        />
-      </section>
-    </div>
+    />
   </section>
 </template>
 
 <script>
 import { mapActions, mapState } from 'pinia';
-import { GitFork, Maximize2, Minimize2, Save, Trophy, X } from 'lucide-vue-next';
+import { Trophy, X } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, updateScoreHistory } from '@/helpers';
 import {
@@ -234,11 +196,13 @@ import {
   recordDoubleEliminationResult,
   stageDoubleEliminationResult,
 } from '@/services/playoff';
-import Game from '@/components/partials/Game.vue';
+import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
+import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
+import BracketFullscreenButton from '@/components/partials/BracketFullscreenButton.vue';
 
 export default {
   name: 'DoubleElimination',
-  components: { Game, GitFork, Maximize2, Minimize2, Save, Trophy, X },
+  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, Trophy, X },
   props: {
     activeTournament: { type: Object, default: null },
     isPublicView: { type: Boolean, default: false },
@@ -252,6 +216,7 @@ export default {
       scoreError: false,
       showBracket: false,
       isFullscreen: false,
+      usesFullscreenFallback: false,
       fullscreenScale: 1,
       fullscreenCanvasSize: { width: 0, height: 0 },
       connections: [],
@@ -283,6 +248,32 @@ export default {
     },
     publicMatchStages() {
       return this.bracket.stages.filter((stage) => this.publicMatches(stage).length);
+    },
+    adminMatchStages() {
+      return this.activeStages.map((stage) => ({
+        id: stage.id,
+        label: this.stageLabel(stage),
+        stageIndex: this.stageIndex(stage),
+        source: stage,
+        matches: this.stageMatches(stage).map((match, displayIndex) => ({
+          game: match,
+          gameIndex: stage.teams.indexOf(match),
+          laneNumber: this.activeLaneNumber(stage, displayIndex),
+        })),
+      }));
+    },
+    publicPanelStages() {
+      return this.publicMatchStages.map((stage) => ({
+        id: stage.id,
+        label: this.stageLabel(stage),
+        stageIndex: this.stageIndex(stage),
+        source: stage,
+        matches: this.publicMatches(stage).map((match, displayIndex) => ({
+          game: match,
+          gameIndex: stage.teams.indexOf(match),
+          laneNumber: this.publicLaneNumber(stage, displayIndex),
+        })),
+      }));
     },
     bracketRows() {
       const upper = this.bracket.stages.filter((stage) => stage.bracket === 'upper');
@@ -377,21 +368,43 @@ export default {
     async toggleFullscreen() {
       const element = this.$refs.bracketSection;
       if (!element) return;
+      if (this.isFullscreen && this.usesFullscreenFallback) {
+        this.isFullscreen = false;
+        this.usesFullscreenFallback = false;
+        document.documentElement.classList.remove('is-clipped');
+        this.resetFullscreenFit();
+        return;
+      }
       if (document.fullscreenElement) {
         await document.exitFullscreen?.();
         this.isFullscreen = false;
       } else if (element.requestFullscreen) {
-        await element.requestFullscreen();
-        this.isFullscreen = true;
+        try {
+          await element.requestFullscreen();
+          if (document.fullscreenElement === element) {
+            this.isFullscreen = true;
+            this.usesFullscreenFallback = false;
+          } else {
+            this.activateFullscreenFallback();
+          }
+        } catch {
+          this.activateFullscreenFallback();
+        }
       } else {
-        this.isFullscreen = !this.isFullscreen;
-        document.documentElement.classList.toggle('is-clipped', this.isFullscreen);
+        this.activateFullscreenFallback();
       }
       if (!this.isFullscreen) this.resetFullscreenFit();
       this.$nextTick(this.observeConnectionCanvas);
     },
+    activateFullscreenFallback() {
+      this.usesFullscreenFallback = true;
+      this.isFullscreen = true;
+      document.documentElement.classList.add('is-clipped');
+    },
     onFullscreenChange() {
+      if (this.usesFullscreenFallback && !document.fullscreenElement) return;
       this.isFullscreen = document.fullscreenElement === this.$refs.bracketSection;
+      this.usesFullscreenFallback = false;
       if (!this.isFullscreen) this.resetFullscreenFit();
       this.$nextTick(this.observeConnectionCanvas);
     },
@@ -561,6 +574,10 @@ export default {
       }
       return offset + gameIndex;
     },
+    publicLaneNumber(stage, gameIndex) {
+      if (this.activeStageIds.includes(stage.id)) return this.activeLaneNumber(stage, gameIndex);
+      return stage.laneOrder?.[gameIndex] ?? gameIndex;
+    },
     matchClass(match) {
       return {
         'double-elimination__match--finished': match.status === 'finished',
@@ -592,6 +609,12 @@ export default {
         return;
       }
       this.syncBracketMatch(`stages/${this.stageIndex(stage)}/teams/${gameIndex}`, match);
+    },
+    onPanelMatchUpdate({ stage, gameIndex }) {
+      this.onMatchUpdate(stage.source, gameIndex);
+    },
+    onPanelMatchFinish({ stage, gameIndex }) {
+      this.onMatchFinish(stage.source, gameIndex);
     },
     saveCurrentStage() {
       const currentMatches = this.activeStages.flatMap((stage) => this.stageMatches(stage));
@@ -631,68 +654,6 @@ export default {
   max-width: 100%;
   overflow: hidden;
   color: var(--color-text);
-}
-
-.double-elimination__header,
-.double-elimination__section-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.double-elimination__header > div {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.double-elimination__title,
-.double-elimination__section-heading h3,
-.double-elimination__active h3 {
-  margin: 0;
-}
-
-.double-elimination__subtitle,
-.double-elimination__section-heading span {
-  margin: 0.25rem 0 0;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-}
-
-.double-elimination__format {
-  flex: 0 0 auto;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  background: rgb(108 92 231 / 12%);
-  color: var(--color-primary);
-  font-weight: 700;
-  font-size: 0.8rem;
-}
-
-.double-elimination__bracket-btn {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 0.4rem;
-  border: 2px solid var(--color-primary);
-  background: transparent;
-  color: var(--color-primary);
-  white-space: nowrap;
-}
-
-.double-elimination__bracket-btn:hover,
-.double-elimination__bracket-btn:focus,
-.double-elimination__bracket-btn:focus-visible,
-.double-elimination__bracket-btn:active {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-btn-text, #fff);
-}
-
-.double-elimination__bracket-btn svg {
-  flex: 0 0 auto;
-  color: currentcolor;
-  stroke: currentcolor;
 }
 
 .double-elimination__champion {
@@ -750,34 +711,6 @@ export default {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface);
-}
-
-.double-elimination__fullscreen {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 4;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 1px solid rgb(255 255 255 / 28%);
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-primary), #3d1b9a);
-  box-shadow: 0 8px 22px rgb(74 31 169 / 28%);
-  color: #fff;
-  cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.double-elimination__fullscreen:hover,
-.double-elimination__fullscreen:focus-visible {
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 11px 28px rgb(74 31 169 / 38%);
 }
 
 .double-elimination__section--fullscreen {
@@ -871,15 +804,6 @@ export default {
 
 .double-elimination__legend--inside {
   margin: 0.3rem 0 0.55rem;
-}
-
-.double-elimination__section-heading {
-  margin-bottom: 0.8rem;
-}
-
-.double-elimination__section-heading span {
-  max-width: 34rem;
-  text-align: right;
 }
 
 .double-elimination__scroll {
@@ -980,6 +904,7 @@ export default {
 
 .double-elimination__match--pending,
 .double-elimination__match--skipped {
+  background: var(--color-surface-alt);
   opacity: 0.68;
 }
 
@@ -1048,45 +973,6 @@ export default {
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
   font-size: 0.65rem;
-  text-align: center;
-}
-
-.double-elimination__active {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border: 1px solid var(--color-primary);
-  border-radius: 12px;
-  background: rgb(108 92 231 / 5%);
-}
-
-.double-elimination__active h3 {
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.double-elimination__active-stage + .double-elimination__active-stage {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.double-elimination__active-stage h4 {
-  margin: 0 0 0.6rem;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.double-elimination__active .btn-save-results {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 1rem auto 0;
-}
-
-.double-elimination__error {
-  margin: 0.75rem 0;
-  color: var(--color-danger, #d33);
   text-align: center;
 }
 
@@ -1219,25 +1105,12 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .double-elimination__header,
-  .double-elimination__section-heading {
-    flex-direction: column;
-  }
-
-  .double-elimination__section-heading span {
-    text-align: left;
-  }
-
   .double-elimination__section {
     padding: 0.75rem;
   }
 
   .double-elimination__canvas {
     --bracket-round-width: min(212px, 78vw);
-  }
-
-  .double-elimination__header .double-elimination__format {
-    display: none;
   }
 
   .double-elimination__section--modal {

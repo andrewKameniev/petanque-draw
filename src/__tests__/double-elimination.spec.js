@@ -10,6 +10,7 @@ import {
   recordDoubleEliminationResult,
   stageDoubleEliminationResult,
 } from '@/services/playoff';
+import { autoFillScores } from '@/services/testUtils';
 import ua from '@/locales/ua';
 
 const entrants = (count) => Array.from({ length: count }, (_, index) => ({ title: `Team ${index + 1}` }));
@@ -69,6 +70,28 @@ describe('double-elimination bracket', () => {
     ['U1M1', 'U1M2', 'U1M3', 'U1M4'].forEach((id) => play(bracket, id));
 
     expect(getReadyDoubleEliminationStages(bracket).map((stage) => stage.id)).toEqual(['upper-2', 'lower-1']);
+  });
+
+  it('auto-fills every simultaneously editable upper and lower match', () => {
+    const bracket = buildDoubleEliminationBracket(entrants(8));
+    ['U1M1', 'U1M2', 'U1M3', 'U1M4'].forEach((id) => play(bracket, id));
+    const tournament = {
+      preferences: { maxScore: 13 },
+      playOff: bracket.stages[0].teams,
+      playOffBracket: bracket,
+      playOffStage: 'upper-2',
+    };
+
+    autoFillScores(tournament, 1);
+
+    ['upper-2', 'lower-1'].forEach((stageId) => {
+      const stage = bracket.stages.find((candidate) => candidate.id === stageId);
+      stage.teams.forEach((match) => {
+        expect(match.team_1_score).not.toBeNull();
+        expect(match.team_2_score).not.toBeNull();
+      });
+    });
+    expect(findDoubleEliminationMatch(bracket, 'U3M1').match.team_1_score).toBeNull();
   });
 
   it('keeps individually saved matches editable until the current batch is committed', () => {

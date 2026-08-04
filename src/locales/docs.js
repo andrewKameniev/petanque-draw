@@ -29,7 +29,7 @@ export default {
         },
         playoff: {
           term: 'Playoff',
-          short: "Single elimination bracket — lose once and you're out",
+          short: 'Knockout bracket — single elimination (one loss = out) or double elimination (two losses)',
         },
         tir: {
           term: 'TIR (Tir de Précision)',
@@ -251,9 +251,14 @@ export default {
 
       // Playoff
       playoffSystem: {
-        title: 'Playoff (Single Elimination)',
+        title: 'Playoff',
         subtitle: 'Knockout bracket format',
-        intro: "Lose once and you're out. Supports 4, 8, 16, 32, 64 teams.",
+        intro: 'Two formats: Single Elimination (lose once = out) and Double Elimination (two losses to be eliminated).',
+        formatChoice: {
+          title: 'Format Selection',
+          single: 'Single Elimination — classic knockout, supports 4-64 teams',
+          double: 'Double Elimination — everyone gets a second chance, any team count from 2+',
+        },
         seeding: {
           title: 'Seeding',
           text: 'Standard tournament bracket: seed 1 and seed 2 meet only in the final. Top seeds avoid each other as long as possible.',
@@ -264,15 +269,23 @@ export default {
         },
         thirdPlace: {
           title: 'Third-Place Match',
-          text: 'Optional game between semifinal losers.',
+          text: 'Optional game between semifinal losers (single elimination only).',
+        },
+        doubleElim: {
+          title: 'Double Elimination',
+          text: 'All start in Winners Bracket. First loss drops to Losers Bracket. Second loss eliminates.',
+          crossing: 'Losers drop to opposite side of lower bracket — prevents immediate rematch after a loss.',
+          grandFinal: 'Winners Final champion vs Losers Final champion play one decisive Grand Final.',
+          sizes: 'Any team count from 2+. Non-power-of-two fields padded with seeded byes.',
         },
         finalRanking: {
           title: 'Final Ranking',
           first: 'Final winner = 1st',
           second: 'Final loser = 2nd',
-          third: 'Third-place winner = 3rd',
+          third: 'Third-place winner = 3rd (single) / by elimination round (double)',
           fourth: 'Third-place loser = 4th',
           rest: 'Quarterfinal losers = 5th-8th (ranked by Swiss standing)',
+          doubleNote: 'In double elimination: ranked by how late you were eliminated from losers bracket',
         },
       },
 
@@ -437,7 +450,7 @@ export default {
         },
         playoff: {
           term: 'Плей-оф',
-          short: 'Сітка на виліт — одна поразка і ти вдома',
+          short: 'Сітка на виліт — одинарне (одна поразка = вибув) або подвійне (дві поразки) вибування',
         },
         tir: {
           term: 'TIR (Tir de Précision)',
@@ -653,7 +666,12 @@ export default {
       playoffSystem: {
         title: 'Плей-оф (на виліт)',
         subtitle: 'Формат сітки на виліт',
-        intro: 'Одна поразка — і ви вибуваєте. Підтримує 4, 8, 16, 32, 64 команди.',
+        intro: 'Два формати: Одинарне вибування (одна поразка = вибув) та Подвійне вибування (дві поразки для вибування).',
+        formatChoice: {
+          title: 'Вибір формату',
+          single: 'Одинарне вибування — класичний нокаут, підтримує 4-64 команди',
+          double: 'Подвійне вибування — кожен має другий шанс, будь-яка кількість від 2+',
+        },
         seeding: {
           title: 'Посів',
           text: 'Стандартна сітка: сіяні 1 і 2 зустрічаються лише у фіналі. Топ-сіяні уникають одне одного якомога довше.',
@@ -664,15 +682,23 @@ export default {
         },
         thirdPlace: {
           title: 'Матч за 3-тє місце',
-          text: "Необов'язкова гра між програвшими півфіналу.",
+          text: "Необов'язкова гра між програвшими півфіналу (тільки одинарне вибування).",
+        },
+        doubleElim: {
+          title: 'Подвійне вибування',
+          text: 'Всі починають у верхній сітці. Перша поразка — падіння в нижню. Друга — вибування.',
+          crossing: 'Програвші падають на протилежний бік нижньої сітки — уникає негайного реваншу.',
+          grandFinal: 'Переможець верхньої сітки грає з переможцем нижньої в одному вирішальному Гранд-Фіналі.',
+          sizes: 'Будь-яка кількість від 2+ учасників. Неповні сітки доповнюються byes за посівом.',
         },
         finalRanking: {
           title: 'Фінальний рейтинг',
           first: 'Переможець фіналу = 1 місце',
           second: 'Програвший фіналу = 2 місце',
-          third: 'Переможець за 3-тє = 3 місце',
+          third: 'Переможець за 3-тє = 3 місце (одинарне) / за раундом вибування (подвійне)',
           fourth: 'Програвший за 3-тє = 4 місце',
           rest: 'Програвші чвертьфіналу = 5-8 місця (за рейтингом Швейцарки)',
+          doubleNote: 'У подвійному: ранг визначається раундом вибування з нижньої сітки (пізніше = вище)',
         },
       },
 
@@ -825,7 +851,7 @@ export default {
         },
         barrage: { term: 'Barrage', short: 'Qualification en poules avant le playoff' },
         cadrage: { term: 'Cadrage', short: 'Tour de barrage pour les équipes en limite de qualification' },
-        playoff: { term: 'Playoff', short: "Élimination directe — une défaite et c'est fini" },
+        playoff: { term: 'Playoff', short: 'Tableau éliminatoire — simple (une défaite = éliminé) ou double élimination (deux défaites)' },
         tir: { term: 'TIR (Tir de Précision)', short: 'Tir de précision individuel sur 5 ateliers' },
         supermele: { term: 'Supermêlée', short: 'Format social — équipes mélangées à chaque tour' },
         buchholz: { term: 'Buchholz', short: 'Départage : somme des victoires de tous les adversaires' },
@@ -987,9 +1013,14 @@ export default {
       },
 
       playoffSystem: {
-        title: 'Playoff (Élimination directe)',
+        title: 'Playoff',
         subtitle: 'Tableau à élimination',
-        intro: 'Une défaite = éliminé. Supporte 4, 8, 16, 32, 64 équipes.',
+        intro: 'Deux formats : Simple élimination (une défaite = éliminé) et Double élimination (deux défaites pour être éliminé).',
+        formatChoice: {
+          title: 'Choix du format',
+          single: 'Simple élimination — knockout classique, 4-64 équipes',
+          double: "Double élimination — chacun a une seconde chance, n'importe quel nombre à partir de 2",
+        },
         seeding: {
           title: 'Têtes de série',
           text: 'Tableau standard : 1 et 2 se rencontrent en finale uniquement.',
@@ -998,14 +1029,22 @@ export default {
           title: 'Tableau (8 équipes)',
           text: '1v8, 4v5, 3v6, 2v7 — les meilleurs se rencontrent le plus tard.',
         },
-        thirdPlace: { title: 'Petite finale', text: 'Match optionnel entre les perdants des demi-finales.' },
+        thirdPlace: { title: 'Petite finale', text: 'Match optionnel entre les perdants des demi-finales (simple élimination uniquement).' },
+        doubleElim: {
+          title: 'Double élimination',
+          text: "Tous commencent dans le tableau des vainqueurs. Une défaite envoie dans le tableau des perdants. Deux défaites = éliminé.",
+          crossing: 'Les perdants tombent du côté opposé du tableau inférieur — évite la revanche immédiate.',
+          grandFinal: 'Le champion du tableau des vainqueurs affronte celui des perdants en une Grande Finale décisive.',
+          sizes: "N'importe quel nombre à partir de 2. Les tableaux incomplets sont complétés par des exemptions (byes).",
+        },
         finalRanking: {
           title: 'Classement final',
           first: 'Vainqueur = 1er',
           second: 'Finaliste = 2e',
-          third: 'Vainqueur petite finale = 3e',
+          third: 'Vainqueur petite finale = 3e (simple) / par tour d\'élimination (double)',
           fourth: 'Perdant petite finale = 4e',
           rest: 'Quart-finalistes = 5e-8e',
+          doubleNote: 'En double élimination : classé par le tour d\'élimination du tableau des perdants (plus tard = mieux classé)',
         },
       },
 

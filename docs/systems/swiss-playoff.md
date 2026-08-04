@@ -6,7 +6,7 @@ The most common competitive format. Swiss rounds determine seeding, then top tea
 
 1. [Swiss](./swiss.md) rounds (typically 4-7 rounds depending on team count)
 2. Organizer triggers "Go Playoff" — top N teams (power of 2) enter bracket
-3. [Playoff](./playoff.md) — single elimination to determine final ranking
+3. [Playoff](./playoff.md) — single or double elimination to determine final ranking
 
 ## Qualification
 

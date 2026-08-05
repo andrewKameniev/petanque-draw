@@ -53,21 +53,7 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-pview__legend">
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span
-      >
-    </div>
+    <TirScoreLegend />
 
     <!-- Compact all-on-one-page layout: all ateliers, all distances, <= 3 attempts -->
     <template v-if="isCompactLayout">
@@ -89,19 +75,18 @@
               opt.key[0].toUpperCase()
             }}</span>
             <span v-for="distance in session.config.distances" :key="distance" class="tsession__compact-grid-cell">
-              <span
+              <TirScoreCircle
                 v-for="attemptNum in session.config.attempts"
                 :key="attemptNum"
                 class="tir-pview__circle tir-pview__circle--sm"
-                :class="[
-                  `tir-pview__circle--${opt.key}`,
-                  {
-                    'tir-pview__circle--active': getAttemptScore(exIdx, distance, attemptNum) === opt.key,
-                  },
-                ]"
-                @click="setScore(exIdx, distance, attemptNum, opt.key)"
-              >
-              </span>
+                :class="`tir-pview__circle--${opt.key}`"
+                size="small"
+                :result="opt.key"
+                :active="getAttemptScore(exIdx, distance, attemptNum) === opt.key"
+                :interactive="session.status !== 'completed'"
+                :aria-label="`${atelierNames[exIdx]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+                @select="setScore(exIdx, distance, attemptNum, opt.key)"
+              />
             </span>
           </div>
         </div>
@@ -169,20 +154,17 @@
           </div>
           <div v-for="attemptNum in session.config.attempts" :key="attemptNum" class="tsession__vertical-row">
             <span class="tsession__vertical-num">{{ attemptNum }}</span>
-            <span
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
               class="tir-pview__circle"
-              :class="[
-                `tir-pview__circle--${opt.key}`,
-                {
-                  'tir-pview__circle--active':
-                    getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key,
-                },
-              ]"
-              @click="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
-            >
-            </span>
+              :class="`tir-pview__circle--${opt.key}`"
+              :result="opt.key"
+              :active="getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key"
+              :interactive="session.status !== 'completed'"
+              :aria-label="`${atelierNames[activeExercise]}, ${session.config.distances[0]}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+              @select="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
+            />
           </div>
         </div>
 
@@ -195,19 +177,17 @@
                 $t(`tir.${opt.key}`)
               }}</span>
               <div class="tsession__score-row-circles">
-                <span
+                <TirScoreCircle
                   v-for="attemptNum in session.config.attempts"
                   :key="attemptNum"
                   class="tir-pview__circle"
-                  :class="[
-                    `tir-pview__circle--${opt.key}`,
-                    {
-                      'tir-pview__circle--active': getAttemptScore(activeExercise, distance, attemptNum) === opt.key,
-                    },
-                  ]"
-                  @click="setScore(activeExercise, distance, attemptNum, opt.key)"
-                >
-                </span>
+                  :class="`tir-pview__circle--${opt.key}`"
+                  :result="opt.key"
+                  :active="getAttemptScore(activeExercise, distance, attemptNum) === opt.key"
+                  :interactive="session.status !== 'completed'"
+                  :aria-label="`${atelierNames[activeExercise]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+                  @select="setScore(activeExercise, distance, attemptNum, opt.key)"
+                />
               </div>
             </div>
           </div>
@@ -262,10 +242,21 @@
 import { ChevronLeft, ChevronRight, Pencil, Check as CheckIcon, RotateCcw, CircleOff } from 'lucide-vue-next';
 import { SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
 import { TRAINING_STATUS, getSessionProgress } from '@/services/training';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
 export default {
   name: 'TrainingSession',
-  components: { ChevronLeft, ChevronRight, Pencil, CheckIcon, RotateCcw, CircleOff },
+  components: {
+    ChevronLeft,
+    ChevronRight,
+    Pencil,
+    CheckIcon,
+    RotateCcw,
+    CircleOff,
+    TirScoreCircle,
+    TirScoreLegend,
+  },
   props: {
     session: { type: Object, required: true },
   },
@@ -602,46 +593,6 @@ export default {
   flex: 1;
 }
 
-/* Reuse TirParticipantView circle styles */
-
-.tir-pview__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.tir-pview__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tir-pview__legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tir-pview__legend-dot--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-pview__legend-dot--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-pview__legend-dot--touche {
-  background: var(--tir-touche);
-}
-
-.tir-pview__legend-dot--manque {
-  background: var(--tir-manque);
-}
-
 .tir-pview__tabs {
   display: flex;
   gap: 6px;
@@ -769,45 +720,6 @@ export default {
   gap: 4px;
 }
 
-.tir-pview__circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--tir-circle-inactive);
-  background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
-  opacity: 0.35;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.tir-pview__circle:hover {
-  opacity: 0.7;
-}
-
-.tir-pview__circle--active {
-  opacity: 1;
-}
-
-.tir-pview__circle--active.tir-pview__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
-}
-
 .tir-pview__nav-btn {
   display: flex;
   align-items: center;
@@ -901,11 +813,6 @@ export default {
   display: flex;
   justify-content: center;
   gap: 2px;
-}
-
-.tir-pview__circle--sm {
-  width: 22px;
-  height: 22px;
 }
 
 /* Vertical layout for single distance + single exercise */

@@ -99,6 +99,21 @@ export function createTournamentData(overrides = {}) {
   };
 }
 
+/** Create the persisted envelope used for every newly-created tournament. */
+export function createTournamentRecord(overrides = {}) {
+  const { name, id, createdAt, ...dataOverrides } = overrides;
+  const record = {
+    name: name || 'Tournament A',
+    tournamentMessage: '',
+    activeGroup: TOURNAMENT_GROUP_A,
+    tournamentB: null,
+    main: createTournamentData(dataOverrides),
+  };
+  if (id) record.id = id;
+  if (createdAt) record.createdAt = createdAt;
+  return record;
+}
+
 export function isTournamentEnvelope(record) {
   return isObject(record) && isObject(record.main);
 }

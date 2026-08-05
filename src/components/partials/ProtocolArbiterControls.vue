@@ -62,10 +62,10 @@
         </div>
 
         <template v-if="selectedArbiters.length">
-          <label class="arbiter-picker__label" for="protocolMainArbiter">Головний Арбітр</label>
+          <label class="arbiter-picker__label" for="protocolMainArbiter">Головний суддя</label>
           <div class="select is-fullwidth">
             <select id="protocolMainArbiter" v-model="mainArbiterIndex">
-              <option value="">Не обрано — усі мають посаду «Арбітр»</option>
+              <option value="">Не обрано — усі мають посаду «Суддя»</option>
               <option v-for="arbiter in selectedArbiters" :key="arbiter.index" :value="String(arbiter.index)">
                 {{ arbiter.name }}
               </option>
@@ -77,7 +77,7 @@
             <ol>
               <li v-for="arbiter in selectedArbiters" :key="`preview-${arbiter.index}`">
                 <strong>{{ arbiter.name }}</strong>
-                <span>{{ String(arbiter.index) === mainArbiterIndex ? 'Головний Арбітр' : 'Арбітр' }}</span>
+                <span>{{ String(arbiter.index) === mainArbiterIndex ? 'Головний суддя' : 'Суддя' }}</span>
               </li>
             </ol>
           </div>
@@ -159,6 +159,7 @@ import {
   fetchArbiterRegistryFromSheet,
   matchCurrentArbiterSelection,
   normalizeArbiterSetup,
+  refreshArbitersFromRegistry,
 } from '@/services/arbiter-registry';
 import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
@@ -277,8 +278,18 @@ export default {
       this.refreshing = true;
       this.loadError = '';
       try {
-        await this.fetchAndCacheRegistry(true);
-        if (this.pickerOpen) this.syncSelectionFromCurrent();
+        await this.fetchAndCacheRegistry(false);
+        const refreshed = refreshArbitersFromRegistry(this.arbiters, this.currentArbiters);
+        if (this.currentArbiters.length) this.$emit('apply-selection', refreshed.arbiters);
+        if (this.pickerOpen) this.syncSelectionFromCurrent(refreshed.arbiters);
+
+        const protocolText = this.currentArbiters.length
+          ? ` У протоколі синхронізовано ${refreshed.matched} суддів, змінено ${refreshed.changed}.`
+          : '';
+        this.showMessage({
+          title: 'Оновлено',
+          text: `Завантажено ${this.arbiters.length} суддів.${protocolText}`,
+        });
       } catch (error) {
         console.error('Arbiter registry refresh error:', error);
         this.loadError = 'Не вдалося оновити список суддів.';
@@ -331,7 +342,7 @@ export default {
     addEmptyRow() {
       this.$emit('add', {
         name: '',
-        role: 'Арбітр',
+        role: 'Суддя',
         category: 'АФПУ',
         certificate: '',
         region: '',

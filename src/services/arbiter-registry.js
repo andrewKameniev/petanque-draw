@@ -23,12 +23,17 @@ export function resolveArbiterCategory(values) {
 }
 
 export function isMainArbiterRole(role) {
-  return (
-    String(role || '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLocaleLowerCase('uk-UA') === 'головний арбітр'
-  );
+  const normalizedRole = String(role || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLocaleLowerCase('uk-UA');
+
+  // Keep accepting the former term so saved protocols and presets migrate cleanly.
+  return normalizedRole === 'головний суддя' || normalizedRole === 'головний арбітр';
+}
+
+export function normalizeArbiterRole(role) {
+  return isMainArbiterRole(role) ? 'Головний суддя' : 'Суддя';
 }
 
 export function normalizeArbiterSetup(arbiters = []) {
@@ -36,7 +41,7 @@ export function normalizeArbiterSetup(arbiters = []) {
     .filter((arbiter) => arbiter?.name)
     .map((arbiter) => ({
       name: arbiter.name || '',
-      role: isMainArbiterRole(arbiter.role) ? 'Головний Арбітр' : 'Арбітр',
+      role: normalizeArbiterRole(arbiter.role),
       category: arbiter.category || 'АФПУ',
       certificate: arbiter.certificate || '',
       region: arbiter.region || '',
@@ -49,7 +54,7 @@ export function buildArbiterSelection(arbiters, selectedIndexes, mainArbiterInde
     .filter(({ arbiter }) => arbiter?.name)
     .map(({ arbiter, index }) => ({
       ...arbiter,
-      role: index === String(mainArbiterIndex) ? 'Головний Арбітр' : 'Арбітр',
+      role: index === String(mainArbiterIndex) ? 'Головний суддя' : 'Суддя',
     }));
 }
 
@@ -123,6 +128,39 @@ export function matchCurrentArbiterSelection(arbiters = [], currentArbiters = []
   });
 
   return { selectedIndexes, mainArbiterIndex };
+}
+
+export function refreshArbitersFromRegistry(registryArbiters = [], currentArbiters = []) {
+  const registryByCertificate = buildUniqueArbiterMap(registryArbiters, (arbiter) =>
+    normalizeArbiterCertificate(arbiter.certificate),
+  );
+  const registryByName = buildUniqueArbiterMap(registryArbiters, (arbiter) => normalizeArbiterName(arbiter.name));
+  const registryByShortName = buildUniqueArbiterMap(registryArbiters, shortArbiterNameKey);
+  let matched = 0;
+  let changed = 0;
+
+  const arbiters = currentArbiters.map((currentArbiter) => {
+    const registryArbiter =
+      registryByCertificate.get(normalizeArbiterCertificate(currentArbiter?.certificate)) ||
+      registryByName.get(normalizeArbiterName(currentArbiter?.name)) ||
+      registryByShortName.get(shortArbiterNameKey(currentArbiter));
+    const role = normalizeArbiterRole(currentArbiter?.role);
+
+    if (!registryArbiter) return { ...currentArbiter, role };
+
+    matched += 1;
+    const refreshedArbiter = { ...currentArbiter, ...registryArbiter, role };
+    if (
+      ['name', 'role', 'category', 'certificate', 'region'].some(
+        (field) => refreshedArbiter[field] !== currentArbiter[field],
+      )
+    ) {
+      changed += 1;
+    }
+    return refreshedArbiter;
+  });
+
+  return { arbiters, matched, changed };
 }
 
 export function parseArbiterRegistryTable(table) {

@@ -6,6 +6,7 @@ import {
   matchCurrentArbiterSelection,
   normalizeArbiterSetup,
   parseArbiterRegistryTable,
+  refreshArbitersFromRegistry,
   resolveArbiterCategory,
 } from '../services/arbiter-registry';
 
@@ -59,26 +60,27 @@ describe('arbiter registry', () => {
     expect(
       normalizeArbiterSetup([
         { name: 'Суддя 1', region: 'Львівська' },
-        { name: 'Суддя 2', role: 'Головний Арбітр', category: '1', certificate: '12' },
+        { name: 'Суддя 2', role: 'Головний суддя', category: '1', certificate: '12' },
         { name: '' },
       ]),
     ).toEqual([
-      { name: 'Суддя 1', role: 'Арбітр', category: 'АФПУ', certificate: '', region: 'Львівська' },
-      { name: 'Суддя 2', role: 'Головний Арбітр', category: '1', certificate: '12', region: '' },
+      { name: 'Суддя 1', role: 'Суддя', category: 'АФПУ', certificate: '', region: 'Львівська' },
+      { name: 'Суддя 2', role: 'Головний суддя', category: '1', certificate: '12', region: '' },
     ]);
   });
 
   it('normalizes main-arbiter roles from older presets', () => {
     expect(isMainArbiterRole('  ГОЛОВНИЙ\u00a0АРБІТР ')).toBe(true);
-    expect(normalizeArbiterSetup([{ name: 'Суддя 1', role: 'головний арбітр' }])[0].role).toBe('Головний Арбітр');
+    expect(isMainArbiterRole('ГОЛОВНИЙ СУДДЯ')).toBe(true);
+    expect(normalizeArbiterSetup([{ name: 'Суддя 1', role: 'головний арбітр' }])[0].role).toBe('Головний суддя');
   });
 
   it('builds a multi-selection with one optional head arbiter', () => {
     const arbiters = [{ name: 'Суддя 1' }, { name: 'Суддя 2' }, { name: 'Суддя 3' }];
 
     expect(buildArbiterSelection(arbiters, ['0', '2'], '2')).toEqual([
-      { name: 'Суддя 1', role: 'Арбітр' },
-      { name: 'Суддя 3', role: 'Головний Арбітр' },
+      { name: 'Суддя 1', role: 'Суддя' },
+      { name: 'Суддя 3', role: 'Головний суддя' },
     ]);
   });
 
@@ -87,8 +89,8 @@ describe('arbiter registry', () => {
 
     expect(
       matchCurrentArbiterSelection(arbiters, [
-        { name: ' суддя 1 ', role: 'Арбітр' },
-        { name: 'СУДДЯ 3', role: 'Головний Арбітр' },
+        { name: ' суддя 1 ', role: 'Суддя' },
+        { name: 'СУДДЯ 3', role: 'Головний суддя' },
       ]),
     ).toEqual({ selectedIndexes: ['0', '2'], mainArbiterIndex: '2' });
   });
@@ -98,7 +100,7 @@ describe('arbiter registry', () => {
 
     expect(
       matchCurrentArbiterSelection(arbiters, [
-        { name: 'Суддя 1', role: 'Арбітр' },
+        { name: 'Суддя 1', role: 'Суддя' },
         { name: 'Суддя 2', role: 'головний арбітр' },
       ]),
     ).toEqual({ selectedIndexes: ['0', '1'], mainArbiterIndex: '1' });
@@ -109,7 +111,7 @@ describe('arbiter registry', () => {
 
     expect(
       matchCurrentArbiterSelection(arbiters, [
-        { name: 'Рожок Олександр Олександрович', role: 'Головний Арбітр', certificate: '' },
+        { name: 'Рожок Олександр Олександрович', role: 'Головний суддя', certificate: '' },
       ]),
     ).toEqual({ selectedIndexes: ['0'], mainArbiterIndex: '0' });
   });
@@ -118,7 +120,7 @@ describe('arbiter registry', () => {
     const arbiters = [{ name: 'Нове повне ім’я', certificate: '42' }];
 
     expect(
-      matchCurrentArbiterSelection(arbiters, [{ name: 'Старе повне ім’я', role: 'Головний Арбітр', certificate: 42 }]),
+      matchCurrentArbiterSelection(arbiters, [{ name: 'Старе повне ім’я', role: 'Головний суддя', certificate: 42 }]),
     ).toEqual({ selectedIndexes: ['0'], mainArbiterIndex: '0' });
   });
 
@@ -127,16 +129,58 @@ describe('arbiter registry', () => {
 
     expect(
       matchCurrentArbiterSelection(arbiters, [
-        { name: 'Коваль Олександр Іванович', role: 'Головний Арбітр' },
-        { name: 'Коваль Олександр Сергійович', role: 'Арбітр' },
+        { name: 'Коваль Олександр Іванович', role: 'Головний суддя' },
+        { name: 'Коваль Олександр Сергійович', role: 'Суддя' },
       ]),
     ).toEqual({ selectedIndexes: [], mainArbiterIndex: '' });
   });
 
   it('ignores invalid selected indexes and arbiters without names', () => {
     expect(buildArbiterSelection([{ name: 'Valid' }, { name: '' }], ['0', '1', '99'], '')).toEqual([
-      { name: 'Valid', role: 'Арбітр' },
+      { name: 'Valid', role: 'Суддя' },
     ]);
+  });
+
+  it('refreshes existing protocol rows from the registry and preserves judge roles and unmatched rows', () => {
+    const registry = [{ name: 'Нове ім’я', role: 'ignored', category: 'НК', certificate: '42', region: 'Київ' }];
+    const current = [
+      { name: 'Старе ім’я', role: 'Головний суддя', category: '1', certificate: '42', region: 'Львів' },
+      { name: 'Вручну доданий', role: 'Суддя', category: '2', certificate: '', region: 'Одеса' },
+    ];
+
+    expect(refreshArbitersFromRegistry(registry, current)).toEqual({
+      matched: 1,
+      changed: 1,
+      arbiters: [
+        { name: 'Нове ім’я', role: 'Головний суддя', category: 'НК', certificate: '42', region: 'Київ' },
+        { name: 'Вручну доданий', role: 'Суддя', category: '2', certificate: '', region: 'Одеса' },
+      ],
+    });
+  });
+
+  it('adds Uvarova patronymic and certificate when refreshing a previously shortened protocol row', () => {
+    const registry = [
+      {
+        name: 'Уварова Юлія Володимирівна',
+        category: 'АФПУ',
+        certificate: '45',
+        region: 'Львівська',
+      },
+    ];
+
+    expect(refreshArbitersFromRegistry(registry, [{ name: 'Уварова Юлія', role: 'Арбітр' }])).toEqual({
+      matched: 1,
+      changed: 1,
+      arbiters: [
+        {
+          name: 'Уварова Юлія Володимирівна',
+          role: 'Суддя',
+          category: 'АФПУ',
+          certificate: '45',
+          region: 'Львівська',
+        },
+      ],
+    });
   });
 
   it('returns an empty registry for malformed sheets or missing required columns', () => {

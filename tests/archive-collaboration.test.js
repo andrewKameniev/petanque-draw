@@ -165,4 +165,24 @@ describe('archive and collaboration runtime', () => {
     expect(store.tournaments.t1).toBeUndefined();
     expect(store.currentTournamentIndex).toBeNull();
   });
+
+  it('does not apply an owned-tournament response after the user changes', async () => {
+    const { firebase, runtime, store, userMapService } = createHarness();
+    let resolveMap;
+    userMapService.getAll.mockReturnValue(
+      new Promise((resolve) => {
+        resolveMap = resolve;
+      }),
+    );
+    firebase.get.mockResolvedValue({ exists: () => true, val: () => ({ t1: { teams: [] } }) });
+
+    const pending = runtime.getTournaments();
+    runtime.dispose();
+    store.user = { uid: 'user2' };
+    resolveMap({ exists: () => true, val: () => ({ t1: { role: 'owner', status: 'active' } }) });
+    await pending;
+
+    expect(store.setTournaments).not.toHaveBeenCalled();
+    expect(store.userTournamentMap).toEqual({ t1: { status: 'active', role: 'owner', name: 'Tournament' } });
+  });
 });

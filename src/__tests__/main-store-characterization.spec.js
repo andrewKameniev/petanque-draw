@@ -237,6 +237,8 @@ describe('main-store façade baseline', () => {
     vi.useFakeTimers();
     const store = createStore();
     store.tournaments['tournament-2'] = { id: 'tournament-2', games: [], teams: [] };
+    store._activeGameMatchPath = 'games/0/0';
+    store._roundActivatedAt = Date.now();
 
     store._syncMatchDebounced('games', '0/0', { score: 13 });
     store.setActiveTournament('tournament-2');
@@ -244,6 +246,8 @@ describe('main-store façade baseline', () => {
 
     expect(mockSet).not.toHaveBeenCalled();
     expect(store.currentTournamentIndex).toBe('tournament-2');
+    expect(store._activeGameMatchPath).toBeNull();
+    expect(store._roundActivatedAt).toBeNull();
   });
 
   it('releases subscriptions and private tournament state on logout', () => {

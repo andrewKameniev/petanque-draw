@@ -98,6 +98,25 @@ describe('tournament synchronization runtime', () => {
     expect(store._handleAccessRevoked).toHaveBeenCalledWith('t1');
   });
 
+  it('ignores a stale permission failure after lifecycle cleanup', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { dependencies, runtime, store } = harness({ _ownerUid: 'owner1', games: [], teams: [] });
+    let rejectWrite;
+    dependencies.set.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectWrite = reject;
+      }),
+    );
+
+    const pending = runtime.syncPath('games', []);
+    runtime.dispose();
+    rejectWrite({ code: 'PERMISSION_DENIED' });
+    await pending;
+
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
   it('registers scoped subscriptions, skips a same-path echo, and disposes every listener', async () => {
     const record = {
       name: 'Wrapper',

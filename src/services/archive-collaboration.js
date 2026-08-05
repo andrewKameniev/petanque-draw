@@ -31,14 +31,27 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   let accessWatcherUnsubscribe = null;
   let accessRevokedHandled = false;
   let accessRevokedResetTimeout = null;
+  let generation = 0;
+
+  function operationContext() {
+    return { generation, userUid: store.user?.uid };
+  }
+
+  function isCurrent(operation) {
+    return generation === operation.generation && store.user?.uid === operation.userUid;
+  }
 
   function showError(error) {
     store.showMessage({ title: translate('messages.error'), text: error, type: 'error' });
   }
 
   async function getTournaments({ routeQueryT } = {}) {
-    const mapSnapshot = await maps.getAll(store.user.uid);
-    const tournamentsSnapshot = await firebase.get(firebase.ref(firebase.database, `${store.user.uid}/tournaments/`));
+    const operation = operationContext();
+    const mapSnapshot = await maps.getAll(operation.userUid);
+    const tournamentsSnapshot = await firebase.get(
+      firebase.ref(firebase.database, `${operation.userUid}/tournaments/`),
+    );
+    if (!isCurrent(operation)) return;
 
     if (mapSnapshot.exists()) store.userTournamentMap = mapSnapshot.val();
     else {
@@ -52,7 +65,8 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           };
         });
       }
-      const savedSnapshot = await firebase.get(firebase.ref(firebase.database, `${store.user.uid}/saved/`));
+      const savedSnapshot = await firebase.get(firebase.ref(firebase.database, `${operation.userUid}/saved/`));
+      if (!isCurrent(operation)) return;
       if (savedSnapshot.exists()) {
         Object.entries(savedSnapshot.val()).forEach(([id, tournament]) => {
           if (!migratedMap[id])
@@ -61,9 +75,10 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       }
       store.userTournamentMap = migratedMap;
       if (Object.keys(migratedMap).length) {
-        await firebase.set(firebase.ref(firebase.getDatabase(), `users/${store.user.uid}/tournaments`), migratedMap);
+        await firebase.set(firebase.ref(firebase.getDatabase(), `users/${operation.userUid}/tournaments`), migratedMap);
       }
     }
+    if (!isCurrent(operation)) return;
 
     const ownActive = Object.entries(store.userTournamentMap)
       .filter(([, entry]) => entry.role === 'owner' && entry.status !== 'archived')
@@ -81,6 +96,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   async function fetchSavedTournaments() {
+    const operation = operationContext();
     const archivedEntries = Object.entries(store.userTournamentMap).filter(
       ([, entry]) =>
         (entry.role === 'owner' && entry.status === 'archived') ||
@@ -98,7 +114,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
     const migrated = [];
     await Promise.all(
       archivedEntries.map(async ([id, entry]) => {
-        const ownerUid = entry.role === 'owner' ? store.user.uid : entry.ownerUid;
+        const ownerUid = entry.role === 'owner' ? operation.userUid : entry.ownerUid;
         const tournamentSnapshot = await firebase.get(
           firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${id}`),
         );
@@ -108,12 +124,12 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
 
         if (entry.role === 'owner' && !hasTournamentData) {
           const savedSnapshot = await firebase.get(
-            firebase.ref(firebase.getDatabase(), `${store.user.uid}/saved/${id}`),
+            firebase.ref(firebase.getDatabase(), `${operation.userUid}/saved/${id}`),
           );
           if (savedSnapshot.exists()) {
             const data = savedSnapshot.val();
-            await firebase.set(firebase.ref(firebase.getDatabase(), `${store.user.uid}/tournaments/${id}`), data);
-            await firebase.remove(firebase.ref(firebase.getDatabase(), `${store.user.uid}/saved/${id}`));
+            await firebase.set(firebase.ref(firebase.getDatabase(), `${operation.userUid}/tournaments/${id}`), data);
+            await firebase.remove(firebase.ref(firebase.getDatabase(), `${operation.userUid}/saved/${id}`));
             results[id] = data;
             migrated.push({ id, name: getTournamentMetadata(data, { name: id }).name });
             return;
@@ -129,12 +145,13 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
         if (entry.status !== 'archived' && !shouldMigrateAdminArchive) return;
         if (shouldMigrateAdminArchive) {
           const archiveUpdate = { status: 'archived', archiveStatusVersion: ARCHIVE_STATUS_VERSION };
-          await maps.update(store.user.uid, id, archiveUpdate);
+          await maps.update(operation.userUid, id, archiveUpdate);
           Object.assign(entry, archiveUpdate);
         }
         results[id] = tournamentData;
       }),
     );
+    if (!isCurrent(operation)) return;
     if (migrated.length) {
       console.warn(`[Migration] Moved ${migrated.length} tournament(s) from saved/ to tournaments/:`, migrated);
     }
@@ -278,10 +295,11 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   async function loadSharedTournament(tournamentId, ownerUid) {
+    const operation = operationContext();
     const tournamentSnapshot = await firebase.get(
       firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${tournamentId}`),
     );
-    if (!tournamentSnapshot.exists()) return;
+    if (!isCurrent(operation) || !tournamentSnapshot.exists()) return;
     store.tournaments[tournamentId] = normalizeTournamentRecord(tournamentSnapshot.val(), {
       id: tournamentId,
       ownerUid,
@@ -311,6 +329,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       delete store.userTournamentMap[tournamentId];
       maps.remove(store.user.uid, tournamentId);
     }
+    accessRevokedHandled = true;
     store.showMessage({
       title: translate('messages.error'),
       text: translate('messages.accessRevoked'),
@@ -373,6 +392,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   function dispose() {
+    generation += 1;
     disposeAccessWatcher();
     clearTimeout(accessRevokedResetTimeout);
     accessRevokedResetTimeout = null;

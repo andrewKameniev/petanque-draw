@@ -203,11 +203,12 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
   function syncPath(path, data) {
     const { ownerUid, tournamentId, userUid } = context();
     if (!userUid || !tournamentId) return undefined;
+    const writeGeneration = generation;
     recentSyncPaths.add(path);
     const fullPath = `${ownerUid}/tournaments/${tournamentId}/${path}`;
     return firebase.set(firebase.ref(firebase.getDatabase(), fullPath), serializeFirebaseValue(data)).catch((error) => {
       recentSyncPaths.delete(path);
-      notifyRevoked(error, ownerUid, userUid, tournamentId);
+      if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
       console.error('Error updating path:', path, error);
     });
   }
@@ -245,11 +246,13 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
   function doSync() {
     const { tournament, tournamentId, userUid } = context();
     if (!userUid || !tournamentId || tournament?._ownerUid) return undefined;
+    const writeGeneration = generation;
     return firebase
       .update(firebase.ref(firebase.getDatabase(), `${userUid}/tournaments/`), {
         [tournamentId]: serializeFirebaseValue(tournament),
       })
       .catch((error) => {
+        if (generation !== writeGeneration) return;
         console.error('Error updating specific tournament:', error);
         store.showMessage({
           title: dependencies.translate?.('messages.error') || 'messages.error',

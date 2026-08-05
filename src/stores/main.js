@@ -248,6 +248,12 @@ export const useMainStore = defineStore('main', {
     unsubscribeTournament() {
       getTournamentSyncRuntime(this).dispose();
       getArchiveCollaborationRuntime(this).dispose();
+      this._roundActivatedAt = null;
+      this._activePlayoffMatchPath = null;
+      this._activeTeamPlayoffMatchPath = null;
+      this._activeGameMatchPath = null;
+      this._activeBracketMatchPath = null;
+      this._activeCadrageIndex = null;
     },
     getTournaments(options = {}) {
       return getArchiveCollaborationRuntime(this).getTournaments(options);

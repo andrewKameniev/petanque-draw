@@ -285,12 +285,29 @@ async function playPlayoffRound(page) {
 
 async function playEntirePlayoff(page) {
   const heading = page.locator('[data-testid="playoff-stage-heading"]');
+  const finished = page.locator('[data-testid="finished-banner"]');
   await heading.waitFor({ state: 'visible' });
-  while (await heading.isVisible().catch(() => false)) {
+  while (!(await finished.isVisible().catch(() => false))) {
+    const previousHeadings = (await heading.allTextContents()).map((text) => text.trim()).join('|');
     await playPlayoffRound(page);
-    await page.waitForTimeout(300);
+    await page.waitForFunction(
+      ({ headingSelector, finishedSelector, previous }) => {
+        const isVisible = (element) => !!element && !!(element.offsetWidth || element.offsetHeight);
+        const finishedBanner = document.querySelector(finishedSelector);
+        const nextHeadings = [...document.querySelectorAll(headingSelector)]
+          .filter(isVisible)
+          .map((element) => element.textContent?.trim())
+          .join('|');
+        return isVisible(finishedBanner) || (!!nextHeadings && nextHeadings !== previous);
+      },
+      {
+        headingSelector: '[data-testid="playoff-stage-heading"]',
+        finishedSelector: '[data-testid="finished-banner"]',
+        previous: previousHeadings,
+      },
+    );
   }
-  await page.locator('[data-testid="finished-banner"]').waitFor({ state: 'visible' });
+  await finished.waitFor({ state: 'visible' });
 }
 
 async function clickFinishTournament(page) {

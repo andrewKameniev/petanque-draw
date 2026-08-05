@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
+const e2ePort = Number(process.env.E2E_PORT || 5173);
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 30000,
@@ -9,13 +11,13 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${e2ePort}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: `npm run dev -- --port ${e2ePort}`,
+    url: `http://localhost:${e2ePort}`,
     reuseExistingServer: true,
     timeout: 30000,
   },

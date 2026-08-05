@@ -376,6 +376,7 @@
         </div>
       </div>
     </div>
+    <Message v-if="message.show" />
     <Footer />
   </div>
 </template>
@@ -390,6 +391,7 @@ import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import Footer from '@/components/partials/Footer.vue';
+import Message from '@/components/Message.vue';
 import Navbar from '@/components/Navbar.vue';
 import Menu from '@/components/Menu.vue';
 import { mapState, mapActions } from 'pinia';
@@ -403,7 +405,9 @@ import {
   getTournamentMetadata,
   getTournamentStorageTarget,
   normalizeTournamentRecord,
+  replaceTournamentGroup,
 } from '@/services/tournament-record';
+import { fetchPortalTournamentTeams, syncArchivedPlayerMedia } from '@/services/portal';
 import {
   GitFork,
   Users,
@@ -420,6 +424,7 @@ export default {
   name: 'Archived',
   components: {
     Footer,
+    Message,
     Navbar,
     Menu,
     PlayOff,
@@ -508,7 +513,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap']),
+    ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap', 'message']),
     tournamentEntries() {
       return Object.entries(this.savedTournaments).reverse();
     },
@@ -686,6 +691,7 @@ export default {
       'removeSavedTournament',
       'renameSavedTournament',
       'unarchiveTournament',
+      'showMessage',
     ]),
     displayLane(game, index) {
       return getGameLaneNumber(game, this.activeTournament, index);
@@ -791,93 +797,54 @@ export default {
       if (!this.portalId || this.fetchingLogos) return;
       this.fetchingLogos = true;
       try {
-        const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.portalId}?format=json`);
-        if (!res.ok) throw new Error(`Portal responded ${res.status}`);
-        const data = await res.json();
-        const portalTeams = data.teams || [];
-        const portalPlayers = [];
-        portalTeams.forEach((pt) => {
-          if (pt.players) {
-            pt.players.forEach((p) => {
-              portalPlayers.push({
-                firstName: p.name || '',
-                surname: p.surname || '',
-                club_logo_url: p.club_logo_url || null,
-                avatar_url: p.avatar_url || null,
-                club_id: p.club_id || null,
-                club: p.club || null,
-              });
-            });
-          }
-        });
-        let updated = 0;
-        const normalize = (s) => s.trim().toUpperCase();
-        const findPortalMatch = (p) => {
-          const localFull = normalize(p.surname ? `${p.surname} ${p.name}` : p.name);
-          const matches = portalPlayers.filter((pp) => {
-            const portalFull = normalize(`${pp.surname} ${pp.firstName}`);
-            return portalFull === localFull;
-          });
-          if (matches.length === 1) return matches[0];
-          if (matches.length > 1 && p.club_id) {
-            const byClub = matches.find((m) => m.club_id === p.club_id);
-            if (byClub) return byClub;
-          }
-          if (matches.length > 1 && p.club) {
-            const byClubName = matches.find((m) => m.club === p.club);
-            if (byClubName) return byClubName;
-          }
-          return null;
-        };
-        const patchPlayer = (p) => {
-          if (!p.name) return;
-          const portal = findPortalMatch(p);
-          if (!portal) return;
-          if (portal.club_logo_url && p.club_logo_url !== portal.club_logo_url) {
-            p.club_logo_url = portal.club_logo_url;
-            updated++;
-          }
-          if (portal.avatar_url && p.avatar_url !== portal.avatar_url) {
-            p.avatar_url = portal.avatar_url;
-            updated++;
-          }
-          if (portal.club_id) {
-            p.club_id = portal.club_id;
-          }
-          if (portal.club) {
-            p.club = portal.club;
-          }
-        };
-        if (this.activeTournament.teams) {
-          this.activeTournament.teams.forEach((team) => {
-            if (team.players) team.players.forEach(patchPlayer);
-          });
+        const result = syncArchivedPlayerMedia(
+          {
+            teams: this.activeTournament?.teams,
+            tirParticipants: this.activeTournament?.tirParticipants,
+          },
+          await fetchPortalTournamentTeams(this.portalId),
+        );
+        const basePath = getTournamentStorageTarget(this.tournament, 'A').prefix;
+        const writes = [];
+        if (result.changedCollections.teams) {
+          writes.push(
+            tournamentService.updatePath(this.activeOwnerUid, this.activeKey, `${basePath}teams`, result.teams),
+          );
         }
-        if (this.activeTournament.tirParticipants) {
-          this.activeTournament.tirParticipants.forEach(patchPlayer);
-        }
-        if (updated > 0) {
-          const basePath = getTournamentStorageTarget(this.tournament, 'A').prefix;
-          if (this.activeTournament.teams) {
-            await tournamentService.updatePath(
-              this.activeOwnerUid,
-              this.activeKey,
-              `${basePath}teams`,
-              this.activeTournament.teams,
-            );
-          }
-          if (this.activeTournament.tirParticipants) {
-            await tournamentService.updatePath(
+        if (result.changedCollections.tirParticipants) {
+          writes.push(
+            tournamentService.updatePath(
               this.activeOwnerUid,
               this.activeKey,
               `${basePath}tirParticipants`,
-              this.activeTournament.tirParticipants,
-            );
-          }
-          this.$forceUpdate();
+              result.tirParticipants,
+            ),
+          );
         }
-      } catch {
-        // silently fail
+        await Promise.all(writes);
+
+        if (writes.length) {
+          const competition = {
+            ...this.activeTournament,
+            ...(result.changedCollections.teams ? { teams: result.teams } : {}),
+            ...(result.changedCollections.tirParticipants ? { tirParticipants: result.tirParticipants } : {}),
+          };
+          this.tournament = replaceTournamentGroup(this.tournament, 'A', competition);
+        }
+
+        const unmatched = result.missing + result.ambiguous;
+        this.showMessage({
+          title: result.changedPlayers ? 'Оновлено' : 'Без змін',
+          text: result.changedPlayers
+            ? `Оновлено ${result.changedPlayers} гравців (${result.changedFields} полів). Не знайдено: ${unmatched}.`
+            : `Дані ${result.matched} знайдених гравців уже актуальні. Не знайдено: ${unmatched}.`,
+        });
+      } catch (error) {
+        this.showMessage({
+          title: 'Помилка',
+          text: `Не вдалося оновити дані з порталу: ${error.message}`,
+          type: 'error',
+        });
       } finally {
         this.fetchingLogos = false;
       }

@@ -92,7 +92,7 @@
                 <th style="width: 16%">Регіон</th>
                 <th style="width: 18%">Тренер(и)</th>
                 <th style="width: 10%">Спортивний розряд/звання</th>
-                <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
+                <th v-if="protocolTournament.playOff?.length">Місце після відбіркових ігор</th>
                 <th style="width: 7%">Загальне підсумкове місце</th>
               </tr>
             </thead>
@@ -126,19 +126,19 @@
                   v-text="team.players?.length === 1 ? protocolSportTitle(team.players[0]) : ''"
                 ></td>
                 <td
-                  v-if="tournament.playOff?.length"
+                  v-if="protocolTournament.playOff?.length"
                   class="has-text-centered"
                   :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1"
                 >
                   {{
-                    tournament.system === 'swiss'
+                    protocolTournament.system === 'swiss'
                       ? getSwissPlace(team.title)
                       : getTeamPlaceInGroups(team.place, rankingTeams.length)
                   }}
                 </td>
                 <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
                   {{
-                    tournament.playOff?.length
+                    protocolTournament.playOff?.length
                       ? tournamentRanking.find((item) => item.title === team.title)?.place
                       : index + 1
                   }}
@@ -176,7 +176,7 @@
                 <th style="width: 16%">Регіон</th>
                 <th style="width: 18%">Тренер(и)</th>
                 <th style="width: 10%">Спортивний розряд/звання</th>
-                <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
+                <th v-if="protocolTournament.playOff?.length">Місце після відбіркових ігор</th>
                 <th style="width: 7%">Загальне підсумкове місце</th>
               </tr>
             </thead>
@@ -210,19 +210,19 @@
                   v-text="team.players?.length === 1 ? protocolSportTitle(team.players[0]) : ''"
                 ></td>
                 <td
-                  v-if="tournament.playOff?.length"
+                  v-if="protocolTournament.playOff?.length"
                   class="has-text-centered"
                   :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1"
                 >
                   {{
-                    tournament.system === 'swiss'
+                    protocolTournament.system === 'swiss'
                       ? getSwissPlace(team.title)
                       : getTeamPlaceInGroups(team.place, rankingTeams.length)
                   }}
                 </td>
                 <td class="has-text-centered" :rowspan="team.players?.length > 1 ? team.players?.length + 1 : 1">
                   {{
-                    tournament.playOff?.length
+                    protocolTournament.playOff?.length
                       ? tournamentRanking.find((item) => item.title === team.title)?.place
                       : participantChunkOffsets[ci + 1] + index + 1
                   }}
@@ -252,22 +252,22 @@
           </table>
         </div>
         <Results
-          :previewTournament="tournament"
+          :previewTournament="protocolTournament"
           :only-qualifying="true"
           :is-for-protocol="true"
           :team-titles="protocolTitles"
           section-title="Результати кожного раунду"
         />
         <Ranking
-          :tournament="tournament"
-          :rankingTeams="rankingTeams"
+          :tournament="protocolTournament"
+          :rankingTeams="protocolRankingTeams"
           :is-for-protocol="true"
           :team-titles="protocolTitles"
-          :section-title="`Результати відбіркових ігор <span class='is-size-5'>(${tournament.system === 'swiss' ? 'швейцарська' : 'кругова'} система (${tournament.games.length} раундів))</span>`"
+          :section-title="`Результати відбіркових ігор <span class='is-size-5'>(${protocolTournament.system === 'swiss' ? 'швейцарська' : 'кругова'} система (${protocolTournament.games.length} раундів))</span>`"
         />
-        <template v-if="tournament.playOff?.length">
+        <template v-if="protocolTournament.playOff?.length">
           <Results
-            :previewTournament="tournament"
+            :previewTournament="protocolTournament"
             :is-for-protocol="true"
             :only-play-off="true"
             :team-titles="protocolTitles"
@@ -441,7 +441,6 @@ import {
   countPlayers,
   buildTeamTitle,
   getProtocolTournamentMeta,
-  refreshTournamentPlayerDetails,
 } from '@/protocol-helpers';
 import Ranking from '@/components/partials/Ranking';
 import ProtocolFooter from '@/components/partials/ProtocolFooter.vue';
@@ -456,12 +455,12 @@ import {
   clearProtocolHtml,
   copyProtocolElement,
   exportProtocolPdf,
-  fetchPortalTournamentTeams,
   readProtocolHtml,
   removeProtocolMarkers,
   restoreProtocolEditableHtml,
   saveProtocolHtml,
 } from '@/services/protocol-runtime';
+import { fetchPortalTournamentTeams, syncStandardTournamentPlayers } from '@/services/portal';
 import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
 
 export default {
@@ -493,6 +492,7 @@ export default {
       replaceAfpuWithSecondCategory: false,
       showBackTop: false,
       arbitres: [],
+      syncedTournament: null,
     };
   },
   mounted() {
@@ -519,11 +519,26 @@ export default {
     tournamentName() {
       this.updateProtocolTitle();
     },
+    tournament() {
+      this.syncedTournament = null;
+    },
   },
   computed: {
     ...mapState(useMainStore, ['currentTournament', 'user']),
+    protocolTournament() {
+      return this.syncedTournament || this.tournament;
+    },
+    protocolRankingTeams() {
+      if (!this.syncedTournament) return this.rankingTeams;
+      const teamsByTitle = new Map(this.protocolTournament.teams.map((team) => [team.title, team]));
+      const mergeTeam = (team) => {
+        const synced = teamsByTitle.get(team.title);
+        return synced ? { ...team, players: synced.players } : team;
+      };
+      return this.rankingTeams.map((item) => (Array.isArray(item) ? item.map(mergeTeam) : mergeTeam(item)));
+    },
     protocolTournamentMeta() {
-      return getProtocolTournamentMeta(this.tournament, this.tournamentMeta, this.currentTournament);
+      return getProtocolTournamentMeta(this.protocolTournament, this.tournamentMeta, this.currentTournament);
     },
     tournamentName() {
       return this.protocolTournamentMeta.name;
@@ -538,16 +553,18 @@ export default {
       return `protocol_${this.protocolTournamentMeta.id}`;
     },
     playersCount() {
-      return countPlayers(this.tournament.teams);
+      return countPlayers(this.protocolTournament.teams);
     },
     tournamentRanking() {
-      return getTournamentRanking(this.tournament, this.rankingTeams);
+      return getTournamentRanking(this.protocolTournament, this.protocolRankingTeams);
     },
     participantsList() {
-      if (this.tournament.playOff?.length || this.tournament.playOffBracket) {
+      if (this.protocolTournament.playOff?.length || this.protocolTournament.playOffBracket) {
         return this.tournamentRanking;
       }
-      return this.tournament.system === 'swiss' ? this.rankingTeams : getAllTeams(this.rankingTeams);
+      return this.protocolTournament.system === 'swiss'
+        ? this.protocolRankingTeams
+        : getAllTeams(this.protocolRankingTeams);
     },
     participantChunkSize() {
       return 28;
@@ -618,16 +635,19 @@ export default {
       this.refreshing = true;
       try {
         // The protocol intentionally works on the selected tournament's local copy.
-        const stats = refreshTournamentPlayerDetails(this.tournament.teams, await fetchPortalTournamentTeams(portalId));
-        this.$forceUpdate();
+        const portalTeams = await fetchPortalTournamentTeams(portalId);
+        const tournament = this.protocolTournament || this.tournament;
+        const stats = syncStandardTournamentPlayers(tournament?.teams || [], portalTeams);
+        this.syncedTournament = { ...tournament, teams: stats.teams };
         await this.$nextTick();
         this.saveProtocolToStorage();
 
-        const missingText = stats.missing ? ` Не знайдено: ${stats.missing}.` : '';
+        const unmatched = stats.missing + stats.ambiguous;
+        const missingText = unmatched ? ` Не знайдено: ${unmatched}.` : '';
         this.showMessage({
-          title: stats.changed ? 'Оновлено' : 'Без змін',
-          text: stats.changed
-            ? `Оновлено ${stats.changed} з ${stats.matched} знайдених гравців.${missingText}`
+          title: stats.changedPlayers ? 'Оновлено' : 'Без змін',
+          text: stats.changedPlayers
+            ? `Оновлено ${stats.changedPlayers} з ${stats.matched} знайдених гравців.${missingText}`
             : `Дані ${stats.matched} знайдених гравців уже актуальні.${missingText}`,
         });
       } catch (e) {

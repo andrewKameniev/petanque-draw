@@ -344,19 +344,19 @@
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { regions } from '@/helpers';
-import { getProtocolTournamentMeta, refreshTirParticipantDetails } from '@/protocol-helpers';
+import { getProtocolTournamentMeta } from '@/protocol-helpers';
 import { downloadProtocolDocx } from '@/services/protocol-docx';
 import { isMainArbiterRole, normalizeArbiterRole } from '@/services/arbiter-registry';
 import {
   clearProtocolHtml,
   copyProtocolElement,
   exportProtocolPdf,
-  fetchPortalTournamentTeams,
   readProtocolHtml,
   removeProtocolMarkers,
   restoreProtocolEditableHtml,
   saveProtocolHtml,
 } from '@/services/protocol-runtime';
+import { fetchPortalTournamentTeams, syncTirParticipants } from '@/services/portal';
 import ProtocolFooter from '@/components/partials/ProtocolFooter.vue';
 import ProtocolGate from '@/components/partials/ProtocolGate.vue';
 import ProtocolParticipantTools from '@/components/partials/ProtocolParticipantTools.vue';
@@ -394,6 +394,7 @@ export default {
       arbitres: [],
       exportingDocx: false,
       refreshing: false,
+      syncedParticipants: null,
       showArbitrCertificate: true,
       replaceAfpuWithSecondCategory: false,
     };
@@ -404,6 +405,11 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
+  },
+  watch: {
+    tournament() {
+      this.syncedParticipants = null;
+    },
   },
   computed: {
     ...mapState(useMainStore, ['currentTournament', 'user']),
@@ -423,7 +429,7 @@ export default {
       return this.protocolTournamentMeta.date || this.tournament.date || '';
     },
     participants() {
-      return this.tournament.tirParticipants || [];
+      return this.syncedParticipants || this.tournament.tirParticipants || [];
     },
     tirConfig() {
       return this.tournament.tirConfig || { junior: false, rounds: 1 };
@@ -568,16 +574,17 @@ export default {
 
       this.refreshing = true;
       try {
-        const stats = refreshTirParticipantDetails(this.participants, await fetchPortalTournamentTeams(portalId));
-        this.$forceUpdate();
+        const stats = syncTirParticipants(this.participants, await fetchPortalTournamentTeams(portalId));
+        this.syncedParticipants = stats.participants;
         await this.$nextTick();
         this.saveProtocolToStorage();
 
-        const missingText = stats.missing ? ` Не знайдено: ${stats.missing}.` : '';
+        const unmatched = stats.missing + stats.ambiguous;
+        const missingText = unmatched ? ` Не знайдено: ${unmatched}.` : '';
         this.showMessage({
-          title: stats.changed ? 'Оновлено' : 'Без змін',
-          text: stats.changed
-            ? `Оновлено ${stats.changed} з ${stats.matched} знайдених гравців.${missingText}`
+          title: stats.changedPlayers ? 'Оновлено' : 'Без змін',
+          text: stats.changedPlayers
+            ? `Оновлено ${stats.changedPlayers} з ${stats.matched} знайдених гравців.${missingText}`
             : `Дані ${stats.matched} знайдених гравців уже актуальні.${missingText}`,
         });
       } catch (error) {

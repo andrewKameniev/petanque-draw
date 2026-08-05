@@ -1,4 +1,5 @@
 import { regions } from '@/helpers';
+import { syncStandardTournamentPlayers, syncTirParticipants } from '@/services/portal';
 
 export function getProtocolTournamentMeta(tournament, tournamentMeta, currentTournament) {
   const sources = [tournamentMeta, tournament, currentTournament];
@@ -36,153 +37,26 @@ export function getPlayerThirdName(surname, name, playersNames) {
   }
 }
 
-function normalizePortalPlayerId(id) {
-  return id == null ? '' : String(id).trim();
-}
-
-function normalizePortalPlayerName(value) {
-  return String(value || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLocaleUpperCase('uk-UA');
-}
-
-function portalPlayerNameKey(player) {
-  const surname = normalizePortalPlayerName(player?.surname);
-  const name = normalizePortalPlayerName(player?.name);
-  return surname && name ? `${surname}|${name}` : '';
-}
-
-function buildPortalPlayerIndex(portalTeams) {
-  const byId = new Map();
-  const byName = new Map();
-
-  portalTeams.forEach((team) => {
-    (team.players || []).forEach((player) => {
-      const id = normalizePortalPlayerId(player.id);
-      if (id) byId.set(id, player);
-
-      const nameKey = portalPlayerNameKey(player);
-      if (!nameKey) return;
-      const matches = byName.get(nameKey) || [];
-      matches.push(player);
-      byName.set(nameKey, matches);
-    });
-  });
-
-  return { byId, byName };
-}
-
-function findPortalPlayer(player, index) {
-  const id = normalizePortalPlayerId(player.id);
-  if (id && index.byId.has(id)) return index.byId.get(id);
-
-  const matches = index.byName.get(portalPlayerNameKey(player)) || [];
-  if (matches.length === 1) return matches[0];
-  if (matches.length > 1 && player.club_id != null) {
-    const clubId = normalizePortalPlayerId(player.club_id);
-    return matches.find((match) => normalizePortalPlayerId(match.club_id) === clubId) || null;
-  }
-  return null;
-}
-
-function portalFieldChanged(currentValue, portalValue) {
-  return String(currentValue ?? '').trim() !== String(portalValue ?? '').trim();
-}
-
 export function refreshTournamentPlayerDetails(teams, portalTeams) {
-  const index = buildPortalPlayerIndex(portalTeams);
-  const fields = ['second_name', 'surname', 'name', 'club_id', 'sport_title'];
-  const stats = { total: 0, matched: 0, changed: 0, missing: 0 };
-
-  teams.forEach((team) => {
-    (team.players || []).forEach((player, playerIndex) => {
-      stats.total += 1;
-      const portalPlayer = findPortalPlayer(player, index);
-      if (!portalPlayer) {
-        stats.missing += 1;
-        return;
-      }
-
-      stats.matched += 1;
-      const updatedPlayer = { ...player };
-      let changed = false;
-      fields.forEach((field) => {
-        if (!Object.prototype.hasOwnProperty.call(portalPlayer, field)) return;
-        if ((field === 'surname' || field === 'name') && !portalPlayer[field]) return;
-        if (!portalFieldChanged(player[field], portalPlayer[field])) return;
-        updatedPlayer[field] = portalPlayer[field] ?? '';
-        changed = true;
-      });
-
-      if (changed) {
-        team.players.splice(playerIndex, 1, updatedPlayer);
-        stats.changed += 1;
-      }
-    });
-  });
-
-  return stats;
-}
-
-function portalTirNameKeys(team, player) {
-  const surname = String(player?.surname || '').trim();
-  const firstName = String(player?.name || '').trim();
-  const secondName = String(player?.second_name || '').trim();
-  return [
-    team?.name,
-    [surname, firstName].filter(Boolean).join(' '),
-    [firstName, surname].filter(Boolean).join(' '),
-    [surname, firstName, secondName].filter(Boolean).join(' '),
-    [firstName, secondName, surname].filter(Boolean).join(' '),
-  ]
-    .map(normalizePortalPlayerName)
-    .filter(Boolean);
+  const result = syncStandardTournamentPlayers(teams, portalTeams);
+  if (result.changedPlayers) teams.splice(0, teams.length, ...result.teams);
+  return {
+    total: result.total,
+    matched: result.matched,
+    changed: result.changedPlayers,
+    missing: result.missing + result.ambiguous,
+  };
 }
 
 export function refreshTirParticipantDetails(participants, portalTeams) {
-  const byName = new Map();
-  const byTeamId = new Map();
-  portalTeams.forEach((team) => {
-    const player = team.players?.[0];
-    if (!player) return;
-    const entry = { team, player };
-    if (team.id != null) byTeamId.set(String(team.id), entry);
-    portalTirNameKeys(team, player).forEach((key) => {
-      const matches = byName.get(key) || [];
-      if (!matches.includes(entry)) matches.push(entry);
-      byName.set(key, matches);
-    });
-  });
-
-  const stats = { total: participants.length, matched: 0, changed: 0, missing: 0 };
-  participants.forEach((participant) => {
-    const idMatch = participant.portalTeamId != null ? byTeamId.get(String(participant.portalTeamId)) : null;
-    const matches = idMatch ? [idMatch] : byName.get(normalizePortalPlayerName(participant.name)) || [];
-    if (matches.length !== 1) {
-      stats.missing += 1;
-      return;
-    }
-
-    const { team, player } = matches[0];
-    stats.matched += 1;
-    const protocolName = [player.surname, player.name, player.second_name].filter(Boolean).join(' ').trim();
-    const updates = {
-      protocolName: protocolName || participant.protocolName || participant.name,
-      portalTeamId: team.id,
-      club_id: player.club_id,
-      sport_title: player.sport_title,
-    };
-    let changed = false;
-    Object.entries(updates).forEach(([field, value]) => {
-      if (value == null || !portalFieldChanged(participant[field], value)) return;
-      participant[field] = value;
-      changed = true;
-    });
-    if (changed) stats.changed += 1;
-  });
-
-  return stats;
+  const result = syncTirParticipants(participants, portalTeams);
+  if (result.changedPlayers) participants.splice(0, participants.length, ...result.participants);
+  return {
+    total: result.total,
+    matched: result.matched,
+    changed: result.changedPlayers,
+    missing: result.missing + result.ambiguous,
+  };
 }
 
 export function formatDateToHumanReadable(dateString) {

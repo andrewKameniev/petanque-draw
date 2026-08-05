@@ -717,7 +717,10 @@ export default {
       return participant[this.activeScoresKey]?.[atelierIdx]?.[distance] || null;
     },
     getParticipantAvatar(name) {
-      if (!name || !this.tournament.teams) return null;
+      if (!name) return null;
+      const participant = this.tournament.tirParticipants?.find((item) => item.name === name);
+      if (participant?.avatar_url) return participant.avatar_url;
+      if (!this.tournament.teams) return null;
       for (const team of this.tournament.teams) {
         if (team.players) {
           const player = team.players.find(

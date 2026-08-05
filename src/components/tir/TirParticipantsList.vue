@@ -357,11 +357,12 @@ export default {
     },
     getClub(participant) {
       const team = this.tournament.teams?.find((t) => t.title === participant.name);
-      if (!team?.players) return participant.city || '';
+      if (!team?.players) return participant.club || participant.city || '';
       const players = Object.values(team.players);
-      return players[0]?.club || participant.city || '';
+      return players[0]?.club || participant.club || participant.city || '';
     },
     getAvatar(participant) {
+      if (participant?.avatar_url) return participant.avatar_url;
       const teams = this.tournament.teams;
       if (!teams) return null;
       for (const team of teams) {

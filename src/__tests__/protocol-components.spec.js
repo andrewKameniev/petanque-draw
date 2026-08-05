@@ -9,6 +9,7 @@ const serviceMocks = vi.hoisted(() => ({
   fetchRegistry: vi.fn(),
   downloadDocx: vi.fn(),
   tournamentSubscribe: vi.fn(),
+  tournamentUpdatePath: vi.fn(),
 }));
 
 vi.mock('@/services/db', () => ({
@@ -23,7 +24,7 @@ vi.mock('@/services/db', () => ({
   },
   tournamentService: {
     subscribe: serviceMocks.tournamentSubscribe,
-    updatePath: vi.fn(),
+    updatePath: serviceMocks.tournamentUpdatePath,
   },
 }));
 
@@ -487,6 +488,8 @@ describe('Protocol component behavior', () => {
       refreshing: false,
       tournamentPortalId: '1784965464060',
       tournament: { teams },
+      protocolTournament: { teams },
+      syncedTournament: null,
       $forceUpdate: vi.fn(),
       $nextTick: () => Promise.resolve(),
       saveProtocolToStorage: vi.fn(),
@@ -500,7 +503,10 @@ describe('Protocol component behavior', () => {
       globalThis.fetch = originalFetch;
     }
 
-    expect(teams[0].players[0]).toEqual(expect.objectContaining({ surname: 'Нове', second_name: 'По батькові' }));
+    expect(context.syncedTournament.teams[0].players[0]).toEqual(
+      expect.objectContaining({ surname: 'Нове', second_name: 'По батькові' }),
+    );
+    expect(teams[0].players[0]).toEqual(expect.objectContaining({ surname: 'Старе', second_name: '' }));
     expect(context.saveProtocolToStorage).toHaveBeenCalledOnce();
     expect(context.showMessage).toHaveBeenCalledWith(expect.objectContaining({ title: 'Оновлено' }));
     expect(context.refreshing).toBe(false);
@@ -538,6 +544,85 @@ describe('Protocol component behavior', () => {
 
     try {
       await protocolMethods.refreshPlayersFromPortal.call(context);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('refreshes TIR participant identity through the shared portal service', async () => {
+    const originalFetch = globalThis.fetch;
+    const participants = [{ name: 'Коваль Олег', portalTeamId: 81 }];
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          teams: [
+            {
+              id: '81',
+              players: [{ surname: 'Коваль', name: 'Олег', second_name: 'Петрович', club_id: 2, sport_title: 'КМСУ' }],
+            },
+          ],
+        }),
+    });
+    const context = {
+      refreshing: false,
+      tournamentPortalId: '181',
+      participants,
+      tournament: { tirParticipants: participants },
+      $nextTick: () => Promise.resolve(),
+      saveProtocolToStorage: vi.fn(),
+      showMessage: vi.fn(),
+    };
+
+    try {
+      await tirProtocolMethods.refreshPlayersFromPortal.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(context.syncedParticipants[0]).toEqual(
+      expect.objectContaining({ protocolName: 'Коваль Олег Петрович', club_id: 2, sport_title: 'КМСУ' }),
+    );
+    expect(participants[0]).toEqual({ name: 'Коваль Олег', portalTeamId: 81 });
+    expect(context.saveProtocolToStorage).toHaveBeenCalledOnce();
+    expect(context.showMessage).toHaveBeenCalledWith(expect.objectContaining({ title: 'Оновлено' }));
+    expect(context.refreshing).toBe(false);
+  });
+
+  it('reports TIR portal failures and restores its busy state', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('offline'));
+    const context = {
+      refreshing: false,
+      tournamentPortalId: '182',
+      participants: [],
+      tournament: { tirParticipants: [] },
+      showMessage: vi.fn(),
+    };
+
+    try {
+      await tirProtocolMethods.refreshPlayersFromPortal.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(context.showMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Помилка',
+        type: 'error',
+        text: expect.stringContaining('Portal request failed'),
+      }),
+    );
+    expect(context.refreshing).toBe(false);
+  });
+
+  it('does not start a second TIR portal refresh while one is running', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn();
+
+    try {
+      await tirProtocolMethods.refreshPlayersFromPortal.call({ refreshing: true });
       expect(globalThis.fetch).not.toHaveBeenCalled();
     } finally {
       globalThis.fetch = originalFetch;
@@ -715,6 +800,11 @@ describe('Protocol component behavior', () => {
 });
 
 describe('Archived protocol integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    serviceMocks.tournamentUpdatePath.mockResolvedValue(undefined);
+  });
+
   it('exposes protocol through the native TIR public tabs', async () => {
     const { default: TirPublicView } = await vi.importActual('@/components/tir/TirPublicView.vue');
 
@@ -788,5 +878,167 @@ describe('Archived protocol integration', () => {
     expect(context.selectorOpen).toBe(false);
     expect(context.activeTab).toBe('ranking');
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'auto' });
+  });
+
+  it('refreshes archive media immutably and persists the exact wrapper path', async () => {
+    const originalFetch = globalThis.fetch;
+    const player = { id: 11, surname: 'Коваль', name: 'Олег' };
+    const tournament = {
+      name: 'Owned wrapper',
+      main: { system: 'swiss', teams: [{ title: 'A', players: [player] }] },
+    };
+    const context = {
+      portalId: '501',
+      fetchingLogos: false,
+      activeOwnerUid: 'owner-uid',
+      activeKey: 'archive-501',
+      tournament,
+      activeTournament: tournament.main,
+      showMessage: vi.fn(),
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          teams: [
+            {
+              players: [
+                {
+                  id: '11',
+                  surname: 'Коваль',
+                  name: 'Олег',
+                  avatar_url: 'https://cdn.example/avatar.png',
+                  club_logo_url: 'https://cdn.example/club.png',
+                  club_id: 2,
+                  club: 'Київ',
+                },
+              ],
+            },
+          ],
+        }),
+    });
+
+    try {
+      await Archived.methods.refreshClubLogos.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(serviceMocks.tournamentUpdatePath).toHaveBeenCalledOnce();
+    expect(serviceMocks.tournamentUpdatePath).toHaveBeenCalledWith(
+      'owner-uid',
+      'archive-501',
+      'main/teams',
+      expect.any(Array),
+    );
+    expect(context.tournament.main.teams[0].players[0]).toEqual(
+      expect.objectContaining({ avatar_url: 'https://cdn.example/avatar.png', club: 'Київ' }),
+    );
+    expect(player).toEqual({ id: 11, surname: 'Коваль', name: 'Олег' });
+    expect(context.showMessage).toHaveBeenCalledWith(expect.objectContaining({ title: 'Оновлено' }));
+    expect(context.fetchingLogos).toBe(false);
+  });
+
+  it('uses the shared owner and legacy TIR path without writing unchanged collections', async () => {
+    const originalFetch = globalThis.fetch;
+    const tournament = {
+      system: 'tir',
+      tirParticipants: [{ name: 'Коваль Олег', portalTeamId: 71 }],
+    };
+    const context = {
+      portalId: '502',
+      fetchingLogos: false,
+      activeOwnerUid: 'shared-owner',
+      activeKey: 'archive-502',
+      tournament,
+      activeTournament: tournament,
+      showMessage: vi.fn(),
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          teams: [
+            {
+              id: '71',
+              players: [{ surname: 'Коваль', name: 'Олег', avatar_url: 'https://cdn.example/tir.png' }],
+            },
+          ],
+        }),
+    });
+
+    try {
+      await Archived.methods.refreshClubLogos.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(serviceMocks.tournamentUpdatePath).toHaveBeenCalledOnce();
+    expect(serviceMocks.tournamentUpdatePath).toHaveBeenCalledWith(
+      'shared-owner',
+      'archive-502',
+      'tirParticipants',
+      expect.any(Array),
+    );
+    expect(context.tournament.tirParticipants[0].avatar_url).toBe('https://cdn.example/tir.png');
+  });
+
+  it('does not write unchanged archive records', async () => {
+    const originalFetch = globalThis.fetch;
+    const tournament = {
+      teams: [{ players: [{ id: 3, surname: 'A', name: 'B', avatar_url: 'same.png' }] }],
+    };
+    const context = {
+      portalId: '503',
+      fetchingLogos: false,
+      activeOwnerUid: 'owner',
+      activeKey: 'archive-503',
+      tournament,
+      activeTournament: tournament,
+      showMessage: vi.fn(),
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ teams: [{ players: [{ id: 3, avatar_url: 'same.png' }] }] }),
+    });
+
+    try {
+      await Archived.methods.refreshClubLogos.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(serviceMocks.tournamentUpdatePath).not.toHaveBeenCalled();
+    expect(context.tournament).toBe(tournament);
+    expect(context.showMessage).toHaveBeenCalledWith(expect.objectContaining({ title: 'Без змін' }));
+  });
+
+  it('keeps archive data unchanged and exposes portal failures through the message UI', async () => {
+    const originalFetch = globalThis.fetch;
+    const tournament = { teams: [{ players: [{ id: 4, surname: 'A', name: 'B' }] }] };
+    const context = {
+      portalId: '504',
+      fetchingLogos: false,
+      activeOwnerUid: 'owner',
+      activeKey: 'archive-504',
+      tournament,
+      activeTournament: tournament,
+      showMessage: vi.fn(),
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 });
+
+    try {
+      await Archived.methods.refreshClubLogos.call(context);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(serviceMocks.tournamentUpdatePath).not.toHaveBeenCalled();
+    expect(context.tournament).toBe(tournament);
+    expect(context.showMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Помилка', type: 'error', text: expect.stringContaining('502') }),
+    );
+    expect(Archived.components.Message.name).toBe('Message');
+    expect(context.fetchingLogos).toBe(false);
   });
 });

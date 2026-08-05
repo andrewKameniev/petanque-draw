@@ -91,6 +91,22 @@ async function getPublicTournamentRef(page) {
   });
 }
 
+async function expectRegionFitsViewport(page, selector) {
+  const metrics = await page.locator(selector).evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      right: rect.right,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  expect(metrics.left).toBeGreaterThanOrEqual(-1);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+}
+
 async function fillBoundaryTieViaJS(page) {
   await page.evaluate(() => {
     const app = document.querySelector('#app').__vue_app__;
@@ -173,14 +189,29 @@ test.describe('TIR Tournament', () => {
   test('creates TIR tournament and shows participant list', async ({ page }) => {
     await setupTirTournament(page, { teams: 8 });
     await expect(page.locator('.tir-scoring__participant-row')).toHaveCount(8);
-    await expect(page.locator('.tir-nav__btn--active')).toContainText('Рахунок');
+    await expect(page.locator('#tir-admin-tab-scoring')).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('scoring view shows progress for participant', async ({ page }) => {
+  test('participant and atelier scoring reuse responsive shared controls', async ({ page }) => {
     await setupTirTournament(page, { teams: 4 });
     await page.locator('.tir-scoring__participant-row').first().click();
     await expect(page.locator('.tir-pview__name')).toBeVisible();
-    await expect(page.locator('.tir-pview__tab')).toHaveCount(5);
+    await expect(page.locator('.tir-atelier-tabs__tab')).toHaveCount(5);
+    await expect(page.locator('.tir-score-grid__row')).toHaveCount(4);
+    await expect(page.locator('.tir-scoring-action')).toHaveCount(2);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expectRegionFitsViewport(page, '.tir-pview');
+
+    await page.locator('.tir-pview__back').click();
+    await page.locator('.tir-scoring__mode-btn').nth(1).click();
+    await page.locator('.tir-scoring__atelier-card').first().click();
+    await page.locator('.tir-aview__row-header').first().click();
+
+    await expect(page.locator('.tir-score-grid')).toBeVisible();
+    await expect(page.locator('.tir-score-grid__row')).toHaveCount(4);
+    await expect(page.locator('.tir-score-grid__cell')).toHaveCount(16);
+    await expectRegionFitsViewport(page, '.tir-aview');
   });
 
   test('table view shows results after scoring', async ({ page }) => {
@@ -244,7 +275,7 @@ test.describe('TIR Tournament', () => {
   test('junior mode uses 3 distances', async ({ page }) => {
     await setupTirTournament(page, { teams: 4, junior: true });
     await page.locator('.tir-scoring__participant-row').first().click();
-    page.locator('.tir-pview__grid-row .tir-pview__grid-distance, .tir-pview__grid-row div:first-child');
+    await expect(page.locator('.tir-score-grid__row')).toHaveCount(3);
     await expect(page.locator('.tir-pview__throws')).toContainText('/ 15');
   });
 
@@ -294,7 +325,7 @@ test.describe('TIR Tournament', () => {
     await completePlayoffMatchesViaJS(page, 'medals');
     await expect(page.locator('.tir-playoff__advance-btn')).toBeVisible();
     await page.locator('.tir-playoff__advance-btn').click();
-    await expect(page.locator('.tir-nav__btn--protocol')).toBeVisible();
+    await expect(page.locator('#tir-admin-tab-protocol')).toBeVisible();
     await expect
       .poll(() =>
         page.evaluate(() => {
@@ -315,10 +346,15 @@ test.describe('TIR Tournament', () => {
     await expect(publicPage.locator('.tir-plist__row')).toHaveCount(20, { timeout: 10000 });
 
     await page.locator('.tir-scoring__participant-row').first().click();
-    await page.locator('.tir-pview__grid-row').first().locator('.tir-pview__grid-cell').first().click();
+    await page.locator('.tir-score-grid__row').first().locator('.tir-score-grid__cell').first().click();
     const publicParticipant = publicPage.locator('.tir-plist__row', { hasText: participantName.trim() });
     await expect(publicParticipant.locator('.tir-plist__progress-text')).toContainText('1/20', { timeout: 10000 });
     await expect(publicParticipant.locator('.tir-plist__score')).toContainText('5/100');
+    await publicParticipant.click();
+    await expect(publicPage.locator('.tir-scoring-card')).toHaveCount(5);
+    await expect(publicPage.locator('.tir-score-circle')).toHaveCount(80);
+    await publicPage.setViewportSize({ width: 390, height: 844 });
+    expect(await publicPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
     await page.locator('.tir-pview__back').click();
     await fillAllScoresViaJS(page, 'scores');
@@ -327,7 +363,7 @@ test.describe('TIR Tournament', () => {
     await fillAllScoresViaJS(page, 'scores2');
     await syncTirParticipants(page);
 
-    await publicPage.getByRole('button', { name: 'Таблиця' }).click();
+    await publicPage.locator('#tir-public-tab-table').click();
     await expect(publicPage.locator('.tir-table__content thead')).toContainText('Р1');
     await expect(publicPage.locator('.tir-table__content thead')).toContainText('Р2');
     await expect(publicPage.locator('.tir-table__content tbody tr')).toHaveCount(20);
@@ -345,7 +381,7 @@ test.describe('TIR Tournament', () => {
     await setupTirTournament(page, { teams: 4 });
     const participantName = await page.locator('.tir-scoring__participant-name').first().textContent();
     await page.locator('.tir-scoring__participant-row').first().click();
-    await page.locator('.tir-pview__grid-row').first().locator('.tir-pview__grid-cell').first().click();
+    await page.locator('.tir-score-grid__row').first().locator('.tir-score-grid__cell').first().click();
     await page.waitForTimeout(800);
 
     await page.reload();

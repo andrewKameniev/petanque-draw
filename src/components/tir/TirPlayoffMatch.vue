@@ -51,21 +51,7 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-pmatch__legend">
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span
-      >
-    </div>
+    <TirScoreLegend />
 
     <!-- All ateliers with circles -->
     <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-pmatch__atelier">
@@ -76,33 +62,35 @@
       <div class="tir-pmatch__circles-grid">
         <div v-for="distance in distances" :key="distance" class="tir-pmatch__circles-row">
           <div class="tir-pmatch__circles tir-pmatch__circles--left">
-            <button
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
-              type="button"
               class="tir-pmatch__circle"
-              :class="[
-                `tir-pmatch__circle--${opt.key}`,
-                { 'tir-pmatch__circle--active': getScore(1, aIdx, distance) === opt.key },
-              ]"
+              :class="`tir-pmatch__circle--${opt.key}`"
+              size="large"
+              :result="opt.key"
+              :active="getScore(1, aIdx, distance) === opt.key"
+              :interactive="!readOnly"
               :disabled="readOnly"
-              @click="setScore(1, aIdx, distance, opt.key)"
-            ></button>
+              :aria-label="`${match.player1}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
+              @select="setScore(1, aIdx, distance, opt.key)"
+            />
           </div>
           <div class="tir-pmatch__distance">{{ distance }}m</div>
           <div class="tir-pmatch__circles tir-pmatch__circles--right">
-            <button
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
-              type="button"
               class="tir-pmatch__circle"
-              :class="[
-                `tir-pmatch__circle--${opt.key}`,
-                { 'tir-pmatch__circle--active': getScore(2, aIdx, distance) === opt.key },
-              ]"
+              :class="`tir-pmatch__circle--${opt.key}`"
+              size="large"
+              :result="opt.key"
+              :active="getScore(2, aIdx, distance) === opt.key"
+              :interactive="!readOnly"
               :disabled="readOnly"
-              @click="setScore(2, aIdx, distance, opt.key)"
-            ></button>
+              :aria-label="`${match.player2}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
+              @select="setScore(2, aIdx, distance, opt.key)"
+            />
           </div>
         </div>
       </div>
@@ -126,6 +114,8 @@
 
 <script>
 import { ChevronLeft } from 'lucide-vue-next';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
 import {
   SCORING,
@@ -142,7 +132,7 @@ import {
 
 export default {
   name: 'TirPlayoffMatch',
-  components: { ChevronLeft },
+  components: { ChevronLeft, TirScoreCircle, TirScoreLegend },
   props: {
     match: { type: Object, required: true },
     ateliers: { type: Array, required: true },
@@ -380,46 +370,6 @@ export default {
   color: var(--tir-winner-text);
 }
 
-/* Legend */
-
-.tir-pmatch__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.tir-pmatch__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tir-pmatch__legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tir-pmatch__legend-dot--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-pmatch__legend-dot--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-pmatch__legend-dot--touche {
-  background: var(--tir-touche);
-}
-
-.tir-pmatch__legend-dot--manque {
-  background: var(--tir-manque);
-}
-
 /* Atelier cards */
 
 .tir-pmatch__atelier {
@@ -488,47 +438,6 @@ export default {
   color: var(--color-text-muted);
   min-width: 30px;
   text-align: center;
-}
-
-.tir-pmatch__circle {
-  appearance: none;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid var(--tir-circle-inactive);
-  background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
-  opacity: 0.4;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.tir-pmatch__circle:disabled {
-  cursor: default;
-}
-
-.tir-pmatch__circle--active {
-  opacity: 1;
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 /* Summary */

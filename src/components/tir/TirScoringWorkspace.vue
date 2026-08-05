@@ -1,19 +1,11 @@
 <template>
   <div class="tir-scoring">
-    <div
+    <TirRoundTabs
       v-if="isTwoRoundSystem && scoringRoundTabs.length > 1 && !activeParticipant && activeAtelier === null"
-      class="tir-scoring__round-switcher"
-    >
-      <button
-        v-for="tab in scoringRoundTabs"
-        :key="tab.key"
-        class="tir-scoring__round-btn"
-        :class="{ 'tir-scoring__round-btn--active': activeScoringRound === tab.key }"
-        @click="$emit('select-round', tab.key)"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
+      :model-value="activeScoringRound"
+      :tabs="scoringRoundTabs"
+      @update:model-value="$emit('select-round', $event)"
+    />
 
     <div class="tir-scoring__mode-toggle">
       <button
@@ -144,11 +136,12 @@
 import { CheckCircle, AlertCircle, Circle } from 'lucide-vue-next';
 import TirParticipantView from './TirParticipantView.vue';
 import TirAtelierView from './TirAtelierView.vue';
+import TirRoundTabs from '@/components/ui/TirRoundTabs.vue';
 import { getScoreTotal, getThrowCount, isParticipantComplete, isAtelierComplete } from '@/services/tir';
 
 export default {
   name: 'TirScoringWorkspace',
-  components: { CheckCircle, AlertCircle, Circle, TirParticipantView, TirAtelierView },
+  components: { CheckCircle, AlertCircle, Circle, TirParticipantView, TirAtelierView, TirRoundTabs },
   props: {
     isTwoRoundSystem: { type: Boolean, required: true },
     scoringRoundTabs: { type: Array, required: true },
@@ -212,30 +205,6 @@ export default {
 </script>
 
 <style scoped>
-.tir-scoring__round-switcher {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.tir-scoring__round-btn {
-  padding: 4px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tir-scoring__round-btn--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-btn-text);
-}
-
 .tir-scoring__mode-toggle {
   display: flex;
   background: var(--color-surface-alt);

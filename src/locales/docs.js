@@ -390,11 +390,86 @@ export default {
         },
         buchholz: {
           title: 'What is Buchholz?',
-          text: "Sum of all your opponents' wins. Rewards teams who faced stronger opposition. Small Buchholz (SBuh) is the same but excludes the weakest opponent.",
+          text: "Buchholz (Buh) — sum of all your opponents' wins. Rewards teams who faced stronger opposition. Small Buchholz (SBuh) — sum of Buchholz values of all your opponents.",
         },
         lanes: {
           title: 'Lane Assignment',
           text: 'Across all systems, lanes minimize repeat assignments using a weight matrix. Fresh lanes (never played) are always preferred.',
+        },
+      },
+
+      // How to Use sections
+      streamsSection: {
+        title: 'Live Streams',
+        subtitle: 'Stream tournament results in real-time',
+        intro: 'Enable live streaming so spectators can follow the tournament from any device without login.',
+        enable: {
+          title: 'How to enable',
+          text: 'Go to tournament settings and toggle "Live Stream". A unique public link is generated automatically.',
+        },
+        features: {
+          title: 'What viewers see',
+          text: 'Live table updates, current round, games in progress, and final results — all without refresh.',
+        },
+        tvDashboard: {
+          title: 'TV Dashboard',
+          text: 'Use the TV icon for a full-screen dashboard optimized for large displays. Auto-rotates between ranking and current games.',
+        },
+      },
+      sharingSection: {
+        title: 'QR Code & Sharing',
+        subtitle: 'Share tournament access instantly',
+        intro: 'Generate a QR code for your tournament so participants and spectators can open it on their phones.',
+        qr: {
+          title: 'QR Code',
+          text: 'Available in tournament settings. Scan to open the public tournament page directly.',
+        },
+        link: {
+          title: 'Public Link',
+          text: 'Copy the public link to share via messenger or social media. No login required for viewers.',
+        },
+      },
+      timerSection: {
+        title: 'Round Timer',
+        subtitle: 'Track game time per round',
+        intro: 'Set a timer for each round to keep the tournament on schedule.',
+        setup: {
+          title: 'Setup',
+          text: 'Configure timer duration in tournament settings before starting. Timer starts when a new round begins.',
+        },
+        display: {
+          title: 'Display',
+          text: 'Timer is visible on the public page and TV dashboard. Audio alert when time runs out.',
+        },
+      },
+      trainingSection: {
+        title: 'Training Mode',
+        subtitle: 'Practice without affecting ratings',
+        intro: 'Use training mode for practice sessions or testing tournament setups.',
+        usage: {
+          title: 'When to use',
+          text: 'Training tournaments do not export results to the portal and are marked with a special badge.',
+        },
+      },
+      tipsSection: {
+        title: 'Tips & Settings',
+        subtitle: 'Get the most out of tournament management',
+        intro: 'Practical tips for smooth tournament management.',
+        groupSorting: {
+          title: 'Group Sorting (Head-to-Head)',
+          text: 'In groups, tied teams are sorted by direct results first: wins in games between tied teams, then point difference in those games. Only if still tied, overall stats apply.',
+        },
+        swissSorting: {
+          title: 'Swiss Sorting',
+          text: 'Swiss uses: wins > Buchholz > Small Buchholz > point difference > points scored > rating. Buchholz rewards playing against stronger opponents.',
+        },
+        roundCount: {
+          title: 'Choosing Round Count',
+          text: 'More rounds = more accurate ranking but more time. For casual events use fewer rounds; for competitive — use the recommended count or more.',
+        },
+        laneRotation: {
+          title: 'Lane Rotation',
+          text: 'The system automatically minimizes lane repeats. Teams are assigned to fresh lanes whenever possible.',
         },
       },
 
@@ -418,6 +493,14 @@ export default {
           a7: "This means no valid pairing exists (too many rounds played). You've reached the mathematical limit — start playoff or finish the tournament.",
           q8: 'How does seeding work in Playoff?',
           a8: 'Standard bracket seeding: #1 seed is placed to meet #2 only in the final. Top seeds are kept apart as long as possible for fair competition.',
+          q9: 'How do I set up a live stream?',
+          a9: 'Toggle "Live Stream" in tournament settings. A public link is generated — share it with spectators or display the QR code.',
+          q10: 'Can I display results on a TV?',
+          a10: 'Yes! Use the TV Dashboard button (monitor icon) for a full-screen view that auto-rotates between table and games.',
+          q11: 'What is Training mode?',
+          a11: 'Training tournaments are for practice. They do not export results to the portal and are visually marked.',
+          q12: 'How does the QR code work?',
+          a12: 'The QR code encodes your tournament public link. Scan it to open the live view on any device — no login required.',
         },
       },
     },
@@ -801,11 +884,85 @@ export default {
         },
         buchholz: {
           title: 'Що таке Бухгольц?',
-          text: 'Сума перемог усіх суперників. Нагороджує команди що грали з сильнішими. Малий Бухгольц (SBuh) — те саме, але без найслабшого суперника.',
+          text: 'Бухгольц (Buh) — сума перемог усіх суперників. Нагороджує команди що грали з сильнішими. Малий Бухгольц (SBuh) — сума Бухгольців усіх ваших суперників.',
         },
         lanes: {
           title: 'Розподіл доріжок',
           text: 'В усіх системах доріжки мінімізують повтори через матрицю ваг. Нові доріжки (ніколи не грали) завжди пріоритетні.',
+        },
+      },
+
+      streamsSection: {
+        title: 'Пряма трансляція',
+        subtitle: 'Транслюйте результати в реальному часі',
+        intro: 'Увімкніть трансляцію щоб глядачі могли стежити за турніром з будь-якого пристрою без входу.',
+        enable: {
+          title: 'Як увімкнути',
+          text: 'Перейдіть в налаштування турніру та увімкніть "Пряма трансляція". Унікальне публічне посилання генерується автоматично.',
+        },
+        features: {
+          title: 'Що бачать глядачі',
+          text: 'Оновлення таблиці наживо, поточний раунд, ігри в процесі та фінальні результати — все без оновлення сторінки.',
+        },
+        tvDashboard: {
+          title: 'TV Dashboard',
+          text: 'Використовуйте іконку TV для повноекранної панелі оптимізованої для великих дисплеїв. Автоматично чергує рейтинг та поточні ігри.',
+        },
+      },
+      sharingSection: {
+        title: 'QR-код та поширення',
+        subtitle: 'Миттєво діліться доступом до турніру',
+        intro: 'Згенеруйте QR-код для турніру щоб учасники та глядачі могли відкрити його на телефоні.',
+        qr: {
+          title: 'QR-код',
+          text: 'Доступний в налаштуваннях турніру. Скануйте щоб відкрити публічну сторінку турніру.',
+        },
+        link: {
+          title: 'Публічне посилання',
+          text: 'Скопіюйте публічне посилання для поширення через месенджер або соцмережі. Вхід для глядачів не потрібен.',
+        },
+      },
+      timerSection: {
+        title: 'Таймер раунду',
+        subtitle: 'Відстежуйте час гри за раунд',
+        intro: 'Встановіть таймер для кожного раунду щоб тримати турнір в графіку.',
+        setup: {
+          title: 'Налаштування',
+          text: 'Встановіть тривалість таймера в налаштуваннях турніру перед стартом. Таймер запускається при старті нового раунду.',
+        },
+        display: {
+          title: 'Відображення',
+          text: 'Таймер видно на публічній сторінці та TV dashboard. Звуковий сигнал коли час вичерпано.',
+        },
+      },
+      trainingSection: {
+        title: 'Тренувальний режим',
+        subtitle: 'Практика без впливу на рейтинг',
+        intro: 'Використовуйте тренувальний режим для практики або тестування налаштувань турніру.',
+        usage: {
+          title: 'Коли використовувати',
+          text: 'Тренувальні турніри не експортують результати на портал і позначені спеціальним значком.',
+        },
+      },
+      tipsSection: {
+        title: 'Поради та налаштування',
+        subtitle: 'Отримайте максимум від управління турніром',
+        intro: 'Практичні поради для гладкого управління турніром.',
+        groupSorting: {
+          title: 'Сортування в групах (очна зустріч)',
+          text: 'В групах команди з однаковими перемогами сортуються спочатку за прямими результатами: перемоги в іграх між ними, потім різниця очок в цих іграх. Тільки якщо все ще рівні — загальна статистика.',
+        },
+        swissSorting: {
+          title: 'Сортування в Швейцарці',
+          text: 'Швейцарка використовує: перемоги > Бухгольц > Малий Бухгольц > різниця очок > набрані очки > рейтинг. Бухгольц нагороджує гру проти сильніших суперників.',
+        },
+        roundCount: {
+          title: 'Вибір кількості раундів',
+          text: 'Більше раундів = точніший рейтинг, але більше часу. Для розважальних подій — менше раундів; для змагальних — рекомендована кількість або більше.',
+        },
+        laneRotation: {
+          title: 'Ротація доріжок',
+          text: 'Система автоматично мінімізує повтори доріжок. Команди отримують нові доріжки коли це можливо.',
         },
       },
 
@@ -828,6 +985,14 @@ export default {
           a7: 'Це означає що не існує валідних пар (забагато зіграних раундів). Ви досягли математичної межі — запускайте плей-оф або завершіть турнір.',
           q8: 'Як працює посів в Плей-оф?',
           a8: 'Стандартна сітка: 1-й сіяний зустрічає 2-го лише у фіналі. Топ-сіяні розведені якомога далі для чесної конкуренції.',
+          q9: 'Як налаштувати пряму трансляцію?',
+          a9: 'Увімкніть "Пряма трансляція" в налаштуваннях турніру. Публічне посилання генерується — поділіться з глядачами або покажіть QR-код.',
+          q10: 'Чи можна вивести результати на TV?',
+          a10: 'Так! Використовуйте кнопку TV Dashboard (іконка монітора) для повноекранного режиму що автоматично чергує таблицю та ігри.',
+          q11: 'Що таке тренувальний режим?',
+          a11: 'Тренувальні турніри для практики. Результати не експортуються на портал і візуально позначені.',
+          q12: 'Як працює QR-код?',
+          a12: 'QR-код містить публічне посилання турніру. Скануйте для відкриття трансляції на будь-якому пристрої — вхід не потрібен.',
         },
       },
     },
@@ -1147,11 +1312,85 @@ export default {
         tir: { title: 'TIR', criteria: 'score total > carreaux', note: 'Précision pure' },
         buchholz: {
           title: "Qu'est-ce que le Buchholz ?",
-          text: 'Somme des victoires de tous vos adversaires. Récompense les équipes ayant affronté des adversaires forts.',
+          text: 'Buchholz (Buh) — somme des victoires de tous vos adversaires. Récompense les équipes ayant affronté des adversaires forts. Petit Buchholz (SBuh) — somme des Buchholz de tous vos adversaires.',
         },
         lanes: {
           title: 'Attribution des terrains',
           text: 'Minimise les répétitions via une matrice de poids.',
+        },
+      },
+
+      streamsSection: {
+        title: 'Diffusion en direct',
+        subtitle: 'Diffusez les résultats en temps réel',
+        intro: 'Activez la diffusion pour que les spectateurs suivent le tournoi depuis tout appareil sans connexion.',
+        enable: {
+          title: 'Comment activer',
+          text: 'Allez dans les paramètres du tournoi et activez "Diffusion en direct". Un lien public unique est généré automatiquement.',
+        },
+        features: {
+          title: 'Ce que voient les spectateurs',
+          text: 'Mises à jour du tableau en direct, tour en cours, matchs en cours et résultats — sans rafraîchir.',
+        },
+        tvDashboard: {
+          title: 'TV Dashboard',
+          text: "Utilisez l'icône TV pour un tableau de bord plein écran optimisé pour grands écrans. Alterne entre classement et matchs en cours.",
+        },
+      },
+      sharingSection: {
+        title: 'QR Code & Partage',
+        subtitle: "Partagez l'accès au tournoi instantanément",
+        intro: 'Générez un QR code pour que participants et spectateurs puissent ouvrir le tournoi sur leur téléphone.',
+        qr: {
+          title: 'QR Code',
+          text: 'Disponible dans les paramètres. Scannez pour ouvrir la page publique directement.',
+        },
+        link: {
+          title: 'Lien public',
+          text: 'Copiez le lien pour partager via messagerie ou réseaux sociaux. Pas de connexion requise pour les spectateurs.',
+        },
+      },
+      timerSection: {
+        title: 'Minuteur de tour',
+        subtitle: 'Suivez le temps de jeu par tour',
+        intro: 'Définissez un minuteur pour chaque tour afin de respecter le planning.',
+        setup: {
+          title: 'Configuration',
+          text: "Configurez la durée dans les paramètres avant de commencer. Le minuteur démarre au début d'un nouveau tour.",
+        },
+        display: {
+          title: 'Affichage',
+          text: 'Visible sur la page publique et le TV dashboard. Alerte sonore quand le temps est écoulé.',
+        },
+      },
+      trainingSection: {
+        title: 'Mode entraînement',
+        subtitle: "S'entraîner sans affecter les classements",
+        intro: "Utilisez le mode entraînement pour les sessions d'entraînement ou tester les configurations.",
+        usage: {
+          title: 'Quand utiliser',
+          text: "Les tournois d'entraînement n'exportent pas les résultats au portail et sont marqués d'un badge spécial.",
+        },
+      },
+      tipsSection: {
+        title: 'Conseils & Paramètres',
+        subtitle: 'Tirez le meilleur parti de la gestion de tournoi',
+        intro: 'Conseils pratiques pour une gestion fluide du tournoi.',
+        groupSorting: {
+          title: 'Classement des poules (confrontation directe)',
+          text: 'En poules, les équipes à égalité sont classées par résultats directs : victoires entre elles, puis différence de points dans ces matchs. Seulement si toujours à égalité, les stats globales comptent.',
+        },
+        swissSorting: {
+          title: 'Classement Suisse',
+          text: 'La Suisse utilise : victoires > Buchholz > Petit Buchholz > différence de points > points marqués > classement. Le Buchholz récompense le jeu contre des adversaires forts.',
+        },
+        roundCount: {
+          title: 'Choix du nombre de tours',
+          text: 'Plus de tours = classement plus précis mais plus de temps. Pour événements décontractés moins de tours ; pour compétitifs — le nombre recommandé ou plus.',
+        },
+        laneRotation: {
+          title: 'Rotation des terrains',
+          text: 'Le système minimise automatiquement les répétitions. Les équipes sont assignées à de nouveaux terrains quand possible.',
         },
       },
 
@@ -1174,6 +1413,14 @@ export default {
           a7: 'Limite mathématique atteinte. Lancez le playoff.',
           q8: 'Comment marche le seeding ?',
           a8: 'Tableau standard : #1 et #2 se rencontrent en finale uniquement.',
+          q9: 'Comment configurer la diffusion en direct ?',
+          a9: 'Activez "Diffusion en direct" dans les paramètres. Un lien public est généré — partagez-le ou affichez le QR code.',
+          q10: 'Afficher les résultats sur TV ?',
+          a10: 'Oui ! Utilisez le bouton TV Dashboard pour un plein écran qui alterne tableau et matchs.',
+          q11: "Qu'est-ce que le mode entraînement ?",
+          a11: "Les tournois d'entraînement sont pour la pratique. Résultats non exportés, visuellement marqués.",
+          q12: 'Comment marche le QR code ?',
+          a12: 'Le QR code encode le lien public de votre tournoi. Scannez pour ouvrir la vue en direct — pas de connexion requise.',
         },
       },
     },
@@ -1452,9 +1699,84 @@ export default {
         tir: { title: 'TIR', criteria: 'puntuación > carreaux', note: 'Precisión pura' },
         buchholz: {
           title: '¿Qué es Buchholz?',
-          text: 'Suma de victorias de todos tus rivales. Premia enfrentar rivales fuertes.',
+          text: 'Buchholz (Buh) — suma de victorias de todos tus rivales. Premia enfrentar rivales fuertes. Pequeño Buchholz (SBuh) — suma de Buchholz de todos tus rivales.',
         },
         lanes: { title: 'Asignación de pistas', text: 'Minimiza repeticiones con matriz de pesos.' },
+      },
+
+      streamsSection: {
+        title: 'Transmisión en vivo',
+        subtitle: 'Transmite resultados en tiempo real',
+        intro:
+          'Activa la transmisión para que los espectadores sigan el torneo desde cualquier dispositivo sin iniciar sesión.',
+        enable: {
+          title: 'Cómo activar',
+          text: 'Ve a configuración del torneo y activa "Transmisión en vivo". Se genera un enlace público único automáticamente.',
+        },
+        features: {
+          title: 'Qué ven los espectadores',
+          text: 'Actualizaciones de tabla en vivo, ronda actual, partidos en curso y resultados — todo sin refrescar.',
+        },
+        tvDashboard: {
+          title: 'TV Dashboard',
+          text: 'Usa el icono TV para un panel de pantalla completa optimizado para pantallas grandes. Alterna entre clasificación y partidos actuales.',
+        },
+      },
+      sharingSection: {
+        title: 'Código QR y compartir',
+        subtitle: 'Comparte el acceso al torneo al instante',
+        intro: 'Genera un código QR para que participantes y espectadores puedan abrirlo en su teléfono.',
+        qr: {
+          title: 'Código QR',
+          text: 'Disponible en la configuración del torneo. Escanea para abrir la página pública directamente.',
+        },
+        link: {
+          title: 'Enlace público',
+          text: 'Copia el enlace para compartir por mensajería o redes sociales. No se requiere inicio de sesión para espectadores.',
+        },
+      },
+      timerSection: {
+        title: 'Temporizador de ronda',
+        subtitle: 'Controla el tiempo de juego por ronda',
+        intro: 'Establece un temporizador para cada ronda para mantener el torneo en horario.',
+        setup: {
+          title: 'Configuración',
+          text: 'Configura la duración en los ajustes del torneo antes de empezar. El temporizador inicia al comenzar una nueva ronda.',
+        },
+        display: {
+          title: 'Visualización',
+          text: 'Visible en la página pública y el TV dashboard. Alerta sonora cuando se acaba el tiempo.',
+        },
+      },
+      trainingSection: {
+        title: 'Modo entrenamiento',
+        subtitle: 'Practica sin afectar clasificaciones',
+        intro: 'Usa el modo entrenamiento para sesiones de práctica o probar configuraciones del torneo.',
+        usage: {
+          title: 'Cuándo usar',
+          text: 'Los torneos de entrenamiento no exportan resultados al portal y están marcados con una insignia especial.',
+        },
+      },
+      tipsSection: {
+        title: 'Consejos y ajustes',
+        subtitle: 'Aprovecha al máximo la gestión del torneo',
+        intro: 'Consejos prácticos para una gestión fluida del torneo.',
+        groupSorting: {
+          title: 'Clasificación de grupos (enfrentamiento directo)',
+          text: 'En grupos, equipos empatados se ordenan por resultados directos: victorias entre ellos, luego diferencia de puntos en esos partidos. Solo si siguen empatados, se aplican estadísticas generales.',
+        },
+        swissSorting: {
+          title: 'Clasificación Suiza',
+          text: 'El Suizo usa: victorias > Buchholz > Pequeño Buchholz > diferencia de puntos > puntos anotados > rating. Buchholz premia enfrentar rivales fuertes.',
+        },
+        roundCount: {
+          title: 'Elegir número de rondas',
+          text: 'Más rondas = clasificación más precisa pero más tiempo. Para eventos casuales menos rondas; para competitivos — el número recomendado o más.',
+        },
+        laneRotation: {
+          title: 'Rotación de pistas',
+          text: 'El sistema minimiza automáticamente las repeticiones. Los equipos se asignan a pistas nuevas cuando es posible.',
+        },
       },
 
       faqSection: {
@@ -1476,6 +1798,14 @@ export default {
           a7: 'Límite matemático. Lanza el playoff.',
           q8: '¿Cómo funciona el seeding?',
           a8: 'Cuadro estándar: #1 y #2 solo en la final.',
+          q9: '¿Cómo configurar la transmisión en vivo?',
+          a9: 'Activa "Transmisión en vivo" en configuración. Se genera un enlace público — compártelo o muestra el QR.',
+          q10: '¿Mostrar resultados en TV?',
+          a10: 'Sí! Usa el botón TV Dashboard para pantalla completa que alterna entre tabla y partidos.',
+          q11: '¿Qué es el modo entrenamiento?',
+          a11: 'Torneos de práctica. Resultados no se exportan al portal y están visualmente marcados.',
+          q12: '¿Cómo funciona el código QR?',
+          a12: 'El QR codifica el enlace público de tu torneo. Escanea para abrir la vista en vivo — sin inicio de sesión.',
         },
       },
     },

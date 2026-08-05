@@ -1,4 +1,4 @@
-import { sortTeams, shuffleArray } from '@/helpers';
+import { sortTeams, shuffleArray, toScore } from '@/helpers';
 import { getAvailableLaneNumbers } from '@/services/lanes';
 
 export function getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) {
@@ -994,10 +994,10 @@ export function drawPoulesRound(tournament) {
       const game1 = r1Games[0];
       const game2 = r1Games[1];
 
-      const winner1 = game1.team_1_score > game1.team_2_score ? game1.team_1 : game1.team_2;
-      const loser1 = game1.team_1_score > game1.team_2_score ? game1.team_2 : game1.team_1;
-      const winner2 = game2.team_1_score > game2.team_2_score ? game2.team_1 : game2.team_2;
-      const loser2 = game2.team_1_score > game2.team_2_score ? game2.team_2 : game2.team_1;
+      const winner1 = toScore(game1.team_1_score) > toScore(game1.team_2_score) ? game1.team_1 : game1.team_2;
+      const loser1 = toScore(game1.team_1_score) > toScore(game1.team_2_score) ? game1.team_2 : game1.team_1;
+      const winner2 = toScore(game2.team_1_score) > toScore(game2.team_2_score) ? game2.team_1 : game2.team_2;
+      const loser2 = toScore(game2.team_1_score) > toScore(game2.team_2_score) ? game2.team_2 : game2.team_1;
 
       round.push({
         group: groupIndex,
@@ -1026,9 +1026,9 @@ export function drawPoulesRound(tournament) {
         roundGames
           .filter((g) => g.group === groupIndex)
           .forEach((game) => {
-            if (game.team_1_score > game.team_2_score) {
+            if (toScore(game.team_1_score) > toScore(game.team_2_score)) {
               teamWins[game.team_1]++;
-            } else if (game.team_2_score > game.team_1_score) {
+            } else if (toScore(game.team_2_score) > toScore(game.team_1_score)) {
               teamWins[game.team_2]++;
             }
           });
@@ -1067,13 +1067,15 @@ export function getPoulesQualifiedTeams(tournament) {
       roundGames
         .filter((g) => g.group === groupIndex)
         .forEach((game) => {
-          if (game.team_1_score > game.team_2_score) {
+          const s1 = toScore(game.team_1_score);
+          const s2 = toScore(game.team_2_score);
+          if (s1 > s2) {
             teamWins[game.team_1]++;
-          } else if (game.team_2_score > game.team_1_score) {
+          } else if (s2 > s1) {
             teamWins[game.team_2]++;
           }
-          teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (game.team_1_score - game.team_2_score);
-          teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (game.team_2_score - game.team_1_score);
+          teamPoints[game.team_1] = (teamPoints[game.team_1] || 0) + (s1 - s2);
+          teamPoints[game.team_2] = (teamPoints[game.team_2] || 0) + (s2 - s1);
         });
     });
 
@@ -1112,15 +1114,17 @@ export function saveResultsForRound(tournament, round) {
   const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
   if (tournament.system === 'supermele') {
     tournament.games[round].forEach((game) => {
+      const s1 = toScore(game.team_1_score);
+      const s2 = toScore(game.team_2_score);
       game.team_1_players.forEach((player) => {
         const team = teamMap.get(player);
         if (team) {
           if (!team.opponents) team.opponents = [];
           const partners = game.team_1_players.filter((item) => item !== player);
           partners.forEach((item) => team.opponents.push(item));
-          team.pointsPlus += game.team_1_score;
-          team.pointsMinus += game.team_2_score;
-          if (game.team_1_score > game.team_2_score) {
+          team.pointsPlus += s1;
+          team.pointsMinus += s2;
+          if (s1 > s2) {
             team.wins++;
           }
         }
@@ -1131,9 +1135,9 @@ export function saveResultsForRound(tournament, round) {
           if (!team.opponents) team.opponents = [];
           const partners = game.team_2_players.filter((item) => item !== player);
           partners.forEach((item) => team.opponents.push(item));
-          team.pointsPlus += game.team_2_score;
-          team.pointsMinus += game.team_1_score;
-          if (game.team_2_score > game.team_1_score) {
+          team.pointsPlus += s2;
+          team.pointsMinus += s1;
+          if (s2 > s1) {
             team.wins++;
           }
         }
@@ -1141,25 +1145,27 @@ export function saveResultsForRound(tournament, round) {
     });
   } else {
     tournament.games[round].forEach((game) => {
+      const s1 = toScore(game.team_1_score);
+      const s2 = toScore(game.team_2_score);
       const firstTeam = teamMap.get(game.team_1);
       if (firstTeam) {
         if (!firstTeam.opponents) firstTeam.opponents = [];
         firstTeam.opponents.push(game.team_2);
-        firstTeam.pointsPlus += game.team_1_score;
-        firstTeam.pointsMinus += game.team_2_score;
+        firstTeam.pointsPlus += s1;
+        firstTeam.pointsMinus += s2;
       }
       const secondTeam = teamMap.get(game.team_2);
       if (secondTeam) {
         if (!secondTeam.opponents) secondTeam.opponents = [];
         secondTeam.opponents.push(game.team_1);
-        secondTeam.pointsPlus += game.team_2_score;
-        secondTeam.pointsMinus += game.team_1_score;
+        secondTeam.pointsPlus += s2;
+        secondTeam.pointsMinus += s1;
       }
-      if (game.team_1_score > game.team_2_score) {
+      if (s1 > s2) {
         if (firstTeam) {
           firstTeam.wins++;
         }
-      } else if (game.team_2_score > game.team_1_score && secondTeam && game.team_2 !== 'Technical') {
+      } else if (s2 > s1 && secondTeam && game.team_2 !== 'Technical') {
         secondTeam.wins++;
       }
     });

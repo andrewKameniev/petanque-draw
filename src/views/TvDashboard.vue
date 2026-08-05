@@ -475,6 +475,7 @@
 <script>
 import { getTeamsRanking, pluralizeRounds } from '@/helpers';
 import { getGameLaneNumber } from '@/services/lanes';
+import { getActiveRound } from '@/services/tournament-presentation';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import headerMan from '@/assets/img/tv-header.png';
 import headerWoman from '@/assets/img/tv-header-woman.png';
@@ -564,8 +565,7 @@ export default {
       return 'tv--default';
     },
     activeRound() {
-      if (!this.tournament?.games?.length) return 1;
-      return this.tournament.roundIsActive ? this.tournament.games.length : this.tournament.games.length + 1;
+      return getActiveRound(this.tournament);
     },
     hasFinishedGames() {
       const games = this.tournament?.games;

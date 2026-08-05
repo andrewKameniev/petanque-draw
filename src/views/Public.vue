@@ -294,15 +294,22 @@
 import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import TeamsList from '@/components/partials/TeamsList';
-import {
-  getTeamsRanking,
-  getTournamentRanking,
-  pluralizeRounds,
-  formatSwissDescription,
-  tournamentNames,
-} from '@/helpers';
+import { getTeamsRanking, getTournamentRanking, pluralizeRounds, tournamentNames } from '@/helpers';
 import { getGameLaneNumber } from '@/services/lanes';
-import { getDoubleEliminationParticipantCount } from '@/services/playoff';
+import {
+  getActiveRound,
+  getCadragePlaceRange,
+  getPhaseLabel,
+  getPlayoffParticipantCount,
+  getSystemDescription,
+  getTournamentBadge,
+  getTournamentExtras,
+  isFinale as computeIsFinale,
+  isInPlayoff as computeIsInPlayoff,
+  isTournamentFinished,
+  isTournamentStarted,
+  splitTournamentMessage,
+} from '@/services/tournament-presentation';
 import PlayOff from '@/components/partials/PlayOff.vue';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import Bracket from '@/components/partials/Bracket.vue';
@@ -444,8 +451,7 @@ export default {
       return !!this.activeTournamentView?.playOffBracket?.stages?.length;
     },
     activeRound() {
-      const t = this.activeTournamentView;
-      return t?.games?.length ? (t.roundIsActive ? t.games.length : t.games.length + 1) : 1;
+      return getActiveRound(this.activeTournamentView);
     },
     activeTournamentView() {
       return getTournamentGroup(this.tournament, this.publicActiveGroup);
@@ -535,19 +541,13 @@ export default {
       return this.activeTournamentView?.preferences?.colorSchema || '';
     },
     tournamentMessageLines() {
-      if (!this.tournamentMetadata.tournamentMessage) return [];
-      return this.tournamentMetadata.tournamentMessage.split('\n').filter((l) => l.trim());
+      return splitTournamentMessage(this.tournamentMetadata.tournamentMessage);
     },
     isFinished() {
-      return !!this.activeTournamentView?.tournamentIsFinished;
+      return isTournamentFinished(this.activeTournamentView);
     },
     isStarted() {
-      const t = this.activeTournamentView;
-      if (t?.tournamentIsStarted || t?.roundIsActive || t?.tirStarted) return true;
-      if (t?.games?.length) {
-        return t.games.some((round) => round.some((g) => g.status && g.status !== 'not_started'));
-      }
-      return false;
+      return isTournamentStarted(this.activeTournamentView);
     },
     groupTotalRoundsDisplay() {
       const t = this.activeTournamentView;
@@ -557,103 +557,64 @@ export default {
       return perCircle * circles;
     },
     badgeClass() {
-      if (this.isFinished) return 'badge-finished';
-      if (!this.isStarted) return 'badge-not-started';
-      return 'badge-active';
+      const badge = getTournamentBadge(this.activeTournamentView);
+      return badge === 'finished' ? 'badge-finished' : badge === 'not-started' ? 'badge-not-started' : 'badge-active';
     },
     badgeLabel() {
-      if (this.isFinished) return this.$t('common.finished');
-      if (!this.isStarted) return this.$t('common.notStarted');
-      const t = this.activeTournamentView;
-      if (t?.system === 'tir') {
-        return this.tirPhaseLabel;
-      }
-      if (t?.playOff || t?.playOffBracket) return this.$t('games.playOff');
-      if (t?.cadrage) return this.$t('games.cadrage');
-      const round = t?.games?.length || 0;
-      if (round) return `${this.$t('common.round')} ${round}`;
+      const phase = getPhaseLabel(this.activeTournamentView);
+      if (phase === 'finished') return this.$t('common.finished');
+      if (phase === 'not-started') return this.$t('common.notStarted');
+      if (phase === 'playoff') return this.$t('games.playOff');
+      if (phase === 'cadrage') return this.$t('games.cadrage');
+      if (phase === 'final') return this.$t('games.final');
+      if (phase === 'semifinal') return this.$t('tir.semifinal');
+      if (phase === 'quarterfinal') return this.$t('tir.quarterfinal');
+      if (phase.startsWith('tir-round-')) return this.$t('tir.round') + ' ' + phase.slice(10);
+      if (phase.startsWith('round-')) return `${this.$t('common.round')} ${phase.slice(6)}`;
       return this.$t('common.active');
     },
-    tirPhaseLabel() {
-      const t = this.activeTournamentView;
-      if (!t) return this.$t('common.active');
-      if (t.tirPlayoff) {
-        const playoff = t.tirPlayoff;
-        if (playoff.final?.score1 != null) return this.$t('games.final');
-        const sfRound = playoff.rounds?.find((r) => r.matches.length === 2);
-        if (sfRound?.matches.some((m) => m.score1 != null)) return this.$t('tir.semifinal');
-        if (playoff.rounds?.[0]?.matches.some((m) => m.score1 != null)) return this.$t('tir.quarterfinal');
-        return this.$t('games.playOff');
-      }
-      const round = t.tirRound || 1;
-      return this.$t('tir.round') + ' ' + round;
-    },
     systemDescription() {
-      const t = this.activeTournamentView;
-      if (t?.system === 'tir') {
-        let desc = this.$t('teams.tir');
-        if (t.tirConfig?.rounds === 2) {
-          desc += ', ' + this.$t('tir.twoRoundsShort');
-        }
-        const qualifiedCount = t.tirPlayoff?.size || (t.tirConfig?.rounds === 2 ? 8 : null);
-        if (qualifiedCount) {
-          desc += ', ' + qualifiedCount + ' → ' + this.$t('games.playOff').toLowerCase();
-        }
-        return desc;
-      }
-      if (!t?.system) {
-        return this.$t('teams.swiss');
-      }
-      if (t.system !== 'swiss') {
-        return this.$t('teams.' + t.system);
-      }
-      return formatSwissDescription(t, this.$i18n.locale, {
+      return getSystemDescription(this.activeTournamentView, this.$i18n.locale, {
         swiss: this.$t('ranking.swiss'),
         playOff: this.$t('games.playOff').toLowerCase(),
         poulesBarrage: this.$t('games.poulesBarrage').toLowerCase(),
-        systemLabel: this.$t('teams.' + t.system),
+        systemLabel: this.$t('teams.' + (this.activeTournamentView?.system || 'swiss')),
+        tir: this.$t('teams.tir'),
+        twoRoundsShort: this.$t('tir.twoRoundsShort'),
+        system_groups: this.$t('teams.groups'),
+        system_poules: this.$t('teams.poules'),
+        system_supermele: this.$t('teams.supermele'),
       });
     },
     cadrageRange() {
-      const t = this.activeTournamentView;
-      if (!t?.cadrage?.length) return '';
-      const from = (t.playOff?.length || 0) + 1;
-      const to = from + t.cadrage.length * 2 - 1;
-      return `${from}-${to} ${this.$t('common.places')}`;
+      const range = getCadragePlaceRange(this.activeTournamentView);
+      if (!range) return '';
+      return `${range.from}-${range.to} ${this.$t('common.places')}`;
     },
     playOffTeamsCount() {
-      const t = this.activeTournamentView;
-      if (t?.playOffBracket?.format === 'double') return getDoubleEliminationParticipantCount(t);
-      return t?.playOff?.length ? t.playOff.length * 2 : 0;
+      return getPlayoffParticipantCount(this.activeTournamentView);
     },
     isInPlayoff() {
-      const t = this.activeTournamentView;
-      return !!t?.playOff || !!t?.cadrage;
+      return computeIsInPlayoff(this.activeTournamentView);
     },
     tournamentExtrasLine() {
-      const t = this.activeTournamentView;
-      const prefs = t?.preferences;
-      if (!prefs?.timeLimitEnabled) return '';
+      const extras = getTournamentExtras(this.activeTournamentView);
+      if (!extras.time) return '';
       const parts = [];
-      const time =
-        prefs.playOffEnabled && this.isInPlayoff ? prefs.playoffTimeLimit || prefs.timeLimit : prefs.timeLimit;
-      if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
+      if (extras.time === 'no-limit-finale') {
         parts.push(this.$t('modals.noTimeLimitFinale'));
       } else {
-        parts.push(`${time} ${this.$t('modals.min')}`);
+        parts.push(`${extras.time} ${this.$t('modals.min')}`);
       }
-      if (prefs.cochonettes) {
+      if (extras.cochonettes) {
         parts.push(
-          `+ ${prefs.cochonettes} ${prefs.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
+          `+ ${extras.cochonettes} ${extras.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
         );
       }
       return parts.join(' ');
     },
     isFinale() {
-      const t = this.activeTournamentView;
-      const po = t?.playOff;
-      if (!po?.length) return false;
-      return po[po.length - 1].teams?.length === 1;
+      return computeIsFinale(this.activeTournamentView);
     },
     showPublicTimer() {
       const t = this.activeTournamentView;

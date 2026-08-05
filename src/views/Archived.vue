@@ -393,6 +393,19 @@ import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
+  getActiveRound,
+  getCadragePlaceRange,
+  getPlayoffParticipantCount,
+  getSystemDescription,
+  getTournamentBadge,
+  getTournamentExtras,
+  isFinale as computeIsFinale,
+  isInPlayoff as computeIsInPlayoff,
+  isTournamentFinished,
+  isTournamentStarted,
+  splitTournamentMessage,
+} from '@/services/tournament-presentation';
+import {
   getTournamentGroup,
   getTournamentMain,
   getTournamentMetadata,
@@ -542,21 +555,17 @@ export default {
       return tabs;
     },
     activeRound() {
-      if (!this.activeTournament?.games?.length) return 1;
-      return this.activeTournament.roundIsActive
-        ? this.activeTournament.games.length
-        : this.activeTournament.games.length + 1;
+      return getActiveRound(this.activeTournament);
     },
     isFinished() {
-      return !!this.activeTournament?.tournamentIsFinished;
+      return isTournamentFinished(this.activeTournament);
     },
     isStarted() {
-      return !!this.activeTournament?.tournamentIsStarted || !!this.activeTournament?.games?.length;
+      return isTournamentStarted(this.activeTournament);
     },
     badgeClass() {
-      if (this.isFinished) return 'badge-finished';
-      if (!this.isStarted) return 'badge-not-started';
-      return 'badge-active';
+      const badge = getTournamentBadge(this.activeTournament);
+      return badge === 'finished' ? 'badge-finished' : badge === 'not-started' ? 'badge-not-started' : 'badge-active';
     },
     badgeLabel() {
       if (this.isFinished) return this.$t('common.finished');
@@ -573,60 +582,34 @@ export default {
       return getTeamsRanking(this.activeTournament, this.activeRound);
     },
     tournamentMessageLines() {
-      if (!this.tournamentMetadata.tournamentMessage) return [];
-      return this.tournamentMetadata.tournamentMessage.split('\n').filter((l) => l.trim());
+      return splitTournamentMessage(this.tournamentMetadata.tournamentMessage);
     },
     systemDescription() {
-      if (!this.activeTournament) return '';
-      if (this.activeTournament.system !== 'swiss') {
-        return this.$t('teams.' + this.activeTournament.system);
-      }
-      let desc;
-      if (this.activeTournament.games?.length) {
-        const barrage = this.activeTournament.barrage;
-        const swissRounds = barrage ? barrage.startIndex : this.activeTournament.games.length;
-        const total = this.activeTournament.preferences?.swissRoundsCount;
-        if (total) {
-          desc = swissRounds + '/' + total + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-        } else {
-          desc = swissRounds + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-        }
-        if (barrage) {
-          desc += ' + ' + this.$t('games.poulesBarrage').toLowerCase();
-        }
-      } else {
-        desc = this.$t('teams.' + this.activeTournament.system);
-        const total = this.activeTournament.preferences?.swissRoundsCount;
-        if (total) {
-          desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
-        }
-      }
-      if (
-        this.activeTournament.playOff ||
-        this.activeTournament.playoff ||
-        this.activeTournament.preferences?.playOffEnabled
-      ) {
-        desc += ' + ' + this.$t('games.playOff').toLowerCase();
-      }
-      return desc;
+      return getSystemDescription(this.activeTournament, this.$i18n.locale, {
+        swiss: this.$t('ranking.swiss'),
+        playOff: this.$t('games.playOff').toLowerCase(),
+        poulesBarrage: this.$t('games.poulesBarrage').toLowerCase(),
+        systemLabel: this.$t('teams.' + (this.activeTournament?.system || 'swiss')),
+        tir: this.$t('teams.tir'),
+        twoRoundsShort: this.$t('tir.twoRoundsShort'),
+        system_groups: this.$t('teams.groups'),
+        system_poules: this.$t('teams.poules'),
+        system_supermele: this.$t('teams.supermele'),
+      });
     },
     cadrageRange() {
-      if (!this.activeTournament?.cadrage?.length) return '';
-      const from = (this.activeTournament.playOff?.length || 0) + 1;
-      const to = from + this.activeTournament.cadrage.length * 2 - 1;
-      return `${from}-${to} ${this.$t('common.places')}`;
+      const range = getCadragePlaceRange(this.activeTournament);
+      if (!range) return '';
+      return `${range.from}-${range.to} ${this.$t('common.places')}`;
     },
     playOffTeamsCount() {
-      if (!this.activeTournament?.playOff?.length) return 0;
-      return this.activeTournament.playOff.length * 2;
+      return getPlayoffParticipantCount(this.activeTournament);
     },
     isInPlayoff() {
-      return !!this.activeTournament?.playOff || !!this.activeTournament?.cadrage;
+      return computeIsInPlayoff(this.activeTournament);
     },
     isFinale() {
-      const po = this.activeTournament?.playOff;
-      if (!po?.length) return false;
-      return po[po.length - 1].teams?.length === 1;
+      return computeIsFinale(this.activeTournament);
     },
     tournamentDate() {
       const date = this.tournamentMetadata.date;
@@ -657,19 +640,17 @@ export default {
       return `${window.location.origin}${domain}tournament?ref=${ref}`;
     },
     tournamentExtrasLine() {
-      const prefs = this.activeTournament?.preferences;
-      if (!prefs?.timeLimitEnabled) return '';
+      const extras = getTournamentExtras(this.activeTournament);
+      if (!extras.time) return '';
       const parts = [];
-      const time =
-        prefs.playOffEnabled && this.isInPlayoff ? prefs.playoffTimeLimit || prefs.timeLimit : prefs.timeLimit;
-      if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
+      if (extras.time === 'no-limit-finale') {
         parts.push(this.$t('modals.noTimeLimitFinale'));
       } else {
-        parts.push(`${time} ${this.$t('modals.min')}`);
+        parts.push(`${extras.time} ${this.$t('modals.min')}`);
       }
-      if (prefs.cochonettesEnabled && prefs.cochonettes) {
+      if (extras.cochonettes) {
         parts.push(
-          `+ ${prefs.cochonettes} ${prefs.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
+          `+ ${extras.cochonettes} ${extras.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
         );
       }
       return parts.join(' ');
@@ -902,16 +883,6 @@ export default {
       setTimeout(() => {
         this.publicLinkCopied = false;
       }, 2000);
-    },
-    pluralizeRounds(n) {
-      if (this.$i18n.locale === 'ua') {
-        const mod10 = n % 10;
-        const mod100 = n % 100;
-        if (mod10 === 1 && mod100 !== 11) return 'коло';
-        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'кола';
-        return 'кіл';
-      }
-      return n === 1 ? 'round' : 'rounds';
     },
   },
 };

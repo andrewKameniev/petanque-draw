@@ -127,7 +127,18 @@
 <script>
 import { ChevronLeft } from 'lucide-vue-next';
 
-import { SCORING } from '@/services/tir';
+import {
+  SCORING,
+  RESULT_OPTIONS,
+  getMatchScoreAt,
+  getMatchAtelierScore,
+  getMatchPlayerScore,
+  getMatchPlayerThrows,
+  isMatchAtelierComplete,
+  isMatchComplete,
+  toggleTirMatchScore,
+  selectTirMatchTieWinner,
+} from '@/services/tir';
 
 export default {
   name: 'TirPlayoffMatch',
@@ -142,12 +153,7 @@ export default {
   emits: ['back', 'update'],
   computed: {
     resultOptions() {
-      return [
-        { key: 'carreau', points: 5 },
-        { key: 'reussi', points: 3 },
-        { key: 'touche', points: 1 },
-        { key: 'manque', points: 0 },
-      ];
+      return RESULT_OPTIONS;
     },
     maxAtelierScore() {
       return this.distances.length * SCORING.carreau;
@@ -181,9 +187,7 @@ export default {
       return this.getPlayerTotal(2) > this.getPlayerTotal(1);
     },
     matchComplete() {
-      if (!this.bothComplete) return false;
-      if (this.isTied) return !!this.match.tieWinner;
-      return true;
+      return isMatchComplete(this.match, this.totalThrows);
     },
     statusText() {
       if (this.matchComplete) return this.$t('tir.matchCompleted');
@@ -199,87 +203,38 @@ export default {
     },
   },
   methods: {
-    /* eslint-disable vue/no-mutating-props */
-    getScores(playerNum) {
-      const key = playerNum === 1 ? 'scores1' : 'scores2';
-      if (!this.match[key]) this.match[key] = {};
-      return this.match[key];
-    },
     getScore(playerNum, atelierIdx, distance) {
-      return this.getScores(playerNum)?.[atelierIdx]?.[distance] || null;
+      return getMatchScoreAt(this.match, playerNum, atelierIdx, distance);
     },
     setScore(playerNum, atelierIdx, distance, type) {
-      const scores = this.getScores(playerNum);
-      if (!scores[atelierIdx]) scores[atelierIdx] = {};
-      const current = scores[atelierIdx][distance];
-      if (current === type) {
-        delete scores[atelierIdx][distance];
-      } else {
-        scores[atelierIdx][distance] = type;
-      }
-      this.updateMatchTotals();
-      this.$emit('update');
-      if (this.matchComplete) {
+      if (this.readOnly) return;
+      const updatedMatch = toggleTirMatchScore(this.match, playerNum, atelierIdx, distance, type, this.totalThrows);
+      this.$emit('update', updatedMatch);
+      if (updatedMatch.complete) {
         setTimeout(() => {
           this.$emit('back');
         }, 500);
       }
     },
     getAtelierTotal(playerNum, atelierIdx) {
-      const scores = this.getScores(playerNum)?.[atelierIdx];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getMatchAtelierScore(this.match, playerNum, atelierIdx);
     },
     getPlayerTotal(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          Object.values(atelier).forEach((val) => {
-            total += SCORING[val] || 0;
-          });
-        }
-      });
-      return total;
+      return getMatchPlayerScore(this.match, playerNum);
     },
     getPlayerThrows(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          count += Object.keys(atelier).length;
-        }
-      });
-      return count;
+      return getMatchPlayerThrows(this.match, playerNum);
     },
     isAtelierComplete(playerNum, atelierIdx) {
-      const scores = this.getScores(playerNum)?.[atelierIdx];
-      if (!scores) return false;
-      return Object.keys(scores).length >= this.distances.length;
-    },
-    updateMatchTotals() {
-      this.match.score1 = this.getPlayerTotal(1);
-      this.match.score2 = this.getPlayerTotal(2);
-      this.match.complete = this.matchComplete;
-      if (this.matchComplete) {
-        this.match.winner = this.isPlayer1Winner ? this.match.player1 : this.match.player2;
-        this.match.loser = this.isPlayer1Winner ? this.match.player2 : this.match.player1;
-      } else {
-        this.match.winner = null;
-        this.match.loser = null;
-      }
+      return isMatchAtelierComplete(this.match, playerNum, atelierIdx, this.distances.length);
     },
     selectTieWinner(playerNum) {
-      this.match.tieWinner = playerNum;
-      this.updateMatchTotals();
-      this.$emit('update');
+      const updatedMatch = selectTirMatchTieWinner(this.match, playerNum, this.totalThrows);
+      this.$emit('update', updatedMatch);
       setTimeout(() => {
         this.$emit('back');
       }, 500);
     },
-    /* eslint-enable vue/no-mutating-props */
   },
 };
 </script>

@@ -109,14 +109,15 @@
 <script>
 import { ChevronLeft, Trophy } from 'lucide-vue-next';
 
-import { SCORING } from '@/services/tir';
-
-const RESULT_OPTIONS = [
-  { key: 'carreau', points: 5 },
-  { key: 'reussi', points: 3 },
-  { key: 'touche', points: 1 },
-  { key: 'manque', points: 0 },
-];
+import {
+  SCORING,
+  RESULT_OPTIONS,
+  getMatchScoreAt,
+  getMatchPlayerScore,
+  getMatchPlayerThrows,
+  isMatchComplete,
+  getMatchWinner,
+} from '@/services/tir';
 
 export default {
   name: 'TirPlayoffComparison',
@@ -164,47 +165,21 @@ export default {
       return this.getPlayerTotal(2) > this.getPlayerTotal(1);
     },
     matchComplete() {
-      if (!this.bothComplete) return false;
-      if (this.isTied) return !!this.match.tieWinner;
-      return true;
+      return isMatchComplete(this.match, this.totalThrows);
     },
     winnerName() {
-      if (!this.matchComplete) return '';
-      if (this.isPlayer1Winner) return this.match.player1;
-      return this.match.player2;
+      return getMatchWinner(this.match, this.totalThrows) || '';
     },
   },
   methods: {
-    getScores(playerNum) {
-      const key = playerNum === 1 ? 'scores1' : 'scores2';
-      return this.match[key] || {};
-    },
     getScore(playerNum, atelierIdx, distance) {
-      return this.getScores(playerNum)?.[atelierIdx]?.[distance] || null;
+      return getMatchScoreAt(this.match, playerNum, atelierIdx, distance);
     },
     getPlayerTotal(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          Object.values(atelier).forEach((val) => {
-            total += SCORING[val] || 0;
-          });
-        }
-      });
-      return total;
+      return getMatchPlayerScore(this.match, playerNum);
     },
     getPlayerThrows(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          count += Object.keys(atelier).length;
-        }
-      });
-      return count;
+      return getMatchPlayerThrows(this.match, playerNum);
     },
   },
 };

@@ -152,7 +152,15 @@
 <script>
 import { ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon } from 'lucide-vue-next';
 
-import { SCORING } from '@/services/tir';
+import {
+  SCORING,
+  RESULT_OPTIONS,
+  getScoreTotal,
+  getThrowCount,
+  getAtelierScore,
+  isAtelierComplete,
+  toggleParticipantScore,
+} from '@/services/tir';
 
 export default {
   name: 'TirParticipantView',
@@ -184,7 +192,7 @@ export default {
       return SCORING;
     },
     resultOptions() {
-      return [{ key: 'carreau' }, { key: 'reussi' }, { key: 'touche' }, { key: 'manque' }];
+      return RESULT_OPTIONS;
     },
     isAllComplete() {
       return this.throwsCompleted >= this.totalThrows;
@@ -202,22 +210,10 @@ export default {
       return this.ateliers[this.activeAtelierIndex];
     },
     participantTotal() {
-      let total = 0;
-      if (!this.participant[this.scoresKey]) return 0;
-      Object.values(this.participant[this.scoresKey]).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          total += this.scoring[val] || 0;
-        });
-      });
-      return total;
+      return getScoreTotal(this.participant, this.scoresKey);
     },
     throwsCompleted() {
-      if (!this.participant[this.scoresKey]) return 0;
-      let count = 0;
-      Object.values(this.participant[this.scoresKey]).forEach((atelier) => {
-        count += Object.keys(atelier).length;
-      });
-      return count;
+      return getThrowCount(this.participant, this.scoresKey);
     },
   },
   methods: {
@@ -226,14 +222,10 @@ export default {
       this.activeAtelierIndex = first !== -1 ? first : 0;
     },
     getAtelierScore(atelierIndex) {
-      const scores = this.participant[this.scoresKey]?.[atelierIndex];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (this.scoring[val] || 0), 0);
+      return getAtelierScore(this.participant, this.scoresKey, atelierIndex);
     },
     isAtelierComplete(atelierIndex) {
-      const scores = this.participant[this.scoresKey]?.[atelierIndex];
-      if (!scores) return false;
-      return Object.keys(scores).length >= this.distances.length;
+      return isAtelierComplete(this.participant, this.scoresKey, atelierIndex, this.distances.length);
     },
     getScoreAt(atelierIdx, distance) {
       return this.participant[this.scoresKey]?.[atelierIdx]?.[distance] || null;
@@ -241,36 +233,33 @@ export default {
     getDistanceValue(distance) {
       return this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance] || null;
     },
-    /* eslint-disable vue/no-mutating-props */
     setScore(distance, type) {
       if (this.readOnly) return;
-      if (!this.participant[this.scoresKey]) {
-        this.participant[this.scoresKey] = {};
-      }
-      if (!this.participant[this.scoresKey][this.activeAtelierIndex]) {
-        this.participant[this.scoresKey][this.activeAtelierIndex] = {};
-      }
-      const current = this.participant[this.scoresKey][this.activeAtelierIndex][distance];
+      const current = this.participant[this.scoresKey]?.[this.activeAtelierIndex]?.[distance];
+      const updatedParticipant = toggleParticipantScore(
+        this.participant,
+        this.scoresKey,
+        this.activeAtelierIndex,
+        distance,
+        type,
+      );
       if (current === type) {
-        delete this.participant[this.scoresKey][this.activeAtelierIndex][distance];
         this.lastSaved = null;
       } else {
-        this.participant[this.scoresKey][this.activeAtelierIndex][distance] = type;
         const label = type.charAt(0).toUpperCase() + type.slice(1);
         this.lastSaved = `${this.$t('tir.saved')}: ${distance}m · ${label} · ${this.scoring[type]} ${this.$t('ranking.points')}`;
-        if (this.isAtelierComplete(this.activeAtelierIndex)) {
+        if (isAtelierComplete(updatedParticipant, this.scoresKey, this.activeAtelierIndex, this.distances.length)) {
           setTimeout(() => {
             if (this.activeAtelierIndex < this.ateliers.length - 1) {
               this.activeAtelierIndex++;
-            } else if (this.throwsCompleted >= this.totalThrows) {
+            } else if (getThrowCount(updatedParticipant, this.scoresKey) >= this.totalThrows) {
               this.$emit('back');
             }
           }, 300);
         }
       }
-      this.$emit('update');
+      this.$emit('update', updatedParticipant);
     },
-    /* eslint-enable vue/no-mutating-props */
     prevAtelier() {
       if (this.activeAtelierIndex > 0) this.activeAtelierIndex--;
     },

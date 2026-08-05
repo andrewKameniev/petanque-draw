@@ -1,74 +1,15 @@
 <template>
   <div class="game-row-wrapper">
-    <div
+    <PublicGameCard
       v-if="publicView"
-      class="match-item public-game-card"
-      data-testid="public-game-card"
-      :class="{
-        'match-item--highlighted': isPublicGameHighlighted,
-        'match-item--in-progress': isPublicInProgress,
-        'match-item--finished': isPublicFinished,
-        'match-item--upcoming': isPublicUpcoming,
-      }"
-    >
-      <span
-        class="match-lane-left"
-        :class="{
-          'match-lane-left--active': isPublicInProgress,
-          'match-lane-left--finished': isPublicFinished,
-        }"
-        >{{ displayLane }}</span
-      >
-      <span
-        class="match-team match-team-right"
-        :class="{
-          'match-team--highlighted': isPublicTeamOneHighlighted,
-          'match-team--winner': isPublicFinished && Number(game.team_1_score) > Number(game.team_2_score),
-        }"
-        >{{ game.team_1 }}</span
-      >
-      <span class="match-vs">
-        <span v-if="isPublicInProgress || isPublicFinished" class="match-score">
-          {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
-        </span>
-        <span v-else class="match-score match-score--pending">-- : --</span>
-      </span>
-      <span
-        class="match-team"
-        :class="{
-          'match-team--highlighted': isPublicTeamTwoHighlighted,
-          'match-team--winner': isPublicFinished && Number(game.team_2_score) > Number(game.team_1_score),
-        }"
-        >{{ game.team_2 }}</span
-      >
-      <span v-if="resolvedStreams.length" class="match-status-badge match-status-badge--live">
-        <span v-if="isPublicInProgress" class="match-live-dot"></span>
-        <span class="match-live-label">{{ isPublicInProgress ? $t('games.live') : $t('games.stream') }}</span>
-        <a
-          v-for="(streamUrl, streamIndex) in resolvedStreams"
-          :key="streamIndex"
-          :href="streamUrl"
-          target="_blank"
-          rel="noopener"
-          class="match-live-link"
-          :class="streamClass(streamUrl)"
-        >
-          <component :is="streamIconFor(streamUrl)" :size="16" />
-        </a>
-      </span>
-      <span v-else-if="isPublicInProgress" class="match-status-badge match-status-badge--progress">
-        <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-      </span>
-      <span v-else-if="isPublicFinished" class="match-status-badge match-status-badge--finished">
-        {{ $t('teamPlayoff.matchFinished') }}
-      </span>
-      <div v-if="cochonettesEnabled && game.score_history?.length" class="score-history">
-        <span v-for="(entry, index) in game.score_history" :key="index" class="score-history__chip">
-          <span class="score-history__num">{{ index + 1 }}</span>
-          <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-        </span>
-      </div>
-    </div>
+      :game="game"
+      :lane-number="displayLane"
+      :highlighted-team="highlightedTeam"
+      :team-club-map="teamClubMap"
+      :stream-urls="resolvedStreams"
+      :score-history-enabled="cochonettesEnabled"
+      :tournament-finished="tournamentFinished"
+    />
     <div
       v-else
       class="game-row"
@@ -171,16 +112,17 @@
 
 <script>
 import { gameHasError } from '@/helpers';
-import { getGameStreams, getStreamIconClass, getStreamIconComponent } from '@/services/streams';
+import { getGameStreams, getStreamIconComponent } from '@/services/streams';
 import { getGameLaneNumber } from '@/services/lanes';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { X, Pencil, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
+import PublicGameCard from '@/components/partials/PublicGameCard.vue';
 
 export default {
   name: 'Game',
-  components: { X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video },
+  components: { X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video, PublicGameCard },
   props: [
     'activeTournament',
     'gameIndex',
@@ -211,15 +153,6 @@ export default {
       'setActiveBracketMatchPath',
     ]),
     gameHasError,
-    streamIconFor: getStreamIconComponent,
-    streamClass: getStreamIconClass,
-    isPublicTeamHighlighted(teamName) {
-      if (!this.highlightedTeam) return false;
-      const query = this.highlightedTeam.toLowerCase();
-      return (
-        teamName?.toLowerCase().includes(query) || this.teamClubMap?.[teamName]?.toLowerCase().includes(query) || false
-      );
-    },
     onScoreInput(field) {
       const committedVal = this._committedScores?.[field] ?? null;
       this.clampScore(field);
@@ -337,24 +270,6 @@ export default {
     },
     effectiveStatus() {
       return this.game.status || 'not_started';
-    },
-    isPublicFinished() {
-      return !!this.tournamentFinished || this.effectiveStatus === 'finished';
-    },
-    isPublicInProgress() {
-      return !this.isPublicFinished && this.effectiveStatus === 'in_progress';
-    },
-    isPublicUpcoming() {
-      return !this.isPublicFinished && !this.isPublicInProgress;
-    },
-    isPublicTeamOneHighlighted() {
-      return this.isPublicTeamHighlighted(this.game.team_1);
-    },
-    isPublicTeamTwoHighlighted() {
-      return this.isPublicTeamHighlighted(this.game.team_2);
-    },
-    isPublicGameHighlighted() {
-      return this.isPublicTeamOneHighlighted || this.isPublicTeamTwoHighlighted;
     },
     isInputDisabled() {
       if (this.game.team_2 === 'Technical') return true;

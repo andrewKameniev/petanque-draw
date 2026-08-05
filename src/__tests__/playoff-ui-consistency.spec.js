@@ -9,6 +9,7 @@ let Game;
 let PlayOff;
 let PlayoffHeader;
 let PlayoffMatchPanel;
+let PublicGameCard;
 let Results;
 
 beforeAll(async () => {
@@ -24,6 +25,7 @@ beforeAll(async () => {
     { default: PlayOff },
     { default: PlayoffHeader },
     { default: PlayoffMatchPanel },
+    { default: PublicGameCard },
     { default: Results },
   ] = await Promise.all([
     import('@/components/partials/Bracket.vue'),
@@ -33,6 +35,7 @@ beforeAll(async () => {
     import('@/components/partials/PlayOff.vue'),
     import('@/components/partials/PlayoffHeader.vue'),
     import('@/components/partials/PlayoffMatchPanel.vue'),
+    import('@/components/partials/PublicGameCard.vue'),
     import('@/components/partials/Results.vue'),
   ]);
 });
@@ -159,13 +162,13 @@ describe('playoff UI consistency', () => {
 
   it('keeps partial team and club highlighting in the shared public card', () => {
     expect(
-      Game.methods.isPublicTeamHighlighted.call(
+      PublicGameCard.methods.isTeamHighlighted.call(
         { highlightedTeam: 'кро', teamClubMap: { 'КРОХА Андрій': 'Київ' } },
         'КРОХА Андрій',
       ),
     ).toBe(true);
     expect(
-      Game.methods.isPublicTeamHighlighted.call(
+      PublicGameCard.methods.isTeamHighlighted.call(
         { highlightedTeam: 'киї', teamClubMap: { 'КРОХА Андрій': 'Київ' } },
         'КРОХА Андрій',
       ),
@@ -209,12 +212,20 @@ describe('playoff UI consistency', () => {
 
   it('keeps every public match card on one shared stylesheet', () => {
     const gameView = readFileSync(new URL('../components/partials/Game.vue', import.meta.url), 'utf8');
+    const publicGameCardView = readFileSync(
+      new URL('../components/partials/PublicGameCard.vue', import.meta.url),
+      'utf8',
+    );
     const publicView = readFileSync(new URL('../views/Public.vue', import.meta.url), 'utf8');
     const cardStyles = readFileSync(new URL('../assets/css/public-game-card.css', import.meta.url), 'utf8');
 
     expect(gameView).not.toContain('.public-game-card .match-lane-left--finished');
     expect(publicView).not.toContain('.match-lane-left--finished {');
-    expect(publicView.match(/class="match-item public-game-card"/g)).toHaveLength(3);
+    expect(gameView).not.toContain('class="match-item public-game-card"');
+    expect(publicView).not.toContain('class="match-item public-game-card"');
+    expect(publicGameCardView.match(/class="match-item public-game-card"/g)).toHaveLength(1);
+    expect(publicView.match(/<PublicGameCard/g)).toHaveLength(3);
+    expect(Game.components.PublicGameCard).toBe(PublicGameCard);
     expect(cardStyles).toContain('.public-game-card .match-lane-left--finished');
     expect(cardStyles).not.toContain('background: var(--color-success)');
   });

@@ -12,16 +12,34 @@ When the organizer enables "Tournament B" before starting playoff:
 4. Admin switches between Group A and Group B using the pill-style switcher
 5. All tabs (Teams, Games, Ranking, Results) reflect the active group
 
-## Group B Data Structure
+## Persisted Group B Data Structures
+
+The current envelope and legacy root formats use different keys. The canonical
+adapter in `src/services/tournament-record.js` hides that distinction from UI
+consumers.
 
 ```
-tournament.activeGroup: 'A' | 'B'
-tournament.groupB: {
+// Current envelope
+record.activeGroup: 'A' | 'B'
+record.main: CompetitionData
+record.tournamentB: {
   teams, games, playOff, playOffBracket, playOffStage,
   cadrage, barrage, eliminationRound,
-  roundIsActive, tournamentIsFinished, mode
+  roundIsActive, tournamentIsFinished, system, preferences
+}
+
+// Legacy root
+record.activeGroup: 'A' | 'B'
+record.groupB: {
+  teams, games, playOff, playOffBracket, playOffStage,
+  cadrage, barrage, eliminationRound,
+  roundIsActive, tournamentIsFinished, system?, preferences?
 }
 ```
+
+Legacy `groupB` may be partial. Normalization supplies empty competition state
+and configuration defaults without copying Group A teams, games, or results.
+If B is selected but absent, selection and writes safely fall back to A.
 
 ## Features
 
@@ -43,12 +61,17 @@ When Group B has too many teams for a clean power-of-2 bracket, an elimination r
 
 ## Store Architecture
 
-All round/game/playoff actions are group-aware via `_getTarget()`:
+All round/game/playoff actions are group-aware via the canonical tournament
+record adapter used by `_getTarget()`:
 
-- Returns `{ data: tournament.groupB, prefix: 'groupB/' }` when active group is B
-- Returns `{ data: tournament, prefix: '' }` when active group is A
+- Envelope A/B prefixes are `main/` and `tournamentB/`
+- Legacy A/B prefixes are empty and `groupB/`
 - Actions like `startRound`, `endRound`, `addRoundToGames`, `setPlayOff`, etc. automatically route to the correct target
 
 ## Firebase Sync
 
-Group B data syncs under `groupB/` prefix. The `syncGameMatch` action routes to `groupB/games/{round}/{game}` when Group B is active. Full Group B state is subscribed as a simple path.
+Envelope Group B data syncs under `tournamentB/`; legacy Group B data remains
+under `groupB/`. The `syncGameMatch` action routes to the matching
+`{prefix}games/{round}/{game}` path. No Firebase migration is performed, and
+existing public links, archive ownership paths, and shared-owner paths remain
+unchanged.

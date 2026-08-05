@@ -93,6 +93,20 @@ describe('Tournament B store actions (new format)', () => {
     });
   });
 
+  describe('root metadata sync', () => {
+    it('captures the emitted organizer message instead of a later stale snapshot value', () => {
+      vi.useFakeTimers();
+      const syncPath = vi.spyOn(store, '_syncPath').mockImplementation(() => undefined);
+
+      store.syncTournamentMessage('Updated message');
+      store.currentTournament.tournamentMessage = 'Stale subscription value';
+      vi.advanceTimersByTime(300);
+
+      expect(syncPath).toHaveBeenCalledWith('tournamentMessage', 'Updated message');
+      vi.useRealTimers();
+    });
+  });
+
   describe('initTournamentB', () => {
     it('creates tournamentB with given teams and system', () => {
       const teams = [

@@ -19,13 +19,14 @@
                 v-for="[key, item] in tournamentEntries"
                 :key="key"
                 class="archived-sidebar__item"
+                :data-tournament-id="key"
                 :class="{ 'archived-sidebar__item--active': key === activeKey }"
                 @click="selectTournament(key)"
               >
-                <span class="archived-sidebar__item-name">{{ item.name }}</span>
+                <span class="archived-sidebar__item-name">{{ getRecordMetadata(item).name }}</span>
                 <span class="archived-sidebar__item-meta">
-                  <span v-if="formatDate(item.date)" class="archived-sidebar__item-date">{{
-                    formatDate(item.date)
+                  <span v-if="formatDate(getRecordMetadata(item).date)" class="archived-sidebar__item-date">{{
+                    formatDate(getRecordMetadata(item).date)
                   }}</span>
                   <span v-if="getFormatTag(item)" class="archived-sidebar__item-tag">{{ getFormatTag(item) }}</span>
                 </span>
@@ -397,6 +398,13 @@ import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
 import {
+  getTournamentGroup,
+  getTournamentMain,
+  getTournamentMetadata,
+  getTournamentStorageTarget,
+  normalizeTournamentRecord,
+} from '@/services/tournament-record';
+import {
   GitFork,
   Users,
   List,
@@ -483,7 +491,7 @@ export default {
       handler(key) {
         if (key) {
           const selected = this.savedTournaments?.[key];
-          const tournament = selected?.main || selected;
+          const tournament = getTournamentGroup(selected, 'A');
           this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
           this.subscribeTournament(key);
         }
@@ -508,8 +516,10 @@ export default {
       return Object.keys(this.savedTournaments);
     },
     activeTournament() {
-      if (this.tournament?.main) return this.tournament.main;
-      return this.tournament;
+      return getTournamentGroup(this.tournament, 'A');
+    },
+    tournamentMetadata() {
+      return getTournamentMetadata(this.tournament, { id: this.activeKey });
     },
     activeMapEntry() {
       return this.userTournamentMap?.[this.activeKey] || null;
@@ -523,10 +533,7 @@ export default {
     },
     protocolTournamentMeta() {
       if (!this.tournament) return null;
-      return {
-        ...this.tournament,
-        id: this.tournament.id || this.activeKey,
-      };
+      return getTournamentMetadata(this.tournament, { id: this.activeKey });
     },
     tabs() {
       const tabs = [
@@ -571,8 +578,8 @@ export default {
       return getTeamsRanking(this.activeTournament, this.activeRound);
     },
     tournamentMessageLines() {
-      if (!this.activeTournament?.tournamentMessage) return [];
-      return this.activeTournament.tournamentMessage.split('\n').filter((l) => l.trim());
+      if (!this.tournamentMetadata.tournamentMessage) return [];
+      return this.tournamentMetadata.tournamentMessage.split('\n').filter((l) => l.trim());
     },
     systemDescription() {
       if (!this.activeTournament) return '';
@@ -627,13 +634,12 @@ export default {
       return po[po.length - 1].teams?.length === 1;
     },
     tournamentDate() {
-      const date = this.tournament?.date || this.tournament?.main?.date;
+      const date = this.tournamentMetadata.date;
       if (!date) return '';
       return this.formatDate(date);
     },
     portalId() {
-      if (!this.tournament) return null;
-      return this.tournament.portalIdTournament || this.tournament.main?.portalIdTournament || null;
+      return this.tournamentMetadata.portalIdTournament || null;
     },
     allTeamsHaveLogos() {
       const t = this.activeTournament;
@@ -684,8 +690,11 @@ export default {
     displayLane(game, index) {
       return getGameLaneNumber(game, this.activeTournament, index);
     },
+    getRecordMetadata(record) {
+      return getTournamentMetadata(record);
+    },
     getFormatTag(item) {
-      const data = item.main || item;
+      const data = getTournamentGroup(item, 'A');
       if (data.system === 'tir') return this.$t('teams.tir');
       const players = data.teams?.[0]?.players?.length;
       if (!players) return '';
@@ -699,7 +708,7 @@ export default {
       this.activeKey = key;
       this.selectorOpen = false;
       const selected = this.savedTournaments?.[key];
-      const tournament = selected?.main || selected;
+      const tournament = getTournamentGroup(selected, 'A');
       this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
       if (tournamentChanged) {
         this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
@@ -750,7 +759,8 @@ export default {
       if (!this.activeOwnerUid) return;
       this.isLoading = true;
       const cached = this.savedTournaments[key];
-      if (cached?.teams || cached?.tirParticipants || cached?.main) {
+      const cachedCompetition = getTournamentMain(cached);
+      if (cachedCompetition?.teams || cachedCompetition?.tirParticipants) {
         this.tournament = cached;
         this.isLoading = false;
         return;
@@ -760,8 +770,12 @@ export default {
         key,
         (snapshot) => {
           const value = snapshot.val();
-          if (snapshot.exists() && (value?.teams || value?.tirParticipants || value?.main)) {
-            this.tournament = value;
+          const competition = getTournamentMain(value);
+          if (snapshot.exists() && (competition?.teams || competition?.tirParticipants)) {
+            this.tournament = normalizeTournamentRecord(value, {
+              id: key,
+              ownerUid: this.activeMapEntry?.role === 'admin' ? this.activeOwnerUid : undefined,
+            });
           } else {
             this.tournament = this.savedTournaments[key] || null;
           }
@@ -843,7 +857,7 @@ export default {
           this.activeTournament.tirParticipants.forEach(patchPlayer);
         }
         if (updated > 0) {
-          const basePath = this.tournament?.main ? 'main/' : '';
+          const basePath = getTournamentStorageTarget(this.tournament, 'A').prefix;
           if (this.activeTournament.teams) {
             await tournamentService.updatePath(
               this.activeOwnerUid,
@@ -881,7 +895,7 @@ export default {
       if (!this.portalIdInput) return;
       const value = String(this.portalIdInput);
       await tournamentService.updatePath(this.activeOwnerUid, this.activeKey, 'portalIdTournament', value);
-      this.tournament.portalIdTournament = value;
+      this.tournament = { ...this.tournament, portalIdTournament: value };
       this.portalIdInput = null;
     },
     copyDbId() {

@@ -1,6 +1,9 @@
 import { getEditableDoubleEliminationStages, getPublicDoubleEliminationMatches } from '@/services/playoff';
+import { getActiveTournamentGroup } from '@/services/tournament-record';
 
-export function autoFillScores(tournament, activeRound) {
+export function autoFillScores(record, activeRound) {
+  const tournament = getActiveTournamentGroup(record);
+  if (!tournament) return;
   const maxScore = tournament.preferences?.maxScore || 13;
   const fillGames = (games) => {
     games.forEach((game) => {
@@ -63,18 +66,7 @@ export function autoFillScores(tournament, activeRound) {
   if (tournament.roundIsActive && tournament.games?.length) {
     fillGames(tournament.games[activeRound - 1]);
   }
-  const tB = tournament.tournamentB || tournament.groupB;
-  if (tB?.eliminationRound && !tB.eliminationRound.completed) {
-    fillGames(tB.eliminationRound.games);
-  }
-  if (
-    tournament.activeGroup === 'B' &&
-    (tB?.playOff?.length || tB?.playOffBracket?.format === 'double') &&
-    tB.playOffBracket
-  ) {
-    fillBracket(tB.playOffBracket, tB.playOffStage);
-  }
-  if (tournament.activeGroup === 'B' && tB?.roundIsActive && tB.games?.length) {
-    fillGames(tB.games[tB.games.length - 1]);
+  if (tournament.eliminationRound && !tournament.eliminationRound.completed) {
+    fillGames(tournament.eliminationRound.games);
   }
 }

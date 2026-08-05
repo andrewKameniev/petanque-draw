@@ -17,9 +17,10 @@
         <div class="tv__header-overlay">
           <div class="tv__system-box">
             <span class="tv__system-label">СИСТЕМА</span>
+            <span v-if="tournamentMetadata.name" class="tv__tournament-name">{{ tournamentMetadata.name }}</span>
             <span class="tv__system-text">{{ systemSummary }}</span>
-            <span v-if="tournament.tournamentMessage" class="tv__system-message">{{
-              tournament.tournamentMessage
+            <span v-if="tournamentMetadata.tournamentMessage" class="tv__system-message">{{
+              tournamentMetadata.tournamentMessage
             }}</span>
           </div>
           <div class="tv__timer-box" :class="{ 'tv__timer-box--ended': timerEnded }">
@@ -475,6 +476,13 @@ import { getGameLaneNumber } from '@/services/lanes';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import headerMan from '@/assets/img/tv-header.png';
 import headerWoman from '@/assets/img/tv-header-woman.png';
+import {
+  getTournamentGroup,
+  getTournamentMetadata,
+  getTournamentStorageTarget,
+  normalizeTournamentRecord,
+  updateTournamentGroup,
+} from '@/services/tournament-record';
 
 export default {
   name: 'TvDashboard',
@@ -482,7 +490,7 @@ export default {
   data() {
     return {
       isLoading: true,
-      tournament: null,
+      tournamentRecord: null,
       now: Date.now(),
       clockInterval: null,
       tableRotationInterval: null,
@@ -516,6 +524,12 @@ export default {
     clearInterval(this.tableRotationInterval);
   },
   computed: {
+    tournament() {
+      return getTournamentGroup(this.tournamentRecord, 'A');
+    },
+    tournamentMetadata() {
+      return getTournamentMetadata(this.tournamentRecord);
+    },
     userId() {
       if (this.$route.query.ref) {
         const refParam = this.$route.query.ref;
@@ -937,15 +951,7 @@ export default {
       try {
         const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
         if (snapshot.exists()) {
-          const data = snapshot.val();
-          if (data?.main) {
-            this._isNewFormat = true;
-            this.tournament = data.main;
-            if (data.tournamentMessage) this.tournament.tournamentMessage = data.tournamentMessage;
-          } else {
-            this._isNewFormat = false;
-            this.tournament = data;
-          }
+          this.tournamentRecord = normalizeTournamentRecord(snapshot.val(), { id: this.tournamentId });
         }
       } catch (error) {
         console.error('Error fetching TV data:', error);
@@ -971,11 +977,11 @@ export default {
         'system',
         'groupSchedule',
       ];
-      const prefix = this._isNewFormat ? 'main/' : '';
+      const prefix = getTournamentStorageTarget(this.tournamentRecord, 'A').prefix;
       for (const path of mainPaths) {
         const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, prefix + path, (snapshot) => {
-          if (!this.tournament) return;
-          this.tournament[path] = snapshot.val();
+          if (!this.tournamentRecord) return;
+          this.tournamentRecord = updateTournamentGroup(this.tournamentRecord, 'A', { [path]: snapshot.val() });
         });
         this._unsubscribers.push(unsub);
       }
@@ -984,8 +990,8 @@ export default {
         this.tournamentId,
         'tournamentMessage',
         (snapshot) => {
-          if (!this.tournament) return;
-          this.tournament.tournamentMessage = snapshot.val();
+          if (!this.tournamentRecord) return;
+          this.tournamentRecord = { ...this.tournamentRecord, tournamentMessage: snapshot.val() };
         },
       );
       this._unsubscribers.push(msgUnsub);
@@ -1237,6 +1243,12 @@ export default {
   font-size: 19px;
   font-weight: 700;
   white-space: pre-line;
+}
+
+.tv__tournament-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .tv__system-message {

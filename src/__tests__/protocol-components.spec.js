@@ -757,9 +757,11 @@ describe('Archived protocol integration', () => {
       main: { teams: [] },
     };
 
-    expect(Archived.computed.protocolTournamentMeta.call({ tournament: selected, activeKey: 'fallback-id' })).toEqual(
-      selected,
-    );
+    expect(Archived.computed.protocolTournamentMeta.call({ tournament: selected, activeKey: 'fallback-id' })).toEqual({
+      id: 'archive-1',
+      name: 'Selected archived tournament',
+      date: '2026-07-04',
+    });
     expect(
       Archived.computed.protocolTournamentMeta.call({ tournament: { name: 'Legacy' }, activeKey: 'legacy-id' }),
     ).toEqual({ name: 'Legacy', id: 'legacy-id' });

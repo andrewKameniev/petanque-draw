@@ -91,6 +91,7 @@ import { X, Trophy, Minus, UsersRound, BarChart3, ArrowUpRight } from 'lucide-vu
 import { mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
+import { getTournamentMetadata } from '@/services/tournament-record';
 
 export default {
   name: 'ParticipantGames',
@@ -108,7 +109,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['currentTournament']),
     tournamentName() {
-      return this.currentTournament?.name || this.tournament.name || this.tournament.main?.name || '';
+      return getTournamentMetadata(this.currentTournament, getTournamentMetadata(this.tournament)).name || '';
     },
     gamesByStage() {
       const stages = [];

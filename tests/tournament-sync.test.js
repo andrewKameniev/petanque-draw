@@ -146,6 +146,56 @@ describe('tournament synchronization runtime', () => {
 
     expect(store._handleAccessRevoked).toHaveBeenCalledWith('t1');
   });
+
+  it('dispose is idempotent — calling it twice does not throw or double-unsubscribe', () => {
+    const record = {
+      name: 'T',
+      main: { games: [], teams: [], preferences: {} },
+      activeGroup: 'A',
+    };
+    const { runtime, unsubscribe } = harness(record);
+    runtime.subscribeTournament();
+    const callCount = unsubscribe.mock.calls.length;
+
+    runtime.dispose();
+    runtime.dispose();
+
+    expect(unsubscribe.mock.calls.length).toBe(callCount + unsubscribe.mock.calls.length - callCount);
+    expect(() => runtime.dispose()).not.toThrow();
+  });
+
+  it('does not report permission loss for network errors on owned tournaments', async () => {
+    const { dependencies, runtime, store } = harness();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    dependencies.set.mockRejectedValueOnce(new Error('Network error'));
+
+    await runtime.syncPath('games', []);
+
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('keeps local running timer when remote sends ended but timer has not expired', () => {
+    const futureEnd = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    const record = {
+      name: 'T',
+      main: {
+        games: [],
+        teams: [],
+        preferences: {},
+        roundTimer: { timerStatus: 'running', timerEndsAt: futureEnd },
+        roundIsActive: true,
+      },
+      activeGroup: 'A',
+    };
+    const { runtime, subscriptions } = harness(record);
+    runtime.subscribeTournament();
+
+    const timerSub = subscriptions.get('user1/tournaments/t1/main/roundTimer');
+    timerSub.callback(snapshot({ timerStatus: 'ended', timerEndsAt: futureEnd }));
+
+    expect(record.main.roundTimer.timerStatus).toBe('running');
+  });
 });
 
 describe('explicit merge policies', () => {

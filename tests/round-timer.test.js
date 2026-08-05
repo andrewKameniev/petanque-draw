@@ -71,4 +71,23 @@ describe('round timer state', () => {
       timeLimitMinutes: 15,
     });
   });
+
+  it('skips grand-final-2 (double elimination second final) configured without a limit', () => {
+    const preferences = { ...tournament().preferences, noTimeLimitFinale: true };
+    expect(shouldSkipFinalTimer({ preferences, playOffStage: 'grand-final-2' })).toBe(true);
+    expect(createRoundTimer({ preferences, playOffStage: 'grand-final-2' }, NOW)).toBeNull();
+  });
+
+  it('pause returns null for non-running timers and resume returns null for non-paused', () => {
+    const ended = { timerStatus: 'ended', timerEndsAt: '2026-08-05T10:45:00.000Z' };
+    expect(pauseRoundTimerState(ended, NOW)).toBeNull();
+    expect(resumeRoundTimerState(ended, NOW)).toBeNull();
+    expect(pauseRoundTimerState(null, NOW)).toBeNull();
+    expect(resumeRoundTimerState(null, NOW)).toBeNull();
+  });
+
+  it('endRoundTimerState returns null/undefined for null/undefined input', () => {
+    expect(endRoundTimerState(null)).toBeNull();
+    expect(endRoundTimerState(undefined)).toBeUndefined();
+  });
 });

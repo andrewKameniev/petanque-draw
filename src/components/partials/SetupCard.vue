@@ -527,6 +527,7 @@ export default {
   data() {
     return {
       showAdvancedSettings: false,
+      lastRecommendedSwissRounds: null,
     };
   },
   watch: {
@@ -543,10 +544,13 @@ export default {
     },
     optimalSwissRounds: {
       handler(val) {
-        if (!this.tournament.preferences.swissRoundsCount) {
+        const current = Number(this.tournament.preferences.swissRoundsCount);
+        const isAutomaticValue = !current || current === 1 || current === this.lastRecommendedSwissRounds;
+        if (isAutomaticValue) {
           // eslint-disable-next-line vue/no-mutating-props
           this.tournament.preferences.swissRoundsCount = val;
         }
+        this.lastRecommendedSwissRounds = val;
       },
       immediate: true,
     },

@@ -253,7 +253,8 @@ export default {
       playoffSystem: {
         title: 'Playoff',
         subtitle: 'Knockout bracket format',
-        intro: 'Two formats: Single Elimination (lose once = out) and Double Elimination (two losses to be eliminated).',
+        intro:
+          'Two formats: Single Elimination (lose once = out) and Double Elimination (two losses to be eliminated).',
         formatChoice: {
           title: 'Format Selection',
           single: 'Single Elimination — classic knockout, supports 4-64 teams',
@@ -666,7 +667,8 @@ export default {
       playoffSystem: {
         title: 'Плей-оф (на виліт)',
         subtitle: 'Формат сітки на виліт',
-        intro: 'Два формати: Одинарне вибування (одна поразка = вибув) та Подвійне вибування (дві поразки для вибування).',
+        intro:
+          'Два формати: Одинарне вибування (одна поразка = вибув) та Подвійне вибування (дві поразки для вибування).',
         formatChoice: {
           title: 'Вибір формату',
           single: 'Одинарне вибування — класичний нокаут, підтримує 4-64 команди',
@@ -851,7 +853,10 @@ export default {
         },
         barrage: { term: 'Barrage', short: 'Qualification en poules avant le playoff' },
         cadrage: { term: 'Cadrage', short: 'Tour de barrage pour les équipes en limite de qualification' },
-        playoff: { term: 'Playoff', short: 'Tableau éliminatoire — simple (une défaite = éliminé) ou double élimination (deux défaites)' },
+        playoff: {
+          term: 'Playoff',
+          short: 'Tableau éliminatoire — simple (une défaite = éliminé) ou double élimination (deux défaites)',
+        },
         tir: { term: 'TIR (Tir de Précision)', short: 'Tir de précision individuel sur 5 ateliers' },
         supermele: { term: 'Supermêlée', short: 'Format social — équipes mélangées à chaque tour' },
         buchholz: { term: 'Buchholz', short: 'Départage : somme des victoires de tous les adversaires' },
@@ -1015,7 +1020,8 @@ export default {
       playoffSystem: {
         title: 'Playoff',
         subtitle: 'Tableau à élimination',
-        intro: 'Deux formats : Simple élimination (une défaite = éliminé) et Double élimination (deux défaites pour être éliminé).',
+        intro:
+          'Deux formats : Simple élimination (une défaite = éliminé) et Double élimination (deux défaites pour être éliminé).',
         formatChoice: {
           title: 'Choix du format',
           single: 'Simple élimination — knockout classique, 4-64 équipes',
@@ -1029,22 +1035,28 @@ export default {
           title: 'Tableau (8 équipes)',
           text: '1v8, 4v5, 3v6, 2v7 — les meilleurs se rencontrent le plus tard.',
         },
-        thirdPlace: { title: 'Petite finale', text: 'Match optionnel entre les perdants des demi-finales (simple élimination uniquement).' },
+        thirdPlace: {
+          title: 'Petite finale',
+          text: 'Match optionnel entre les perdants des demi-finales (simple élimination uniquement).',
+        },
         doubleElim: {
           title: 'Double élimination',
-          text: "Tous commencent dans le tableau des vainqueurs. Une défaite envoie dans le tableau des perdants. Deux défaites = éliminé.",
+          text: 'Tous commencent dans le tableau des vainqueurs. Une défaite envoie dans le tableau des perdants. Deux défaites = éliminé.',
           crossing: 'Les perdants tombent du côté opposé du tableau inférieur — évite la revanche immédiate.',
-          grandFinal: 'Le champion du tableau des vainqueurs affronte celui des perdants en une Grande Finale décisive.',
-          sizes: "N'importe quel nombre à partir de 2. Les tableaux incomplets sont complétés par des exemptions (byes).",
+          grandFinal:
+            'Le champion du tableau des vainqueurs affronte celui des perdants en une Grande Finale décisive.',
+          sizes:
+            "N'importe quel nombre à partir de 2. Les tableaux incomplets sont complétés par des exemptions (byes).",
         },
         finalRanking: {
           title: 'Classement final',
           first: 'Vainqueur = 1er',
           second: 'Finaliste = 2e',
-          third: 'Vainqueur petite finale = 3e (simple) / par tour d\'élimination (double)',
+          third: "Vainqueur petite finale = 3e (simple) / par tour d'élimination (double)",
           fourth: 'Perdant petite finale = 4e',
           rest: 'Quart-finalistes = 5e-8e',
-          doubleNote: 'En double élimination : classé par le tour d\'élimination du tableau des perdants (plus tard = mieux classé)',
+          doubleNote:
+            "En double élimination : classé par le tour d'élimination du tableau des perdants (plus tard = mieux classé)",
         },
       },
 

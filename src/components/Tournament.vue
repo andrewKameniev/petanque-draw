@@ -4,8 +4,8 @@
       v-if="user && isOwnerOrAdmin"
       v-model:message="tournamentWrapper.tournamentMessage"
       :loading="loadingOnServer"
-      :show-group-switcher="isNewFormat ? !!tournamentWrapper.tournamentB : !!tournamentWrapper.groupB"
-      :active-group="tournamentWrapper.activeGroup || 'A'"
+      :show-group-switcher="hasTournamentB"
+      :active-group="activeTournamentGroup"
       @show-qr="showQrCode = true"
       @update:message="onMessageInput"
       @update:active-group="setActiveGroup"
@@ -87,20 +87,8 @@
 
     <!-- POST-START: Tabbed tournament view -->
     <template v-else>
-      <div class="tournament-nav">
-        <button
-          v-for="(tab, index) in tabs"
-          :key="index"
-          :id="'tab-' + tab.id"
-          class="tournament-nav__btn"
-          :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-          @click="activeTab = tab.id"
-        >
-          <component :is="tab.icon" :size="18" />
-          <span>{{ tab.label }}</span>
-        </button>
-      </div>
-      <div class="tabs-content-area">
+      <TournamentNav v-model="activeTab" :tabs="tabs" />
+      <div id="tournament-tabpanel" class="tabs-content-area" role="tabpanel" :aria-labelledby="`tab-${activeTab}`">
         <div class="content tabs-content" v-if="activeTab === 'teams'">
           <AddTeam
             v-if="
@@ -126,7 +114,7 @@
         />
         <Results
           v-if="activeTab === 'results'"
-          :preview-tournament="tournamentWrapper.activeGroup === 'B' ? tournament : undefined"
+          :preview-tournament="activeTournamentGroup === 'B' ? tournament : undefined"
         />
         <StreamPresets v-if="activeTab === 'streams'" />
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
@@ -392,6 +380,7 @@ import {
   saveResultsForRound,
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 import {
   getPlayoffPlaces,
   getCombinedTotal,
@@ -400,6 +389,7 @@ import {
   getScoreToucheCount,
   rankWithTiebreakers,
 } from '@/services/tir';
+import { getActiveTournamentGroup, getTournamentPresentation, hasTournamentGroup } from '@/services/tournament-record';
 
 export default {
   name: 'Tournament',
@@ -665,8 +655,8 @@ export default {
         this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
       }
     },
-    onMessageInput() {
-      this.syncTournamentMessage();
+    onMessageInput(message) {
+      this.syncTournamentMessage(message);
     },
     onPlayoffConfirm(config) {
       this.showPlayoffConfirm = false;
@@ -832,7 +822,7 @@ export default {
 
       const hasCadrageLosersToB = this.tournament.preferences?.cadrageLosersToB && this.tournament.cadrage?.length;
 
-      if (hasCadrageLosersToB && (this.tournamentWrapper.tournamentB || this.tournamentWrapper.groupB)) {
+      if (hasCadrageLosersToB && this.hasTournamentB) {
         const store = useMainStore();
         const cadrageLosers = this._buildCadrageLosers();
         if (cadrageLosers.length) {
@@ -1140,22 +1130,21 @@ export default {
       'isAdmin',
       'user',
       'currentTournament',
-      'isNewFormat',
       'savedTournamentIds',
       'allScoresFilled',
       'isOwnerOrAdmin',
     ]),
     tournament() {
-      const t = this.currentTournament;
-      if (!t) return t;
-      if (this.isNewFormat) {
-        const active = t.activeGroup === 'B' && t.tournamentB ? t.tournamentB : t.main;
-        return active;
-      }
-      return t;
+      return getActiveTournamentGroup(this.currentTournament);
     },
     tournamentWrapper() {
       return this.currentTournament;
+    },
+    hasTournamentB() {
+      return hasTournamentGroup(this.currentTournament, 'B');
+    },
+    activeTournamentGroup() {
+      return getTournamentPresentation(this.currentTournament).group;
     },
     activeViewRound() {
       const t = this.tournament;
@@ -1167,16 +1156,16 @@ export default {
     tabs() {
       if (this.tournament.system === 'tir') {
         return [
-          { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-          { id: 'games', label: this.$t('teams.games'), icon: 'Grid3x3' },
+          { id: 'teams', label: this.$t('teams.teams'), icon: Users },
+          { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
         ];
       }
       return [
-        { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-        { id: 'games', label: this.$t('teams.games'), icon: 'Grid3x3' },
-        { id: 'results', label: this.$t('teams.results'), icon: 'List' },
-        { id: 'ranking', label: this.$t('teams.ranking'), icon: 'Trophy' },
-        { id: 'streams', label: this.$t('streams.title'), icon: 'Radio' },
+        { id: 'teams', label: this.$t('teams.teams'), icon: Users },
+        { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
+        { id: 'results', label: this.$t('teams.results'), icon: List },
+        { id: 'ranking', label: this.$t('teams.ranking'), icon: Trophy },
+        { id: 'streams', label: this.$t('streams.title'), icon: Radio },
       ];
     },
     isAllTeamsGroup() {
@@ -1239,6 +1228,7 @@ export default {
     },
   },
   components: {
+    TournamentNav,
     Undo2,
     Trash2,
     RefreshCw,
@@ -1261,11 +1251,6 @@ export default {
     Ranking,
     SaveTournament,
     TirModule,
-    Users,
-    Grid3x3,
-    List,
-    Trophy,
-    Radio,
     Download,
     StreamPresets,
   },
@@ -1464,56 +1449,6 @@ export default {
 .setup-card__delete:hover {
   background: var(--color-error);
   color: var(--color-btn-text);
-}
-
-.tournament-nav {
-  display: flex;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px 12px 0 0;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: -1px;
-}
-
-.tournament-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tournament-nav__btn--active {
-  font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete, #e53935);
-}
-
-.tournament-nav__btn--games.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau, #4caf50);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche, #ff9800);
-}
-
-.tournament-nav__btn--streams.tournament-nav__btn--active {
-  color: #e53935;
 }
 
 .tabs-content-area {

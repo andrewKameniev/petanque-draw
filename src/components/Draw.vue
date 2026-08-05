@@ -1,12 +1,5 @@
 <template>
-  <div v-if="isLoading" class="gooey">
-    <span class="dot"></span>
-    <div class="dots">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </div>
+  <PageLoader v-if="isLoading" />
   <div v-else class="wrapper">
     <Navbar @open-menu="menuOpen = !menuOpen" />
     <div class="container">
@@ -157,6 +150,7 @@ const Help = defineAsyncComponent(() => import('./Help'));
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/firebase';
 import Footer from '@/components/partials/Footer.vue';
+import PageLoader from '@/components/ui/PageLoader.vue';
 
 export default {
   name: 'Draw',
@@ -289,6 +283,7 @@ export default {
     },
   },
   components: {
+    PageLoader,
     Footer,
     Help,
     Navbar,

@@ -137,6 +137,34 @@ describe('autoFillScores', () => {
     expect(t.playOffBracket.thirdPlace.team_2_score).toBeTypeOf('number');
   });
 
+  it('fills every simultaneously editable double-elimination stage', () => {
+    const upperGames = [makeGame('A', 'B'), makeGame('C', 'D')];
+    const lowerGames = [makeGame('E', 'F'), makeGame('G', 'H')];
+    const futureGame = makeGame(null, null);
+    const t = makeTournament({
+      roundIsActive: false,
+      playOff: null,
+      playOffBracket: {
+        format: 'double',
+        stages: [
+          { id: 'upper-2', sequence: 2, teams: upperGames },
+          { id: 'lower-1', sequence: 2, teams: lowerGames },
+          { id: 'lower-2', sequence: 3, teams: [futureGame] },
+        ],
+      },
+      playOffStage: 'upper-2',
+    });
+
+    autoFillScores(t, 1);
+
+    [...upperGames, ...lowerGames].forEach((game) => {
+      expect(game.team_1_score).toBeTypeOf('number');
+      expect(game.team_2_score).toBeTypeOf('number');
+    });
+    expect(futureGame.team_1_score).toBeNull();
+    expect(futureGame.team_2_score).toBeNull();
+  });
+
   it('handles multi-round correctly (fills only active round)', () => {
     const t = makeTournament({
       games: [[makeGame('A', 'B', 13, 5)], [makeGame('C', 'D')]],

@@ -56,6 +56,7 @@ import Archived from '@/views/Archived.vue';
 
 const arbiterMethods = ProtocolArbiterControls.methods;
 const protocolMethods = Protocol.methods;
+const tirProtocolMethods = TirProtocol.methods;
 
 describe('ProtocolArbiterControls', () => {
   beforeEach(() => {
@@ -72,7 +73,7 @@ describe('ProtocolArbiterControls', () => {
     };
     const preset = {
       arbiters: [
-        { name: 'Суддя 1', role: 'Арбітр' },
+        { name: 'Суддя 1', role: 'Суддя' },
         { name: 'Суддя 2', role: 'головний арбітр', category: '1' },
       ],
     };
@@ -81,7 +82,7 @@ describe('ProtocolArbiterControls', () => {
 
     const applied = emitted[0][1];
     expect(emitted[0][0]).toBe('apply-preset');
-    expect(applied[1].role).toBe('Головний Арбітр');
+    expect(applied[1].role).toBe('Головний суддя');
     expect(context.syncSelectionFromCurrent).toHaveBeenCalledWith(applied);
     expect(context.closePresets).toHaveBeenCalledOnce();
   });
@@ -97,7 +98,7 @@ describe('ProtocolArbiterControls', () => {
     };
 
     arbiterMethods.syncSelectionFromCurrent.call(context, [
-      { name: 'Рожок Олександр Олександрович', role: 'Головний Арбітр' },
+      { name: 'Рожок Олександр Олександрович', role: 'Головний суддя' },
     ]);
 
     expect(context.selectedArbiterIndexes).toEqual(['0']);
@@ -106,7 +107,7 @@ describe('ProtocolArbiterControls', () => {
 
   it('resyncs when preset rows change while the picker is open', () => {
     const context = { pickerOpen: true, arbiters: [{ name: 'Суддя' }], syncSelectionFromCurrent: vi.fn() };
-    const arbiters = [{ name: 'Суддя', role: 'Головний Арбітр' }];
+    const arbiters = [{ name: 'Суддя', role: 'Головний суддя' }];
 
     ProtocolArbiterControls.watch.currentArbiters.handler.call(context, arbiters);
 
@@ -199,6 +200,39 @@ describe('ProtocolArbiterControls', () => {
     );
   });
 
+  it('updates judges already added to the protocol when the registry is refreshed', async () => {
+    const currentArbiters = [
+      { name: 'Старе ім’я', role: 'Головний суддя', certificate: '42', category: '1', region: 'Львів' },
+    ];
+    const context = {
+      currentArbiters,
+      arbiters: [],
+      refreshing: false,
+      loadError: '',
+      pickerOpen: false,
+      fetchAndCacheRegistry: vi.fn().mockImplementation(async () => {
+        context.arbiters = [
+          { name: 'Нове ім’я', certificate: '42', category: 'НК', region: 'Київ' },
+          { name: 'Інший суддя', certificate: '7', category: '2', region: 'Одеса' },
+        ];
+      }),
+      $emit: vi.fn(),
+      syncSelectionFromCurrent: vi.fn(),
+      showMessage: vi.fn(),
+    };
+
+    await arbiterMethods.refreshRegistry.call(context);
+
+    expect(context.fetchAndCacheRegistry).toHaveBeenCalledWith(false);
+    expect(context.$emit).toHaveBeenCalledWith('apply-selection', [
+      { name: 'Нове ім’я', role: 'Головний суддя', certificate: '42', category: 'НК', region: 'Київ' },
+    ]);
+    expect(context.showMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('У протоколі синхронізовано 1 суддів, змінено 1') }),
+    );
+    expect(context.refreshing).toBe(false);
+  });
+
   it('normalizes and emits the current multiselect as protocol rows', () => {
     const context = {
       arbiters: [{ name: 'One' }, { name: 'Two' }],
@@ -211,8 +245,8 @@ describe('ProtocolArbiterControls', () => {
     arbiterMethods.addSelectedArbiters.call(context);
 
     expect(context.$emit).toHaveBeenCalledWith('apply-selection', [
-      { name: 'One', role: 'Арбітр' },
-      { name: 'Two', role: 'Головний Арбітр' },
+      { name: 'One', role: 'Суддя' },
+      { name: 'Two', role: 'Головний суддя' },
     ]);
     expect(context.closePicker).toHaveBeenCalledOnce();
   });
@@ -241,7 +275,7 @@ describe('ProtocolArbiterControls', () => {
 
     expect(context.$emit).toHaveBeenCalledWith('add', {
       name: '',
-      role: 'Арбітр',
+      role: 'Суддя',
       category: 'АФПУ',
       certificate: '',
       region: '',
@@ -289,7 +323,7 @@ describe('ProtocolArbiterControls', () => {
         arbiters: [
           {
             name: 'Main',
-            role: 'Головний Арбітр',
+            role: 'Головний суддя',
             category: 'АФПУ',
             certificate: '',
             region: '',
@@ -339,8 +373,46 @@ describe('Protocol component behavior', () => {
     expect(TirProtocol.components.ProtocolFooter).toBe(Protocol.components.ProtocolFooter);
   });
 
-  it('shows arbiter certificate numbers by default', () => {
+  it('shows arbiter certificate numbers and keeps the AFPU category by default', () => {
     expect(Protocol.data().showArbitrCertificate).toBe(true);
+    expect(Protocol.data().replaceAfpuWithSecondCategory).toBe(false);
+    expect(TirProtocol.data().replaceAfpuWithSecondCategory).toBe(false);
+  });
+
+  it('displays AFPU as category 2 only while the replacement option is enabled', () => {
+    expect(protocolMethods.displayArbiterCategory.call({ replaceAfpuWithSecondCategory: true }, 'АФПУ')).toBe('2');
+    expect(protocolMethods.displayArbiterCategory.call({ replaceAfpuWithSecondCategory: true }, 'афпу')).toBe('2');
+    expect(protocolMethods.displayArbiterCategory.call({ replaceAfpuWithSecondCategory: false }, 'АФПУ')).toBe('АФПУ');
+    expect(tirProtocolMethods.displayArbiterCategory.call({ replaceAfpuWithSecondCategory: true }, 'НК')).toBe('НК');
+  });
+
+  it('saves the AFPU replacement option after the protocol rerenders', () => {
+    const saveProtocolToStorage = vi.fn();
+    const context = {
+      replaceAfpuWithSecondCategory: false,
+      $nextTick: (callback) => callback(),
+      saveProtocolToStorage,
+    };
+
+    protocolMethods.updateReplaceAfpuWithSecondCategory.call(context, true);
+
+    expect(context.replaceAfpuWithSecondCategory).toBe(true);
+    expect(saveProtocolToStorage).toHaveBeenCalledOnce();
+  });
+
+  it('does not overwrite the original AFPU category when its displayed replacement blurs', () => {
+    const saveProtocolToStorage = vi.fn();
+    const context = {
+      arbitres: [{ category: 'АФПУ' }],
+      replaceAfpuWithSecondCategory: true,
+      $nextTick: (callback) => callback(),
+      saveProtocolToStorage,
+    };
+
+    protocolMethods.updateArbiterCategory.call(context, 0, { currentTarget: { textContent: '2' } });
+
+    expect(context.arbitres[0].category).toBe('АФПУ');
+    expect(saveProtocolToStorage).toHaveBeenCalledOnce();
   });
 
   it('paginates participant teams without splitting a team across pages', () => {
@@ -371,8 +443,8 @@ describe('Protocol component behavior', () => {
       saveProtocolToStorage,
     };
     const arbitres = [
-      { name: 'Суддя 1', role: 'Арбітр' },
-      { name: 'Суддя 2', role: 'Головний Арбітр' },
+      { name: 'Суддя 1', role: 'Суддя' },
+      { name: 'Суддя 2', role: 'Головний суддя' },
     ];
 
     protocolMethods.applyArbiterPreset.call(context, arbitres);
@@ -385,8 +457,8 @@ describe('Protocol component behavior', () => {
   it('updates the main-arbiter name after an editable arbiter field changes', () => {
     const context = {
       arbitres: [
-        { name: 'Суддя 1', role: 'Арбітр' },
-        { name: 'Old name', role: 'Головний Арбітр' },
+        { name: 'Суддя 1', role: 'Суддя' },
+        { name: 'Old name', role: 'Головний суддя' },
       ],
       arbitr: 'Old name',
     };
@@ -536,9 +608,9 @@ describe('Protocol component behavior', () => {
       saveProtocolToStorage,
     };
 
-    protocolMethods.addArbitr.call(context, { name: 'Main', role: 'Головний Арбітр' });
+    protocolMethods.addArbitr.call(context, { name: 'Main', role: 'Головний суддя' });
 
-    expect(context.arbitres).toEqual([{ name: 'Main', role: 'Головний Арбітр' }]);
+    expect(context.arbitres).toEqual([{ name: 'Main', role: 'Головний суддя' }]);
     expect(context.arbitr).toBe('Main');
     expect(saveProtocolToStorage).toHaveBeenCalledOnce();
   });
@@ -589,6 +661,14 @@ describe('Protocol component behavior', () => {
         sport_title: 'КМСУ',
       }),
     ).toBe('1|Коваль|Олег|Петрович|2|КМСУ');
+  });
+
+  it('builds team player detail keys for array and legacy object player collections', () => {
+    const context = { playerDetailsKey: protocolMethods.playerDetailsKey };
+    const player = { id: 1, surname: 'Коваль', name: 'Олег' };
+
+    expect(protocolMethods.teamPlayerDetailsKey.call(context, { players: [player] })).toBe('1|Коваль|Олег|||');
+    expect(protocolMethods.teamPlayerDetailsKey.call(context, { players: { 0: player } })).toBe('1|Коваль|Олег|||');
   });
 
   it('downloads DOCX once and restores the export state', async () => {
@@ -677,9 +757,11 @@ describe('Archived protocol integration', () => {
       main: { teams: [] },
     };
 
-    expect(Archived.computed.protocolTournamentMeta.call({ tournament: selected, activeKey: 'fallback-id' })).toEqual(
-      selected,
-    );
+    expect(Archived.computed.protocolTournamentMeta.call({ tournament: selected, activeKey: 'fallback-id' })).toEqual({
+      id: 'archive-1',
+      name: 'Selected archived tournament',
+      date: '2026-07-04',
+    });
     expect(
       Archived.computed.protocolTournamentMeta.call({ tournament: { name: 'Legacy' }, activeKey: 'legacy-id' }),
     ).toEqual({ name: 'Legacy', id: 'legacy-id' });

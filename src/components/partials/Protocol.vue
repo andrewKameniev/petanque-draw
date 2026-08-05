@@ -30,27 +30,51 @@
             <tbody>
               <tr>
                 <td>Дата початку змагань</td>
-                <td contenteditable="plaintext-only">
-                  {{ formatDateToHumanReadable(tournamentDate) }}
-                </td>
+                <td
+                  :key="`info-start-${formatDateToHumanReadable(tournamentDate)}`"
+                  contenteditable="plaintext-only"
+                  data-protocol-edit-key="info.start-date"
+                  :data-protocol-source="formatDateToHumanReadable(tournamentDate)"
+                  v-text="formatDateToHumanReadable(tournamentDate)"
+                ></td>
               </tr>
               <tr>
                 <td>Дата закінчення змагань</td>
-                <td contenteditable="plaintext-only">
-                  {{ formatDateToHumanReadable(tournamentDate) }}
-                </td>
+                <td
+                  :key="`info-end-${formatDateToHumanReadable(tournamentDate)}`"
+                  contenteditable="plaintext-only"
+                  data-protocol-edit-key="info.end-date"
+                  :data-protocol-source="formatDateToHumanReadable(tournamentDate)"
+                  v-text="formatDateToHumanReadable(tournamentDate)"
+                ></td>
               </tr>
               <tr>
                 <td>Місце/місто проведення</td>
-                <td contenteditable="plaintext-only"></td>
+                <td
+                  contenteditable="plaintext-only"
+                  data-protocol-edit-key="info.venue"
+                  data-protocol-manual="true"
+                  data-protocol-source=""
+                ></td>
               </tr>
               <tr>
                 <td>Організатор</td>
-                <td contenteditable="plaintext-only"></td>
+                <td
+                  contenteditable="plaintext-only"
+                  data-protocol-edit-key="info.organizer"
+                  data-protocol-manual="true"
+                  data-protocol-source=""
+                ></td>
               </tr>
               <tr>
                 <td>Головний суддя</td>
-                <td contenteditable="plaintext-only">{{ arbitr }}</td>
+                <td
+                  :key="arbitr"
+                  contenteditable="plaintext-only"
+                  data-protocol-edit-key="info.main-judge"
+                  :data-protocol-source="arbitr"
+                  v-text="arbitr"
+                ></td>
               </tr>
               <tr>
                 <td>Загальна кількість гравців</td>
@@ -78,29 +102,29 @@
                   {{ index + 1 }}
                 </td>
                 <td
+                  :key="`participant-${team.title}-name-${teamPlayerDetailsKey(team)}`"
                   class="has-text-weight-bold"
                   :colspan="team.players?.length > 1 ? 2 : 1"
                   contenteditable="plaintext-only"
-                >
-                  <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
-                  <span v-else-if="team.players" :key="playerDetailsKey(team.players[0])">{{
-                    formatName(team.players[0].surname) +
-                    ' ' +
-                    formatName(team.players[0].name) +
-                    ' ' +
-                    (team.players[0].second_name
-                      ? team.players[0].second_name
-                      : getPlayerThirdName(team.players[0].surname, team.players[0].name))
-                  }}</span>
-                </td>
+                  :data-protocol-edit-key="`participant.${team.title}.name`"
+                  :data-protocol-source="teamPlayerDetailsKey(team)"
+                  v-text="protocolTeamName(team)"
+                ></td>
                 <td v-if="team.players?.length === 1">{{ regions[team.players[0].club_id] || '' }}</td>
                 <td
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`participant.${team.title}.coach`"
+                  data-protocol-manual="true"
+                  data-protocol-source=""
                   :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"
                 ></td>
-                <td contenteditable="plaintext-only">
-                  {{ team.players?.length === 1 && team.players[0].sport_title === 'candidate' ? 'КМСУ' : '' }}
-                </td>
+                <td
+                  :key="`participant-${team.title}-sport-${team.players?.[0]?.sport_title || ''}`"
+                  contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`participant.${team.title}.sport-title`"
+                  :data-protocol-source="team.players?.[0]?.sport_title || ''"
+                  v-text="team.players?.length === 1 ? protocolSportTitle(team.players[0]) : ''"
+                ></td>
                 <td
                   v-if="tournament.playOff?.length"
                   class="has-text-centered"
@@ -122,21 +146,22 @@
               </tr>
               <template v-if="team.players?.length > 1">
                 <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
-                  <td contenteditable="plaintext-only">
-                    <span class="is-capitalized" :key="playerDetailsKey(player)">{{
-                      formatName(player.surname) +
-                      ' ' +
-                      formatName(player.name) +
-                      ' ' +
-                      (player.second_name
-                        ? player.second_name.toLowerCase()
-                        : getPlayerThirdName(player.surname, player.name))
-                    }}</span>
-                  </td>
+                  <td
+                    :key="`participant-player-${player.id || playerIndex}-name-${playerDetailsKey(player)}`"
+                    class="is-capitalized"
+                    contenteditable="plaintext-only"
+                    :data-protocol-edit-key="`participant.${team.title}.player.${player.id || playerIndex}.name`"
+                    :data-protocol-source="playerDetailsKey(player)"
+                    v-text="protocolPlayerName(player, true)"
+                  ></td>
                   <td>{{ regions[player.club_id] || '' }}</td>
-                  <td contenteditable="plaintext-only">
-                    {{ player.sport_title === 'candidate' ? 'КМСУ' : '' }}
-                  </td>
+                  <td
+                    :key="`participant-player-${player.id || playerIndex}-sport-${player.sport_title || ''}`"
+                    contenteditable="plaintext-only"
+                    :data-protocol-edit-key="`participant.${team.title}.player.${player.id || playerIndex}.sport-title`"
+                    :data-protocol-source="player.sport_title || ''"
+                    v-text="protocolSportTitle(player)"
+                  ></td>
                 </tr>
               </template>
             </tbody>
@@ -161,29 +186,29 @@
                   {{ participantChunkOffsets[ci + 1] + index + 1 }}
                 </td>
                 <td
+                  :key="`participant-${team.title}-name-${teamPlayerDetailsKey(team)}`"
                   class="has-text-weight-bold"
                   :colspan="team.players?.length > 1 ? 2 : 1"
                   contenteditable="plaintext-only"
-                >
-                  <span v-if="team.players?.length > 1">{{ protocolTitles[team.title] }}</span>
-                  <span v-else-if="team.players" :key="playerDetailsKey(team.players[0])">{{
-                    formatName(team.players[0].surname) +
-                    ' ' +
-                    formatName(team.players[0].name) +
-                    ' ' +
-                    (team.players[0].second_name
-                      ? team.players[0].second_name
-                      : getPlayerThirdName(team.players[0].surname, team.players[0].name))
-                  }}</span>
-                </td>
+                  :data-protocol-edit-key="`participant.${team.title}.name`"
+                  :data-protocol-source="teamPlayerDetailsKey(team)"
+                  v-text="protocolTeamName(team)"
+                ></td>
                 <td v-if="team.players?.length === 1">{{ regions[team.players[0].club_id] || '' }}</td>
                 <td
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`participant.${team.title}.coach`"
+                  data-protocol-manual="true"
+                  data-protocol-source=""
                   :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"
                 ></td>
-                <td contenteditable="plaintext-only">
-                  {{ team.players?.length === 1 && team.players[0].sport_title === 'candidate' ? 'КМСУ' : '' }}
-                </td>
+                <td
+                  :key="`participant-${team.title}-sport-${team.players?.[0]?.sport_title || ''}`"
+                  contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`participant.${team.title}.sport-title`"
+                  :data-protocol-source="team.players?.[0]?.sport_title || ''"
+                  v-text="team.players?.length === 1 ? protocolSportTitle(team.players[0]) : ''"
+                ></td>
                 <td
                   v-if="tournament.playOff?.length"
                   class="has-text-centered"
@@ -205,21 +230,22 @@
               </tr>
               <template v-if="team.players?.length > 1">
                 <tr v-for="(player, playerIndex) in team.players" :key="playerIndex">
-                  <td contenteditable="plaintext-only">
-                    <span class="is-capitalized" :key="playerDetailsKey(player)">{{
-                      formatName(player.surname) +
-                      ' ' +
-                      formatName(player.name) +
-                      ' ' +
-                      (player.second_name
-                        ? player.second_name.toLowerCase()
-                        : getPlayerThirdName(player.surname, player.name))
-                    }}</span>
-                  </td>
+                  <td
+                    :key="`participant-player-${player.id || playerIndex}-name-${playerDetailsKey(player)}`"
+                    class="is-capitalized"
+                    contenteditable="plaintext-only"
+                    :data-protocol-edit-key="`participant.${team.title}.player.${player.id || playerIndex}.name`"
+                    :data-protocol-source="playerDetailsKey(player)"
+                    v-text="protocolPlayerName(player, true)"
+                  ></td>
                   <td>{{ regions[player.club_id] || '' }}</td>
-                  <td contenteditable="plaintext-only">
-                    {{ player.sport_title === 'candidate' ? 'КМСУ' : '' }}
-                  </td>
+                  <td
+                    :key="`participant-player-${player.id || playerIndex}-sport-${player.sport_title || ''}`"
+                    contenteditable="plaintext-only"
+                    :data-protocol-edit-key="`participant.${team.title}.player.${player.id || playerIndex}.sport-title`"
+                    :data-protocol-source="player.sport_title || ''"
+                    v-text="protocolSportTitle(player)"
+                  ></td>
                 </tr>
               </template>
             </tbody>
@@ -250,7 +276,10 @@
         </template>
         <div class="pdf-page-break">
           <h3 class="text-center is-size-4 mb-2">Судді змагання</h3>
-          <table class="table is-bordered">
+          <table
+            class="table is-bordered protocol-arbiters-table"
+            :data-replace-afpu-with-second-category="String(replaceAfpuWithSecondCategory)"
+          >
             <thead class="has-text-centered">
               <tr>
                 <th style="width: 60px">№ з/п</th>
@@ -262,31 +291,55 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in arbitres" :key="index">
+              <tr
+                v-for="(item, index) in arbitres"
+                :key="
+                  [
+                    index,
+                    item.name,
+                    item.role,
+                    item.category,
+                    item.certificate,
+                    item.region,
+                    replaceAfpuWithSecondCategory,
+                  ].join('|')
+                "
+              >
                 <td>{{ index + 1 }}</td>
                 <td
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`judge.${index}.name`"
+                  :data-protocol-source="item.name"
                   v-text="item.name"
                   @blur="updateArbiterField(index, 'name', $event)"
                 ></td>
                 <td
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`judge.${index}.role`"
+                  :data-protocol-source="item.role"
                   v-text="item.role"
                   @blur="updateArbiterField(index, 'role', $event)"
                 ></td>
                 <td
                   contenteditable="plaintext-only"
-                  v-text="item.category"
-                  @blur="updateArbiterField(index, 'category', $event)"
+                  :data-protocol-edit-key="`judge.${index}.category`"
+                  :data-protocol-original-category="item.category"
+                  :data-protocol-source="displayArbiterCategory(item.category)"
+                  v-text="displayArbiterCategory(item.category)"
+                  @blur="updateArbiterCategory(index, $event)"
                 ></td>
                 <td
                   v-if="showArbitrCertificate"
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`judge.${index}.certificate`"
+                  :data-protocol-source="item.certificate"
                   v-text="item.certificate"
                   @blur="updateArbiterField(index, 'certificate', $event)"
                 ></td>
                 <td
                   contenteditable="plaintext-only"
+                  :data-protocol-edit-key="`judge.${index}.region`"
+                  :data-protocol-source="item.region"
                   v-text="item.region"
                   @blur="updateArbiterField(index, 'region', $event)"
                 ></td>
@@ -302,7 +355,13 @@
                     ___________________ <br />
                     (печатка)
                   </td>
-                  <td class="has-text-right" contenteditable="plaintext-only"></td>
+                  <td
+                    class="has-text-right"
+                    contenteditable="plaintext-only"
+                    data-protocol-edit-key="signature.main-judge"
+                    data-protocol-manual="true"
+                    data-protocol-source=""
+                  ></td>
                 </tr>
                 <tr>
                   <td>Суддя</td>
@@ -310,7 +369,13 @@
                     ___________________ <br />
                     (підпис)
                   </td>
-                  <td class="has-text-right" contenteditable="plaintext-only"></td>
+                  <td
+                    class="has-text-right"
+                    contenteditable="plaintext-only"
+                    data-protocol-edit-key="signature.judge"
+                    data-protocol-manual="true"
+                    data-protocol-source=""
+                  ></td>
                 </tr>
                 <tr>
                   <td>Головний секретар змагань</td>
@@ -318,7 +383,13 @@
                     ___________________ <br />
                     (підпис)
                   </td>
-                  <td class="has-text-right" contenteditable="plaintext-only"></td>
+                  <td
+                    class="has-text-right"
+                    contenteditable="plaintext-only"
+                    data-protocol-edit-key="signature.secretary"
+                    data-protocol-manual="true"
+                    data-protocol-source=""
+                  ></td>
                 </tr>
                 <tr>
                   <td>Президент ГС «Федерація петанку України»</td>
@@ -338,9 +409,11 @@
         :arbitres="arbitres"
         :tournament-name="tournamentName"
         :show-arbitr-certificate="showArbitrCertificate"
+        :replace-afpu-with-second-category="replaceAfpuWithSecondCategory"
         :exporting-docx="exportingDocx"
         :hide-close="hideClose"
         @update:show-arbitr-certificate="showArbitrCertificate = $event"
+        @update:replace-afpu-with-second-category="updateReplaceAfpuWithSecondCategory"
         @add-arbiter="addArbitr"
         @apply-arbiter-selection="applyArbiterSelection"
         @apply-arbiter-preset="applyArbiterPreset"
@@ -378,6 +451,7 @@ import playersNames from '../../data.json';
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { downloadProtocolDocx } from '@/services/protocol-docx';
+import { isMainArbiterRole, normalizeArbiterRole } from '@/services/arbiter-registry';
 import {
   clearProtocolHtml,
   copyProtocolElement,
@@ -385,6 +459,7 @@ import {
   fetchPortalTournamentTeams,
   readProtocolHtml,
   removeProtocolMarkers,
+  restoreProtocolEditableHtml,
   saveProtocolHtml,
 } from '@/services/protocol-runtime';
 import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
@@ -415,6 +490,7 @@ export default {
       refreshing: false,
       exportingDocx: false,
       showArbitrCertificate: true,
+      replaceAfpuWithSecondCategory: false,
       showBackTop: false,
       arbitres: [],
     };
@@ -586,25 +662,25 @@ export default {
         const headers = [...arbitersTable.querySelectorAll('thead th')].map((header) => header.textContent.trim());
         const hasCertificate = headers.some((header) => header.includes('посвідчення'));
         this.showArbitrCertificate = hasCertificate;
+        this.replaceAfpuWithSecondCategory = arbitersTable.dataset.replaceAfpuWithSecondCategory === 'true';
         this.arbitres = [...arbitersTable.querySelectorAll('tbody tr')].map((row) => {
-          const cells = [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim());
+          const cellElements = [...row.querySelectorAll('td')];
+          const cells = cellElements.map((cell) => cell.textContent.trim());
+          const savedField = (field) => row.querySelector(`[data-protocol-edit-key$=".${field}"]`);
+          const categoryCell = savedField('category') || cellElements[3];
           return {
-            name: cells[1] || '',
-            role: cells[2] || 'Арбітр',
-            category: cells[3] || 'АФПУ',
-            certificate: hasCertificate ? cells[4] || '' : '',
-            region: cells[hasCertificate ? 5 : 4] || '',
+            name: savedField('name')?.textContent.trim() || cells[1] || '',
+            role: normalizeArbiterRole(savedField('role')?.textContent.trim() || cells[2]),
+            category: categoryCell?.dataset.protocolOriginalCategory || categoryCell?.textContent.trim() || 'АФПУ',
+            certificate: savedField('certificate')?.textContent.trim() || (hasCertificate ? cells[4] || '' : ''),
+            region: savedField('region')?.textContent.trim() || cells[hasCertificate ? 5 : 4] || '',
           };
         });
-        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+        this.arbitr = this.arbitres.find((arbiter) => isMainArbiterRole(arbiter.role))?.name || '';
       }
 
-      const savedEditableCells = [...savedProtocol.querySelectorAll('[contenteditable]')];
       this.$nextTick(() => {
-        const editableCells = [...el.querySelectorAll('[contenteditable]')];
-        editableCells.forEach((cell, index) => {
-          if (savedEditableCells[index]) cell.innerHTML = savedEditableCells[index].innerHTML;
-        });
+        restoreProtocolEditableHtml(savedProtocol, el);
         this.updateProtocolTitle();
       });
     },
@@ -628,24 +704,45 @@ export default {
     },
     addArbitr(arbiter) {
       this.arbitres.push(arbiter);
-      if (arbiter.role === 'Головний Арбітр') this.arbitr = arbiter.name;
+      if (isMainArbiterRole(arbiter.role)) this.arbitr = arbiter.name;
       this.$nextTick(() => this.saveProtocolToStorage());
     },
     applyArbiterSelection(arbiters) {
       this.arbitres = arbiters;
-      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.arbitr = arbiters.find((arbiter) => isMainArbiterRole(arbiter.role))?.name || '';
       this.$nextTick(() => this.saveProtocolToStorage());
     },
     applyArbiterPreset(arbiters) {
       this.arbitres = arbiters;
-      this.arbitr = arbiters.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+      this.arbitr = arbiters.find((arbiter) => isMainArbiterRole(arbiter.role))?.name || '';
       this.$nextTick(() => this.saveProtocolToStorage());
     },
     updateArbiterField(index, field, event) {
       this.arbitres[index][field] = event.currentTarget.textContent.trim();
       if (field === 'name' || field === 'role') {
-        this.arbitr = this.arbitres.find((arbiter) => arbiter.role === 'Головний Арбітр')?.name || '';
+        this.arbitr = this.arbitres.find((arbiter) => isMainArbiterRole(arbiter.role))?.name || '';
       }
+    },
+    displayArbiterCategory(category) {
+      const normalizedCategory = String(category || '')
+        .trim()
+        .toLocaleUpperCase('uk-UA');
+      return this.replaceAfpuWithSecondCategory && normalizedCategory === 'АФПУ' ? '2' : category || '';
+    },
+    updateArbiterCategory(index, event) {
+      const displayedCategory = event.currentTarget.textContent.trim();
+      const originalCategory = this.arbitres[index]?.category || '';
+      const unchangedReplacement =
+        this.replaceAfpuWithSecondCategory &&
+        String(originalCategory).trim().toLocaleUpperCase('uk-UA') === 'АФПУ' &&
+        displayedCategory === '2';
+
+      if (!unchangedReplacement) this.arbitres[index].category = displayedCategory;
+      this.$nextTick(() => this.saveProtocolToStorage());
+    },
+    updateReplaceAfpuWithSecondCategory(value) {
+      this.replaceAfpuWithSecondCategory = value;
+      this.$nextTick(() => this.saveProtocolToStorage());
     },
     formatName,
     playerDetailsKey(player) {
@@ -657,6 +754,27 @@ export default {
         player?.club_id,
         player?.sport_title,
       ].join('|');
+    },
+    teamPlayerDetailsKey(team) {
+      const players = Array.isArray(team?.players) ? team.players : Object.values(team?.players || {});
+      return players.map((player) => this.playerDetailsKey(player)).join(';');
+    },
+    protocolPlayerName(player, lowercasePatronymic = false) {
+      if (!player) return '';
+      const patronymic = player.second_name
+        ? lowercasePatronymic
+          ? player.second_name.toLowerCase()
+          : player.second_name
+        : this.getPlayerThirdName(player.surname, player.name);
+      return `${formatName(player.surname)} ${formatName(player.name)} ${patronymic}`.trim();
+    },
+    protocolTeamName(team) {
+      const players = Array.isArray(team?.players) ? team.players : Object.values(team?.players || {});
+      if (players.length > 1) return this.protocolTitles[team.title] || '';
+      return this.protocolPlayerName(players[0]);
+    },
+    protocolSportTitle(player) {
+      return player?.sport_title === 'candidate' ? 'КМСУ' : '';
     },
     getPlayerThirdName(surname, name) {
       return getPlayerThirdName(surname, name, playersNames);
@@ -999,12 +1117,18 @@ export default {
   gap: 0.55rem;
 }
 
-.protocol-actions__checkbox.protocol-tools__checkbox {
-  width: fit-content;
+.protocol-tools__checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.25rem;
   margin-top: 0.9rem;
-  margin-left: 0;
   padding-top: 0.85rem;
   border-top: 1px solid var(--color-border);
+}
+
+.protocol-actions__checkbox.protocol-tools__checkbox {
+  width: fit-content;
+  margin-left: 0;
 }
 
 .protocol-actions__btn {

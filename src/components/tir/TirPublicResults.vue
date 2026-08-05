@@ -72,7 +72,16 @@
 </template>
 
 <script>
-const SCORING = { carreau: 5, reussi: 3, touche: 1, manque: 0 };
+import {
+  SCORING,
+  DISTANCES_FULL,
+  DISTANCES_JUNIOR,
+  getScoreTotal,
+  getScoreCarreauCount,
+  getThrowCount,
+  rankParticipants,
+  getTirPlayoffDisplayRounds,
+} from '@/services/tir';
 
 export default {
   name: 'TirPublicResults',
@@ -84,7 +93,7 @@ export default {
       return !!this.tournament.tirConfig?.junior;
     },
     distances() {
-      return this.isJunior ? [6, 7, 8] : [6, 7, 8, 9];
+      return this.isJunior ? DISTANCES_JUNIOR : DISTANCES_FULL;
     },
     totalThrows() {
       return 5 * this.distances.length;
@@ -96,48 +105,22 @@ export default {
       return this.tournament.tirParticipants || [];
     },
     rankedParticipants() {
-      return [...this.participants].sort(
-        (a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a),
-      );
+      return rankParticipants(this.participants, 'scores');
     },
     qualifiedNames() {
       return this.tournament.tirPlayoff?.qualified || [];
     },
     playoffDisplayRounds() {
-      const playoff = this.tournament.tirPlayoff;
-      if (!playoff) return [];
-      const rounds = [];
-      const firstRoundMatches = playoff.rounds?.[0]?.matches?.length || 0;
-      const playoffSize = firstRoundMatches > 0 ? firstRoundMatches * 2 : playoff.size || 2;
-
-      if (playoff.rounds) {
-        playoff.rounds.forEach((round) => {
-          const matchCount = round.matches.length;
-          rounds.push({
-            title: this.getRoundTitle(matchCount, playoffSize),
-            matches: round.matches,
-            isFinal: false,
-          });
-        });
-      }
-
-      if (playoff.thirdPlace) {
-        rounds.push({
-          title: this.$t('tir.thirdPlaceMatch'),
-          matches: [playoff.thirdPlace],
-          isFinal: false,
-        });
-      }
-
-      if (playoff.final) {
-        rounds.push({
-          title: this.$t('games.final'),
-          matches: [playoff.final],
-          isFinal: true,
-        });
-      }
-
-      return rounds;
+      return getTirPlayoffDisplayRounds(this.tournament.tirPlayoff, {
+        final: this.$t('games.final'),
+        thirdPlace: this.$t('tir.thirdPlaceMatch'),
+        semifinal: this.$t('tir.semifinal'),
+        quarterfinal: this.$t('tir.quarterfinal'),
+        eighthFinal: this.$t('tir.eighthFinal'),
+        sixteenthFinal: this.$t('tir.sixteenthFinal'),
+        round: this.$t('tir.round'),
+        pending: this.$t('tir.matchPending'),
+      });
     },
     finalPlaces() {
       const playoff = this.tournament.tirPlayoff;
@@ -155,43 +138,16 @@ export default {
   },
   methods: {
     getTotal(participant) {
-      if (!participant.scores) return 0;
-      let total = 0;
-      Object.values(participant.scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          total += SCORING[val] || 0;
-        });
-      });
-      return total;
+      return getScoreTotal(participant, 'scores');
     },
     getThrows(participant) {
-      if (!participant.scores) return 0;
-      let count = 0;
-      Object.values(participant.scores).forEach((atelier) => {
-        count += Object.keys(atelier).length;
-      });
-      return count;
+      return getThrowCount(participant, 'scores');
     },
     getCarreauCount(participant) {
-      if (!participant.scores) return 0;
-      let count = 0;
-      Object.values(participant.scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          if (val === 'carreau') count++;
-        });
-      });
-      return count;
+      return getScoreCarreauCount(participant, 'scores');
     },
     isQualified(participant) {
       return this.qualifiedNames.includes(participant.name);
-    },
-    getRoundTitle(matchCount, playoffSize) {
-      if (playoffSize === 2) return this.$t('games.final');
-      if (matchCount === 2) return this.$t('tir.semifinal');
-      if (matchCount === 4) return this.$t('tir.quarterfinal');
-      if (matchCount === 8) return this.$t('tir.eighthFinal');
-      if (matchCount === 16) return this.$t('tir.sixteenthFinal');
-      return this.$t('tir.round') + ' ' + matchCount;
     },
   },
 };

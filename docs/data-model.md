@@ -1,13 +1,90 @@
 # Data Model
 
-## Tournament Object
+## Persisted Tournament Record Shapes
+
+Firebase contains two supported shapes. Both remain readable and writable; the
+application does not migrate either shape when it loads a record.
+
+### Current envelope format
+
+Root fields are tournament metadata. Competition data is stored under `main`,
+with optional Tournament B data under `tournamentB`.
 
 ```javascript
 {
-  id: 1716299000000,            // Timestamp-based unique ID
-  name: "Tournament A",
+  id,
+  name,
+  date,
+  createdAt,
+  tournamentMessage,
+  portalIdTournament,
+  collaborators,
+  activeGroup: "A" | "B",
+  main: CompetitionData,
+  tournamentB: CompetitionData | null
+}
+```
+
+### Legacy root format
+
+Competition A and metadata share the root. Optional Tournament B data is stored
+under `groupB` and older records may contain only a subset of its fields.
+
+```javascript
+{
+  id,
+  name,
+  date,
+  tournamentMessage,
+  portalIdTournament,
+  collaborators,
+  activeGroup: "A" | "B",
+  // CompetitionData fields also live here
+  system,
+  teams,
+  games,
+  preferences,
+  groupB: Partial<CompetitionData> | null
+}
+```
+
+## Canonical Application Adapter
+
+`src/services/tournament-record.js` is the only application layer that detects
+the persisted format. It exposes format detection, Group A/B selection, root
+metadata, Firebase write targets, immutable live updates, and normalization.
+
+Canonical group behavior:
+
+| Situation                     | Selected competition | Firebase prefix |
+| ----------------------------- | -------------------- | --------------- |
+| Envelope Group A              | `main`               | `main/`         |
+| Envelope Group B              | `tournamentB`        | `tournamentB/`  |
+| Legacy Group A                | root record          | empty           |
+| Legacy Group B                | `groupB`             | `groupB/`       |
+| Missing/invalid `activeGroup` | Group A              | Group A prefix  |
+| Group B requested but absent  | Group A fallback     | Group A prefix  |
+
+Callers that need to discover or subscribe to a missing B node pass
+`allowFallback: false` to `getTournamentStorageTarget`; this returns the correct
+B prefix with `data: null` rather than redirecting the subscription to A.
+
+`normalizeTournamentRecord(record, { id, ownerUid })` is pure and returns a new
+record with independent arrays/objects. It supplies missing `teams`, `games`,
+and preference defaults for owned, shared, archived, and restored records.
+Partial legacy `groupB` records receive their own empty competition state while
+inheriting configuration such as `system` and preferences; they never inherit
+Group A teams, games, or results. Root metadata stays at the root and is read
+through `getTournamentMetadata`.
+
+This adapter is application-side compatibility code. It does **not** rename,
+move, or rewrite any Firebase tournament path.
+
+## Competition Data
+
+```javascript
+{
   system: "swiss",              // "swiss" | "groups" | "supermele" | "poules" | "tir"
-  createdAt: "2024-05-21T...",
 
   // Teams
   teams: [Team, ...],
@@ -35,8 +112,6 @@
   // State
   roundIsActive: false,         // Currently entering scores
   tournamentIsFinished: false,
-  tournamentMessage: "",        // Message shown to public viewers
-
   // Config
   useRating: false,             // Use rating for first-round seeding
   supermelePlayers: 2,          // (supermele) 2 or 3
@@ -59,7 +134,6 @@
   tirPlayoff: TirPlayoff | null,
 
   // Portal integration
-  portalIdTournament: null      // UFP portal tournament ID (admin only)
 }
 ```
 
@@ -172,7 +246,7 @@
 ```
 {uid}/
   tournaments/
-    {tournamentId}: Tournament    // Max 10 active tournaments
+    {tournamentId}: TournamentRecord // Max 10 active tournaments
   saved/
     {tournamentId}: Tournament    // Archived (no limit)
   stats/
@@ -243,17 +317,20 @@ tokens/
 
 ```javascript
 {
-  tournaments: { [id]: Tournament },  // All active tournaments
+  tournaments: { [id]: TournamentRecord },  // All active tournaments
   currentTournamentIndex: id,         // Currently viewed tournament
   user: FirebaseUser | false,         // Logged-in user
   isAdmin: boolean,                   // Admin access (portal import)
-  savedTournaments: { [id]: Tournament },  // Archived
+  savedTournaments: { [id]: TournamentRecord },  // Archived
   message: { show, type, title, text }     // Toast notifications
 }
 ```
 
 ## Sync Pattern
 
-The store provides a `syncToFirebase()` action. Components call it after mutating tournament data. It writes the entire current tournament object to Firebase via `update()`.
+The store uses the adapter's storage target to preserve granular write prefixes:
+`main/` and `tournamentB/` for envelopes, or the empty prefix and `groupB/` for
+legacy records. Root metadata such as name, date, message, portal ID, and
+collaborators always keeps its existing root path.
 
 For TIR module, scoring components call `this.$emit('update')` which bubbles up to `TirModule.vue` where `onScoreUpdate()` calls `syncToFirebase()`.

@@ -1,6 +1,17 @@
 <template>
   <div class="game-row-wrapper">
+    <PublicGameCard
+      v-if="publicView"
+      :game="game"
+      :lane-number="displayLane"
+      :highlighted-team="highlightedTeam"
+      :team-club-map="teamClubMap"
+      :stream-urls="resolvedStreams"
+      :score-history-enabled="cochonettesEnabled"
+      :tournament-finished="tournamentFinished"
+    />
     <div
+      v-else
       class="game-row"
       data-testid="game-row"
       :class="{
@@ -107,10 +118,11 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { X, Pencil, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
+import PublicGameCard from '@/components/partials/PublicGameCard.vue';
 
 export default {
   name: 'Game',
-  components: { X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video },
+  components: { X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video, PublicGameCard },
   props: [
     'activeTournament',
     'gameIndex',
@@ -121,6 +133,10 @@ export default {
     'isCadrage',
     'isThird',
     'laneNumber',
+    'publicView',
+    'highlightedTeam',
+    'teamClubMap',
+    'tournamentFinished',
   ],
   emits: ['save', 'swapLane', 'update', 'finish'],
   data() {
@@ -340,6 +356,12 @@ export default {
 </script>
 
 <style scoped>
+.game-row-wrapper.game--highlighted {
+  border-radius: 14px;
+  outline: 2px solid var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-shadow, rgb(124 58 237 / 15%));
+}
+
 .game-row.has-background-danger {
   background: rgb(255 56 96 / 12%) !important;
 }

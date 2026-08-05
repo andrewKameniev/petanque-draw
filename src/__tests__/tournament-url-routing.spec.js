@@ -120,6 +120,25 @@ describe('Tournament URL routing (?t= query param)', () => {
 
       expect(store.currentTournamentIndex).toBe('real');
     });
+
+    it('normalizes owned records without mutating the Firebase snapshot object', () => {
+      const tournaments = {
+        partial: {
+          name: 'Partial',
+          main: { system: 'swiss', preferences: { maxScore: 9 } },
+        },
+      };
+      const original = JSON.parse(JSON.stringify(tournaments));
+
+      store.setTournaments(tournaments, { routeQueryT: 'partial' });
+
+      expect(tournaments).toEqual(original);
+      expect(store.tournaments.partial).toMatchObject({
+        id: 'partial',
+        activeGroup: 'A',
+        main: { teams: [], games: [], preferences: { maxScore: 9, fieldsStart: 1 } },
+      });
+    });
   });
 
   describe('tab isolation', () => {

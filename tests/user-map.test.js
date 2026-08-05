@@ -196,6 +196,31 @@ describe('User Tournament Map', () => {
     });
   });
 
+  describe('loadSharedTournament', () => {
+    it('uses the canonical normalizer while retaining owner and root metadata', async () => {
+      const snapshotRecord = {
+        name: 'Shared wrapper',
+        date: '2026-08-05',
+        tournamentMessage: 'Owner message',
+        main: { system: 'swiss', preferences: { maxScore: 9 } },
+      };
+      const original = JSON.parse(JSON.stringify(snapshotRecord));
+      mockGet.mockResolvedValue(makeSnapshot(snapshotRecord));
+
+      await store.loadSharedTournament('shared1', 'owner1');
+
+      expect(snapshotRecord).toEqual(original);
+      expect(store.tournaments.shared1).toMatchObject({
+        id: 'shared1',
+        _ownerUid: 'owner1',
+        name: 'Shared wrapper',
+        date: '2026-08-05',
+        tournamentMessage: 'Owner message',
+        main: { teams: [], games: [], preferences: { maxScore: 9, fieldsStart: 1 } },
+      });
+    });
+  });
+
   describe('removeSavedTournament', () => {
     it('returns a shared admin tournament to the active list without deleting owner data', async () => {
       store.userTournamentMap = {
@@ -238,6 +263,8 @@ describe('User Tournament Map', () => {
         },
       };
       store.savedTournamentIds = ['own1'];
+      const archivedSource = store.savedTournaments.own1;
+      const archivedSnapshot = JSON.parse(JSON.stringify(archivedSource));
 
       const restored = await store.unarchiveTournament('own1');
 
@@ -253,6 +280,12 @@ describe('User Tournament Map', () => {
       expect(userMapService.update).not.toHaveBeenCalledWith('scorer1', 'own1', expect.anything());
       expect(store.userTournamentMap.own1.status).toBe('active');
       expect(store.tournaments.own1.name).toBe('My Tournament');
+      expect(store.tournaments.own1).toMatchObject({
+        id: 'own1',
+        activeGroup: 'A',
+        preferences: { maxScore: 13 },
+      });
+      expect(archivedSource).toEqual(archivedSnapshot);
       expect(store.savedTournaments.own1).toBeUndefined();
       expect(store.savedTournamentIds).toEqual([]);
     });

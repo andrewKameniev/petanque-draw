@@ -10,17 +10,7 @@
       </div>
     </div>
 
-    <!-- Scoring legend -->
-    <div class="tir-aview__legend">
-      <span class="tir-score-badge tir-score-badge--carreau">{{ scoring.carreau }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.carreau') }}: {{ scoring.carreau }} p</span>
-      <span class="tir-score-badge tir-score-badge--reussi">{{ scoring.reussi }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.reussi') }}: {{ scoring.reussi }} p</span>
-      <span class="tir-score-badge tir-score-badge--touche">{{ scoring.touche }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.touche') }}: {{ scoring.touche }} p</span>
-      <span class="tir-score-badge tir-score-badge--manque">{{ scoring.manque }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.manque') }}: {{ scoring.manque }} p</span>
-    </div>
+    <TirScoreLegend variant="badge" />
 
     <!-- Participants list for this atelier -->
     <div class="tir-aview__list">
@@ -47,54 +37,13 @@
         </div>
         <!-- Inline scoring grid -->
         <div v-if="expandedId === participant.id" class="tir-aview__row-grid">
-          <div class="tir-pview__grid">
-            <div class="tir-pview__grid-header">
-              <div class="tir-pview__grid-corner"></div>
-              <div class="tir-pview__grid-th tir-pview__grid-th--carreau">{{ $t('tir.carreau') }}</div>
-              <div class="tir-pview__grid-th tir-pview__grid-th--reussi">{{ $t('tir.reussi') }}</div>
-              <div class="tir-pview__grid-th tir-pview__grid-th--touche">{{ $t('tir.touche') }}</div>
-              <div class="tir-pview__grid-th tir-pview__grid-th--manque">{{ $t('tir.manque') }}</div>
-            </div>
-            <div v-for="distance in distances" :key="distance" class="tir-pview__grid-row">
-              <div class="tir-pview__grid-distance">{{ distance }}m</div>
-              <div
-                class="tir-pview__grid-cell"
-                :class="{
-                  'tir-pview__grid-cell--carreau': getDistanceValue(participant, distance) === 'carreau',
-                }"
-                @click="setScore(participant, distance, 'carreau')"
-              >
-                <CheckIcon v-if="getDistanceValue(participant, distance) === 'carreau'" :size="14" />
-              </div>
-              <div
-                class="tir-pview__grid-cell"
-                :class="{
-                  'tir-pview__grid-cell--reussi': getDistanceValue(participant, distance) === 'reussi',
-                }"
-                @click="setScore(participant, distance, 'reussi')"
-              >
-                <CheckIcon v-if="getDistanceValue(participant, distance) === 'reussi'" :size="14" />
-              </div>
-              <div
-                class="tir-pview__grid-cell"
-                :class="{
-                  'tir-pview__grid-cell--touche': getDistanceValue(participant, distance) === 'touche',
-                }"
-                @click="setScore(participant, distance, 'touche')"
-              >
-                <CheckIcon v-if="getDistanceValue(participant, distance) === 'touche'" :size="14" />
-              </div>
-              <div
-                class="tir-pview__grid-cell"
-                :class="{
-                  'tir-pview__grid-cell--manque': getDistanceValue(participant, distance) === 'manque',
-                }"
-                @click="setScore(participant, distance, 'manque')"
-              >
-                <CheckIcon v-if="getDistanceValue(participant, distance) === 'manque'" :size="14" />
-              </div>
-            </div>
-          </div>
+          <TirScoreGrid
+            compact
+            :distances="distances"
+            :scores="getAtelierScores(participant)"
+            :read-only="readOnly"
+            @select="setScore(participant, $event.distance, $event.result)"
+          />
         </div>
       </div>
     </div>
@@ -123,14 +72,23 @@
 </template>
 
 <script>
-import { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon } from 'lucide-vue-next';
+import { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle } from 'lucide-vue-next';
 import Modal from '@/components/Modal';
+import TirScoreGrid from '@/components/ui/TirScoreGrid.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
-import { SCORING } from '@/services/tir';
+import {
+  SCORING,
+  getAtelierScore,
+  getAtelierThrowCount,
+  isAtelierComplete,
+  toggleParticipantScore,
+  fillMissingAtelierScoresForParticipants,
+} from '@/services/tir';
 
 export default {
   name: 'TirAtelierView',
-  components: { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal },
+  components: { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Modal, TirScoreGrid, TirScoreLegend },
   props: {
     atelierIndex: { type: Number, required: true },
     atelier: { type: Object, required: true },
@@ -147,9 +105,6 @@ export default {
     };
   },
   computed: {
-    scoring() {
-      return SCORING;
-    },
     maxAtelierScore() {
       return this.distances.length * SCORING.carreau;
     },
@@ -162,49 +117,31 @@ export default {
       this.expandedId = this.expandedId === id ? null : id;
     },
     getAtelierScore(participant) {
-      const scores = participant[this.scoresKey]?.[this.atelierIndex];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getAtelierScore(participant, this.scoresKey, this.atelierIndex);
     },
     getAtelierThrows(participant) {
-      const scores = participant[this.scoresKey]?.[this.atelierIndex];
-      if (!scores) return 0;
-      return Object.keys(scores).length;
+      return getAtelierThrowCount(participant, this.scoresKey, this.atelierIndex);
     },
     isComplete(participant) {
-      return this.getAtelierThrows(participant) >= this.distances.length;
+      return isAtelierComplete(participant, this.scoresKey, this.atelierIndex, this.distances.length);
     },
-    getDistanceValue(participant, distance) {
-      return participant[this.scoresKey]?.[this.atelierIndex]?.[distance] || null;
+    getAtelierScores(participant) {
+      return participant[this.scoresKey]?.[this.atelierIndex] || {};
     },
     setScore(participant, distance, type) {
       if (this.readOnly) return;
-      if (!participant[this.scoresKey]) {
-        participant[this.scoresKey] = {};
-      }
-      if (!participant[this.scoresKey][this.atelierIndex]) {
-        participant[this.scoresKey][this.atelierIndex] = {};
-      }
-      const current = participant[this.scoresKey][this.atelierIndex][distance];
-      if (current === type) {
-        delete participant[this.scoresKey][this.atelierIndex][distance];
-      } else {
-        participant[this.scoresKey][this.atelierIndex][distance] = type;
-      }
-      this.$emit('update');
+      const updatedParticipant = toggleParticipantScore(participant, this.scoresKey, this.atelierIndex, distance, type);
+      this.$emit('update', updatedParticipant);
     },
     confirmFinish() {
-      this.participants.forEach((p) => {
-        if (!p[this.scoresKey]) p[this.scoresKey] = {};
-        if (!p[this.scoresKey][this.atelierIndex]) p[this.scoresKey][this.atelierIndex] = {};
-        this.distances.forEach((distance) => {
-          if (!p[this.scoresKey][this.atelierIndex][distance]) {
-            p[this.scoresKey][this.atelierIndex][distance] = 'manque';
-          }
-        });
-      });
+      const updatedParticipants = fillMissingAtelierScoresForParticipants(
+        this.participants,
+        this.scoresKey,
+        this.atelierIndex,
+        this.distances,
+      );
       this.showFinishConfirm = false;
-      this.$emit('update');
+      this.$emit('update', updatedParticipants);
       this.$emit('finish');
     },
   },
@@ -234,20 +171,6 @@ export default {
 
 .tir-aview__desc {
   font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.tir-aview__legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  font-size: 12px;
-}
-
-.tir-aview__legend-label {
-  margin-right: 8px;
   color: var(--color-text-muted);
 }
 
@@ -356,7 +279,7 @@ export default {
   margin-top: 16px;
   width: 100%;
   padding: 14px;
-  background: #e53935;
+  background: var(--tir-delete);
   color: var(--color-btn-text);
   border: none;
   border-radius: 10px;
@@ -368,7 +291,7 @@ export default {
 .tir-aview__confirm-title {
   margin: 0 -1.25rem;
   padding: 0 1.25rem 12px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--color-border-light);
   margin-bottom: 14px;
   font-size: 16px;
   font-weight: 500;
@@ -401,131 +324,7 @@ export default {
 }
 
 .tir-aview__confirm-btn--confirm {
-  background: #e53935;
+  background: var(--tir-delete);
   color: var(--color-btn-text);
-}
-
-/* Grid styles */
-
-.tir-pview__grid {
-  margin-bottom: 0;
-}
-
-.tir-pview__grid-header {
-  display: flex;
-  gap: 3px;
-  margin-bottom: 4px;
-}
-
-.tir-pview__grid-corner {
-  width: 32px;
-}
-
-.tir-pview__grid-th {
-  flex: 1;
-  text-align: center;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px;
-}
-
-.tir-pview__grid-th--carreau {
-  color: var(--tir-carreau);
-}
-
-.tir-pview__grid-th--reussi {
-  color: var(--tir-reussi);
-}
-
-.tir-pview__grid-th--touche {
-  color: var(--tir-touche);
-}
-
-.tir-pview__grid-th--manque {
-  color: var(--tir-manque);
-}
-
-.tir-pview__grid-row {
-  display: flex;
-  gap: 3px;
-  margin-bottom: 3px;
-}
-
-.tir-pview__grid-distance {
-  width: 32px;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.tir-pview__grid-cell {
-  flex: 1;
-  height: 32px;
-  border: 2px solid var(--color-border);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tir-pview__grid-cell:hover {
-  border-color: var(--tir-touche);
-}
-
-.tir-pview__grid-cell--carreau {
-  background: var(--tir-carreau);
-  border-color: var(--tir-carreau);
-  color: var(--color-btn-text);
-}
-
-.tir-pview__grid-cell--reussi {
-  background: var(--tir-reussi);
-  border-color: var(--tir-reussi);
-  color: var(--color-btn-text);
-}
-
-.tir-pview__grid-cell--touche {
-  background: var(--tir-touche);
-  border-color: var(--tir-touche);
-  color: var(--color-btn-text);
-}
-
-.tir-pview__grid-cell--manque {
-  background: var(--tir-manque);
-  border-color: var(--tir-manque);
-  color: var(--color-btn-text);
-}
-
-/* Score badges */
-
-.tir-score-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-btn-text);
-}
-
-.tir-score-badge--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-score-badge--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-score-badge--touche {
-  background: var(--tir-touche);
-}
-
-.tir-score-badge--manque {
-  background: var(--tir-manque);
 }
 </style>

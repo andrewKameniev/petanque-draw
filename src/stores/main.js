@@ -4,63 +4,19 @@ import { get, getDatabase, ref, set, remove, update, onValue } from 'firebase/da
 import { database } from '@/firebase';
 import { userMapService, collaboratorService } from '@/services/db';
 import i18n from '@/i18n';
+import {
+  createTournamentData,
+  getActiveTournamentGroup,
+  getTournamentMain,
+  getTournamentMetadata,
+  getTournamentStorageTarget,
+  isTournamentEnvelope,
+  normalizeTournamentRecord,
+  replaceTournamentGroup,
+} from '@/services/tournament-record';
 
 export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 const ARCHIVE_STATUS_VERSION = 1;
-
-const defaultPreferences = {
-  technical: {
-    technicalFirst: 13,
-    technicalSecond: 7,
-  },
-  maxScore: 13,
-  playOffTeams: 8,
-  playOffEnabled: false,
-  playOffFormat: 'single',
-  grandFinalMode: 'single',
-  fieldsStart: 1,
-  lanesPoolEnabled: false,
-  lanesPoolFrom: 1,
-  lanesPoolTo: 10,
-  lanesExcluded: '',
-  withCadrage: false,
-  withBarrage: false,
-  barrageTeams: 8,
-  playB: false,
-  timeLimitEnabled: false,
-  timeLimit: 45,
-  playoffTimeLimit: 70,
-  noTimeLimitFinale: false,
-  cochonettesEnabled: false,
-  cochonettesEnabledPlayoff: false,
-  cochonettes: 1,
-  groupDrawMethod: 'seeded',
-  groupFormat: 'round_robin',
-  groupSwissRounds: 3,
-  swissRoundsCount: null,
-  prizePlaces: 3,
-  isTestTournament: false,
-  cadrageLosersToB: false,
-  colorSchema: '',
-};
-
-function createTournamentData(overrides = {}) {
-  return {
-    games: [],
-    teams: [],
-    system: 'swiss',
-    roundIsActive: false,
-    useRating: false,
-    playoff: false,
-    isCadrage: false,
-    supermelePlayers: 2,
-    supermeleMode: 'ideal',
-    supermeleTetATet: true,
-    tournamentIsFinished: false,
-    preferences: { ...defaultPreferences },
-    ...overrides,
-  };
-}
 
 function createTournament(overrides = {}) {
   const { name, id, createdAt, ...dataOverrides } = overrides;
@@ -74,10 +30,6 @@ function createTournament(overrides = {}) {
   if (id) wrapper.id = id;
   if (createdAt) wrapper.createdAt = createdAt;
   return wrapper;
-}
-
-function isNewFormat(tournament) {
-  return !!tournament?.main;
 }
 
 export const useMainStore = defineStore('main', {
@@ -104,15 +56,10 @@ export const useMainStore = defineStore('main', {
   getters: {
     currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
     activeTournament() {
-      const t = this.currentTournament;
-      if (!t) return null;
-      if (isNewFormat(t)) {
-        return t.activeGroup === 'B' && t.tournamentB ? t.tournamentB : t.main;
-      }
-      return t;
+      return getActiveTournamentGroup(this.currentTournament);
     },
     isNewFormat() {
-      return isNewFormat(this.currentTournament);
+      return isTournamentEnvelope(this.currentTournament);
     },
     currentRole() {
       const tournament = this.currentTournament;
@@ -141,17 +88,7 @@ export const useMainStore = defineStore('main', {
     },
     _getTarget() {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      if (isNewFormat(tournament)) {
-        if (tournament.activeGroup === 'B' && tournament.tournamentB) {
-          return { data: tournament.tournamentB, prefix: 'tournamentB/' };
-        }
-        return { data: tournament.main, prefix: 'main/' };
-      }
-      // Old format fallback
-      if (tournament?.activeGroup === 'B' && tournament.groupB) {
-        return { data: tournament.groupB, prefix: 'groupB/' };
-      }
-      return { data: tournament, prefix: '' };
+      return getTournamentStorageTarget(tournament, tournament?.activeGroup);
     },
     setActiveGroup(group) {
       const tournament = this.tournaments[this.currentTournamentIndex];
@@ -181,33 +118,30 @@ export const useMainStore = defineStore('main', {
     },
     addTournamentBTeams(newTeams) {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      const { data: target, prefix } = getTournamentStorageTarget(tournament, 'B', { allowFallback: false });
       if (!target) return;
       newTeams.forEach((t) => {
         const existing = target.teams.find((bt) => bt.title === t.title);
         if (!existing) target.teams.push({ ...t });
       });
-      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
-      this._syncPath(`${prefix}/teams`, target.teams);
+      this._syncPath(`${prefix}teams`, target.teams);
     },
     setTournamentBEliminationRound(eliminationData) {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      const { data: target, prefix } = getTournamentStorageTarget(tournament, 'B', { allowFallback: false });
       if (!target) return;
       target.eliminationRound = eliminationData;
-      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
-      this._syncPath(`${prefix}/eliminationRound`, eliminationData);
+      this._syncPath(`${prefix}eliminationRound`, eliminationData);
     },
     syncEliminationGames() {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      const { data: target, prefix } = getTournamentStorageTarget(tournament, 'B', { allowFallback: false });
       if (!target?.eliminationRound) return;
-      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
-      this._syncPath(`${prefix}/eliminationRound/games`, target.eliminationRound.games);
+      this._syncPath(`${prefix}eliminationRound/games`, target.eliminationRound.games);
     },
     completeTournamentBElimination() {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      const target = isNewFormat(tournament) ? tournament.tournamentB : tournament?.groupB;
+      const { data: target, prefix } = getTournamentStorageTarget(tournament, 'B', { allowFallback: false });
       if (!target?.eliminationRound) return;
       const elim = target.eliminationRound;
       elim.completed = true;
@@ -216,9 +150,8 @@ export const useMainStore = defineStore('main', {
         const loser = target.teams.find((t) => t.title === loserTitle);
         if (loser) loser.eliminated = true;
       });
-      const prefix = isNewFormat(tournament) ? 'tournamentB' : 'groupB';
-      this._syncPath(`${prefix}/eliminationRound`, elim);
-      this._syncPath(`${prefix}/teams`, target.teams);
+      this._syncPath(`${prefix}eliminationRound`, elim);
+      this._syncPath(`${prefix}teams`, target.teams);
     },
     toggleWithdrawn(teamTitle) {
       const { data, prefix } = this._getTarget();
@@ -354,7 +287,9 @@ export const useMainStore = defineStore('main', {
       };
 
       const tournament = this.tournaments[this.currentTournamentIndex];
-      if (isNewFormat(tournament)) {
+      if (isTournamentEnvelope(tournament)) {
+        const mainPrefix = getTournamentStorageTarget(tournament, 'A').prefix;
+        const groupBPrefix = getTournamentStorageTarget(tournament, 'B', { allowFallback: false }).prefix;
         const mainPaths = [
           'system',
           'teams',
@@ -382,72 +317,78 @@ export const useMainStore = defineStore('main', {
           'tirPlayoff',
         ];
         mainPaths.forEach((path) => {
-          subscribePath(`main/${path}`, (value) => {
+          subscribePath(`${mainPrefix}${path}`, (value) => {
             const local = this.tournaments[this.currentTournamentIndex];
-            if (!local?.main || value === undefined) return;
+            const localMain = getTournamentMain(local);
+            if (!localMain || value === undefined) return;
             if (path === 'games') {
-              if (!value || !local.main.games || !local.main.roundIsActive) return;
-              this._mergeGames(local.main, { games: value });
+              if (!value || !localMain.games || !localMain.roundIsActive) return;
+              this._mergeGames(localMain, { games: value });
               return;
             }
             if (path === 'cadrage') {
-              if (!value || !local.main.cadrage) return;
-              this._mergeCadrage(local.main, { cadrage: value });
+              if (!value || !localMain.cadrage) return;
+              this._mergeCadrage(localMain, { cadrage: value });
               return;
             }
             if (path === 'playOffBracket') {
-              if (!value || !local.main.playOffBracket) return;
-              this._mergeBracketPlayoff(local.main, { playOffBracket: value });
+              if (!value || !localMain.playOffBracket) return;
+              this._mergeBracketPlayoff(localMain, { playOffBracket: value });
               return;
             }
             if (path === 'tirPlayoff') {
-              if (!local.main.tirPlayoff) {
-                local.main.tirPlayoff = value;
+              if (!localMain.tirPlayoff) {
+                localMain.tirPlayoff = value;
                 return;
               }
-              this._mergeTirPlayoff(local.main, { tirPlayoff: value });
+              this._mergeTirPlayoff(localMain, { tirPlayoff: value });
               return;
             }
             if (path === 'teamPlayoff') {
-              if (!local.main.teamPlayoff) {
-                local.main.teamPlayoff = value;
+              if (!localMain.teamPlayoff) {
+                localMain.teamPlayoff = value;
                 return;
               }
-              this._mergeTeamPlayoff(local.main, { teamPlayoff: value });
+              this._mergeTeamPlayoff(localMain, { teamPlayoff: value });
               return;
             }
-            if (path === 'roundIsActive' && !value && local.main.roundIsActive) {
+            if (path === 'roundIsActive' && !value && localMain.roundIsActive) {
               if (!this._roundActivatedAt || Date.now() - this._roundActivatedAt > 3000) {
-                local.main[path] = value;
+                localMain[path] = value;
               }
               return;
             }
             if (
               path === 'roundTimer' &&
               value?.timerStatus === 'ended' &&
-              local.main.roundTimer?.timerStatus === 'running'
+              localMain.roundTimer?.timerStatus === 'running'
             ) {
-              const endsAt = new Date(local.main.roundTimer.timerEndsAt).getTime();
+              const endsAt = new Date(localMain.roundTimer.timerEndsAt).getTime();
               if (endsAt > Date.now()) return;
             }
-            local.main[path] = value;
+            localMain[path] = value;
           });
         });
-        subscribePath('tournamentB', (value) => {
+        subscribePath(groupBPrefix.slice(0, -1), (value) => {
           const local = this.tournaments[this.currentTournamentIndex];
           if (!local || value == null) return;
-          const recentSubPaths = [...(this._recentSyncPaths || [])].filter((p) => p.startsWith('tournamentB/'));
+          const recentSubPaths = [...(this._recentSyncPaths || [])].filter((p) => p.startsWith(groupBPrefix));
           if (recentSubPaths.length) {
             recentSubPaths.forEach((p) => this._recentSyncPaths.delete(p));
             return;
           }
-          if (!local.tournamentB) {
-            local.tournamentB = value;
+          const localGroupB = getTournamentStorageTarget(local, 'B', { allowFallback: false }).data;
+          if (!localGroupB) {
+            this.tournaments[this.currentTournamentIndex] = normalizeTournamentRecord(
+              replaceTournamentGroup(local, 'B', value),
+              {
+                id: this.currentTournamentIndex,
+                ownerUid: local._ownerUid,
+              },
+            );
             return;
           }
-          Object.keys(value).forEach((key) => {
-            local.tournamentB[key] = value[key];
-          });
+          Object.assign(localGroupB, value);
         });
         ['activeGroup', 'tournamentMessage', 'name'].forEach((path) => {
           subscribePath(path, (value, local) => {
@@ -734,13 +675,11 @@ export const useMainStore = defineStore('main', {
         if (snapshot.exists()) {
           const allTournaments = snapshot.val();
           Object.keys(allTournaments).forEach((id) => {
+            const competition = getTournamentMain(allTournaments[id]);
             migratedMap[id] = {
-              status:
-                allTournaments[id].tournamentIsFinished || allTournaments[id].main?.tournamentIsFinished
-                  ? 'archived'
-                  : 'active',
+              status: competition?.tournamentIsFinished ? 'archived' : 'active',
               role: 'owner',
-              name: allTournaments[id].name || 'Tournament',
+              name: getTournamentMetadata(allTournaments[id], { name: 'Tournament' }).name,
             };
           });
         }
@@ -810,7 +749,8 @@ export const useMainStore = defineStore('main', {
           const ownerUid = entry.role === 'owner' ? this.user.uid : entry.ownerUid;
           let snapshot = await get(ref(db, `${ownerUid}/tournaments/${id}`));
           const tournamentData = snapshot.exists() ? snapshot.val() : null;
-          const hasTournamentData = tournamentData && (tournamentData.teams || tournamentData.main?.teams);
+          const competition = getTournamentMain(tournamentData);
+          const hasTournamentData = tournamentData && (competition?.teams || competition?.tirParticipants);
 
           // Only owners can have data in the legacy saved/ location. Shared
           // tournaments always remain under their owner's tournaments/ path.
@@ -821,14 +761,14 @@ export const useMainStore = defineStore('main', {
               await set(ref(db, `${this.user.uid}/tournaments/${id}`), data);
               await remove(ref(db, `${this.user.uid}/saved/${id}`));
               results[id] = data;
-              migrated.push({ id, name: data.name || data.main?.name || id });
+              migrated.push({ id, name: getTournamentMetadata(data, { name: id }).name });
               return;
             }
           }
 
           if (!snapshot.exists()) return;
 
-          const isFinished = !!(tournamentData?.tournamentIsFinished || tournamentData?.main?.tournamentIsFinished);
+          const isFinished = !!getTournamentMain(tournamentData)?.tournamentIsFinished;
           const shouldMigrateAdminArchive =
             entry.role === 'admin' &&
             entry.status !== 'archived' &&
@@ -901,38 +841,12 @@ export const useMainStore = defineStore('main', {
       });
     },
     setTournaments(tournaments, { routeQueryT } = {}) {
-      Object.keys(tournaments).forEach((key) => {
-        const t = tournaments[key];
-        if (isNewFormat(t)) {
-          const mainDefaults = createTournamentData();
-          t.main = {
-            ...mainDefaults,
-            ...t.main,
-            preferences: { ...mainDefaults.preferences, ...(t.main.preferences || {}) },
-          };
-          if (t.tournamentB) {
-            t.tournamentB = {
-              ...mainDefaults,
-              ...t.tournamentB,
-              isTournamentB: true,
-              preferences: { ...mainDefaults.preferences, ...(t.tournamentB.preferences || {}) },
-            };
-          }
-          t.id = t.id || key;
-          t.activeGroup = t.activeGroup || 'A';
-        } else {
-          const defaults = createTournamentData();
-          tournaments[key] = {
-            ...defaults,
-            ...t,
-            id: t.id || key,
-            teams: t.teams || [],
-            games: t.games || [],
-            preferences: { ...defaults.preferences, ...(t.preferences || {}) },
-          };
-        }
-      });
-      this.tournaments = tournaments;
+      this.tournaments = Object.fromEntries(
+        Object.entries(tournaments).map(([key, tournament]) => [
+          key,
+          normalizeTournamentRecord(tournament, { id: key }),
+        ]),
+      );
       if (!Object.keys(this.tournaments).length) {
         this.addTournament();
       }
@@ -949,7 +863,13 @@ export const useMainStore = defineStore('main', {
       }
     },
     setSavedTournaments(tournaments) {
-      this.savedTournaments = tournaments;
+      this.savedTournaments = Object.fromEntries(
+        Object.entries(tournaments).map(([key, tournament]) => {
+          const entry = this.userTournamentMap[key];
+          const ownerUid = entry?.role === 'admin' ? entry.ownerUid : undefined;
+          return [key, normalizeTournamentRecord(tournament, { id: key, ownerUid })];
+        }),
+      );
     },
     setTournamentIdFromPortal(value) {
       this.tournaments[this.currentTournamentIndex].portalIdTournament = value;
@@ -1080,11 +1000,12 @@ export const useMainStore = defineStore('main', {
       const { data, prefix } = this._getTarget();
       this._syncPath(`${prefix}tirPlayoff`, data.tirPlayoff);
     },
-    syncTournamentMessage() {
+    syncTournamentMessage(message) {
       clearTimeout(this._syncMessageTimeout);
+      const tournament = this.tournaments[this.currentTournamentIndex];
+      if (tournament && message !== undefined) tournament.tournamentMessage = message;
       this._syncMessageTimeout = setTimeout(() => {
-        const tournament = this.tournaments[this.currentTournamentIndex];
-        this._syncPath('tournamentMessage', tournament?.tournamentMessage);
+        this._syncPath('tournamentMessage', message ?? tournament?.tournamentMessage);
       }, 300);
     },
     syncTirStart() {
@@ -1477,35 +1398,7 @@ export const useMainStore = defineStore('main', {
       const dbRef = ref(db, `${ownerUid}/tournaments/${tournamentId}`);
       const snapshot = await get(dbRef);
       if (snapshot.exists()) {
-        const tournament = snapshot.val();
-        tournament.id = tournamentId;
-        tournament._ownerUid = ownerUid;
-        if (isNewFormat(tournament)) {
-          const mainDefaults = createTournamentData();
-          tournament.main = {
-            ...mainDefaults,
-            ...tournament.main,
-            preferences: { ...mainDefaults.preferences, ...(tournament.main.preferences || {}) },
-          };
-          if (tournament.tournamentB) {
-            tournament.tournamentB = {
-              ...mainDefaults,
-              ...tournament.tournamentB,
-              isTournamentB: true,
-              preferences: { ...mainDefaults.preferences, ...(tournament.tournamentB.preferences || {}) },
-            };
-          }
-          tournament.activeGroup = tournament.activeGroup || 'A';
-        } else {
-          const defaults = createTournamentData();
-          Object.assign(tournament, {
-            ...defaults,
-            ...tournament,
-            teams: tournament.teams || [],
-            games: tournament.games || [],
-            preferences: { ...defaults.preferences, ...(tournament.preferences || {}) },
-          });
-        }
+        const tournament = normalizeTournamentRecord(snapshot.val(), { id: tournamentId, ownerUid });
         this.tournaments[tournamentId] = tournament;
         this.setActiveTournament(tournamentId);
         this.subscribeTournament();
@@ -1579,38 +1472,7 @@ export const useMainStore = defineStore('main', {
             adminCollaboratorUids.map((uid) => userMapService.update(uid, id, collaboratorActiveUpdate)),
           );
 
-          if (isNewFormat(restoredTournament)) {
-            const mainDefaults = createTournamentData();
-            restoredTournament.main = {
-              ...mainDefaults,
-              ...restoredTournament.main,
-              preferences: { ...mainDefaults.preferences, ...(restoredTournament.main.preferences || {}) },
-            };
-            if (restoredTournament.tournamentB) {
-              restoredTournament.tournamentB = {
-                ...mainDefaults,
-                ...restoredTournament.tournamentB,
-                isTournamentB: true,
-                preferences: {
-                  ...mainDefaults.preferences,
-                  ...(restoredTournament.tournamentB.preferences || {}),
-                },
-              };
-            }
-            restoredTournament.activeGroup = restoredTournament.activeGroup || 'A';
-            restoredTournament.id = restoredTournament.id || id;
-            this.tournaments[id] = restoredTournament;
-          } else {
-            const defaults = createTournamentData();
-            this.tournaments[id] = {
-              ...defaults,
-              ...restoredTournament,
-              id: restoredTournament.id || id,
-              teams: restoredTournament.teams || [],
-              games: restoredTournament.games || [],
-              preferences: { ...defaults.preferences, ...(restoredTournament.preferences || {}) },
-            };
-          }
+          this.tournaments[id] = normalizeTournamentRecord(restoredTournament, { id });
         }
 
         if (this.userTournamentMap[id]) {

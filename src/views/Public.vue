@@ -1,13 +1,12 @@
 <template>
-  <div v-if="isLoading" class="gooey">
-    <span class="dot"></span>
-    <div class="dots">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </div>
-  <div v-else class="wrapper" :class="[{ 'wrapper--tir': activeTournamentView?.system === 'tir' }]">
+  <PageLoader v-if="isLoading" />
+  <PublicPageShell
+    v-else
+    class="wrapper"
+    container-size="responsive"
+    :textured="activeTournamentView?.system !== 'tir'"
+    :class="[{ 'wrapper--tir': activeTournamentView?.system === 'tir' }]"
+  >
     <div v-if="colorSchema" class="public-schema-header__nav">
       <router-link class="navbar-item" to="/">
         <img src="../assets/img/logo.webp" alt="logo" />
@@ -33,14 +32,11 @@
         </div>
       </div>
       <div class="text-center is-size-3 tournament-title-wrapper">
-        <strong>{{ tournament.name }}</strong>
+        <strong>{{ tournamentMetadata.name }}</strong>
       </div>
-      <div
-        class="tournament-info-card mt-3 mb-3"
-        :class="{ 'tournament-info-card--with-switcher': tournament.tournamentB || tournament.groupB }"
-      >
+      <div class="tournament-info-card mt-3 mb-3" :class="{ 'tournament-info-card--with-switcher': hasTournamentB }">
         <GroupSwitcher
-          v-if="tournament.tournamentB || tournament.groupB"
+          v-if="hasTournamentB"
           :model-value="publicActiveGroup"
           :full-labels="true"
           class="tournament-info-card__switcher"
@@ -84,12 +80,6 @@
         <div class="tournament-info-row" v-if="activeTournamentView?.playOff || isDoubleElimination">
           <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
           <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
-        </div>
-        <div v-if="activeTournamentView?.playOff && !isDoubleElimination" class="btn-bracket-group">
-          <button class="button is-small btn-bracket" @click="openBracket">
-            <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
-            {{ $t('games.showBracket') }}
-          </button>
         </div>
       </div>
       <div v-if="isFinished && winnerTeam" class="winner-card">
@@ -156,19 +146,17 @@
 
       <!-- Other systems: tabs -->
       <template v-else>
-        <div class="tournament-nav">
-          <button
-            v-for="(tab, index) in tabs"
-            :key="index"
-            class="tournament-nav__btn"
-            :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-            @click="activeTab = tab.id"
-          >
-            <component :is="tab.icon" :size="18" />
-            <span>{{ tab.label }}</span>
-          </button>
-        </div>
-        <div class="tabs-content-area">
+        <TournamentNav v-model="activeTab" :tabs="tabs" />
+        <div
+          id="tournament-tabpanel"
+          class="tabs-content-area"
+          role="tabpanel"
+          :aria-labelledby="`tab-${activeTab}`"
+          :class="{
+            'tabs-content-area--playoff':
+              activeTab === 'round' && (activeTournamentView?.playOff || isDoubleElimination),
+          }"
+        >
           <div v-if="activeTab === 'round'">
             <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
             <PlayOff
@@ -206,241 +194,50 @@
                 class="mb-3"
               />
               <div v-if="activeTournamentView?.cadrage" class="match-list">
-                <div
-                  class="match-item"
-                  :class="{
-                    'match-item--highlighted': isTeamHighlighted(game),
-                    'match-item--in-progress': game.status === 'in_progress',
-                    'match-item--finished': game.status === 'finished',
-                    'match-item--upcoming': !game.status || game.status === 'not_started',
-                  }"
+                <PublicGameCard
                   v-for="(game, index) in activeTournamentView.cadrage"
                   :key="'cadrage-' + index"
-                >
-                  <span
-                    class="match-lane-left"
-                    :class="{
-                      'match-lane-left--active': game.status === 'in_progress',
-                      'match-lane-left--finished': game.status === 'finished',
-                    }"
-                    >{{ displayLane(game, index) }}</span
-                  >
-                  <span
-                    class="match-team match-team-right"
-                    :class="{
-                      'match-team--highlighted': isTeamNameHighlighted(game.team_1),
-                      'match-team--winner':
-                        game.status === 'finished' && Number(game.team_1_score) > Number(game.team_2_score),
-                    }"
-                    >{{ formatTeamName(game.team_1) }}</span
-                  >
-                  <span class="match-vs">
-                    <template v-if="game.status === 'in_progress' || game.status === 'finished'">
-                      <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                    </template>
-                    <template v-else>
-                      <span class="match-score match-score--pending">-- : --</span>
-                    </template>
-                  </span>
-                  <span
-                    class="match-team"
-                    :class="{
-                      'match-team--highlighted': isTeamNameHighlighted(game.team_2),
-                      'match-team--winner':
-                        game.status === 'finished' && Number(game.team_2_score) > Number(game.team_1_score),
-                    }"
-                    >{{ formatTeamName(game.team_2) }}</span
-                  >
-                  <span v-if="game.status === 'in_progress'" class="match-status-badge match-status-badge--progress">
-                    <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-                  </span>
-                  <span
-                    v-else-if="game.status === 'finished'"
-                    class="match-status-badge match-status-badge--finished"
-                    >{{ $t('teamPlayoff.matchFinished') }}</span
-                  >
-                </div>
+                  :game="game"
+                  :lane-number="displayLane(game, index)"
+                  :highlighted-team="highlightedTeam"
+                  :team-club-map="teamClubMap"
+                  :tournament="activeTournamentView"
+                  :game-index="index"
+                  :score-history-enabled="!!activeTournamentView.preferences?.cochonettesEnabled"
+                  :team-name-formatter="formatTeamName"
+                />
               </div>
               <div v-else class="match-list">
                 <template v-if="activeTournamentView?.groups && activeTournamentView.groups.length > 1">
                   <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
                     <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
-                    <div
-                      class="match-item"
-                      :class="{
-                        'match-item--highlighted': isTeamHighlighted(game),
-                        'match-item--in-progress': game.status === 'in_progress',
-                        'match-item--finished': game.status === 'finished',
-                        'match-item--upcoming': !game.status || game.status === 'not_started',
-                      }"
+                    <PublicGameCard
                       v-for="(game, index) in group"
                       :key="index"
-                    >
-                      <span
-                        class="match-lane-left"
-                        :class="{
-                          'match-lane-left--active': game.status === 'in_progress',
-                          'match-lane-left--finished': game.status === 'finished',
-                        }"
-                        >{{ game._lane }}</span
-                      >
-                      <span
-                        class="match-team match-team-right"
-                        :class="{
-                          'match-team--highlighted': isTeamNameHighlighted(game.team_1),
-                          'match-team--winner': game.status === 'finished' && game.winner === game.team_1,
-                        }"
-                        >{{ formatTeamName(game.team_1) }}</span
-                      >
-                      <span class="match-vs">
-                        <template v-if="game.status === 'in_progress' || game.status === 'finished'">
-                          <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                        </template>
-                        <template v-else>
-                          <span class="match-score match-score--pending">-- : --</span>
-                        </template>
-                      </span>
-                      <span
-                        class="match-team"
-                        :class="{
-                          'match-team--highlighted': isTeamNameHighlighted(game.team_2),
-                          'match-team--winner': game.status === 'finished' && game.winner === game.team_2,
-                        }"
-                        >{{ formatTeamName(game.team_2) }}</span
-                      >
-                      <span
-                        v-if="getGameStreams(game, game._laneIndex).length"
-                        class="match-status-badge match-status-badge--live"
-                      >
-                        <a
-                          v-for="(streamUrl, si) in getGameStreams(game, game._laneIndex)"
-                          :key="si"
-                          :href="streamUrl"
-                          target="_blank"
-                          rel="noopener"
-                          class="match-live-link"
-                          :class="getStreamIconClass(streamUrl)"
-                        >
-                          <span v-if="si === 0 && game.status === 'in_progress'" class="match-live-dot"></span>
-                          <component :is="getStreamIcon(streamUrl)" :size="16" />
-                        </a>
-                        <span class="match-live-label">{{
-                          game.status === 'in_progress' ? $t('games.live') : $t('games.stream')
-                        }}</span>
-                      </span>
-                      <span
-                        v-else-if="game.status === 'in_progress'"
-                        class="match-status-badge match-status-badge--progress"
-                      >
-                        <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-                      </span>
-                      <span
-                        v-else-if="game.status === 'finished'"
-                        class="match-status-badge match-status-badge--finished"
-                        >{{ $t('teamPlayoff.matchFinished') }}</span
-                      >
-                      <div
-                        v-if="
-                          activeTournamentView.preferences.cochonettesEnabled &&
-                          game.score_history &&
-                          game.score_history.length
-                        "
-                        class="score-history"
-                      >
-                        <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
-                          <span class="score-history__num">{{ i + 1 }}</span>
-                          <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-                        </span>
-                      </div>
-                    </div>
+                      :game="game"
+                      :lane-number="game._lane"
+                      :highlighted-team="highlightedTeam"
+                      :team-club-map="teamClubMap"
+                      :tournament="activeTournamentView"
+                      :game-index="game._laneIndex"
+                      :score-history-enabled="!!activeTournamentView.preferences?.cochonettesEnabled"
+                      :team-name-formatter="formatTeamName"
+                    />
                   </div>
                 </template>
-                <div
-                  v-else
-                  class="match-item"
-                  :class="{
-                    'match-item--highlighted': isTeamHighlighted(game),
-                    'match-item--in-progress': game.status === 'in_progress',
-                    'match-item--finished': game.status === 'finished',
-                    'match-item--upcoming': !game.status || game.status === 'not_started',
-                  }"
+                <PublicGameCard
                   v-for="(game, index) in activeTournamentView.games[activeRound - 1]"
+                  v-else
                   :key="index"
-                >
-                  <span
-                    class="match-lane-left"
-                    :class="{
-                      'match-lane-left--active': game.status === 'in_progress',
-                      'match-lane-left--finished': game.status === 'finished',
-                    }"
-                    >{{ displayLane(game, index) }}</span
-                  >
-                  <span
-                    class="match-team match-team-right"
-                    :class="{
-                      'match-team--highlighted': isTeamNameHighlighted(game.team_1),
-                      'match-team--winner': game.status === 'finished' && game.winner === game.team_1,
-                    }"
-                    >{{ formatTeamName(game.team_1) }}</span
-                  >
-                  <span class="match-vs">
-                    <template v-if="game.status === 'in_progress' || game.status === 'finished'">
-                      <span class="match-score">{{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}</span>
-                    </template>
-                    <template v-else>
-                      <span class="match-score match-score--pending">-- : --</span>
-                    </template>
-                  </span>
-                  <span
-                    class="match-team"
-                    :class="{
-                      'match-team--highlighted': isTeamNameHighlighted(game.team_2),
-                      'match-team--winner': game.status === 'finished' && game.winner === game.team_2,
-                    }"
-                    >{{ formatTeamName(game.team_2) }}</span
-                  >
-                  <span v-if="getGameStreams(game, index).length" class="match-status-badge match-status-badge--live">
-                    <a
-                      v-for="(streamUrl, si) in getGameStreams(game, index)"
-                      :key="si"
-                      :href="streamUrl"
-                      target="_blank"
-                      rel="noopener"
-                      class="match-live-link"
-                      :class="getStreamIconClass(streamUrl)"
-                    >
-                      <span v-if="si === 0 && game.status === 'in_progress'" class="match-live-dot"></span>
-                      <component :is="getStreamIcon(streamUrl)" :size="16" />
-                    </a>
-                    <span class="match-live-label">{{
-                      game.status === 'in_progress' ? $t('games.live') : $t('games.stream')
-                    }}</span>
-                  </span>
-                  <span
-                    v-else-if="game.status === 'in_progress'"
-                    class="match-status-badge match-status-badge--progress"
-                  >
-                    <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
-                  </span>
-                  <span
-                    v-else-if="game.status === 'finished'"
-                    class="match-status-badge match-status-badge--finished"
-                    >{{ $t('teamPlayoff.matchFinished') }}</span
-                  >
-                  <div
-                    v-if="
-                      activeTournamentView.preferences.cochonettesEnabled &&
-                      game.score_history &&
-                      game.score_history.length
-                    "
-                    class="score-history"
-                  >
-                    <span v-for="(entry, i) in game.score_history" :key="i" class="score-history__chip">
-                      <span class="score-history__num">{{ i + 1 }}</span>
-                      <span class="score-history__score">{{ entry.s1 }}-{{ entry.s2 }}</span>
-                    </span>
-                  </div>
-                </div>
+                  :game="game"
+                  :lane-number="displayLane(game, index)"
+                  :highlighted-team="highlightedTeam"
+                  :team-club-map="teamClubMap"
+                  :tournament="activeTournamentView"
+                  :game-index="index"
+                  :score-history-enabled="!!activeTournamentView.preferences?.cochonettesEnabled"
+                  :team-name-formatter="formatTeamName"
+                />
               </div>
             </template>
           </div>
@@ -449,6 +246,12 @@
             :active-tournament="activeTournamentView"
             :is-public-view="true"
             :bracket-only="true"
+            class="playoff-public-wrapper"
+          />
+          <Bracket
+            v-else-if="activeTab === 'bracket' && hasPlayoffBracket"
+            :bracket="activeTournamentView.playOffBracket"
+            :embedded="true"
             class="playoff-public-wrapper"
           />
           <div v-if="activeTab === 'teams'">
@@ -484,14 +287,13 @@
       <div class="text-center mt-5"><img v-if="girlImage" :src="girlImage" alt="In the petanque land" /><br /></div>
     </div>
     <Footer />
-  </div>
+  </PublicPageShell>
 </template>
 
 <script>
 import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import TeamsList from '@/components/partials/TeamsList';
-import { tournamentService } from '@/services/db';
 import {
   getTeamsRanking,
   getTournamentRanking,
@@ -499,13 +301,11 @@ import {
   formatSwissDescription,
   tournamentNames,
 } from '@/helpers';
-import { getGameStreams, getStreamPlatform, getStreamIconComponent, getStreamIconClass } from '@/services/streams';
 import { getGameLaneNumber } from '@/services/lanes';
 import { getDoubleEliminationParticipantCount } from '@/services/playoff';
-import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
-import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 import PlayOff from '@/components/partials/PlayOff.vue';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
+import Bracket from '@/components/partials/Bracket.vue';
 import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
@@ -515,35 +315,39 @@ import TeamSearch from '@/components/partials/TeamSearch.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
+import PublicGameCard from '@/components/partials/PublicGameCard.vue';
 import { Users, List, Trophy as TrophyIcon, PlayCircle, Medal } from 'lucide-vue-next';
+import { getTournamentGroup, getTournamentMetadata, hasTournamentGroup } from '@/services/tournament-record';
+import { createLiveTournamentSource } from '@/services/live-tournament';
+import { resolveTournamentSource } from '@/services/tournament-ref';
+import PageLoader from '@/components/ui/PageLoader.vue';
+import PublicPageShell from '@/components/ui/PublicPageShell.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 export default {
   name: 'Public',
   components: {
+    PageLoader,
+    PublicPageShell,
+    TournamentNav,
     Footer,
     LanguageSwitcher,
     ThemeSwitcher,
     PlayOff,
     DoubleElimination,
+    Bracket,
     TeamPlayoff,
     TeamsList,
     Results,
     Ranking,
-    GitFork,
     X,
     TeamSearch,
     TirPublicView,
     RoundTimer,
     GroupSwitcher,
+    PublicGameCard,
     Users,
-    List,
     TrophyIcon,
-    PlayCircle,
     Medal,
-    YoutubeIcon,
-    Twitch,
-    Facebook,
-    Instagram,
-    Video,
   },
   data() {
     return {
@@ -554,29 +358,29 @@ export default {
       highlightedTeam: null,
       girlImage: null,
       publicActiveGroup: 'A',
+      liveStatus: 'idle',
+      liveError: null,
     };
   },
   mounted() {
-    this._unsubscribers = [];
+    this._liveTournamentSource = createLiveTournamentSource({
+      profile: 'public',
+      onState: ({ status, record, error }) => {
+        this.liveStatus = status;
+        this.liveError = error;
+        this.isLoading = status === 'loading';
+        this.tournament = record;
+      },
+    });
     this.getInfo();
-    this._onResume = () => {
-      this._unsubscribeAll();
-      this.getInfo();
-    };
-    this._onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        this._onResume();
-      }
-    };
-    document.addEventListener('visibilitychange', this._onVisibilityChange);
-    window.addEventListener('online', this._onResume);
   },
   beforeUnmount() {
-    this._unsubscribeAll();
-    document.removeEventListener('visibilitychange', this._onVisibilityChange);
-    window.removeEventListener('online', this._onResume);
+    this._liveTournamentSource?.stop();
   },
   watch: {
+    '$route.fullPath'() {
+      this.getInfo();
+    },
     isLoading(val) {
       if (!val && !this.tournament) {
         import('@/assets/img/girl.avif').then((m) => {
@@ -614,16 +418,16 @@ export default {
         if (t?.playOff || t?.teamPlayoff) roundLabel = this.$t('games.playOff');
         else if (t?.cadrage) roundLabel = this.$t('games.cadrage');
         else roundLabel = `${this.$t('common.round')} ${this.activeRound}`;
-        list.push({ id: 'round', label: roundLabel, icon: 'PlayCircle' });
+        list.push({ id: 'round', label: roundLabel, icon: PlayCircle });
       }
-      if (this.isDoubleElimination) {
-        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: 'GitFork' });
+      if (this.hasPlayoffBracket) {
+        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork });
       }
-      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' });
+      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: Users });
       if (!isPlayoffOnly) {
-        list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' });
+        list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon });
       }
-      list.push({ id: 'results', label: this.$t('teams.results'), icon: 'List' });
+      list.push({ id: 'results', label: this.$t('teams.results'), icon: List });
       return list;
     },
     showCurrentRound() {
@@ -636,34 +440,21 @@ export default {
     isDoubleElimination() {
       return this.activeTournamentView?.playOffBracket?.format === 'double';
     },
+    hasPlayoffBracket() {
+      return !!this.activeTournamentView?.playOffBracket?.stages?.length;
+    },
     activeRound() {
       const t = this.activeTournamentView;
       return t?.games?.length ? (t.roundIsActive ? t.games.length : t.games.length + 1) : 1;
     },
     activeTournamentView() {
-      if (this.publicActiveGroup === 'B') {
-        if (this.tournament?.main) {
-          return this.tournament.tournamentB || this.tournament.main;
-        }
-        if (this.tournament?.groupB) {
-          return {
-            ...this.tournament,
-            teams: this.tournament.groupB.teams,
-            games: this.tournament.groupB.games,
-            playOff: this.tournament.groupB.playOff,
-            playOffBracket: this.tournament.groupB.playOffBracket,
-            playOffStage: this.tournament.groupB.playOffStage,
-            cadrage: this.tournament.groupB.cadrage,
-            roundIsActive: this.tournament.groupB.roundIsActive,
-            tournamentIsFinished: this.tournament.groupB.tournamentIsFinished,
-            eliminationRound: this.tournament.groupB.eliminationRound,
-          };
-        }
-      }
-      if (this.tournament?.main) {
-        return this.tournament.main;
-      }
-      return this.tournament;
+      return getTournamentGroup(this.tournament, this.publicActiveGroup);
+    },
+    tournamentMetadata() {
+      return getTournamentMetadata(this.tournament);
+    },
+    hasTournamentB() {
+      return hasTournamentGroup(this.tournament, 'B');
     },
     rankingTeams() {
       return getTeamsRanking(this.activeTournamentView, this.activeRound);
@@ -731,24 +522,21 @@ export default {
         };
       });
     },
+    tournamentSource() {
+      return resolveTournamentSource(this.$route);
+    },
     userId() {
-      if (this.$route.query.ref) {
-        return this.parseRef().userId;
-      }
-      return this.$route.query.user;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.ownerUid : null;
     },
     tournamentId() {
-      if (this.$route.query.ref) {
-        return this.parseRef().tournamentId;
-      }
-      return this.$route.query.tournament;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.tournamentId : null;
     },
     colorSchema() {
       return this.activeTournamentView?.preferences?.colorSchema || '';
     },
     tournamentMessageLines() {
-      if (!this.tournament?.tournamentMessage) return [];
-      return this.tournament.tournamentMessage.split('\n').filter((l) => l.trim());
+      if (!this.tournamentMetadata.tournamentMessage) return [];
+      return this.tournamentMetadata.tournamentMessage.split('\n').filter((l) => l.trim());
     },
     isFinished() {
       return !!this.activeTournamentView?.tournamentIsFinished;
@@ -870,7 +658,7 @@ export default {
     showPublicTimer() {
       const t = this.activeTournamentView;
       const rt = t?.roundTimer;
-      return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'paused' || rt.timerStatus === 'ended');
+      return rt && ['running', 'paused', 'ended'].includes(rt.timerStatus);
     },
     teamNames() {
       const t = this.activeTournamentView;
@@ -893,24 +681,6 @@ export default {
     displayLane(game, index) {
       return getGameLaneNumber(game, this.activeTournamentView, index);
     },
-    openBracket() {
-      if (this.activeTab === 'round' && this.$refs.playOff) {
-        this.$refs.playOff.showBracket = true;
-        return;
-      }
-      this.activeTab = 'round';
-      this.$nextTick(() => {
-        if (this.$refs.playOff) {
-          this.$refs.playOff.showBracket = true;
-        }
-      });
-    },
-    getGameStreams(game, index) {
-      return getGameStreams(game, this.activeTournamentView, index);
-    },
-    getStreamPlatform,
-    getStreamIcon: getStreamIconComponent,
-    getStreamIconClass,
     formatTeamName(name) {
       if (!name) return '';
       const parts = name.trim().split(/\s+/);
@@ -919,210 +689,16 @@ export default {
       if (surname.length >= 11) return surname;
       return name;
     },
-    isTeamNameHighlighted(teamName) {
-      if (!this.highlightedTeam) return false;
-      if (this.highlightedTeam === teamName) return true;
-      return this.teamClubMap[teamName] === this.highlightedTeam;
-    },
-    isTeamHighlighted(game) {
-      if (!this.highlightedTeam) return false;
-      return this.isTeamNameHighlighted(game.team_1) || this.isTeamNameHighlighted(game.team_2);
-    },
-    parseRef() {
-      const refParam = this.$route.query.ref;
-      if (refParam.includes('.')) {
-        const [userId, tournamentBase36] = refParam.split('.');
-        return { userId, tournamentId: parseInt(tournamentBase36, 36).toString() };
-      }
-      const decoded = atob(refParam);
-      const [userId, tournamentId] = decoded.split(':');
-      return { userId, tournamentId };
-    },
     pluralizeRounds(n) {
       return pluralizeRounds(n, this.$i18n.locale);
     },
-    async getInfo() {
-      this.isLoading = true;
-      if (this.$route.query) {
-        try {
-          const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
-          if (snapshot.exists()) {
-            this.tournament = snapshot.val();
-          }
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-        this.isLoading = false;
-        this._subscribeDynamic();
-      } else {
-        const id = this.$route.params.id;
-        fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`)
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            }
-            throw new Error('Error ' + response.status);
-          })
-          .then((tournamentInfo) => {
-            this.tournament = tournamentInfo.tournament.meta ? JSON.parse(tournamentInfo.tournament.meta) : null;
-            this.isLoading = false;
-          })
-          .catch(() => {
-            this.isLoading = false;
-          });
-      }
-    },
-    _subscribeDynamic() {
-      const isNew = !!this.tournament?.main;
-
-      if (isNew) {
-        const wrapperPaths = ['activeGroup', 'tournamentMessage'];
-        for (const path of wrapperPaths) {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
-            if (!this.tournament) return;
-            this.tournament[path] = snapshot.val();
-          });
-          this._unsubscribers.push(unsub);
-        }
-        const dataFields = [
-          'games',
-          'roundIsActive',
-          'roundTimer',
-          'playOff',
-          'playOffBracket',
-          'playOffStage',
-          'cadrage',
-          'barrage',
-          'tournamentIsFinished',
-          'tournamentIsStarted',
-          'tirParticipants',
-          'tirPlayoff',
-          'tirRound',
-          'tirStarted',
-          'teams',
-          'preferences',
-          'streamPresets',
-          'groups',
-          'system',
-        ];
-        for (const field of dataFields) {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, `main/${field}`, (snapshot) => {
-            if (!this.tournament?.main) return;
-            this.tournament.main[field] = snapshot.val();
-          });
-          this._unsubscribers.push(unsub);
-        }
-        {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, 'tournamentB', (snapshot) => {
-            if (!this.tournament) return;
-            this.tournament.tournamentB = snapshot.val();
-          });
-          this._unsubscribers.push(unsub);
-        }
-        for (const field of dataFields) {
-          const unsub = tournamentService.subscribePath(
-            this.userId,
-            this.tournamentId,
-            `tournamentB/${field}`,
-            (snapshot) => {
-              if (!this.tournament?.tournamentB) return;
-              this.tournament.tournamentB[field] = snapshot.val();
-            },
-          );
-          this._unsubscribers.push(unsub);
-        }
-      } else {
-        const paths = [
-          'games',
-          'roundIsActive',
-          'roundTimer',
-          'playOff',
-          'playOffBracket',
-          'playOffStage',
-          'cadrage',
-          'barrage',
-          'tournamentIsFinished',
-          'tournamentIsStarted',
-          'tournamentMessage',
-          'tirPlayoff',
-          'tirRound',
-          'tirStarted',
-          'teams',
-          'preferences',
-          'streamPresets',
-          'groups',
-          'system',
-          'activeGroup',
-          'groupB',
-        ];
-        for (const path of paths) {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
-            if (!this.tournament) return;
-            this.tournament[path] = snapshot.val();
-          });
-          this._unsubscribers.push(unsub);
-        }
-      }
-    },
-    _unsubscribeAll() {
-      if (this._unsubscribers) {
-        this._unsubscribers.forEach((fn) => fn());
-        this._unsubscribers = [];
-      }
+    getInfo() {
+      return this._liveTournamentSource?.start(this.tournamentSource);
     },
   },
 };
 </script>
 <style>
-.gooey {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 142px;
-  height: 60px;
-  margin: -20px 0 0 -71px;
-}
-
-.gooey .dot {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 12px;
-  left: 15px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  transform: translateX(0);
-  animation: dot 2.8s infinite;
-}
-
-.gooey .dots {
-  transform: translateX(0);
-  margin-top: 12px;
-  margin-left: 31px;
-  animation: dots 2.8s infinite;
-}
-
-.gooey .dots span {
-  display: block;
-  float: left;
-  width: 16px;
-  height: 16px;
-  margin-left: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-}
-@keyframes dot {
-  50% {
-    transform: translateX(96px);
-  }
-}
-
-@keyframes dots {
-  50% {
-    transform: translateX(-31px);
-  }
-}
-
 .public-schema-header__nav {
   display: flex;
   align-items: center;
@@ -1235,30 +811,6 @@ export default {
   right: 0.75rem;
 }
 
-.btn-bracket-group {
-  position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-bracket {
-  background: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-}
-
-.btn-bracket:hover {
-  color: var(--color-white);
-}
-
-@media screen and (max-width: 768px) {
-  .btn-bracket {
-    font-size: 1rem;
-  }
-}
-
 .tournament-info-row {
   display: flex;
   align-items: center;
@@ -1317,86 +869,8 @@ export default {
   background: transparent;
 }
 
-.tournament-nav {
-  display: flex;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
-  border-radius: 12px 12px 0 0;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: -1px;
-}
-
-.tournament-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tournament-nav__btn--active {
-  font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tournament-nav__btn--games.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche);
-}
-
-.tournament-nav__btn--round.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--bracket.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.wrapper {
-  position: relative;
-  background: var(--color-body-bg);
-}
-
-.wrapper::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('@/assets/img/bg-petanque.avif') repeat;
-  background-size: 800px;
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .wrapper::before {
-  display: none;
-}
-
 .wrapper--tir {
   background: var(--color-body-bg);
-}
-
-.wrapper--tir::before {
-  display: none;
 }
 
 .wrapper--tir .tournament-info-card {
@@ -1404,31 +878,7 @@ export default {
   margin-right: 10px;
 }
 
-.wrapper > *:not(.public-sponsors, .public-schema-header__nav) {
-  position: relative;
-  z-index: 1;
-}
-
-.wrapper .container {
-  max-width: 800px !important;
-  margin: 0 auto;
-  padding: 0 1rem;
-  padding-bottom: 2rem;
-}
-
-@media screen and (min-width: 1024px) {
-  .wrapper .container {
-    padding-bottom: 3rem;
-  }
-}
-
-@media screen and (min-width: 1408px) {
-  .wrapper .container {
-    max-width: 1100px !important;
-  }
-}
-
-.wrapper :deep(.navbar) {
+.wrapper .navbar {
   z-index: 10;
 }
 
@@ -1475,39 +925,6 @@ export default {
   }
 }
 
-.match-lane-left {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  background: var(--color-match-lane-bg);
-  border: 1px solid var(--color-match-lane-border);
-  line-height: 1;
-}
-
-.match-lane-left--active {
-  top: 8px;
-  transform: none;
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.match-lane-left--finished {
-  top: 8px;
-  transform: none;
-  color: var(--color-match-winner);
-  border-color: var(--color-match-winner);
-}
-
 .round-header {
   display: flex;
   align-items: center;
@@ -1519,7 +936,7 @@ export default {
   position: relative;
 }
 
-.round-header :deep(.team-search) {
+.round-header .team-search {
   position: absolute;
   right: 0;
 }
@@ -1545,229 +962,6 @@ export default {
   margin-top: 0;
 }
 
-.match-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px 12px 42px;
-  border-radius: 14px;
-  background: var(--color-surface, var(--color-white));
-  border: 1px solid var(--color-border);
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-  margin-bottom: 8px;
-}
-
-[data-theme='dark'] .match-item--finished,
-[data-theme='dark'] .match-item--in-progress,
-[data-theme='dark'] .match-item--upcoming {
-  background: var(--color-surface) !important;
-}
-
-.match-item:hover {
-  border-color: var(--color-match-border-hover);
-}
-
-.match-item--in-progress {
-  border-color: var(--color-match-border-active);
-  background: url('@/assets/img/card-bg-active.webp') center/cover no-repeat !important;
-}
-
-.match-item--finished {
-  border-color: var(--color-match-border-finished);
-  background: url('@/assets/img/card-bg-finished.webp') center/cover no-repeat !important;
-}
-
-.match-item--upcoming {
-  border-color: var(--color-match-border-upcoming);
-  background: url('@/assets/img/card-bg-upcoming.webp') center/cover no-repeat !important;
-}
-
-.match-team {
-  min-width: 0;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--color-text);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow-wrap: break-word;
-  transition: color 0.15s;
-}
-
-.match-team--highlighted {
-  color: var(--color-primary);
-}
-
-.match-item--highlighted {
-  background: var(--color-primary-bg) !important;
-}
-
-.match-team-right {
-  text-align: right;
-}
-
-.match-vs {
-  text-align: center;
-}
-
-.match-lane {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-surface-alt, var(--color-primary-bg));
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.match-score {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.match-score--pending {
-  color: var(--color-match-score-pending);
-  font-weight: 400;
-}
-
-.match-team--winner {
-  color: var(--color-match-winner) !important;
-  font-weight: 700;
-}
-
-.match-status-badge {
-  grid-column: 1 / -1;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 0;
-}
-
-.match-status-badge--progress {
-  color: var(--color-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.match-progress-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  animation: live-pulse 1.5s ease-in-out infinite;
-}
-
-.match-status-badge--finished {
-  color: var(--tir-winner-text);
-}
-
-.match-status-badge--live {
-  color: var(--color-stream-youtube);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-}
-
-.match-live-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--color-stream-youtube);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.match-live-link.stream-icon--twitch {
-  color: var(--color-stream-twitch);
-}
-
-.match-live-link.stream-icon--facebook {
-  color: var(--color-stream-facebook);
-}
-
-.match-live-link.stream-icon--instagram {
-  color: var(--color-stream-instagram);
-}
-
-.match-live-link:hover {
-  opacity: 0.8;
-}
-
-.match-live-label {
-  font-weight: 600;
-  margin-left: 2px;
-}
-
-.match-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-stream-youtube);
-  animation: live-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes live-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.score-history {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding-top: 6px;
-}
-
-.score-history__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px 2px 4px;
-  border-radius: 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-}
-
-.score-history__num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-btn-text);
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.score-history__score {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
 .tabs-content-area {
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border);
@@ -1782,7 +976,11 @@ export default {
   overflow: visible;
 }
 
-.tabs-content-area :deep(table) {
+.tabs-content-area--playoff {
+  overflow: visible;
+}
+
+.tabs-content-area table {
   margin: 0 auto;
 }
 

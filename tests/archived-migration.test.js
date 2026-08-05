@@ -79,7 +79,8 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     await store.fetchSavedTournaments();
 
-    expect(store.savedTournaments.t1).toEqual(tournamentData);
+    expect(store.savedTournaments.t1).toMatchObject(tournamentData);
+    expect(store.savedTournaments.t1).toMatchObject({ id: 't1', activeGroup: 'A', preferences: { maxScore: 13 } });
     expect(mockSet).not.toHaveBeenCalled();
     expect(mockRemove).not.toHaveBeenCalled();
   });
@@ -102,7 +103,12 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
     await store.fetchSavedTournaments();
 
     expect(mockGet).toHaveBeenCalledWith('owner1/tournaments/shared1');
-    expect(store.savedTournaments.shared1).toEqual(sharedTournament);
+    expect(store.savedTournaments.shared1).toMatchObject(sharedTournament);
+    expect(store.savedTournaments.shared1).toMatchObject({
+      id: 'shared1',
+      _ownerUid: 'owner1',
+      preferences: { maxScore: 13 },
+    });
     expect(store.savedTournamentIds).toEqual(['shared1']);
     expect(mockSet).not.toHaveBeenCalled();
     expect(mockRemove).not.toHaveBeenCalled();
@@ -135,7 +141,7 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
       archiveStatusVersion: 1,
     });
     expect(store.userTournamentMap.shared1.status).toBe('archived');
-    expect(store.savedTournaments.shared1).toEqual(sharedTournament);
+    expect(store.savedTournaments.shared1).toMatchObject(sharedTournament);
   });
 
   it('does not archive an unfinished legacy admin tournament', async () => {
@@ -197,7 +203,7 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', realData);
     expect(mockRemove).toHaveBeenCalledWith('user1/saved/t1');
-    expect(store.savedTournaments.t1).toEqual(realData);
+    expect(store.savedTournaments.t1).toMatchObject(realData);
   });
 
   it('migrates from saved/ when tournaments/ does not exist', async () => {
@@ -215,7 +221,7 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', savedData);
     expect(mockRemove).toHaveBeenCalledWith('user1/saved/t1');
-    expect(store.savedTournaments.t1).toEqual(savedData);
+    expect(store.savedTournaments.t1).toMatchObject(savedData);
   });
 
   it('uses migrated data directly without re-reading', async () => {
@@ -259,7 +265,8 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
     await store.fetchSavedTournaments();
 
     expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', mainData);
-    expect(store.savedTournaments.t1).toEqual(mainData);
+    expect(store.savedTournaments.t1).toMatchObject(mainData);
+    expect(store.savedTournaments.t1.main).toMatchObject({ teams: [{ title: 'D' }], games: [], preferences: {} });
   });
 
   it('sets empty savedTournaments when no archived ids exist', async () => {

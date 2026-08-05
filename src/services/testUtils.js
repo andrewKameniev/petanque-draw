@@ -1,6 +1,9 @@
 import { getEditableDoubleEliminationStages, getPublicDoubleEliminationMatches } from '@/services/playoff';
+import { getActiveTournamentGroup } from '@/services/tournament-record';
 
-export function autoFillScores(tournament, activeRound) {
+export function autoFillScores(record, activeRound) {
+  const tournament = getActiveTournamentGroup(record);
+  if (!tournament) return;
   const maxScore = tournament.preferences?.maxScore || 13;
   const fillGames = (games) => {
     games.forEach((game) => {
@@ -31,8 +34,8 @@ export function autoFillScores(tournament, activeRound) {
 
   const fillBracket = (bracket, stage) => {
     if (bracket.format === 'double') {
-      getEditableDoubleEliminationStages(bracket).forEach((activeStage) => {
-        fillGames(getPublicDoubleEliminationMatches(activeStage));
+      getEditableDoubleEliminationStages(bracket).forEach((editableStage) => {
+        fillGames(getPublicDoubleEliminationMatches(editableStage));
       });
       return;
     }
@@ -57,20 +60,13 @@ export function autoFillScores(tournament, activeRound) {
   if (tournament.cadrage?.length && !tournament.playOff?.length) {
     fillGames(tournament.cadrage);
   }
-  if (tournament.playOff?.length && tournament.playOffBracket) {
+  if ((tournament.playOff?.length || tournament.playOffBracket?.format === 'double') && tournament.playOffBracket) {
     fillBracket(tournament.playOffBracket, tournament.playOffStage);
   }
   if (tournament.roundIsActive && tournament.games?.length) {
     fillGames(tournament.games[activeRound - 1]);
   }
-  const tB = tournament.tournamentB || tournament.groupB;
-  if (tB?.eliminationRound && !tB.eliminationRound.completed) {
-    fillGames(tB.eliminationRound.games);
-  }
-  if (tournament.activeGroup === 'B' && tB?.playOff && tB.playOffBracket) {
-    fillBracket(tB.playOffBracket, tB.playOffStage);
-  }
-  if (tournament.activeGroup === 'B' && tB?.roundIsActive && tB.games?.length) {
-    fillGames(tB.games[tB.games.length - 1]);
+  if (tournament.eliminationRound && !tournament.eliminationRound.completed) {
+    fillGames(tournament.eliminationRound.games);
   }
 }

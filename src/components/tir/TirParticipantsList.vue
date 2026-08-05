@@ -1,16 +1,10 @@
 <template>
   <div class="tir-plist">
-    <div v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1" class="tir-plist__bracket-switcher">
-      <button
-        v-for="tab in bracketTabs"
-        :key="tab.key"
-        class="tir-plist__bracket-btn"
-        :class="{ 'tir-plist__bracket-btn--active': activeBracket === tab.key }"
-        @click="activeBracket = tab.key"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
+    <TirRoundTabs
+      v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1"
+      v-model="activeBracket"
+      :tabs="bracketTabs"
+    />
     <!-- Search -->
     <input
       v-if="expanded === null && rankedParticipants.length > 5"
@@ -69,7 +63,7 @@
       :scoresKey="activeScoresKey"
       :readOnly="readOnly"
       @back="expanded = null"
-      @update="$emit('update')"
+      @update="$emit('update', $event)"
       @next="goToNext"
     />
   </div>
@@ -78,11 +72,25 @@
 <script>
 import { CheckCircle, AlertCircle, Circle, User } from 'lucide-vue-next';
 import TirParticipantView from './TirParticipantView.vue';
-import { SCORING, ATELIER_KEYS, findPlayoffMatchForParticipant, getMatchPlayerThrows } from '@/services/tir';
+import TirRoundTabs from '@/components/ui/TirRoundTabs.vue';
+import {
+  SCORING,
+  ATELIER_KEYS,
+  DISTANCES_FULL,
+  DISTANCES_JUNIOR,
+  getScoreTotal,
+  getScoreCarreauCount,
+  getThrowCount,
+  getAtelierThrowCount,
+  isParticipantComplete,
+  findPlayoffMatchForParticipant,
+  getMatchPlayerThrows,
+  getPlayoffMatchAtelierPercent,
+} from '@/services/tir';
 
 export default {
   name: 'TirParticipantsList',
-  components: { CheckCircle, AlertCircle, Circle, User, TirParticipantView },
+  components: { CheckCircle, AlertCircle, Circle, User, TirParticipantView, TirRoundTabs },
   props: {
     tournament: { type: Object, required: true },
     readOnly: { type: Boolean, default: false },
@@ -123,7 +131,7 @@ export default {
       return !!this.tournament.tirConfig?.junior;
     },
     distances() {
-      return this.isJunior ? [6, 7, 8] : [6, 7, 8, 9];
+      return this.isJunior ? DISTANCES_JUNIOR : DISTANCES_FULL;
     },
     activeDistances() {
       if (this.isTiebreakerTab) return [7];
@@ -243,6 +251,9 @@ export default {
     },
   },
   methods: {
+    collapse() {
+      this.expanded = null;
+    },
     selectParticipant(participant, index) {
       this.expanded = index;
       this.$emit('select', participant);
@@ -302,26 +313,10 @@ export default {
       if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
         return this.getPlayoffBracketScore(participant);
       }
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          total += SCORING[val] || 0;
-        });
-      });
-      return total;
+      return getScoreTotal(participant, this.activeScoresKey);
     },
     getCarreauCount(participant) {
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          if (val === 'carreau') count++;
-        });
-      });
-      return count;
+      return getScoreCarreauCount(participant, this.activeScoresKey);
     },
     getThrows(participant) {
       if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
@@ -329,31 +324,29 @@ export default {
         if (!info) return 0;
         return getMatchPlayerThrows(info.match, info.playerNum);
       }
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        count += Object.keys(atelier).length;
-      });
-      return count;
+      return getThrowCount(participant, this.activeScoresKey);
     },
     isComplete(participant) {
-      return this.getThrows(participant) >= this.totalThrows;
+      if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
+        return this.getThrows(participant) >= this.totalThrows;
+      }
+      return isParticipantComplete(participant, this.activeScoresKey, this.totalThrows);
     },
     getProgressPercent(participant) {
       return Math.round((this.getThrows(participant) / this.totalThrows) * 100);
     },
     getAtelierPercent(participant, atelierIdx) {
       if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
-        const info = findPlayoffMatchForParticipant(participant.name, this.getPlayoffMatches());
-        if (!info) return 0;
-        const scores = info.match[info.scoresKey]?.[atelierIdx];
-        if (!scores || typeof scores !== 'object') return 0;
-        return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);
+        return getPlayoffMatchAtelierPercent(
+          participant.name,
+          this.getPlayoffMatches(),
+          atelierIdx,
+          this.activeDistances.length,
+        );
       }
-      const scores = participant[this.activeScoresKey]?.[atelierIdx];
-      if (!scores) return 0;
-      return Math.round((Object.keys(scores).length / this.activeDistances.length) * 100);
+      return Math.round(
+        (getAtelierThrowCount(participant, this.activeScoresKey, atelierIdx) / this.activeDistances.length) * 100,
+      );
     },
     getClub(participant) {
       const team = this.tournament.teams?.find((t) => t.title === participant.name);
@@ -387,31 +380,6 @@ export default {
 </script>
 
 <style scoped>
-.tir-plist__bracket-switcher {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-
-.tir-plist__bracket-btn {
-  padding: 4px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tir-plist__bracket-btn--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-btn-text);
-}
-
 .tir-plist__search {
   width: 100%;
   padding: 8px 12px;

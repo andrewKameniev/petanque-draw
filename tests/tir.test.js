@@ -6,11 +6,17 @@ import {
   DISTANCES_JUNIOR,
   getScoreTotal,
   getScoreCarreauCount,
+  getScoreReussiCount,
+  getScoreToucheCount,
   getCombinedTotal,
   getThrowCount,
   isParticipantComplete,
   getAtelierScore,
+  getAtelierThrowCount,
   isAtelierComplete,
+  toggleParticipantScore,
+  fillMissingAtelierScores,
+  fillMissingAtelierScoresForParticipants,
   rankParticipants,
   getDirectQualifiers,
   getR2Candidates,
@@ -23,6 +29,14 @@ import {
   getMatchPlayerThrows,
   isMatchComplete,
   getMatchWinner,
+  getMatchScoreAt,
+  getMatchAtelierScore,
+  isMatchAtelierComplete,
+  updateTirMatchFromScores,
+  toggleTirMatchScore,
+  selectTirMatchTieWinner,
+  getTirPlayoffRoundTitle,
+  getTirPlayoffDisplayRounds,
   getPlayoffMatchScores,
 } from '@/services/tir';
 
@@ -77,6 +91,19 @@ describe('getScoreTotal', () => {
     expect(getScoreTotal(p, 'scores')).toBe(5);
     expect(getScoreTotal(p, 'scores2')).toBe(3);
   });
+
+  it('ignores missing and malformed atelier entries', () => {
+    const p = {
+      scores: {
+        0: null,
+        1: 'invalid',
+        2: { 6: 'carreau', 7: 'unknown', 8: null },
+      },
+    };
+
+    expect(getScoreTotal(p, 'scores')).toBe(5);
+    expect(getThrowCount(p, 'scores')).toBe(3);
+  });
 });
 
 describe('getScoreCarreauCount', () => {
@@ -87,6 +114,23 @@ describe('getScoreCarreauCount', () => {
   it('counts only carreaus', () => {
     const p = { scores: { 0: { 6: 'carreau', 7: 'reussi', 8: 'carreau', 9: 'touche' } } };
     expect(getScoreCarreauCount(p, 'scores')).toBe(2);
+  });
+
+  it('keeps every scoring-result count independent', () => {
+    const p = {
+      scores: {
+        0: {
+          6: 'carreau',
+          7: 'reussi',
+          8: 'reussi',
+          9: 'touche',
+        },
+      },
+    };
+
+    expect(getScoreCarreauCount(p, 'scores')).toBe(1);
+    expect(getScoreReussiCount(p, 'scores')).toBe(2);
+    expect(getScoreToucheCount(p, 'scores')).toBe(1);
   });
 });
 
@@ -139,6 +183,11 @@ describe('getAtelierScore', () => {
   it('returns 0 for missing atelier', () => {
     expect(getAtelierScore({ scores: {} }, 'scores', 3)).toBe(0);
   });
+
+  it('counts only object-shaped atelier throws', () => {
+    expect(getAtelierThrowCount({ scores: { 0: { 6: 'carreau', 7: 'manque' } } }, 'scores', 0)).toBe(2);
+    expect(getAtelierThrowCount({ scores: { 0: 'invalid' } }, 'scores', 0)).toBe(0);
+  });
 });
 
 describe('isAtelierComplete', () => {
@@ -156,6 +205,58 @@ describe('isAtelierComplete', () => {
     const p = { scores: { 0: { 6: 'carreau', 7: 'reussi', 8: 'touche' } } };
     expect(isAtelierComplete(p, 'scores', 0, 3)).toBe(true);
   });
+
+  it('does not treat a malformed atelier value as complete', () => {
+    expect(isAtelierComplete({ scores: { 0: 'xxxx' } }, 'scores', 0, 4)).toBe(false);
+  });
+});
+
+describe('participant score updates', () => {
+  it('toggles a throw on and off without mutating the participant', () => {
+    const participant = { id: 'A', scores: { 0: { 6: 'reussi' } } };
+
+    const changed = toggleParticipantScore(participant, 'scores', 0, 6, 'carreau');
+    const removed = toggleParticipantScore(changed, 'scores', 0, 6, 'carreau');
+
+    expect(changed.scores[0][6]).toBe('carreau');
+    expect(removed.scores[0]).toEqual({});
+    expect(participant.scores[0][6]).toBe('reussi');
+    expect(changed).not.toBe(participant);
+    expect(changed.scores).not.toBe(participant.scores);
+    expect(changed.scores[0]).not.toBe(participant.scores[0]);
+  });
+
+  it('creates missing score containers and preserves unrelated rounds', () => {
+    const participant = { id: 'A', scores2: { 1: { 7: 'touche' } } };
+    const changed = toggleParticipantScore(participant, 'scores', 2, 8, 'reussi');
+
+    expect(changed.scores).toEqual({ 2: { 8: 'reussi' } });
+    expect(changed.scores2).toBe(participant.scores2);
+  });
+
+  it('fills only unanswered distances with misses', () => {
+    const participant = { id: 'A', scores: { 0: { 6: 'carreau', 8: 'touche' } } };
+    const filled = fillMissingAtelierScores(participant, 'scores', 0, DISTANCES_FULL);
+
+    expect(filled.scores[0]).toEqual({
+      6: 'carreau',
+      7: 'manque',
+      8: 'touche',
+      9: 'manque',
+    });
+    expect(participant.scores[0]).toEqual({ 6: 'carreau', 8: 'touche' });
+  });
+
+  it('fills a whole atelier for every participant immutably', () => {
+    const participants = [{ id: 'A', scores: {} }, { id: 'B' }];
+    const filled = fillMissingAtelierScoresForParticipants(participants, 'scores', 1, [6, 7]);
+
+    expect(filled.map((participant) => participant.scores[1])).toEqual([
+      { 6: 'manque', 7: 'manque' },
+      { 6: 'manque', 7: 'manque' },
+    ]);
+    expect(participants).toEqual([{ id: 'A', scores: {} }, { id: 'B' }]);
+  });
 });
 
 describe('rankParticipants', () => {
@@ -172,6 +273,30 @@ describe('rankParticipants', () => {
     const p2 = makeParticipant('B', { 0: { 6: 'carreau', 7: 'manque' } });
     const ranked = rankParticipants([p1, p2], 'scores');
     expect(ranked[0].name).toBe('B');
+  });
+
+  it('uses reussi count before touche count after score and carreau ties', () => {
+    const moreReussis = makeParticipant('More reussis', {
+      0: { 6: 'reussi', 7: 'reussi', 8: 'manque', 9: 'manque' },
+    });
+    const fewerReussis = makeParticipant('Fewer reussis', {
+      0: { 6: 'reussi', 7: 'touche', 8: 'touche', 9: 'touche' },
+    });
+    const moreTouches = makeParticipant('More touches', {
+      0: { 6: 'touche', 7: 'touche', 8: 'touche' },
+    });
+    const fewerTouches = makeParticipant('Fewer touches', {
+      0: { 6: 'touche', 7: 'touche', 8: 'manque' },
+    });
+
+    expect(rankParticipants([fewerReussis, moreReussis], 'scores').map((p) => p.name)).toEqual([
+      'More reussis',
+      'Fewer reussis',
+    ]);
+    expect(rankParticipants([fewerTouches, moreTouches], 'scores').map((p) => p.name)).toEqual([
+      'More touches',
+      'Fewer touches',
+    ]);
   });
 });
 
@@ -457,6 +582,55 @@ describe('advancePlayoff', () => {
   });
 });
 
+describe('playoff display rounds', () => {
+  const labels = {
+    final: 'Final',
+    thirdPlace: 'Third place',
+    semifinal: 'Semifinal',
+    quarterfinal: 'Quarterfinal',
+    eighthFinal: 'Round of 16',
+    sixteenthFinal: 'Round of 32',
+    round: 'Round',
+    pending: 'Pending',
+  };
+
+  it('uses one round-title rule for every supported bracket size', () => {
+    expect(getTirPlayoffRoundTitle(1, 2, labels)).toBe('Final');
+    expect(getTirPlayoffRoundTitle(2, 4, labels)).toBe('Semifinal');
+    expect(getTirPlayoffRoundTitle(4, 8, labels)).toBe('Quarterfinal');
+    expect(getTirPlayoffRoundTitle(8, 16, labels)).toBe('Round of 16');
+    expect(getTirPlayoffRoundTitle(16, 32, labels)).toBe('Round of 32');
+    expect(getTirPlayoffRoundTitle(32, 64, labels, 0)).toBe('Round 1');
+  });
+
+  it('builds real rounds for admin/results displays', () => {
+    const playoff = buildPlayoffBracket(['A', 'B', 'C', 'D'], 4);
+    playoff.rounds[0].matches.forEach((match) => {
+      match.complete = true;
+      match.winner = match.player1;
+      match.loser = match.player2;
+    });
+    advancePlayoff(playoff);
+
+    expect(getTirPlayoffDisplayRounds(playoff, labels).map((round) => round.title)).toEqual([
+      'Semifinal',
+      'Third place',
+      'Final',
+    ]);
+  });
+
+  it('adds pending public previews without changing the playoff', () => {
+    const playoff = buildPlayoffBracket(['A', 'B', 'C', 'D'], 4);
+    const snapshot = JSON.parse(JSON.stringify(playoff));
+    const rounds = getTirPlayoffDisplayRounds(playoff, labels, { includePreviews: true });
+
+    expect(rounds.map((round) => round.title)).toEqual(['Semifinal', 'Third place', 'Final']);
+    expect(rounds[1].matches[0].previewLabel1).toBe('Pending');
+    expect(rounds[2].matches[0].preview).toBe(true);
+    expect(playoff).toEqual(snapshot);
+  });
+});
+
 describe('getMatchPlayerScore / getMatchPlayerThrows', () => {
   it('calculates scores from match object', () => {
     const match = createMatch('A', 'B');
@@ -466,6 +640,57 @@ describe('getMatchPlayerScore / getMatchPlayerThrows', () => {
     expect(getMatchPlayerScore(match, 2)).toBe(1);
     expect(getMatchPlayerThrows(match, 1)).toBe(2);
     expect(getMatchPlayerThrows(match, 2)).toBe(1);
+  });
+
+  it('reads individual and atelier match scores defensively', () => {
+    const match = createMatch('A', 'B');
+    match.scores1 = { 0: { 6: 'carreau', 7: 'reussi' }, 1: 'invalid' };
+
+    expect(getMatchScoreAt(match, 1, 0, 6)).toBe('carreau');
+    expect(getMatchScoreAt(match, 2, 0, 6)).toBeNull();
+    expect(getMatchAtelierScore(match, 1, 0)).toBe(8);
+    expect(getMatchAtelierScore(match, 1, 1)).toBe(0);
+    expect(isMatchAtelierComplete(match, 1, 0, 2)).toBe(true);
+    expect(isMatchAtelierComplete(match, 1, 1, 2)).toBe(false);
+  });
+});
+
+describe('immutable playoff score updates', () => {
+  it('toggles throws and derives score, completion, winner, and loser', () => {
+    const match = createMatch('A', 'B');
+    const withPlayer1 = toggleTirMatchScore(match, 1, 0, 6, 'carreau', 1);
+    const complete = toggleTirMatchScore(withPlayer1, 2, 0, 6, 'reussi', 1);
+
+    expect(match).toEqual(createMatch('A', 'B'));
+    expect(withPlayer1.score1).toBe(5);
+    expect(withPlayer1.complete).toBe(false);
+    expect(complete).toMatchObject({ score1: 5, score2: 3, complete: true, winner: 'A', loser: 'B' });
+    expect(complete.scores1).toBe(withPlayer1.scores1);
+    expect(complete.scores2).not.toBe(withPlayer1.scores2);
+  });
+
+  it('clears a stale result when a completed match becomes incomplete', () => {
+    const complete = updateTirMatchFromScores(
+      {
+        ...createMatch('A', 'B'),
+        scores1: { 0: { 6: 'carreau' } },
+        scores2: { 0: { 6: 'reussi' } },
+      },
+      1,
+    );
+    const incomplete = toggleTirMatchScore(complete, 2, 0, 6, 'reussi', 1);
+
+    expect(incomplete).toMatchObject({ score1: 5, score2: 0, complete: false, winner: null, loser: null });
+  });
+
+  it('requires and applies an explicit winner for a tied match', () => {
+    let match = toggleTirMatchScore(createMatch('A', 'B'), 1, 0, 6, 'manque', 1);
+    match = toggleTirMatchScore(match, 2, 0, 6, 'manque', 1);
+
+    expect(match).toMatchObject({ score1: 0, score2: 0, complete: false, winner: null });
+    const decided = selectTirMatchTieWinner(match, 2, 1);
+    expect(decided).toMatchObject({ complete: true, winner: 'B', loser: 'A', tieWinner: 2 });
+    expect(match.tieWinner).toBeNull();
   });
 });
 

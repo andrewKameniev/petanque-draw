@@ -51,21 +51,7 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-pmatch__legend">
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span
-      >
-      <span class="tir-pmatch__legend-item"
-        ><span class="tir-pmatch__legend-dot tir-pmatch__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span
-      >
-    </div>
+    <TirScoreLegend />
 
     <!-- All ateliers with circles -->
     <div v-for="(atelier, aIdx) in ateliers" :key="aIdx" class="tir-pmatch__atelier">
@@ -76,33 +62,35 @@
       <div class="tir-pmatch__circles-grid">
         <div v-for="distance in distances" :key="distance" class="tir-pmatch__circles-row">
           <div class="tir-pmatch__circles tir-pmatch__circles--left">
-            <button
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
-              type="button"
               class="tir-pmatch__circle"
-              :class="[
-                `tir-pmatch__circle--${opt.key}`,
-                { 'tir-pmatch__circle--active': getScore(1, aIdx, distance) === opt.key },
-              ]"
+              :class="`tir-pmatch__circle--${opt.key}`"
+              size="large"
+              :result="opt.key"
+              :active="getScore(1, aIdx, distance) === opt.key"
+              :interactive="!readOnly"
               :disabled="readOnly"
-              @click="setScore(1, aIdx, distance, opt.key)"
-            ></button>
+              :aria-label="`${match.player1}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
+              @select="setScore(1, aIdx, distance, opt.key)"
+            />
           </div>
           <div class="tir-pmatch__distance">{{ distance }}m</div>
           <div class="tir-pmatch__circles tir-pmatch__circles--right">
-            <button
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
-              type="button"
               class="tir-pmatch__circle"
-              :class="[
-                `tir-pmatch__circle--${opt.key}`,
-                { 'tir-pmatch__circle--active': getScore(2, aIdx, distance) === opt.key },
-              ]"
+              :class="`tir-pmatch__circle--${opt.key}`"
+              size="large"
+              :result="opt.key"
+              :active="getScore(2, aIdx, distance) === opt.key"
+              :interactive="!readOnly"
               :disabled="readOnly"
-              @click="setScore(2, aIdx, distance, opt.key)"
-            ></button>
+              :aria-label="`${match.player2}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
+              @select="setScore(2, aIdx, distance, opt.key)"
+            />
           </div>
         </div>
       </div>
@@ -126,12 +114,25 @@
 
 <script>
 import { ChevronLeft } from 'lucide-vue-next';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
-import { SCORING } from '@/services/tir';
+import {
+  SCORING,
+  RESULT_OPTIONS,
+  getMatchScoreAt,
+  getMatchAtelierScore,
+  getMatchPlayerScore,
+  getMatchPlayerThrows,
+  isMatchAtelierComplete,
+  isMatchComplete,
+  toggleTirMatchScore,
+  selectTirMatchTieWinner,
+} from '@/services/tir';
 
 export default {
   name: 'TirPlayoffMatch',
-  components: { ChevronLeft },
+  components: { ChevronLeft, TirScoreCircle, TirScoreLegend },
   props: {
     match: { type: Object, required: true },
     ateliers: { type: Array, required: true },
@@ -142,12 +143,7 @@ export default {
   emits: ['back', 'update'],
   computed: {
     resultOptions() {
-      return [
-        { key: 'carreau', points: 5 },
-        { key: 'reussi', points: 3 },
-        { key: 'touche', points: 1 },
-        { key: 'manque', points: 0 },
-      ];
+      return RESULT_OPTIONS;
     },
     maxAtelierScore() {
       return this.distances.length * SCORING.carreau;
@@ -181,9 +177,7 @@ export default {
       return this.getPlayerTotal(2) > this.getPlayerTotal(1);
     },
     matchComplete() {
-      if (!this.bothComplete) return false;
-      if (this.isTied) return !!this.match.tieWinner;
-      return true;
+      return isMatchComplete(this.match, this.totalThrows);
     },
     statusText() {
       if (this.matchComplete) return this.$t('tir.matchCompleted');
@@ -199,87 +193,38 @@ export default {
     },
   },
   methods: {
-    /* eslint-disable vue/no-mutating-props */
-    getScores(playerNum) {
-      const key = playerNum === 1 ? 'scores1' : 'scores2';
-      if (!this.match[key]) this.match[key] = {};
-      return this.match[key];
-    },
     getScore(playerNum, atelierIdx, distance) {
-      return this.getScores(playerNum)?.[atelierIdx]?.[distance] || null;
+      return getMatchScoreAt(this.match, playerNum, atelierIdx, distance);
     },
     setScore(playerNum, atelierIdx, distance, type) {
-      const scores = this.getScores(playerNum);
-      if (!scores[atelierIdx]) scores[atelierIdx] = {};
-      const current = scores[atelierIdx][distance];
-      if (current === type) {
-        delete scores[atelierIdx][distance];
-      } else {
-        scores[atelierIdx][distance] = type;
-      }
-      this.updateMatchTotals();
-      this.$emit('update');
-      if (this.matchComplete) {
+      if (this.readOnly) return;
+      const updatedMatch = toggleTirMatchScore(this.match, playerNum, atelierIdx, distance, type, this.totalThrows);
+      this.$emit('update', updatedMatch);
+      if (updatedMatch.complete) {
         setTimeout(() => {
           this.$emit('back');
         }, 500);
       }
     },
     getAtelierTotal(playerNum, atelierIdx) {
-      const scores = this.getScores(playerNum)?.[atelierIdx];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getMatchAtelierScore(this.match, playerNum, atelierIdx);
     },
     getPlayerTotal(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          Object.values(atelier).forEach((val) => {
-            total += SCORING[val] || 0;
-          });
-        }
-      });
-      return total;
+      return getMatchPlayerScore(this.match, playerNum);
     },
     getPlayerThrows(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          count += Object.keys(atelier).length;
-        }
-      });
-      return count;
+      return getMatchPlayerThrows(this.match, playerNum);
     },
     isAtelierComplete(playerNum, atelierIdx) {
-      const scores = this.getScores(playerNum)?.[atelierIdx];
-      if (!scores) return false;
-      return Object.keys(scores).length >= this.distances.length;
-    },
-    updateMatchTotals() {
-      this.match.score1 = this.getPlayerTotal(1);
-      this.match.score2 = this.getPlayerTotal(2);
-      this.match.complete = this.matchComplete;
-      if (this.matchComplete) {
-        this.match.winner = this.isPlayer1Winner ? this.match.player1 : this.match.player2;
-        this.match.loser = this.isPlayer1Winner ? this.match.player2 : this.match.player1;
-      } else {
-        this.match.winner = null;
-        this.match.loser = null;
-      }
+      return isMatchAtelierComplete(this.match, playerNum, atelierIdx, this.distances.length);
     },
     selectTieWinner(playerNum) {
-      this.match.tieWinner = playerNum;
-      this.updateMatchTotals();
-      this.$emit('update');
+      const updatedMatch = selectTirMatchTieWinner(this.match, playerNum, this.totalThrows);
+      this.$emit('update', updatedMatch);
       setTimeout(() => {
         this.$emit('back');
       }, 500);
     },
-    /* eslint-enable vue/no-mutating-props */
   },
 };
 </script>
@@ -425,46 +370,6 @@ export default {
   color: var(--tir-winner-text);
 }
 
-/* Legend */
-
-.tir-pmatch__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.tir-pmatch__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tir-pmatch__legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tir-pmatch__legend-dot--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-pmatch__legend-dot--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-pmatch__legend-dot--touche {
-  background: var(--tir-touche);
-}
-
-.tir-pmatch__legend-dot--manque {
-  background: var(--tir-manque);
-}
-
 /* Atelier cards */
 
 .tir-pmatch__atelier {
@@ -533,47 +438,6 @@ export default {
   color: var(--color-text-muted);
   min-width: 30px;
   text-align: center;
-}
-
-.tir-pmatch__circle {
-  appearance: none;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid var(--tir-circle-inactive);
-  background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
-  opacity: 0.4;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.tir-pmatch__circle:disabled {
-  cursor: default;
-}
-
-.tir-pmatch__circle--active {
-  opacity: 1;
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-pmatch__circle--active.tir-pmatch__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 /* Summary */

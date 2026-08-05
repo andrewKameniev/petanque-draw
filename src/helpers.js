@@ -1,3 +1,5 @@
+import { rankPoulesGroups, rankBarrageGroups, rankRoundRobinGroups, rankSwissGroups } from '@/services/group-ranking';
+
 const tournamentNames = [
   'A',
   'B',
@@ -417,45 +419,6 @@ function getGameResultBetween(games, team1, team2) {
   return diff;
 }
 
-function accumulateGroupStats(group, allRoundGames, { filterByGroup = null, requireFinished = false } = {}) {
-  const teamWins = {};
-  const teamPointsPlus = {};
-  const teamPointsMinus = {};
-  group.forEach((t) => {
-    teamWins[t.title] = 0;
-    teamPointsPlus[t.title] = 0;
-    teamPointsMinus[t.title] = 0;
-  });
-
-  allRoundGames.forEach((roundGames) => {
-    const games = filterByGroup !== null ? roundGames.filter((g) => g.group === filterByGroup) : roundGames;
-    games.forEach((game) => {
-      if (game.team_1_score == null || game.team_2_score == null) return;
-      if (requireFinished && (game.status === 'in_progress' || game.status === 'not_started')) return;
-      const t1 = game.team_1;
-      const t2 = game.team_2;
-      if (!(t1 in teamWins) || !(t2 in teamWins)) return;
-      const s1 = Number(game.team_1_score);
-      const s2 = Number(game.team_2_score);
-      teamPointsPlus[t1] = (teamPointsPlus[t1] || 0) + s1;
-      teamPointsMinus[t1] = (teamPointsMinus[t1] || 0) + s2;
-      teamPointsPlus[t2] = (teamPointsPlus[t2] || 0) + s2;
-      teamPointsMinus[t2] = (teamPointsMinus[t2] || 0) + s1;
-      if (s1 > s2) {
-        teamWins[t1]++;
-      } else if (s2 > s1) {
-        teamWins[t2]++;
-      }
-    });
-  });
-
-  group.forEach((team) => {
-    team.wins = teamWins[team.title] || 0;
-    team.pointsPlus = teamPointsPlus[team.title] || 0;
-    team.pointsMinus = teamPointsMinus[team.title] || 0;
-  });
-}
-
 function sortSwissWithLiveStats(tournament) {
   if (!tournament.games?.length) {
     return sortTeams(tournament.teams.map((t) => ({ ...t, gamesPlayed: 0 })));
@@ -529,74 +492,42 @@ function sortSwissWithLiveStats(tournament) {
 }
 
 function getTeamsRanking(tournament, activeRound) {
-  if (tournament.teams) {
-    if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
-      let sortedGroups = [];
-      tournament.groups.forEach((group, groupIndex) => {
-        accumulateGroupStats(group, tournament.games, { filterByGroup: groupIndex });
-        let groupRanking = group
-          .slice()
-          .sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
-        sortedGroups.push(groupRanking);
-      });
-      return sortedGroups;
-    } else if (
-      tournament.groups?.length &&
-      !tournament.barrage &&
-      (activeRound > 1 || tournament.groupSchedule || tournament.groups)
-    ) {
-      let sortedGroups = [];
-      if (tournament.preferences?.groupFormat === 'swiss') {
-        const teamMap = new Map(tournament.teams.map((t) => [t.title, t]));
-        tournament.groups.forEach((group) => {
-          const groupTitles = new Set(group.map((g) => g.title));
-          const groupTeams = group.map((g) => {
-            const fullTeam = teamMap.get(g.title);
-            if (!fullTeam) return { ...g, opponents: [], wins: 0, pointsPlus: 0, pointsMinus: 0 };
-            return {
-              ...fullTeam,
-              opponents: (fullTeam.opponents || []).filter((o) => groupTitles.has(o)),
-            };
-          });
-          sortedGroups.push(sortTeams(groupTeams));
-        });
-      } else {
-        tournament.groups.forEach((group) => {
-          if (tournament.games) {
-            accumulateGroupStats(group, tournament.games, { requireFinished: true });
-          }
-          let groupRanking = rankGroupByRegulations(group, tournament.games || []);
-          sortedGroups.push(groupRanking);
-        });
-      }
-      return sortedGroups;
-    } else if (
-      tournament.barrage &&
-      tournament.barrage.groups &&
-      activeRound > tournament.barrage.startIndex &&
-      !tournament.playOff &&
-      !tournament.tournamentIsFinished
-    ) {
-      let sortedGroups = [];
-      const barrageGames = tournament.games.slice(tournament.barrage.startIndex);
-      tournament.barrage.groups.forEach((group, groupIndex) => {
-        accumulateGroupStats(group, barrageGames, { filterByGroup: groupIndex });
-        let groupRanking = group
-          .slice()
-          .sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
-        sortedGroups.push(groupRanking);
-      });
-      return sortedGroups;
-    } else if (tournament.system === 'supermele') {
-      return sortTeamsForSupermele(tournament.teams);
-    } else if (tournament.system === 'tir') {
-      return tournament.teams || [];
-    } else {
-      return sortSwissWithLiveStats(tournament);
-    }
-  } else {
-    return [];
+  if (!tournament.teams) return [];
+
+  if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
+    return rankPoulesGroups(tournament);
   }
+
+  if (
+    tournament.groups?.length &&
+    !tournament.barrage &&
+    (activeRound > 1 || tournament.groupSchedule || tournament.groups)
+  ) {
+    if (tournament.preferences?.groupFormat === 'swiss') {
+      return rankSwissGroups(tournament, sortTeams);
+    }
+    return rankRoundRobinGroups(tournament, rankGroupByRegulations);
+  }
+
+  if (
+    tournament.barrage &&
+    tournament.barrage.groups &&
+    activeRound > tournament.barrage.startIndex &&
+    !tournament.playOff &&
+    !tournament.tournamentIsFinished
+  ) {
+    return rankBarrageGroups(tournament);
+  }
+
+  if (tournament.system === 'supermele') {
+    return sortTeamsForSupermele(tournament.teams);
+  }
+
+  if (tournament.system === 'tir') {
+    return tournament.teams || [];
+  }
+
+  return sortSwissWithLiveStats(tournament);
 }
 function gameHasError(game, maxScore) {
   return (

@@ -199,6 +199,7 @@
                 :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
                 :timer-ends-at="activeTournamentView.roundTimer.timerEndsAt"
                 :timer-status="activeTournamentView.roundTimer.timerStatus"
+                :remaining-ms="activeTournamentView.roundTimer.remainingMs || 0"
                 :cochonettes-enabled="!!activeTournamentView.preferences.timeLimitEnabled"
                 :cochonettes="activeTournamentView.preferences.cochonettes || 1"
                 :read-only="true"
@@ -869,7 +870,7 @@ export default {
     showPublicTimer() {
       const t = this.activeTournamentView;
       const rt = t?.roundTimer;
-      return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'ended');
+      return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'paused' || rt.timerStatus === 'ended');
     },
     teamNames() {
       const t = this.activeTournamentView;

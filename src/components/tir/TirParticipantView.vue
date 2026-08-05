@@ -14,21 +14,7 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-pview__legend">
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span
-      >
-    </div>
+    <TirScoreLegend />
 
     <!-- All ateliers stacked (readOnly) -->
     <template v-if="readOnly">
@@ -41,16 +27,14 @@
         <div class="tir-pview__circles-grid">
           <div v-for="distance in distances" :key="distance" class="tir-pview__circles-row">
             <span class="tir-pview__circles-dist">{{ distance }}m</span>
-            <span
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
               class="tir-pview__circle"
-              :class="[
-                `tir-pview__circle--${opt.key}`,
-                { 'tir-pview__circle--active': getScoreAt(aIdx, distance) === opt.key },
-              ]"
-            >
-            </span>
+              :class="`tir-pview__circle--${opt.key}`"
+              :result="opt.key"
+              :active="getScoreAt(aIdx, distance) === opt.key"
+            />
           </div>
         </div>
       </div>
@@ -151,6 +135,8 @@
 
 <script>
 import { ChevronLeft, ChevronRight, CheckCircle, Check as CheckIcon } from 'lucide-vue-next';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
 import {
   SCORING,
@@ -164,7 +150,7 @@ import {
 
 export default {
   name: 'TirParticipantView',
-  components: { ChevronLeft, ChevronRight, CheckCircle, CheckIcon },
+  components: { ChevronLeft, ChevronRight, CheckCircle, CheckIcon, TirScoreCircle, TirScoreLegend },
   props: {
     participant: { type: Object, required: true },
     ateliers: { type: Array, required: true },
@@ -416,46 +402,6 @@ export default {
   margin-bottom: 8px;
 }
 
-/* Legend */
-
-.tir-pview__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.tir-pview__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tir-pview__legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tir-pview__legend-dot--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-pview__legend-dot--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-pview__legend-dot--touche {
-  background: var(--tir-touche);
-}
-
-.tir-pview__legend-dot--manque {
-  background: var(--tir-manque);
-}
-
 /* Grid */
 
 .tir-pview__grid {
@@ -677,40 +623,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.tir-pview__circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--tir-circle-inactive);
-  background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
-  opacity: 0.35;
-  transition: all 0.15s;
-}
-
-.tir-pview__circle--active {
-  opacity: 1;
-}
-
-.tir-pview__circle--active.tir-pview__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 .tir-pview__circles-dist {

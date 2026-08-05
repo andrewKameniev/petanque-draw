@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <PublicPageShell class="wrapper">
     <Navbar @open-menu="menuOpen = !menuOpen" />
     <Menu :active="menuOpen" @closeMenu="menuOpen = false" />
     <div class="container">
@@ -340,19 +340,13 @@
               class="mt-3"
             />
             <template v-else>
-              <div class="tournament-nav">
-                <button
-                  v-for="(tab, index) in tabs"
-                  :key="index"
-                  class="tournament-nav__btn"
-                  :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-                  @click="activeTab = tab.id"
-                >
-                  <component :is="tab.icon" :size="18" />
-                  <span>{{ tab.label }}</span>
-                </button>
-              </div>
-              <div class="tabs-content-area">
+              <TournamentNav v-model="activeTab" :tabs="tabs" />
+              <div
+                id="tournament-tabpanel"
+                class="tabs-content-area"
+                role="tabpanel"
+                :aria-labelledby="`tab-${activeTab}`"
+              >
                 <div v-if="activeTab === 'teams'">
                   <TeamsList :previewTournament="activeTournament" />
                 </div>
@@ -376,7 +370,7 @@
       </div>
     </div>
     <Footer />
-  </div>
+  </PublicPageShell>
 </template>
 
 <script>
@@ -396,6 +390,8 @@ import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
+import PublicPageShell from '@/components/ui/PublicPageShell.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 import {
   GitFork,
   Users,
@@ -411,6 +407,8 @@ import {
 export default {
   name: 'Archived',
   components: {
+    PublicPageShell,
+    TournamentNav,
     Footer,
     Navbar,
     Menu,
@@ -423,10 +421,6 @@ export default {
     Ranking,
     Protocol,
     GitFork,
-    Users,
-    List,
-    TrophyIcon,
-    FileText,
     Pencil,
     Link2,
     RefreshCw,
@@ -530,12 +524,12 @@ export default {
     },
     tabs() {
       const tabs = [
-        { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-        { id: 'results', label: this.$t('teams.results'), icon: 'List' },
-        { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' },
+        { id: 'teams', label: this.$t('teams.teams'), icon: Users },
+        { id: 'results', label: this.$t('teams.results'), icon: List },
+        { id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon },
       ];
       if (this.activeTournament?.tournamentIsFinished && this.activeTournament?.teams?.length) {
-        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: 'FileText' });
+        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
       }
       return tabs;
     },
@@ -909,32 +903,6 @@ export default {
 </script>
 
 <style scoped>
-.wrapper {
-  position: relative;
-  background: transparent;
-  min-height: 100vh;
-}
-
-.wrapper::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('@/assets/img/bg-petanque.avif') repeat;
-  background-size: 800px;
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .wrapper::before {
-  display: none;
-}
-
-.wrapper > * {
-  position: relative;
-  z-index: 1;
-}
-
 .wrapper :deep(.navbar) {
   z-index: 10;
 }
@@ -1096,51 +1064,6 @@ export default {
   color: var(--color-primary);
   text-transform: lowercase;
   white-space: nowrap;
-}
-
-.tournament-nav {
-  display: flex;
-  background: var(--color-surface, var(--color-white));
-  border: 1px solid var(--color-border);
-  border-radius: 10px 10px 0 0;
-  border-bottom: none;
-  padding: 6px 0;
-}
-
-.tournament-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tournament-nav__btn--active {
-  font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete, #e53935);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau, #4caf50);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche, #ff9800);
-}
-
-.tournament-nav__btn--protocol.tournament-nav__btn--active {
-  color: var(--color-primary, #6c63ff);
 }
 
 .tabs-content-area {

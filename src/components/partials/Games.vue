@@ -77,31 +77,19 @@
             }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></template
           >
         </h2>
-        <div v-if="showTimerSection" class="round-timer-section">
-          <RoundTimer
-            v-if="
-              tournament.roundTimer?.timerStatus === 'running' ||
-              tournament.roundTimer?.timerStatus === 'ended' ||
-              tournament.roundTimer?.timerStatus === 'paused'
-            "
-            :timer-started-at="tournament.roundTimer.timerStartedAt"
-            :timer-ends-at="tournament.roundTimer.timerEndsAt"
-            :timer-status="tournament.roundTimer.timerStatus"
-            :remaining-ms="tournament.roundTimer.remainingMs || 0"
-            :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-            :cochonettes="tournament.preferences.cochonettes || 1"
-            :read-only="!isOwnerOrAdmin"
-            @timer-ended="onTimerEnded"
-            @restart="onTimerRestart"
-            @pause="pauseRoundTimer"
-            @resume="resumeRoundTimer"
-            @reset="clearRoundTimer"
-          />
-          <button v-else-if="isOwnerOrAdmin" class="start-timer-btn" @click="startRoundTimer">
-            <Timer :size="16" />
-            {{ $t('timer.startTimer') }}
-          </button>
-        </div>
+        <RoundTimerControls
+          :enabled="showTimerSection"
+          :timer="tournament.roundTimer"
+          :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+          :cochonettes="tournament.preferences.cochonettes || 1"
+          :read-only="!isOwnerOrAdmin"
+          @start="startRoundTimer"
+          @timer-ended="onTimerEnded"
+          @restart="onTimerRestart"
+          @pause="pauseRoundTimer"
+          @resume="resumeRoundTimer"
+          @reset="clearRoundTimer"
+        />
         <div class="games-toolbar">
           <button class="games-toolbar__toggle is-hidden-tablet" @click="compactView = !compactView">
             {{ compactView ? $t('games.full') : $t('games.compact') }} {{ $t('games.view') }}
@@ -322,11 +310,11 @@ import {
 } from '@/services/draw';
 import Game from '@/components/partials/Game.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
-import { ChevronDown, Shuffle, Timer } from 'lucide-vue-next';
+import { ChevronDown, Shuffle } from 'lucide-vue-next';
 import WinnerTrophyIcon from '@/components/icons/WinnerTrophyIcon.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
-import RoundTimer from '@/components/partials/RoundTimer.vue';
+import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import { getGameLaneNumber } from '@/services/lanes';
 
 export default {
@@ -338,11 +326,10 @@ export default {
     TeamPlayoff,
     ChevronDown,
     Shuffle,
-    Timer,
     WinnerTrophyIcon,
     ConfirmRemoveModal,
     FinishedBanner,
-    RoundTimer,
+    RoundTimerControls,
   },
   props: ['activeRound', 'teamsInGroup', 'rankingTeams', 'activeTournament'],
   data() {
@@ -1097,32 +1084,6 @@ export default {
 </script>
 
 <style scoped>
-.round-timer-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-}
-
-.start-timer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.start-timer-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-btn-text);
-}
-
 .draw-card {
   display: flex;
   flex-direction: column;

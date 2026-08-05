@@ -3,14 +3,13 @@ import Game from '@/components/partials/Game.vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking, isScoreError, updateScoreHistory } from '@/helpers';
-import { Timer } from 'lucide-vue-next';
-import RoundTimer from '@/components/partials/RoundTimer.vue';
+import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 
 export default {
   name: 'Cadrage',
   props: ['activeTournament', 'isPublicView'],
   emits: ['startPlayOff', 'finish'],
-  components: { Game, Timer, RoundTimer },
+  components: { Game, RoundTimerControls },
   data() {
     return {
       scoreError: false,
@@ -99,30 +98,18 @@ export default {
 <template>
   <div>
     <h2 class="text-center" data-testid="cadrage-heading">{{ $t('games.cadrage') }}</h2>
-    <div v-if="showTimerSection" class="round-timer-section">
-      <RoundTimer
-        v-if="
-          tournament.roundTimer?.timerStatus === 'running' ||
-          tournament.roundTimer?.timerStatus === 'ended' ||
-          tournament.roundTimer?.timerStatus === 'paused'
-        "
-        :timer-started-at="tournament.roundTimer.timerStartedAt"
-        :timer-ends-at="tournament.roundTimer.timerEndsAt"
-        :timer-status="tournament.roundTimer.timerStatus"
-        :remaining-ms="tournament.roundTimer.remainingMs || 0"
-        :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-        :cochonettes="tournament.preferences.cochonettes || 1"
-        @timer-ended="onTimerEnded"
-        @restart="onTimerRestart"
-        @pause="pauseRoundTimer"
-        @resume="resumeRoundTimer"
-        @reset="clearRoundTimer"
-      />
-      <button v-else class="start-timer-btn" @click="startRoundTimer">
-        <Timer :size="16" />
-        {{ $t('timer.startTimer') }}
-      </button>
-    </div>
+    <RoundTimerControls
+      :enabled="showTimerSection"
+      :timer="tournament.roundTimer"
+      :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
+      :cochonettes="tournament.preferences.cochonettes || 1"
+      @start="startRoundTimer"
+      @timer-ended="onTimerEnded"
+      @restart="onTimerRestart"
+      @pause="pauseRoundTimer"
+      @resume="resumeRoundTimer"
+      @reset="clearRoundTimer"
+    />
     <Game
       v-for="(game, ind) in tournament.cadrage"
       :key="ind"
@@ -145,31 +132,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style scoped>
-.round-timer-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-}
-
-.start-timer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.start-timer-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-btn-text);
-}
-</style>

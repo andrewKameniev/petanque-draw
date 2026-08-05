@@ -10,17 +10,7 @@
       </div>
     </div>
 
-    <!-- Scoring legend -->
-    <div class="tir-aview__legend">
-      <span class="tir-score-badge tir-score-badge--carreau">{{ scoring.carreau }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.carreau') }}: {{ scoring.carreau }} p</span>
-      <span class="tir-score-badge tir-score-badge--reussi">{{ scoring.reussi }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.reussi') }}: {{ scoring.reussi }} p</span>
-      <span class="tir-score-badge tir-score-badge--touche">{{ scoring.touche }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.touche') }}: {{ scoring.touche }} p</span>
-      <span class="tir-score-badge tir-score-badge--manque">{{ scoring.manque }}</span>
-      <span class="tir-aview__legend-label">{{ $t('tir.manque') }}: {{ scoring.manque }} p</span>
-    </div>
+    <TirScoreLegend variant="badge" />
 
     <!-- Participants list for this atelier -->
     <div class="tir-aview__list">
@@ -125,6 +115,7 @@
 <script>
 import { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon } from 'lucide-vue-next';
 import Modal from '@/components/Modal';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
 import {
   SCORING,
@@ -137,7 +128,7 @@ import {
 
 export default {
   name: 'TirAtelierView',
-  components: { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal },
+  components: { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, CheckIcon, Modal, TirScoreLegend },
   props: {
     atelierIndex: { type: Number, required: true },
     atelier: { type: Object, required: true },
@@ -154,9 +145,6 @@ export default {
     };
   },
   computed: {
-    scoring() {
-      return SCORING;
-    },
     maxAtelierScore() {
       return this.distances.length * SCORING.carreau;
     },
@@ -223,20 +211,6 @@ export default {
 
 .tir-aview__desc {
   font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.tir-aview__legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  font-size: 12px;
-}
-
-.tir-aview__legend-label {
-  margin-right: 8px;
   color: var(--color-text-muted);
 }
 
@@ -486,35 +460,5 @@ export default {
   background: var(--tir-manque);
   border-color: var(--tir-manque);
   color: var(--color-btn-text);
-}
-
-/* Score badges */
-
-.tir-score-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-btn-text);
-}
-
-.tir-score-badge--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-score-badge--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-score-badge--touche {
-  background: var(--tir-touche);
-}
-
-.tir-score-badge--manque {
-  background: var(--tir-manque);
 }
 </style>

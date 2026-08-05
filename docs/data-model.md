@@ -333,4 +333,13 @@ The store uses the adapter's storage target to preserve granular write prefixes:
 legacy records. Root metadata such as name, date, message, portal ID, and
 collaborators always keeps its existing root path.
 
+## Pinia Reactive Mutation
+
+The adapter (`tournament-record.js`) is pure: every operation returns a new
+object and never mutates its input. The Pinia store intentionally assigns the
+returned object to reactive state (`this.tournaments[id] = normalizeTournamentRecord(...)`)
+which triggers Vue reactivity. This is the designed boundary between the pure
+domain layer and the reactive application layer — the adapter guarantees
+immutability, and the store owns the single point of reactive assignment.
+
 For TIR module, scoring components call `this.$emit('update')` which bubbles up to `TirModule.vue` where `onScoreUpdate()` calls `syncToFirebase()`.

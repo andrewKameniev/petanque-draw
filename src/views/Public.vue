@@ -196,6 +196,7 @@
                 :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
                 :timer-ends-at="activeTournamentView.roundTimer.timerEndsAt"
                 :timer-status="activeTournamentView.roundTimer.timerStatus"
+                :remaining-ms="activeTournamentView.roundTimer.remainingMs || 0"
                 :cochonettes-enabled="!!activeTournamentView.preferences.timeLimitEnabled"
                 :cochonettes="activeTournamentView.preferences.cochonettes || 1"
                 :read-only="true"
@@ -302,7 +303,6 @@
 import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import TeamsList from '@/components/partials/TeamsList';
-import { tournamentService } from '@/services/db';
 import {
   getTeamsRanking,
   getTournamentRanking,
@@ -326,16 +326,9 @@ import RoundTimer from '@/components/partials/RoundTimer.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 import PublicGameCard from '@/components/partials/PublicGameCard.vue';
 import { Users, List, Trophy as TrophyIcon, PlayCircle, Medal } from 'lucide-vue-next';
-import {
-  getTournamentGroup,
-  getTournamentMetadata,
-  getTournamentStorageTarget,
-  hasTournamentGroup,
-  isTournamentEnvelope,
-  normalizeTournamentRecord,
-  replaceTournamentGroup,
-  updateTournamentGroup,
-} from '@/services/tournament-record';
+import { getTournamentGroup, getTournamentMetadata, hasTournamentGroup } from '@/services/tournament-record';
+import { createLiveTournamentSource } from '@/services/live-tournament';
+import { resolveTournamentSource } from '@/services/tournament-ref';
 export default {
   name: 'Public',
   components: {
@@ -371,29 +364,29 @@ export default {
       highlightedTeam: null,
       girlImage: null,
       publicActiveGroup: 'A',
+      liveStatus: 'idle',
+      liveError: null,
     };
   },
   mounted() {
-    this._unsubscribers = [];
+    this._liveTournamentSource = createLiveTournamentSource({
+      profile: 'public',
+      onState: ({ status, record, error }) => {
+        this.liveStatus = status;
+        this.liveError = error;
+        this.isLoading = status === 'loading';
+        this.tournament = record;
+      },
+    });
     this.getInfo();
-    this._onResume = () => {
-      this._unsubscribeAll();
-      this.getInfo();
-    };
-    this._onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        this._onResume();
-      }
-    };
-    document.addEventListener('visibilitychange', this._onVisibilityChange);
-    window.addEventListener('online', this._onResume);
   },
   beforeUnmount() {
-    this._unsubscribeAll();
-    document.removeEventListener('visibilitychange', this._onVisibilityChange);
-    window.removeEventListener('online', this._onResume);
+    this._liveTournamentSource?.stop();
   },
   watch: {
+    '$route.fullPath'() {
+      this.getInfo();
+    },
     isLoading(val) {
       if (!val && !this.tournament) {
         import('@/assets/img/girl.avif').then((m) => {
@@ -535,17 +528,14 @@ export default {
         };
       });
     },
+    tournamentSource() {
+      return resolveTournamentSource(this.$route);
+    },
     userId() {
-      if (this.$route.query.ref) {
-        return this.parseRef().userId;
-      }
-      return this.$route.query.user;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.ownerUid : null;
     },
     tournamentId() {
-      if (this.$route.query.ref) {
-        return this.parseRef().tournamentId;
-      }
-      return this.$route.query.tournament;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.tournamentId : null;
     },
     colorSchema() {
       return this.activeTournamentView?.preferences?.colorSchema || '';
@@ -674,7 +664,7 @@ export default {
     showPublicTimer() {
       const t = this.activeTournamentView;
       const rt = t?.roundTimer;
-      return rt && (rt.timerStatus === 'running' || rt.timerStatus === 'ended');
+      return rt && ['running', 'paused', 'ended'].includes(rt.timerStatus);
     },
     teamNames() {
       const t = this.activeTournamentView;
@@ -705,183 +695,11 @@ export default {
       if (surname.length >= 11) return surname;
       return name;
     },
-    parseRef() {
-      const refParam = this.$route.query.ref;
-      if (refParam.includes('.')) {
-        const [userId, tournamentBase36] = refParam.split('.');
-        return { userId, tournamentId: parseInt(tournamentBase36, 36).toString() };
-      }
-      const decoded = atob(refParam);
-      const [userId, tournamentId] = decoded.split(':');
-      return { userId, tournamentId };
-    },
     pluralizeRounds(n) {
       return pluralizeRounds(n, this.$i18n.locale);
     },
-    async getInfo() {
-      this.isLoading = true;
-      if (this.$route.query) {
-        try {
-          const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
-          if (snapshot.exists()) {
-            this.tournament = normalizeTournamentRecord(snapshot.val(), { id: this.tournamentId });
-          }
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-        this.isLoading = false;
-        this._subscribeDynamic();
-      } else {
-        const id = this.$route.params.id;
-        fetch(`https://portal.petanque.org.ua/tournament/team_export/${id}?format=json`)
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            }
-            throw new Error('Error ' + response.status);
-          })
-          .then((tournamentInfo) => {
-            this.tournament = tournamentInfo.tournament.meta
-              ? normalizeTournamentRecord(JSON.parse(tournamentInfo.tournament.meta))
-              : null;
-            this.isLoading = false;
-          })
-          .catch(() => {
-            this.isLoading = false;
-          });
-      }
-    },
-    _subscribeDynamic() {
-      const isNew = isTournamentEnvelope(this.tournament);
-
-      if (isNew) {
-        const wrapperPaths = ['activeGroup', 'tournamentMessage'];
-        for (const path of wrapperPaths) {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
-            if (!this.tournament) return;
-            this.tournament = { ...this.tournament, [path]: snapshot.val() };
-          });
-          this._unsubscribers.push(unsub);
-        }
-        const dataFields = [
-          'games',
-          'roundIsActive',
-          'roundTimer',
-          'playOff',
-          'playOffBracket',
-          'playOffStage',
-          'cadrage',
-          'barrage',
-          'tournamentIsFinished',
-          'tournamentIsStarted',
-          'tirParticipants',
-          'tirPlayoff',
-          'tirRound',
-          'tirR2Participants',
-          'tirTiebreakerActive',
-          'tirTiebreakerCount',
-          'tirTiebreakerParticipantIds',
-          'tirConfig',
-          'tirStarted',
-          'teams',
-          'preferences',
-          'streamPresets',
-          'groups',
-          'system',
-        ];
-        const mainPrefix = getTournamentStorageTarget(this.tournament, 'A').prefix;
-        for (const field of dataFields) {
-          const unsub = tournamentService.subscribePath(
-            this.userId,
-            this.tournamentId,
-            `${mainPrefix}${field}`,
-            (snapshot) => {
-              if (!this.tournament) return;
-              this.tournament = updateTournamentGroup(this.tournament, 'A', { [field]: snapshot.val() });
-            },
-          );
-          this._unsubscribers.push(unsub);
-        }
-        {
-          const groupBPrefix = getTournamentStorageTarget(this.tournament, 'B', { allowFallback: false }).prefix;
-          const unsub = tournamentService.subscribePath(
-            this.userId,
-            this.tournamentId,
-            groupBPrefix.slice(0, -1),
-            (snapshot) => {
-              if (!this.tournament) return;
-              this.tournament = normalizeTournamentRecord(
-                replaceTournamentGroup(this.tournament, 'B', snapshot.val()),
-                { id: this.tournamentId },
-              );
-            },
-          );
-          this._unsubscribers.push(unsub);
-        }
-        const groupBPrefix = getTournamentStorageTarget(this.tournament, 'B', { allowFallback: false }).prefix;
-        for (const field of dataFields) {
-          const unsub = tournamentService.subscribePath(
-            this.userId,
-            this.tournamentId,
-            `${groupBPrefix}${field}`,
-            (snapshot) => {
-              if (!hasTournamentGroup(this.tournament, 'B')) return;
-              this.tournament = updateTournamentGroup(this.tournament, 'B', { [field]: snapshot.val() });
-            },
-          );
-          this._unsubscribers.push(unsub);
-        }
-      } else {
-        const paths = [
-          'games',
-          'roundIsActive',
-          'roundTimer',
-          'playOff',
-          'playOffBracket',
-          'playOffStage',
-          'cadrage',
-          'barrage',
-          'tournamentIsFinished',
-          'tournamentIsStarted',
-          'tournamentMessage',
-          'tirParticipants',
-          'tirPlayoff',
-          'tirRound',
-          'tirR2Participants',
-          'tirTiebreakerActive',
-          'tirTiebreakerCount',
-          'tirTiebreakerParticipantIds',
-          'tirConfig',
-          'tirStarted',
-          'teams',
-          'preferences',
-          'streamPresets',
-          'groups',
-          'system',
-          'activeGroup',
-          'groupB',
-        ];
-        for (const path of paths) {
-          const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, path, (snapshot) => {
-            if (!this.tournament) return;
-            if (path === 'groupB') {
-              this.tournament = normalizeTournamentRecord(
-                replaceTournamentGroup(this.tournament, 'B', snapshot.val()),
-                { id: this.tournamentId },
-              );
-            } else {
-              this.tournament = updateTournamentGroup(this.tournament, 'A', { [path]: snapshot.val() });
-            }
-          });
-          this._unsubscribers.push(unsub);
-        }
-      }
-    },
-    _unsubscribeAll() {
-      if (this._unsubscribers) {
-        this._unsubscribers.forEach((fn) => fn());
-        this._unsubscribers = [];
-      }
+    getInfo() {
+      return this._liveTournamentSource?.start(this.tournamentSource);
     },
   },
 };

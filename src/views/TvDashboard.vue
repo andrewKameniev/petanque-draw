@@ -470,19 +470,14 @@
 </template>
 
 <script>
-import { tournamentService } from '@/services/db';
 import { getTeamsRanking, pluralizeRounds } from '@/helpers';
 import { getGameLaneNumber } from '@/services/lanes';
 import DoubleElimination from '@/components/partials/DoubleElimination.vue';
 import headerMan from '@/assets/img/tv-header.png';
 import headerWoman from '@/assets/img/tv-header-woman.png';
-import {
-  getTournamentGroup,
-  getTournamentMetadata,
-  getTournamentStorageTarget,
-  normalizeTournamentRecord,
-  updateTournamentGroup,
-} from '@/services/tournament-record';
+import { getTournamentGroup, getTournamentMetadata } from '@/services/tournament-record';
+import { createLiveTournamentSource } from '@/services/live-tournament';
+import { resolveTournamentSource } from '@/services/tournament-ref';
 
 export default {
   name: 'TvDashboard',
@@ -500,10 +495,20 @@ export default {
       tableRotationKey: 0,
       tablePageSize: 27,
       qrCanvas: null,
+      liveStatus: 'idle',
+      liveError: null,
     };
   },
   mounted() {
-    this._unsubscribers = [];
+    this._liveTournamentSource = createLiveTournamentSource({
+      profile: 'tv',
+      onState: ({ status, record, error }) => {
+        this.liveStatus = status;
+        this.liveError = error;
+        this.isLoading = status === 'loading';
+        this.tournamentRecord = record;
+      },
+    });
     this.getInfo();
     this.clockInterval = setInterval(() => {
       this.now = Date.now();
@@ -519,9 +524,14 @@ export default {
     }, 12000);
   },
   beforeUnmount() {
-    this._unsubscribeAll();
+    this._liveTournamentSource?.stop();
     clearInterval(this.clockInterval);
     clearInterval(this.tableRotationInterval);
+  },
+  watch: {
+    '$route.fullPath'() {
+      this.getInfo();
+    },
   },
   computed: {
     tournament() {
@@ -530,27 +540,14 @@ export default {
     tournamentMetadata() {
       return getTournamentMetadata(this.tournamentRecord);
     },
+    tournamentSource() {
+      return resolveTournamentSource(this.$route);
+    },
     userId() {
-      if (this.$route.query.ref) {
-        const refParam = this.$route.query.ref;
-        if (refParam.includes('.')) {
-          return refParam.split('.')[0];
-        }
-        const decoded = atob(refParam);
-        return decoded.split(':')[0];
-      }
-      return this.$route.query.user;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.ownerUid : null;
     },
     tournamentId() {
-      if (this.$route.query.ref) {
-        const refParam = this.$route.query.ref;
-        if (refParam.includes('.')) {
-          return parseInt(refParam.split('.')[1], 36).toString();
-        }
-        const decoded = atob(refParam);
-        return decoded.split(':')[1];
-      }
-      return this.$route.query.tournament;
+      return this.tournamentSource.type === 'firebase' ? this.tournamentSource.tournamentId : null;
     },
     headerImage() {
       return this.$route.query.header === 'woman' ? headerWoman : headerMan;
@@ -678,6 +675,12 @@ export default {
       const rt = this.tournament?.roundTimer;
       if (!rt || rt.timerStatus === 'not_started') return '--:--';
       if (rt.timerStatus === 'ended') return '0:00';
+      if (rt.timerStatus === 'paused') {
+        const totalSeconds = Math.ceil((rt.remainingMs || 0) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
       if (rt.timerEndsAt) {
         const remaining = Math.max(0, new Date(rt.timerEndsAt).getTime() - this.now);
         const totalSeconds = Math.ceil(remaining / 1000);
@@ -946,61 +949,8 @@ export default {
     },
   },
   methods: {
-    async getInfo() {
-      this.isLoading = true;
-      try {
-        const snapshot = await tournamentService.getOne(this.userId, this.tournamentId);
-        if (snapshot.exists()) {
-          this.tournamentRecord = normalizeTournamentRecord(snapshot.val(), { id: this.tournamentId });
-        }
-      } catch (error) {
-        console.error('Error fetching TV data:', error);
-      }
-      this.isLoading = false;
-      this._subscribeDynamic();
-    },
-    _subscribeDynamic() {
-      const mainPaths = [
-        'games',
-        'roundIsActive',
-        'roundTimer',
-        'playOff',
-        'playOffBracket',
-        'playOffStage',
-        'cadrage',
-        'barrage',
-        'tournamentIsFinished',
-        'tournamentIsStarted',
-        'teams',
-        'preferences',
-        'groups',
-        'system',
-        'groupSchedule',
-      ];
-      const prefix = getTournamentStorageTarget(this.tournamentRecord, 'A').prefix;
-      for (const path of mainPaths) {
-        const unsub = tournamentService.subscribePath(this.userId, this.tournamentId, prefix + path, (snapshot) => {
-          if (!this.tournamentRecord) return;
-          this.tournamentRecord = updateTournamentGroup(this.tournamentRecord, 'A', { [path]: snapshot.val() });
-        });
-        this._unsubscribers.push(unsub);
-      }
-      const msgUnsub = tournamentService.subscribePath(
-        this.userId,
-        this.tournamentId,
-        'tournamentMessage',
-        (snapshot) => {
-          if (!this.tournamentRecord) return;
-          this.tournamentRecord = { ...this.tournamentRecord, tournamentMessage: snapshot.val() };
-        },
-      );
-      this._unsubscribers.push(msgUnsub);
-    },
-    _unsubscribeAll() {
-      if (this._unsubscribers) {
-        this._unsubscribers.forEach((fn) => fn());
-        this._unsubscribers = [];
-      }
+    getInfo() {
+      return this._liveTournamentSource?.start(this.tournamentSource);
     },
     formatName(name) {
       if (!name) return '—';

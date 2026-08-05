@@ -56,6 +56,7 @@ Any participant count from 2 upward. Non-power-of-two fields are padded with see
 ### Seeding
 
 Uses `getBracketSeedOrder()` — balanced seed positions ensuring:
+
 - Top seeds get byes when field is padded
 - Seeds 1 and 2 cannot meet before the upper final
 
@@ -66,7 +67,7 @@ Horizontally scrollable canvas showing both upper and lower brackets with stage 
 ### Final Ranking
 
 1. Grand Final winner = 1st
-2. Grand Final loser = 2nd  
+2. Grand Final loser = 2nd
 3. Onwards — by elimination round in the losers bracket (later elimination = higher place)
 
 Placements are computed by `getDoubleEliminationPlacements()` which walks lower stages from latest to earliest.
@@ -74,6 +75,7 @@ Placements are computed by `getDoubleEliminationPlacements()` which walks lower 
 ### Automatic advancement
 
 `advanceDoubleEliminationBracket()` resolves dependencies:
+
 - When a match finishes, its winner/loser propagate to the next matches automatically
 - Bye matches auto-complete (team vs empty = automatic win)
 - Multiple passes until no more changes

@@ -390,6 +390,8 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
+import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
+import { PortalError } from '@/services/portal';
 import { getGameLaneNumber } from '@/services/lanes';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
@@ -767,72 +769,15 @@ export default {
       if (!this.portalId || this.fetchingLogos) return;
       this.fetchingLogos = true;
       try {
-        const res = await fetch(`https://portal.petanque.org.ua/tournament/team_export/${this.portalId}?format=json`);
-        if (!res.ok) throw new Error(`Portal responded ${res.status}`);
-        const data = await res.json();
-        const portalTeams = data.teams || [];
-        const portalPlayers = [];
-        portalTeams.forEach((pt) => {
-          if (pt.players) {
-            pt.players.forEach((p) => {
-              portalPlayers.push({
-                firstName: p.name || '',
-                surname: p.surname || '',
-                club_logo_url: p.club_logo_url || null,
-                avatar_url: p.avatar_url || null,
-                club_id: p.club_id || null,
-                club: p.club || null,
-              });
-            });
-          }
+        const results = await syncFromPortal(this.portalId, {
+          teams: this.activeTournament.teams || null,
+          tirParticipants: this.activeTournament.tirParticipants || null,
+          fields: FIELD_SETS.media,
         });
-        let updated = 0;
-        const normalize = (s) => s.trim().toUpperCase();
-        const findPortalMatch = (p) => {
-          const localFull = normalize(p.surname ? `${p.surname} ${p.name}` : p.name);
-          const matches = portalPlayers.filter((pp) => {
-            const portalFull = normalize(`${pp.surname} ${pp.firstName}`);
-            return portalFull === localFull;
-          });
-          if (matches.length === 1) return matches[0];
-          if (matches.length > 1 && p.club_id) {
-            const byClub = matches.find((m) => m.club_id === p.club_id);
-            if (byClub) return byClub;
-          }
-          if (matches.length > 1 && p.club) {
-            const byClubName = matches.find((m) => m.club === p.club);
-            if (byClubName) return byClubName;
-          }
-          return null;
-        };
-        const patchPlayer = (p) => {
-          if (!p.name) return;
-          const portal = findPortalMatch(p);
-          if (!portal) return;
-          if (portal.club_logo_url && p.club_logo_url !== portal.club_logo_url) {
-            p.club_logo_url = portal.club_logo_url;
-            updated++;
-          }
-          if (portal.avatar_url && p.avatar_url !== portal.avatar_url) {
-            p.avatar_url = portal.avatar_url;
-            updated++;
-          }
-          if (portal.club_id) {
-            p.club_id = portal.club_id;
-          }
-          if (portal.club) {
-            p.club = portal.club;
-          }
-        };
-        if (this.activeTournament.teams) {
-          this.activeTournament.teams.forEach((team) => {
-            if (team.players) team.players.forEach(patchPlayer);
-          });
-        }
-        if (this.activeTournament.tirParticipants) {
-          this.activeTournament.tirParticipants.forEach(patchPlayer);
-        }
-        if (updated > 0) {
+
+        const totalChanged = (results.teams?.changedPlayers || 0) + (results.tirParticipants?.changedPlayers || 0);
+
+        if (totalChanged > 0) {
           const basePath = getTournamentStorageTarget(this.tournament, 'A').prefix;
           if (this.activeTournament.teams) {
             await tournamentService.updatePath(
@@ -852,8 +797,10 @@ export default {
           }
           this.$forceUpdate();
         }
-      } catch {
-        // silently fail
+      } catch (err) {
+        if (err instanceof PortalError) {
+          console.error(`Portal sync failed: ${err.message}`);
+        }
       } finally {
         this.fetchingLogos = false;
       }

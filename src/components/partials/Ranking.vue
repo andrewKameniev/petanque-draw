@@ -290,7 +290,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(team, index) in rankingTeams"
+                v-for="(team, index) in effectiveRankingTeams"
                 :key="team.title"
                 :class="{
                   'playoff-highlight': isPrizeHighlighted(index),
@@ -346,7 +346,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(team, index) in rankingTeams"
+                v-for="(team, index) in effectiveRankingTeams"
                 :key="team.title"
                 :class="{
                   'playoff-highlight': isPrizeHighlighted(index),
@@ -538,7 +538,13 @@
 </template>
 
 <script>
-import { tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent } from '@/helpers';
+import {
+  tournamentNames,
+  getGameResultInGroup,
+  getTournamentRanking,
+  copyContent,
+  sortSwissWithLiveStats,
+} from '@/helpers';
 import { getQualifiedCountForGroup, getPlayOffTeamsPerGroup } from '@/services/results';
 import { rankBarrageGroups } from '@/services/group-ranking';
 import { Copy, Check, Upload, Trophy } from 'lucide-vue-next';
@@ -862,15 +868,25 @@ export default {
       return 28;
     },
     rankingChunks() {
-      if (!this.rankingTeams) return [];
+      const teams = this.effectiveRankingTeams;
+      if (!teams) return [];
       const chunks = [];
-      for (let i = 0; i < this.rankingTeams.length; i += this.rankingChunkSize) {
-        chunks.push(this.rankingTeams.slice(i, i + this.rankingChunkSize));
+      for (let i = 0; i < teams.length; i += this.rankingChunkSize) {
+        chunks.push(teams.slice(i, i + this.rankingChunkSize));
       }
       return chunks;
     },
     barrageRankingTeams() {
       return rankBarrageGroups(this.tournament);
+    },
+    swissRankingTeams() {
+      return sortSwissWithLiveStats(this.tournament);
+    },
+    effectiveRankingTeams() {
+      if (this.isSwissOnly && this.hasActiveBarrage) {
+        return this.swissRankingTeams;
+      }
+      return this.rankingTeams;
     },
   },
 };

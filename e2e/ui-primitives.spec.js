@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { addTeams, deleteCurrentTournament, drawFirstRound, ensureCleanTournament } from './helpers';
+import { addTeams, deleteCurrentTournament, drawFirstRound, ensureCleanTournament, login } from './helpers';
+import { cleanupOwnedTournament, createFixtureId, seedOwnedTournament } from './firebase-fixtures';
 
 async function getPublicTournamentRef(page) {
   return page.evaluate(() => {
@@ -266,5 +267,63 @@ test.describe('Shared UI primitives', () => {
       .first()
       .evaluate((element) => window.getComputedStyle(element).backgroundColor);
     expect(darkCardBackground).not.toBe(lightCardBackground);
+  });
+
+  test('Archived: TournamentNav tabs visible on desktop and mobile with sidebar', async ({ page }) => {
+    const id = createFixtureId(70);
+    await seedOwnedTournament(
+      id,
+      {
+        name: 'UI Primitives Archived',
+        date: '2026-08-06',
+        system: 'swiss',
+        teams: [{ title: 'Prim A' }, { title: 'Prim B' }, { title: 'Prim C' }, { title: 'Prim D' }],
+        games: [[{ team_1: 'Prim A', team_2: 'Prim B', team_1_score: 13, team_2_score: 10, status: 'finished' }]],
+        preferences: {},
+      },
+      { status: 'archived' },
+    );
+    try {
+      await login(page);
+      await page
+        .locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]')
+        .first()
+        .waitFor({ state: 'visible' });
+
+      // Desktop viewport
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await page.goto('/#/archived');
+      const sidebarItem = page.locator(`.archived-sidebar__item[data-tournament-id="${id}"]`);
+      await expect(sidebarItem).toBeVisible();
+      await sidebarItem.click();
+      await page.waitForTimeout(500);
+
+      // Verify TournamentNav tabs exist in archived view
+      const tabs = page.getByRole('tablist');
+      await expect(tabs).toBeVisible();
+      const tabButtons = tabs.locator('[role="tab"]');
+      const tabCount = await tabButtons.count();
+      expect(tabCount).toBeGreaterThanOrEqual(2);
+
+      // Click ranking tab (if available)
+      const rankingTab = tabs.locator('[role="tab"]').filter({ hasText: /Ranking|ranking|Таблиця/ });
+      if ((await rankingTab.count()) > 0) {
+        await rankingTab.first().click();
+        await expect(rankingTab.first()).toHaveAttribute('aria-selected', 'true');
+      }
+
+      // Mobile viewport
+      await page.setViewportSize({ width: 375, height: 812 });
+      await page.waitForTimeout(300);
+
+      // Tabs still visible on mobile
+      await expect(tabs).toBeVisible();
+
+      // No horizontal overflow
+      const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+      expect(fitsViewport).toBe(true);
+    } finally {
+      await cleanupOwnedTournament(id);
+    }
   });
 });

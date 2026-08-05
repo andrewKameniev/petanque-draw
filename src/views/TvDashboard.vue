@@ -23,7 +23,10 @@
               tournamentMetadata.tournamentMessage
             }}</span>
           </div>
-          <div class="tv__timer-box" :class="{ 'tv__timer-box--ended': timerEnded }">
+          <div
+            class="tv__timer-box"
+            :class="{ 'tv__timer-box--ended': timerEnded, 'tv__timer-box--paused': timerPaused }"
+          >
             <div class="tv__timer-icon">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10" />
@@ -690,6 +693,10 @@ export default {
       }
       return '--:--';
     },
+    timerPaused() {
+      const rt = this.tournament?.roundTimer;
+      return rt?.timerStatus === 'paused';
+    },
     timerEnded() {
       const rt = this.tournament?.roundTimer;
       if (!rt) return false;
@@ -1224,6 +1231,19 @@ export default {
 .tv__timer-box--ended {
   background: #fef2f2;
   border-color: var(--tv-timer-danger);
+}
+
+.tv__timer-box--paused {
+  background: var(--color-warning-bg, #fffbeb);
+  border-color: var(--color-warning, #f59e0b);
+}
+
+.tv__timer-box--paused .tv__timer-icon {
+  color: var(--color-warning, #f59e0b);
+}
+
+.tv__timer-box--paused .tv__timer-value {
+  color: var(--color-warning, #f59e0b);
 }
 
 .tv__timer-icon {

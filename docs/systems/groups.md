@@ -95,6 +95,53 @@ Admins can edit match results from any completed round via the Results tab (penc
 - Standings are immediately reflected in both admin and public views
 - The schedule is unaffected since all matches are pre-generated
 
+## Ranking Pipeline (`src/services/group-ranking.js`)
+
+All ranking computations are handled by a pure service layer that never mutates input data.
+
+### Status Policy
+
+| System      | Statuses counted in ranking                                           |
+| ----------- | --------------------------------------------------------------------- |
+| Round-robin | `finished` only — in-progress games are excluded from standings       |
+| Swiss       | Uses team-level stats (wins/opponents), not per-game status filtering |
+| Poules      | All scored games (any status with non-null scores)                    |
+| Barrage     | All scored games from `barrage.startIndex` onward                     |
+
+### Score Conversion
+
+Persisted scores may be strings (legacy data). All scores are converted via `Number()` before accumulation. Games with `null` scores on either side are skipped entirely.
+
+### Tie-Break Order Per System
+
+**Round-robin (regulation):**
+
+```
+wins > directWins (h2h) > directPoints (h2h point diff) > overall point difference
+```
+
+When 2+ teams are tied, a recursive mini-table of their mutual games is computed.
+
+**Swiss:**
+
+```
+wins > buchholz > smallBuchholz > pointDiff > pointsPlus > rating
+```
+
+Only within-group opponents count for Buchholz.
+
+**Poules / Barrage (simple):**
+
+```
+wins > (pointsPlus - pointsMinus)
+```
+
+### Partial-Score Visibility
+
+- **Live ranking (admin view):** Round-robin shows only completed games. Poules/barrage include in-progress scored games.
+- **Public view:** Same rules — uses the same service functions.
+- **Active round:** Games currently being played do NOT appear in round-robin standings until finished.
+
 ## After Groups
 
 Top N teams from each group advance to [Playoff](./playoff.md) or [Cadrage](./cadrage.md).

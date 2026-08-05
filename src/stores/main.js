@@ -6,6 +6,7 @@ import { userMapService, collaboratorService } from '@/services/db';
 import i18n from '@/i18n';
 import {
   createTournamentData,
+  createTournamentRecord,
   getActiveTournamentGroup,
   getTournamentMain,
   getTournamentMetadata,
@@ -14,23 +15,16 @@ import {
   normalizeTournamentRecord,
   replaceTournamentGroup,
 } from '@/services/tournament-record';
+import {
+  createRoundTimer,
+  endRoundTimerState,
+  pauseRoundTimerState,
+  restartRoundTimerState,
+  resumeRoundTimerState,
+} from '@/services/round-timer';
 
 export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 const ARCHIVE_STATUS_VERSION = 1;
-
-function createTournament(overrides = {}) {
-  const { name, id, createdAt, ...dataOverrides } = overrides;
-  const wrapper = {
-    name: name || 'Tournament A',
-    tournamentMessage: '',
-    activeGroup: 'A',
-    tournamentB: null,
-    main: createTournamentData(dataOverrides),
-  };
-  if (id) wrapper.id = id;
-  if (createdAt) wrapper.createdAt = createdAt;
-  return wrapper;
-}
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -1049,59 +1043,36 @@ export const useMainStore = defineStore('main', {
     },
     startRoundTimer() {
       const { data, prefix } = this._getTarget();
-      if (!data?.preferences?.timeLimitEnabled) return;
-      const prefs = data.preferences;
-      const isPlayoff = !!(data.playOff || data.cadrage || data.teamPlayoff);
-      const isFinale =
-        data.playOffStage === 1 || (data.playOff?.length && data.playOff[data.playOff.length - 1].teams?.length === 1);
-      if (isFinale && prefs.noTimeLimitFinale) return;
-      const minutes = isPlayoff && prefs.playoffTimeLimit ? prefs.playoffTimeLimit : prefs.timeLimit;
-      const now = new Date().toISOString();
-      const endsAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
-      data.roundTimer = {
-        timerStartedAt: now,
-        timerEndsAt: endsAt,
-        timerStatus: 'running',
-        timeLimitMinutes: minutes,
-      };
+      const timer = createRoundTimer(data);
+      if (!timer) return;
+      data.roundTimer = timer;
       this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     endRoundTimer() {
       const { data, prefix } = this._getTarget();
       if (data?.roundTimer) {
-        data.roundTimer.timerStatus = 'ended';
+        data.roundTimer = endRoundTimerState(data.roundTimer);
         this._syncPath(`${prefix}roundTimer`, data.roundTimer);
       }
     },
     restartRoundTimer(minutes) {
       const { data, prefix } = this._getTarget();
       if (!data) return;
-      const now = new Date().toISOString();
-      const endsAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
-      data.roundTimer = {
-        timerStartedAt: now,
-        timerEndsAt: endsAt,
-        timerStatus: 'running',
-        timeLimitMinutes: minutes,
-      };
+      data.roundTimer = restartRoundTimerState(minutes);
       this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     pauseRoundTimer() {
       const { data, prefix } = this._getTarget();
-      if (!data?.roundTimer || data.roundTimer.timerStatus !== 'running') return;
-      const remainingMs = Math.max(0, new Date(data.roundTimer.timerEndsAt).getTime() - Date.now());
-      data.roundTimer.timerStatus = 'paused';
-      data.roundTimer.remainingMs = remainingMs;
+      const timer = pauseRoundTimerState(data?.roundTimer);
+      if (!timer) return;
+      data.roundTimer = timer;
       this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     resumeRoundTimer() {
       const { data, prefix } = this._getTarget();
-      if (!data?.roundTimer || data.roundTimer.timerStatus !== 'paused') return;
-      const endsAt = new Date(Date.now() + data.roundTimer.remainingMs).toISOString();
-      data.roundTimer.timerStatus = 'running';
-      data.roundTimer.timerEndsAt = endsAt;
-      data.roundTimer.timerStartedAt = new Date().toISOString();
-      delete data.roundTimer.remainingMs;
+      const timer = resumeRoundTimerState(data?.roundTimer);
+      if (!timer) return;
+      data.roundTimer = timer;
       this._syncPath(`${prefix}roundTimer`, data.roundTimer);
     },
     clearRoundTimer() {
@@ -1205,7 +1176,7 @@ export const useMainStore = defineStore('main', {
       }
       const tournamentId = Date.now();
       const { name, teams, ...dataOverrides } = overrides;
-      const tournament = createTournament({
+      const tournament = createTournamentRecord({
         name: name || `Tournament ${tournamentNames[Object.keys(this.tournaments).length]}`,
         id: tournamentId,
         createdAt: new Date().toISOString(),

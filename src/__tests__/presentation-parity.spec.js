@@ -16,7 +16,7 @@ import { normalizeTournamentRecord } from '@/services/tournament-record';
 const $t = (key) => key;
 const $i18n = { locale: 'en' };
 
-function makeFixture(overrides = {}) {
+function makeFixture(_overrides = {}) {
   return normalizeTournamentRecord(
     {
       id: 'parity-1',

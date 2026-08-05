@@ -8,7 +8,7 @@ import TirPublicDetails from '@/components/tir/TirPublicDetails.vue';
 import TirPublicResults from '@/components/tir/TirPublicResults.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
 import TrainingSession from '@/components/training/TrainingSession.vue';
-import { getScoreTotal, rankParticipants, SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
+import { getScoreTotal, rankParticipants, SCORING, RESULT_OPTIONS } from '@/services/tir';
 
 const participants = [
   { id: 'C', name: 'C', scores: { 0: { 6: 'reussi', 7: 'touche', 8: 'touche', 9: 'touche' } } },

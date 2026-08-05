@@ -152,9 +152,50 @@ The editable protocol includes tournament metadata, round-one and optional round
 
 TIR and standard protocols share the payment gate, participant preparation controls, judge-management footer, export controls, portal loader, persistence, copying, and PDF lifecycle. Only the generated protocol body and its export layout differ.
 
+## Service Layer (`src/services/tir.js`)
+
+All scoring, ranking, and bracket logic lives in `src/services/tir.js`. Components consume the service — they never implement local scoring calculations.
+
+### Key Pure Functions
+
+| Function                                                                    | Purpose                                    |
+| --------------------------------------------------------------------------- | ------------------------------------------ |
+| `getScoreTotal(participant, scoresKey)`                                     | Sum all atelier scores for a round         |
+| `getScoreCarreauCount(participant, scoresKey)`                              | Count carreau results                      |
+| `getScoreReussiCount(participant, scoresKey)`                               | Count reussi results                       |
+| `getScoreToucheCount(participant, scoresKey)`                               | Count touche results                       |
+| `getCombinedTotal(participant)`                                             | R1 + R2 combined                           |
+| `getThrowCount(participant, scoresKey)`                                     | Number of recorded throws                  |
+| `isParticipantComplete(participant, scoresKey, config)`                     | All ateliers filled?                       |
+| `getAtelierScore(participant, scoresKey, atelierIndex)`                     | One atelier total                          |
+| `isAtelierComplete(participant, scoresKey, atelierIndex, config)`           | All distances scored?                      |
+| `toggleParticipantScore(participant, scoresKey, atelier, distance, result)` | Returns new participant with toggled score |
+| `fillMissingAtelierScores(participant, scoresKey, atelier, distances)`      | Fill unscored as manqué                    |
+| `generateSeededBracket(qualifiedNames, size)`                               | Standard seeded bracket                    |
+| `getTirPlayoffDisplayRounds(playoff, labels)`                               | Display-ready round structure for public   |
+| `toggleTirMatchScore(match, player, atelier, distance, result)`             | Returns new match with toggled score       |
+| `selectTirMatchTieWinner(match, playerIndex)`                               | Returns match with explicit tie winner     |
+
+### Prop-Event Ownership Model
+
+Leaf scoring components (`TirParticipantView`, `TirAtelierView`, `TirPlayoffMatch`) do NOT mutate props. They call pure service functions and emit update events:
+
+```
+User tap → service function returns new object → emit('update:participant', newObj) → parent applies + syncs to Firebase
+```
+
+`TirModule.vue` is the orchestration shell that owns Firebase synchronization via granular actions (`syncTirParticipants`, `syncTirState`, `syncTirPlayoff`, `syncTirPlayoffMatch`).
+
+### Export (`src/services/tir-export.js`)
+
+CSV and data export logic is separated from the UI. Functions: `buildExportData`, `generateCsv`, `downloadCsv`.
+
 ## Components
 
-- `TirModule.vue` — Admin: all tabs (participants, scoring, table, playoff)
+- `TirModule.vue` — Admin orchestration shell (participants, scoring, table, playoff)
+- `TirScoringWorkspace.vue` — Participant/atelier scoring mode selection and navigation
+- `TirRoundTable.vue` — Two-round/tiebreaker results table
+- `TirPlayoffAdmin.vue` — Playoff setup, round display, match selection
 - `TirPublicView.vue` — Public: participants, table, playoff (read-only)
 - `TirPlayoffComparison.vue` — Public: read-only match comparison (replaces TirPlayoffMatch in public view)
 - `TirPlayoffMatch.vue` — Admin: match scoring grid

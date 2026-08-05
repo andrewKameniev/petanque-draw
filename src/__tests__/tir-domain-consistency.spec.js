@@ -7,7 +7,8 @@ import TirPublicView from '@/components/tir/TirPublicView.vue';
 import TirPublicDetails from '@/components/tir/TirPublicDetails.vue';
 import TirPublicResults from '@/components/tir/TirPublicResults.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
-import { getScoreTotal, rankParticipants } from '@/services/tir';
+import TrainingSession from '@/components/training/TrainingSession.vue';
+import { getScoreTotal, rankParticipants, SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
 
 const participants = [
   { id: 'C', name: 'C', scores: { 0: { 6: 'reussi', 7: 'touche', 8: 'touche', 9: 'touche' } } },
@@ -40,6 +41,16 @@ describe('admin/public/protocol tir domain consistency', () => {
       expect(ranked.map((participant) => participant.name)).toEqual(expected);
     });
     expect(expected).toEqual(['B', 'A', 'C']);
+  });
+
+  it('TrainingSession reuses shared scoring constants from tir service without local copies', () => {
+    const session = { config: { exercises: [0], distances: [6, 7], attempts: 2 } };
+    const data = TrainingSession.data.call({ session });
+    expect(data.resultOptions).toBe(RESULT_OPTIONS);
+
+    const ctx = { session: { ...session, attempts: [{ score: 'carreau', exercise: 0, distance: 6 }] } };
+    const totalScore = TrainingSession.computed.totalScore.call(ctx);
+    expect(totalScore).toBe(SCORING.carreau);
   });
 
   it('uses the shared score total in admin, public, and protocol adapters', () => {

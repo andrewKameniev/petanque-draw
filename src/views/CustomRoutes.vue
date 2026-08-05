@@ -119,6 +119,7 @@ import { useMainStore } from '@/stores/main';
 import { customRoutesService } from '@/services/db';
 import { isValidSlug, copyContent } from '@/helpers';
 import appLogoUrl from '@/assets/img/logo.webp';
+import { encodeTournamentRef } from '@/services/tournament-ref';
 import { Plus, Copy, Trash2, Info, Maximize2, Minimize2, FileDown, LoaderCircle } from 'lucide-vue-next';
 
 export default {
@@ -168,7 +169,7 @@ export default {
           return {
             id,
             name: this.tournaments[id]?.name || entry.name || id,
-            ref: `${ownerUid}.${parseInt(id).toString(36)}`,
+            ref: encodeTournamentRef(ownerUid, id),
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name));

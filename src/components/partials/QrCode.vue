@@ -104,6 +104,7 @@ import QrcodeVue from 'qrcode.vue';
 import Modal from '@/components/Modal';
 import { mapState, mapActions } from 'pinia';
 import { SUPER_ADMIN_EMAIL, useMainStore } from '@/stores/main';
+import { encodeTournamentRef } from '@/services/tournament-ref';
 import { Copy, Check, Monitor, Users, ChevronDown, UserPlus, X, ShieldCheck } from 'lucide-vue-next';
 
 export default {
@@ -131,7 +132,7 @@ export default {
       return (this.activeTournament || this.currentTournament)?.system === 'tir';
     },
     shortRef() {
-      return `${this._getTournamentOwnerUid()}.${parseInt(this.currentTournamentIndex).toString(36)}`;
+      return encodeTournamentRef(this._getTournamentOwnerUid(), this.currentTournamentIndex);
     },
     tournamentLink() {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';

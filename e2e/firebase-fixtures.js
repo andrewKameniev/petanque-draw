@@ -2,6 +2,7 @@ import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } f
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, remove, set } from 'firebase/database';
 import { TEST_EMAIL, TEST_PASSWORD } from './helpers.js';
+import { encodeTournamentRef } from '../src/services/tournament-ref.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU',
@@ -48,7 +49,7 @@ export function createFixtureId(offset = 0) {
 }
 
 export function encodePublicRef(uid, tournamentId) {
-  return `${uid}.${Number(tournamentId).toString(36)}`;
+  return encodeTournamentRef(uid, tournamentId);
 }
 
 export async function seedOwnedTournament(tournamentId, record, { status = 'active' } = {}) {
@@ -87,6 +88,11 @@ export async function seedSharedTournament(tournamentId, record) {
 export async function readOwnedTournament(tournamentId) {
   const client = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
   return (await get(ref(client.db, `${client.uid}/tournaments/${tournamentId}`))).val();
+}
+
+export async function updateOwnedTournamentPath(tournamentId, path, value) {
+  const client = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
+  await set(ref(client.db, `${client.uid}/tournaments/${tournamentId}/${path}`), value);
 }
 
 export async function readSharedTournament(ownerUid, tournamentId) {

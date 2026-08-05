@@ -89,6 +89,37 @@ describe('tournament-record UI consumers', () => {
   );
 
   it.each([
+    ['Public', Public],
+    ['TV', TvDashboard],
+  ])('%s resolves its Firebase source with the shared codec', (_label, component) => {
+    const tournamentSource = component.computed.tournamentSource.call({
+      $route: { query: { ref: 'owner.2n9c' } },
+    });
+
+    expect(tournamentSource).toEqual({
+      type: 'firebase',
+      ownerUid: 'owner',
+      tournamentId: '123456',
+      format: 'dotted',
+    });
+  });
+
+  it.each([
+    ['Public', Public],
+    ['TV', TvDashboard],
+  ])('%s delegates loading and unmount cleanup to the shared live source', async (_label, component) => {
+    const tournamentSource = { type: 'firebase', ownerUid: 'owner', tournamentId: '123' };
+    const liveSource = { start: vi.fn().mockResolvedValue(), stop: vi.fn() };
+    const context = { _liveTournamentSource: liveSource, tournamentSource };
+
+    await component.methods.getInfo.call(context);
+    component.beforeUnmount.call(context);
+
+    expect(liveSource.start).toHaveBeenCalledWith(tournamentSource);
+    expect(liveSource.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
     ['wrapper', wrapper, 'Wrapper Cup', '2026-08-05', '725'],
     ['legacy', legacy, 'Legacy Cup', '2025-06-07', undefined],
   ])(

@@ -17,6 +17,7 @@ import i18n, { loadLocaleModule } from '@/i18n';
 import { useMainStore } from '@/stores/main';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/firebase';
+import { encodeTournamentRef } from '@/services/tournament-ref';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -43,8 +44,11 @@ const router = createRouter({
       redirect: (to) => {
         const { user, tournament } = to.query;
         if (user && tournament) {
-          const ref = `${user}.${parseInt(tournament).toString(36)}`;
-          return { path: '/tournament', query: { ref } };
+          try {
+            return { path: '/tournament', query: { ref: encodeTournamentRef(user, tournament) } };
+          } catch {
+            return '/';
+          }
         }
         return '/';
       },

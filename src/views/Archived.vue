@@ -397,6 +397,7 @@ import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
+import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
   getTournamentGroup,
   getTournamentMain,
@@ -657,7 +658,7 @@ export default {
     publicLink() {
       if (!this.activeKey || !this.activeOwnerUid) return '';
       const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
-      const ref = `${this.activeOwnerUid}.${parseInt(tournamentId).toString(36)}`;
+      const ref = encodeTournamentRef(this.activeOwnerUid, tournamentId);
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tournament?ref=${ref}`;
     },

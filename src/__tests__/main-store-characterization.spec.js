@@ -190,8 +190,7 @@ describe('main-store façade baseline', () => {
 
     const match = Array.isArray(local)
       ? store.currentTournament[field][0]
-      : store.currentTournament[field].stages?.[0]?.teams?.[0] ||
-        store.currentTournament[field].rounds[0].matches[0];
+      : store.currentTournament[field].stages?.[0]?.teams?.[0] || store.currentTournament[field].rounds[0].matches[0];
     expect(match.score).toBe('local');
     if (field === 'playOffBracket') expect(store.currentTournament[field].champion).toBe('A');
     if (field.endsWith('Playoff')) expect(store.currentTournament[field].size).toBe(8);
@@ -232,5 +231,35 @@ describe('main-store façade baseline', () => {
     expect(userMapService.remove).toHaveBeenCalledWith('user-1', 'shared-1');
     expect(mockRemove).not.toHaveBeenCalled();
     expect(store.tournaments['shared-1']).toBeUndefined();
+  });
+
+  it('cancels a pending match write before changing the active tournament', async () => {
+    vi.useFakeTimers();
+    const store = createStore();
+    store.tournaments['tournament-2'] = { id: 'tournament-2', games: [], teams: [] };
+
+    store._syncMatchDebounced('games', '0/0', { score: 13 });
+    store.setActiveTournament('tournament-2');
+    await vi.runAllTimersAsync();
+
+    expect(mockSet).not.toHaveBeenCalled();
+    expect(store.currentTournamentIndex).toBe('tournament-2');
+  });
+
+  it('releases subscriptions and private tournament state on logout', () => {
+    const store = createStore();
+    store.userTournamentMap = { 'tournament-1': { role: 'owner' } };
+    store.savedTournaments = { archived: { id: 'archived' } };
+    store.savedTournamentIds = ['archived'];
+    const unsubscribe = vi.spyOn(store, 'unsubscribeTournament');
+
+    store.loginUser(false);
+
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(store.user).toBe(false);
+    expect(store.tournaments).toEqual({});
+    expect(store.userTournamentMap).toEqual({});
+    expect(store.savedTournaments).toEqual({});
+    expect(store.currentTournamentIndex).toBeNull();
   });
 });

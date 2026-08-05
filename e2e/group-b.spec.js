@@ -59,6 +59,11 @@ test.describe('Group B Features', () => {
     // Now B should be active
     await expect(switcher.locator('.group-switcher__btn--active')).toContainText('Tournament B');
 
+    // The wrapper-level active group and B data survive a full resubscription.
+    await page.reload();
+    await expect(switcher).toBeVisible();
+    await expect(switcher.locator('.group-switcher__btn--active')).toContainText('Tournament B');
+
     // Switch back to A for cleanup
     await switcher.locator('.group-switcher__btn').first().click();
     await page.waitForTimeout(300);

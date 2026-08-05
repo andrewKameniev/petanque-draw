@@ -88,6 +88,7 @@
                 <span class="active-overlay__item-badge">{{ item.system || 'swiss' }}</span>
               </div>
               <div class="active-overlay__item-meta">
+                <span v-if="item.date">{{ item.date }}</span>
                 <span v-if="item.teamsCount">{{ item.teamsCount }} {{ $t('common.teamsCount') }}</span>
                 <span v-if="getTeamFormat(item)">{{ getTeamFormat(item) }}</span>
                 <span v-if="item.tournamentIsFinished" class="active-overlay__item-finished">{{
@@ -247,6 +248,7 @@ import { auth } from '@/firebase';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
 import { Pin, Flame, Shuffle, BarChart3, Target, X, Link2 } from 'lucide-vue-next';
+import { getTournamentGroup, getTournamentMetadata } from '@/services/tournament-record';
 
 export default {
   name: 'Navbar',
@@ -298,17 +300,19 @@ export default {
       return Object.values(this.tournaments)
         .filter((t) => !t._ownerUid)
         .map((t) => {
-          const d = t.main || t;
+          const d = getTournamentGroup(t, 'A');
+          const metadata = getTournamentMetadata(t);
           return {
-            id: t.id,
-            name: t.name,
+            id: metadata.id,
+            name: metadata.name,
+            date: metadata.date,
             system: d.system,
             teamsCount: d.teams?.length || 0,
             firstTeamPlayers: d.teams?.[0]?.players?.length || 0,
             roundsCount: d.games?.length || 0,
             hasPlayoff: !!d.playOff,
             tournamentIsFinished: d.tournamentIsFinished,
-            isShared: !!t.collaborators && Object.keys(t.collaborators).length > 0,
+            isShared: !!metadata.collaborators && Object.keys(metadata.collaborators).length > 0,
           };
         })
         .sort((a, b) => (b.id || 0) - (a.id || 0));
@@ -319,7 +323,7 @@ export default {
         .filter(([, entry]) => entry.role !== 'owner' && entry.status === 'active')
         .map(([id, entry]) => ({
           id,
-          name: this.tournaments[id]?.name || entry.name,
+          name: getTournamentMetadata(this.tournaments[id], { name: entry.name }).name,
           role: entry.role,
           ownerUid: entry.ownerUid,
           isLoaded: !!this.tournaments[id],

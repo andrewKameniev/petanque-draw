@@ -1,36 +1,56 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers';
+import { cleanupOwnedTournament, createFixtureId, seedOwnedTournament } from './firebase-fixtures';
 
 test.describe('Archived tournament layout', () => {
   test('places management buttons in a separate bottom sidebar row', async ({ page }) => {
+    const id = createFixtureId(60);
+    await seedOwnedTournament(
+      id,
+      {
+        name: 'Archived Layout Fixture',
+        date: '2026-08-05',
+        system: 'swiss',
+        teams: [{ title: 'Layout A' }, { title: 'Layout B' }],
+        games: [],
+        preferences: {},
+      },
+      { status: 'archived' },
+    );
     await page.setViewportSize({ width: 1280, height: 720 });
-    await login(page);
-    await page.goto('/#/archived');
+    try {
+      await login(page);
+      await page.locator('[data-testid="tournament-name-row"]').waitFor({ state: 'visible' });
+      await page.goto('/#/archived');
+      await expect(page.locator(`.archived-sidebar__item[data-tournament-id="${id}"]`)).toBeVisible();
 
-    const sidebarActions = page.locator('.archived-sidebar__actions');
-    const linkRow = sidebarActions.locator('.sidebar-action-row--buttons:not(.sidebar-action-row--management)');
-    const managementRow = sidebarActions.locator('.sidebar-action-row--management');
+      const sidebarActions = page.locator('.archived-sidebar__actions');
+      const linkRow = sidebarActions.locator('.sidebar-action-row--buttons:not(.sidebar-action-row--management)');
+      const managementRow = sidebarActions.locator('.sidebar-action-row--management');
 
-    await expect(sidebarActions).toBeVisible();
-    await expect(managementRow.locator('.btn-make-active')).toBeVisible();
-    await expect(managementRow.locator('.btn-remove-archived')).toBeVisible();
-    await expect(page.locator('.tournament-selector__mobile-actions')).toBeHidden();
+      await expect(sidebarActions).toBeVisible();
+      await expect(managementRow.locator('.btn-make-active')).toBeVisible();
+      await expect(managementRow.locator('.btn-remove-archived')).toBeVisible();
+      await expect(page.locator('.tournament-selector__mobile-actions')).toBeHidden();
 
-    const linkBox = await linkRow.boundingBox();
-    const managementBox = await managementRow.boundingBox();
-    expect(linkBox).not.toBeNull();
-    expect(managementBox).not.toBeNull();
-    expect(managementBox.y).toBeGreaterThanOrEqual(linkBox.y + linkBox.height);
+      const linkBox = await linkRow.boundingBox();
+      const managementBox = await managementRow.boundingBox();
+      expect(linkBox).not.toBeNull();
+      expect(managementBox).not.toBeNull();
+      expect(managementBox.y).toBeGreaterThanOrEqual(linkBox.y + linkBox.height);
 
-    await page.setViewportSize({ width: 800, height: 720 });
-    const mobileActions = page.locator('.tournament-selector__mobile-actions');
-    await expect(sidebarActions).toBeHidden();
-    await expect(mobileActions).toBeVisible();
+      await page.setViewportSize({ width: 800, height: 720 });
+      const mobileActions = page.locator('.tournament-selector__mobile-actions');
+      await expect(sidebarActions).toBeHidden();
+      await expect(mobileActions).toBeVisible();
 
-    const titleBox = await page.locator('.tournament-selector__name').boundingBox();
-    const mobileActionsBox = await mobileActions.boundingBox();
-    expect(titleBox).not.toBeNull();
-    expect(mobileActionsBox).not.toBeNull();
-    expect(mobileActionsBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height);
+      const titleBox = await page.locator('.tournament-selector__name').boundingBox();
+      const mobileActionsBox = await mobileActions.boundingBox();
+      expect(titleBox).not.toBeNull();
+      expect(mobileActionsBox).not.toBeNull();
+      expect(mobileActionsBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height);
+    } finally {
+      await cleanupOwnedTournament(id);
+    }
   });
 });

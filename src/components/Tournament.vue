@@ -4,8 +4,8 @@
       v-if="user && isOwnerOrAdmin"
       v-model:message="tournamentWrapper.tournamentMessage"
       :loading="loadingOnServer"
-      :show-group-switcher="isNewFormat ? !!tournamentWrapper.tournamentB : !!tournamentWrapper.groupB"
-      :active-group="tournamentWrapper.activeGroup || 'A'"
+      :show-group-switcher="hasTournamentB"
+      :active-group="activeTournamentGroup"
       @show-qr="showQrCode = true"
       @update:message="onMessageInput"
       @update:active-group="setActiveGroup"
@@ -126,7 +126,7 @@
         />
         <Results
           v-if="activeTab === 'results'"
-          :preview-tournament="tournamentWrapper.activeGroup === 'B' ? tournament : undefined"
+          :preview-tournament="activeTournamentGroup === 'B' ? tournament : undefined"
         />
         <StreamPresets v-if="activeTab === 'streams'" />
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
@@ -400,6 +400,7 @@ import {
   getScoreToucheCount,
   rankWithTiebreakers,
 } from '@/services/tir';
+import { getActiveTournamentGroup, getTournamentPresentation, hasTournamentGroup } from '@/services/tournament-record';
 
 export default {
   name: 'Tournament',
@@ -665,8 +666,8 @@ export default {
         this.showMessage({ title: this.$t('messages.error'), text: e.message, type: 'error' });
       }
     },
-    onMessageInput() {
-      this.syncTournamentMessage();
+    onMessageInput(message) {
+      this.syncTournamentMessage(message);
     },
     onPlayoffConfirm(config) {
       this.showPlayoffConfirm = false;
@@ -832,7 +833,7 @@ export default {
 
       const hasCadrageLosersToB = this.tournament.preferences?.cadrageLosersToB && this.tournament.cadrage?.length;
 
-      if (hasCadrageLosersToB && (this.tournamentWrapper.tournamentB || this.tournamentWrapper.groupB)) {
+      if (hasCadrageLosersToB && this.hasTournamentB) {
         const store = useMainStore();
         const cadrageLosers = this._buildCadrageLosers();
         if (cadrageLosers.length) {
@@ -1140,22 +1141,21 @@ export default {
       'isAdmin',
       'user',
       'currentTournament',
-      'isNewFormat',
       'savedTournamentIds',
       'allScoresFilled',
       'isOwnerOrAdmin',
     ]),
     tournament() {
-      const t = this.currentTournament;
-      if (!t) return t;
-      if (this.isNewFormat) {
-        const active = t.activeGroup === 'B' && t.tournamentB ? t.tournamentB : t.main;
-        return active;
-      }
-      return t;
+      return getActiveTournamentGroup(this.currentTournament);
     },
     tournamentWrapper() {
       return this.currentTournament;
+    },
+    hasTournamentB() {
+      return hasTournamentGroup(this.currentTournament, 'B');
+    },
+    activeTournamentGroup() {
+      return getTournamentPresentation(this.currentTournament).group;
     },
     activeViewRound() {
       const t = this.tournament;

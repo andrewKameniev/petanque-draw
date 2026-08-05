@@ -221,7 +221,7 @@ test.describe('Public and TV shared live tournament source', () => {
           loser: 'Bob',
         },
       });
-      const playoffButton = page.locator('.tir-nav__btn').filter({ hasText: 'Playoff' });
+      const playoffButton = page.locator('.tournament-nav__btn').filter({ hasText: 'Playoff' });
       await expect(playoffButton).toBeVisible({ timeout: 10_000 });
       await playoffButton.click();
       await expect(page.locator('.tir-playoff__match')).toContainText('10', { timeout: 10_000 });

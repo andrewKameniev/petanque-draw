@@ -1,16 +1,10 @@
 <template>
   <div class="tir-plist">
-    <div v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1" class="tir-plist__bracket-switcher">
-      <button
-        v-for="tab in bracketTabs"
-        :key="tab.key"
-        class="tir-plist__bracket-btn"
-        :class="{ 'tir-plist__bracket-btn--active': activeBracket === tab.key }"
-        @click="activeBracket = tab.key"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
+    <TirRoundTabs
+      v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1"
+      v-model="activeBracket"
+      :tabs="bracketTabs"
+    />
     <!-- Search -->
     <input
       v-if="expanded === null && rankedParticipants.length > 5"
@@ -78,6 +72,7 @@
 <script>
 import { CheckCircle, AlertCircle, Circle, User } from 'lucide-vue-next';
 import TirParticipantView from './TirParticipantView.vue';
+import TirRoundTabs from '@/components/ui/TirRoundTabs.vue';
 import {
   SCORING,
   ATELIER_KEYS,
@@ -95,7 +90,7 @@ import {
 
 export default {
   name: 'TirParticipantsList',
-  components: { CheckCircle, AlertCircle, Circle, User, TirParticipantView },
+  components: { CheckCircle, AlertCircle, Circle, User, TirParticipantView, TirRoundTabs },
   props: {
     tournament: { type: Object, required: true },
     readOnly: { type: Boolean, default: false },
@@ -256,6 +251,9 @@ export default {
     },
   },
   methods: {
+    collapse() {
+      this.expanded = null;
+    },
     selectParticipant(participant, index) {
       this.expanded = index;
       this.$emit('select', participant);
@@ -382,31 +380,6 @@ export default {
 </script>
 
 <style scoped>
-.tir-plist__bracket-switcher {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-
-.tir-plist__bracket-btn {
-  padding: 4px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tir-plist__bracket-btn--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-btn-text);
-}
-
 .tir-plist__search {
   width: 100%;
   padding: 8px 12px;

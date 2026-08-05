@@ -1,13 +1,12 @@
 <template>
-  <div v-if="isLoading" class="gooey">
-    <span class="dot"></span>
-    <div class="dots">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </div>
-  <div v-else class="wrapper" :class="[{ 'wrapper--tir': activeTournamentView?.system === 'tir' }]">
+  <PageLoader v-if="isLoading" />
+  <PublicPageShell
+    v-else
+    class="wrapper"
+    container-size="responsive"
+    :textured="activeTournamentView?.system !== 'tir'"
+    :class="[{ 'wrapper--tir': activeTournamentView?.system === 'tir' }]"
+  >
     <div v-if="colorSchema" class="public-schema-header__nav">
       <router-link class="navbar-item" to="/">
         <img src="../assets/img/logo.webp" alt="logo" />
@@ -147,20 +146,12 @@
 
       <!-- Other systems: tabs -->
       <template v-else>
-        <div class="tournament-nav">
-          <button
-            v-for="(tab, index) in tabs"
-            :key="index"
-            class="tournament-nav__btn"
-            :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-            @click="activeTab = tab.id"
-          >
-            <component :is="tab.icon" :size="18" />
-            <span>{{ tab.label }}</span>
-          </button>
-        </div>
+        <TournamentNav v-model="activeTab" :tabs="tabs" />
         <div
+          id="tournament-tabpanel"
           class="tabs-content-area"
+          role="tabpanel"
+          :aria-labelledby="`tab-${activeTab}`"
           :class="{
             'tabs-content-area--playoff':
               activeTab === 'round' && (activeTournamentView?.playOff || isDoubleElimination),
@@ -296,7 +287,7 @@
       <div class="text-center mt-5"><img v-if="girlImage" :src="girlImage" alt="In the petanque land" /><br /></div>
     </div>
     <Footer />
-  </div>
+  </PublicPageShell>
 </template>
 
 <script>
@@ -329,9 +320,15 @@ import { Users, List, Trophy as TrophyIcon, PlayCircle, Medal } from 'lucide-vue
 import { getTournamentGroup, getTournamentMetadata, hasTournamentGroup } from '@/services/tournament-record';
 import { createLiveTournamentSource } from '@/services/live-tournament';
 import { resolveTournamentSource } from '@/services/tournament-ref';
+import PageLoader from '@/components/ui/PageLoader.vue';
+import PublicPageShell from '@/components/ui/PublicPageShell.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 export default {
   name: 'Public',
   components: {
+    PageLoader,
+    PublicPageShell,
+    TournamentNav,
     Footer,
     LanguageSwitcher,
     ThemeSwitcher,
@@ -342,7 +339,6 @@ export default {
     TeamsList,
     Results,
     Ranking,
-    GitFork,
     X,
     TeamSearch,
     TirPublicView,
@@ -350,9 +346,7 @@ export default {
     GroupSwitcher,
     PublicGameCard,
     Users,
-    List,
     TrophyIcon,
-    PlayCircle,
     Medal,
   },
   data() {
@@ -424,16 +418,16 @@ export default {
         if (t?.playOff || t?.teamPlayoff) roundLabel = this.$t('games.playOff');
         else if (t?.cadrage) roundLabel = this.$t('games.cadrage');
         else roundLabel = `${this.$t('common.round')} ${this.activeRound}`;
-        list.push({ id: 'round', label: roundLabel, icon: 'PlayCircle' });
+        list.push({ id: 'round', label: roundLabel, icon: PlayCircle });
       }
       if (this.hasPlayoffBracket) {
-        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: 'GitFork' });
+        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork });
       }
-      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: 'Users' });
+      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: Users });
       if (!isPlayoffOnly) {
-        list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' });
+        list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon });
       }
-      list.push({ id: 'results', label: this.$t('teams.results'), icon: 'List' });
+      list.push({ id: 'results', label: this.$t('teams.results'), icon: List });
       return list;
     },
     showCurrentRound() {
@@ -705,55 +699,6 @@ export default {
 };
 </script>
 <style>
-.gooey {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 142px;
-  height: 60px;
-  margin: -20px 0 0 -71px;
-}
-
-.gooey .dot {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 12px;
-  left: 15px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  transform: translateX(0);
-  animation: dot 2.8s infinite;
-}
-
-.gooey .dots {
-  transform: translateX(0);
-  margin-top: 12px;
-  margin-left: 31px;
-  animation: dots 2.8s infinite;
-}
-
-.gooey .dots span {
-  display: block;
-  float: left;
-  width: 16px;
-  height: 16px;
-  margin-left: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-}
-@keyframes dot {
-  50% {
-    transform: translateX(96px);
-  }
-}
-
-@keyframes dots {
-  50% {
-    transform: translateX(-31px);
-  }
-}
-
 .public-schema-header__nav {
   display: flex;
   align-items: center;
@@ -924,86 +869,8 @@ export default {
   background: transparent;
 }
 
-.tournament-nav {
-  display: flex;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
-  border-radius: 12px 12px 0 0;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: -1px;
-}
-
-.tournament-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tournament-nav__btn--active {
-  font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tournament-nav__btn--games.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche);
-}
-
-.tournament-nav__btn--round.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--bracket.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.wrapper {
-  position: relative;
-  background: var(--color-body-bg);
-}
-
-.wrapper::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('@/assets/img/bg-petanque.avif') repeat;
-  background-size: 800px;
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .wrapper::before {
-  display: none;
-}
-
 .wrapper--tir {
   background: var(--color-body-bg);
-}
-
-.wrapper--tir::before {
-  display: none;
 }
 
 .wrapper--tir .tournament-info-card {
@@ -1011,31 +878,7 @@ export default {
   margin-right: 10px;
 }
 
-.wrapper > *:not(.public-sponsors, .public-schema-header__nav) {
-  position: relative;
-  z-index: 1;
-}
-
-.wrapper .container {
-  max-width: 800px !important;
-  margin: 0 auto;
-  padding: 0 1rem;
-  padding-bottom: 2rem;
-}
-
-@media screen and (min-width: 1024px) {
-  .wrapper .container {
-    padding-bottom: 3rem;
-  }
-}
-
-@media screen and (min-width: 1408px) {
-  .wrapper .container {
-    max-width: 1100px !important;
-  }
-}
-
-.wrapper :deep(.navbar) {
+.wrapper .navbar {
   z-index: 10;
 }
 
@@ -1093,7 +936,7 @@ export default {
   position: relative;
 }
 
-.round-header :deep(.team-search) {
+.round-header .team-search {
   position: absolute;
   right: 0;
 }
@@ -1137,7 +980,7 @@ export default {
   overflow: visible;
 }
 
-.tabs-content-area :deep(table) {
+.tabs-content-area table {
   margin: 0 auto;
 }
 

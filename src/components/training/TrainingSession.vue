@@ -53,30 +53,19 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-pview__legend">
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--carreau"></span>{{ $t('tir.carreau') }} (5)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--reussi"></span>{{ $t('tir.reussi') }} (3)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--touche"></span>{{ $t('tir.touche') }} (1)</span
-      >
-      <span class="tir-pview__legend-item"
-        ><span class="tir-pview__legend-dot tir-pview__legend-dot--manque"></span>{{ $t('tir.manque') }} (0)</span
-      >
-    </div>
+    <TirScoreLegend />
 
     <!-- Compact all-on-one-page layout: all ateliers, all distances, <= 3 attempts -->
     <template v-if="isCompactLayout">
-      <div v-for="exIdx in session.config.exercises" :key="exIdx" class="tsession__compact-card">
-        <div class="tsession__compact-card-header">
-          <span class="tir-pview__atelier-card-num">{{ exIdx + 1 }}</span>
-          <span class="tir-pview__atelier-card-name">{{ atelierNames[exIdx] }}</span>
-          <span class="tir-pview__atelier-card-score">{{ getExerciseScore(exIdx) }}/{{ exerciseMaxScore }}</span>
-        </div>
+      <TirScoringCard
+        v-for="exIdx in session.config.exercises"
+        :key="exIdx"
+        compact
+        :number="exIdx + 1"
+        :name="atelierNames[exIdx]"
+        :score="getExerciseScore(exIdx)"
+        :max-score="exerciseMaxScore"
+      >
         <div class="tsession__compact-grid">
           <div class="tsession__compact-grid-header">
             <span class="tsession__compact-grid-label"></span>
@@ -89,72 +78,51 @@
               opt.key[0].toUpperCase()
             }}</span>
             <span v-for="distance in session.config.distances" :key="distance" class="tsession__compact-grid-cell">
-              <span
+              <TirScoreCircle
                 v-for="attemptNum in session.config.attempts"
                 :key="attemptNum"
-                class="tir-pview__circle tir-pview__circle--sm"
-                :class="[
-                  `tir-pview__circle--${opt.key}`,
-                  {
-                    'tir-pview__circle--active': getAttemptScore(exIdx, distance, attemptNum) === opt.key,
-                  },
-                ]"
-                @click="setScore(exIdx, distance, attemptNum, opt.key)"
-              >
-              </span>
+                size="small"
+                :result="opt.key"
+                :active="getAttemptScore(exIdx, distance, attemptNum) === opt.key"
+                :interactive="session.status !== 'completed'"
+                :aria-label="`${atelierNames[exIdx]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+                @select="setScore(exIdx, distance, attemptNum, opt.key)"
+              />
             </span>
           </div>
         </div>
-      </div>
+      </TirScoringCard>
       <div class="tsession__nav">
-        <button
-          v-if="session.status !== 'completed'"
-          class="tir-pview__nav-btn tsession__fill-zeros"
-          @click="fillAllZerosAll"
-        >
+        <TirScoringAction v-if="session.status !== 'completed'" compact variant="danger" @click="fillAllZerosAll">
           <CircleOff :size="14" />
           {{ $t('training.fillZeros') }}
-        </button>
+        </TirScoringAction>
         <div class="tsession__nav-spacer"></div>
-        <button
-          v-if="session.status !== 'completed'"
-          class="tir-pview__nav-btn tir-pview__nav-btn--primary"
-          @click="completeSession"
-        >
+        <TirScoringAction v-if="session.status !== 'completed'" variant="success" @click="completeSession">
           <CheckIcon :size="16" />
           {{ $t('training.complete') }}
-        </button>
+        </TirScoringAction>
       </div>
     </template>
 
     <!-- Standard per-exercise layout -->
     <template v-else>
       <!-- Exercise tabs -->
-      <div v-if="session.config.exercises.length > 1" class="tir-pview__tabs">
-        <button
-          v-for="exIdx in session.config.exercises"
-          :key="exIdx"
-          class="tir-pview__tab"
-          :class="{
-            'tir-pview__tab--active': activeExercise === exIdx,
-            'tir-pview__tab--complete': isExerciseComplete(exIdx),
-          }"
-          @click="activeExercise = exIdx"
-        >
-          {{ exIdx + 1 }}
-        </button>
-      </div>
+      <TirAtelierTabs
+        v-if="session.config.exercises.length > 1"
+        v-model="activeExercise"
+        :items="exerciseTabs"
+        :label="$t('tir.atelier')"
+        id-prefix="training-atelier"
+      />
 
       <!-- Active exercise scoring -->
-      <div class="tir-pview__atelier-card">
-        <div class="tir-pview__atelier-card-header">
-          <span class="tir-pview__atelier-card-num">{{ activeExercise + 1 }}</span>
-          <span class="tir-pview__atelier-card-name">{{ atelierNames[activeExercise] }}</span>
-          <span class="tir-pview__atelier-card-score"
-            >{{ getExerciseScore(activeExercise) }}/{{ exerciseMaxScore }}</span
-          >
-        </div>
-
+      <TirScoringCard
+        :number="activeExercise + 1"
+        :name="atelierNames[activeExercise]"
+        :score="getExerciseScore(activeExercise)"
+        :max-score="exerciseMaxScore"
+      >
         <!-- Vertical layout: 1 distance + 1 exercise -->
         <div v-if="isVerticalLayout" class="tsession__vertical">
           <div class="tsession__vertical-header">
@@ -169,20 +137,15 @@
           </div>
           <div v-for="attemptNum in session.config.attempts" :key="attemptNum" class="tsession__vertical-row">
             <span class="tsession__vertical-num">{{ attemptNum }}</span>
-            <span
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
-              class="tir-pview__circle"
-              :class="[
-                `tir-pview__circle--${opt.key}`,
-                {
-                  'tir-pview__circle--active':
-                    getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key,
-                },
-              ]"
-              @click="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
-            >
-            </span>
+              :result="opt.key"
+              :active="getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key"
+              :interactive="session.status !== 'completed'"
+              :aria-label="`${atelierNames[activeExercise]}, ${session.config.distances[0]}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+              @select="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
+            />
           </div>
         </div>
 
@@ -195,63 +158,49 @@
                 $t(`tir.${opt.key}`)
               }}</span>
               <div class="tsession__score-row-circles">
-                <span
+                <TirScoreCircle
                   v-for="attemptNum in session.config.attempts"
                   :key="attemptNum"
-                  class="tir-pview__circle"
-                  :class="[
-                    `tir-pview__circle--${opt.key}`,
-                    {
-                      'tir-pview__circle--active': getAttemptScore(activeExercise, distance, attemptNum) === opt.key,
-                    },
-                  ]"
-                  @click="setScore(activeExercise, distance, attemptNum, opt.key)"
-                >
-                </span>
+                  :result="opt.key"
+                  :active="getAttemptScore(activeExercise, distance, attemptNum) === opt.key"
+                  :interactive="session.status !== 'completed'"
+                  :aria-label="`${atelierNames[activeExercise]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+                  @select="setScore(activeExercise, distance, attemptNum, opt.key)"
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </TirScoringCard>
 
       <!-- Navigation and actions -->
       <div class="tsession__nav">
-        <button
+        <TirScoringAction
           v-if="session.config.exercises.length > 1 && activeExercise > session.config.exercises[0]"
-          class="tir-pview__nav-btn"
           @click="prevExercise"
         >
           <ChevronLeft :size="16" />
           {{ $t('tir.prevAtelier') }}
-        </button>
-        <button
-          v-if="session.status !== 'completed'"
-          class="tir-pview__nav-btn tsession__fill-zeros"
-          @click="fillAllZeros"
-        >
+        </TirScoringAction>
+        <TirScoringAction v-if="session.status !== 'completed'" compact variant="danger" @click="fillAllZeros">
           <CircleOff :size="14" />
           {{ $t('training.fillZeros') }}
-        </button>
+        </TirScoringAction>
         <div class="tsession__nav-spacer"></div>
-        <button
+        <TirScoringAction
           v-if="
             session.config.exercises.length > 1 &&
             activeExercise < session.config.exercises[session.config.exercises.length - 1]
           "
-          class="tir-pview__nav-btn"
           @click="nextExercise"
         >
           {{ $t('tir.nextAtelier') }}
           <ChevronRight :size="16" />
-        </button>
-        <button
-          v-if="session.status !== 'completed'"
-          class="tir-pview__nav-btn tir-pview__nav-btn--primary"
-          @click="completeSession"
-        >
+        </TirScoringAction>
+        <TirScoringAction v-if="session.status !== 'completed'" variant="success" @click="completeSession">
           <CheckIcon :size="16" />
           {{ $t('training.complete') }}
-        </button>
+        </TirScoringAction>
       </div>
     </template>
   </div>
@@ -262,10 +211,27 @@
 import { ChevronLeft, ChevronRight, Pencil, Check as CheckIcon, RotateCcw, CircleOff } from 'lucide-vue-next';
 import { SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
 import { TRAINING_STATUS, getSessionProgress } from '@/services/training';
+import TirAtelierTabs from '@/components/ui/TirAtelierTabs.vue';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
+import TirScoringAction from '@/components/ui/TirScoringAction.vue';
+import TirScoringCard from '@/components/ui/TirScoringCard.vue';
 
 export default {
   name: 'TrainingSession',
-  components: { ChevronLeft, ChevronRight, Pencil, CheckIcon, RotateCcw, CircleOff },
+  components: {
+    ChevronLeft,
+    ChevronRight,
+    Pencil,
+    CheckIcon,
+    RotateCcw,
+    CircleOff,
+    TirAtelierTabs,
+    TirScoreCircle,
+    TirScoreLegend,
+    TirScoringAction,
+    TirScoringCard,
+  },
   props: {
     session: { type: Object, required: true },
   },
@@ -290,6 +256,13 @@ export default {
     },
     atelierNames() {
       return ATELIER_KEYS.map((key) => this.$t(`tir.${key}`));
+    },
+    exerciseTabs() {
+      return this.session.config.exercises.map((exercise) => ({
+        id: exercise,
+        label: exercise + 1,
+        complete: this.isExerciseComplete(exercise),
+      }));
     },
     progress() {
       return getSessionProgress(this.session);
@@ -602,117 +575,6 @@ export default {
   flex: 1;
 }
 
-/* Reuse TirParticipantView circle styles */
-
-.tir-pview__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.tir-pview__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tir-pview__legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tir-pview__legend-dot--carreau {
-  background: var(--tir-carreau);
-}
-
-.tir-pview__legend-dot--reussi {
-  background: var(--tir-reussi);
-}
-
-.tir-pview__legend-dot--touche {
-  background: var(--tir-touche);
-}
-
-.tir-pview__legend-dot--manque {
-  background: var(--tir-manque);
-}
-
-.tir-pview__tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.tir-pview__tab {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-  background: var(--color-surface);
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--color-text);
-  transition: all 0.2s;
-}
-
-.tir-pview__tab--active {
-  background: var(--tir-touche);
-  border-color: var(--tir-touche);
-  color: var(--color-btn-text);
-}
-
-.tir-pview__tab--complete:not(.tir-pview__tab--active) {
-  border-color: var(--tir-carreau);
-  color: var(--tir-carreau);
-}
-
-.tir-pview__atelier-card {
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: var(--color-surface);
-}
-
-.tir-pview__atelier-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.tir-pview__atelier-card-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--tir-touche);
-  color: var(--color-btn-text);
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.tir-pview__atelier-card-name {
-  font-weight: 700;
-  font-size: 14px;
-  flex: 1;
-}
-
-.tir-pview__atelier-card-score {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
 .tsession__distance-block {
   margin-bottom: 16px;
 }
@@ -769,98 +631,7 @@ export default {
   gap: 4px;
 }
 
-.tir-pview__circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--tir-circle-inactive);
-  background: radial-gradient(circle, var(--tir-circle-inactive) 56%, var(--color-surface) 56%);
-  opacity: 0.35;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.tir-pview__circle:hover {
-  opacity: 0.7;
-}
-
-.tir-pview__circle--active {
-  opacity: 1;
-}
-
-.tir-pview__circle--active.tir-pview__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__circle--active.tir-pview__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
-}
-
-.tir-pview__nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tir-pview__nav-btn:hover {
-  border-color: var(--color-primary);
-}
-
-.tir-pview__nav-btn--primary {
-  background: var(--tir-carreau);
-  border-color: var(--tir-carreau);
-  color: var(--color-btn-text);
-}
-
-.tsession__fill-zeros {
-  font-size: 12px;
-  padding: 6px 10px;
-  color: var(--tir-manque);
-  border-color: var(--tir-manque);
-}
-
-.tsession__fill-zeros:hover {
-  background: var(--tir-manque);
-  color: var(--color-btn-text);
-  border-color: var(--tir-manque);
-}
-
 /* Compact all-on-one-page layout */
-
-.tsession__compact-card {
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: var(--color-surface);
-}
-
-.tsession__compact-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
 
 .tsession__compact-grid {
   display: flex;
@@ -901,11 +672,6 @@ export default {
   display: flex;
   justify-content: center;
   gap: 2px;
-}
-
-.tir-pview__circle--sm {
-  width: 22px;
-  height: 22px;
 }
 
 /* Vertical layout for single distance + single exercise */

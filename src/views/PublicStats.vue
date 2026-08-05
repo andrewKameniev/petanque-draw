@@ -1,13 +1,6 @@
 <template>
-  <div v-if="isLoading" class="gooey">
-    <span class="dot"></span>
-    <div class="dots">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </div>
-  <div v-else class="wrapper">
+  <PageLoader v-if="isLoading" />
+  <PublicPageShell v-else class="wrapper" container-size="compact">
     <div v-if="statData" class="container">
       <div class="is-flex is-justify-content-space-between is-align-items-center">
         <router-link class="navbar-item" to="/">
@@ -47,7 +40,7 @@
       </div>
     </div>
     <Footer />
-  </div>
+  </PublicPageShell>
 </template>
 
 <script>
@@ -56,10 +49,12 @@ import { statsService } from '@/services/db';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
 import Footer from '@/components/partials/Footer.vue';
+import PageLoader from '@/components/ui/PageLoader.vue';
+import PublicPageShell from '@/components/ui/PublicPageShell.vue';
 
 export default {
   name: 'PublicStats',
-  components: { Footer, LanguageSwitcher, ThemeSwitcher, StatResult },
+  components: { Footer, LanguageSwitcher, ThemeSwitcher, StatResult, PageLoader, PublicPageShell },
   data() {
     return {
       isLoading: false,
@@ -107,39 +102,6 @@ export default {
 </script>
 
 <style scoped>
-.wrapper {
-  position: relative;
-  background: var(--color-body-bg);
-  min-height: 100vh;
-}
-
-.wrapper::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('@/assets/img/bg-petanque.avif') repeat;
-  background-size: 800px;
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .wrapper::before {
-  display: none;
-}
-
-.wrapper > * {
-  position: relative;
-  z-index: 1;
-}
-
-.wrapper .container {
-  max-width: 800px !important;
-  margin: 0 auto;
-  padding: 0 1rem;
-  padding-bottom: 2rem;
-}
-
 .wrapper .navbar-item:hover {
   background: transparent;
 }

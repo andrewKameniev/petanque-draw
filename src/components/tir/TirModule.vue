@@ -1,242 +1,208 @@
 <template>
   <div class="tir-module">
-    <div class="tir-nav">
-      <button
-        class="tir-nav__btn tir-nav__btn--participants"
-        :class="{ 'tir-nav__btn--active': view === 'participants' }"
-        @click="view = 'participants'"
-      >
-        <Users :size="18" />
-        <span>{{ $t('tir.participants') }}</span>
-      </button>
-      <button
-        class="tir-nav__btn tir-nav__btn--scoring"
-        :class="{ 'tir-nav__btn--active': view === 'scoring' }"
-        @click="view = 'scoring'"
-      >
-        <Grid3x3 :size="18" />
-        <span>{{ $t('tir.scoring') }}</span>
-      </button>
-      <button
-        class="tir-nav__btn tir-nav__btn--table"
-        :class="{ 'tir-nav__btn--active': view === 'table' }"
-        @click="view = 'table'"
-      >
-        <TableProperties :size="18" />
-        <span>{{ $t('tir.table') }}</span>
-      </button>
-      <button
-        v-if="tournament.tirPlayoff"
-        class="tir-nav__btn tir-nav__btn--playoff"
-        :class="{ 'tir-nav__btn--active': view === 'playoff' }"
-        @click="view = 'playoff'"
-      >
-        <Trophy :size="18" />
-        <span>{{ $t('games.playOff') }}</span>
-      </button>
-      <button
-        v-if="tournament.tournamentIsFinished"
-        class="tir-nav__btn tir-nav__btn--protocol"
-        :class="{ 'tir-nav__btn--active': view === 'protocol' }"
-        @click="view = 'protocol'"
-      >
-        <FileText :size="18" />
-        <span>{{ $t('teams.protocol') }}</span>
-      </button>
-    </div>
+    <TournamentNav
+      v-model="view"
+      variant="tir"
+      :tabs="navigationTabs"
+      :label="$t('tir.scoring')"
+      panel-id="tir-admin-tabpanel"
+      id-prefix="tir-admin-tab"
+    />
 
-    <!-- Participants list -->
-    <div v-if="view === 'participants'" class="tir-participants">
-      <div class="tir-participants__header" v-if="!tournament.tirStarted">
-        <button class="tir-participants__add" @click="showAddParticipant = true">
-          <Plus :size="18" />
-        </button>
+    <div id="tir-admin-tabpanel" role="tabpanel" :aria-labelledby="`tir-admin-tab-${view}`">
+      <!-- Participants list -->
+      <div v-if="view === 'participants'" class="tir-participants">
+        <div class="tir-participants__header" v-if="!tournament.tirStarted">
+          <button class="tir-participants__add" @click="showAddParticipant = true">
+            <Plus :size="18" />
+          </button>
+        </div>
+        <TirParticipantsList :tournament="tournament" :readOnly="!!tournament.tirPlayoff" @update="onScoreUpdate" />
+
+        <!-- Tiebreaker needed (participants view) -->
+        <div
+          v-if="
+            isRound1Complete &&
+            isTwoRoundSystem &&
+            currentRound === 1 &&
+            !tournament.tirPlayoff &&
+            (hasPendingTiebreaker || isTiebreakerInProgress)
+          "
+          class="tir-tiebreaker"
+        >
+          <div class="tir-tiebreaker__header">
+            <h4 class="tir-tiebreaker__title">
+              {{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}
+            </h4>
+            <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
+          </div>
+          <template v-if="!isTiebreakerInProgress">
+            <div class="tir-tiebreaker__actions">
+              <button class="tir-table__playoff-btn" @click="startTiebreaker">
+                {{ $t('tir.startTiebreaker') }}
+              </button>
+            </div>
+          </template>
+          <template v-else-if="isTiebreakerRoundComplete">
+            <div class="tir-tiebreaker__actions">
+              <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+                {{ $t('tir.finishTiebreaker') }}
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
+          </template>
+        </div>
+
+        <!-- Lane swap modal -->
+        <Modal v-if="swapParticipant" @close-modal="swapParticipant = null">
+          <h4 class="tir-add-form__title">
+            {{ $t('games.lane') }} {{ getParticipantLane(swapParticipant) }} — {{ swapParticipant.name }}
+          </h4>
+          <div class="tir-add-form">
+            <input
+              class="tir-add-form__input"
+              type="number"
+              min="1"
+              :max="tirParticipants.length"
+              v-model.number="swapTarget"
+              :placeholder="$t('games.lane')"
+              @keyup.enter="confirmLaneSwap"
+            />
+            <button class="tir-add-form__btn" @click="confirmLaneSwap" :disabled="!swapTarget">
+              {{ $t('games.shuffleLanes') }}
+            </button>
+          </div>
+        </Modal>
+
+        <!-- Add participant modal -->
+        <Modal v-if="showAddParticipant" @close-modal="showAddParticipant = false">
+          <h4 class="tir-add-form__title">{{ $t('tir.addParticipant') }}</h4>
+          <div class="tir-add-form">
+            <input
+              class="tir-add-form__input"
+              v-model="newParticipant.name"
+              :placeholder="$t('tir.participantName')"
+              @keyup.enter="addParticipant"
+            />
+            <input class="tir-add-form__input" v-model="newParticipant.city" :placeholder="$t('tir.city')" />
+            <button class="tir-add-form__btn" @click="addParticipant" :disabled="!newParticipant.name.trim()">
+              {{ $t('teams.addTeam') }}
+            </button>
+          </div>
+        </Modal>
       </div>
-      <TirParticipantsList :tournament="tournament" :readOnly="!!tournament.tirPlayoff" @update="onScoreUpdate" />
 
-      <!-- Tiebreaker needed (participants view) -->
-      <div
-        v-if="
+      <TirScoringWorkspace
+        v-if="view === 'scoring'"
+        :is-two-round-system="isTwoRoundSystem"
+        :scoring-round-tabs="scoringRoundTabs"
+        :active-scoring-round="activeScoringRound"
+        :scoring-mode="scoringMode"
+        :active-participant="activeParticipant"
+        :active-atelier="activeAtelier"
+        :scoring-list-participants="scoringListParticipants"
+        :scoring-participants="activeScoringParticipants"
+        :alphabetic-participants="activeScoringParticipantsAlphabetic"
+        :ateliers="tirAteliers"
+        :distances="activeScoringDistances"
+        :scores-key="activeScoresKey"
+        :total-throws="totalThrows"
+        :max-total-score="maxTotalScore"
+        :read-only="!!tournament.tirPlayoff"
+        :show-tiebreaker="
+          isRound1Complete &&
+          isTwoRoundSystem &&
+          currentRound === 1 &&
+          !tournament.tirPlayoff &&
+          !activeParticipant &&
+          activeAtelier === null &&
+          (hasPendingTiebreaker || isTiebreakerInProgress)
+        "
+        :tiebreaker-display-number="tiebreakerCount + (isTiebreakerInProgress ? 0 : 1)"
+        :is-tiebreaker-in-progress="isTiebreakerInProgress"
+        :is-tiebreaker-round-complete="isTiebreakerRoundComplete"
+        :show-round-two-transition="
+          canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null
+        "
+        @select-round="scoringRound = $event"
+        @select-mode="scoringMode = $event"
+        @select-participant="activeParticipant = $event"
+        @participant-back="onParticipantViewBack"
+        @score-update="onScoreUpdate"
+        @next-participant="goToNextParticipant"
+        @select-atelier="activeAtelier = $event"
+        @finish-atelier="finishAtelier"
+        @start-tiebreaker="startTiebreaker"
+        @finish-tiebreaker="finishTiebreaker"
+        @start-round-two="startRound2"
+      />
+
+      <TirRoundTable
+        v-if="view === 'table'"
+        :participants="tirParticipants"
+        :rows="roundTableRows"
+        :ranked-participants="rankedParticipants"
+        :is-two-round-system="isTwoRoundSystem"
+        :tiebreaker-count="tiebreakerCount"
+        :current-round="currentRound"
+        :playoff-has-qf="playoffHasQf"
+        :playoff-has-sf="playoffHasSf"
+        :playoff-has-final="playoffHasFinal"
+        :can-start-playoff="canStartPlayoff"
+        :qualify-count="qualifyCount"
+        :qualify-options="qualifyOptions"
+        :max-total-score="maxTotalScore"
+        :total-throws="totalThrows"
+        :show-tiebreaker="
           isRound1Complete &&
           isTwoRoundSystem &&
           currentRound === 1 &&
           !tournament.tirPlayoff &&
           (hasPendingTiebreaker || isTiebreakerInProgress)
         "
-        class="tir-tiebreaker"
-      >
-        <div class="tir-tiebreaker__header">
-          <h4 class="tir-tiebreaker__title">
-            {{ $t('tir.tiebreaker') }} {{ tiebreakerCount + (isTiebreakerInProgress ? 0 : 1) }}
-          </h4>
-          <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
-        </div>
-        <template v-if="!isTiebreakerInProgress">
-          <div class="tir-tiebreaker__actions">
-            <button class="tir-table__playoff-btn" @click="startTiebreaker">
-              {{ $t('tir.startTiebreaker') }}
-            </button>
-          </div>
-        </template>
-        <template v-else-if="isTiebreakerRoundComplete">
-          <div class="tir-tiebreaker__actions">
-            <button class="tir-table__playoff-btn" @click="finishTiebreaker">
-              {{ $t('tir.finishTiebreaker') }}
-            </button>
-          </div>
-        </template>
-        <template v-else>
-          <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
-        </template>
-      </div>
+        :tiebreaker-display-number="tiebreakerCount + (isTiebreakerInProgress ? 0 : 1)"
+        :is-tiebreaker-in-progress="isTiebreakerInProgress"
+        :is-tiebreaker-round-complete="isTiebreakerRoundComplete"
+        :can-transition-to-round2="canTransitionToRound2"
+        :has-playoff="!!tournament.tirPlayoff"
+        :tournament-finished="!!tournament.tournamentIsFinished"
+        :tournament-started="!!tournament.tirStarted"
+        @open-participant="openParticipantFromTable"
+        @start-tiebreaker="startTiebreaker"
+        @finish-tiebreaker="finishTiebreaker"
+        @start-round-two="startRound2"
+        @return-to-round-one="returnToRound1"
+        @update-qualify-count="qualifyCount = $event"
+        @start-playoff="startTirPlayoff"
+        @finish="$emit('finish')"
+        @export="exportResults"
+      />
 
-      <!-- Lane swap modal -->
-      <Modal v-if="swapParticipant" @close-modal="swapParticipant = null">
-        <h4 class="tir-add-form__title">
-          {{ $t('games.lane') }} {{ getParticipantLane(swapParticipant) }} — {{ swapParticipant.name }}
-        </h4>
-        <div class="tir-add-form">
-          <input
-            class="tir-add-form__input"
-            type="number"
-            min="1"
-            :max="tirParticipants.length"
-            v-model.number="swapTarget"
-            :placeholder="$t('games.lane')"
-            @keyup.enter="confirmLaneSwap"
-          />
-          <button class="tir-add-form__btn" @click="confirmLaneSwap" :disabled="!swapTarget">
-            {{ $t('games.shuffleLanes') }}
-          </button>
-        </div>
-      </Modal>
+      <TirPlayoffAdmin
+        v-if="view === 'playoff' && tournament.tirPlayoff"
+        :active-match="activePlayoffMatch"
+        :active-match-label="activePlayoffMatchLabel"
+        :ateliers="tirAteliers"
+        :distances="tirDistances"
+        :rounds="playoffAdminRounds"
+        :can-finish="canFinishPlayoff"
+        :tournament-finished="!!tournament.tournamentIsFinished"
+        @close-match="closePlayoffMatch"
+        @score-update="onPlayoffScoreChange"
+        @open-match="openPlayoffMatch"
+        @edit-lane="editLane"
+        @finish="finishPlayoffTournament"
+        @export="exportResults"
+      />
 
-      <!-- Add participant modal -->
-      <Modal v-if="showAddParticipant" @close-modal="showAddParticipant = false">
-        <h4 class="tir-add-form__title">{{ $t('tir.addParticipant') }}</h4>
-        <div class="tir-add-form">
-          <input
-            class="tir-add-form__input"
-            v-model="newParticipant.name"
-            :placeholder="$t('tir.participantName')"
-            @keyup.enter="addParticipant"
-          />
-          <input class="tir-add-form__input" v-model="newParticipant.city" :placeholder="$t('tir.city')" />
-          <button class="tir-add-form__btn" @click="addParticipant" :disabled="!newParticipant.name.trim()">
-            {{ $t('teams.addTeam') }}
-          </button>
-        </div>
-      </Modal>
+      <TirProtocol
+        v-if="view === 'protocol'"
+        :tournament="tournament"
+        :tournament-meta="tournamentMeta || currentTournament"
+      />
     </div>
-
-    <TirScoringWorkspace
-      v-if="view === 'scoring'"
-      :is-two-round-system="isTwoRoundSystem"
-      :scoring-round-tabs="scoringRoundTabs"
-      :active-scoring-round="activeScoringRound"
-      :scoring-mode="scoringMode"
-      :active-participant="activeParticipant"
-      :active-atelier="activeAtelier"
-      :scoring-list-participants="scoringListParticipants"
-      :scoring-participants="activeScoringParticipants"
-      :alphabetic-participants="activeScoringParticipantsAlphabetic"
-      :ateliers="tirAteliers"
-      :distances="activeScoringDistances"
-      :scores-key="activeScoresKey"
-      :total-throws="totalThrows"
-      :max-total-score="maxTotalScore"
-      :read-only="!!tournament.tirPlayoff"
-      :show-tiebreaker="
-        isRound1Complete &&
-        isTwoRoundSystem &&
-        currentRound === 1 &&
-        !tournament.tirPlayoff &&
-        !activeParticipant &&
-        activeAtelier === null &&
-        (hasPendingTiebreaker || isTiebreakerInProgress)
-      "
-      :tiebreaker-display-number="tiebreakerCount + (isTiebreakerInProgress ? 0 : 1)"
-      :is-tiebreaker-in-progress="isTiebreakerInProgress"
-      :is-tiebreaker-round-complete="isTiebreakerRoundComplete"
-      :show-round-two-transition="
-        canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null
-      "
-      @select-round="scoringRound = $event"
-      @select-mode="scoringMode = $event"
-      @select-participant="activeParticipant = $event"
-      @participant-back="onParticipantViewBack"
-      @score-update="onScoreUpdate"
-      @next-participant="goToNextParticipant"
-      @select-atelier="activeAtelier = $event"
-      @finish-atelier="finishAtelier"
-      @start-tiebreaker="startTiebreaker"
-      @finish-tiebreaker="finishTiebreaker"
-      @start-round-two="startRound2"
-    />
-
-    <TirRoundTable
-      v-if="view === 'table'"
-      :participants="tirParticipants"
-      :rows="roundTableRows"
-      :ranked-participants="rankedParticipants"
-      :is-two-round-system="isTwoRoundSystem"
-      :tiebreaker-count="tiebreakerCount"
-      :current-round="currentRound"
-      :playoff-has-qf="playoffHasQf"
-      :playoff-has-sf="playoffHasSf"
-      :playoff-has-final="playoffHasFinal"
-      :can-start-playoff="canStartPlayoff"
-      :qualify-count="qualifyCount"
-      :qualify-options="qualifyOptions"
-      :max-total-score="maxTotalScore"
-      :total-throws="totalThrows"
-      :show-tiebreaker="
-        isRound1Complete &&
-        isTwoRoundSystem &&
-        currentRound === 1 &&
-        !tournament.tirPlayoff &&
-        (hasPendingTiebreaker || isTiebreakerInProgress)
-      "
-      :tiebreaker-display-number="tiebreakerCount + (isTiebreakerInProgress ? 0 : 1)"
-      :is-tiebreaker-in-progress="isTiebreakerInProgress"
-      :is-tiebreaker-round-complete="isTiebreakerRoundComplete"
-      :can-transition-to-round2="canTransitionToRound2"
-      :has-playoff="!!tournament.tirPlayoff"
-      :tournament-finished="!!tournament.tournamentIsFinished"
-      :tournament-started="!!tournament.tirStarted"
-      @open-participant="openParticipantFromTable"
-      @start-tiebreaker="startTiebreaker"
-      @finish-tiebreaker="finishTiebreaker"
-      @start-round-two="startRound2"
-      @return-to-round-one="returnToRound1"
-      @update-qualify-count="qualifyCount = $event"
-      @start-playoff="startTirPlayoff"
-      @finish="$emit('finish')"
-      @export="exportResults"
-    />
-
-    <TirPlayoffAdmin
-      v-if="view === 'playoff' && tournament.tirPlayoff"
-      :active-match="activePlayoffMatch"
-      :active-match-label="activePlayoffMatchLabel"
-      :ateliers="tirAteliers"
-      :distances="tirDistances"
-      :rounds="playoffAdminRounds"
-      :can-finish="canFinishPlayoff"
-      :tournament-finished="!!tournament.tournamentIsFinished"
-      @close-match="closePlayoffMatch"
-      @score-update="onPlayoffScoreChange"
-      @open-match="openPlayoffMatch"
-      @edit-lane="editLane"
-      @finish="finishPlayoffTournament"
-      @export="exportResults"
-    />
-
-    <TirProtocol
-      v-if="view === 'protocol'"
-      :tournament="tournament"
-      :tournament-meta="tournamentMeta || currentTournament"
-    />
   </div>
 </template>
 
@@ -249,6 +215,7 @@ import TirScoringWorkspace from './TirScoringWorkspace.vue';
 import TirRoundTable from './TirRoundTable.vue';
 import TirPlayoffAdmin from './TirPlayoffAdmin.vue';
 import TirProtocol from './TirProtocol.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 import { Users, Grid3x3, TableProperties, Plus, Trophy, FileText } from 'lucide-vue-next';
 
 import {
@@ -283,12 +250,8 @@ export default {
     TirRoundTable,
     TirPlayoffAdmin,
     TirProtocol,
-    Users,
-    Grid3x3,
-    TableProperties,
+    TournamentNav,
     Plus,
-    Trophy,
-    FileText,
   },
   props: {
     tournamentMeta: { type: Object, default: null },
@@ -332,6 +295,20 @@ export default {
     },
     tournamentName() {
       return this.currentTournament?.name || this.tournament.name;
+    },
+    navigationTabs() {
+      const tabs = [
+        { id: 'participants', label: this.$t('tir.participants'), icon: Users },
+        { id: 'scoring', label: this.$t('tir.scoring'), icon: Grid3x3 },
+        { id: 'table', label: this.$t('tir.table'), icon: TableProperties },
+      ];
+      if (this.tournament.tirPlayoff) {
+        tabs.push({ id: 'playoff', label: this.$t('games.playOff'), icon: Trophy });
+      }
+      if (this.tournament.tournamentIsFinished) {
+        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
+      }
+      return tabs;
     },
     tirConfig() {
       return this.tournament.tirConfig || { junior: false, rounds: 1 };
@@ -895,50 +872,6 @@ export default {
   border-radius: 12px;
   padding: 16px;
   border: 1px solid var(--color-border);
-}
-
-.tir-nav {
-  display: flex;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 6px 0;
-  margin-bottom: 16px;
-}
-
-.tir-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tir-nav__btn--active {
-  color: var(--tir-touche);
-}
-
-.tir-nav__btn--participants.tir-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tir-nav__btn--scoring.tir-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tir-nav__btn--table.tir-nav__btn--active {
-  color: var(--tir-carreau);
-}
-
-.tir-nav__btn--playoff.tir-nav__btn--active {
-  color: var(--tir-touche);
 }
 
 /* Participants */

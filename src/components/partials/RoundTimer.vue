@@ -2,7 +2,11 @@
   <div
     class="round-timer"
     :class="{ 'round-timer--ended': isEnded, 'round-timer--paused': isPaused, 'round-timer--clickable': !readOnly }"
+    :role="readOnly ? undefined : 'button'"
+    :tabindex="readOnly ? undefined : 0"
     @click="onTimerClick"
+    @keydown.enter.prevent="onTimerClick"
+    @keydown.space.prevent="onTimerClick"
   >
     <div class="round-timer__display">
       <Timer :size="18" class="round-timer__icon" />

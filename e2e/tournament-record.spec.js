@@ -153,11 +153,35 @@ test.describe('canonical tournament record adapter', () => {
     }
   });
 
-  test('archive restore preserves wrapper and legacy Firebase shapes', async ({ page }) => {
+  test('archive restore preserves wrapper (envelope) Firebase shape', async ({ page }) => {
     test.setTimeout(60_000);
     const wrapperId = createFixtureId(30);
-    const legacyId = createFixtureId(40);
     await seedOwnedTournament(wrapperId, newFormatRecord('Archived Wrapper Adapter'), { status: 'archived' });
+    await useEnglish(page);
+
+    try {
+      await login(page);
+      await page.locator('[data-testid="tournament-name-row"]').waitFor({ state: 'visible' });
+      await page.goto('/#/archived');
+      await expect(page.locator('.archived-layout')).toBeVisible();
+
+      const archivedItem = page.locator(`.archived-sidebar__item[data-tournament-id="${wrapperId}"]`);
+      await expect(archivedItem).toBeVisible({ timeout: 10_000 });
+      await expect(archivedItem).toContainText('Archived Wrapper Adapter');
+      await archivedItem.click();
+      await expect(page.locator('.archived-sidebar__actions')).toBeVisible();
+      await page.locator('.btn-make-active').first().click();
+      await expect.poll(async () => (await readUserMapEntry(wrapperId))?.status, { timeout: 10_000 }).toBe('active');
+      const stored = await readOwnedTournament(wrapperId);
+      expect(stored).toHaveProperty('main');
+    } finally {
+      await cleanupOwnedTournament(wrapperId);
+    }
+  });
+
+  test('archive restore preserves legacy (root) Firebase shape', async ({ page }) => {
+    test.setTimeout(60_000);
+    const legacyId = createFixtureId(40);
     await seedOwnedTournament(legacyId, legacyRecord('Archived Legacy Adapter'), { status: 'archived' });
     await useEnglish(page);
 
@@ -167,24 +191,16 @@ test.describe('canonical tournament record adapter', () => {
       await page.goto('/#/archived');
       await expect(page.locator('.archived-layout')).toBeVisible();
 
-      for (const [id, name, envelope] of [
-        [wrapperId, 'Archived Wrapper Adapter', true],
-        [legacyId, 'Archived Legacy Adapter', false],
-      ]) {
-        await page.goto('/#/archived');
-        await expect(page).toHaveURL(/#\/archived$/);
-        const archivedItem = page.locator(`.archived-sidebar__item[data-tournament-id="${id}"]`);
-        await expect(archivedItem).toBeVisible({ timeout: 10_000 });
-        await expect(archivedItem).toContainText(name);
-        await archivedItem.click();
-        await expect(page.locator('.archived-sidebar__actions')).toBeVisible();
-        await page.locator('.btn-make-active').first().click();
-        await expect.poll(async () => (await readUserMapEntry(id))?.status, { timeout: 10_000 }).toBe('active');
-        const stored = await readOwnedTournament(id);
-        expect(Object.prototype.hasOwnProperty.call(stored, 'main')).toBe(envelope);
-      }
+      const archivedItem = page.locator(`.archived-sidebar__item[data-tournament-id="${legacyId}"]`);
+      await expect(archivedItem).toBeVisible({ timeout: 10_000 });
+      await expect(archivedItem).toContainText('Archived Legacy Adapter');
+      await archivedItem.click();
+      await expect(page.locator('.archived-sidebar__actions')).toBeVisible();
+      await page.locator('.btn-make-active').first().click();
+      await expect.poll(async () => (await readUserMapEntry(legacyId))?.status, { timeout: 10_000 }).toBe('active');
+      const stored = await readOwnedTournament(legacyId);
+      expect(stored).not.toHaveProperty('main');
     } finally {
-      await cleanupOwnedTournament(wrapperId);
       await cleanupOwnedTournament(legacyId);
     }
   });

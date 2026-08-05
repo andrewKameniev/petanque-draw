@@ -68,47 +68,7 @@ export function getQualifiedCountForGroup(tournament, rankingTeams, gIndex) {
  * Computes group rankings for poules from actual game data.
  * This avoids relying on the accumulated team.wins counter.
  */
-export function computePoulesGroupRankings(tournament) {
-  if (!tournament.groups || !tournament.games?.length) return [];
-
-  return tournament.groups.map((group, groupIndex) => {
-    const teamWins = {};
-    const teamPointsPlus = {};
-    const teamPointsMinus = {};
-    group.forEach((t) => {
-      teamWins[t.title] = 0;
-      teamPointsPlus[t.title] = 0;
-      teamPointsMinus[t.title] = 0;
-    });
-
-    tournament.games.forEach((roundGames) => {
-      roundGames
-        .filter((g) => g.group === groupIndex)
-        .forEach((game) => {
-          if (game.team_1_score != null && game.team_2_score != null) {
-            teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
-            teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
-            teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
-            teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
-            if (game.team_1_score > game.team_2_score) {
-              teamWins[game.team_1]++;
-            } else if (game.team_2_score > game.team_1_score) {
-              teamWins[game.team_2]++;
-            }
-          }
-        });
-    });
-
-    const ranked = group.map((team) => ({
-      ...team,
-      wins: teamWins[team.title] || 0,
-      pointsPlus: teamPointsPlus[team.title] || 0,
-      pointsMinus: teamPointsMinus[team.title] || 0,
-    }));
-
-    return ranked.sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
-  });
-}
+export { rankPoulesGroups as computePoulesGroupRankings } from '@/services/group-ranking';
 
 /**
  * Assigns shuffled lane numbers to playoff bracket stages, skipping bye games.

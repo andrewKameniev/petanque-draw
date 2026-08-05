@@ -540,6 +540,7 @@
 <script>
 import { tournamentNames, getGameResultInGroup, getTournamentRanking, copyContent } from '@/helpers';
 import { getQualifiedCountForGroup, getPlayOffTeamsPerGroup } from '@/services/results';
+import { rankBarrageGroups } from '@/services/group-ranking';
 import { Copy, Check, Upload, Trophy } from 'lucide-vue-next';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
@@ -869,41 +870,7 @@ export default {
       return chunks;
     },
     barrageRankingTeams() {
-      if (!this.tournament.barrage?.groups) return [];
-      const barrage = this.tournament.barrage;
-      const barrageGames = this.tournament.games.slice(barrage.startIndex);
-      return barrage.groups.map((group, groupIndex) => {
-        const teamWins = {};
-        const teamPointsPlus = {};
-        const teamPointsMinus = {};
-        group.forEach((t) => {
-          teamWins[t.title] = 0;
-          teamPointsPlus[t.title] = 0;
-          teamPointsMinus[t.title] = 0;
-        });
-        barrageGames.forEach((roundGames) => {
-          roundGames
-            .filter((g) => g.group === groupIndex)
-            .forEach((game) => {
-              if (game.team_1_score != null && game.team_2_score != null) {
-                teamPointsPlus[game.team_1] = (teamPointsPlus[game.team_1] || 0) + game.team_1_score;
-                teamPointsMinus[game.team_1] = (teamPointsMinus[game.team_1] || 0) + game.team_2_score;
-                teamPointsPlus[game.team_2] = (teamPointsPlus[game.team_2] || 0) + game.team_2_score;
-                teamPointsMinus[game.team_2] = (teamPointsMinus[game.team_2] || 0) + game.team_1_score;
-                if (game.team_1_score > game.team_2_score) teamWins[game.team_1]++;
-                else if (game.team_2_score > game.team_1_score) teamWins[game.team_2]++;
-              }
-            });
-        });
-        return group
-          .map((t) => ({
-            ...t,
-            wins: teamWins[t.title] || 0,
-            pointsPlus: teamPointsPlus[t.title] || 0,
-            pointsMinus: teamPointsMinus[t.title] || 0,
-          }))
-          .sort((a, b) => b.wins - a.wins || b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus));
-      });
+      return rankBarrageGroups(this.tournament);
     },
   },
 };

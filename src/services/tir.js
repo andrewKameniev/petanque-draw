@@ -86,10 +86,70 @@ export function getAtelierScore(participant, key, atelierIdx) {
   return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
 }
 
-export function isAtelierComplete(participant, key, atelierIdx, distancesCount) {
+export function getAtelierThrowCount(participant, key, atelierIdx) {
   const scores = participant[key]?.[atelierIdx];
-  if (!scores) return false;
-  return Object.keys(scores).length >= distancesCount;
+  if (!scores || typeof scores !== 'object') return 0;
+  return Object.keys(scores).length;
+}
+
+export function isAtelierComplete(participant, key, atelierIdx, distancesCount) {
+  return getAtelierThrowCount(participant, key, atelierIdx) >= distancesCount;
+}
+
+/**
+ * Return a participant copy with one throw toggled. Score editors use this
+ * operation so they never need to mutate a participant prop or know the
+ * nested tournament storage shape.
+ */
+export function toggleParticipantScore(participant, scoresKey, atelierIndex, distance, resultType) {
+  const currentScores = participant?.[scoresKey];
+  const currentAtelier = currentScores?.[atelierIndex];
+  const nextAtelier = currentAtelier && typeof currentAtelier === 'object' ? { ...currentAtelier } : {};
+
+  if (nextAtelier[distance] === resultType) {
+    delete nextAtelier[distance];
+  } else {
+    nextAtelier[distance] = resultType;
+  }
+
+  return {
+    ...participant,
+    [scoresKey]: {
+      ...(currentScores && typeof currentScores === 'object' ? currentScores : {}),
+      [atelierIndex]: nextAtelier,
+    },
+  };
+}
+
+/** Fill unanswered throws for a single atelier without changing the input. */
+export function fillMissingAtelierScores(participant, scoresKey, atelierIndex, distances, resultType = 'manque') {
+  const currentScores = participant?.[scoresKey];
+  const currentAtelier = currentScores?.[atelierIndex];
+  const nextAtelier = currentAtelier && typeof currentAtelier === 'object' ? { ...currentAtelier } : {};
+
+  distances.forEach((distance) => {
+    if (!nextAtelier[distance]) nextAtelier[distance] = resultType;
+  });
+
+  return {
+    ...participant,
+    [scoresKey]: {
+      ...(currentScores && typeof currentScores === 'object' ? currentScores : {}),
+      [atelierIndex]: nextAtelier,
+    },
+  };
+}
+
+export function fillMissingAtelierScoresForParticipants(
+  participants,
+  scoresKey,
+  atelierIndex,
+  distances,
+  resultType = 'manque',
+) {
+  return participants.map((participant) =>
+    fillMissingAtelierScores(participant, scoresKey, atelierIndex, distances, resultType),
+  );
 }
 
 export function rankParticipants(participants, key) {
@@ -363,6 +423,181 @@ export function getMatchWinner(match, totalThrows) {
   const s2 = getMatchPlayerScore(match, 2);
   if (s1 === s2) return match.tieWinner === 1 ? match.player1 : match.player2;
   return s1 > s2 ? match.player1 : match.player2;
+}
+
+export function getMatchScoreAt(match, playerNum, atelierIndex, distance) {
+  const key = playerNum === 1 ? 'scores1' : 'scores2';
+  return match?.[key]?.[atelierIndex]?.[distance] || null;
+}
+
+export function getMatchAtelierScore(match, playerNum, atelierIndex) {
+  const key = playerNum === 1 ? 'scores1' : 'scores2';
+  const scores = match?.[key]?.[atelierIndex];
+  if (!scores || typeof scores !== 'object') return 0;
+  return Object.values(scores).reduce((sum, resultType) => sum + (SCORING[resultType] || 0), 0);
+}
+
+export function isMatchAtelierComplete(match, playerNum, atelierIndex, distancesCount) {
+  const key = playerNum === 1 ? 'scores1' : 'scores2';
+  const scores = match?.[key]?.[atelierIndex];
+  return !!scores && typeof scores === 'object' && Object.keys(scores).length >= distancesCount;
+}
+
+/** Derive the persisted match summary from its throw-level scores. */
+export function updateTirMatchFromScores(match, totalThrows) {
+  const nextMatch = {
+    ...match,
+    score1: getMatchPlayerScore(match, 1),
+    score2: getMatchPlayerScore(match, 2),
+  };
+  nextMatch.complete = isMatchComplete(nextMatch, totalThrows);
+
+  if (!nextMatch.complete) {
+    nextMatch.winner = null;
+    nextMatch.loser = null;
+    return nextMatch;
+  }
+
+  nextMatch.winner = getMatchWinner(nextMatch, totalThrows);
+  nextMatch.loser = nextMatch.winner === nextMatch.player1 ? nextMatch.player2 : nextMatch.player1;
+  return nextMatch;
+}
+
+/** Return a match copy with one throw toggled and its summary recalculated. */
+export function toggleTirMatchScore(match, playerNum, atelierIndex, distance, resultType, totalThrows) {
+  const scoresKey = playerNum === 1 ? 'scores1' : 'scores2';
+  const currentScores = match?.[scoresKey];
+  const currentAtelier = currentScores?.[atelierIndex];
+  const nextAtelier = currentAtelier && typeof currentAtelier === 'object' ? { ...currentAtelier } : {};
+
+  if (nextAtelier[distance] === resultType) {
+    delete nextAtelier[distance];
+  } else {
+    nextAtelier[distance] = resultType;
+  }
+
+  return updateTirMatchFromScores(
+    {
+      ...match,
+      [scoresKey]: {
+        ...(currentScores && typeof currentScores === 'object' ? currentScores : {}),
+        [atelierIndex]: nextAtelier,
+      },
+    },
+    totalThrows,
+  );
+}
+
+export function selectTirMatchTieWinner(match, playerNum, totalThrows) {
+  return updateTirMatchFromScores({ ...match, tieWinner: playerNum }, totalThrows);
+}
+
+export function getTirPlayoffRoundTitle(matchCount, playoffSize, labels, roundIndex = 0) {
+  if (playoffSize === 2) return labels.final;
+  if (matchCount === 2) return labels.semifinal;
+  if (matchCount === 4) return labels.quarterfinal;
+  if (matchCount === 8) return labels.eighthFinal;
+  if (matchCount === 16) return labels.sixteenthFinal;
+  return `${labels.round} ${roundIndex + 1}`;
+}
+
+function getStoredMatchLoser(match) {
+  if (!match?.winner) return null;
+  return match.winner === match.player1 ? match.player2 : match.player1;
+}
+
+/** Build the canonical admin/public playoff round model. */
+export function getTirPlayoffDisplayRounds(playoff, labels, { includePreviews = false } = {}) {
+  if (!playoff) return [];
+  const rounds = [];
+  const firstRoundMatches = playoff.rounds?.[0]?.matches?.length || 0;
+  const playoffSize = playoff.size || (firstRoundMatches > 0 ? firstRoundMatches * 2 : 2);
+
+  playoff.rounds?.forEach((round, roundIndex) => {
+    rounds.push({
+      title: getTirPlayoffRoundTitle(round.matches.length, playoffSize, labels, roundIndex),
+      matches: round.matches,
+      key: `round:${roundIndex}`,
+      isFinal: false,
+      laneStart: 1,
+    });
+  });
+
+  if (includePreviews && !playoff.thirdPlace && !playoff.final && rounds.length) {
+    const lastMatches = rounds[rounds.length - 1].matches;
+    if (lastMatches.length >= 2) {
+      const previewMatches = [];
+      for (let index = 0; index < lastMatches.length; index += 2) {
+        const player1 = lastMatches[index]?.winner || null;
+        const player2 = lastMatches[index + 1]?.winner || null;
+        previewMatches.push({
+          player1,
+          player2,
+          score1: null,
+          score2: null,
+          preview: true,
+          previewLabel1: player1 || labels.pending,
+          previewLabel2: player2 || labels.pending,
+        });
+      }
+
+      if (lastMatches.length === 2) {
+        const player1 = getStoredMatchLoser(lastMatches[0]);
+        const player2 = getStoredMatchLoser(lastMatches[1]);
+        rounds.push({
+          title: labels.thirdPlace,
+          matches: [
+            {
+              player1,
+              player2,
+              score1: null,
+              score2: null,
+              preview: true,
+              previewLabel1: player1 || labels.pending,
+              previewLabel2: player2 || labels.pending,
+            },
+          ],
+          key: `preview-third:${rounds.length}`,
+          isFinal: false,
+          isPreview: true,
+          laneStart: 2,
+        });
+      }
+
+      const nextMatchCount = previewMatches.length;
+      const isFinal = nextMatchCount === 1;
+      rounds.push({
+        title: isFinal ? labels.final : getTirPlayoffRoundTitle(nextMatchCount, playoffSize, labels, rounds.length),
+        matches: previewMatches,
+        key: `preview:${rounds.length}`,
+        isFinal,
+        isPreview: true,
+        laneStart: 1,
+      });
+    }
+  }
+
+  if (playoff.thirdPlace) {
+    rounds.push({
+      title: labels.thirdPlace,
+      matches: [playoff.thirdPlace],
+      key: 'third:0',
+      isFinal: false,
+      laneStart: 2,
+    });
+  }
+
+  if (playoff.final) {
+    rounds.push({
+      title: labels.final,
+      matches: [playoff.final],
+      key: 'final:0',
+      isFinal: true,
+      laneStart: 1,
+    });
+  }
+
+  return rounds;
 }
 
 export function buildTableRows({

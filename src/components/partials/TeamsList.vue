@@ -302,6 +302,7 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
+import { rankRoundRobinGroups, rankByWinsAndDiff, computeGroupStats } from '@/services/group-ranking';
 import { getTeamPlayoffPlaces, getBracketPlayoffPlaces } from '@/services/tir';
 import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
@@ -414,50 +415,11 @@ export default {
       if (!this.tournament.games?.length) {
         groups = this.tournament.groups;
       } else if (this.tournament.system === 'groups' || this.tournament.groups?.length) {
-        groups = this.tournament.groups.map((group) => {
-          const teamWins = {};
-          const teamPointsPlus = {};
-          const teamPointsMinus = {};
-          group.forEach((t) => {
-            teamWins[t.title] = 0;
-            teamPointsPlus[t.title] = 0;
-            teamPointsMinus[t.title] = 0;
-          });
-          this.tournament.games.forEach((roundGames) => {
-            roundGames.forEach((game) => {
-              if (game.team_1_score == null || game.team_2_score == null) return;
-              if (game.status === 'in_progress' || game.status === 'not_started') return;
-              const t1 = game.team_1;
-              const t2 = game.team_2;
-              if (!(t1 in teamWins) || !(t2 in teamWins)) return;
-              const s1 = Number(game.team_1_score);
-              const s2 = Number(game.team_2_score);
-              teamPointsPlus[t1] = (teamPointsPlus[t1] || 0) + s1;
-              teamPointsMinus[t1] = (teamPointsMinus[t1] || 0) + s2;
-              teamPointsPlus[t2] = (teamPointsPlus[t2] || 0) + s2;
-              teamPointsMinus[t2] = (teamPointsMinus[t2] || 0) + s1;
-              if (s1 > s2) {
-                teamWins[t1]++;
-              } else if (s2 > s1) {
-                teamWins[t2]++;
-              }
-            });
-          });
-          group.forEach((team) => {
-            team.wins = teamWins[team.title] || 0;
-            team.pointsPlus = teamPointsPlus[team.title] || 0;
-            team.pointsMinus = teamPointsMinus[team.title] || 0;
-          });
-          return rankGroupByRegulations(group, this.tournament.games || []);
-        });
+        groups = rankRoundRobinGroups(this.tournament, rankGroupByRegulations);
       } else {
         groups = this.tournament.groups.map((group) => {
-          return [...group].sort(
-            (a, b) =>
-              (b.wins || 0) - (a.wins || 0) ||
-              (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
-              (b.pointsPlus || 0) - (a.pointsPlus || 0),
-          );
+          const stats = computeGroupStats(group, this.tournament.games || []);
+          return rankByWinsAndDiff(stats);
         });
       }
       if (this.activeClubFilter) {

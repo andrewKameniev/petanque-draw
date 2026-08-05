@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <PublicPageShell class="wrapper">
     <Navbar @open-menu="menuOpen = !menuOpen" />
     <Menu :active="menuOpen" @closeMenu="menuOpen = false" />
     <div class="container">
@@ -341,19 +341,13 @@
               class="mt-3"
             />
             <template v-else>
-              <div class="tournament-nav">
-                <button
-                  v-for="(tab, index) in tabs"
-                  :key="index"
-                  class="tournament-nav__btn"
-                  :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === activeTab }]"
-                  @click="activeTab = tab.id"
-                >
-                  <component :is="tab.icon" :size="18" />
-                  <span>{{ tab.label }}</span>
-                </button>
-              </div>
-              <div class="tabs-content-area">
+              <TournamentNav v-model="activeTab" :tabs="tabs" />
+              <div
+                id="tournament-tabpanel"
+                class="tabs-content-area"
+                role="tabpanel"
+                :aria-labelledby="`tab-${activeTab}`"
+              >
                 <div v-if="activeTab === 'teams'">
                   <TeamsList :previewTournament="activeTournament" />
                 </div>
@@ -377,7 +371,7 @@
       </div>
     </div>
     <Footer />
-  </div>
+  </PublicPageShell>
 </template>
 
 <script>
@@ -397,6 +391,20 @@ import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { getGameLaneNumber } from '@/services/lanes';
+import { encodeTournamentRef } from '@/services/tournament-ref';
+import {
+  getActiveRound,
+  getCadragePlaceRange,
+  getPlayoffParticipantCount,
+  getSystemDescription,
+  getTournamentBadge,
+  getTournamentExtras,
+  isFinale as computeIsFinale,
+  isInPlayoff as computeIsInPlayoff,
+  isTournamentFinished,
+  isTournamentStarted,
+  splitTournamentMessage,
+} from '@/services/tournament-presentation';
 import {
   getTournamentGroup,
   getTournamentMain,
@@ -404,6 +412,8 @@ import {
   getTournamentStorageTarget,
   normalizeTournamentRecord,
 } from '@/services/tournament-record';
+import PublicPageShell from '@/components/ui/PublicPageShell.vue';
+import TournamentNav from '@/components/ui/TournamentNav.vue';
 import {
   GitFork,
   Users,
@@ -419,6 +429,8 @@ import {
 export default {
   name: 'Archived',
   components: {
+    PublicPageShell,
+    TournamentNav,
     Footer,
     Navbar,
     Menu,
@@ -431,10 +443,6 @@ export default {
     Ranking,
     Protocol,
     GitFork,
-    Users,
-    List,
-    TrophyIcon,
-    FileText,
     Pencil,
     Link2,
     RefreshCw,
@@ -537,31 +545,27 @@ export default {
     },
     tabs() {
       const tabs = [
-        { id: 'teams', label: this.$t('teams.teams'), icon: 'Users' },
-        { id: 'results', label: this.$t('teams.results'), icon: 'List' },
-        { id: 'ranking', label: this.$t('teams.ranking'), icon: 'TrophyIcon' },
+        { id: 'teams', label: this.$t('teams.teams'), icon: Users },
+        { id: 'results', label: this.$t('teams.results'), icon: List },
+        { id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon },
       ];
       if (this.activeTournament?.tournamentIsFinished && this.activeTournament?.teams?.length) {
-        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: 'FileText' });
+        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
       }
       return tabs;
     },
     activeRound() {
-      if (!this.activeTournament?.games?.length) return 1;
-      return this.activeTournament.roundIsActive
-        ? this.activeTournament.games.length
-        : this.activeTournament.games.length + 1;
+      return getActiveRound(this.activeTournament);
     },
     isFinished() {
-      return !!this.activeTournament?.tournamentIsFinished;
+      return isTournamentFinished(this.activeTournament);
     },
     isStarted() {
-      return !!this.activeTournament?.tournamentIsStarted || !!this.activeTournament?.games?.length;
+      return isTournamentStarted(this.activeTournament);
     },
     badgeClass() {
-      if (this.isFinished) return 'badge-finished';
-      if (!this.isStarted) return 'badge-not-started';
-      return 'badge-active';
+      const badge = getTournamentBadge(this.activeTournament);
+      return badge === 'finished' ? 'badge-finished' : badge === 'not-started' ? 'badge-not-started' : 'badge-active';
     },
     badgeLabel() {
       if (this.isFinished) return this.$t('common.finished');
@@ -578,60 +582,34 @@ export default {
       return getTeamsRanking(this.activeTournament, this.activeRound);
     },
     tournamentMessageLines() {
-      if (!this.tournamentMetadata.tournamentMessage) return [];
-      return this.tournamentMetadata.tournamentMessage.split('\n').filter((l) => l.trim());
+      return splitTournamentMessage(this.tournamentMetadata.tournamentMessage);
     },
     systemDescription() {
-      if (!this.activeTournament) return '';
-      if (this.activeTournament.system !== 'swiss') {
-        return this.$t('teams.' + this.activeTournament.system);
-      }
-      let desc;
-      if (this.activeTournament.games?.length) {
-        const barrage = this.activeTournament.barrage;
-        const swissRounds = barrage ? barrage.startIndex : this.activeTournament.games.length;
-        const total = this.activeTournament.preferences?.swissRoundsCount;
-        if (total) {
-          desc = swissRounds + '/' + total + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-        } else {
-          desc = swissRounds + ' ' + this.pluralizeRounds(swissRounds) + ' ' + this.$t('ranking.swiss');
-        }
-        if (barrage) {
-          desc += ' + ' + this.$t('games.poulesBarrage').toLowerCase();
-        }
-      } else {
-        desc = this.$t('teams.' + this.activeTournament.system);
-        const total = this.activeTournament.preferences?.swissRoundsCount;
-        if (total) {
-          desc += ' (' + total + ' ' + this.pluralizeRounds(total) + ')';
-        }
-      }
-      if (
-        this.activeTournament.playOff ||
-        this.activeTournament.playoff ||
-        this.activeTournament.preferences?.playOffEnabled
-      ) {
-        desc += ' + ' + this.$t('games.playOff').toLowerCase();
-      }
-      return desc;
+      return getSystemDescription(this.activeTournament, this.$i18n.locale, {
+        swiss: this.$t('ranking.swiss'),
+        playOff: this.$t('games.playOff').toLowerCase(),
+        poulesBarrage: this.$t('games.poulesBarrage').toLowerCase(),
+        systemLabel: this.$t('teams.' + (this.activeTournament?.system || 'swiss')),
+        tir: this.$t('teams.tir'),
+        twoRoundsShort: this.$t('tir.twoRoundsShort'),
+        system_groups: this.$t('teams.groups'),
+        system_poules: this.$t('teams.poules'),
+        system_supermele: this.$t('teams.supermele'),
+      });
     },
     cadrageRange() {
-      if (!this.activeTournament?.cadrage?.length) return '';
-      const from = (this.activeTournament.playOff?.length || 0) + 1;
-      const to = from + this.activeTournament.cadrage.length * 2 - 1;
-      return `${from}-${to} ${this.$t('common.places')}`;
+      const range = getCadragePlaceRange(this.activeTournament);
+      if (!range) return '';
+      return `${range.from}-${range.to} ${this.$t('common.places')}`;
     },
     playOffTeamsCount() {
-      if (!this.activeTournament?.playOff?.length) return 0;
-      return this.activeTournament.playOff.length * 2;
+      return getPlayoffParticipantCount(this.activeTournament);
     },
     isInPlayoff() {
-      return !!this.activeTournament?.playOff || !!this.activeTournament?.cadrage;
+      return computeIsInPlayoff(this.activeTournament);
     },
     isFinale() {
-      const po = this.activeTournament?.playOff;
-      if (!po?.length) return false;
-      return po[po.length - 1].teams?.length === 1;
+      return computeIsFinale(this.activeTournament);
     },
     tournamentDate() {
       const date = this.tournamentMetadata.date;
@@ -657,24 +635,22 @@ export default {
     publicLink() {
       if (!this.activeKey || !this.activeOwnerUid) return '';
       const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
-      const ref = `${this.activeOwnerUid}.${parseInt(tournamentId).toString(36)}`;
+      const ref = encodeTournamentRef(this.activeOwnerUid, tournamentId);
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tournament?ref=${ref}`;
     },
     tournamentExtrasLine() {
-      const prefs = this.activeTournament?.preferences;
-      if (!prefs?.timeLimitEnabled) return '';
+      const extras = getTournamentExtras(this.activeTournament);
+      if (!extras.time) return '';
       const parts = [];
-      const time =
-        prefs.playOffEnabled && this.isInPlayoff ? prefs.playoffTimeLimit || prefs.timeLimit : prefs.timeLimit;
-      if (prefs.noTimeLimitFinale && prefs.playOffEnabled && this.isInPlayoff && this.isFinale) {
+      if (extras.time === 'no-limit-finale') {
         parts.push(this.$t('modals.noTimeLimitFinale'));
       } else {
-        parts.push(`${time} ${this.$t('modals.min')}`);
+        parts.push(`${extras.time} ${this.$t('modals.min')}`);
       }
-      if (prefs.cochonettesEnabled && prefs.cochonettes) {
+      if (extras.cochonettes) {
         parts.push(
-          `+ ${prefs.cochonettes} ${prefs.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
+          `+ ${extras.cochonettes} ${extras.cochonettes === 1 ? this.$t('common.cochonette') : this.$t('common.cochonettes')}`,
         );
       }
       return parts.join(' ');
@@ -908,47 +884,11 @@ export default {
         this.publicLinkCopied = false;
       }, 2000);
     },
-    pluralizeRounds(n) {
-      if (this.$i18n.locale === 'ua') {
-        const mod10 = n % 10;
-        const mod100 = n % 100;
-        if (mod10 === 1 && mod100 !== 11) return 'коло';
-        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'кола';
-        return 'кіл';
-      }
-      return n === 1 ? 'round' : 'rounds';
-    },
   },
 };
 </script>
 
 <style scoped>
-.wrapper {
-  position: relative;
-  background: transparent;
-  min-height: 100vh;
-}
-
-.wrapper::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('@/assets/img/bg-petanque.avif') repeat;
-  background-size: 800px;
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .wrapper::before {
-  display: none;
-}
-
-.wrapper > * {
-  position: relative;
-  z-index: 1;
-}
-
 .wrapper :deep(.navbar) {
   z-index: 10;
 }
@@ -1110,51 +1050,6 @@ export default {
   color: var(--color-primary);
   text-transform: lowercase;
   white-space: nowrap;
-}
-
-.tournament-nav {
-  display: flex;
-  background: var(--color-surface, var(--color-white));
-  border: 1px solid var(--color-border);
-  border-radius: 10px 10px 0 0;
-  border-bottom: none;
-  padding: 6px 0;
-}
-
-.tournament-nav__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.tournament-nav__btn--active {
-  font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete, #e53935);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau, #4caf50);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche, #ff9800);
-}
-
-.tournament-nav__btn--protocol.tournament-nav__btn--active {
-  color: var(--color-primary, #6c63ff);
 }
 
 .tabs-content-area {

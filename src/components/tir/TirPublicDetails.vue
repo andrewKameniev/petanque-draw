@@ -85,9 +85,15 @@
 
 <script>
 import { ChevronDown, Check } from 'lucide-vue-next';
-
-const SCORING = { carreau: 5, reussi: 3, touche: 1, manque: 0 };
-const ATELIER_KEYS = ['atelier1', 'atelier2', 'atelier3', 'atelier4', 'atelier5'];
+import {
+  SCORING,
+  ATELIER_KEYS,
+  DISTANCES_FULL,
+  DISTANCES_JUNIOR,
+  getScoreTotal,
+  getAtelierScore,
+  rankParticipants,
+} from '@/services/tir';
 
 export default {
   name: 'TirPublicDetails',
@@ -103,7 +109,7 @@ export default {
       return !!this.tournament.tirConfig?.junior;
     },
     distances() {
-      return this.isJunior ? [6, 7, 8] : [6, 7, 8, 9];
+      return this.isJunior ? DISTANCES_JUNIOR : DISTANCES_FULL;
     },
     maxAtelierScore() {
       return this.distances.length * SCORING.carreau;
@@ -118,7 +124,7 @@ export default {
       return this.tournament.tirParticipants || [];
     },
     rankedParticipants() {
-      return [...this.participants].sort((a, b) => this.getTotal(b) - this.getTotal(a));
+      return rankParticipants(this.participants, 'scores');
     },
   },
   methods: {
@@ -126,19 +132,10 @@ export default {
       this.expanded = this.expanded === idx ? null : idx;
     },
     getTotal(participant) {
-      if (!participant.scores) return 0;
-      let total = 0;
-      Object.values(participant.scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          total += SCORING[val] || 0;
-        });
-      });
-      return total;
+      return getScoreTotal(participant, 'scores');
     },
     getAtelierTotal(participant, atelierIdx) {
-      const scores = participant.scores?.[atelierIdx];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getAtelierScore(participant, 'scores', atelierIdx);
     },
     getScore(participant, atelierIdx, distance) {
       return participant.scores?.[atelierIdx]?.[distance] || null;

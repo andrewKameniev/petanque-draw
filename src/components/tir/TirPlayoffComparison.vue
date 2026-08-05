@@ -27,25 +27,7 @@
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="tir-compare__legend">
-      <span class="tir-compare__legend-item">
-        <span class="tir-compare__legend-dot tir-compare__legend-dot--carreau"></span>
-        {{ $t('tir.carreau') }} (5)
-      </span>
-      <span class="tir-compare__legend-item">
-        <span class="tir-compare__legend-dot tir-compare__legend-dot--reussi"></span>
-        {{ $t('tir.reussi') }} (3)
-      </span>
-      <span class="tir-compare__legend-item">
-        <span class="tir-compare__legend-dot tir-compare__legend-dot--touche"></span>
-        {{ $t('tir.touche') }} (1)
-      </span>
-      <span class="tir-compare__legend-item">
-        <span class="tir-compare__legend-dot tir-compare__legend-dot--manque"></span>
-        {{ $t('tir.manque') }} (0)
-      </span>
-    </div>
+    <TirScoreLegend />
 
     <!-- Match result notice -->
     <div v-if="matchComplete" class="tir-compare__result">
@@ -62,29 +44,27 @@
       <div class="tir-compare__grid">
         <div v-for="distance in distances" :key="distance" class="tir-compare__row">
           <div class="tir-compare__circles tir-compare__circles--left">
-            <span
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
               class="tir-compare__circle"
-              :class="[
-                `tir-compare__circle--${opt.key}`,
-                { 'tir-compare__circle--active': getScore(1, aIdx, distance) === opt.key },
-              ]"
-            >
-            </span>
+              :class="`tir-compare__circle--${opt.key}`"
+              size="compact"
+              :result="opt.key"
+              :active="getScore(1, aIdx, distance) === opt.key"
+            />
           </div>
           <div class="tir-compare__distance">{{ distance }}m</div>
           <div class="tir-compare__circles tir-compare__circles--right">
-            <span
+            <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
               class="tir-compare__circle"
-              :class="[
-                `tir-compare__circle--${opt.key}`,
-                { 'tir-compare__circle--active': getScore(2, aIdx, distance) === opt.key },
-              ]"
-            >
-            </span>
+              :class="`tir-compare__circle--${opt.key}`"
+              size="compact"
+              :result="opt.key"
+              :active="getScore(2, aIdx, distance) === opt.key"
+            />
           </div>
         </div>
       </div>
@@ -108,19 +88,22 @@
 
 <script>
 import { ChevronLeft, Trophy } from 'lucide-vue-next';
+import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
+import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 
-import { SCORING } from '@/services/tir';
-
-const RESULT_OPTIONS = [
-  { key: 'carreau', points: 5 },
-  { key: 'reussi', points: 3 },
-  { key: 'touche', points: 1 },
-  { key: 'manque', points: 0 },
-];
+import {
+  SCORING,
+  RESULT_OPTIONS,
+  getMatchScoreAt,
+  getMatchPlayerScore,
+  getMatchPlayerThrows,
+  isMatchComplete,
+  getMatchWinner,
+} from '@/services/tir';
 
 export default {
   name: 'TirPlayoffComparison',
-  components: { ChevronLeft, Trophy },
+  components: { ChevronLeft, Trophy, TirScoreCircle, TirScoreLegend },
   props: {
     match: { type: Object, required: true },
     ateliers: { type: Array, required: true },
@@ -164,47 +147,21 @@ export default {
       return this.getPlayerTotal(2) > this.getPlayerTotal(1);
     },
     matchComplete() {
-      if (!this.bothComplete) return false;
-      if (this.isTied) return !!this.match.tieWinner;
-      return true;
+      return isMatchComplete(this.match, this.totalThrows);
     },
     winnerName() {
-      if (!this.matchComplete) return '';
-      if (this.isPlayer1Winner) return this.match.player1;
-      return this.match.player2;
+      return getMatchWinner(this.match, this.totalThrows) || '';
     },
   },
   methods: {
-    getScores(playerNum) {
-      const key = playerNum === 1 ? 'scores1' : 'scores2';
-      return this.match[key] || {};
-    },
     getScore(playerNum, atelierIdx, distance) {
-      return this.getScores(playerNum)?.[atelierIdx]?.[distance] || null;
+      return getMatchScoreAt(this.match, playerNum, atelierIdx, distance);
     },
     getPlayerTotal(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          Object.values(atelier).forEach((val) => {
-            total += SCORING[val] || 0;
-          });
-        }
-      });
-      return total;
+      return getMatchPlayerScore(this.match, playerNum);
     },
     getPlayerThrows(playerNum) {
-      const scores = this.getScores(playerNum);
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        if (atelier && typeof atelier === 'object') {
-          count += Object.keys(atelier).length;
-        }
-      });
-      return count;
+      return getMatchPlayerThrows(this.match, playerNum);
     },
   },
 };
@@ -309,52 +266,6 @@ export default {
   flex-shrink: 0;
 }
 
-/* Legend */
-
-.tir-compare__legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 8px 0;
-}
-
-.tir-compare__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.tir-compare__legend-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-}
-
-.tir-compare__legend-dot--carreau {
-  border: 2px solid var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__legend-dot--reussi {
-  border: 2px solid var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__legend-dot--touche {
-  border: 2px solid var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__legend-dot--manque {
-  border: 2px solid var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
-}
-
 /* Atelier cards */
 
 .tir-compare__atelier {
@@ -416,40 +327,6 @@ export default {
 
 .tir-compare__circles--right {
   justify-content: flex-start;
-}
-
-.tir-compare__circle {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-  background: radial-gradient(circle, var(--color-border) 56%, var(--color-surface) 56%);
-  opacity: 0.4;
-  transition: all 0.15s;
-}
-
-.tir-compare__circle--active {
-  opacity: 1;
-}
-
-.tir-compare__circle--active.tir-compare__circle--carreau {
-  border-color: var(--tir-carreau);
-  background: radial-gradient(circle, var(--tir-carreau) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__circle--active.tir-compare__circle--reussi {
-  border-color: var(--tir-reussi);
-  background: radial-gradient(circle, var(--tir-reussi) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__circle--active.tir-compare__circle--touche {
-  border-color: var(--tir-touche);
-  background: radial-gradient(circle, var(--tir-touche) 56%, var(--color-surface) 56%);
-}
-
-.tir-compare__circle--active.tir-compare__circle--manque {
-  border-color: var(--tir-manque);
-  background: radial-gradient(circle, var(--tir-manque) 56%, var(--color-surface) 56%);
 }
 
 .tir-compare__distance {

@@ -39,15 +39,15 @@ function getGameResultInGroup(where, team1, team2, difference) {
       if (gameInRound.team_1 === team1 && gameInRound.team_2 === team2) {
         if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
           results.push({
-            score1: gameInRound.team_1_score || 0,
-            score2: gameInRound.team_2_score || 0,
+            score1: toScore(gameInRound.team_1_score),
+            score2: toScore(gameInRound.team_2_score),
           });
         }
       } else if (gameInRound.team_2 === team1 && gameInRound.team_1 === team2) {
         if (gameInRound.team_1_score != null || gameInRound.team_2_score != null) {
           results.push({
-            score1: gameInRound.team_2_score || 0,
-            score2: gameInRound.team_1_score || 0,
+            score1: toScore(gameInRound.team_2_score),
+            score2: toScore(gameInRound.team_1_score),
           });
         }
       }
@@ -73,37 +73,23 @@ function getTournamentRanking(tournament, rankingTeams) {
     for (let i = 0; i < playOffList.length; i++) {
       if (playOffList[i].stageLabel === 'cadrage') continue;
       if (playOffList[i].stageLabel === 1) {
+        const finalGame = playOffList[i].teams[0];
+        const team1Wins = toScore(finalGame.team_1_score) > toScore(finalGame.team_2_score);
         const firstPlace = {
           place: '1',
-          title:
-            playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score
-              ? playOffList[i].teams[0].team_1
-              : playOffList[i].teams[0].team_2,
+          title: team1Wins ? finalGame.team_1 : finalGame.team_2,
           players:
-            tournament.teams.find(
-              (team) =>
-                team.title ===
-                (playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score
-                  ? playOffList[i].teams[0].team_1
-                  : playOffList[i].teams[0].team_2),
-            )?.players || [],
+            tournament.teams.find((team) => team.title === (team1Wins ? finalGame.team_1 : finalGame.team_2))
+              ?.players || [],
         };
         tournamentRanking.push(firstPlace);
         teamsInRanking.push(firstPlace.title);
         const secondPlace = {
           place: '2',
-          title:
-            playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score
-              ? playOffList[i].teams[0].team_2
-              : playOffList[i].teams[0].team_1,
+          title: team1Wins ? finalGame.team_2 : finalGame.team_1,
           players:
-            tournament.teams.find(
-              (team) =>
-                team.title ===
-                (playOffList[i].teams[0].team_1_score > playOffList[i].teams[0].team_2_score
-                  ? playOffList[i].teams[0].team_2
-                  : playOffList[i].teams[0].team_1),
-            )?.players || [],
+            tournament.teams.find((team) => team.title === (team1Wins ? finalGame.team_2 : finalGame.team_1))
+              ?.players || [],
         };
         tournamentRanking.push(secondPlace);
         teamsInRanking.push(secondPlace.title);
@@ -112,13 +98,14 @@ function getTournamentRanking(tournament, rankingTeams) {
           const thirdFinished =
             thirdPlaceGame.status === 'finished' ||
             (thirdPlaceGame.team_1_score != null && thirdPlaceGame.team_2_score != null);
+          const thirdTeam1Wins = toScore(thirdPlaceGame.team_1_score) > toScore(thirdPlaceGame.team_2_score);
           const thirdWinner = thirdFinished
-            ? Number(thirdPlaceGame.team_1_score) > Number(thirdPlaceGame.team_2_score)
+            ? thirdTeam1Wins
               ? thirdPlaceGame.team_1
               : thirdPlaceGame.team_2
             : thirdPlaceGame.team_1;
           const thirdLoser = thirdFinished
-            ? Number(thirdPlaceGame.team_1_score) > Number(thirdPlaceGame.team_2_score)
+            ? thirdTeam1Wins
               ? thirdPlaceGame.team_2
               : thirdPlaceGame.team_1
             : thirdPlaceGame.team_2;
@@ -159,7 +146,7 @@ function getTournamentRanking(tournament, rankingTeams) {
         const cadrageRangeEnd = cadrageRangeStart + cadrageStage.teams.length - 1;
         const cadragePlace = cadrageRangeStart + '-' + cadrageRangeEnd;
         cadrageStage.teams.forEach((game) => {
-          const loser = game.team_1_score > game.team_2_score ? game.team_2 : game.team_1;
+          const loser = toScore(game.team_1_score) > toScore(game.team_2_score) ? game.team_2 : game.team_1;
           if (!teamsInRanking.includes(loser)) {
             tournamentRanking.push({
               place: cadragePlace,
@@ -289,8 +276,8 @@ function getH2HStats(games, teamNames) {
       const t1 = game.team_1;
       const t2 = game.team_2;
       if (!nameSet.has(t1) || !nameSet.has(t2)) return;
-      const s1 = Number(game.team_1_score);
-      const s2 = Number(game.team_2_score);
+      const s1 = toScore(game.team_1_score);
+      const s2 = toScore(game.team_2_score);
       stats[t1].pointsPlus += s1;
       stats[t1].pointsMinus += s2;
       stats[t2].pointsPlus += s2;
@@ -410,9 +397,9 @@ function getGameResultBetween(games, team1, team2) {
       if (game.team_1_score == null || game.team_2_score == null) return;
       if (game.status === 'in_progress' || game.status === 'not_started') return;
       if (game.team_1 === team1 && game.team_2 === team2) {
-        diff += Number(game.team_1_score) - Number(game.team_2_score);
+        diff += toScore(game.team_1_score) - toScore(game.team_2_score);
       } else if (game.team_1 === team2 && game.team_2 === team1) {
-        diff += Number(game.team_2_score) - Number(game.team_1_score);
+        diff += toScore(game.team_2_score) - toScore(game.team_1_score);
       }
     });
   });
@@ -446,8 +433,8 @@ function sortSwissWithLiveStats(tournament) {
     if (game.status === 'in_progress' || game.status === 'not_started') return;
     const t1 = game.team_1;
     const t2 = game.team_2;
-    const s1 = Number(game.team_1_score);
-    const s2 = Number(game.team_2_score);
+    const s1 = toScore(game.team_1_score);
+    const s2 = toScore(game.team_2_score);
     const isTechnical = t2 === 'Technical';
     if (t1 in liveWins) {
       liveOpponents[t1].push(t2);
@@ -530,27 +517,25 @@ function getTeamsRanking(tournament, activeRound) {
   return sortSwissWithLiveStats(tournament);
 }
 function gameHasError(game, maxScore) {
-  return (
-    (game.team_1_score && game.team_2_score && game.team_1_score === game.team_2_score) ||
-    game.team_1_score < 0 ||
-    game.team_1_score > maxScore ||
-    game.team_2_score < 0 ||
-    game.team_2_score > maxScore
-  );
+  const s1 = toScore(game.team_1_score);
+  const s2 = toScore(game.team_2_score);
+  return (s1 !== 0 && s2 !== 0 && s1 === s2) || s1 < 0 || s1 > maxScore || s2 < 0 || s2 > maxScore;
 }
 function copyContent(data) {
   navigator.clipboard.writeText(data.trim());
 }
 
 function isScoreError(game, maxScore) {
+  const s1 = toScore(game.team_1_score);
+  const s2 = toScore(game.team_2_score);
   return (
-    game.team_1_score === game.team_2_score ||
+    s1 === s2 ||
     game.team_1_score === null ||
-    game.team_1_score < 0 ||
-    game.team_1_score > maxScore ||
+    s1 < 0 ||
+    s1 > maxScore ||
     game.team_2_score === null ||
-    game.team_2_score < 0 ||
-    game.team_2_score > maxScore
+    s2 < 0 ||
+    s2 > maxScore
   );
 }
 
@@ -597,9 +582,15 @@ const shuffleArray = (array) => {
   return array;
 };
 
+function toScore(val) {
+  if (val == null) return 0;
+  const n = Number(val);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function updateScoreHistory(game) {
-  const s1 = Number(game.team_1_score) || 0;
-  const s2 = Number(game.team_2_score) || 0;
+  const s1 = toScore(game.team_1_score);
+  const s2 = toScore(game.team_2_score);
   if (s1 === 0 && s2 === 0) {
     if (game.score_history?.length) game.score_history = [];
     return;
@@ -702,4 +693,6 @@ export {
   pluralizeRounds,
   formatSwissDescription,
   isValidSlug,
+  sortSwissWithLiveStats,
+  toScore,
 };

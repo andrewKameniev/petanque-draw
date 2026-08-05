@@ -47,6 +47,10 @@ import {
   BarChart3,
   HelpCircle,
   BookOpen,
+  Radio,
+  QrCode,
+  Timer,
+  Settings,
 } from 'lucide-vue-next';
 
 export default {
@@ -65,6 +69,10 @@ export default {
     BarChart3,
     HelpCircle,
     BookOpen,
+    Radio,
+    QrCode,
+    Timer,
+    Settings,
   },
   props: {
     open: Boolean,
@@ -86,6 +94,11 @@ export default {
         { id: 'swiss-playoff', label: this.$t('docs.swissPlayoff.title'), icon: Layers },
         { id: 'swiss-barrage-playoff', label: this.$t('docs.swissBarragePlayoff.title'), icon: Layers },
         { id: 'tournament-b', label: this.$t('docs.tournamentB.title'), icon: Copy },
+        { id: 'streams', label: this.$t('docs.streamsSection.title'), icon: Radio },
+        { id: 'sharing', label: this.$t('docs.sharingSection.title'), icon: QrCode },
+        { id: 'timer', label: this.$t('docs.timerSection.title'), icon: Timer },
+        { id: 'training', label: this.$t('docs.trainingSection.title'), icon: Target },
+        { id: 'tips', label: this.$t('docs.tipsSection.title'), icon: Settings },
         { id: 'rankings', label: this.$t('docs.rankingAlgorithms.title'), icon: BarChart3 },
         { id: 'faq', label: 'FAQ', icon: HelpCircle },
       ];
@@ -95,8 +108,9 @@ export default {
         { label: this.$t('docs.quickRef'), items: [this.sections[0]] },
         { label: this.$t('docs.systems'), items: this.sections.slice(1, 8) },
         { label: this.$t('docs.formats'), items: this.sections.slice(8, 11) },
-        { label: this.$t('docs.rankings'), items: [this.sections[11]] },
-        { label: this.$t('docs.faq'), items: this.sections.slice(12) },
+        { label: this.$t('docs.guide'), items: this.sections.slice(11, 16) },
+        { label: this.$t('docs.rankings'), items: [this.sections[16]] },
+        { label: this.$t('docs.faq'), items: this.sections.slice(17) },
       ];
     },
   },

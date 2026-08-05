@@ -2,9 +2,15 @@
   <div>
     <div
       class="round-tabs ranking-subtabs mb-4"
-      v-if="tournament.system === 'swiss' && tournament.tournamentIsFinished && !isForProtocol && !showInSaved"
+      v-if="
+        tournament.system === 'swiss' &&
+        (tournament.tournamentIsFinished || hasActiveBarrage) &&
+        !isForProtocol &&
+        !showInSaved
+      "
     >
       <button
+        v-if="tournament.tournamentIsFinished"
         class="button is-small mr-1 mb-1"
         :class="{ 'is-purple': rankingSubtab === 'result' }"
         @click="rankingSubtab = 'result'"
@@ -105,7 +111,8 @@
           tournament.barrage &&
           activeRound > tournament.barrage.startIndex &&
           !tournament.playOff &&
-          !tournament.tournamentIsFinished
+          !tournament.tournamentIsFinished &&
+          rankingSubtab !== 'swiss'
         "
       >
         <div v-for="(group, gIndex) in rankingTeams" :key="gIndex">
@@ -585,6 +592,8 @@ export default {
   created() {
     if (this.isForProtocol) {
       this.rankingSubtab = 'swiss';
+    } else if (this.hasActiveBarrage) {
+      this.rankingSubtab = 'barrage';
     }
   },
   async mounted() {
@@ -846,10 +855,20 @@ export default {
     isSwissGroups() {
       return this.tournament.preferences?.groupFormat === 'swiss';
     },
+    hasActiveBarrage() {
+      return (
+        this.tournament.barrage &&
+        this.activeRound > this.tournament.barrage.startIndex &&
+        !this.tournament.playOff &&
+        !this.tournament.tournamentIsFinished
+      );
+    },
     isSwissOnly() {
       if (this.isForProtocol) return true;
       return (
-        this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'swiss'
+        this.tournament.system === 'swiss' &&
+        (this.tournament.tournamentIsFinished || this.hasActiveBarrage) &&
+        this.rankingSubtab === 'swiss'
       );
     },
     isResultOnly() {
@@ -861,7 +880,9 @@ export default {
     isBarrageOnly() {
       if (this.isForProtocol) return false;
       return (
-        this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'barrage'
+        this.tournament.system === 'swiss' &&
+        (this.tournament.tournamentIsFinished || this.hasActiveBarrage) &&
+        this.rankingSubtab === 'barrage'
       );
     },
     rankingChunkSize() {

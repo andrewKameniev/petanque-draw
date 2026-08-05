@@ -564,6 +564,119 @@
           </div>
         </section>
 
+        <!-- Streams -->
+        <section id="streams" class="docs__section" ref="streams">
+          <div class="docs__section-header">
+            <Radio :size="24" class="docs__section-icon docs__section-icon--red" />
+            <div>
+              <h2 class="docs__title">{{ $t('docs.streamsSection.title') }}</h2>
+              <p class="docs__subtitle">{{ $t('docs.streamsSection.subtitle') }}</p>
+            </div>
+          </div>
+          <p class="docs__intro">{{ $t('docs.streamsSection.intro') }}</p>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.streamsSection.enable.title') }}</h3>
+            <p>{{ $t('docs.streamsSection.enable.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.streamsSection.features.title') }}</h3>
+            <p>{{ $t('docs.streamsSection.features.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.streamsSection.tvDashboard.title') }}</h3>
+            <p>{{ $t('docs.streamsSection.tvDashboard.text') }}</p>
+          </div>
+        </section>
+
+        <!-- Sharing -->
+        <section id="sharing" class="docs__section" ref="sharing">
+          <div class="docs__section-header">
+            <QrCode :size="24" class="docs__section-icon docs__section-icon--blue" />
+            <div>
+              <h2 class="docs__title">{{ $t('docs.sharingSection.title') }}</h2>
+              <p class="docs__subtitle">{{ $t('docs.sharingSection.subtitle') }}</p>
+            </div>
+          </div>
+          <p class="docs__intro">{{ $t('docs.sharingSection.intro') }}</p>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.sharingSection.qr.title') }}</h3>
+            <p>{{ $t('docs.sharingSection.qr.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.sharingSection.link.title') }}</h3>
+            <p>{{ $t('docs.sharingSection.link.text') }}</p>
+          </div>
+        </section>
+
+        <!-- Timer -->
+        <section id="timer" class="docs__section" ref="timer">
+          <div class="docs__section-header">
+            <Timer :size="24" class="docs__section-icon docs__section-icon--green" />
+            <div>
+              <h2 class="docs__title">{{ $t('docs.timerSection.title') }}</h2>
+              <p class="docs__subtitle">{{ $t('docs.timerSection.subtitle') }}</p>
+            </div>
+          </div>
+          <p class="docs__intro">{{ $t('docs.timerSection.intro') }}</p>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.timerSection.setup.title') }}</h3>
+            <p>{{ $t('docs.timerSection.setup.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.timerSection.display.title') }}</h3>
+            <p>{{ $t('docs.timerSection.display.text') }}</p>
+          </div>
+        </section>
+
+        <!-- Training -->
+        <section id="training" class="docs__section" ref="training">
+          <div class="docs__section-header">
+            <Target :size="24" class="docs__section-icon docs__section-icon--orange" />
+            <div>
+              <h2 class="docs__title">{{ $t('docs.trainingSection.title') }}</h2>
+              <p class="docs__subtitle">{{ $t('docs.trainingSection.subtitle') }}</p>
+            </div>
+          </div>
+          <p class="docs__intro">{{ $t('docs.trainingSection.intro') }}</p>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.trainingSection.usage.title') }}</h3>
+            <p>{{ $t('docs.trainingSection.usage.text') }}</p>
+          </div>
+        </section>
+
+        <!-- Tips -->
+        <section id="tips" class="docs__section" ref="tips">
+          <div class="docs__section-header">
+            <Settings :size="24" class="docs__section-icon docs__section-icon--purple" />
+            <div>
+              <h2 class="docs__title">{{ $t('docs.tipsSection.title') }}</h2>
+              <p class="docs__subtitle">{{ $t('docs.tipsSection.subtitle') }}</p>
+            </div>
+          </div>
+          <p class="docs__intro">{{ $t('docs.tipsSection.intro') }}</p>
+
+          <div class="docs__card">
+            <h3>{{ $t('docs.tipsSection.groupSorting.title') }}</h3>
+            <p>{{ $t('docs.tipsSection.groupSorting.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.tipsSection.swissSorting.title') }}</h3>
+            <p>{{ $t('docs.tipsSection.swissSorting.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.tipsSection.roundCount.title') }}</h3>
+            <p>{{ $t('docs.tipsSection.roundCount.text') }}</p>
+          </div>
+          <div class="docs__card">
+            <h3>{{ $t('docs.tipsSection.laneRotation.title') }}</h3>
+            <p>{{ $t('docs.tipsSection.laneRotation.text') }}</p>
+          </div>
+        </section>
+
         <!-- Rankings -->
         <section id="rankings" class="docs__section" ref="rankings">
           <div class="docs__section-header">
@@ -605,7 +718,7 @@
           </div>
 
           <div class="docs__faq">
-            <div v-for="n in 8" :key="n" class="docs__faq-item" :class="{ 'docs__faq-item--open': faqOpen === n }">
+            <div v-for="n in 12" :key="n" class="docs__faq-item" :class="{ 'docs__faq-item--open': faqOpen === n }">
               <button class="docs__faq-question" @click="faqOpen = faqOpen === n ? null : n">
                 <span>{{ $t(`docs.faqSection.items.q${n}`) }}</span>
                 <ChevronDown :size="16" />
@@ -616,13 +729,16 @@
             </div>
           </div>
         </section>
-
-        <!-- Back to top -->
-        <button class="docs__back-top" v-show="showBackTop" @click="scrollToTop">
-          <ChevronUp :size="20" />
-        </button>
       </template>
     </main>
+    <div class="docs__scroll-buttons">
+      <button class="docs__scroll-btn" @click="scrollToTop">
+        <ChevronUp :size="20" />
+      </button>
+      <button class="docs__scroll-btn" @click="scrollToBottom">
+        <ChevronDown :size="20" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -648,6 +764,10 @@ import {
   HelpCircle,
   BookOpen,
   Calculator,
+  Radio,
+  QrCode,
+  Timer,
+  Settings,
 } from 'lucide-vue-next';
 
 export default {
@@ -673,6 +793,10 @@ export default {
     HelpCircle,
     BookOpen,
     Calculator,
+    Radio,
+    QrCode,
+    Timer,
+    Settings,
   },
   data() {
     return {
@@ -682,7 +806,6 @@ export default {
       activeSection: 'glossary',
       faqOpen: null,
       calcTeams: 16,
-      showBackTop: false,
       observer: null,
     };
   },
@@ -736,6 +859,11 @@ export default {
         { id: 'swiss-playoff', label: this.$t('docs.swissPlayoff.title'), icon: Layers },
         { id: 'swiss-barrage-playoff', label: this.$t('docs.swissBarragePlayoff.title'), icon: Layers },
         { id: 'tournament-b', label: this.$t('docs.tournamentB.title'), icon: Copy },
+        { id: 'streams', label: this.$t('docs.streamsSection.title'), icon: Radio },
+        { id: 'sharing', label: this.$t('docs.sharingSection.title'), icon: QrCode },
+        { id: 'timer', label: this.$t('docs.timerSection.title'), icon: Timer },
+        { id: 'training', label: this.$t('docs.trainingSection.title'), icon: Target },
+        { id: 'tips', label: this.$t('docs.tipsSection.title'), icon: Settings },
         { id: 'rankings', label: this.$t('docs.rankingAlgorithms.title'), icon: BarChart3 },
         { id: 'faq', label: 'FAQ', icon: HelpCircle },
       ];
@@ -779,6 +907,11 @@ export default {
         { section: 'tir', keys: ['docs.tirSystem.intro', 'docs.tirSystem.rounds.text'] },
         { section: 'playoff', keys: ['docs.playoffSystem.intro', 'docs.playoffSystem.seeding.text'] },
         { section: 'cadrage', keys: ['docs.cadrageSystem.intro', 'docs.cadrageSystem.pairing.text'] },
+        { section: 'streams', keys: ['docs.streamsSection.intro', 'docs.streamsSection.tvDashboard.text'] },
+        { section: 'sharing', keys: ['docs.sharingSection.intro', 'docs.sharingSection.qr.text'] },
+        { section: 'timer', keys: ['docs.timerSection.intro', 'docs.timerSection.setup.text'] },
+        { section: 'training', keys: ['docs.trainingSection.intro', 'docs.trainingSection.usage.text'] },
+        { section: 'tips', keys: ['docs.tipsSection.intro', 'docs.tipsSection.groupSorting.text'] },
         {
           section: 'rankings',
           keys: ['docs.rankingAlgorithms.buchholz.text', 'docs.rankingAlgorithms.lanes.text'],
@@ -803,7 +936,7 @@ export default {
       });
 
       const faqResults = [];
-      for (let i = 1; i <= 8; i++) {
+      for (let i = 1; i <= 12; i++) {
         const question = this.$t(`docs.faqSection.items.q${i}`);
         const answer = this.$t(`docs.faqSection.items.a${i}`);
         if (question.toLowerCase().includes(q) || answer.toLowerCase().includes(q)) {
@@ -862,6 +995,14 @@ export default {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (this.$refs.content) {
         this.smoothScroll(this.$refs.content, 0);
+      }
+    },
+    scrollToBottom() {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      } else if (this.$refs.content) {
+        this.smoothScroll(this.$refs.content, this.$refs.content.scrollHeight);
       }
     },
     setupObserver() {
@@ -1006,6 +1147,16 @@ export default {
 .docs__section-icon--gold {
   color: var(--gold-3);
   background: var(--gold-1);
+}
+
+.docs__section-icon--red {
+  color: var(--red-400, #ef5350);
+  background: rgb(244 67 54 / 8%);
+}
+
+.docs__section-icon--orange {
+  color: var(--orange-400, #ff9800);
+  background: rgb(255 152 0 / 8%);
 }
 
 .docs__title {

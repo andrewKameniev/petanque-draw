@@ -1,13 +1,4 @@
-export async function fetchPortalTournamentTeams(portalId) {
-  const url = new window.URL(`https://portal.petanque.org.ua/tournament/team_export/${encodeURIComponent(portalId)}`);
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('_fresh', Date.now().toString());
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Portal responded ${response.status}`);
-  const data = await response.json();
-  if (!Array.isArray(data?.teams)) throw new Error('Portal returned an invalid tournament export');
-  return data.teams;
-}
+export { fetchPortalTeams as fetchPortalTournamentTeams } from './portal';
 
 export function saveProtocolHtml(storageKey, element) {
   if (element) localStorage.setItem(storageKey, element.innerHTML);

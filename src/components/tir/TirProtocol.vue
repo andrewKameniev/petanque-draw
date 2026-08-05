@@ -362,10 +362,11 @@ import ProtocolGate from '@/components/partials/ProtocolGate.vue';
 import ProtocolParticipantTools from '@/components/partials/ProtocolParticipantTools.vue';
 import {
   getScoreTotal,
-  getScoreCarreauCount,
   rankWithTiebreakers,
+  rankByCombined,
   getCombinedTotal,
   getPlayoffPlaces,
+  getTirPlayoffDisplayRounds,
 } from '@/services/tir';
 import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
 
@@ -444,13 +445,7 @@ export default {
     },
     qualificationRankedParticipants() {
       if (this.isTwoRound) {
-        return [...this.participants].sort(
-          (a, b) =>
-            getCombinedTotal(b) - getCombinedTotal(a) ||
-            getScoreCarreauCount(b, 'scores') +
-              getScoreCarreauCount(b, 'scores2') -
-              (getScoreCarreauCount(a, 'scores') + getScoreCarreauCount(a, 'scores2')),
-        );
+        return rankByCombined(this.participants);
       }
       return rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
     },
@@ -471,25 +466,16 @@ export default {
       return getPlayoffPlaces(this.playoff);
     },
     playoffRounds() {
-      if (!this.playoff) return [];
-      const rounds = [];
-      if (this.playoff.rounds?.length) {
-        this.playoff.rounds.forEach((round) => {
-          const count = round.matches.length;
-          let title = 'Раунд';
-          if (count === 4) title = '1/4 фіналу';
-          else if (count === 2) title = 'Півфінали';
-          else if (count === 8) title = '1/8 фіналу';
-          rounds.push({ title, matches: round.matches });
-        });
-      }
-      if (this.playoff.thirdPlace) {
-        rounds.push({ title: 'Матч за 3-тє місце', matches: [this.playoff.thirdPlace] });
-      }
-      if (this.playoff.final) {
-        rounds.push({ title: 'Фінал', matches: [this.playoff.final] });
-      }
-      return rounds;
+      return getTirPlayoffDisplayRounds(this.playoff, {
+        final: 'Фінал',
+        thirdPlace: 'Матч за 3-тє місце',
+        semifinal: 'Півфінали',
+        quarterfinal: '1/4 фіналу',
+        eighthFinal: '1/8 фіналу',
+        sixteenthFinal: '1/16 фіналу',
+        round: 'Раунд',
+        pending: 'Очікується',
+      });
     },
   },
   methods: {

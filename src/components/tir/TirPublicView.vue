@@ -267,11 +267,21 @@ import TirProtocol from './TirProtocol.vue';
 import {
   SCORING,
   ATELIER_KEYS,
+  DISTANCES_FULL,
+  DISTANCES_JUNIOR,
+  RESULT_OPTIONS,
   getScoreTotal,
+  getScoreCarreauCount,
+  getThrowCount,
+  isParticipantComplete,
+  getAtelierScore,
+  isAtelierComplete,
+  rankParticipants,
   getTiebreakerKey,
   buildTableRows,
   rankWithTiebreakers,
   getR2QualifiersWithTies,
+  getTirPlayoffDisplayRounds,
 } from '@/services/tir';
 
 export default {
@@ -347,7 +357,7 @@ export default {
       return !!this.tournament.tirConfig?.junior;
     },
     distances() {
-      return this.isJunior ? [6, 7, 8] : [6, 7, 8, 9];
+      return this.isJunior ? DISTANCES_JUNIOR : DISTANCES_FULL;
     },
     totalThrows() {
       return 5 * this.distances.length;
@@ -359,7 +369,7 @@ export default {
       return 5 * this.maxAtelierScore;
     },
     resultOptions() {
-      return [{ key: 'carreau' }, { key: 'reussi' }, { key: 'touche' }, { key: 'manque' }];
+      return RESULT_OPTIONS;
     },
     atelierNames() {
       return ATELIER_KEYS.map((k) => this.$t(`tir.${k}`));
@@ -427,6 +437,9 @@ export default {
       return this.participants;
     },
     rankedParticipants() {
+      if (!['qf', 'sf', 'final'].includes(this.activeBracket)) {
+        return rankParticipants(this.scoringParticipants, this.activeScoresKey);
+      }
       return [...this.scoringParticipants].sort(
         (a, b) => this.getTotal(b) - this.getTotal(a) || this.getCarreauCount(b) - this.getCarreauCount(a),
       );
@@ -464,107 +477,20 @@ export default {
       return this.tournament.tirPlayoff?.qualified || [];
     },
     playoffDisplayRounds() {
-      const playoff = this.tournament.tirPlayoff;
-      if (!playoff) return [];
-      const rounds = [];
-      const firstRoundMatches = playoff.rounds?.[0]?.matches?.length || 0;
-      const playoffSize = playoff.size || (firstRoundMatches > 0 ? firstRoundMatches * 2 : 2);
-
-      if (playoff.rounds && playoff.rounds.length) {
-        playoff.rounds.forEach((round, rIdx) => {
-          rounds.push({
-            title: this.getRoundTitle(round.matches.length, playoffSize),
-            matches: round.matches,
-            key: `round:${rIdx}`,
-            isFinal: false,
-          });
-        });
-      }
-
-      if (!playoff.thirdPlace && !playoff.final && rounds.length) {
-        const lastRound = rounds[rounds.length - 1];
-        const lastMatches = lastRound.matches;
-        if (lastMatches.length >= 2) {
-          const nextMatchCount = Math.floor(lastMatches.length / 2);
-          const previewMatches = [];
-          for (let i = 0; i < lastMatches.length; i += 2) {
-            const m1 = lastMatches[i];
-            const m2 = lastMatches[i + 1];
-            const w1 = this.getMatchWinner(m1);
-            const w2 = m2 ? this.getMatchWinner(m2) : null;
-            const p1 = w1 || this.$t('tir.matchPending');
-            const p2 = w2 || this.$t('tir.matchPending');
-            previewMatches.push({
-              player1: w1 || null,
-              player2: w2 || null,
-              score1: null,
-              score2: null,
-              preview: true,
-              previewLabel1: p1,
-              previewLabel2: p2,
-            });
-          }
-
-          if (lastMatches.length === 2) {
-            const loser1 = this.getMatchLoser(lastMatches[0]);
-            const loser2 = this.getMatchLoser(lastMatches[1]);
-            const l1 = loser1 || this.$t('tir.matchPending');
-            const l2 = loser2 || this.$t('tir.matchPending');
-            rounds.push({
-              title: this.$t('tir.thirdPlaceMatch'),
-              matches: [
-                {
-                  player1: loser1 || null,
-                  player2: loser2 || null,
-                  score1: null,
-                  score2: null,
-                  preview: true,
-                  previewLabel1: l1,
-                  previewLabel2: l2,
-                },
-              ],
-              key: `preview-third:${rounds.length}`,
-              isFinal: false,
-              isPreview: true,
-              laneStart: 2,
-            });
-          }
-
-          if (previewMatches.length > 0) {
-            const isFinal = nextMatchCount === 1;
-            rounds.push({
-              title: isFinal ? this.$t('games.final') : this.getRoundTitle(nextMatchCount, playoffSize),
-              matches: previewMatches,
-              key: `preview:${rounds.length}`,
-              isFinal,
-              isPreview: true,
-              laneStart: isFinal ? 1 : 1,
-            });
-          }
-        }
-      }
-
-      if (playoff.thirdPlace) {
-        rounds.push({
-          title: this.$t('tir.thirdPlaceMatch'),
-          matches: [playoff.thirdPlace],
-          key: 'third:0',
-          isFinal: false,
-          laneStart: 2,
-        });
-      }
-
-      if (playoff.final) {
-        rounds.push({
-          title: this.$t('games.final'),
-          matches: [playoff.final],
-          key: 'final:0',
-          isFinal: true,
-          laneStart: 1,
-        });
-      }
-
-      return rounds;
+      return getTirPlayoffDisplayRounds(
+        this.tournament.tirPlayoff,
+        {
+          final: this.$t('games.final'),
+          thirdPlace: this.$t('tir.thirdPlaceMatch'),
+          semifinal: this.$t('tir.semifinal'),
+          quarterfinal: this.$t('tir.quarterfinal'),
+          eighthFinal: this.$t('tir.eighthFinal'),
+          sixteenthFinal: this.$t('tir.sixteenthFinal'),
+          round: this.$t('tir.round'),
+          pending: this.$t('tir.matchPending'),
+        },
+        { includePreviews: true },
+      );
     },
     champion() {
       const playoff = this.tournament.tirPlayoff;
@@ -574,7 +500,7 @@ export default {
       return this.getMatchWinner(finalMatch);
     },
     r1RankedParticipants() {
-      return [...this.participants].sort((a, b) => getScoreTotal(b, 'scores') - getScoreTotal(a, 'scores'));
+      return rankWithTiebreakers(this.participants, 'scores', this.tiebreakerCount);
     },
     publicTableRows() {
       if (!this.isTwoRoundSystem) return [];
@@ -665,38 +591,16 @@ export default {
       if (['qf', 'sf', 'final'].includes(this.activeBracket)) {
         return this.getPlayoffBracketScore(participant);
       }
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let total = 0;
-      Object.values(scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          total += SCORING[val] || 0;
-        });
-      });
-      return total;
+      return getScoreTotal(participant, this.activeScoresKey);
     },
     getCarreauCount(participant) {
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        Object.values(atelier).forEach((val) => {
-          if (val === 'carreau') count++;
-        });
-      });
-      return count;
+      return getScoreCarreauCount(participant, this.activeScoresKey);
     },
     getThrows(participant) {
-      const scores = participant[this.activeScoresKey];
-      if (!scores) return 0;
-      let count = 0;
-      Object.values(scores).forEach((atelier) => {
-        count += Object.keys(atelier).length;
-      });
-      return count;
+      return getThrowCount(participant, this.activeScoresKey);
     },
     isComplete(participant) {
-      return this.getThrows(participant) >= this.totalThrows;
+      return isParticipantComplete(participant, this.activeScoresKey, this.totalThrows);
     },
     getStatusClass(participant) {
       if (this.isComplete(participant)) return 'tir-scoring__participant-status--complete';
@@ -704,14 +608,10 @@ export default {
       return '';
     },
     getAtelierTotal(participant, atelierIdx) {
-      const scores = participant[this.activeScoresKey]?.[atelierIdx];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getAtelierScore(participant, this.activeScoresKey, atelierIdx);
     },
     isAtelierComplete(participant, atelierIdx) {
-      const scores = participant[this.activeScoresKey]?.[atelierIdx];
-      if (!scores) return false;
-      return Object.keys(scores).length >= this.distances.length;
+      return isAtelierComplete(participant, this.activeScoresKey, atelierIdx, this.distances.length);
     },
     getScore(participant, atelierIdx, distance) {
       return participant[this.activeScoresKey]?.[atelierIdx]?.[distance] || null;
@@ -750,14 +650,6 @@ export default {
       const parts = name.split(' ');
       if (parts.length <= 1) return `<b>${name}</b>`;
       return `<b>${parts[0]}</b> ${parts.slice(1).join(' ')}`;
-    },
-    getRoundTitle(matchCount, playoffSize) {
-      if (playoffSize === 2) return this.$t('games.final');
-      if (matchCount === 2) return this.$t('tir.semifinal');
-      if (matchCount === 4) return this.$t('tir.quarterfinal');
-      if (matchCount === 8) return this.$t('tir.eighthFinal');
-      if (matchCount === 16) return this.$t('tir.sixteenthFinal');
-      return this.$t('tir.round') + ' ' + matchCount;
     },
     openPlayoffMatch(match, label, roundKey, mIdx) {
       if (!match.player1 || !match.player2) return;

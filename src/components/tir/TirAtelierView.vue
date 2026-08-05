@@ -126,7 +126,14 @@
 import { ChevronLeft, ChevronDown, CheckCircle, AlertCircle, Circle, Check as CheckIcon } from 'lucide-vue-next';
 import Modal from '@/components/Modal';
 
-import { SCORING } from '@/services/tir';
+import {
+  SCORING,
+  getAtelierScore,
+  getAtelierThrowCount,
+  isAtelierComplete,
+  toggleParticipantScore,
+  fillMissingAtelierScoresForParticipants,
+} from '@/services/tir';
 
 export default {
   name: 'TirAtelierView',
@@ -162,49 +169,31 @@ export default {
       this.expandedId = this.expandedId === id ? null : id;
     },
     getAtelierScore(participant) {
-      const scores = participant[this.scoresKey]?.[this.atelierIndex];
-      if (!scores) return 0;
-      return Object.values(scores).reduce((sum, val) => sum + (SCORING[val] || 0), 0);
+      return getAtelierScore(participant, this.scoresKey, this.atelierIndex);
     },
     getAtelierThrows(participant) {
-      const scores = participant[this.scoresKey]?.[this.atelierIndex];
-      if (!scores) return 0;
-      return Object.keys(scores).length;
+      return getAtelierThrowCount(participant, this.scoresKey, this.atelierIndex);
     },
     isComplete(participant) {
-      return this.getAtelierThrows(participant) >= this.distances.length;
+      return isAtelierComplete(participant, this.scoresKey, this.atelierIndex, this.distances.length);
     },
     getDistanceValue(participant, distance) {
       return participant[this.scoresKey]?.[this.atelierIndex]?.[distance] || null;
     },
     setScore(participant, distance, type) {
       if (this.readOnly) return;
-      if (!participant[this.scoresKey]) {
-        participant[this.scoresKey] = {};
-      }
-      if (!participant[this.scoresKey][this.atelierIndex]) {
-        participant[this.scoresKey][this.atelierIndex] = {};
-      }
-      const current = participant[this.scoresKey][this.atelierIndex][distance];
-      if (current === type) {
-        delete participant[this.scoresKey][this.atelierIndex][distance];
-      } else {
-        participant[this.scoresKey][this.atelierIndex][distance] = type;
-      }
-      this.$emit('update');
+      const updatedParticipant = toggleParticipantScore(participant, this.scoresKey, this.atelierIndex, distance, type);
+      this.$emit('update', updatedParticipant);
     },
     confirmFinish() {
-      this.participants.forEach((p) => {
-        if (!p[this.scoresKey]) p[this.scoresKey] = {};
-        if (!p[this.scoresKey][this.atelierIndex]) p[this.scoresKey][this.atelierIndex] = {};
-        this.distances.forEach((distance) => {
-          if (!p[this.scoresKey][this.atelierIndex][distance]) {
-            p[this.scoresKey][this.atelierIndex][distance] = 'manque';
-          }
-        });
-      });
+      const updatedParticipants = fillMissingAtelierScoresForParticipants(
+        this.participants,
+        this.scoresKey,
+        this.atelierIndex,
+        this.distances,
+      );
       this.showFinishConfirm = false;
-      this.$emit('update');
+      this.$emit('update', updatedParticipants);
       this.$emit('finish');
     },
   },

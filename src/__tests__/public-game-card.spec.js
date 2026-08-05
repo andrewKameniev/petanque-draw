@@ -176,6 +176,50 @@ describe('public game card characterization', () => {
     expect(html).toContain('https://stream.example.test/live');
   });
 
+  it('tournamentFinished prop forces finished state regardless of game.status', async () => {
+    const upcoming = await renderPublicGame(
+      { team_1: 'Alpha', team_2: 'Beta', team_1_score: 10, team_2_score: 8 },
+      { tournamentFinished: true },
+    );
+    expect(upcoming).toContain('match-item--finished');
+    expect(upcoming).not.toContain('match-item--upcoming');
+    expect(upcoming).not.toContain('match-item--in-progress');
+    expect(upcoming).toMatch(/match-team--winner[^>]*>Alpha/);
+
+    const inProgress = await renderPublicGame(
+      { team_1: 'Alpha', team_2: 'Beta', team_1_score: 7, team_2_score: 13, status: 'in_progress' },
+      { tournamentFinished: true },
+    );
+    expect(inProgress).toContain('match-item--finished');
+    expect(inProgress).not.toContain('match-item--in-progress');
+    expect(inProgress).toMatch(/match-team--winner[^>]*>Beta/);
+  });
+
+  it('shows "Stream" label on upcoming match vs "Live" label on in-progress match', async () => {
+    const streamUrl = 'https://youtube.com/watch?v=1';
+
+    const upcomingStream = await renderPublicGame({
+      team_1: 'Alpha',
+      team_2: 'Beta',
+      stream_url: streamUrl,
+    });
+    expect(upcomingStream).toContain('Stream');
+    expect(upcomingStream).not.toContain('match-live-dot');
+    expect(upcomingStream).not.toContain('Live');
+
+    const liveStream = await renderPublicGame({
+      team_1: 'Alpha',
+      team_2: 'Beta',
+      team_1_score: 5,
+      team_2_score: 3,
+      status: 'in_progress',
+      stream_url: streamUrl,
+    });
+    expect(liveStream).toContain('Live');
+    expect(liveStream).toContain('match-live-dot');
+    expect(liveStream).not.toMatch(/>Stream</);
+  });
+
   it('shows stream labels for upcoming matches and score history only when enabled and populated', async () => {
     const game = {
       team_1: 'Alpha',

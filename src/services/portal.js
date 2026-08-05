@@ -14,7 +14,9 @@ export async function fetchPortalTeams(portalId) {
     throw new PortalError('Portal tournament ID is required', { code: 'MISSING_ID' });
   }
 
-  const url = new (globalThis.URL || window.URL)(`${PORTAL_BASE_URL}/tournament/team_export/${encodeURIComponent(portalId)}`);
+  const url = new (globalThis.URL || window.URL)(
+    `${PORTAL_BASE_URL}/tournament/team_export/${encodeURIComponent(portalId)}`,
+  );
   url.searchParams.set('format', 'json');
   url.searchParams.set('_fresh', Date.now().toString());
 

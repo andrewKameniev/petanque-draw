@@ -27,14 +27,24 @@
             <ExternalLink :size="16" /> Список суддів ФПУ
           </a>
         </div>
-        <label class="protocol-actions__checkbox protocol-tools__checkbox">
-          <input
-            :checked="showArbitrCertificate"
-            type="checkbox"
-            @change="$emit('update:showArbitrCertificate', $event.target.checked)"
-          />
-          № посвідчення суддів
-        </label>
+        <div class="protocol-tools__checkboxes">
+          <label class="protocol-actions__checkbox protocol-tools__checkbox">
+            <input
+              :checked="showArbitrCertificate"
+              type="checkbox"
+              @change="$emit('update:showArbitrCertificate', $event.target.checked)"
+            />
+            № посвідчення суддів
+          </label>
+          <label class="protocol-actions__checkbox protocol-tools__checkbox">
+            <input
+              :checked="replaceAfpuWithSecondCategory"
+              type="checkbox"
+              @change="$emit('update:replaceAfpuWithSecondCategory', $event.target.checked)"
+            />
+            Замінити «АФПУ» на «2»
+          </label>
+        </div>
       </section>
     </div>
     <div class="protocol-tools protocol-tools--export">
@@ -85,6 +95,7 @@ export default {
     arbitres: { type: Array, required: true },
     tournamentName: { type: String, required: true },
     showArbitrCertificate: { type: Boolean, default: true },
+    replaceAfpuWithSecondCategory: { type: Boolean, default: false },
     exportingDocx: { type: Boolean, default: false },
     hideClose: { type: Boolean, default: false },
   },
@@ -93,6 +104,7 @@ export default {
     'apply-arbiter-selection',
     'apply-arbiter-preset',
     'update:showArbitrCertificate',
+    'update:replaceAfpuWithSecondCategory',
     'export-pdf',
     'export-docx',
     'copy-protocol',

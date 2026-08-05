@@ -17,6 +17,42 @@ export function readProtocolHtml(storageKey) {
   return localStorage.getItem(storageKey);
 }
 
+export function restoreProtocolEditableHtml(savedRoot, currentRoot) {
+  if (!savedRoot || !currentRoot) return 0;
+
+  const savedCells = [...savedRoot.querySelectorAll('[contenteditable]')];
+  const currentCells = [...currentRoot.querySelectorAll('[contenteditable]')];
+  const savedByKey = new Map(
+    savedCells.filter((cell) => cell.dataset?.protocolEditKey).map((cell) => [cell.dataset.protocolEditKey, cell]),
+  );
+  let restored = 0;
+
+  currentCells.forEach((cell) => {
+    const key = cell.dataset?.protocolEditKey;
+    const savedCell = key ? savedByKey.get(key) : null;
+    if (!savedCell) return;
+
+    const savedSource = savedCell.dataset?.protocolSource ?? '';
+    const currentSource = cell.dataset?.protocolSource ?? '';
+    if (savedSource !== currentSource) return;
+
+    cell.innerHTML = savedCell.innerHTML;
+    restored += 1;
+  });
+
+  // One-time migration for protocols saved before stable editable keys existed.
+  // Only restore explicitly manual fields, and only when the document shape is unchanged.
+  if (!savedByKey.size && savedCells.length === currentCells.length) {
+    currentCells.forEach((cell, index) => {
+      if (cell.dataset?.protocolManual !== 'true') return;
+      cell.innerHTML = savedCells[index].innerHTML;
+      restored += 1;
+    });
+  }
+
+  return restored;
+}
+
 export function clearProtocolHtml(storageKey) {
   localStorage.removeItem(storageKey);
 }

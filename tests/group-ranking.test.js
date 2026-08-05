@@ -325,6 +325,82 @@ describe('rankSwissGroups', () => {
   });
 });
 
+describe('computeGroupStats — odd/bye schedules', () => {
+  it('handles odd group (5 teams) with bye games correctly', () => {
+    const group = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D'), makeTeam('E')];
+    const games = [
+      [
+        makeGame('A', 'B', 13, 10),
+        makeGame('C', 'D', 13, 7),
+        // E has a bye — no game
+      ],
+      [
+        makeGame('A', 'C', 10, 13),
+        makeGame('B', 'E', 13, 8),
+        // D has a bye
+      ],
+    ];
+    const result = computeGroupStats(group, games);
+    expect(result.find((t) => t.title === 'A')).toMatchObject({ wins: 1, pointsPlus: 23, pointsMinus: 23 });
+    expect(result.find((t) => t.title === 'E')).toMatchObject({ wins: 0, pointsPlus: 8, pointsMinus: 13 });
+    expect(result.find((t) => t.title === 'D')).toMatchObject({ wins: 0, pointsPlus: 7, pointsMinus: 13 });
+  });
+
+  it('bye teams still get zero stats when they never play', () => {
+    const group = [makeTeam('A'), makeTeam('B'), makeTeam('C')];
+    const games = [[makeGame('A', 'B', 13, 10)]];
+    const result = computeGroupStats(group, games);
+    expect(result.find((t) => t.title === 'C')).toMatchObject({ wins: 0, pointsPlus: 0, pointsMinus: 0 });
+  });
+
+  it('3-team round-robin ranks correctly through regulation', () => {
+    const group = [makeTeam('A'), makeTeam('B'), makeTeam('C')];
+    const games = [[makeGame('A', 'B', 13, 10)], [makeGame('B', 'C', 13, 7)], [makeGame('C', 'A', 13, 8)]];
+    const result = rankRoundRobinGroups({ groups: [group], games }, rankGroupByRegulations);
+    expect(result[0].every((t) => t.wins === 1)).toBe(true);
+  });
+});
+
+describe('computeGroupStats — multi-circle aggregation', () => {
+  it('accumulates stats across multiple circles (repeated rounds)', () => {
+    const group = [makeTeam('A'), makeTeam('B')];
+    const circle1 = [makeGame('A', 'B', 13, 10)];
+    const circle2 = [makeGame('A', 'B', 8, 13)];
+    const circle3 = [makeGame('B', 'A', 10, 13)];
+    const games = [circle1, circle2, circle3];
+    const result = computeGroupStats(group, games);
+    expect(result.find((t) => t.title === 'A')).toMatchObject({ wins: 2, pointsPlus: 34, pointsMinus: 33 });
+    expect(result.find((t) => t.title === 'B')).toMatchObject({ wins: 1, pointsPlus: 33, pointsMinus: 34 });
+  });
+
+  it('multi-circle 4-team group produces cumulative results', () => {
+    const group = [makeTeam('A'), makeTeam('B'), makeTeam('C'), makeTeam('D')];
+    const circle1 = [makeGame('A', 'B', 13, 10), makeGame('C', 'D', 13, 7)];
+    const circle2 = [makeGame('A', 'C', 10, 13), makeGame('B', 'D', 13, 5)];
+    const circle3 = [makeGame('A', 'D', 13, 9), makeGame('B', 'C', 10, 13)];
+    const circle1b = [makeGame('A', 'B', 10, 13), makeGame('C', 'D', 8, 13)];
+    const circle2b = [makeGame('A', 'C', 13, 7), makeGame('B', 'D', 10, 13)];
+    const circle3b = [makeGame('A', 'D', 13, 11), makeGame('B', 'C', 13, 10)];
+    const games = [circle1, circle2, circle3, circle1b, circle2b, circle3b];
+    const result = computeGroupStats(group, games);
+    const totalWins = result.reduce((sum, t) => sum + t.wins, 0);
+    expect(totalWins).toBe(12);
+  });
+
+  it('ranking reflects cumulative circles not just last circle', () => {
+    const group = [makeTeam('A'), makeTeam('B'), makeTeam('C')];
+    const games = [
+      [makeGame('A', 'B', 13, 10), makeGame('A', 'C', 13, 7)],
+      [makeGame('B', 'C', 13, 5)],
+      [makeGame('A', 'B', 13, 10), makeGame('A', 'C', 13, 7)],
+      [makeGame('B', 'C', 13, 5)],
+    ];
+    const result = rankRoundRobinGroups({ groups: [group], games }, rankGroupByRegulations);
+    expect(result[0][0].title).toBe('A');
+    expect(result[0][0].wins).toBe(4);
+  });
+});
+
 describe('consistency: getTeamsRanking produces same results as direct selectors', () => {
   it('poules ranking matches rankPoulesGroups', async () => {
     const { getTeamsRanking } = await import('@/helpers');

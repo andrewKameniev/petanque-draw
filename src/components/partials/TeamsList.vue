@@ -302,7 +302,7 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
-import { rankRoundRobinGroups } from '@/services/group-ranking';
+import { rankRoundRobinGroups, rankByWinsAndDiff, computeGroupStats } from '@/services/group-ranking';
 import { getTeamPlayoffPlaces, getBracketPlayoffPlaces } from '@/services/tir';
 import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
@@ -418,12 +418,8 @@ export default {
         groups = rankRoundRobinGroups(this.tournament, rankGroupByRegulations);
       } else {
         groups = this.tournament.groups.map((group) => {
-          return [...group].sort(
-            (a, b) =>
-              (b.wins || 0) - (a.wins || 0) ||
-              (b.pointsPlus || 0) - (b.pointsMinus || 0) - ((a.pointsPlus || 0) - (a.pointsMinus || 0)) ||
-              (b.pointsPlus || 0) - (a.pointsPlus || 0),
-          );
+          const stats = computeGroupStats(group, this.tournament.games || []);
+          return rankByWinsAndDiff(stats);
         });
       }
       if (this.activeClubFilter) {

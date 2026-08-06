@@ -511,7 +511,7 @@ export default {
     ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap', 'isSuperAdmin', 'archiveIndex']),
     archiveIndexEntries() {
       if (!this.archiveIndex) return [];
-      let entries = Object.entries(this.archiveIndex);
+      let entries = Object.entries(this.archiveIndex).filter(([, item]) => item.portalId);
       if (this.searchQuery) {
         const q = this.searchQuery.toLowerCase();
         entries = entries.filter(

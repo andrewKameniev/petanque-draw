@@ -506,6 +506,10 @@ describe('generateSeededBracket', () => {
       expect(a + b).toBe(15);
     });
   });
+
+  it('rejects a non-power-of-two seed size without recursing', () => {
+    expect(() => generateSeededBracket(5)).toThrow('Seeded bracket size must be a power of two');
+  });
 });
 
 describe('createMatch', () => {
@@ -538,6 +542,25 @@ describe('buildPlayoffBracket', () => {
     expect(bracket.final).toBeNull();
     expect(bracket.rounds[0].matches[0].player1).toBe('P1');
     expect(bracket.rounds[0].matches[0].player2).toBe('P8');
+  });
+
+  it('pads a 5-player bracket with completed byes and advances normally', () => {
+    const bracket = buildPlayoffBracket(['P1', 'P2', 'P3', 'P4', 'P5'], 5);
+    const openingMatches = bracket.rounds[0].matches;
+
+    expect(openingMatches).toHaveLength(4);
+    expect(openingMatches.filter((match) => match.complete)).toHaveLength(3);
+
+    const playableMatch = openingMatches.find((match) => !match.complete);
+    playableMatch.complete = true;
+    playableMatch.winner = playableMatch.player1;
+    playableMatch.loser = playableMatch.player2;
+
+    expect(advancePlayoff(bracket)).toBe(true);
+    expect(bracket.rounds[1].matches.map((match) => [match.player1, match.player2])).toEqual([
+      ['P1', 'P4'],
+      ['P2', 'P3'],
+    ]);
   });
 });
 

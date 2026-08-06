@@ -290,6 +290,9 @@ export function isTiebreakerComplete(participant, tbKey) {
 }
 
 export function generateSeededBracket(n) {
+  if (!Number.isInteger(n) || n < 2 || !Number.isInteger(Math.log2(n))) {
+    throw new RangeError(`Seeded bracket size must be a power of two greater than or equal to 2; received ${n}`);
+  }
   if (n === 2) return [[0, 1]];
   if (n === 4)
     return [
@@ -332,7 +335,24 @@ export function createMatch(player1, player2) {
   };
 }
 
+function createOpeningMatch(player1, player2) {
+  const match = createMatch(player1 ?? null, player2 ?? null);
+  const hasPlayer1 = player1 != null;
+  const hasPlayer2 = player2 != null;
+
+  if (hasPlayer1 !== hasPlayer2) {
+    match.complete = true;
+    match.winner = hasPlayer1 ? player1 : player2;
+    match.loser = null;
+  }
+
+  return match;
+}
+
 export function buildPlayoffBracket(qualifiedNames, size) {
+  if (!Array.isArray(qualifiedNames) || !Number.isInteger(size) || size < 2 || qualifiedNames.length !== size) {
+    throw new RangeError('TIR playoff requires at least 2 qualified participants and a matching size');
+  }
   if (size === 2) {
     return {
       rounds: [],
@@ -342,8 +362,10 @@ export function buildPlayoffBracket(qualifiedNames, size) {
       final: createMatch(qualifiedNames[0], qualifiedNames[1]),
     };
   }
-  const pairs = generateSeededBracket(size);
-  const matches = pairs.map(([a, b]) => createMatch(qualifiedNames[a], qualifiedNames[b]));
+  const bracketSize = 2 ** Math.ceil(Math.log2(size));
+  const seededNames = [...qualifiedNames, ...Array(bracketSize - size).fill(null)];
+  const pairs = generateSeededBracket(bracketSize);
+  const matches = pairs.map(([a, b]) => createOpeningMatch(seededNames[a], seededNames[b]));
   return {
     rounds: [{ matches }],
     qualified: qualifiedNames,

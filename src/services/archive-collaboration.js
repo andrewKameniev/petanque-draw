@@ -7,6 +7,7 @@ import {
   archiveBackupService,
   buildArchiveIndexEntry,
   canDeleteArchived,
+  isArchiveIndexEntryEligible,
 } from '@/services/archive-index';
 
 export const ARCHIVE_STATUS_VERSION = 1;
@@ -166,7 +167,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   async function addToSaved(tournament) {
-    if (tournament.preferences?.isTestTournament) return;
+    if (getTournamentMain(tournament)?.preferences?.isTestTournament) return;
     const id = String(tournament.id || store.currentTournamentIndex);
     const previousStatus = store.userTournamentMap[id]?.status || 'active';
     let ownMapUpdated = false;
@@ -191,7 +192,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           ownerUid: store.user.uid,
           ownerEmail: store.user.email,
         });
-        if (indexEntry.portalId) {
+        if (isArchiveIndexEntryEligible(indexEntry)) {
           await archiveIndexService.write(id, indexEntry);
         }
         await archiveBackupService.write(id, tournament, indexEntry);
@@ -218,26 +219,55 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   async function removeSavedTournament(id) {
     const mapEntry = store.userTournamentMap[id];
     const tournament = store.savedTournaments[id];
-    const portalId = tournament?.portalIdTournament || null;
+    const tournamentMain = getTournamentMain(tournament);
+    const portalId = getTournamentMetadata(tournament).portalIdTournament || null;
     const ownerUid = mapEntry?.role === 'owner' ? store.user.uid : mapEntry?.ownerUid;
-
-    const indexEntry = { portalId, ownerUid };
+    let indexEntry = store.archiveIndex?.[id];
     const isOwner = mapEntry?.role === 'owner';
+    const isSuperAdmin = store.user.email === 'nemo15.alex@gmail.com';
 
-    if (isOwner || store.user.email === 'nemo15.alex@gmail.com') {
-      if (!canDeleteArchived(indexEntry, store.user.email, store.user.uid)) {
-        store.showMessage({
-          title: translate('messages.error'),
-          text: translate('messages.cannotDeletePortalTournament'),
-          type: 'error',
-        });
-        return;
-      }
+    if (isSuperAdmin) {
       try {
-        const deleteOwnerUid = ownerUid || store.user.uid;
-        await firebase.remove(firebase.ref(firebase.getDatabase(), `${deleteOwnerUid}/tournaments/${id}`));
-        await maps.remove(store.user.uid, id);
-        await archiveIndexService.remove(id).catch(() => {});
+        const indexSnapshot = await firebase.get(firebase.ref(firebase.getDatabase(), `archive/${id}`));
+        indexEntry = indexSnapshot.exists() ? indexSnapshot.val() : null;
+      } catch (error) {
+        console.error('Error reading archive index:', error);
+        showError(error);
+        return false;
+      }
+    }
+
+    if (isSuperAdmin && indexEntry) {
+      if (!canDeleteArchived(indexEntry, store.user.email, store.user.uid)) return false;
+
+      try {
+        const indexedOwnerUid = indexEntry.ownerUid;
+        const tournamentSnapshot = await firebase.get(
+          firebase.ref(firebase.getDatabase(), `${indexedOwnerUid}/tournaments/${id}`),
+        );
+        if (!tournamentSnapshot.exists()) return false;
+
+        const indexedTournament = tournamentSnapshot.val();
+        const sourceEntry = buildArchiveIndexEntry(indexedTournament, {
+          ownerUid: indexedOwnerUid,
+          ownerEmail: indexEntry.ownerEmail,
+        });
+        if (!isArchiveIndexEntryEligible(sourceEntry) || String(sourceEntry.portalId) !== String(indexEntry.portalId)) {
+          return false;
+        }
+
+        const deletion = {
+          [`${indexedOwnerUid}/tournaments/${id}`]: null,
+          [`archive/${id}`]: null,
+          [`users/${indexedOwnerUid}/tournaments/${id}`]: null,
+          [`users/${store.user.uid}/tournaments/${id}`]: null,
+        };
+        adminCollaboratorUids(indexedTournament).forEach((uid) => {
+          deletion[`users/${uid}/tournaments/${id}`] = null;
+        });
+
+        await firebase.update(firebase.ref(firebase.getDatabase(), '/'), deletion);
+        if (store.archiveIndex) delete store.archiveIndex[id];
         delete store.userTournamentMap[id];
         delete store.savedTournaments[id];
         store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
@@ -245,11 +275,41 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           title: translate('messages.removed'),
           text: translate('messages.tournamentRemovedSaved'),
         });
+        return true;
       } catch (error) {
         console.error('Error deleting data:', error);
         showError(error);
+        return false;
+      }
+    }
+
+    const localEntry = {
+      portalId,
+      ownerUid,
+      tournamentIsFinished: tournamentMain?.tournamentIsFinished === true,
+      isTestTournament: tournamentMain?.preferences?.isTestTournament === true,
+    };
+
+    if (isOwner) {
+      if (!canDeleteArchived(localEntry, store.user.email, store.user.uid)) return false;
+      try {
+        await firebase.remove(firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${id}`));
+        await maps.remove(store.user.uid, id);
+        delete store.userTournamentMap[id];
+        delete store.savedTournaments[id];
+        store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
+        store.showMessage({
+          title: translate('messages.removed'),
+          text: translate('messages.tournamentRemovedSaved'),
+        });
+        return true;
+      } catch (error) {
+        console.error('Error deleting data:', error);
+        showError(error);
+        return false;
       }
     } else {
+      if (!mapEntry) return false;
       try {
         await maps.remove(store.user.uid, id);
         delete store.userTournamentMap[id];
@@ -259,9 +319,11 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           title: translate('messages.removed'),
           text: translate('messages.tournamentRemovedFromView'),
         });
+        return true;
       } catch (error) {
         console.error('Error removing from view:', error);
         showError(error);
+        return false;
       }
     }
   }
@@ -404,7 +466,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
 
   async function unarchiveTournament(id) {
     const mapEntry = store.userTournamentMap[id];
-    if (!mapEntry) return false;
+    if (mapEntry?.role !== 'owner') return false;
     const previousStatus = mapEntry.status;
     let ownMapUpdated = false;
     try {

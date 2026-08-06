@@ -2,12 +2,11 @@
   "rules": {
     "$uid": {
       ".read": "auth.uid === $uid",
-      ".write": "auth.uid === $uid",
 
       "tournaments": {
         "$tid": {
           ".read": true,
-          ".write": "auth.uid === $uid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'",
+          ".write": "auth != null && ((auth.uid === $uid && (newData.exists() || !root.child('archive/' + $tid).exists())) || (root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin' && newData.exists()) || (auth.token.email === 'nemo15.alex@gmail.com' && (newData.exists() || (root.child('archive/' + $tid + '/ownerUid').val() === $uid && root.child('archive/' + $tid + '/portalId').exists() && root.child('archive/' + $tid + '/tournamentIsFinished').val() === true && root.child('archive/' + $tid + '/isTestTournament').val() !== true && data.child('portalIdTournament').exists() && (data.child('tournamentIsFinished').val() === true || data.child('main/tournamentIsFinished').val() === true) && data.child('preferences/isTestTournament').val() !== true && data.child('main/preferences/isTestTournament').val() !== true))))",
 
           "collaborators": {
             ".write": "auth.uid === $uid"
@@ -76,7 +75,7 @@
         "tournaments": {
           "$tid": {
             ".read": "auth.uid === $uid",
-            ".write": "auth.uid === $uid || root.child(auth.uid + '/tournaments/' + $tid + '/collaborators/' + $uid).exists()"
+            ".write": "auth.uid === $uid || root.child(auth.uid + '/tournaments/' + $tid + '/collaborators/' + $uid).exists() || (auth.token.email === 'nemo15.alex@gmail.com' && !newData.exists() && root.child('archive/' + $tid + '/portalId').exists() && root.child('archive/' + $tid + '/tournamentIsFinished').val() === true && root.child('archive/' + $tid + '/isTestTournament').val() !== true)"
           }
         }
       }
@@ -111,7 +110,7 @@
       ".read": "auth.token.email === 'nemo15.alex@gmail.com'",
       "$tid": {
         ".read": "auth != null && (auth.token.email === 'nemo15.alex@gmail.com' || data.child('ownerUid').val() === auth.uid)",
-        ".write": "auth != null && (!data.exists() || (auth.token.email === 'nemo15.alex@gmail.com' && !data.child('portalId').exists()) || (auth.uid === data.child('ownerUid').val() && !data.child('portalId').exists()))"
+        ".write": "auth != null && ((!data.exists() && newData.exists() && newData.child('ownerUid').val() === auth.uid && newData.child('portalId').exists() && newData.child('tournamentIsFinished').val() === true && newData.child('isTestTournament').val() !== true && root.child(auth.uid + '/tournaments/' + $tid + '/portalIdTournament').exists() && (root.child(auth.uid + '/tournaments/' + $tid + '/tournamentIsFinished').val() === true || root.child(auth.uid + '/tournaments/' + $tid + '/main/tournamentIsFinished').val() === true) && root.child(auth.uid + '/tournaments/' + $tid + '/preferences/isTestTournament').val() !== true && root.child(auth.uid + '/tournaments/' + $tid + '/main/preferences/isTestTournament').val() !== true) || (auth.token.email === 'nemo15.alex@gmail.com' && !newData.exists() && data.child('portalId').exists() && data.child('tournamentIsFinished').val() === true && data.child('isTestTournament').val() !== true && root.child(data.child('ownerUid').val() + '/tournaments/' + $tid + '/portalIdTournament').exists() && (root.child(data.child('ownerUid').val() + '/tournaments/' + $tid + '/tournamentIsFinished').val() === true || root.child(data.child('ownerUid').val() + '/tournaments/' + $tid + '/main/tournamentIsFinished').val() === true) && root.child(data.child('ownerUid').val() + '/tournaments/' + $tid + '/preferences/isTestTournament').val() !== true && root.child(data.child('ownerUid').val() + '/tournaments/' + $tid + '/main/preferences/isTestTournament').val() !== true) || (auth.uid === data.child('ownerUid').val() && !data.child('portalId').exists()))"
       }
     },
 

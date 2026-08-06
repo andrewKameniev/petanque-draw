@@ -41,7 +41,7 @@
             </button>
           </div>
           <button
-            v-if="hasPlayOffResults && !isForProtocol && tournament.playOffBracket?.format !== 'double'"
+            v-if="hasPlayOffResults && !isForProtocol && !hideBracketButton && tournament.playOffBracket?.format !== 'double'"
             class="button is-small btn-purple-outline mb-1"
             @click="showBracket = true"
           >
@@ -488,6 +488,7 @@ export default {
     'teamClubMap',
     'cardView',
     'sectionTitle',
+    'hideBracketButton',
   ],
   data() {
     return {

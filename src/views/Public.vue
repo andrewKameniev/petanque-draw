@@ -268,6 +268,7 @@
             :highlightedTeam="highlightedTeam"
             :teamClubMap="teamClubMap"
             :cardView="true"
+            :hide-bracket-button="hasPlayoffBracket"
           />
           <div v-if="activeTab === 'ranking'">
             <Ranking

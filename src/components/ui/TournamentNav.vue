@@ -98,9 +98,7 @@ export default {
 }
 
 .tournament-nav__btn:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-  border-radius: 8px;
+  outline: none;
 }
 
 .tournament-nav__btn--active {

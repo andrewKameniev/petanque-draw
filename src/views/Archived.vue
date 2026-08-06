@@ -267,15 +267,6 @@
                 <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
                 <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
               </div>
-              <div v-if="activeTournament.playOff" class="btn-bracket-group">
-                <button
-                  class="button is-small btn-bracket"
-                  @click="$refs.playOff && ($refs.playOff.showBracket = true)"
-                >
-                  <GitFork :size="14" style="transform: rotate(90deg); margin-right: 0.3rem" />
-                  {{ $t('games.showBracket') }}
-                </button>
-              </div>
               <div class="archived-links archived-links--mobile">
                 <button class="archived-links__btn" @click="copyPublicLink">
                   <Link2 :size="14" />
@@ -290,46 +281,6 @@
                   <RefreshCw :size="14" :class="{ spin: fetchingLogos }" />
                   {{ fetchingLogos ? '...' : $t('common.refreshLogos') }}
                 </button>
-              </div>
-            </div>
-            <TeamPlayoff v-if="activeTournament.teamPlayoff" :read-only="true" />
-            <PlayOff
-              v-else-if="activeTournament.playOff"
-              ref="playOff"
-              :active-tournament="activeTournament"
-              :is-public-view="true"
-              :hide-header="true"
-              @openResults="activeTab = 'ranking'"
-              class="playoff-public-wrapper"
-            />
-            <Cadrage
-              v-else-if="activeTournament.cadrage"
-              :active-tournament="activeTournament"
-              :is-public-view="true"
-              class="playoff-public-wrapper"
-            />
-            <div
-              v-if="
-                activeTournament.games &&
-                activeTournament.roundIsActive &&
-                !activeTournament.cadrage &&
-                !activeTournament.playOff
-              "
-              class="current-round-card mt-3 mb-3"
-            >
-              <div class="round-header">{{ $t('common.round') }} {{ activeRound }}</div>
-              <div class="match-list">
-                <div
-                  class="match-item match-item--upcoming"
-                  v-for="(game, index) in activeTournament.games[activeRound - 1]"
-                  :key="index"
-                >
-                  <span class="match-team match-team-right">{{ game.team_1 }}</span>
-                  <span class="match-vs">
-                    <span class="match-lane">{{ displayLane(game, index) }}</span>
-                  </span>
-                  <span class="match-team">{{ game.team_2 }}</span>
-                </div>
               </div>
             </div>
             <TirPublicView
@@ -348,10 +299,23 @@
                 role="tabpanel"
                 :aria-labelledby="`tab-${activeTab}`"
               >
+                <DoubleElimination
+                  v-if="activeTab === 'bracket' && isDoubleElimination"
+                  :active-tournament="activeTournament"
+                  :is-public-view="true"
+                  :bracket-only="true"
+                  class="playoff-public-wrapper"
+                />
+                <Bracket
+                  v-else-if="activeTab === 'bracket' && hasPlayoffBracket"
+                  :bracket="activeTournament.playOffBracket"
+                  :embedded="true"
+                  class="playoff-public-wrapper"
+                />
                 <div v-if="activeTab === 'teams'">
                   <TeamsList :previewTournament="activeTournament" />
                 </div>
-                <Results v-if="activeTab === 'results'" :previewTournament="activeTournament" />
+                <Results v-if="activeTab === 'results'" :previewTournament="activeTournament" :hide-bracket-button="hasPlayoffBracket" />
                 <div v-if="activeTab === 'ranking'">
                   <Ranking :tournament="activeTournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
                 </div>
@@ -379,9 +343,8 @@ import Ranking from '@/components/partials/Ranking';
 import Results from '@/components/partials/Results';
 import Protocol from '@/components/partials/Protocol';
 import TeamsList from '@/components/partials/TeamsList';
-import PlayOff from '@/components/partials/PlayOff.vue';
-import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
-import Cadrage from '@/components/partials/Cadrage.vue';
+import DoubleElimination from '@/components/partials/DoubleElimination.vue';
+import Bracket from '@/components/partials/Bracket.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import Footer from '@/components/partials/Footer.vue';
 import Navbar from '@/components/Navbar.vue';
@@ -392,7 +355,6 @@ import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
 import { PortalError } from '@/services/portal';
-import { getGameLaneNumber } from '@/services/lanes';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
   getActiveRound,
@@ -436,15 +398,13 @@ export default {
     Footer,
     Navbar,
     Menu,
-    PlayOff,
-    TeamPlayoff,
-    Cadrage,
+    DoubleElimination,
+    Bracket,
     TirPublicView,
     TeamsList,
     Results,
     Ranking,
     Protocol,
-    GitFork,
     Pencil,
     Link2,
     RefreshCw,
@@ -502,7 +462,7 @@ export default {
         if (key) {
           const selected = this.savedTournaments?.[key];
           const tournament = getTournamentGroup(selected, 'A');
-          this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
+          this.activeTab = this.getDefaultTab(tournament);
           this.subscribeTournament(key);
         }
       },
@@ -545,16 +505,25 @@ export default {
       if (!this.tournament) return null;
       return getTournamentMetadata(this.tournament, { id: this.activeKey });
     },
+    hasPlayoffBracket() {
+      return !!this.activeTournament?.playOffBracket?.stages?.length;
+    },
+    isDoubleElimination() {
+      return this.activeTournament?.playOffBracket?.format === 'double';
+    },
     tabs() {
-      const tabs = [
-        { id: 'teams', label: this.$t('teams.teams'), icon: Users },
-        { id: 'results', label: this.$t('teams.results'), icon: List },
-        { id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon },
-      ];
-      if (this.activeTournament?.tournamentIsFinished && this.activeTournament?.teams?.length) {
-        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
+      const t = this.activeTournament;
+      const list = [];
+      if (this.hasPlayoffBracket) {
+        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork });
       }
-      return tabs;
+      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: Users });
+      list.push({ id: 'results', label: this.$t('teams.results'), icon: List });
+      list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon });
+      if (t?.tournamentIsFinished && t?.teams?.length) {
+        list.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
+      }
+      return list;
     },
     activeRound() {
       return getActiveRound(this.activeTournament);
@@ -665,9 +634,6 @@ export default {
       'renameSavedTournament',
       'unarchiveTournament',
     ]),
-    displayLane(game, index) {
-      return getGameLaneNumber(game, this.activeTournament, index);
-    },
     getRecordMetadata(record) {
       return getTournamentMetadata(record);
     },
@@ -681,13 +647,17 @@ export default {
       if (players >= 3) return this.$t('common.formatTriplette');
       return '';
     },
+    getDefaultTab(tournament) {
+      if (tournament?.system === 'tir') return 'results';
+      return 'ranking';
+    },
     selectTournament(key) {
       const tournamentChanged = key !== this.activeKey;
       this.activeKey = key;
       this.selectorOpen = false;
       const selected = this.savedTournaments?.[key];
       const tournament = getTournamentGroup(selected, 'A');
-      this.activeTab = tournament?.system === 'tir' ? 'results' : 'ranking';
+      this.activeTab = this.getDefaultTab(tournament);
       if (tournamentChanged) {
         this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
       }

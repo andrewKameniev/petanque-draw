@@ -631,23 +631,10 @@ describe('Protocol component behavior', () => {
     expect(title.innerHTML).toContain('Selected archive');
   });
 
-  it('scrolls to the top or bottom according to the current button state', () => {
-    const originalWindow = globalThis.window;
-    const originalDocument = globalThis.document;
-    const scrollTo = vi.fn();
-    globalThis.window = { scrollTo };
-    globalThis.document = { body: { scrollHeight: 4321 } };
-
-    try {
-      protocolMethods.scrollToggle.call({ showBackTop: false });
-      protocolMethods.scrollToggle.call({ showBackTop: true });
-    } finally {
-      globalThis.window = originalWindow;
-      globalThis.document = originalDocument;
-    }
-
-    expect(scrollTo).toHaveBeenNthCalledWith(1, { top: 4321, behavior: 'smooth' });
-    expect(scrollTo).toHaveBeenNthCalledWith(2, { top: 0, behavior: 'smooth' });
+  it('uses ScrollButtons component for page scrolling', () => {
+    const scrollButtons = Protocol.components.ScrollButtons;
+    expect(scrollButtons).toBeDefined();
+    expect(scrollButtons.name).toBe('ScrollButtons');
   });
 
   it('builds stable player detail keys for render updates', () => {
@@ -775,7 +762,9 @@ describe('Archived protocol integration', () => {
       activeKey: 'old',
       selectorOpen: true,
       activeTab: 'protocol',
+      savedTournaments: { new: {} },
       $nextTick: (callback) => callback(),
+      getDefaultTab: Archived.methods.getDefaultTab,
     };
 
     try {

@@ -222,7 +222,7 @@ describe('User Tournament Map', () => {
   });
 
   describe('removeSavedTournament', () => {
-    it('returns a shared admin tournament to the active list without deleting owner data', async () => {
+    it('removes a shared admin tournament from view without deleting owner data', async () => {
       store.userTournamentMap = {
         shared1: {
           status: 'archived',
@@ -236,12 +236,9 @@ describe('User Tournament Map', () => {
 
       await store.removeSavedTournament('shared1');
 
-      expect(userMapService.update).toHaveBeenCalledWith('user1', 'shared1', {
-        status: 'active',
-        archiveStatusVersion: 1,
-      });
+      expect(userMapService.remove).toHaveBeenCalledWith('user1', 'shared1');
       expect(mockRemove).not.toHaveBeenCalled();
-      expect(store.userTournamentMap.shared1.status).toBe('active');
+      expect(store.userTournamentMap.shared1).toBeUndefined();
       expect(store.savedTournaments.shared1).toBeUndefined();
     });
   });

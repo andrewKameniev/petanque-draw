@@ -65,7 +65,7 @@
             <Trash2 :size="16" />
             {{ $t('teams.removeTournament') }}
           </button>
-          <template v-if="tournament.tournamentIsFinished">
+          <template v-if="tournament.tournamentIsFinished && !tournament.preferences?.isTestTournament">
             <span class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
               <button
                 class="bottom-actions__btn bottom-actions__btn--primary"
@@ -233,7 +233,7 @@
               {{ $t('setup.redraw') }}
             </button>
             <span
-              v-if="canSaveTournament || tournament.tournamentIsFinished"
+              v-if="(canSaveTournament || tournament.tournamentIsFinished) && !tournament.preferences?.isTestTournament"
               class="bottom-actions__tooltip-wrapper"
               :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''"
             >

@@ -2,6 +2,12 @@ import { get, getDatabase, onValue, ref, remove, set, update } from 'firebase/da
 import { database } from '@/firebase';
 import { collaboratorService, userMapService } from '@/services/db';
 import { getTournamentMain, getTournamentMetadata, normalizeTournamentRecord } from '@/services/tournament-record';
+import {
+  archiveIndexService,
+  archiveBackupService,
+  buildArchiveIndexEntry,
+  canDeleteArchived,
+} from '@/services/archive-index';
 
 export const ARCHIVE_STATUS_VERSION = 1;
 
@@ -160,6 +166,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   async function addToSaved(tournament) {
+    if (tournament.preferences?.isTestTournament) return;
     const id = String(tournament.id || store.currentTournamentIndex);
     const previousStatus = store.userTournamentMap[id]?.status || 'active';
     let ownMapUpdated = false;
@@ -178,6 +185,16 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
         const remaining = Object.keys(store.tournaments);
         if (remaining.length) store.setActiveTournament(remaining[remaining.length - 1]);
         else store.addTournament();
+      }
+      try {
+        const indexEntry = buildArchiveIndexEntry(tournament, {
+          ownerUid: store.user.uid,
+          ownerEmail: store.user.email,
+        });
+        await archiveIndexService.write(id, indexEntry);
+        await archiveBackupService.write(id, tournament, indexEntry);
+      } catch (indexError) {
+        console.warn('[Archive] Failed to write index/backup:', indexError);
       }
       store.showMessage({
         title: translate('messages.saved'),
@@ -198,27 +215,52 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
 
   async function removeSavedTournament(id) {
     const mapEntry = store.userTournamentMap[id];
-    try {
-      if (mapEntry?.role === 'owner') {
-        await firebase.remove(firebase.ref(firebase.getDatabase(), `${store.user.uid}/tournaments/${id}`));
+    const tournament = store.savedTournaments[id];
+    const portalId = tournament?.portalIdTournament || null;
+    const ownerUid = mapEntry?.role === 'owner' ? store.user.uid : mapEntry?.ownerUid;
+
+    const indexEntry = { portalId, ownerUid };
+    const isOwner = mapEntry?.role === 'owner';
+
+    if (isOwner || store.user.email === 'nemo15.alex@gmail.com') {
+      if (!canDeleteArchived(indexEntry, store.user.email, store.user.uid)) {
+        store.showMessage({
+          title: translate('messages.error'),
+          text: translate('messages.cannotDeletePortalTournament'),
+          type: 'error',
+        });
+        return;
+      }
+      try {
+        const deleteOwnerUid = ownerUid || store.user.uid;
+        await firebase.remove(firebase.ref(firebase.getDatabase(), `${deleteOwnerUid}/tournaments/${id}`));
+        await maps.remove(store.user.uid, id);
+        await archiveIndexService.remove(id).catch(() => {});
+        delete store.userTournamentMap[id];
+        delete store.savedTournaments[id];
+        store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
+        store.showMessage({
+          title: translate('messages.removed'),
+          text: translate('messages.tournamentRemovedSaved'),
+        });
+      } catch (error) {
+        console.error('Error deleting data:', error);
+        showError(error);
+      }
+    } else {
+      try {
         await maps.remove(store.user.uid, id);
         delete store.userTournamentMap[id];
-      } else {
-        await maps.update(store.user.uid, id, {
-          status: 'active',
-          archiveStatusVersion: ARCHIVE_STATUS_VERSION,
+        delete store.savedTournaments[id];
+        store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
+        store.showMessage({
+          title: translate('messages.removed'),
+          text: translate('messages.tournamentRemovedFromView'),
         });
-        if (mapEntry) mapEntry.status = 'active';
+      } catch (error) {
+        console.error('Error removing from view:', error);
+        showError(error);
       }
-      delete store.savedTournaments[id];
-      store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
-      store.showMessage({
-        title: translate('messages.removed'),
-        text: translate('messages.tournamentRemovedSaved'),
-      });
-    } catch (error) {
-      console.error('Error deleting data:', error);
-      showError(error);
     }
   }
 

@@ -6,7 +6,29 @@
       <div class="archived-layout">
         <aside class="archived-sidebar">
           <div class="archived-sidebar__card">
-            <div class="archived-sidebar__header">{{ $t('common.archivedTournaments') }}</div>
+            <div class="archived-sidebar__header">
+              {{ $t('common.archivedTournaments') }}
+              <label v-if="isSuperAdmin" class="archived-sidebar__toggle">
+                <input type="checkbox" v-model="showAllUsers" @change="onShowAllChange" />
+                <span>{{ $t('common.showAll') }}</span>
+              </label>
+            </div>
+            <div class="archived-sidebar__search">
+              <input
+                v-model="searchQuery"
+                type="text"
+                class="archived-sidebar__search-input"
+                :placeholder="$t('common.search') + '...'"
+              />
+              <select v-if="useArchiveIndex" v-model="systemFilter" class="archived-sidebar__filter-select">
+                <option value="">{{ $t('teams.system') }}</option>
+                <option value="swiss">Swiss</option>
+                <option value="groups">{{ $t('teams.groups') }}</option>
+                <option value="poules">{{ $t('teams.poules') }}</option>
+                <option value="supermele">Supermêlée</option>
+                <option value="tir">{{ $t('teams.tir') }}</option>
+              </select>
+            </div>
             <div class="archived-sidebar__list">
               <template v-if="isArchiveLoading">
                 <div v-for="n in 7" :key="`archive-sidebar-skeleton-${n}`" class="archive-sidebar-skeleton-row">
@@ -91,20 +113,17 @@
               </button>
             </div>
             <div class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management">
-              <button class="button btn-make-active" @click="makeActive">
+              <button v-if="isActiveOwner || isSuperAdmin" class="button btn-make-active" @click="makeActive">
                 <ArchiveRestore :size="16" />
                 <span>{{ $t('common.makeActive') }}</span>
               </button>
-              <button class="button btn-remove-archived" @click="removeTournament">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+              <button v-if="canDeleteActive" class="button btn-remove-archived" @click="removeTournament">
+                <Trash2 :size="16" />
                 <span>{{ $t('common.remove') }}</span>
+              </button>
+              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click="removeFromView">
+                <EyeOff :size="16" />
+                <span>{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
           </div>
@@ -193,20 +212,17 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
             <div class="tournament-selector__mobile-actions">
-              <button class="button btn-make-active" @click.stop="makeActive">
+              <button v-if="isActiveOwner || isSuperAdmin" class="button btn-make-active" @click.stop="makeActive">
                 <ArchiveRestore :size="16" />
                 <span class="is-hidden-mobile">{{ $t('common.makeActive') }}</span>
               </button>
-              <button class="button btn-remove-archived" @click.stop="removeTournament">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+              <button v-if="canDeleteActive" class="button btn-remove-archived" @click.stop="removeTournament">
+                <Trash2 :size="16" />
                 <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
+              </button>
+              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click.stop="removeFromView">
+                <EyeOff :size="16" />
+                <span class="is-hidden-mobile">{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
             <div class="tournament-selector__dropdown" v-if="selectorOpen">
@@ -388,6 +404,8 @@ import {
   Link2,
   RefreshCw,
   ArchiveRestore,
+  Trash2,
+  EyeOff,
 } from 'lucide-vue-next';
 
 export default {
@@ -409,6 +427,8 @@ export default {
     Link2,
     RefreshCw,
     ArchiveRestore,
+    Trash2,
+    EyeOff,
   },
   data() {
     return {
@@ -423,6 +443,9 @@ export default {
       publicLinkCopied: false,
       fetchingLogos: false,
       portalIdInput: null,
+      searchQuery: '',
+      systemFilter: '',
+      showAllUsers: localStorage.getItem('petanqueDrawArchiveShowAll') !== 'false',
     };
   },
   directives: {
@@ -440,9 +463,12 @@ export default {
   },
   async created() {
     try {
-      await this.fetchSavedTournaments();
-      if (this.tournamentKeys.length) {
-        this.activeKey = this.tournamentKeys[this.tournamentKeys.length - 1];
+      const promises = [this.fetchSavedTournaments()];
+      if (this.isSuperAdmin) promises.push(this.fetchArchiveIndex());
+      await Promise.all(promises);
+      const keys = this.filteredKeys;
+      if (keys.length) {
+        this.activeKey = keys[keys.length - 1];
       }
     } finally {
       this.isArchiveLoading = false;
@@ -478,12 +504,41 @@ export default {
     }
   },
   computed: {
-    ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap']),
+    ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap', 'isSuperAdmin', 'archiveIndex']),
+    archiveIndexEntries() {
+      if (!this.archiveIndex) return [];
+      let entries = Object.entries(this.archiveIndex);
+      if (this.searchQuery) {
+        const q = this.searchQuery.toLowerCase();
+        entries = entries.filter(
+          ([, item]) => item.nameLower?.includes(q) || item.name?.toLowerCase().includes(q) || item.date?.includes(q),
+        );
+      }
+      if (this.systemFilter) {
+        entries = entries.filter(([, item]) => item.system === this.systemFilter);
+      }
+      return entries.sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''));
+    },
+    useArchiveIndex() {
+      return this.isSuperAdmin && this.showAllUsers && this.archiveIndex;
+    },
     tournamentEntries() {
-      return Object.entries(this.savedTournaments).reverse();
+      if (this.useArchiveIndex) return this.archiveIndexEntries;
+      let entries = Object.entries(this.savedTournaments);
+      if (this.searchQuery) {
+        const q = this.searchQuery.toLowerCase();
+        entries = entries.filter(([, item]) => {
+          const meta = getTournamentMetadata(item);
+          return meta.name?.toLowerCase().includes(q) || meta.date?.includes(q);
+        });
+      }
+      return entries.reverse();
     },
     tournamentKeys() {
-      return Object.keys(this.savedTournaments);
+      return this.tournamentEntries.map(([key]) => key);
+    },
+    filteredKeys() {
+      return this.tournamentKeys;
     },
     activeTournament() {
       return getTournamentGroup(this.tournament, 'A');
@@ -497,6 +552,16 @@ export default {
     activeOwnerUid() {
       if (this.activeMapEntry?.role === 'admin') return this.activeMapEntry.ownerUid;
       return this.user?.uid;
+    },
+    canDeleteActive() {
+      if (!this.activeKey || !this.tournament) return false;
+      const hasPortalId = !!getTournamentMetadata(this.tournament).portalIdTournament;
+      if (hasPortalId) return false;
+      if (this.isSuperAdmin) return true;
+      return this.activeMapEntry?.role === 'owner';
+    },
+    isActiveOwner() {
+      return this.activeMapEntry?.role === 'owner';
     },
     showLoadingSkeleton() {
       return this.isArchiveLoading || this.isLoading;
@@ -630,14 +695,20 @@ export default {
   methods: {
     ...mapActions(useMainStore, [
       'fetchSavedTournaments',
+      'fetchArchiveIndex',
       'removeSavedTournament',
       'renameSavedTournament',
       'unarchiveTournament',
     ]),
     getRecordMetadata(record) {
+      if (record.nameLower !== undefined) return record;
       return getTournamentMetadata(record);
     },
     getFormatTag(item) {
+      if (item.nameLower !== undefined) {
+        if (item.system === 'tir') return this.$t('teams.tir');
+        return item.system || '';
+      }
       const data = getTournamentGroup(item, 'A');
       if (data.system === 'tir') return this.$t('teams.tir');
       const players = data.teams?.[0]?.players?.length;
@@ -651,15 +722,37 @@ export default {
       if (tournament?.system === 'tir') return 'results';
       return 'ranking';
     },
-    selectTournament(key) {
+    async selectTournament(key) {
       const tournamentChanged = key !== this.activeKey;
       this.activeKey = key;
       this.selectorOpen = false;
-      const selected = this.savedTournaments?.[key];
-      const tournament = getTournamentGroup(selected, 'A');
-      this.activeTab = this.getDefaultTab(tournament);
+      if (this.savedTournaments?.[key]) {
+        const tournament = getTournamentGroup(this.savedTournaments[key], 'A');
+        this.activeTab = this.getDefaultTab(tournament);
+      } else if (this.useArchiveIndex && this.archiveIndex?.[key]) {
+        this.isLoading = true;
+        try {
+          const { tournamentService } = await import('@/services/db');
+          const ownerUid = this.archiveIndex[key].ownerUid;
+          const snapshot = await tournamentService.getOne(ownerUid, key);
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            this.tournament = data;
+            const tournament = getTournamentGroup(data, 'A');
+            this.activeTab = this.getDefaultTab(tournament);
+          }
+        } finally {
+          this.isLoading = false;
+        }
+      }
       if (tournamentChanged) {
         this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+      }
+    },
+    onShowAllChange() {
+      localStorage.setItem('petanqueDrawArchiveShowAll', String(this.showAllUsers));
+      if (this.showAllUsers && this.isSuperAdmin && !this.archiveIndex) {
+        this.fetchArchiveIndex();
       }
     },
     closeSelector() {
@@ -684,6 +777,13 @@ export default {
         !window.confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')
       )
         return;
+      this.removeSavedTournament(this.activeKey);
+      const remaining = this.tournamentKeys.filter((k) => k !== this.activeKey);
+      this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
+      this.tournament = null;
+    },
+    removeFromView() {
+      if (!window.confirm(this.$t('modals.sureRemove') + '?')) return;
       this.removeSavedTournament(this.activeKey);
       const remaining = this.tournamentKeys.filter((k) => k !== this.activeKey);
       this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
@@ -1456,6 +1556,54 @@ export default {
   letter-spacing: 0.03em;
   padding: 0.4rem 0.5rem;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.archived-sidebar__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.archived-sidebar__toggle input {
+  margin: 0;
+}
+
+.archived-sidebar__search {
+  padding: 0 0.5rem 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.archived-sidebar__search-input {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+}
+
+.archived-sidebar__search-input:focus {
+  border-color: var(--color-primary);
+}
+
+.archived-sidebar__filter-select {
+  padding: 0.35rem 0.4rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-width: 80px;
 }
 
 .archived-sidebar__list {

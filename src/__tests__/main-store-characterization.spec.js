@@ -44,6 +44,7 @@ const STATE_FIELDS = [
   '_activeGameMatchPath',
   '_activePlayoffMatchPath',
   '_activeTeamPlayoffMatchPath',
+  'archiveIndex',
   'currentTournamentIndex',
   'isAdmin',
   'message',
@@ -61,6 +62,7 @@ const GETTERS = [
   'currentTournament',
   'isNewFormat',
   'isOwnerOrAdmin',
+  'isSuperAdmin',
 ];
 
 const ACTIONS = `
@@ -68,7 +70,7 @@ const ACTIONS = `
   _mergeGames _mergeTeamPlayoff _mergeTirPlayoff _syncMatchDebounced _syncPath _watchCollaboratorAccess
   addCollaborator addRoundToGames addTeamToStore addToSaved addTournament addTournamentBTeams
   changeDrawType changeTournamentName clearRoundTimer clearTeams completeTournamentBElimination endRound
-  endRoundTimer fetchSavedTournaments finishTournament getTournaments hideMessage initTournamentB leaveSharedTournament
+  endRoundTimer fetchArchiveIndex fetchSavedTournaments finishTournament getTournaments hideMessage initTournamentB leaveSharedTournament
   loadSharedTournament loginUser pauseRoundTimer removeCollaborator removeSavedTournament removeTeam removeTournament
   removeTournamentB renameSavedTournament restartRoundTimer restoreRound resumeRoundTimer revertFinishTournament
   saveCadrageScores saveLanesToTeams savePreferences saveTournamentData setActiveBracketMatchPath setActiveCadrageIndex

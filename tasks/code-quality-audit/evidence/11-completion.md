@@ -4,7 +4,7 @@
 
 - Repository implementation: **complete and locally verified**
 - Pull request: [#179](https://github.com/andrewKameniev/petanque-draw/pull/179)
-- Pull-request CI: **awaiting GitHub check scheduling**
+- Pull-request CI: **not scheduled by GitHub; repository Actions policy/approval requires owner review**
 - External credential checkpoint: **pending authorized rotation or revocation**
 - Overall Task 11: **not complete until the external checkpoint is recorded**
 - Verification commit: `5f845c3` on `codex/task-11-ui-agent-standards`
@@ -76,6 +76,7 @@ readiness wait in `5f845c3`; the final emulator run used that exact source.
 | `npm run check:agent-contract` |           0 | AGENTS and CLAUDE entry points resolved through RTK with all 11 mandatory rule IDs and zero errors |
 | `npm run check:ui-standards`   |           0 | `{ "ok": true, "violations": [] }`                                                                 |
 | `npm run check:secrets`        |           0 | `{ "ok": true, "findings": [] }`                                                                   |
+| pinned `actionlint`            |           0 | both new workflow files are syntactically and semantically valid                                   |
 | `npm run test:ui-a11y`         |           0 | 28/28 passed; zero critical, serious, or unwaived moderate affected-region violations              |
 | `npm run test:ui-visual`       |           0 | 31/31 active snapshots matched without an update flag                                              |
 | direct `playwright ... --list` | 1, expected | aborted before browser startup because emulator mode was absent                                    |
@@ -148,4 +149,12 @@ There are no code, accessibility, visual, lint, test, or local E2E waivers.
 Task 11 adds pull-request-only reusable quality validation. It has a zero diff
 for `.github/workflows/deploy.yml` and `.github/workflows/static.yml`; merging to
 `develop` therefore preserves the repository's existing GitHub Pages deployment
-behavior. PR job links and final remote status will be added to the PR handoff.
+behavior.
+
+GitHub did not schedule the new workflow for either PR #179's `opened` event or
+the subsequent `synchronize` event. Both workflow files pass pinned actionlint,
+the PR is mergeable, and repository Actions are active for the existing Pages
+workflow. The authenticated contributor account receives HTTP 403 when reading
+the repository Actions policy, so an owner/admin must inspect workflow approval
+or allowed-actions settings. No remote quality result is claimed until GitHub
+schedules those jobs.

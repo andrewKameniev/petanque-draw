@@ -875,9 +875,7 @@ export default {
           this.$forceUpdate();
         }
       } catch (err) {
-        if (err instanceof PortalError) {
-          console.error(`Portal sync failed: ${err.message}`);
-        }
+        console.error(`Logo refresh failed:`, err);
       } finally {
         this.fetchingLogos = false;
       }

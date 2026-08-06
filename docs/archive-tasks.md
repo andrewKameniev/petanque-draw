@@ -37,6 +37,7 @@ Based on the architecture in `docs/archive-analysis.md`.
      ```
 
 3. **Update `database.rules.json`** — add `archive` node rules:
+
    ```json
    "archive": {
      ".read": "auth.token.email === 'nemo15.alex@gmail.com'",
@@ -73,17 +74,19 @@ Based on the architecture in `docs/archive-analysis.md`.
 ### What to do
 
 1. **Add `isSuperAdmin` computed to store** (`src/stores/main.js`):
+
    ```js
-   isSuperAdmin: (state) => state.user?.email === SUPER_ADMIN_EMAIL
+   isSuperAdmin: (state) => state.user?.email === SUPER_ADMIN_EMAIL;
    ```
 
 2. **Add `canDeleteArchived(tournament)` helper** (in archive-index service or a shared util):
+
    ```js
    function canDeleteArchived(tournament, userEmail, userUid) {
-     if (tournament.portalId) return false
-     if (userEmail === SUPER_ADMIN_EMAIL) return true
-     if (userUid === tournament.ownerUid) return true
-     return false
+     if (tournament.portalId) return false;
+     if (userEmail === SUPER_ADMIN_EMAIL) return true;
+     if (userUid === tournament.ownerUid) return true;
+     return false;
    }
    ```
 
@@ -183,6 +186,7 @@ Based on the architecture in `docs/archive-analysis.md`.
 ### What to do
 
 1. **Initialize Firebase Functions** (if not already):
+
    ```bash
    firebase init functions
    ```
@@ -321,6 +325,7 @@ Based on the architecture in `docs/archive-analysis.md`.
    - `date` field: try `games[0][0].date`, fall back to `createdAt`
 
 3. **Run once**:
+
    ```bash
    node scripts/migrate-archive-index.js
    ```
@@ -365,11 +370,11 @@ Task 4 (Cloud Function backup) ── independent, do last (requires Blaze plan)
 
 ## Summary
 
-| Task | Effort | Dependencies | New packages |
-|------|--------|--------------|--------------|
-| 1. Archive index service | Low | None | None |
-| 2. Deletion policy | Low | Task 1 (for `isSuperAdmin`) | None |
-| 3. Super admin list UI | Medium | Tasks 1, 2 | `vue-virtual-scroller` (optional) |
-| 4. JSON backup Cloud Function | Medium | Task 1, Blaze plan | `firebase-functions`, `@google-cloud/storage` |
-| 5. localStorage toggle | Low | Task 3 | None |
-| 6. Legacy migration | Low | Task 1 | `firebase-admin` (script only) |
+| Task                          | Effort | Dependencies                | New packages                                  |
+| ----------------------------- | ------ | --------------------------- | --------------------------------------------- |
+| 1. Archive index service      | Low    | None                        | None                                          |
+| 2. Deletion policy            | Low    | Task 1 (for `isSuperAdmin`) | None                                          |
+| 3. Super admin list UI        | Medium | Tasks 1, 2                  | `vue-virtual-scroller` (optional)             |
+| 4. JSON backup Cloud Function | Medium | Task 1, Blaze plan          | `firebase-functions`, `@google-cloud/storage` |
+| 5. localStorage toggle        | Low    | Task 3                      | None                                          |
+| 6. Legacy migration           | Low    | Task 1                      | `firebase-admin` (script only)                |

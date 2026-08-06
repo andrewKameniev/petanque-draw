@@ -331,7 +331,11 @@
                 <div v-if="activeTab === 'teams'">
                   <TeamsList :previewTournament="activeTournament" />
                 </div>
-                <Results v-if="activeTab === 'results'" :previewTournament="activeTournament" :hide-bracket-button="hasPlayoffBracket" />
+                <Results
+                  v-if="activeTab === 'results'"
+                  :previewTournament="activeTournament"
+                  :hide-bracket-button="hasPlayoffBracket"
+                />
                 <div v-if="activeTab === 'ranking'">
                   <Ranking :tournament="activeTournament" :rankingTeams="rankingTeams" :activeRound="activeRound" />
                 </div>

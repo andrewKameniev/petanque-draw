@@ -7,6 +7,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 5173,
     strictPort: true,
+    // Browser warnings can serialize component state. Emulator E2E keeps those
+    // details in Playwright evidence instead of forwarding disposable auth data
+    // into CI logs.
+    forwardConsole: process.env.E2E_FIREBASE_MODE === 'emulator' ? false : undefined,
   },
   test: {
     globals: true,

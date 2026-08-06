@@ -22,7 +22,7 @@
 
             <!-- Old exercise system -->
             <div v-else-if="view === 'add-exercise' || view === 'edit-exercise'">
-              <button @click="cancelEditExercise" class="button btn-primary-outline btn-sm mb-3">
+              <button type="button" class="button btn-primary-outline btn-sm mb-3" @click="cancelEditExercise">
                 {{ $t('training.toList') }}
               </button>
               <TrainingAdd :edit-id="editExerciseId" :edit-data="editExerciseData" @add="addExToList" />
@@ -45,6 +45,7 @@
               <!-- Tabs -->
               <div class="training-tabs">
                 <button
+                  type="button"
                   class="training-tab"
                   :class="{ 'training-tab--active': tab === 'sessions' }"
                   @click="tab = 'sessions'"
@@ -52,6 +53,7 @@
                   {{ $t('training.tirSessions') }}
                 </button>
                 <button
+                  type="button"
                   class="training-tab"
                   :class="{ 'training-tab--active': tab === 'exercises' }"
                   @click="tab = 'exercises'"
@@ -84,24 +86,25 @@
               <div v-else-if="tab === 'sessions'">
                 <div class="training-list-header">
                   <div v-if="sessionsList.length" class="training-list-actions">
-                    <button @click="view = 'stats'" class="button btn-primary-outline btn-sm">
-                      <BarChart3 :size="14" />
+                    <button type="button" class="button btn-primary-outline btn-sm" @click="view = 'stats'">
+                      <BarChart3 :size="14" aria-hidden="true" />
                       {{ $t('training.statistics') }}
                     </button>
-                    <button @click="view = 'create'" class="button btn-primary btn-sm">
-                      <Plus :size="14" />
+                    <button type="button" class="button btn-primary btn-sm" @click="view = 'create'">
+                      <Plus :size="14" aria-hidden="true" />
                       {{ $t('training.newSession') }}
                     </button>
                   </div>
                 </div>
 
                 <div v-if="sessionsList.length" class="training-sessions">
-                  <div
-                    v-for="session in sortedSessions"
-                    :key="session.id"
-                    class="session-card"
-                    @click="openSession(session)"
-                  >
+                  <div v-for="session in sortedSessions" :key="session.id" class="session-card">
+                    <button
+                      type="button"
+                      class="session-card__open"
+                      :aria-label="`${session.name}: ${getStatusLabel(session.status)}`"
+                      @click="openSession(session)"
+                    ></button>
                     <div class="session-card__top">
                       <div class="session-card__info">
                         <div class="session-card__name">{{ session.name }}</div>
@@ -117,14 +120,22 @@
                       <div class="session-card__actions">
                         <button
                           v-if="session.status === 'completed'"
+                          type="button"
                           class="session-card__rerun"
-                          @click.stop="rerunSession(session)"
+                          :aria-label="$t('training.rerun')"
                           :title="$t('training.rerun')"
+                          @click.stop="rerunSession(session)"
                         >
-                          <RotateCcw :size="14" />
+                          <RotateCcw :size="14" aria-hidden="true" />
                         </button>
-                        <button class="session-card__delete" @click.stop="confirmDeleteId = session.id">
-                          <Trash2 :size="14" />
+                        <button
+                          type="button"
+                          class="session-card__delete"
+                          :aria-label="$t('messages.removeSession')"
+                          :title="$t('messages.removeSession')"
+                          @click.stop="confirmDeleteId = session.id"
+                        >
+                          <Trash2 :size="14" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -150,8 +161,8 @@
                 </div>
                 <div v-else class="training-empty">
                   <p>{{ $t('training.noSessions') }}</p>
-                  <button @click="view = 'create'" class="button btn-primary btn-sm mt-3">
-                    <Plus :size="14" />
+                  <button type="button" class="button btn-primary btn-sm mt-3" @click="view = 'create'">
+                    <Plus :size="14" aria-hidden="true" />
                     {{ $t('training.newSession') }}
                   </button>
                 </div>
@@ -161,7 +172,7 @@
               <div v-else-if="tab === 'exercises'">
                 <div class="exercise-list-header">
                   <div class="exercise-list-title">{{ $t('training.exList') }}</div>
-                  <button @click="view = 'add-exercise'" class="button btn-primary btn-sm">
+                  <button type="button" class="button btn-primary btn-sm" @click="view = 'add-exercise'">
                     {{ $t('training.addEx') }}
                   </button>
                 </div>
@@ -177,26 +188,38 @@
                           <span class="exercise-item__badge">{{ $t('training.serieLength') }}: {{ item.length }}</span>
                         </div>
                       </div>
-                      <button class="exercise-item__delete" @click.stop="confirmRemoveId = key">
-                        <Trash2 :size="14" />
+                      <button
+                        type="button"
+                        class="exercise-item__delete"
+                        :aria-label="$t('messages.removeExercise')"
+                        :title="$t('messages.removeExercise')"
+                        @click.stop="confirmRemoveId = key"
+                      >
+                        <Trash2 :size="14" aria-hidden="true" />
                       </button>
                     </div>
                     <div class="exercise-item__actions">
-                      <button class="button btn-primary btn-sm" @click="start(key)">
+                      <button type="button" class="button btn-primary btn-sm" @click="start(key)">
                         {{ $t('training.startTraining') }}
                       </button>
-                      <button class="button btn-primary-outline btn-sm" @click="viewResults(key)">
+                      <button type="button" class="button btn-primary-outline btn-sm" @click="viewResults(key)">
                         {{ $t('training.viewResults') }}
                       </button>
-                      <button class="button btn-primary-outline btn-sm" @click="editExercise(key, item)">
-                        <Pencil :size="14" />
+                      <button
+                        type="button"
+                        class="button btn-primary-outline btn-sm"
+                        :aria-label="$t('common.edit')"
+                        :title="$t('common.edit')"
+                        @click="editExercise(key, item)"
+                      >
+                        <Pencil :size="14" aria-hidden="true" />
                       </button>
                     </div>
                   </div>
                 </div>
                 <div v-else class="exercise-empty">
                   <p>{{ $t('training.addExToBegin') }}</p>
-                  <button @click="view = 'add-exercise'" class="button btn-primary btn-sm mt-3">
+                  <button type="button" class="button btn-primary btn-sm mt-3" @click="view = 'add-exercise'">
                     {{ $t('training.addEx') }}
                   </button>
                 </div>
@@ -366,9 +389,9 @@ export default {
       this.activeSession = session;
       this.view = 'session';
     },
-    saveActiveSession() {
-      if (!this.activeSession) return;
-      this.activeSession.updatedAt = Date.now();
+    saveActiveSession(updatedSession = this.activeSession) {
+      if (!updatedSession) return;
+      this.activeSession = { ...updatedSession, updatedAt: Date.now() };
       trainingService.saveSession(this.user.uid, this.activeSession.id, this.activeSession);
       const idx = this.sessionsList.findIndex((s) => s.id === this.activeSession.id);
       if (idx !== -1) this.sessionsList[idx] = { ...this.activeSession };
@@ -447,7 +470,7 @@ export default {
   width: 40%;
   height: 32px;
   border-radius: 8px;
-  background: var(--color-border-light, #eee);
+  background: var(--color-border-light);
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
@@ -462,7 +485,7 @@ export default {
 
 .training-skeleton__line {
   border-radius: 6px;
-  background: var(--color-border-light, #eee);
+  background: var(--color-border-light);
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
@@ -547,12 +570,30 @@ export default {
 }
 
 .session-card {
+  position: relative;
   background: var(--color-surface);
   border-radius: 10px;
   border: 1px solid var(--color-border);
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: border-color 0.15s;
+}
+
+.session-card__open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+}
+
+.session-card__open:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .session-card:hover {
@@ -592,12 +633,12 @@ export default {
   font-weight: 500;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
-  background: var(--color-primary-bg, rgb(124 58 237 / 10%));
+  background: var(--color-primary-bg);
   color: var(--color-primary);
 }
 
 .session-card__badge--type {
-  background: var(--color-primary-bg, rgb(124 58 237 / 10%));
+  background: var(--color-primary-bg);
   color: var(--color-primary);
 }
 
@@ -607,16 +648,18 @@ export default {
 }
 
 .session-card__badge--in_progress {
-  background: rgb(245 166 35 / 15%);
+  background: var(--color-warning-bg);
   color: var(--tir-touche);
 }
 
 .session-card__badge--completed {
-  background: rgb(76 175 80 / 15%);
+  background: var(--tir-winner-bg);
   color: var(--tir-carreau);
 }
 
 .session-card__actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 0.25rem;
   flex-shrink: 0;
@@ -740,7 +783,7 @@ export default {
   font-weight: 500;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: var(--color-primary-bg, rgb(124 58 237 / 10%));
+  background: var(--color-primary-bg);
   color: var(--color-primary);
 }
 

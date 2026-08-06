@@ -423,7 +423,12 @@
         @close="$emit('close')"
       />
     </div>
-    <ScrollButtons v-if="!hideScrollButton" />
+    <ScrollButtons
+      v-if="!hideScrollButton"
+      target="window"
+      :top-label="$t('common.scrollToTop')"
+      :bottom-label="$t('common.scrollToBottom')"
+    />
   </div>
 </template>
 

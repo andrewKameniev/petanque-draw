@@ -1,21 +1,27 @@
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import {
+  connectAuthEmulator,
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { get, getDatabase, ref, remove, set } from 'firebase/database';
+import { connectDatabaseEmulator, get, getDatabase, ref, remove, set } from 'firebase/database';
 import { TEST_EMAIL, TEST_PASSWORD } from './helpers.js';
+import { assertEmulatorEnvironment, requireRuntimeFixtureCredentials } from './emulator-environment.js';
 import { encodeTournamentRef } from '../src/services/tournament-ref.js';
 
+const emulator = assertEmulatorEnvironment();
+const runtimeCredentials = requireRuntimeFixtureCredentials();
 const firebaseConfig = {
-  apiKey: 'AIzaSyBxMqWxQwI1OBhLk7wrzv0UhunvMTTgcgU',
-  authDomain: 'petanque-draw.firebaseapp.com',
-  databaseURL: 'https://petanque-draw-default-rtdb.europe-west1.firebasedatabase.app',
-  projectId: 'petanque-draw',
-  storageBucket: 'petanque-draw.appspot.com',
-  messagingSenderId: '774303828599',
-  appId: '1:774303828599:web:78c14845b68be7fd4e5472',
+  apiKey: 'demo-api-key',
+  authDomain: `${emulator.projectId}.firebaseapp.com`,
+  databaseURL: `https://${emulator.projectId}-default-rtdb.firebaseio.com`,
+  projectId: emulator.projectId,
+  appId: 'demo-app-id',
 };
 
-const SHARED_OWNER_EMAIL = 'e2e-owner-petanque@mailinator.com';
-const SHARED_OWNER_PASSWORD = 'TestPass123!';
+const DISPOSABLE_OWNER_EMAIL = runtimeCredentials.ownerEmail;
+const DISPOSABLE_OWNER_PASSWORD = runtimeCredentials.ownerPassword;
 const TASK03_OWNED_FIXTURE_NAMES = new Set([
   'Adapter Wrapper Cup',
   'Adapter Legacy Cup',
@@ -32,6 +38,9 @@ async function getClient(name, email, password, { create = false } = {}) {
     ? getApp(name)
     : initializeApp(firebaseConfig, name);
   const auth = getAuth(app);
+  connectAuthEmulator(auth, `http://${emulator.auth.host}:${emulator.auth.port}`, { disableWarnings: true });
+  const db = getDatabase(app);
+  connectDatabaseEmulator(db, emulator.database.host, emulator.database.port);
   let credential;
   try {
     credential = await signInWithEmailAndPassword(auth, email, password);
@@ -39,9 +48,16 @@ async function getClient(name, email, password, { create = false } = {}) {
     if (!create) throw error;
     credential = await createUserWithEmailAndPassword(auth, email, password);
   }
-  const client = { auth, db: getDatabase(app), uid: credential.user.uid };
+  const client = { auth, db, uid: credential.user.uid };
   clients.set(name, client);
   return client;
+}
+
+export async function ensureEmulatorUsers() {
+  await Promise.all([
+    getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD, { create: true }),
+    getClient('task03-e2e-owner', DISPOSABLE_OWNER_EMAIL, DISPOSABLE_OWNER_PASSWORD, { create: true }),
+  ]);
 }
 
 export function createFixtureId(offset = 0) {
@@ -66,7 +82,9 @@ export async function seedOwnedTournament(tournamentId, record, { status = 'acti
 
 export async function seedSharedTournament(tournamentId, record) {
   const viewer = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', DISPOSABLE_OWNER_EMAIL, DISPOSABLE_OWNER_PASSWORD, {
+    create: true,
+  });
   const sharedRecord = {
     ...record,
     collaborators: {
@@ -96,7 +114,9 @@ export async function updateOwnedTournamentPath(tournamentId, path, value) {
 }
 
 export async function readSharedTournament(ownerUid, tournamentId) {
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', DISPOSABLE_OWNER_EMAIL, DISPOSABLE_OWNER_PASSWORD, {
+    create: true,
+  });
   if (owner.uid !== ownerUid) throw new Error('Unexpected shared fixture owner');
   return (await get(ref(owner.db, `${ownerUid}/tournaments/${tournamentId}`))).val();
 }
@@ -118,7 +138,9 @@ export async function cleanupOwnedTournament(tournamentId) {
 
 export async function cleanupSharedTournament(ownerUid, tournamentId) {
   const viewer = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', DISPOSABLE_OWNER_EMAIL, DISPOSABLE_OWNER_PASSWORD, {
+    create: true,
+  });
   if (owner.uid !== ownerUid) throw new Error('Unexpected shared fixture owner');
   await Promise.all([
     remove(ref(owner.db, `${ownerUid}/tournaments/${tournamentId}`)),
@@ -135,7 +157,9 @@ export async function cleanupTask03Fixtures() {
     .map(([id]) => id);
   await Promise.all(ownedIds.map((id) => cleanupOwnedTournament(id)));
 
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', DISPOSABLE_OWNER_EMAIL, DISPOSABLE_OWNER_PASSWORD, {
+    create: true,
+  });
   const sharedSnapshot = await get(ref(owner.db, `${owner.uid}/tournaments`));
   const sharedIds = Object.entries(sharedSnapshot.val() || {})
     .filter(([, record]) => record.name === 'Shared Adapter Cup')

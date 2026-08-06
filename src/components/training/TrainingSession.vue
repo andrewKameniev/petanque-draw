@@ -1,40 +1,56 @@
-<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <div class="tsession">
     <div class="tsession__header">
-      <button class="tsession__back" @click="$emit('back')">
-        <ChevronLeft :size="18" />
+      <button type="button" class="tsession__back" :aria-label="$t('tir.back')" @click="$emit('back')">
+        <ChevronLeft :size="18" aria-hidden="true" />
       </button>
       <div class="tsession__info">
-        <h3 class="tsession__name">{{ session.name }}</h3>
+        <h3 class="tsession__name">{{ localSession.name }}</h3>
         <div class="tsession__meta">
-          <span class="tsession__badge" :class="'tsession__badge--' + session.status">
+          <span class="tsession__badge" :class="'tsession__badge--' + localSession.status">
             {{ statusLabel }}
           </span>
           <span class="tsession__progress-text">{{ progress.completed }}/{{ progress.total }}</span>
         </div>
       </div>
-      <button v-if="!isEditing" class="tsession__edit-btn" @click="isEditing = true">
-        <Pencil :size="14" />
+      <button
+        v-if="!isEditing"
+        type="button"
+        class="tsession__edit-btn"
+        :aria-label="$t('tir.editTrainingSession')"
+        @click="isEditing = true"
+      >
+        <Pencil :size="14" aria-hidden="true" />
       </button>
     </div>
 
     <!-- Edit mode -->
     <div v-if="isEditing" class="tsession__edit">
       <div class="tsession__field">
-        <label class="tsession__label">{{ $t('training.sessionName') }}</label>
-        <input v-model="session.name" class="tsession__input" type="text" />
+        <label class="tsession__label" for="training-session-name">{{ $t('training.sessionName') }}</label>
+        <input id="training-session-name" v-model="localSession.name" class="tsession__input" type="text" />
       </div>
       <div class="tsession__field">
-        <label class="tsession__label">{{ $t('training.changeDate') }}</label>
-        <input :value="dateInputValue" @change="updateDate($event.target.value)" class="tsession__input" type="date" />
+        <label class="tsession__label" for="training-session-date">{{ $t('training.changeDate') }}</label>
+        <input
+          id="training-session-date"
+          :value="dateInputValue"
+          @change="updateDate($event.target.value)"
+          class="tsession__input"
+          type="date"
+        />
       </div>
       <div class="tsession__edit-actions">
-        <button class="button btn-primary-outline btn-sm" @click="isEditing = false">
+        <button type="button" class="button btn-primary-outline btn-sm" @click="finishEditing">
           {{ $t('common.done') }}
         </button>
-        <button v-if="session.status === 'completed'" class="button btn-primary btn-sm" @click="reopenSession">
-          <RotateCcw :size="14" />
+        <button
+          v-if="localSession.status === 'completed'"
+          type="button"
+          class="button btn-primary btn-sm"
+          @click="reopenSession"
+        >
+          <RotateCcw :size="14" aria-hidden="true" />
           {{ $t('training.reopen') }}
         </button>
       </div>
@@ -47,7 +63,14 @@
         <span class="tsession__score-max">/ {{ maxScore }} {{ $t('ranking.points') }}</span>
       </div>
       <div class="tsession__progress-bar-wrap">
-        <div class="tsession__progress-bar">
+        <div
+          class="tsession__progress-bar"
+          role="progressbar"
+          :aria-label="$t('tir.progress')"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="progress.percent"
+        >
           <div class="tsession__progress-fill" :style="{ width: progress.percent + '%' }"></div>
         </div>
       </div>
@@ -58,7 +81,7 @@
     <!-- Compact all-on-one-page layout: all ateliers, all distances, <= 3 attempts -->
     <template v-if="isCompactLayout">
       <TirScoringCard
-        v-for="exIdx in session.config.exercises"
+        v-for="exIdx in localSession.config.exercises"
         :key="exIdx"
         compact
         :number="exIdx + 1"
@@ -69,7 +92,7 @@
         <div class="tsession__compact-grid">
           <div class="tsession__compact-grid-header">
             <span class="tsession__compact-grid-label"></span>
-            <span v-for="distance in session.config.distances" :key="distance" class="tsession__compact-grid-dist"
+            <span v-for="distance in localSession.config.distances" :key="distance" class="tsession__compact-grid-dist"
               >{{ distance }}m</span
             >
           </div>
@@ -77,14 +100,14 @@
             <span class="tsession__compact-grid-label" :class="`tsession__score-row-label--${opt.key}`">{{
               opt.key[0].toUpperCase()
             }}</span>
-            <span v-for="distance in session.config.distances" :key="distance" class="tsession__compact-grid-cell">
+            <span v-for="distance in localSession.config.distances" :key="distance" class="tsession__compact-grid-cell">
               <TirScoreCircle
-                v-for="attemptNum in session.config.attempts"
+                v-for="attemptNum in localSession.config.attempts"
                 :key="attemptNum"
                 size="small"
                 :result="opt.key"
                 :active="getAttemptScore(exIdx, distance, attemptNum) === opt.key"
-                :interactive="session.status !== 'completed'"
+                :interactive="localSession.status !== 'completed'"
                 :aria-label="`${atelierNames[exIdx]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
                 @select="setScore(exIdx, distance, attemptNum, opt.key)"
               />
@@ -93,13 +116,13 @@
         </div>
       </TirScoringCard>
       <div class="tsession__nav">
-        <TirScoringAction v-if="session.status !== 'completed'" compact variant="danger" @click="fillAllZerosAll">
-          <CircleOff :size="14" />
+        <TirScoringAction v-if="localSession.status !== 'completed'" compact variant="danger" @click="fillAllZerosAll">
+          <CircleOff :size="14" aria-hidden="true" />
           {{ $t('training.fillZeros') }}
         </TirScoringAction>
         <div class="tsession__nav-spacer"></div>
-        <TirScoringAction v-if="session.status !== 'completed'" variant="success" @click="completeSession">
-          <CheckIcon :size="16" />
+        <TirScoringAction v-if="localSession.status !== 'completed'" variant="success" @click="completeSession">
+          <CheckIcon :size="16" aria-hidden="true" />
           {{ $t('training.complete') }}
         </TirScoringAction>
       </div>
@@ -109,10 +132,11 @@
     <template v-else>
       <!-- Exercise tabs -->
       <TirAtelierTabs
-        v-if="session.config.exercises.length > 1"
+        v-if="localSession.config.exercises.length > 1"
         v-model="activeExercise"
         :items="exerciseTabs"
         :label="$t('tir.atelier')"
+        :complete-label="$t('training.statusCompleted')"
         id-prefix="training-atelier"
       />
 
@@ -135,22 +159,22 @@
               >{{ opt.key[0].toUpperCase() }}</span
             >
           </div>
-          <div v-for="attemptNum in session.config.attempts" :key="attemptNum" class="tsession__vertical-row">
+          <div v-for="attemptNum in localSession.config.attempts" :key="attemptNum" class="tsession__vertical-row">
             <span class="tsession__vertical-num">{{ attemptNum }}</span>
             <TirScoreCircle
               v-for="opt in resultOptions"
               :key="opt.key"
               :result="opt.key"
-              :active="getAttemptScore(activeExercise, session.config.distances[0], attemptNum) === opt.key"
-              :interactive="session.status !== 'completed'"
-              :aria-label="`${atelierNames[activeExercise]}, ${session.config.distances[0]}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
-              @select="setScore(activeExercise, session.config.distances[0], attemptNum, opt.key)"
+              :active="getAttemptScore(activeExercise, localSession.config.distances[0], attemptNum) === opt.key"
+              :interactive="localSession.status !== 'completed'"
+              :aria-label="`${atelierNames[activeExercise]}, ${localSession.config.distances[0]}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
+              @select="setScore(activeExercise, localSession.config.distances[0], attemptNum, opt.key)"
             />
           </div>
         </div>
 
         <!-- Default grid: rows = score types, columns = attempts -->
-        <div v-else v-for="distance in session.config.distances" :key="distance" class="tsession__distance-block">
+        <div v-else v-for="distance in localSession.config.distances" :key="distance" class="tsession__distance-block">
           <div class="tsession__distance-label">{{ distance }}m</div>
           <div class="tsession__circles-table">
             <div v-for="opt in resultOptions" :key="opt.key" class="tsession__score-row">
@@ -159,11 +183,11 @@
               }}</span>
               <div class="tsession__score-row-circles">
                 <TirScoreCircle
-                  v-for="attemptNum in session.config.attempts"
+                  v-for="attemptNum in localSession.config.attempts"
                   :key="attemptNum"
                   :result="opt.key"
                   :active="getAttemptScore(activeExercise, distance, attemptNum) === opt.key"
-                  :interactive="session.status !== 'completed'"
+                  :interactive="localSession.status !== 'completed'"
                   :aria-label="`${atelierNames[activeExercise]}, ${distance}m, ${$t(`tir.${opt.key}`)}, ${attemptNum}`"
                   @select="setScore(activeExercise, distance, attemptNum, opt.key)"
                 />
@@ -176,29 +200,29 @@
       <!-- Navigation and actions -->
       <div class="tsession__nav">
         <TirScoringAction
-          v-if="session.config.exercises.length > 1 && activeExercise > session.config.exercises[0]"
+          v-if="localSession.config.exercises.length > 1 && activeExercise > localSession.config.exercises[0]"
           @click="prevExercise"
         >
-          <ChevronLeft :size="16" />
+          <ChevronLeft :size="16" aria-hidden="true" />
           {{ $t('tir.prevAtelier') }}
         </TirScoringAction>
-        <TirScoringAction v-if="session.status !== 'completed'" compact variant="danger" @click="fillAllZeros">
-          <CircleOff :size="14" />
+        <TirScoringAction v-if="localSession.status !== 'completed'" compact variant="danger" @click="fillAllZeros">
+          <CircleOff :size="14" aria-hidden="true" />
           {{ $t('training.fillZeros') }}
         </TirScoringAction>
         <div class="tsession__nav-spacer"></div>
         <TirScoringAction
           v-if="
-            session.config.exercises.length > 1 &&
-            activeExercise < session.config.exercises[session.config.exercises.length - 1]
+            localSession.config.exercises.length > 1 &&
+            activeExercise < localSession.config.exercises[localSession.config.exercises.length - 1]
           "
           @click="nextExercise"
         >
           {{ $t('tir.nextAtelier') }}
-          <ChevronRight :size="16" />
+          <ChevronRight :size="16" aria-hidden="true" />
         </TirScoringAction>
-        <TirScoringAction v-if="session.status !== 'completed'" variant="success" @click="completeSession">
-          <CheckIcon :size="16" />
+        <TirScoringAction v-if="localSession.status !== 'completed'" variant="success" @click="completeSession">
+          <CheckIcon :size="16" aria-hidden="true" />
           {{ $t('training.complete') }}
         </TirScoringAction>
       </div>
@@ -207,7 +231,6 @@
 </template>
 
 <script>
-/* eslint-disable vue/no-mutating-props */
 import { ChevronLeft, ChevronRight, Pencil, Check as CheckIcon, RotateCcw, CircleOff } from 'lucide-vue-next';
 import { SCORING, ATELIER_KEYS, RESULT_OPTIONS } from '@/services/tir';
 import { TRAINING_STATUS, getSessionProgress } from '@/services/training';
@@ -216,6 +239,18 @@ import TirScoreCircle from '@/components/ui/TirScoreCircle.vue';
 import TirScoreLegend from '@/components/ui/TirScoreLegend.vue';
 import TirScoringAction from '@/components/ui/TirScoringAction.vue';
 import TirScoringCard from '@/components/ui/TirScoringCard.vue';
+
+function cloneSession(session) {
+  return {
+    ...session,
+    config: {
+      ...session.config,
+      exercises: [...(session.config?.exercises || [])],
+      distances: [...(session.config?.distances || [])],
+    },
+    attempts: (session.attempts || []).map((attempt) => ({ ...attempt })),
+  };
+}
 
 export default {
   name: 'TrainingSession',
@@ -235,47 +270,61 @@ export default {
   props: {
     session: { type: Object, required: true },
   },
-  emits: ['back', 'update'],
+  emits: {
+    back: () => true,
+    update: (session) => Boolean(session && typeof session === 'object'),
+  },
   data() {
+    const localSession = cloneSession(this.session);
     return {
-      activeExercise: this.session.config.exercises[0],
+      localSession,
+      activeExercise: localSession.config.exercises[0],
       isEditing: false,
       resultOptions: RESULT_OPTIONS,
     };
   },
+  watch: {
+    session(value) {
+      const localSession = cloneSession(value);
+      this.localSession = localSession;
+      if (!localSession.config.exercises.includes(this.activeExercise)) {
+        this.activeExercise = localSession.config.exercises[0];
+      }
+    },
+  },
   computed: {
     isCompactLayout() {
       return (
-        this.session.config.exercises.length > 1 &&
-        this.session.config.distances.length > 1 &&
-        this.session.config.attempts <= 3
+        this.localSession.config.exercises.length > 1 &&
+        this.localSession.config.distances.length > 1 &&
+        this.localSession.config.attempts <= 3
       );
     },
     isVerticalLayout() {
-      return this.session.config.distances.length === 1 && this.session.config.exercises.length === 1;
+      return this.localSession.config.distances.length === 1 && this.localSession.config.exercises.length === 1;
     },
     atelierNames() {
       return ATELIER_KEYS.map((key) => this.$t(`tir.${key}`));
     },
     exerciseTabs() {
-      return this.session.config.exercises.map((exercise) => ({
+      return this.localSession.config.exercises.map((exercise) => ({
         id: exercise,
         label: exercise + 1,
         complete: this.isExerciseComplete(exercise),
       }));
     },
     progress() {
-      return getSessionProgress(this.session);
+      return getSessionProgress(this.localSession);
     },
     totalScore() {
-      if (!this.session.attempts || !this.session.attempts.length) return 0;
-      return this.session.attempts.reduce((sum, a) => sum + (SCORING[a.score] ?? 0), 0);
+      if (!this.localSession.attempts.length) return 0;
+      return this.localSession.attempts.reduce((sum, a) => sum + (SCORING[a.score] ?? 0), 0);
     },
     maxScore() {
       return this.progress.total * SCORING.carreau;
     },
     exerciseMaxScore() {
-      return this.session.config.distances.length * this.session.config.attempts * SCORING.carreau;
+      return this.localSession.config.distances.length * this.localSession.config.attempts * SCORING.carreau;
     },
     statusLabel() {
       const labels = {
@@ -283,84 +332,81 @@ export default {
         [TRAINING_STATUS.IN_PROGRESS]: this.$t('training.statusInProgress'),
         [TRAINING_STATUS.COMPLETED]: this.$t('training.statusCompleted'),
       };
-      return labels[this.session.status] || this.session.status;
+      return labels[this.localSession.status] || this.localSession.status;
     },
     dateInputValue() {
-      const d = new Date(this.session.createdAt);
+      const d = new Date(this.localSession.createdAt);
       return d.toISOString().split('T')[0];
     },
   },
   methods: {
     getAttemptScore(exerciseIndex, distance, attemptNum) {
-      const attempt = (this.session.attempts || []).find(
+      const attempt = this.localSession.attempts.find(
         (a) => a.exerciseIndex === exerciseIndex && a.distance === distance && a.attemptNumber === attemptNum,
       );
       return attempt ? attempt.score : null;
     },
     getExerciseScore(exerciseIndex) {
-      return (this.session.attempts || [])
+      return this.localSession.attempts
         .filter((a) => a.exerciseIndex === exerciseIndex)
         .reduce((sum, a) => sum + (SCORING[a.score] ?? 0), 0);
     },
     isExerciseComplete(exerciseIndex) {
-      const expected = this.session.config.distances.length * this.session.config.attempts;
-      const completed = (this.session.attempts || []).filter((a) => a.exerciseIndex === exerciseIndex).length;
+      const expected = this.localSession.config.distances.length * this.localSession.config.attempts;
+      const completed = this.localSession.attempts.filter((a) => a.exerciseIndex === exerciseIndex).length;
       return completed >= expected;
     },
     setScore(exerciseIndex, distance, attemptNum, score) {
-      if (this.session.status === 'completed') return;
+      if (this.localSession.status === 'completed') return;
 
-      if (!this.session.attempts) this.session.attempts = [];
-
-      if (this.session.status === 'draft') {
-        this.session.status = TRAINING_STATUS.IN_PROGRESS;
+      if (this.localSession.status === 'draft') {
+        this.localSession.status = TRAINING_STATUS.IN_PROGRESS;
       }
 
-      const existingIdx = this.session.attempts.findIndex(
+      const existingIdx = this.localSession.attempts.findIndex(
         (a) => a.exerciseIndex === exerciseIndex && a.distance === distance && a.attemptNumber === attemptNum,
       );
 
       if (existingIdx !== -1) {
-        if (this.session.attempts[existingIdx].score === score) {
-          this.session.attempts.splice(existingIdx, 1);
+        if (this.localSession.attempts[existingIdx].score === score) {
+          this.localSession.attempts.splice(existingIdx, 1);
         } else {
-          this.session.attempts[existingIdx].score = score;
+          this.localSession.attempts[existingIdx].score = score;
         }
       } else {
-        this.session.attempts.push({ exerciseIndex, distance, attemptNumber: attemptNum, score });
+        this.localSession.attempts.push({ exerciseIndex, distance, attemptNumber: attemptNum, score });
       }
 
-      this.$emit('update');
+      this.emitUpdate();
     },
     completeSession() {
-      this.session.status = TRAINING_STATUS.COMPLETED;
-      this.session.completedAt = Date.now();
-      this.$emit('update');
+      this.localSession.status = TRAINING_STATUS.COMPLETED;
+      this.localSession.completedAt = Date.now();
+      this.emitUpdate();
     },
     reopenSession() {
-      this.session.status = TRAINING_STATUS.IN_PROGRESS;
-      this.session.completedAt = null;
+      this.localSession.status = TRAINING_STATUS.IN_PROGRESS;
+      this.localSession.completedAt = null;
       this.isEditing = false;
-      this.$emit('update');
+      this.emitUpdate();
     },
     updateDate(value) {
       if (value) {
-        this.session.createdAt = new Date(value).getTime();
-        this.$emit('update');
+        this.localSession.createdAt = new Date(value).getTime();
+        this.emitUpdate();
       }
     },
     fillAllZeros() {
-      if (!this.session.attempts) this.session.attempts = [];
-      if (this.session.status === 'draft') {
-        this.session.status = TRAINING_STATUS.IN_PROGRESS;
+      if (this.localSession.status === 'draft') {
+        this.localSession.status = TRAINING_STATUS.IN_PROGRESS;
       }
-      for (const distance of this.session.config.distances) {
-        for (let attemptNum = 1; attemptNum <= this.session.config.attempts; attemptNum++) {
-          const existing = this.session.attempts.find(
+      for (const distance of this.localSession.config.distances) {
+        for (let attemptNum = 1; attemptNum <= this.localSession.config.attempts; attemptNum++) {
+          const existing = this.localSession.attempts.find(
             (a) => a.exerciseIndex === this.activeExercise && a.distance === distance && a.attemptNumber === attemptNum,
           );
           if (!existing) {
-            this.session.attempts.push({
+            this.localSession.attempts.push({
               exerciseIndex: this.activeExercise,
               distance,
               attemptNumber: attemptNum,
@@ -369,21 +415,20 @@ export default {
           }
         }
       }
-      this.$emit('update');
+      this.emitUpdate();
     },
     fillAllZerosAll() {
-      if (!this.session.attempts) this.session.attempts = [];
-      if (this.session.status === 'draft') {
-        this.session.status = TRAINING_STATUS.IN_PROGRESS;
+      if (this.localSession.status === 'draft') {
+        this.localSession.status = TRAINING_STATUS.IN_PROGRESS;
       }
-      for (const exIdx of this.session.config.exercises) {
-        for (const distance of this.session.config.distances) {
-          for (let attemptNum = 1; attemptNum <= this.session.config.attempts; attemptNum++) {
-            const existing = this.session.attempts.find(
+      for (const exIdx of this.localSession.config.exercises) {
+        for (const distance of this.localSession.config.distances) {
+          for (let attemptNum = 1; attemptNum <= this.localSession.config.attempts; attemptNum++) {
+            const existing = this.localSession.attempts.find(
               (a) => a.exerciseIndex === exIdx && a.distance === distance && a.attemptNumber === attemptNum,
             );
             if (!existing) {
-              this.session.attempts.push({
+              this.localSession.attempts.push({
                 exerciseIndex: exIdx,
                 distance,
                 attemptNumber: attemptNum,
@@ -393,15 +438,24 @@ export default {
           }
         }
       }
-      this.$emit('update');
+      this.emitUpdate();
     },
     prevExercise() {
-      const idx = this.session.config.exercises.indexOf(this.activeExercise);
-      if (idx > 0) this.activeExercise = this.session.config.exercises[idx - 1];
+      const idx = this.localSession.config.exercises.indexOf(this.activeExercise);
+      if (idx > 0) this.activeExercise = this.localSession.config.exercises[idx - 1];
     },
     nextExercise() {
-      const idx = this.session.config.exercises.indexOf(this.activeExercise);
-      if (idx < this.session.config.exercises.length - 1) this.activeExercise = this.session.config.exercises[idx + 1];
+      const idx = this.localSession.config.exercises.indexOf(this.activeExercise);
+      if (idx < this.localSession.config.exercises.length - 1) {
+        this.activeExercise = this.localSession.config.exercises[idx + 1];
+      }
+    },
+    finishEditing() {
+      this.isEditing = false;
+      this.emitUpdate();
+    },
+    emitUpdate() {
+      this.$emit('update', cloneSession(this.localSession));
     },
   },
 };
@@ -421,6 +475,13 @@ export default {
   background: none;
   cursor: pointer;
   color: var(--color-text);
+}
+
+.tsession__back:focus-visible,
+.tsession__edit-btn:focus-visible,
+.tsession__input:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tsession__info {
@@ -449,22 +510,22 @@ export default {
 
 .tsession__badge--draft {
   background: var(--color-border-light);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tsession__badge--in_progress {
-  background: rgb(245 166 35 / 15%);
-  color: var(--tir-touche);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .tsession__badge--completed {
-  background: rgb(76 175 80 / 15%);
-  color: var(--tir-carreau);
+  background: var(--tir-winner-bg);
+  color: var(--tir-winner-text);
 }
 
 .tsession__progress-text {
   font-size: 0.75rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tsession__edit-btn {
@@ -472,7 +533,7 @@ export default {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -497,7 +558,7 @@ export default {
   display: block;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin-bottom: 0.3rem;
 }
 
@@ -511,8 +572,7 @@ export default {
   color: var(--color-text);
 }
 
-.tsession__input:focus {
-  outline: none;
+.tsession__input:focus-visible {
   border-color: var(--color-primary);
 }
 
@@ -539,12 +599,12 @@ export default {
 .tsession__score-val {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--tir-carreau);
+  color: var(--color-text);
 }
 
 .tsession__score-max {
   font-size: 0.85rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tsession__progress-bar-wrap {
@@ -607,22 +667,25 @@ export default {
   font-weight: 600;
   min-width: 56px;
   flex-shrink: 0;
+  padding-left: 3px;
+  color: var(--color-text);
+  border-left: 4px solid var(--tir-label-color);
 }
 
 .tsession__score-row-label--carreau {
-  color: var(--tir-carreau);
+  --tir-label-color: var(--tir-carreau);
 }
 
 .tsession__score-row-label--reussi {
-  color: var(--tir-reussi);
+  --tir-label-color: var(--tir-reussi);
 }
 
 .tsession__score-row-label--touche {
-  color: var(--tir-touche);
+  --tir-label-color: var(--tir-touche);
 }
 
 .tsession__score-row-label--manque {
-  color: var(--tir-manque);
+  --tir-label-color: var(--tir-manque);
 }
 
 .tsession__score-row-circles {
@@ -651,7 +714,7 @@ export default {
   text-align: center;
   font-size: 11px;
   font-weight: 700;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tsession__compact-grid-row {
@@ -696,7 +759,7 @@ export default {
   text-align: center;
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tsession__vertical-col-header {
@@ -717,6 +780,12 @@ export default {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tsession__progress-fill {
+    transition: none;
+  }
 }
 </style>

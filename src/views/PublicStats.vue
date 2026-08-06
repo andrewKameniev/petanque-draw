@@ -1,5 +1,5 @@
 <template>
-  <PageLoader v-if="isLoading" />
+  <PageLoader v-if="isLoading" :label="$t('common.loading')" />
   <PublicPageShell v-else class="wrapper" container-size="compact">
     <div v-if="statData" class="container">
       <div class="is-flex is-justify-content-space-between is-align-items-center">

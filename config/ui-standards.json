@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 2,
+  "fileGroups": {
+    "task11AffectedTemplates": {
+      "directories": ["src/components/ui"],
+      "files": [
+        "src/components/Draw.vue",
+        "src/components/Tournament.vue",
+        "src/components/partials/Protocol.vue",
+        "src/components/partials/RoundTimer.vue",
+        "src/components/tir/TirAtelierView.vue",
+        "src/components/tir/TirModule.vue",
+        "src/components/tir/TirParticipantView.vue",
+        "src/components/tir/TirParticipantsList.vue",
+        "src/components/tir/TirPlayoffComparison.vue",
+        "src/components/tir/TirPlayoffMatch.vue",
+        "src/components/tir/TirPublicView.vue",
+        "src/components/tir/TirScoringWorkspace.vue",
+        "src/components/training/TrainingSession.vue",
+        "src/views/Archived.vue",
+        "src/views/Docs.vue",
+        "src/views/Public.vue",
+        "src/views/PublicStats.vue",
+        "src/views/Training.vue"
+      ]
+    },
+    "task11PrimitiveScripts": {
+      "directories": ["src/components/ui"]
+    },
+    "task11ChangedStyles": {
+      "directories": ["src/components/ui"],
+      "files": [
+        "src/components/partials/RoundTimer.vue",
+        "src/components/tir/TirAtelierView.vue",
+        "src/components/tir/TirParticipantView.vue",
+        "src/components/tir/TirParticipantsList.vue",
+        "src/components/tir/TirPlayoffComparison.vue",
+        "src/components/tir/TirPlayoffMatch.vue",
+        "src/components/tir/TirScoringWorkspace.vue",
+        "src/components/training/TrainingSession.vue"
+      ]
+    },
+    "task11AffectedE2e": {
+      "files": [
+        "e2e/ui-primitives.spec.js",
+        "e2e/archived-layout.spec.js",
+        "e2e/tir.spec.js",
+        "e2e/visual/ui-primitives.visual.js",
+        "e2e/visual/ui-primitives.a11y.js"
+      ]
+    }
+  },
+  "ruleScopes": {
+    "button-type": ["task11AffectedTemplates"],
+    "button-name": ["task11AffectedTemplates"],
+    "no-interactive-generic-element": ["task11AffectedTemplates"],
+    "no-english-accessible-default": ["task11PrimitiveScripts"],
+    "no-outline-suppression": ["task11ChangedStyles"],
+    "no-raw-color": ["task11ChangedStyles"],
+    "undocumented-global-style": ["task11ChangedStyles"],
+    "global-selector-leakage": ["task11ChangedStyles"],
+    "no-private-vue-runtime": ["task11AffectedE2e"],
+    "no-arbitrary-sleep": ["task11AffectedE2e"],
+    "no-disabled-required-test": ["task11AffectedE2e"]
+  },
+  "globalStyleNamespaces": {
+    "src/components/ui/PublicPageShell.vue": ".public-page-shell"
+  },
+  "allowlistFile": "config/ui-standards-allowlist.json"
+}

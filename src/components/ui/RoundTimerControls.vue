@@ -15,10 +15,13 @@
       @resume="$emit('resume')"
       @reset="$emit('reset')"
     />
-    <button v-else-if="!readOnly" type="button" class="round-timer-controls__start" @click="$emit('start')">
+    <button v-else-if="!readOnly && canStart" type="button" class="round-timer-controls__start" @click="$emit('start')">
       <Timer :size="16" aria-hidden="true" />
       {{ $t('timer.startTimer') }}
     </button>
+    <p v-else-if="!hasKnownTimerStatus" class="round-timer-controls__error" role="alert">
+      {{ $t('timer.invalidStatus') }}
+    </p>
   </div>
 </template>
 
@@ -38,8 +41,14 @@ export default {
   },
   emits: ['start', 'timer-ended', 'restart', 'pause', 'resume', 'reset'],
   computed: {
+    hasKnownTimerStatus() {
+      return ['not_started', 'running', 'ended', 'paused'].includes(this.timer?.timerStatus || 'not_started');
+    },
     hasVisibleTimer() {
       return ['running', 'ended', 'paused'].includes(this.timer?.timerStatus);
+    },
+    canStart() {
+      return (this.timer?.timerStatus || 'not_started') === 'not_started';
     },
   },
 };
@@ -72,5 +81,15 @@ export default {
 .round-timer-controls__start:hover {
   color: var(--color-btn-text);
   background: var(--color-primary);
+}
+
+.round-timer-controls__start:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.round-timer-controls__error {
+  color: var(--color-text);
+  font-weight: 600;
 }
 </style>

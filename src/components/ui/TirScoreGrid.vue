@@ -8,7 +8,8 @@
         class="tir-score-grid__heading"
         :class="`tir-score-grid__heading--${option.key}`"
       >
-        {{ $t(`tir.${option.key}`) }}
+        <span class="tir-score-grid__heading-swatch" aria-hidden="true"></span>
+        <span>{{ $t(`tir.${option.key}`) }}</span>
       </div>
     </div>
     <div v-for="distance in distances" :key="distance" class="tir-score-grid__row">
@@ -92,26 +93,39 @@ export default {
 }
 
 .tir-score-grid__heading {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
   padding: 2px;
   font-size: 10px;
   font-weight: 700;
+  color: var(--color-text);
   text-align: center;
 }
 
 .tir-score-grid__heading--carreau {
-  color: var(--tir-carreau);
+  --tir-heading-color: var(--tir-carreau);
 }
 
 .tir-score-grid__heading--reussi {
-  color: var(--tir-reussi);
+  --tir-heading-color: var(--tir-reussi);
 }
 
 .tir-score-grid__heading--touche {
-  color: var(--tir-touche);
+  --tir-heading-color: var(--tir-touche);
 }
 
 .tir-score-grid__heading--manque {
-  color: var(--tir-manque);
+  --tir-heading-color: var(--tir-manque);
+}
+
+.tir-score-grid__heading-swatch {
+  width: 8px;
+  height: 8px;
+  background: var(--tir-heading-color);
+  border: 1px solid var(--color-text);
+  border-radius: 2px;
 }
 
 .tir-score-grid__distance {
@@ -143,26 +157,31 @@ export default {
   border-color: var(--tir-touche);
 }
 
+.tir-score-grid__cell:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-score-grid__cell--carreau {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-carreau);
   border-color: var(--tir-carreau);
 }
 
 .tir-score-grid__cell--reussi {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-reussi);
   border-color: var(--tir-reussi);
 }
 
 .tir-score-grid__cell--touche {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-touche);
   border-color: var(--tir-touche);
 }
 
 .tir-score-grid__cell--manque {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-manque);
   border-color: var(--tir-manque);
 }

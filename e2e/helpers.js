@@ -1,10 +1,23 @@
-const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
-const TEST_PASSWORD = 'TestPass123!';
+import {
+  assertEmulatorEnvironment,
+  EMULATOR_PROJECT_ID,
+  requireRuntimeFixtureCredentials,
+} from './emulator-environment.js';
+
+assertEmulatorEnvironment();
+const { runId: E2E_RUN_ID, email: TEST_EMAIL, password: TEST_PASSWORD } = requireRuntimeFixtureCredentials();
 
 // --- Auth flows ---
 
+async function assertBrowserEmulatorSentinel(page) {
+  await page
+    .locator(`html[data-firebase-emulator-project="${EMULATOR_PROJECT_ID}"]`)
+    .waitFor({ state: 'attached', timeout: 10000 });
+}
+
 async function login(page) {
   await page.goto('/#/');
+  await assertBrowserEmulatorSentinel(page);
   const emailInput = page.locator('[data-testid="input-email"]');
   const teamInput = page.locator('[data-testid="input-team-title"]');
   const prefsBtn = page.locator('[data-testid="btn-preferences"]');
@@ -19,6 +32,7 @@ async function login(page) {
 
 async function register(page) {
   await page.goto('/#/');
+  await assertBrowserEmulatorSentinel(page);
   const toggleLink = page.locator('[data-testid="link-toggle-auth"]');
   if (await toggleLink.isVisible()) await toggleLink.click();
   await page.locator('[data-testid="input-email"]').fill(TEST_EMAIL);
@@ -393,6 +407,8 @@ async function deleteAllTournaments(page) {
 }
 
 export {
+  assertBrowserEmulatorSentinel,
+  E2E_RUN_ID,
   TEST_EMAIL,
   TEST_PASSWORD,
   register,

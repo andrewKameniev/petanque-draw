@@ -56,7 +56,7 @@ export default {
   height: 24px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-touche);
   border-radius: 50%;
 }
@@ -70,6 +70,6 @@ export default {
 .tir-scoring-card__score {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 </style>

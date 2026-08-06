@@ -48,8 +48,8 @@
         <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
         <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
         <div v-if="!(tournament.teams?.length > 2)" class="setup-card__actions setup-card__actions--delete-only">
-          <button class="setup-card__delete" @click="removeConfirmId = 1">
-            <Trash2 :size="16" />
+          <button type="button" class="setup-card__delete" @click="removeConfirmId = 1">
+            <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('teams.removeTournament') }}</span>
           </button>
         </div>
@@ -61,23 +61,24 @@
       <TirModule ref="tirModule" :tournament-meta="tournamentWrapper" @finish="showFinishConfirm = true" />
       <div class="bottom-actions">
         <div class="bottom-actions__row">
-          <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
-            <Trash2 :size="16" />
+          <button type="button" class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
+            <Trash2 :size="16" aria-hidden="true" />
             {{ $t('teams.removeTournament') }}
           </button>
           <template v-if="tournament.tournamentIsFinished && !tournament.preferences?.isTestTournament">
             <span class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
               <button
+                type="button"
                 class="bottom-actions__btn bottom-actions__btn--primary"
                 :disabled="isAlreadyArchived"
                 @click="showSaveTournament = true"
               >
-                <IconArchive :size="16" />
+                <IconArchive :size="16" aria-hidden="true" />
                 {{ $t('teams.saveTournament') }}
               </button>
             </span>
-            <button class="bottom-actions__btn bottom-actions__btn--success" @click="exportTirToPortal">
-              <Download :size="16" />
+            <button type="button" class="bottom-actions__btn bottom-actions__btn--success" @click="exportTirToPortal">
+              <Download :size="16" aria-hidden="true" />
               {{ $t('tir.exportResults') }}
             </button>
           </template>
@@ -87,8 +88,19 @@
 
     <!-- POST-START: Tabbed tournament view -->
     <template v-else>
-      <TournamentNav v-model="activeTab" :tabs="tabs" />
-      <div id="tournament-tabpanel" class="tabs-content-area" role="tabpanel" :aria-labelledby="`tab-${activeTab}`">
+      <TournamentNav
+        v-model="activeTab"
+        :tabs="tabs"
+        :label="$t('common.tournamentSections')"
+        panel-id="tournament-admin-tabpanel"
+        id-prefix="tournament-admin-tab"
+      />
+      <div
+        id="tournament-admin-tabpanel"
+        class="tabs-content-area"
+        role="tabpanel"
+        :aria-labelledby="`tournament-admin-tab-${activeTab}`"
+      >
         <div class="content tabs-content" v-if="activeTab === 'teams'">
           <AddTeam
             v-if="
@@ -154,6 +166,7 @@
         <div class="bottom-actions" v-if="tournament.system !== 'tir' && isOwnerOrAdmin">
           <div class="bottom-actions__row">
             <button
+              type="button"
               v-if="
                 tournament.preferences?.isTestTournament &&
                 !tournament.tournamentIsFinished &&
@@ -162,10 +175,11 @@
               class="bottom-actions__btn bottom-actions__btn--test"
               @click="autoFillScores"
             >
-              <Zap :size="16" />
+              <Zap :size="16" aria-hidden="true" />
               {{ $t('setup.autoFillScores') }}
             </button>
             <button
+              type="button"
               v-if="
                 hasPlayOffConfigured &&
                 !tournament.tournamentIsFinished &&
@@ -181,6 +195,7 @@
               {{ $t('ranking.goPlayOff') }}
             </button>
             <button
+              type="button"
               v-if="
                 !tournament.tournamentIsFinished &&
                 !tournament.roundIsActive &&
@@ -195,15 +210,17 @@
               {{ $t('teams.finishTournament') }}
             </button>
             <button
+              type="button"
               v-if="tournament.tournamentIsFinished && tournament.games?.length"
               data-testid="btn-revert-last-round"
               class="bottom-actions__btn bottom-actions__btn--outline"
               @click="showRevertFinishConfirm = true"
             >
-              <Undo2 :size="16" />
+              <Undo2 :size="16" aria-hidden="true" />
               {{ $t('teams.revertLastRound') }}
             </button>
             <button
+              type="button"
               v-if="(tournament.playOff?.length || tournament.cadrage?.length) && !tournament.tournamentIsFinished"
               data-testid="btn-restore-round"
               class="bottom-actions__btn bottom-actions__btn--outline"
@@ -212,24 +229,26 @@
                 $nextTick(() => $refs.games && ($refs.games.showRestoreConfirm = true));
               "
             >
-              <Undo2 :size="16" />
+              <Undo2 :size="16" aria-hidden="true" />
               {{ $t('games.restoreRound') }}
             </button>
             <button
+              type="button"
               v-if="tournamentStarted"
               data-testid="btn-preferences"
               class="bottom-actions__btn bottom-actions__btn--purple-outline"
               @click="showPreferences = true"
             >
-              <IconSettings :size="16" />
+              <IconSettings :size="16" aria-hidden="true" />
               {{ $t('teams.preferences') }}
             </button>
             <button
+              type="button"
               v-if="tournament.games?.length === 1 && tournament.roundIsActive"
               class="bottom-actions__btn bottom-actions__btn--outline"
               @click="redrawRounds"
             >
-              <RefreshCw :size="16" />
+              <RefreshCw :size="16" aria-hidden="true" />
               {{ $t('setup.redraw') }}
             </button>
             <span
@@ -238,15 +257,17 @@
               :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''"
             >
               <button
+                type="button"
                 class="bottom-actions__btn bottom-actions__btn--primary"
                 :disabled="isAlreadyArchived"
                 @click="showSaveTournament = true"
               >
-                <IconArchive :size="16" />
+                <IconArchive :size="16" aria-hidden="true" />
                 {{ $t('teams.saveTournament') }}
               </button>
             </span>
             <button
+              type="button"
               v-if="
                 (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
                 tournament.tournamentIsFinished &&

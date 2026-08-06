@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "canonicalFile": "RTK.md",
+  "entryPoints": ["AGENTS.md", "CLAUDE.md"],
+  "documentedCommandFiles": ["CLAUDE.md", "e2e/README.md"],
+  "requiredFiles": ["AGENTS.md", "RTK.md", "CLAUDE.md", "e2e/README.md"],
+  "requiredRuleIds": [
+    "AUTH-001",
+    "WORKTREE-001",
+    "EXTERNAL-001",
+    "BASELINE-001",
+    "VUE-001",
+    "A11Y-001",
+    "I18N-001",
+    "TEST-001",
+    "FIREBASE-001",
+    "SECRETS-001",
+    "CI-001"
+  ],
+  "requiredDirectAgentRuleIds": ["AUTH-001", "WORKTREE-001", "EXTERNAL-001", "FIREBASE-001", "SECRETS-001", "CI-001"],
+  "requiredCanonicalSections": [
+    "Instruction precedence",
+    "Authority and worktree safety",
+    "Baselines and refactors",
+    "Vue and data boundaries",
+    "Accessibility, localization, and CSS",
+    "Testing and evidence",
+    "Security and quality gates",
+    "Handoff standard"
+  ]
+}

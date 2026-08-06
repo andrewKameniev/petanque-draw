@@ -4,27 +4,26 @@
       v-if="isTwoRoundSystem && expanded === null && bracketTabs.length > 1"
       v-model="activeBracket"
       :tabs="bracketTabs"
+      :label="$t('tir.round')"
     />
     <!-- Search -->
-    <input
-      v-if="expanded === null && rankedParticipants.length > 5"
-      class="tir-plist__search"
-      type="text"
-      v-model="searchQuery"
-      :placeholder="$t('teams.searchTeam')"
-    />
+    <label v-if="expanded === null && rankedParticipants.length > 5" class="tir-plist__search-label">
+      <span class="tir-plist__visually-hidden">{{ $t('teams.searchTeam') }}</span>
+      <input class="tir-plist__search" type="search" v-model="searchQuery" :placeholder="$t('teams.searchTeam')" />
+    </label>
     <!-- Participant list -->
     <div v-if="expanded === null" class="tir-plist__select">
-      <div
+      <button
         v-for="(participant, index) in filteredParticipants"
         :key="participant.id || index"
+        type="button"
         class="tir-plist__row"
         @click="selectParticipant(participant, index)"
       >
         <span class="tir-plist__rank">{{ index + 1 }}</span>
         <img v-if="getAvatar(participant)" :src="getAvatar(participant)" class="tir-plist__avatar" alt="" />
         <span v-else class="tir-plist__avatar tir-plist__avatar--default">
-          <User :size="20" />
+          <User :size="20" aria-hidden="true" />
         </span>
         <div class="tir-plist__info">
           <span class="tir-plist__name">{{ participant.name }}</span>
@@ -47,11 +46,11 @@
           >/{{ maxTotal }}</span
         >
         <span class="tir-plist__status" :class="getStatusClass(participant)">
-          <CheckCircle v-if="isComplete(participant)" :size="16" />
-          <AlertCircle v-else-if="getThrows(participant) > 0" :size="16" />
-          <Circle v-else :size="16" />
+          <CheckCircle v-if="isComplete(participant)" :size="16" aria-hidden="true" />
+          <AlertCircle v-else-if="getThrows(participant) > 0" :size="16" aria-hidden="true" />
+          <Circle v-else :size="16" aria-hidden="true" />
         </span>
-      </div>
+      </button>
     </div>
 
     <!-- Expanded participant details -->
@@ -380,6 +379,10 @@ export default {
 </script>
 
 <style scoped>
+.tir-plist__search-label {
+  display: block;
+}
+
 .tir-plist__search {
   width: 100%;
   padding: 8px 12px;
@@ -387,13 +390,14 @@ export default {
   border-radius: 8px;
   font-size: 13px;
   margin-bottom: 8px;
-  outline: none;
   background: var(--color-bg-input);
   color: var(--color-text);
 }
 
-.tir-plist__search:focus {
+.tir-plist__search:focus-visible {
   border-color: var(--color-primary);
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tir-plist__select {
@@ -412,10 +416,18 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .tir-plist__row:hover {
   background: var(--color-surface-hover);
+}
+
+.tir-plist__row:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tir-plist__rank {
@@ -455,7 +467,7 @@ export default {
 .tir-plist__club {
   display: block;
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -496,13 +508,13 @@ export default {
 
 .tir-plist__progress-text {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .tir-plist__score {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-plist__score strong {
@@ -521,6 +533,25 @@ export default {
 
 .tir-plist__status--partial {
   color: var(--tir-touche);
+}
+
+.tir-plist__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tir-plist__row,
+  .tir-plist__progress-fill {
+    transition: none;
+  }
 }
 
 @media (max-width: 768px) {

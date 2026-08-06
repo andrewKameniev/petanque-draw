@@ -24,12 +24,11 @@ The extraction produced useful shared components, but the merged result does not
 - Many unit tests use `readFileSync(...).toContain(...)` or call component methods directly. These may guard architecture, but they do not prove Vue wiring, reactivity, focus, accessibility, or parent integration.
 - The E2E suite mutates `__vue_app__`, Pinia internals, and `__vueParentComponent`, making it coupled to private framework implementation.
 - There is no tracked root `AGENTS.md` or `RTK.md`; only `CLAUDE.md` exists, so Codex and Claude do not share a durable repository contract.
-- The deployment workflows can publish without requiring lint, unit, accessibility, E2E, or visual gates.
 
 ## Dependencies and Coordination
 
 - Task 9 is the implementation baseline for this follow-up.
-- Coordinate edits to `Archived.vue`, archive E2E fixtures, and deployment workflows with Task 10.
+- Coordinate edits to `Archived.vue` and archive E2E fixtures with Task 10.
 - Coordinate tir behavior changes with Task 2. This task owns presentation/accessibility, not scoring or qualification rules.
 - Keep the Public/TV stale-subscription remediation in Task 5. This task adds the future async-state standard but must not absorb that separate production change.
 - Coordinate public match-card styling with Task 1.
@@ -81,9 +80,7 @@ Tests and tooling:
 - `eslint.config.js`
 - `.stylelintrc.json`
 - `package.json`
-- `.github/workflows/deploy.yml`
-- `.github/workflows/static.yml`
-- `.github/workflows/quality.yml` (new reusable workflow)
+- `.github/workflows/pr-quality.yml` (new pull-request workflow)
 
 Agent instruction surfaces to create or update:
 
@@ -352,7 +349,7 @@ Create durable root instructions with a single ownership model:
 - Durability claims require independent storage plus a verified restore drill.
 - Never commit or echo credentials, service-account keys, private tokens, or unnecessary user data. If a secret is already tracked, stop reproducing it, remove it safely, and require authorized rotation/revocation with recorded ownership.
 
-### 7. Enforce the agent contract and UI gates in CI
+### 7. Enforce the agent contract and UI gates in pull-request CI
 
 Add a deterministic instruction-contract check that verifies:
 
@@ -377,9 +374,7 @@ Add stable scripts such as:
 
 Add a pull-request quality workflow that runs formatting, zero-warning lint, secret scanning, full unit tests, focused mounted UI tests, accessibility checks, deterministic visual tests, affected emulator/E2E tests, and production build. Upload Playwright reports, traces, and screenshot diffs on failure.
 
-Before editing deployment workflows, obtain and record the owner decision for the authoritative deployment branch, environment, and whether `deploy.yml` or `static.yml` remains active. Workflow changes are an approval checkpoint; an implementation agent must not infer production authority from this brief.
-
-After approval, implement one reusable quality workflow invoked as a job by both pull-request validation and the authoritative deployment workflow. In the deployment workflow, the publish job uses `needs` on that in-workflow reusable-quality job; do not attempt a cross-workflow `needs` dependency. Disable or remove the redundant publisher only as approved. If the decision or approval is unavailable, prepare the proposed workflow diff and mark this task blocked/incomplete rather than leaving a build-only production path while claiming success.
+Do not edit the existing GitHub Pages deployment workflows in this task. Deployment gating is a separate operational concern and requires its own explicitly scoped follow-up; merging this PR must preserve the current `develop` deployment behavior.
 
 ## Affected Area and Required Regression Coverage
 
@@ -396,7 +391,7 @@ After approval, implement one reusable quality workflow invoked as a job by both
 | CSS ownership               | Source-string duplicate checks                 | Selector-owner inventory and AST/Stylelint duplicate/leakage guard                                      |
 | Agent instruction discovery | Only `CLAUDE.md`; missing `AGENTS.md`/`RTK.md` | Shared contract, deterministic parity/reference resolver, optional manual tool smoke                    |
 | Firebase E2E safety         | Shared live account and write-capable project  | Removed plaintext credentials, rotated account, fail-closed Auth/RTDB emulator suite                    |
-| Merge/deploy quality        | Build-only deployment                          | Approved authoritative workflow, reusable quality job, and same-workflow deploy dependency              |
+| Pull-request quality        | No comprehensive required PR workflow          | Formatting, lint, secret, unit, UI, accessibility, visual, emulator, and build checks                   |
 
 ### Baseline-before-fix rule
 
@@ -441,7 +436,7 @@ Validate entry-point discovery and reference integrity with the pinned fixture-b
 - Preserve public component contracts where feasible; document deprecations and migrate all consumers in one bounded sequence.
 - Keep test-only harnesses and fixture APIs out of production bundles/routes.
 - Keep the Public/TV stale-subscription production fix in Task 5.
-- Coordinate Archived and deployment workflow conflicts with Task 10.
+- Coordinate Archived conflicts with Task 10.
 
 ## Non-Goals
 
@@ -452,7 +447,7 @@ Validate entry-point discovery and reference integrity with the pinned fixture-b
 - Fixing every accessibility issue in the entire repository
 - Replacing all E2E tests outside the affected UI scope
 - Performing a production deployment or changing live Firebase without approval
-- Editing/retiring a deployment workflow before the owner approves the authoritative branch, environment, and workflow design
+- Editing, disabling, or retiring an existing deployment workflow
 
 ## Suggested Implementation Order
 
@@ -498,7 +493,7 @@ Record:
 - Emulator preflight/sentinel evidence and proof that no required browser test addressed shared/live Firebase
 - Confirmation that the committed shared-account credential was removed and the account rotation/revocation checkpoint completed
 - CI job status/artifact links
-- The approved authoritative deployment branch/workflow decision and quality dependency evidence
+- Pull-request quality job status and failure-artifact evidence
 
 ## Acceptance Criteria
 
@@ -520,7 +515,7 @@ Record:
 - The code-quality task index directs future implementation agents to the shared contract and applicable tool/E2E instructions.
 - The agent contract contains the standards specified by this task and passes automated parity/reference checks.
 - First-party functions/scripts are linted through scoped configuration rather than blanket ignores.
-- The owner-approved authoritative deployment workflow calls the same reusable quality job as PR validation and its publish job depends on that job; no redundant build-only publisher remains enabled.
+- Pull requests execute the documented quality workflow; the existing deployment workflows and merge-to-`develop` deployment behavior are unchanged.
 - Formatting, zero-warning lint, secret scan, full unit, focused UI, accessibility, visual, affected emulator E2E, and production build gates pass.
 - Completion evidence maps every acceptance criterion to the correct test/artifact layer with no unexplained gaps.
 
@@ -535,7 +530,7 @@ Do not mark this follow-up complete if:
 - A focus, localization, semantic-control, reduced-motion, or color-only issue remains in an affected primitive
 - Agent files contain a dangling include, duplicated drifting policy, invalid package command, or copied credentials
 - Required E2E can fall back to shared/live Firebase, or the exposed shared account has not been rotated/revoked
-- Deployment authority/design is undecided, or an enabled publisher can bypass the reusable quality job
+- Required pull-request quality jobs do not execute the documented safety net
 - CI does not execute the safety net claimed in the handoff
 - A required failure is called “unrelated” without a named, expiring waiver
 

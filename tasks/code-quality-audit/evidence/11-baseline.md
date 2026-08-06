@@ -57,7 +57,7 @@ No application source had been edited for Task 11 when the commands below ran.
 - `PublicPageShell` owns unscoped global selectors. Existing checks inspect source/computed style but do not prove non-leakage with a mounted unrelated page.
 - The tracked E2E documentation/helpers contain a shared live-project account credential. Existing UI/tir E2E reaches Vue/Pinia private internals and uses fixed waits. It is unsafe to execute write-heavy browser tests until emulator-only fail-closed setup exists.
 - Root `AGENTS.md` and `RTK.md` are absent. `CLAUDE.md` directs agents to the plaintext shared credential and does not provide the cross-agent safety/quality contract.
-- Both Pages workflows can publish without a complete quality dependency.
+- Both Pages workflows can publish without a complete quality dependency. The owner explicitly kept deployment workflow changes outside Task 11; this observation is not implementation scope for this PR.
 
 ## Baseline commands
 
@@ -131,6 +131,16 @@ snapshots: 19 written and passed
 ```
 
 The committed baseline matrix covers loader, navigation, tir, timer, public shell, and scroll controls across desktop light/dark and mobile light, plus a keyboard-focus navigation state. Representative images were inspected rather than accepted blindly. Confirmed visible baseline defects include the absent navigation focus indicator and color/shape-only score circles.
+
+The desired accessibility regression suite was then added and run against the base implementation:
+
+```text
+npx playwright test --config playwright.a11y.config.js
+exit: 1 (expected pre-fix red suite)
+tests: 2 passed, 9 failed
+```
+
+The failures directly demonstrate insufficient navigation/tir contrast, unnamed scroll controls, missing navigation focus, loader motion under reduced-motion preference, unnamed/color-only read-only tir results, and the nested timer-button contract. The post-fix run must use the identical suite and pass without exclusions.
 
 ## Baseline stop conditions
 

@@ -1,8 +1,8 @@
 <template>
   <div class="tir-compare">
     <div class="tir-compare__header">
-      <button class="tir-compare__back" @click="$emit('back')">
-        <ChevronLeft :size="20" />
+      <button type="button" class="tir-compare__back" @click="$emit('back')">
+        <ChevronLeft :size="20" aria-hidden="true" />
         <span>{{ $t('tir.backToBracket') }}</span>
       </button>
       <div class="tir-compare__round-label">{{ roundLabel }}</div>
@@ -17,7 +17,7 @@
           <span class="tir-compare__player-total-max">/{{ maxTotalScore }}</span>
         </div>
       </div>
-      <div class="tir-compare__vs">vs</div>
+      <div class="tir-compare__vs">{{ $t('tir.versus') }}</div>
       <div class="tir-compare__player-card" :class="{ 'tir-compare__player-card--winner': isPlayer2Winner }">
         <div class="tir-compare__player-name">{{ match.player2 }}</div>
         <div class="tir-compare__player-total">
@@ -31,7 +31,7 @@
 
     <!-- Match result notice -->
     <div v-if="matchComplete" class="tir-compare__result">
-      <Trophy :size="18" class="tir-compare__result-icon" />
+      <Trophy :size="18" class="tir-compare__result-icon" aria-hidden="true" />
       <span class="tir-compare__result-text">{{ winnerName }}</span>
     </div>
 
@@ -52,6 +52,7 @@
               size="compact"
               :result="opt.key"
               :active="getScore(1, aIdx, distance) === opt.key"
+              :aria-label="`${match.player1}, ${atelier.name}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
             />
           </div>
           <div class="tir-compare__distance">{{ distance }}m</div>
@@ -64,6 +65,7 @@
               size="compact"
               :result="opt.key"
               :active="getScore(2, aIdx, distance) === opt.key"
+              :aria-label="`${match.player2}, ${atelier.name}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
             />
           </div>
         </div>
@@ -193,10 +195,15 @@ export default {
   font-size: 13px;
 }
 
+.tir-compare__back:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-compare__round-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   margin-left: auto;
 }
@@ -224,7 +231,7 @@ export default {
 
 .tir-compare__player-card--winner {
   border-color: var(--tir-carreau);
-  background: rgb(76 175 80 / 6%);
+  background: var(--tir-winner-bg);
 }
 
 .tir-compare__player-name {
@@ -255,14 +262,14 @@ export default {
 
 .tir-compare__player-total-max {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
 .tir-compare__vs {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
@@ -287,7 +294,7 @@ export default {
   height: 26px;
   border-radius: 50%;
   background: var(--tir-touche);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -332,7 +339,7 @@ export default {
 .tir-compare__distance {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   min-width: 28px;
   text-align: center;
 }
@@ -355,8 +362,8 @@ export default {
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgb(76 175 80 / 8%);
-  border: 1px solid rgb(76 175 80 / 30%);
+  background: var(--tir-winner-bg);
+  border: 1px solid var(--tir-winner);
   border-radius: 8px;
   margin-bottom: 12px;
 }
@@ -372,8 +379,8 @@ export default {
 }
 
 .tir-compare__summary--complete {
-  background: rgb(76 175 80 / 8%);
-  border-color: rgb(76 175 80 / 30%);
+  background: var(--tir-winner-bg);
+  border-color: var(--tir-winner);
 }
 
 .tir-compare__summary-side {
@@ -384,7 +391,7 @@ export default {
 
 .tir-compare__summary-label {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -400,7 +407,7 @@ export default {
 
 .tir-compare__summary-max {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 /* Responsive adjustments */

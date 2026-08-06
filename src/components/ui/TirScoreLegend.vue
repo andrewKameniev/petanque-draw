@@ -4,11 +4,13 @@
       <span
         class="tir-score-legend__marker"
         :class="[`tir-score-legend__marker--${variant}`, `tir-score-legend__marker--${option.key}`]"
+        aria-hidden="true"
       >
         <template v-if="variant === 'badge'">{{ option.points }}</template>
       </span>
       <span>
-        {{ $t(`tir.${option.key}`) }}<template v-if="variant === 'badge'">: {{ option.points }} p</template
+        {{ $t(`tir.${option.key}`)
+        }}<template v-if="variant === 'badge'">: {{ option.points }} {{ $t('ranking.points') }}</template
         ><template v-else> ({{ option.points }})</template>
       </span>
     </span>
@@ -52,7 +54,7 @@ export default {
   gap: 4px;
   align-items: center;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
 .tir-score-legend__marker {
@@ -73,7 +75,7 @@ export default {
   height: 24px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   border-radius: 50%;
 }
 

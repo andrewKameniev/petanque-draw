@@ -23,45 +23,58 @@ const render = (component, props = {}, slots = {}) => {
   return renderToString(app);
 };
 
+// This suite intentionally covers SSR/API shape and source architecture only.
+// Interaction, focus, reactivity, and browser semantics live in the mounted and
+// Playwright suites and must not be inferred from assertions in this file.
+const tournamentNavProps = (props = {}) => ({
+  label: 'Tournament sections',
+  panelId: 'tournament-panel',
+  idPrefix: 'tournament-tab',
+  ...props,
+});
+
 /* ─────────────────────────────────────────────────────────────────────────────
  * PageLoader
  * ───────────────────────────────────────────────────────────────────────────── */
-describe('PageLoader', () => {
+describe('PageLoader structural contract', () => {
   it('has correct component name', () => {
     expect(PageLoader.name).toBe('PageLoader');
   });
 
   it('renders with role="status" and aria-live="polite"', async () => {
-    const html = await render(PageLoader);
+    const html = await render(PageLoader, { label: 'Loading tournament…' });
     expect(html).toContain('role="status"');
     expect(html).toContain('aria-live="polite"');
   });
 
-  it('renders aria-label with default loading text', async () => {
-    const html = await render(PageLoader);
-    expect(html).toContain('aria-label="Loading…"');
+  it('requires a non-empty localized label', () => {
+    expect(PageLoader.props.label.required).toBe(true);
+    expect(PageLoader.props.label.validator('Loading tournament…')).toBe(true);
+    expect(PageLoader.props.label.validator('   ')).toBe(false);
   });
 
-  it('renders custom label via prop', async () => {
+  it('references one hidden custom label without duplicating aria-label', async () => {
     const html = await render(PageLoader, { label: 'Please wait' });
-    expect(html).toContain('aria-label="Please wait"');
+    expect(html).toContain('aria-labelledby="page-loader-label-');
+    expect(html).not.toContain('aria-label="Please wait"');
     expect(html).toContain('Please wait');
   });
 
   it('has visually-hidden text for screen readers', async () => {
-    const html = await render(PageLoader);
+    const html = await render(PageLoader, { label: 'Loading tournament…' });
     expect(html).toContain('class="visually-hidden"');
   });
 
   it('hides decorative dots from assistive tech', async () => {
-    const html = await render(PageLoader);
+    const html = await render(PageLoader, { label: 'Loading tournament…' });
     expect(html).toContain('aria-hidden="true"');
   });
 
   it('respects prefers-reduced-motion via CSS media query', () => {
     const source = readSource('../components/ui/PageLoader.vue');
     expect(source).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(source).toContain('animation-duration: 8s');
+    expect(source).toContain('animation: none');
+    expect(source).toContain('transform: none');
   });
 
   it('is used by consumers (Draw, Public, PublicStats) via <PageLoader v-if="isLoading"', () => {
@@ -136,45 +149,54 @@ describe('PublicPageShell', () => {
 /* ─────────────────────────────────────────────────────────────────────────────
  * TournamentNav
  * ───────────────────────────────────────────────────────────────────────────── */
-describe('TournamentNav', () => {
+describe('TournamentNav structural contract', () => {
   it('has correct component name', () => {
     expect(TournamentNav.name).toBe('TournamentNav');
   });
 
   it('renders dynamic tab list with role="tablist"', async () => {
-    const html = await render(TournamentNav, {
-      tabs: [
-        { id: 'teams', label: 'Teams' },
-        { id: 'games', label: 'Games' },
-      ],
-      modelValue: 'teams',
-    });
+    const html = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [
+          { id: 'teams', label: 'Teams' },
+          { id: 'games', label: 'Games' },
+        ],
+        modelValue: 'teams',
+      }),
+    );
     expect(html).toContain('role="tablist"');
     expect(html).toContain('role="tab"');
     expect(html).toContain('aria-label="Tournament sections"');
   });
 
   it('marks active tab with aria-selected and active class', async () => {
-    const html = await render(TournamentNav, {
-      tabs: [
-        { id: 'teams', label: 'Teams' },
-        { id: 'games', label: 'Games' },
-      ],
-      modelValue: 'games',
-    });
+    const html = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [
+          { id: 'teams', label: 'Teams' },
+          { id: 'games', label: 'Games' },
+        ],
+        modelValue: 'games',
+      }),
+    );
     expect(html).toContain('tournament-nav__btn--active');
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('aria-selected="false"');
   });
 
   it('sets tabindex=0 on active tab and -1 on others', async () => {
-    const html = await render(TournamentNav, {
-      tabs: [
-        { id: 'teams', label: 'Teams' },
-        { id: 'games', label: 'Games' },
-      ],
-      modelValue: 'teams',
-    });
+    const html = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [
+          { id: 'teams', label: 'Teams' },
+          { id: 'games', label: 'Games' },
+        ],
+        modelValue: 'teams',
+      }),
+    );
     expect(html).toContain('tabindex="0"');
     expect(html).toContain('tabindex="-1"');
   });
@@ -186,10 +208,13 @@ describe('TournamentNav', () => {
 
   it('renders tab icons when provided', async () => {
     const TestIcon = { render: () => h('svg', { class: 'test-icon' }) };
-    const html = await render(TournamentNav, {
-      tabs: [{ id: 'teams', label: 'Teams', icon: TestIcon }],
-      modelValue: 'teams',
-    });
+    const html = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [{ id: 'teams', label: 'Teams', icon: TestIcon }],
+        modelValue: 'teams',
+      }),
+    );
     expect(html).toContain('test-icon');
     expect(html).toContain('aria-hidden="true"');
   });
@@ -292,15 +317,21 @@ describe('TournamentNav', () => {
   });
 
   it('supports variant prop (default, tir)', async () => {
-    const defaultHtml = await render(TournamentNav, {
-      tabs: [{ id: 'a', label: 'A' }],
-      modelValue: 'a',
-    });
-    const tirHtml = await render(TournamentNav, {
-      tabs: [{ id: 'a', label: 'A' }],
-      modelValue: 'a',
-      variant: 'tir',
-    });
+    const defaultHtml = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [{ id: 'a', label: 'A' }],
+        modelValue: 'a',
+      }),
+    );
+    const tirHtml = await render(
+      TournamentNav,
+      tournamentNavProps({
+        tabs: [{ id: 'a', label: 'A' }],
+        modelValue: 'a',
+        variant: 'tir',
+      }),
+    );
     expect(defaultHtml).toContain('tournament-nav--default');
     expect(tirHtml).toContain('tournament-nav--tir');
   });
@@ -451,9 +482,9 @@ describe('TirScoreCircle', () => {
     expect(large).toContain('tir-score-circle--large');
   });
 
-  it('supports legacy small boolean prop', async () => {
-    const html = await render(TirScoreCircle, { result: 'carreau', small: true });
-    expect(html).toContain('tir-score-circle--small');
+  it('exposes one validated size API', () => {
+    expect(TirScoreCircle.props).not.toHaveProperty('small');
+    expect(TirScoreCircle.props).toHaveProperty('size');
   });
 
   it('includes aria-label when interactive', async () => {
@@ -582,6 +613,8 @@ describe('TirAtelierTabs', () => {
         { id: 1, label: '2' },
       ],
       modelValue: 0,
+      label: 'Scoring ateliers',
+      completeLabel: 'Completed',
     });
     expect(html).toContain('role="tablist"');
     expect(html).toContain('role="tab"');
@@ -594,6 +627,8 @@ describe('TirAtelierTabs', () => {
         { id: 1, label: '2' },
       ],
       modelValue: 1,
+      label: 'Scoring ateliers',
+      completeLabel: 'Completed',
     });
     expect(html).toContain('tir-atelier-tabs__tab--active');
     expect(html).toContain('aria-selected="true"');
@@ -606,8 +641,12 @@ describe('TirAtelierTabs', () => {
         { id: 1, label: '2' },
       ],
       modelValue: 1,
+      label: 'Scoring ateliers',
+      completeLabel: 'Completed',
     });
     expect(html).toContain('tir-atelier-tabs__tab--complete');
+    expect(html).toContain('tir-atelier-tabs__complete-icon');
+    expect(html).toContain('Completed');
   });
 
   it('generates unique tab IDs via idPrefix', () => {
@@ -690,15 +729,19 @@ describe('TirAtelierTabs', () => {
         { id: 1, label: '2' },
       ],
       modelValue: 0,
+      label: 'Scoring ateliers',
+      completeLabel: 'Completed',
     });
     expect(html).toContain('tabindex="0"');
     expect(html).toContain('tabindex="-1"');
   });
 
-  it('uses default aria-label', async () => {
+  it('uses the required localized aria-label', async () => {
     const html = await render(TirAtelierTabs, {
       items: [{ id: 0, label: '1' }],
       modelValue: 0,
+      label: 'Scoring ateliers',
+      completeLabel: 'Completed',
     });
     expect(html).toContain('aria-label="Scoring ateliers"');
   });
@@ -719,6 +762,7 @@ describe('TirRoundTabs', () => {
         { key: 'r2', label: 'Round 2' },
       ],
       modelValue: 'r1',
+      label: 'Scoring rounds',
     });
     expect(html).toContain('role="tablist"');
     expect(html).toContain('role="tab"');
@@ -733,6 +777,7 @@ describe('TirRoundTabs', () => {
         { key: 'r2', label: 'Round 2' },
       ],
       modelValue: 'r2',
+      label: 'Scoring rounds',
     });
     expect(html).toContain('tir-round-tabs__tab--active');
     expect(html).toContain('aria-selected="true"');
@@ -799,10 +844,11 @@ describe('TirRoundTabs', () => {
     ]);
   });
 
-  it('uses default aria-label', async () => {
+  it('uses the required localized aria-label', async () => {
     const html = await render(TirRoundTabs, {
       tabs: [{ key: 'r1', label: 'R1' }],
       modelValue: 'r1',
+      label: 'Scoring rounds',
     });
     expect(html).toContain('aria-label="Scoring rounds"');
   });

@@ -9,3 +9,6 @@ output/
 coverage/
 playwright-report/
 test-results/
+.firebase-emulators-cache/
+firebase-debug.log
+database-debug.log

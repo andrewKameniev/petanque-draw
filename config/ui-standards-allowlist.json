@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 21,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 setup polls Pinia state after adding teams; migrate the domain setup flow to an observable fixture boundary.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 23,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 setup reads the private Pinia registry; replace it together with the setup-state poll.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 47,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 draw setup uses a fixed stabilization delay; wait for the participant list or seeded record instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 53,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 bulk-score helper obtains the app instance directly; replace it with emulator fixture seeding or public scoring controls.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 54,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 bulk-score helper reads the private Pinia registry; migrate with the bulk-score fixture boundary.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 79,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 synchronization helper obtains the Vue app instance; replace it with an observable emulator update.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 80,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 synchronization helper invokes a store through the private Pinia registry.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 83,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 synchronization helper waits a fixed duration instead of observing persisted participant state.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 88,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 public-reference helper obtains the Vue app instance; use the encoded emulator fixture reference instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 89,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 public-reference helper reads user and tournament IDs from the private Pinia registry.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 112,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 boundary-tie fixture obtains the Vue app instance; move this scoring fixture to the emulator client.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 113,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 boundary-tie fixture reads and mutates tournament state through the private Pinia registry.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 131,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 tiebreaker fixture obtains the Vue app instance; replace it with emulator fixture data.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 132,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 tiebreaker fixture mutates tournament state through the private Pinia registry.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 144,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 tiebreaker fixture uses a fixed persistence delay; poll the emulator-backed result instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 149,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 playoff fixture obtains the Vue app instance; replace it with an emulator fixture API.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 150,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 playoff fixture reads and mutates tournament state through the private Pinia registry.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 179,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff fixture uses a fixed persistence delay; wait for the rendered bracket state instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 221,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 results case sleeps after tab selection; assert the result rows directly.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 230,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 round-one table case sleeps after tab selection; wait on qualification labels and rows.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 241,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 round transition case sleeps after opening the table; observe the transition control instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 243,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 round transition case sleeps after starting round two; assert the round-two UI directly.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 251,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff-transition case sleeps after opening the table; observe the transition control instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 253,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff-transition case sleeps after starting round two; assert the round-two UI directly.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 256,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff-transition case sleeps after reopening the table; wait for the playoff action instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 258,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff-transition case sleeps after starting playoff; assert the playoff tab directly.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 266,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 comparison case sleeps after opening the table; observe the playoff action instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 268,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 comparison case sleeps after starting playoff; wait for the first match instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 286,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 boundary-tie assertion reads private Pinia state; verify participant selection through an emulator read API.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 298,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 round-two assertion reads private Pinia state; verify the persisted round and IDs through the fixture client.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 318,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 playoff editing case sleeps after returning to the bracket; wait for the next bracket state instead.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 332,
+      "rule": "no-private-vue-runtime",
+      "reason": "Legacy Task 2 finish assertion reads private Pinia state; verify tournament completion through public UI or emulator data.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    },
+    {
+      "file": "e2e/tir.spec.js",
+      "line": 385,
+      "rule": "no-arbitrary-sleep",
+      "reason": "Legacy Task 2 reload case uses a fixed persistence delay; poll the emulator fixture before reloading.",
+      "owner": "Task 2 — TIR domain workflow hardening",
+      "expires": "2026-11-06"
+    }
+  ]
+}

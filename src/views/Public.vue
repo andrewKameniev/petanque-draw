@@ -1,5 +1,5 @@
 <template>
-  <PageLoader v-if="isLoading" />
+  <PageLoader v-if="isLoading" :label="$t('common.loading')" />
   <PublicPageShell
     v-else
     class="wrapper"
@@ -146,12 +146,18 @@
 
       <!-- Other systems: tabs -->
       <template v-else>
-        <TournamentNav v-model="activeTab" :tabs="tabs" />
+        <TournamentNav
+          v-model="activeTab"
+          :tabs="tabs"
+          :label="$t('common.tournamentSections')"
+          panel-id="public-tournament-tabpanel"
+          id-prefix="public-tournament-tab"
+        />
         <div
-          id="tournament-tabpanel"
+          id="public-tournament-tabpanel"
           class="tabs-content-area"
           role="tabpanel"
-          :aria-labelledby="`tab-${activeTab}`"
+          :aria-labelledby="`public-tournament-tab-${activeTab}`"
           :class="{
             'tabs-content-area--playoff':
               activeTab === 'round' && (activeTournamentView?.playOff || isDoubleElimination),
@@ -178,10 +184,16 @@
                 >
                 <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
               </div>
-              <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
+              <button
+                v-if="highlightedTeam"
+                type="button"
+                class="search-filter-chip"
+                :aria-label="`${$t('common.remove')}: ${highlightedTeam}`"
+                @click="highlightedTeam = null"
+              >
                 <span>{{ highlightedTeam }}</span>
-                <X :size="14" />
-              </div>
+                <X :size="14" aria-hidden="true" />
+              </button>
               <RoundTimer
                 v-if="showPublicTimer"
                 :timer-started-at="activeTournamentView.roundTimer.timerStartedAt"
@@ -726,13 +738,20 @@ export default {
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
+  border: 0;
   margin: -0.25rem auto 0.5rem;
   transition: opacity 0.15s;
 }
 
 .search-filter-chip:hover {
   opacity: 0.85;
+}
+
+.search-filter-chip:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tournament-info-card {

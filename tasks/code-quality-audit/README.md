@@ -39,7 +39,8 @@ If current copies behave differently, the agent must not silently choose one beh
 
 ## General Constraints
 
-- Read `CLAUDE.md` and `e2e/README.md` before implementation/E2E work.
+- Read the closest `AGENTS.md`, root `RTK.md`, and applicable tool notes such as
+  `CLAUDE.md` before implementation. Read `e2e/README.md` before browser work.
 - Preserve unrelated user changes in the worktree.
 - Preserve Firebase paths and backward compatibility unless the task explicitly says otherwise.
 - Every E2E-created tournament must be deleted, including on failure.
@@ -53,4 +54,4 @@ Tasks 1, 6, and 8 are relatively bounded extractions. Tasks 2, 3, and 5 affect l
 
 Task 10 is a security- and durability-sensitive remediation program, not a parallel cleanup. Complete its contract and infrastructure decisions first, then stage server operations, rules, restore tooling, UI, migration, and production enablement in the order specified by the task. Its live deployment and migration checkpoints require explicit approval.
 
-Task 11 is the corrective completion pass for Task 9 and the source of the future shared Codex/Claude engineering contract. Establish its baseline and agent-contract gates before making further primitive changes, and coordinate Archived/deployment edits with Task 10.
+Task 11 is the corrective completion pass for Task 9 and the source of the future shared Codex/Claude engineering contract. Establish its baseline and agent-contract gates before making further primitive changes, and coordinate Archived edits with Task 10. Deployment workflow changes are outside Task 11.

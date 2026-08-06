@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, deleteCurrentTournament, addTeams } from './helpers';
+import { assertBrowserEmulatorSentinel, login, deleteCurrentTournament, addTeams } from './helpers';
 
 async function ensureTrulyClean(page) {
   await login(page);
@@ -389,5 +389,62 @@ test.describe('TIR Tournament', () => {
     const participant = page.locator('.tir-scoring__participant-row', { hasText: participantName.trim() });
     await expect(participant).toContainText('1 / 20');
     await expect(participant.locator('.tir-scoring__participant-score')).toContainText('5/100');
+  });
+});
+
+test.describe('Task 11 TIR primitive integration', () => {
+  test('@task11 creates a training session and exposes named keyboard-operable score controls', async ({ page }) => {
+    const sessionName = 'Task 11 public TIR controls';
+    let sessionCreated = false;
+
+    await page.addInitScript(() => localStorage.setItem('petanqueDrawLang', 'en'));
+    await login(page);
+    await assertBrowserEmulatorSentinel(page);
+
+    try {
+      await page.getByRole('link', { name: 'Training' }).click();
+      await expect(page).toHaveURL(/#\/training$/);
+      await page.getByRole('button', { name: 'New Session' }).click();
+      await page.locator('.tcreate__preset', { hasText: 'Custom' }).click();
+      await page.getByPlaceholder('e.g. Morning practice').fill(sessionName);
+      await page.locator('.tcreate__checks input[type="checkbox"]').nth(1).check();
+      await page.locator('.tcreate__field select').selectOption('4');
+      await page.getByRole('button', { name: 'Start Training' }).click();
+
+      await expect(page.locator('.tsession__name')).toHaveText(sessionName);
+      sessionCreated = true;
+
+      const atelierTabs = page.getByRole('tablist', { name: 'Atelier' });
+      const tabs = atelierTabs.getByRole('tab');
+      await expect(tabs).toHaveCount(2);
+      await expect(atelierTabs.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
+      await expect(atelierTabs.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+      await tabs.first().focus();
+      await tabs.first().press('ArrowRight');
+      await expect(tabs.nth(1)).toBeFocused();
+      await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+
+      const scoreControl = page.getByRole('button', { name: /6m, Carreau, 1$/ }).first();
+      await expect(scoreControl).toHaveAttribute('type', 'button');
+      await expect(scoreControl).toHaveAttribute('aria-pressed', 'false');
+      const scoreBox = await scoreControl.boundingBox();
+      expect(scoreBox).not.toBeNull();
+      expect(scoreBox.width).toBeGreaterThanOrEqual(24);
+      expect(scoreBox.height).toBeGreaterThanOrEqual(24);
+
+      await scoreControl.focus();
+      await scoreControl.press('Space');
+      await expect(scoreControl).toHaveAttribute('aria-pressed', 'true');
+      await expect(scoreControl.locator('.tir-score-circle__cue')).toBeVisible();
+    } finally {
+      if (sessionCreated) {
+        await page.getByRole('button', { name: 'Back' }).click();
+        const sessionCard = page.locator('.session-card', { hasText: sessionName });
+        await expect(sessionCard).toBeVisible();
+        await sessionCard.locator('.session-card__delete').click();
+        await page.locator('[data-testid="btn-confirm-remove"]').click();
+        await expect(sessionCard).toHaveCount(0);
+      }
+    }
   });
 });

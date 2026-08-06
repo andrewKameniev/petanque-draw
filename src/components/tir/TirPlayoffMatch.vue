@@ -1,8 +1,8 @@
 <template>
   <div class="tir-pmatch">
     <div class="tir-pmatch__header">
-      <button class="tir-pmatch__back" @click="$emit('back')">
-        <ChevronLeft :size="20" />
+      <button type="button" class="tir-pmatch__back" @click="$emit('back')">
+        <ChevronLeft :size="20" aria-hidden="true" />
         <span>{{ $t('tir.backToBracket') }}</span>
       </button>
       <div class="tir-pmatch__round-label">{{ roundLabel }}</div>
@@ -16,7 +16,7 @@
           {{ getPlayerTotal(1) }}<span>/{{ maxTotalScore }}</span>
         </div>
       </div>
-      <div class="tir-pmatch__vs">vs</div>
+      <div class="tir-pmatch__vs">{{ $t('tir.versus') }}</div>
       <div class="tir-pmatch__player-card" :class="{ 'tir-pmatch__player-card--winner': isPlayer2Winner }">
         <div class="tir-pmatch__player-name">{{ match.player2 }}</div>
         <div class="tir-pmatch__player-score">
@@ -35,15 +35,19 @@
       <p>{{ $t('tir.matchTied') }}</p>
       <div class="tir-pmatch__tie-buttons">
         <button
+          type="button"
           class="tir-pmatch__tie-btn"
           :class="{ 'tir-pmatch__tie-btn--selected': match.tieWinner === 1 }"
+          :aria-pressed="match.tieWinner === 1"
           @click="selectTieWinner(1)"
         >
           {{ match.player1 }}
         </button>
         <button
+          type="button"
           class="tir-pmatch__tie-btn"
           :class="{ 'tir-pmatch__tie-btn--selected': match.tieWinner === 2 }"
+          :aria-pressed="match.tieWinner === 2"
           @click="selectTieWinner(2)"
         >
           {{ match.player2 }}
@@ -99,12 +103,12 @@
     <!-- Final score summary -->
     <div class="tir-pmatch__summary">
       <div class="tir-pmatch__summary-side">
-        <span>{{ $t('tir.totalScore') || 'Всього' }}</span>
+        <span>{{ $t('tir.totalScore') }}</span>
         <strong>{{ getPlayerTotal(1) }}</strong
         ><span class="tir-pmatch__summary-max">/{{ maxTotalScore }}</span>
       </div>
       <div class="tir-pmatch__summary-side">
-        <span>{{ $t('tir.totalScore') || 'Всього' }}</span>
+        <span>{{ $t('tir.totalScore') }}</span>
         <strong>{{ getPlayerTotal(2) }}</strong
         ><span class="tir-pmatch__summary-max">/{{ maxTotalScore }}</span>
       </div>
@@ -249,10 +253,16 @@ export default {
   font-size: 13px;
 }
 
+.tir-pmatch__back:focus-visible,
+.tir-pmatch__tie-btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-pmatch__round-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   margin-left: auto;
 }
@@ -276,7 +286,7 @@ export default {
 
 .tir-pmatch__player-card--winner {
   border-color: var(--tir-carreau);
-  background: rgb(76 175 80 / 5%);
+  background: var(--tir-winner-bg);
 }
 
 .tir-pmatch__player-name {
@@ -296,14 +306,14 @@ export default {
 
 .tir-pmatch__player-score span {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
 .tir-pmatch__vs {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-pmatch__status {
@@ -314,7 +324,7 @@ export default {
   font-weight: 600;
   margin-bottom: 14px;
   background: var(--color-surface-alt);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-pmatch__status--progress {
@@ -391,7 +401,7 @@ export default {
   height: 26px;
   border-radius: 50%;
   background: var(--tir-touche);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -435,7 +445,7 @@ export default {
 .tir-pmatch__distance {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   min-width: 30px;
   text-align: center;
 }
@@ -461,7 +471,7 @@ export default {
 
 .tir-pmatch__summary-max {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 450px) {

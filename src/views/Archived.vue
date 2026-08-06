@@ -18,9 +18,15 @@
                 v-model="searchQuery"
                 type="text"
                 class="archived-sidebar__search-input"
+                :aria-label="$t('common.search')"
                 :placeholder="$t('common.search') + '...'"
               />
-              <select v-if="useArchiveIndex" v-model="systemFilter" class="archived-sidebar__filter-select">
+              <select
+                v-if="useArchiveIndex"
+                v-model="systemFilter"
+                class="archived-sidebar__filter-select"
+                :aria-label="$t('teams.system')"
+              >
                 <option value="">{{ $t('teams.system') }}</option>
                 <option value="swiss">Swiss</option>
                 <option value="groups">{{ $t('teams.groups') }}</option>
@@ -37,6 +43,7 @@
                 </div>
               </template>
               <button
+                type="button"
                 v-else
                 v-for="[key, item] in tournamentEntries"
                 :key="key"
@@ -74,9 +81,17 @@
           </div>
           <div v-else-if="activeKey && tournament" class="archived-sidebar__actions">
             <div class="sidebar-action-row">
-              <label class="sidebar-action-row__label"
-                >DB ID: <span class="sidebar-action-row__db-id" @click="copyDbId">{{ activeKey }}</span></label
-              >
+              <div class="sidebar-action-row__label">
+                {{ $t('common.databaseId') }}:
+                <button
+                  type="button"
+                  class="sidebar-action-row__db-id"
+                  :aria-label="$t('common.copyDatabaseId')"
+                  @click="copyDbId"
+                >
+                  {{ activeKey }}
+                </button>
+              </div>
             </div>
             <div class="sidebar-action-row">
               <label class="sidebar-action-row__label">Portal ID</label>
@@ -85,10 +100,12 @@
                   v-model="portalIdInput"
                   class="sidebar-action-row__input"
                   type="number"
+                  :aria-label="$t('teams.tournamentId')"
                   :placeholder="$t('teams.tournamentId')"
                   @keyup.enter="savePortalId"
                 />
                 <button
+                  type="button"
                   class="sidebar-action-row__save"
                   @click="savePortalId"
                   :disabled="!portalIdInput || portalIdInput == portalId"
@@ -99,30 +116,41 @@
             </div>
             <div class="sidebar-action-row sidebar-action-row--buttons">
               <button
+                type="button"
                 v-if="portalId"
                 class="archived-links__btn archived-links__btn--secondary"
                 :disabled="fetchingLogos"
                 @click="refreshClubLogos"
               >
-                <RefreshCw :size="14" :class="{ spin: fetchingLogos }" />
+                <RefreshCw :size="14" :class="{ spin: fetchingLogos }" aria-hidden="true" />
                 {{ fetchingLogos ? '...' : $t('common.refreshLogos') }}
               </button>
-              <button class="archived-links__btn" @click="copyPublicLink">
-                <Link2 :size="14" />
+              <button type="button" class="archived-links__btn" @click="copyPublicLink">
+                <Link2 :size="14" aria-hidden="true" />
                 {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
               </button>
             </div>
             <div class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management">
-              <button v-if="isActiveOwner || isSuperAdmin" class="button btn-make-active" @click="makeActive">
-                <ArchiveRestore :size="16" />
+              <button
+                v-if="isActiveOwner || isSuperAdmin"
+                type="button"
+                class="button btn-make-active"
+                @click="makeActive"
+              >
+                <ArchiveRestore :size="16" aria-hidden="true" />
                 <span>{{ $t('common.makeActive') }}</span>
               </button>
-              <button v-if="canDeleteActive" class="button btn-remove-archived" @click="removeTournament">
-                <Trash2 :size="16" />
+              <button v-if="canDeleteActive" type="button" class="button btn-remove-archived" @click="removeTournament">
+                <Trash2 :size="16" aria-hidden="true" />
                 <span>{{ $t('common.remove') }}</span>
               </button>
-              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click="removeFromView">
-                <EyeOff :size="16" />
+              <button
+                v-else-if="!isActiveOwner"
+                type="button"
+                class="button btn-remove-archived"
+                @click="removeFromView"
+              >
+                <EyeOff :size="16" aria-hidden="true" />
                 <span>{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
@@ -182,13 +210,13 @@
           <div
             v-else-if="activeKey && savedTournaments[activeKey]"
             class="tournament-selector"
-            @click="selectorOpen = !selectorOpen"
             v-click-outside="closeSelector"
           >
             <template v-if="editingName">
               <input
                 ref="nameInput"
                 class="tournament-selector__input"
+                :aria-label="$t('common.tournamentName')"
                 :value="savedTournaments[activeKey].name"
                 @click.stop
                 @keyup.enter="saveName($event.target.value)"
@@ -197,46 +225,79 @@
               />
             </template>
             <template v-else>
-              <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
-              <button class="tournament-selector__edit" @click.stop="startEditName" :title="$t('common.edit')">
-                <Pencil :size="16" />
+              <button
+                type="button"
+                class="tournament-selector__toggle"
+                :aria-expanded="selectorOpen"
+                aria-controls="archived-tournament-selector-list"
+                @click="selectorOpen = !selectorOpen"
+              >
+                <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
+                <svg
+                  class="tournament-selector__arrow tournament-selector__arrow--mobile"
+                  :class="{ 'tournament-selector__arrow--open': selectorOpen }"
+                  aria-hidden="true"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="tournament-selector__edit"
+                :aria-label="$t('common.edit')"
+                :title="$t('common.edit')"
+                @click.stop="startEditName"
+              >
+                <Pencil :size="16" aria-hidden="true" />
               </button>
             </template>
-            <svg
-              class="tournament-selector__arrow tournament-selector__arrow--mobile"
-              :class="{ 'tournament-selector__arrow--open': selectorOpen }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
             <div class="tournament-selector__mobile-actions">
-              <button v-if="isActiveOwner || isSuperAdmin" class="button btn-make-active" @click.stop="makeActive">
-                <ArchiveRestore :size="16" />
+              <button
+                v-if="isActiveOwner || isSuperAdmin"
+                type="button"
+                class="button btn-make-active"
+                :aria-label="$t('common.makeActive')"
+                @click.stop="makeActive"
+              >
+                <ArchiveRestore :size="16" aria-hidden="true" />
                 <span class="is-hidden-mobile">{{ $t('common.makeActive') }}</span>
               </button>
-              <button v-if="canDeleteActive" class="button btn-remove-archived" @click.stop="removeTournament">
-                <Trash2 :size="16" />
+              <button
+                v-if="canDeleteActive"
+                type="button"
+                class="button btn-remove-archived"
+                :aria-label="$t('common.remove')"
+                @click.stop="removeTournament"
+              >
+                <Trash2 :size="16" aria-hidden="true" />
                 <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
               </button>
-              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click.stop="removeFromView">
-                <EyeOff :size="16" />
+              <button
+                v-else-if="!isActiveOwner"
+                type="button"
+                class="button btn-remove-archived"
+                :aria-label="$t('common.removeFromList')"
+                @click.stop="removeFromView"
+              >
+                <EyeOff :size="16" aria-hidden="true" />
                 <span class="is-hidden-mobile">{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
-            <div class="tournament-selector__dropdown" v-if="selectorOpen">
-              <a
-                href="#"
+            <div id="archived-tournament-selector-list" class="tournament-selector__dropdown" v-if="selectorOpen">
+              <button
+                type="button"
                 class="tournament-selector__option"
                 :class="{ 'tournament-selector__option--active': key === activeKey }"
                 v-for="[key, item] in tournamentEntries"
                 :key="key"
-                @click.prevent.stop="selectTournament(key)"
+                @click.stop="selectTournament(key)"
               >
                 {{ item.name }}
                 <span v-if="getFormatTag(item)" class="tournament-selector__tag">{{ getFormatTag(item) }}</span>
-              </a>
+              </button>
             </div>
           </div>
 
@@ -284,17 +345,18 @@
                 <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
               </div>
               <div class="archived-links archived-links--mobile">
-                <button class="archived-links__btn" @click="copyPublicLink">
-                  <Link2 :size="14" />
+                <button type="button" class="archived-links__btn" @click="copyPublicLink">
+                  <Link2 :size="14" aria-hidden="true" />
                   {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
                 </button>
                 <button
+                  type="button"
                   v-if="portalId"
                   class="archived-links__btn archived-links__btn--secondary"
                   :disabled="fetchingLogos"
                   @click="refreshClubLogos"
                 >
-                  <RefreshCw :size="14" :class="{ spin: fetchingLogos }" />
+                  <RefreshCw :size="14" :class="{ spin: fetchingLogos }" aria-hidden="true" />
                   {{ fetchingLogos ? '...' : $t('common.refreshLogos') }}
                 </button>
               </div>
@@ -308,12 +370,18 @@
               class="mt-3"
             />
             <template v-else>
-              <TournamentNav v-model="activeTab" :tabs="tabs" />
+              <TournamentNav
+                v-model="activeTab"
+                :tabs="tabs"
+                :label="$t('common.tournamentSections')"
+                panel-id="archived-tournament-tabpanel"
+                id-prefix="archived-tournament-tab"
+              />
               <div
-                id="tournament-tabpanel"
+                id="archived-tournament-tabpanel"
                 class="tabs-content-area"
                 role="tabpanel"
-                :aria-labelledby="`tab-${activeTab}`"
+                :aria-labelledby="`archived-tournament-tab-${activeTab}`"
               >
                 <DoubleElimination
                   v-if="activeTab === 'bracket' && isDoubleElimination"
@@ -374,7 +442,6 @@ import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
-import { PortalError } from '@/services/portal';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
   getActiveRound,
@@ -768,6 +835,7 @@ export default {
       this.selectorOpen = false;
     },
     startEditName() {
+      this.selectorOpen = false;
       this.editingName = true;
       this.$nextTick(() => {
         this.$refs.nameInput?.focus();
@@ -928,11 +996,22 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  cursor: pointer;
   padding: 0.75rem 1.5rem;
   margin: 1rem auto;
   width: fit-content;
   max-width: 100%;
+}
+
+.tournament-selector__toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 
 .tournament-selector__mobile-actions {
@@ -1045,6 +1124,12 @@ export default {
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 500;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
   color: var(--color-text-secondary);
   border-radius: 0.5rem;
   text-decoration: none;
@@ -1056,6 +1141,14 @@ export default {
 .tournament-selector__option:hover {
   background: var(--color-primary-bg);
   color: var(--color-primary);
+}
+
+.tournament-selector__toggle:focus-visible,
+.tournament-selector__edit:focus-visible,
+.tournament-selector__option:focus-visible,
+.sidebar-action-row__db-id:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tournament-selector__option--active {
@@ -1703,10 +1796,13 @@ export default {
 }
 
 .sidebar-action-row__db-id {
+  padding: 0;
   font-family: monospace;
   font-size: 0.7rem;
   color: var(--color-text);
   cursor: pointer;
+  background: transparent;
+  border: 0;
   user-select: all;
   text-transform: none;
 }

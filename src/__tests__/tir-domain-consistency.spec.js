@@ -4,8 +4,6 @@ vi.mock('@/stores/main', () => ({ useMainStore: vi.fn() }));
 
 import TirModule from '@/components/tir/TirModule.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
-import TirPublicDetails from '@/components/tir/TirPublicDetails.vue';
-import TirPublicResults from '@/components/tir/TirPublicResults.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
 import TrainingSession from '@/components/training/TrainingSession.vue';
 import { getScoreTotal, rankParticipants, SCORING, RESULT_OPTIONS } from '@/services/tir';
@@ -29,15 +27,13 @@ describe('admin/public/protocol tir domain consistency', () => {
       scoringParticipants: participants,
       activeScoresKey: 'scores',
     });
-    const publicDetails = TirPublicDetails.computed.rankedParticipants.call({ participants });
-    const publicResults = TirPublicResults.computed.rankedParticipants.call({ participants });
     const protocol = TirProtocol.computed.qualificationRankedParticipants.call({
       isTwoRound: false,
       participants,
       tiebreakerCount: 0,
     });
 
-    [admin, publicView, publicDetails, publicResults, protocol].forEach((ranked) => {
+    [admin, publicView, protocol].forEach((ranked) => {
       expect(ranked.map((participant) => participant.name)).toEqual(expected);
     });
     expect(expected).toEqual(['B', 'A', 'C']);
@@ -48,7 +44,7 @@ describe('admin/public/protocol tir domain consistency', () => {
     const data = TrainingSession.data.call({ session });
     expect(data.resultOptions).toBe(RESULT_OPTIONS);
 
-    const ctx = { session: { ...session, attempts: [{ score: 'carreau', exercise: 0, distance: 6 }] } };
+    const ctx = { localSession: { ...session, attempts: [{ score: 'carreau', exercise: 0, distance: 6 }] } };
     const totalScore = TrainingSession.computed.totalScore.call(ctx);
     expect(totalScore).toBe(SCORING.carreau);
   });
@@ -67,8 +63,6 @@ describe('admin/public/protocol tir domain consistency', () => {
         participant,
       ),
     ).toBe(expected);
-    expect(TirPublicDetails.methods.getTotal.call({}, participant)).toBe(expected);
-    expect(TirPublicResults.methods.getTotal.call({}, participant)).toBe(expected);
     expect(TirProtocol.methods.getR1Score.call({}, participant)).toBe(expected);
   });
 });

@@ -4,20 +4,25 @@
       v-if="isTwoRoundSystem && scoringRoundTabs.length > 1 && !activeParticipant && activeAtelier === null"
       :model-value="activeScoringRound"
       :tabs="scoringRoundTabs"
+      :label="$t('tir.round')"
       @update:model-value="$emit('select-round', $event)"
     />
 
     <div class="tir-scoring__mode-toggle">
       <button
+        type="button"
         class="tir-scoring__mode-btn"
         :class="{ 'tir-scoring__mode-btn--active': scoringMode === 'participant' }"
+        :aria-pressed="scoringMode === 'participant'"
         @click="$emit('select-mode', 'participant')"
       >
         {{ $t('tir.byParticipant') }}
       </button>
       <button
+        type="button"
         class="tir-scoring__mode-btn"
         :class="{ 'tir-scoring__mode-btn--active': scoringMode === 'atelier' }"
+        :aria-pressed="scoringMode === 'atelier'"
         @click="$emit('select-mode', 'atelier')"
       >
         {{ $t('tir.byAtelier') }}
@@ -26,9 +31,10 @@
 
     <template v-if="scoringMode === 'participant'">
       <div v-if="!activeParticipant" class="tir-scoring__select">
-        <div
+        <button
           v-for="(participant, index) in scoringListParticipants"
           :key="participant.id"
+          type="button"
           class="tir-scoring__participant-row"
           @click="$emit('select-participant', participant)"
         >
@@ -51,12 +57,12 @@
               <span class="tir-scoring__score-max">/{{ maxTotalScore }}</span>
             </span>
             <span class="tir-scoring__participant-status" :class="getStatusClass(participant)">
-              <CheckCircle v-if="isComplete(participant)" :size="16" />
-              <AlertCircle v-else-if="getThrowCount(participant) > 0" :size="16" />
-              <Circle v-else :size="16" />
+              <CheckCircle v-if="isComplete(participant)" :size="16" aria-hidden="true" />
+              <AlertCircle v-else-if="getThrowCount(participant) > 0" :size="16" aria-hidden="true" />
+              <Circle v-else :size="16" aria-hidden="true" />
             </span>
           </div>
-        </div>
+        </button>
       </div>
       <TirParticipantView
         v-else
@@ -73,9 +79,10 @@
 
     <template v-if="scoringMode === 'atelier'">
       <div v-if="activeAtelier === null" class="tir-scoring__ateliers">
-        <div
+        <button
           v-for="(atelier, index) in ateliers"
           :key="index"
+          type="button"
           class="tir-scoring__atelier-card"
           @click="$emit('select-atelier', index)"
         >
@@ -87,7 +94,7 @@
           <div class="tir-scoring__atelier-progress">
             {{ getAtelierCompletedCount(index) }}/{{ scoringParticipants.length }}
           </div>
-        </div>
+        </button>
       </div>
       <TirAtelierView
         v-else
@@ -109,12 +116,12 @@
         <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
       </div>
       <div v-if="!isTiebreakerInProgress" class="tir-tiebreaker__actions">
-        <button class="tir-table__playoff-btn" @click="$emit('start-tiebreaker')">
+        <button type="button" class="tir-table__playoff-btn" @click="$emit('start-tiebreaker')">
           {{ $t('tir.startTiebreaker') }}
         </button>
       </div>
       <div v-else-if="isTiebreakerRoundComplete" class="tir-tiebreaker__actions">
-        <button class="tir-table__playoff-btn" @click="$emit('finish-tiebreaker')">
+        <button type="button" class="tir-table__playoff-btn" @click="$emit('finish-tiebreaker')">
           {{ $t('tir.finishTiebreaker') }}
         </button>
       </div>
@@ -124,7 +131,7 @@
     <div v-if="showRoundTwoTransition" class="tir-table__actions">
       <p class="tir-table__hint">{{ $t('tir.round2Hint') }}</p>
       <div class="tir-table__actions-row">
-        <button class="tir-table__playoff-btn" @click="$emit('start-round-two')">
+        <button type="button" class="tir-table__playoff-btn" @click="$emit('start-round-two')">
           {{ $t('tir.startRound2') }}
         </button>
       </div>
@@ -222,14 +229,14 @@ export default {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   transition: all 0.2s;
 }
 
 .tir-scoring__mode-btn--active {
   background: var(--tir-touche);
-  color: var(--color-btn-text);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+  color: var(--grey-1200);
+  box-shadow: 0 1px 3px var(--color-dropdown-shadow);
 }
 
 .tir-scoring__select,
@@ -249,6 +256,17 @@ export default {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.tir-scoring__mode-btn:focus-visible,
+.tir-scoring__participant-row:focus-visible,
+.tir-scoring__atelier-card:focus-visible,
+.tir-table__playoff-btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .tir-scoring__participant-row:hover {
@@ -301,7 +319,7 @@ export default {
 .tir-scoring__progress-text,
 .tir-scoring__progress-pct {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-scoring__progress-pct {
@@ -310,12 +328,12 @@ export default {
 
 .tir-scoring__atelier-desc {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-scoring__atelier-progress {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -335,7 +353,7 @@ export default {
 .tir-scoring__score-max {
   font-size: 13px;
   font-weight: 400;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-scoring__participant-status {
@@ -357,7 +375,7 @@ export default {
 }
 
 .tir-scoring__atelier-card:hover {
-  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+  box-shadow: 0 2px 8px var(--color-card-shadow);
 }
 
 .tir-scoring__atelier-num {
@@ -365,7 +383,7 @@ export default {
   height: 32px;
   border-radius: 50%;
   background: var(--tir-touche);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -378,7 +396,7 @@ export default {
   padding: 16px;
   border: 2px solid var(--color-warning);
   border-radius: 12px;
-  background: rgb(245 166 35 / 6%);
+  background: var(--color-warning-bg);
 }
 
 .tir-tiebreaker__header {
@@ -392,13 +410,13 @@ export default {
 
 .tir-tiebreaker__desc {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 .tir-table__hint {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin-bottom: 10px;
 }
 
@@ -421,11 +439,17 @@ export default {
 .tir-table__playoff-btn {
   padding: 10px 20px;
   background: var(--tir-touche);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   border: none;
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tir-scoring__progress-fill {
+    transition: none;
+  }
 }
 </style>

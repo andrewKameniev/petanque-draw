@@ -34,7 +34,10 @@
           {{ $t('games.poulesBarrage') }}
         </button>
       </div>
-      <div v-if="!readOnly && tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="ranking-header__actions">
+      <div
+        v-if="!readOnly && tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly"
+        class="ranking-header__actions"
+      >
         <button
           v-if="isTournamentOrg && portalIdTournament"
           class="button is-small btn-purple-outline"
@@ -60,7 +63,10 @@
       </div>
     </div>
     <div v-if="tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="mb-5">
-      <div v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)" class="ranking-header">
+      <div
+        v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
+        class="ranking-header"
+      >
         <div class="ranking-header__actions ml-auto">
           <button
             v-if="isTournamentOrg && portalIdTournament"

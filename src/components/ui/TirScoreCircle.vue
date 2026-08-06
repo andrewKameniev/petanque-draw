@@ -5,23 +5,28 @@
     class="tir-score-circle"
     :class="[
       `tir-score-circle--${result}`,
+      `tir-score-circle--${resolvedSize}`,
       {
         'tir-score-circle--active': active,
-        'tir-score-circle--small': small || size === 'small',
-        'tir-score-circle--compact': size === 'compact',
-        'tir-score-circle--large': size === 'large',
       },
     ]"
     :disabled="interactive ? disabled : undefined"
-    :aria-label="interactive ? ariaLabel : undefined"
+    :role="!interactive && active ? 'img' : undefined"
+    :aria-label="interactive || active ? resolvedAriaLabel : undefined"
+    :aria-hidden="!interactive && !active ? 'true' : undefined"
     :aria-pressed="interactive ? active : undefined"
     @click="interactive && $emit('select', result)"
-  ></component>
+  >
+    <Check v-if="active" class="tir-score-circle__cue" :size="cueSize" aria-hidden="true" />
+  </component>
 </template>
 
 <script>
+import { Check } from 'lucide-vue-next';
+
 export default {
   name: 'TirScoreCircle',
+  components: { Check },
   props: {
     result: {
       type: String,
@@ -31,7 +36,6 @@ export default {
     active: { type: Boolean, default: false },
     interactive: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
-    small: { type: Boolean, default: false },
     size: {
       type: String,
       default: 'default',
@@ -40,6 +44,18 @@ export default {
     ariaLabel: { type: String, default: '' },
   },
   emits: ['select'],
+  computed: {
+    resolvedSize() {
+      return this.size;
+    },
+    resolvedAriaLabel() {
+      const suppliedLabel = this.ariaLabel.trim();
+      return suppliedLabel || this.$t(`tir.${this.result}`);
+    },
+    cueSize() {
+      return this.resolvedSize === 'large' ? 18 : 14;
+    },
+  },
 };
 </script>
 
@@ -70,6 +86,16 @@ button.tir-score-circle:focus-visible {
   transform: scale(1.08);
 }
 
+button.tir-score-circle:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.tir-score-circle__cue {
+  color: var(--grey-1200);
+  stroke-width: 3;
+}
+
 .tir-score-circle--active {
   opacity: 1;
 }
@@ -95,8 +121,8 @@ button.tir-score-circle:focus-visible {
 }
 
 .tir-score-circle--small {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .tir-score-circle--compact {
@@ -111,5 +137,16 @@ button.tir-score-circle:focus-visible {
 
 .tir-score-circle:disabled {
   cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tir-score-circle {
+    transition: none;
+  }
+
+  button.tir-score-circle:hover:not(:disabled),
+  button.tir-score-circle:focus-visible {
+    transform: none;
+  }
 }
 </style>

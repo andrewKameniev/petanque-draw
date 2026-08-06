@@ -1,8 +1,8 @@
 <template>
   <div class="tir-aview">
     <div class="tir-aview__header">
-      <button class="tir-aview__back" @click="$emit('back')">
-        <ChevronLeft :size="20" />
+      <button type="button" class="tir-aview__back" :aria-label="$t('tir.back')" @click="$emit('back')">
+        <ChevronLeft :size="20" aria-hidden="true" />
       </button>
       <div class="tir-aview__info">
         <h3 class="tir-aview__name">{{ $t('tir.atelier') }} {{ atelierIndex + 1 }}</h3>
@@ -15,7 +15,13 @@
     <!-- Participants list for this atelier -->
     <div class="tir-aview__list">
       <div v-for="(participant, index) in participants" :key="participant.id" class="tir-aview__row">
-        <div class="tir-aview__row-header" @click="toggleExpand(participant.id)">
+        <button
+          type="button"
+          class="tir-aview__row-header"
+          :aria-expanded="expandedId === participant.id"
+          :aria-controls="participantPanelId(participant, index)"
+          @click="toggleExpand(participant.id)"
+        >
           <div class="tir-aview__row-info">
             <span class="tir-aview__row-rank">{{ index + 1 }}</span>
             <span class="tir-aview__row-name">{{ participant.name }}</span>
@@ -27,16 +33,34 @@
             >
           </div>
           <div class="tir-aview__row-status">
-            <CheckCircle v-if="isComplete(participant)" :size="16" class="tir-aview__icon--complete" />
-            <AlertCircle v-else-if="getAtelierThrows(participant) > 0" :size="16" class="tir-aview__icon--partial" />
-            <Circle v-else :size="16" class="tir-aview__icon--empty" />
+            <CheckCircle
+              v-if="isComplete(participant)"
+              :size="16"
+              class="tir-aview__icon--complete"
+              aria-hidden="true"
+            />
+            <AlertCircle
+              v-else-if="getAtelierThrows(participant) > 0"
+              :size="16"
+              class="tir-aview__icon--partial"
+              aria-hidden="true"
+            />
+            <Circle v-else :size="16" class="tir-aview__icon--empty" aria-hidden="true" />
           </div>
           <div class="tir-aview__row-expand">
-            <ChevronDown :size="16" :class="{ 'tir-aview__chevron--open': expandedId === participant.id }" />
+            <ChevronDown
+              :size="16"
+              :class="{ 'tir-aview__chevron--open': expandedId === participant.id }"
+              aria-hidden="true"
+            />
           </div>
-        </div>
+        </button>
         <!-- Inline scoring grid -->
-        <div v-if="expandedId === participant.id" class="tir-aview__row-grid">
+        <div
+          v-if="expandedId === participant.id"
+          :id="participantPanelId(participant, index)"
+          class="tir-aview__row-grid"
+        >
           <TirScoreGrid
             compact
             :distances="distances"
@@ -49,7 +73,7 @@
     </div>
 
     <!-- Finish button -->
-    <button v-if="!readOnly" class="tir-aview__finish" @click="showFinishConfirm = true">
+    <button v-if="!readOnly" type="button" class="tir-aview__finish" @click="showFinishConfirm = true">
       {{ $t('tir.finishAtelier') }}
     </button>
 
@@ -59,10 +83,14 @@
         <h4 class="tir-aview__confirm-title">{{ $t('tir.finishAtelier') }}</h4>
         <p class="tir-aview__confirm-text">{{ $t('tir.finishAtelierConfirm') }}</p>
         <div class="tir-aview__confirm-actions">
-          <button class="tir-aview__confirm-btn tir-aview__confirm-btn--cancel" @click="showFinishConfirm = false">
+          <button
+            type="button"
+            class="tir-aview__confirm-btn tir-aview__confirm-btn--cancel"
+            @click="showFinishConfirm = false"
+          >
             {{ $t('common.cancel') }}
           </button>
-          <button class="tir-aview__confirm-btn tir-aview__confirm-btn--confirm" @click="confirmFinish">
+          <button type="button" class="tir-aview__confirm-btn tir-aview__confirm-btn--confirm" @click="confirmFinish">
             {{ $t('common.confirm') }}
           </button>
         </div>
@@ -116,6 +144,10 @@ export default {
     toggleExpand(id) {
       this.expandedId = this.expandedId === id ? null : id;
     },
+    participantPanelId(participant, index) {
+      const key = String(participant.id ?? index).replace(/[^a-zA-Z0-9_-]/g, '-');
+      return `tir-atelier-participant-${key}`;
+    },
     getAtelierScore(participant) {
       return getAtelierScore(participant, this.scoresKey, this.atelierIndex);
     },
@@ -164,6 +196,14 @@ export default {
   color: var(--color-text);
 }
 
+.tir-aview__back:focus-visible,
+.tir-aview__row-header:focus-visible,
+.tir-aview__finish:focus-visible,
+.tir-aview__confirm-btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-aview__name {
   margin: 0;
   font-size: 18px;
@@ -171,7 +211,7 @@ export default {
 
 .tir-aview__desc {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-aview__list {
@@ -201,6 +241,11 @@ export default {
   padding: 4px;
   margin: -4px;
   transition: background 0.15s;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
 }
 
 .tir-aview__row-header:hover {
@@ -218,7 +263,7 @@ export default {
 .tir-aview__row-rank {
   font-weight: 600;
   min-width: 20px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-aview__row-name {
@@ -232,13 +277,13 @@ export default {
 
 .tir-aview__row-score {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .tir-aview__row-throws {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -280,7 +325,7 @@ export default {
   width: 100%;
   padding: 14px;
   background: var(--tir-delete);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   border: none;
   border-radius: 10px;
   font-weight: 600;
@@ -325,6 +370,6 @@ export default {
 
 .tir-aview__confirm-btn--confirm {
   background: var(--tir-delete);
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
 }
 </style>

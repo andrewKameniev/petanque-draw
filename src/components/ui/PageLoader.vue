@@ -1,20 +1,31 @@
 <template>
-  <div class="page-loader" role="status" aria-live="polite" :aria-label="label">
-    <span class="page-loader__dot"></span>
-    <span class="page-loader__dots" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
+  <div class="page-loader" role="status" aria-live="polite" aria-atomic="true" :aria-labelledby="labelId">
+    <span class="page-loader__visual" aria-hidden="true">
+      <span class="page-loader__dot"></span>
+      <span class="page-loader__dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </span>
-    <span class="visually-hidden">{{ label }}</span>
+    <span :id="labelId" class="visually-hidden">{{ label }}</span>
   </div>
 </template>
 
 <script>
+import { useId } from 'vue';
+
 export default {
   name: 'PageLoader',
   props: {
-    label: { type: String, default: 'Loading…' },
+    label: {
+      type: String,
+      required: true,
+      validator: (value) => typeof value === 'string' && value.trim().length > 0,
+    },
+  },
+  setup() {
+    return { labelId: `page-loader-label-${useId()}` };
   },
 };
 </script>
@@ -28,6 +39,11 @@ export default {
   width: 142px;
   height: 60px;
   margin: -20px 0 0 -71px;
+  pointer-events: none;
+}
+
+.page-loader__visual {
+  display: block;
 }
 
 .page-loader__dot {
@@ -87,7 +103,8 @@ export default {
 @media (prefers-reduced-motion: reduce) {
   .page-loader__dot,
   .page-loader__dots {
-    animation-duration: 8s;
+    transform: none;
+    animation: none;
   }
 }
 </style>

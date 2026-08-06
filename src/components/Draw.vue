@@ -1,5 +1,5 @@
 <template>
-  <PageLoader v-if="isLoading" />
+  <PageLoader v-if="isLoading" :label="$t('common.loading')" />
   <div v-else class="wrapper">
     <Navbar @open-menu="menuOpen = !menuOpen" />
     <div class="container">

@@ -1,8 +1,8 @@
 <template>
   <div class="tir-pview">
     <div class="tir-pview__header">
-      <button class="tir-pview__back" @click="$emit('back')">
-        <ChevronLeft :size="20" />
+      <button type="button" class="tir-pview__back" :aria-label="$t('tir.back')" @click="$emit('back')">
+        <ChevronLeft :size="20" aria-hidden="true" />
       </button>
       <div class="tir-pview__info">
         <h3 class="tir-pview__name">{{ participant.name }}</h3>
@@ -34,6 +34,7 @@
               :key="opt.key"
               :result="opt.key"
               :active="getScoreAt(aIdx, distance) === opt.key"
+              :aria-label="`${atelier.name}, ${distance}m, ${$t(`tir.${opt.key}`)}`"
             />
           </div>
         </div>
@@ -42,7 +43,12 @@
 
     <!-- Atelier tabs (scoring mode) -->
     <template v-else>
-      <TirAtelierTabs v-model="activeAtelierIndex" :items="atelierTabs" :label="$t('tir.atelier')" />
+      <TirAtelierTabs
+        v-model="activeAtelierIndex"
+        :items="atelierTabs"
+        :label="$t('tir.atelier')"
+        :complete-label="$t('training.statusCompleted')"
+      />
 
       <!-- Active atelier scoring -->
       <div class="tir-pview__atelier">
@@ -60,8 +66,8 @@
           @select="setScore($event.distance, $event.result)"
         />
 
-        <div v-if="lastSaved" class="tir-pview__saved">
-          <CheckCircle :size="14" />
+        <div v-if="lastSaved" class="tir-pview__saved" aria-live="polite">
+          <CheckCircle :size="14" aria-hidden="true" />
           {{ lastSaved }}
         </div>
       </div>
@@ -70,16 +76,16 @@
     <!-- Navigation (scoring mode only) -->
     <div v-if="!readOnly" class="tir-pview__nav">
       <TirScoringAction @click="prevAtelier" :disabled="activeAtelierIndex === 0">
-        <ChevronLeft :size="16" />
+        <ChevronLeft :size="16" aria-hidden="true" />
         {{ $t('tir.prevAtelier') }}
       </TirScoringAction>
       <TirScoringAction v-if="activeAtelierIndex < ateliers.length - 1" @click="nextAtelier">
         {{ $t('tir.nextAtelier') }}
-        <ChevronRight :size="16" />
+        <ChevronRight :size="16" aria-hidden="true" />
       </TirScoringAction>
       <TirScoringAction v-else variant="primary" @click="$emit('next')">
         {{ $t('tir.nextParticipant') }}
-        <ChevronRight :size="16" />
+        <ChevronRight :size="16" aria-hidden="true" />
       </TirScoringAction>
     </div>
   </div>
@@ -206,7 +212,7 @@ export default {
       if (current === type) {
         this.lastSaved = null;
       } else {
-        const label = type.charAt(0).toUpperCase() + type.slice(1);
+        const label = this.$t(`tir.${type}`);
         this.lastSaved = `${this.$t('tir.saved')}: ${distance}m · ${label} · ${this.scoring[type]} ${this.$t('ranking.points')}`;
         if (isAtelierComplete(updatedParticipant, this.scoresKey, this.activeAtelierIndex, this.distances.length)) {
           setTimeout(() => {
@@ -246,6 +252,11 @@ export default {
   color: var(--color-text);
 }
 
+.tir-pview__back:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-pview__info {
   flex: 1;
 }
@@ -262,17 +273,17 @@ export default {
 .tir-pview__total-score {
   font-size: 24px;
   font-weight: 700;
-  color: var(--tir-carreau);
+  color: var(--color-text);
 }
 
 .tir-pview__total-max {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-pview__throws {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 /* Atelier */
@@ -303,23 +314,23 @@ export default {
 .tir-pview__atelier-score-val {
   font-size: 20px;
   font-weight: 700;
-  color: var(--tir-carreau);
+  color: var(--color-text);
 }
 
 .tir-pview__atelier-score-max {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-pview__atelier-score-label {
   display: block;
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .tir-pview__atelier-desc {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
 
@@ -330,7 +341,7 @@ export default {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--tir-carreau);
+  color: var(--color-text);
   margin-top: 8px;
 }
 
@@ -360,7 +371,7 @@ export default {
 .tir-pview__circles-dist {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   min-width: 24px;
 }
 </style>

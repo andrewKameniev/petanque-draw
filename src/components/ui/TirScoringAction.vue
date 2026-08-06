@@ -49,26 +49,31 @@ export default {
   border-color: var(--color-primary);
 }
 
+.tir-scoring-action:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 .tir-scoring-action--primary {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-touche);
   border-color: var(--tir-touche);
 }
 
 .tir-scoring-action--success {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-carreau);
   border-color: var(--tir-carreau);
 }
 
 .tir-scoring-action--danger {
-  color: var(--tir-manque);
+  color: var(--color-text);
   border-color: var(--tir-manque);
 }
 
 .tir-scoring-action--danger:hover:not(:disabled),
 .tir-scoring-action--danger:focus-visible {
-  color: var(--color-btn-text);
+  color: var(--grey-1200);
   background: var(--tir-manque);
   border-color: var(--tir-manque);
 }

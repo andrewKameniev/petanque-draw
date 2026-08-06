@@ -8,43 +8,100 @@
       type="button"
       role="tab"
       class="tournament-nav__btn"
-      :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === modelValue }]"
-      :aria-controls="panelId || undefined"
-      :aria-selected="tab.id === modelValue"
-      :tabindex="tab.id === modelValue ? 0 : -1"
+      :class="[`tournament-nav__btn--${tab.id}`, { 'tournament-nav__btn--active': tab.id === selectedTabId }]"
+      :aria-controls="panelId"
+      :aria-selected="tab.id === selectedTabId"
+      :tabindex="tab.id === selectedTabId ? 0 : -1"
       @click="selectTab(tab)"
       @keydown="onKeydown($event, index)"
     >
-      <component :is="tab.icon" v-if="tab.icon" :size="18" aria-hidden="true" />
+      <component :is="tab.icon" v-if="tab.icon" :size="18" aria-hidden="true" :focusable="false" />
       <span>{{ tab.label }}</span>
     </button>
   </div>
 </template>
 
 <script>
+const TAB_VARIANTS = ['default', 'tir'];
+
+function hasValidTabs(tabs) {
+  if (!Array.isArray(tabs) || tabs.length === 0) return false;
+
+  const ids = new Set();
+  return tabs.every((tab) => {
+    if (!tab || typeof tab.id !== 'string' || !tab.id.trim()) return false;
+    if (typeof tab.label !== 'string' || !tab.label.trim() || ids.has(tab.id)) return false;
+    ids.add(tab.id);
+    return true;
+  });
+}
+
+const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+
 export default {
   name: 'TournamentNav',
   props: {
-    tabs: { type: Array, required: true },
+    tabs: { type: Array, required: true, validator: hasValidTabs },
     modelValue: { type: String, required: true },
-    label: { type: String, default: 'Tournament sections' },
-    panelId: { type: String, default: 'tournament-tabpanel' },
-    idPrefix: { type: String, default: 'tab' },
+    label: { type: String, required: true, validator: isNonEmptyString },
+    panelId: { type: String, required: true, validator: isNonEmptyString },
+    idPrefix: { type: String, required: true, validator: isNonEmptyString },
     variant: {
       type: String,
       default: 'default',
-      validator: (value) => ['default', 'tir'].includes(value),
+      validator: (value) => TAB_VARIANTS.includes(value),
     },
   },
-  emits: ['update:modelValue', 'change'],
+  emits: {
+    'update:modelValue': isNonEmptyString,
+    change: isNonEmptyString,
+  },
+  data() {
+    return {
+      lastSelectionCorrection: null,
+    };
+  },
+  computed: {
+    selectedTabId() {
+      if (this.tabs.some((tab) => tab.id === this.modelValue)) return this.modelValue;
+      return this.tabs[0]?.id || null;
+    },
+  },
+  watch: {
+    modelValue: {
+      immediate: true,
+      handler() {
+        this.reconcileSelection();
+      },
+    },
+    tabs: {
+      deep: true,
+      handler() {
+        this.reconcileSelection();
+      },
+    },
+  },
   methods: {
     tabId(id) {
       return `${this.idPrefix}-${id}`;
     },
     selectTab(tab) {
-      if (!tab?.id) return;
+      if (!tab?.id || !this.tabs.some((candidate) => candidate.id === tab.id)) return;
       this.$emit('update:modelValue', tab.id);
       this.$emit('change', tab.id);
+    },
+    reconcileSelection() {
+      if (this.tabs.some((tab) => tab.id === this.modelValue)) {
+        this.lastSelectionCorrection = null;
+        return;
+      }
+
+      const fallbackId = this.tabs[0]?.id;
+      if (!fallbackId) return;
+      const correction = `${this.modelValue}\u0000${fallbackId}\u0000${this.tabs.map((tab) => tab.id).join('\u0000')}`;
+      if (correction === this.lastSelectionCorrection) return;
+      this.lastSelectionCorrection = correction;
+      this.$emit('update:modelValue', fallbackId);
     },
     focusTab(id) {
       this.$nextTick(() => {
@@ -90,7 +147,7 @@ export default {
   padding: 8px 6px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   cursor: pointer;
   background: none;
   border: none;
@@ -98,50 +155,13 @@ export default {
 }
 
 .tournament-nav__btn:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: -2px;
 }
 
 .tournament-nav__btn--active {
   font-weight: 700;
-}
-
-.tournament-nav__btn--teams.tournament-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tournament-nav__btn--games.tournament-nav__btn--active,
-.tournament-nav__btn--round.tournament-nav__btn--active,
-.tournament-nav__btn--bracket.tournament-nav__btn--active,
-.tournament-nav__btn--protocol.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--results.tournament-nav__btn--active {
-  color: var(--tir-carreau);
-}
-
-.tournament-nav__btn--ranking.tournament-nav__btn--active {
-  color: var(--tir-touche);
-}
-
-.tournament-nav__btn--streams.tournament-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tournament-nav__btn--participants.tournament-nav__btn--active {
-  color: var(--tir-delete);
-}
-
-.tournament-nav__btn--scoring.tournament-nav__btn--active {
-  color: var(--color-primary);
-}
-
-.tournament-nav__btn--table.tournament-nav__btn--active {
-  color: var(--tir-carreau);
-}
-
-.tournament-nav__btn--playoff.tournament-nav__btn--active {
-  color: var(--tir-touche);
+  color: var(--color-primary-light);
 }
 
 .tournament-nav--tir {

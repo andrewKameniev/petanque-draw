@@ -4,11 +4,11 @@
 
   <div class="docs">
     <!-- Mobile nav toggle -->
-    <button class="docs__mobile-toggle" @click="navOpen = !navOpen">
-      <Menu :size="20" v-if="!navOpen" />
-      <X :size="20" v-else />
+    <button type="button" class="docs__mobile-toggle" :aria-expanded="navOpen" @click="navOpen = !navOpen">
+      <Menu :size="20" v-if="!navOpen" aria-hidden="true" />
+      <X :size="20" v-else aria-hidden="true" />
       <span>{{ sections.find((s) => s.id === activeSection)?.label || $t('docs.title') }}</span>
-      <ChevronDown :size="16" :class="{ 'docs__chevron--open': navOpen }" />
+      <ChevronDown :size="16" :class="{ 'docs__chevron--open': navOpen }" aria-hidden="true" />
     </button>
 
     <DocsSidebar
@@ -58,16 +58,18 @@
         <section id="glossary" class="docs__section" ref="glossary">
           <h2 class="docs__title">{{ $t('docs.glossary.title') }}</h2>
           <div class="docs__glossary-grid">
-            <div
+            <component
+              :is="glossaryLink(key) ? 'button' : 'div'"
               v-for="key in glossaryKeys"
               :key="key"
+              :type="glossaryLink(key) ? 'button' : undefined"
               class="docs__glossary-card"
               :class="[`docs__glossary-card--${key}`, glossaryLink(key) ? 'docs__glossary-card--clickable' : '']"
               @click="glossaryLink(key) && scrollToSection(glossaryLink(key))"
             >
               <span class="docs__glossary-term">{{ $t(`docs.glossary.${key}.term`) }}</span>
               <span class="docs__glossary-desc">{{ $t(`docs.glossary.${key}.short`) }}</span>
-            </div>
+            </component>
           </div>
         </section>
 
@@ -719,9 +721,14 @@
 
           <div class="docs__faq">
             <div v-for="n in 12" :key="n" class="docs__faq-item" :class="{ 'docs__faq-item--open': faqOpen === n }">
-              <button class="docs__faq-question" @click="faqOpen = faqOpen === n ? null : n">
+              <button
+                type="button"
+                class="docs__faq-question"
+                :aria-expanded="faqOpen === n"
+                @click="faqOpen = faqOpen === n ? null : n"
+              >
                 <span>{{ $t(`docs.faqSection.items.q${n}`) }}</span>
-                <ChevronDown :size="16" />
+                <ChevronDown :size="16" aria-hidden="true" />
               </button>
               <div class="docs__faq-answer">
                 <p>{{ $t(`docs.faqSection.items.a${n}`) }}</p>
@@ -731,7 +738,12 @@
         </section>
       </template>
     </main>
-    <ScrollButtons container-selector=".docs__content" />
+    <ScrollButtons
+      :target="scrollButtonsTarget"
+      container-selector=".docs__content"
+      :top-label="$t('common.scrollToTop')"
+      :bottom-label="$t('common.scrollToBottom')"
+    />
   </div>
 </template>
 
@@ -802,6 +814,8 @@ export default {
       faqOpen: null,
       calcTeams: 16,
       observer: null,
+      scrollButtonsMedia: null,
+      scrollButtonsTarget: 'container',
     };
   },
   computed: {
@@ -957,6 +971,10 @@ export default {
       return map[key] || null;
     },
     smoothScroll(container, to, duration = 300) {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        container.scrollTop = to;
+        return;
+      }
       const start = container.scrollTop;
       const diff = to - start;
       let startTime = null;
@@ -975,7 +993,8 @@ export default {
       if (!el) return;
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        el.scrollIntoView({ behavior, block: 'start' });
       } else {
         const container = this.$refs.content;
         if (container) {
@@ -1015,8 +1034,16 @@ export default {
         this.showBackTop = content.scrollTop > 400;
       }
     },
+    updateScrollButtonsTarget(media = this.scrollButtonsMedia) {
+      const isMobile = typeof media?.matches === 'boolean' ? media.matches : window.innerWidth <= 768;
+      this.scrollButtonsTarget = isMobile ? 'window' : 'container';
+    },
   },
   mounted() {
+    this.scrollButtonsMedia = window.matchMedia?.('(max-width: 768px)') || null;
+    this.updateScrollButtonsTarget();
+    this.scrollButtonsMedia?.addEventListener('change', this.updateScrollButtonsTarget);
+
     this.$nextTick(() => {
       this.setupObserver();
       this.$refs.content?.addEventListener('scroll', this.handleScroll);
@@ -1030,6 +1057,7 @@ export default {
   beforeUnmount() {
     this.observer?.disconnect();
     this.$refs.content?.removeEventListener('scroll', this.handleScroll);
+    this.scrollButtonsMedia?.removeEventListener('change', this.updateScrollButtonsTarget);
   },
 };
 </script>
@@ -1268,6 +1296,10 @@ export default {
 }
 
 .docs__glossary-card {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   background: var(--color-white);
   border: 1px solid var(--color-border-light);
   border-radius: 10px;
@@ -1287,6 +1319,13 @@ export default {
 .docs__glossary-card:hover {
   border-color: var(--color-primary);
   box-shadow: 0 2px 8px var(--color-card-shadow);
+}
+
+.docs__glossary-card--clickable:focus-visible,
+.docs__mobile-toggle:focus-visible,
+.docs__faq-question:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .docs__glossary-term {

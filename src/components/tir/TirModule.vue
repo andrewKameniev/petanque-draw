@@ -4,7 +4,7 @@
       v-model="view"
       variant="tir"
       :tabs="navigationTabs"
-      :label="$t('tir.scoring')"
+      :label="$t('common.tournamentSections')"
       panel-id="tir-admin-tabpanel"
       id-prefix="tir-admin-tab"
     />
@@ -13,8 +13,14 @@
       <!-- Participants list -->
       <div v-if="view === 'participants'" class="tir-participants">
         <div class="tir-participants__header" v-if="!tournament.tirStarted">
-          <button class="tir-participants__add" @click="showAddParticipant = true">
-            <Plus :size="18" />
+          <button
+            type="button"
+            class="tir-participants__add"
+            :aria-label="$t('tir.addParticipant')"
+            :title="$t('tir.addParticipant')"
+            @click="showAddParticipant = true"
+          >
+            <Plus :size="18" aria-hidden="true" :focusable="false" />
           </button>
         </div>
         <TirParticipantsList :tournament="tournament" :readOnly="!!tournament.tirPlayoff" @update="onScoreUpdate" />
@@ -38,14 +44,14 @@
           </div>
           <template v-if="!isTiebreakerInProgress">
             <div class="tir-tiebreaker__actions">
-              <button class="tir-table__playoff-btn" @click="startTiebreaker">
+              <button type="button" class="tir-table__playoff-btn" @click="startTiebreaker">
                 {{ $t('tir.startTiebreaker') }}
               </button>
             </div>
           </template>
           <template v-else-if="isTiebreakerRoundComplete">
             <div class="tir-tiebreaker__actions">
-              <button class="tir-table__playoff-btn" @click="finishTiebreaker">
+              <button type="button" class="tir-table__playoff-btn" @click="finishTiebreaker">
                 {{ $t('tir.finishTiebreaker') }}
               </button>
             </div>
@@ -67,10 +73,17 @@
               min="1"
               :max="tirParticipants.length"
               v-model.number="swapTarget"
+              :aria-label="$t('games.lane')"
               :placeholder="$t('games.lane')"
               @keyup.enter="confirmLaneSwap"
             />
-            <button class="tir-add-form__btn" @click="confirmLaneSwap" :disabled="!swapTarget">
+            <button
+              type="button"
+              class="tir-add-form__btn"
+              :aria-label="$t('games.shuffleLanes')"
+              @click="confirmLaneSwap"
+              :disabled="!swapTarget"
+            >
               {{ $t('games.shuffleLanes') }}
             </button>
           </div>
@@ -83,11 +96,22 @@
             <input
               class="tir-add-form__input"
               v-model="newParticipant.name"
+              :aria-label="$t('tir.participantName')"
               :placeholder="$t('tir.participantName')"
               @keyup.enter="addParticipant"
             />
-            <input class="tir-add-form__input" v-model="newParticipant.city" :placeholder="$t('tir.city')" />
-            <button class="tir-add-form__btn" @click="addParticipant" :disabled="!newParticipant.name.trim()">
+            <input
+              class="tir-add-form__input"
+              v-model="newParticipant.city"
+              :aria-label="$t('tir.city')"
+              :placeholder="$t('tir.city')"
+            />
+            <button
+              type="button"
+              class="tir-add-form__btn"
+              @click="addParticipant"
+              :disabled="!newParticipant.name.trim()"
+            >
               {{ $t('teams.addTeam') }}
             </button>
           </div>

@@ -1,329 +1,155 @@
-import { test, expect } from '@playwright/test';
-import { addTeams, deleteCurrentTournament, drawFirstRound, ensureCleanTournament, login } from './helpers';
+import { expect, test } from '@playwright/test';
+import { assertBrowserEmulatorSentinel, login } from './helpers';
 import { cleanupOwnedTournament, createFixtureId, seedOwnedTournament } from './firebase-fixtures';
 
-async function getPublicTournamentRef(page) {
-  return page.evaluate(() => {
-    const app = document.querySelector('#app').__vue_app__;
-    const store = app.config.globalProperties.$pinia._s.get('main');
-    return `${store.user.uid}.${Number(store.currentTournamentIndex).toString(36)}`;
-  });
+function activeTournamentRecord(name, timer = { timerStatus: 'not_started', remainingMs: 0 }) {
+  return {
+    name,
+    date: '2026-08-06',
+    activeGroup: 'A',
+    main: {
+      system: 'swiss',
+      tournamentIsStarted: true,
+      tournamentIsFinished: false,
+      roundIsActive: true,
+      teams: [{ title: 'Primitive A' }, { title: 'Primitive B' }],
+      games: [
+        [
+          {
+            team_1: 'Primitive A',
+            team_2: 'Primitive B',
+            team_1_score: 0,
+            team_2_score: 0,
+            status: 'in_progress',
+            field: 1,
+          },
+        ],
+      ],
+      roundTimer: timer,
+      preferences: {
+        maxScore: 13,
+        fieldsStart: 1,
+        timeLimitEnabled: true,
+        timeLimit: 30,
+        cochonettes: 1,
+      },
+    },
+  };
 }
 
-test.describe('Shared UI primitives', () => {
-  test.describe.configure({ timeout: 60000 });
+async function useEnglish(page) {
+  await page.addInitScript(() => localStorage.setItem('petanqueDrawLang', 'en'));
+}
 
-  test.afterEach(async ({ page }) => {
+test.describe('Task 11 shared UI parent integrations', () => {
+  test.describe.configure({ timeout: 60_000 });
+
+  test('@task11 admin navigation and timer use public controls and native semantics', async ({ page }) => {
+    const tournamentId = createFixtureId(70);
+    await useEnglish(page);
     await page.goto('/#/');
-    await deleteCurrentTournament(page);
-  });
+    await assertBrowserEmulatorSentinel(page);
+    await seedOwnedTournament(tournamentId, activeTournamentRecord('Task 11 Admin Primitives'));
+    await login(page);
 
-  test('TournamentNav: keyboard accessible tabs (ArrowLeft, ArrowRight, Home, End)', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await addTeams(page, 8);
-    await drawFirstRound(page);
+    try {
+      await page.goto(`/#/?t=${tournamentId}`);
+      await expect(page.locator('[data-testid="tournament-name-row"]')).toContainText('Task 11 Admin Primitives', {
+        timeout: 10_000,
+      });
 
-    const tabs = page.getByRole('tablist', { name: 'Tournament sections' });
-    await expect(tabs).toBeVisible();
+      const tablist = page.getByRole('tablist', { name: 'Tournament sections' });
+      await expect(tablist).toBeVisible();
+      await expect(tablist.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
+      await expect(tablist.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
 
-    // Verify active tab has aria-selected
-    const activeTab = tabs.locator('[role="tab"][aria-selected="true"]');
-    await expect(activeTab).toBeVisible();
+      const teamsTab = tablist.locator('#tournament-admin-tab-teams');
+      const streamsTab = tablist.locator('#tournament-admin-tab-streams');
+      await teamsTab.focus();
+      await teamsTab.press('End');
+      await expect(streamsTab).toBeFocused();
+      await expect(streamsTab).toHaveAttribute('aria-selected', 'true');
+      await expect(streamsTab).toHaveAttribute('aria-controls', 'tournament-admin-tabpanel');
 
-    // Home key navigates to first tab
-    await activeTab.focus();
-    await activeTab.press('Home');
-    await expect(tabs.locator('#tab-teams')).toHaveAttribute('aria-selected', 'true');
+      await streamsTab.press('ArrowRight');
+      await expect(teamsTab).toBeFocused();
+      await expect(teamsTab).toHaveAttribute('aria-selected', 'true');
 
-    // End key navigates to last tab
-    await tabs.locator('#tab-teams').press('End');
-    await expect(tabs.locator('#tab-streams')).toHaveAttribute('aria-selected', 'true');
+      const gamesTab = tablist.locator('#tournament-admin-tab-games');
+      await gamesTab.click();
+      await expect(page.locator('#tournament-admin-tabpanel')).toHaveAttribute(
+        'aria-labelledby',
+        'tournament-admin-tab-games',
+      );
 
-    // ArrowLeft wraps from non-first position
-    await tabs.locator('#tab-streams').press('ArrowLeft');
-    await expect(tabs.locator('#tab-ranking')).toHaveAttribute('aria-selected', 'true');
+      const startTimer = page.getByRole('button', { name: 'Start timer' });
+      await expect(startTimer).toHaveAttribute('type', 'button');
+      await startTimer.click();
 
-    // ArrowRight from middle
-    await tabs.locator('#tab-ranking').press('ArrowRight');
-    await expect(tabs.locator('#tab-streams')).toHaveAttribute('aria-selected', 'true');
-  });
+      const timer = page.locator('.round-timer');
+      await expect(timer).toBeVisible();
+      await expect(timer).not.toHaveAttribute('role', 'button');
+      await expect(timer.locator('button button, button input')).toHaveCount(0);
 
-  test('RoundTimerControls: running/paused/ended states and start action', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await addTeams(page, 8);
-    await page.evaluate(() => {
-      const app = document.querySelector('#app').__vue_app__;
-      const store = app.config.globalProperties.$pinia._s.get('main');
-      const tournament = store.currentTournament.main || store.currentTournament;
-      tournament.preferences.timeLimitEnabled = true;
-    });
-    await drawFirstRound(page);
+      const pause = page.getByRole('button', { name: 'Pause' });
+      await expect(pause).toHaveAttribute('type', 'button');
+      await pause.click();
+      const resume = page.getByRole('button', { name: 'Resume' });
+      await expect(resume).toBeVisible();
+      await resume.click();
+      await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
 
-    // Navigate to games tab
-    const tabs = page.getByRole('tablist', { name: 'Tournament sections' });
-    await tabs.locator('#tab-games').click();
-
-    // Start button visible
-    const startTimer = page.locator('.round-timer-controls__start');
-    await expect(startTimer).toBeVisible();
-
-    // Click start -> running state (timer element appears)
-    await startTimer.click();
-    const timer = page.locator('.round-timer');
-    await expect(timer).toHaveAttribute('role', 'button');
-
-    // Pause -> paused state
-    await timer.focus();
-    await timer.press('Enter');
-    await expect(page.locator('.round-timer__restart')).toBeVisible();
-  });
-
-  test('PublicPageShell and PageLoader: desktop light/dark', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await addTeams(page, 8);
-    await drawFirstRound(page);
-    const tournamentRef = await getPublicTournamentRef(page);
-
-    // Desktop viewport (1280px)
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto(`/#/tournament?ref=${tournamentRef}`);
-    const shell = page.locator('.public-page-shell');
-    const tabs = page.getByRole('tablist', { name: 'Tournament sections' });
-    await expect(shell).toBeVisible();
-    await expect(tabs).toBeVisible();
-
-    // Light theme: texture background present
-    const lightTexture = await shell.evaluate(
-      (element) => window.getComputedStyle(element, '::before').backgroundImage,
-    );
-    expect(lightTexture).toContain('bg-petanque');
-
-    // Dark theme: texture hidden
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    const darkTextureDisplay = await shell.evaluate((element) => window.getComputedStyle(element, '::before').display);
-    expect(darkTextureDisplay).toBe('none');
-
-    // PageLoader is accessible
-    await shell.evaluate((element) => {
-      let instance = element.__vueParentComponent;
-      while (instance && instance.type?.name !== 'Public') instance = instance.parent;
-      instance.proxy.isLoading = true;
-    });
-    const loader = page.getByRole('status', { name: 'Loading…' });
-    await expect(loader).toBeVisible();
-    await expect(loader.locator('.visually-hidden')).toHaveText('Loading…');
-  });
-
-  test('PublicPageShell: mobile viewport (375px) and responsive layout', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await addTeams(page, 8);
-    await drawFirstRound(page);
-    const tournamentRef = await getPublicTournamentRef(page);
-
-    // Mobile viewport (375px)
-    await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto(`/#/tournament?ref=${tournamentRef}`);
-    const shell = page.locator('.public-page-shell');
-    const tabs = page.getByRole('tablist', { name: 'Tournament sections' });
-    await expect(shell).toBeVisible();
-    await expect(tabs).toBeVisible();
-
-    // No horizontal overflow
-    const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
-    expect(fitsViewport).toBe(true);
-  });
-
-  test('TournamentNav: different tab sets on desktop', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await addTeams(page, 8);
-    await drawFirstRound(page);
-
-    // Desktop viewport
-    await page.setViewportSize({ width: 1280, height: 800 });
-    const tabs = page.getByRole('tablist', { name: 'Tournament sections' });
-
-    // Admin view has multiple tabs
-    const tabButtons = tabs.locator('[role="tab"]');
-    const tabCount = await tabButtons.count();
-    expect(tabCount).toBeGreaterThanOrEqual(4);
-
-    // Click each tab and verify aria-selected updates
-    for (let i = 0; i < Math.min(tabCount, 3); i++) {
-      await tabButtons.nth(i).click();
-      await expect(tabButtons.nth(i)).toHaveAttribute('aria-selected', 'true');
+      const restartToggle = page.locator('.round-timer__restart-toggle');
+      await expect(restartToggle).toHaveAttribute('aria-expanded', 'false');
+      await restartToggle.click();
+      await expect(restartToggle).toHaveAttribute('aria-expanded', 'true');
+      await expect(page.getByRole('spinbutton', { name: 'Custom minutes' })).toBeVisible();
+      await expect(page.locator('.round-timer__restart button:not([type="button"])')).toHaveCount(0);
+    } finally {
+      await cleanupOwnedTournament(tournamentId);
     }
   });
 
-  test('Tir scoring controls: atelier tabs, score grid, cards on desktop', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await page.goto('/#/training');
-    await expect(page.locator('.training-tabs')).toBeVisible();
-
-    await page.locator('.training-content').evaluate((element) => {
-      let instance = element.__vueParentComponent;
-      while (instance && instance.type?.name !== 'Training') instance = instance.parent;
-      instance.proxy.activeSession = {
-        id: 'e2e-desktop-scoring',
-        name: 'Desktop scoring QA',
-        type: 'tir_custom',
-        status: 'draft',
-        config: { exercises: [0, 1], distances: [6, 7], attempts: 4 },
-        attempts: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      instance.proxy.view = 'session';
-    });
-
-    // Desktop viewport (1280px)
-    await page.setViewportSize({ width: 1280, height: 800 });
-
-    // Legend, cards, atelier tabs, score circles all visible
-    await expect(page.locator('.tir-score-legend')).toBeVisible();
-    await expect(page.locator('.tir-scoring-card')).toHaveCount(1);
-    await expect(page.locator('.tir-atelier-tabs__tab')).toHaveCount(2);
-    await expect(page.locator('button.tir-score-circle')).toHaveCount(32);
-    await expect(page.locator('button.tir-score-circle').first()).toHaveAttribute('aria-pressed', 'false');
-
-    // Atelier tab keyboard navigation
-    const atelierTabs = page.locator('.tir-atelier-tabs');
-    await atelierTabs.locator('[role="tab"]').first().focus();
-    await atelierTabs.locator('[role="tab"]').first().press('ArrowRight');
-    await expect(atelierTabs.locator('#training-atelier-1')).toHaveAttribute('aria-selected', 'true');
-  });
-
-  test('Tir scoring controls: multiple cards and circles on mobile', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await page.goto('/#/training');
-    await expect(page.locator('.training-tabs')).toBeVisible();
-
-    await page.locator('.training-content').evaluate((element) => {
-      let instance = element.__vueParentComponent;
-      while (instance && instance.type?.name !== 'Training') instance = instance.parent;
-      instance.proxy.activeSession = {
-        id: 'e2e-mobile-scoring',
-        name: 'Mobile scoring QA',
-        type: 'tir_custom',
-        status: 'draft',
-        config: { exercises: [0, 1], distances: [6, 7], attempts: 2 },
-        attempts: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      instance.proxy.view = 'session';
-    });
-
-    // Mobile viewport (375px)
-    await page.setViewportSize({ width: 375, height: 812 });
-    await expect(page.locator('.tsession')).toBeVisible();
-
-    // When attempts <= exercises, show multiple cards without atelier tabs
-    await expect(page.locator('.tir-atelier-tabs')).toHaveCount(0);
-    await expect(page.locator('.tir-scoring-card')).toHaveCount(2);
-    await expect(page.locator('button.tir-score-circle')).toHaveCount(32);
-
-    // No horizontal overflow on mobile
-    const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
-    expect(fitsViewport).toBe(true);
-  });
-
-  test('Tir scoring cards: light/dark theme background changes', async ({ page }) => {
-    await ensureCleanTournament(page);
-    await page.goto('/#/training');
-    await expect(page.locator('.training-tabs')).toBeVisible();
-
-    await page.locator('.training-content').evaluate((element) => {
-      let instance = element.__vueParentComponent;
-      while (instance && instance.type?.name !== 'Training') instance = instance.parent;
-      instance.proxy.activeSession = {
-        id: 'e2e-theme-scoring',
-        name: 'Theme scoring QA',
-        type: 'tir_custom',
-        status: 'draft',
-        config: { exercises: [0], distances: [6, 7], attempts: 2 },
-        attempts: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      instance.proxy.view = 'session';
-    });
-
-    await expect(page.locator('.tir-scoring-card').first()).toBeVisible();
-
-    // Get light theme card background
-    const lightCardBackground = await page
-      .locator('.tir-scoring-card')
-      .first()
-      .evaluate((element) => window.getComputedStyle(element).backgroundColor);
-
-    // Switch to dark theme
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-
-    // Dark theme card background should differ
-    const darkCardBackground = await page
-      .locator('.tir-scoring-card')
-      .first()
-      .evaluate((element) => window.getComputedStyle(element).backgroundColor);
-    expect(darkCardBackground).not.toBe(lightCardBackground);
-  });
-
-  test('Archived: TournamentNav tabs visible on desktop and mobile with sidebar', async ({ page }) => {
-    const id = createFixtureId(70);
-    await seedOwnedTournament(
-      id,
-      {
-        name: 'UI Primitives Archived',
-        date: '2026-08-06',
-        system: 'swiss',
-        teams: [{ title: 'Prim A' }, { title: 'Prim B' }, { title: 'Prim C' }, { title: 'Prim D' }],
-        games: [[{ team_1: 'Prim A', team_2: 'Prim B', team_1_score: 13, team_2_score: 10, status: 'finished' }]],
-        preferences: {},
-      },
-      { status: 'archived' },
+  test('@task11 public shell keeps navigation and the read-only timer responsive', async ({ page }) => {
+    const tournamentId = createFixtureId(80);
+    await useEnglish(page);
+    await page.goto('/#/');
+    await assertBrowserEmulatorSentinel(page);
+    const fixture = await seedOwnedTournament(
+      tournamentId,
+      activeTournamentRecord('Task 11 Public Primitives', {
+        timerStatus: 'paused',
+        timerStartedAt: '2026-08-06T08:00:00.000Z',
+        timerEndsAt: null,
+        remainingMs: 65_000,
+      }),
     );
+
     try {
-      await login(page);
-      await page
-        .locator('[data-testid="tournament-name-row"], [data-testid="input-team-title"]')
-        .first()
-        .waitFor({ state: 'visible' });
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto(`/#/tournament?ref=${fixture.ref}`);
 
-      // Desktop viewport
-      await page.setViewportSize({ width: 1280, height: 720 });
-      await page.goto('/#/archived');
-      const sidebarItem = page.locator(`.archived-sidebar__item[data-tournament-id="${id}"]`);
-      await expect(sidebarItem).toBeVisible();
-      await sidebarItem.click();
-      await page.waitForTimeout(500);
+      const shell = page.locator('.public-page-shell');
+      const tablist = page.getByRole('tablist', { name: 'Tournament sections' });
+      await expect(shell).toBeVisible({ timeout: 10_000 });
+      await expect(tablist).toBeVisible();
+      await expect(tablist.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
 
-      // Verify TournamentNav tabs exist in archived view
-      const tabs = page.getByRole('tablist');
-      await expect(tabs).toBeVisible();
-      const tabButtons = tabs.locator('[role="tab"]');
-      const tabCount = await tabButtons.count();
-      expect(tabCount).toBeGreaterThanOrEqual(2);
+      const timer = page.locator('.round-timer');
+      await expect(timer).toContainText('1:05');
+      await expect(timer).not.toHaveAttribute('role', 'button');
+      await expect(timer.getByRole('button')).toHaveCount(0);
 
-      // Click ranking tab (if available)
-      const rankingTab = tabs.locator('[role="tab"]').filter({ hasText: /Ranking|ranking|Таблиця/ });
-      if ((await rankingTab.count()) > 0) {
-        await rankingTab.first().click();
-        await expect(rankingTab.first()).toHaveAttribute('aria-selected', 'true');
-      }
+      await page.getByRole('button', { name: 'Dark theme' }).click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
-      // Mobile viewport
       await page.setViewportSize({ width: 375, height: 812 });
-      await page.waitForTimeout(300);
-
-      // Tabs still visible on mobile
-      await expect(tabs).toBeVisible();
-
-      // No horizontal overflow
-      const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
-      expect(fitsViewport).toBe(true);
+      await expect(tablist).toBeVisible();
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+        .toBe(true);
     } finally {
-      await cleanupOwnedTournament(id);
+      await cleanupOwnedTournament(tournamentId);
     }
   });
 });

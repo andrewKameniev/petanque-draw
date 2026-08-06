@@ -4,7 +4,7 @@
       v-model="view"
       variant="tir"
       :tabs="navigationTabs"
-      :label="$t('tir.scoring')"
+      :label="$t('common.tournamentSections')"
       panel-id="tir-public-tabpanel"
       id-prefix="tir-public-tab"
       @change="changeView"
@@ -45,17 +45,16 @@
             <tbody v-if="isTwoRoundSystem">
               <tr v-for="(row, index) in publicTableRows" :key="row.id" :class="row.rowClass">
                 <td class="tir-table__sticky-col">{{ index + 1 }}</td>
-                <td
-                  class="tir-table__sticky-col tir-table__sticky-col--name tir-table__clickable"
-                  @click="openFromTable(row.id)"
-                >
-                  <img
-                    v-if="getParticipantAvatar(row.name)"
-                    :src="getParticipantAvatar(row.name)"
-                    class="tir-table__avatar"
-                    alt=""
-                  />
-                  <span>{{ row.name }}</span>
+                <td class="tir-table__sticky-col tir-table__sticky-col--name">
+                  <button type="button" class="tir-table__clickable" @click="openFromTable(row.id)">
+                    <img
+                      v-if="getParticipantAvatar(row.name)"
+                      :src="getParticipantAvatar(row.name)"
+                      class="tir-table__avatar"
+                      alt=""
+                    />
+                    <span>{{ row.name }}</span>
+                  </button>
                 </td>
                 <td :class="{ 'tir-table__muted': row.r1 === '—' }">{{ row.r1 }}</td>
                 <td v-for="i in tiebreakerCount" :key="'ex' + i">
@@ -134,9 +133,10 @@
               </div>
               <div class="tir-playoff__round-content">
                 <h4 class="tir-playoff__round-title">{{ round.title }}</h4>
-                <div
+                <button
                   v-for="(match, mIdx) in round.matches"
                   :key="mIdx"
+                  type="button"
                   class="tir-playoff__match"
                   :class="{
                     'tir-playoff__match--complete': isMatchComplete(match),
@@ -146,9 +146,10 @@
                     'tir-playoff__match--preview': match.preview,
                     'tir-playoff__match--final': round.isFinal,
                   }"
-                  @click="!match.preview && openPlayoffMatch(match, round.title, round.key, mIdx)"
+                  :disabled="match.preview"
+                  @click="openPlayoffMatch(match, round.title, round.key, mIdx)"
                 >
-                  <div class="tir-playoff__match-top">
+                  <span class="tir-playoff__match-top">
                     <span class="tir-playoff__match-num">{{
                       round.laneStart ? round.laneStart + mIdx : mIdx + 1
                     }}</span>
@@ -162,8 +163,8 @@
                       class="tir-playoff__match-status tir-playoff__match-status--progress"
                       >{{ $t('tir.matchInProgress') }}</span
                     >
-                  </div>
-                  <div class="tir-playoff__match-row">
+                  </span>
+                  <span class="tir-playoff__match-row">
                     <span
                       class="tir-playoff__player-name"
                       :class="{
@@ -205,14 +206,14 @@
                         class="tir-playoff__winner-icon"
                       />
                     </span>
-                  </div>
-                </div>
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
           <!-- CTA to final table -->
-          <button class="tir-playoff__cta" @click="goToTable">
+          <button type="button" class="tir-playoff__cta" @click="goToTable">
             <TableProperties :size="18" />
             <span>{{ $t('tir.goToFinalTable') }}</span>
             <ChevronRight :size="18" />
@@ -753,13 +754,26 @@ td.tir-table__muted {
 }
 
 .tir-table__clickable {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
   cursor: pointer;
+  font: inherit;
   font-weight: 500;
   color: var(--color-text);
+  text-align: left;
 }
 
 .tir-table__clickable:hover {
   text-decoration: underline;
+}
+
+.tir-table__clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .tir-table__empty {
@@ -835,15 +849,25 @@ td.tir-table__muted {
 }
 
 .tir-playoff__match {
+  display: block;
+  width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: 14px;
   margin-bottom: 8px;
   cursor: pointer;
   background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition:
     background 0.15s,
     border-color 0.15s;
+}
+
+.tir-playoff__match:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .tir-playoff__match:hover {

@@ -3,7 +3,8 @@
 ## Status
 
 - Repository implementation: **complete and locally verified**
-- Pull-request CI: **pending PR creation**
+- Pull request: [#179](https://github.com/andrewKameniev/petanque-draw/pull/179)
+- Pull-request CI: **awaiting GitHub check scheduling**
 - External credential checkpoint: **pending authorized rotation or revocation**
 - Overall Task 11: **not complete until the external checkpoint is recorded**
 - Verification commit: `5f845c3` on `codex/task-11-ui-agent-standards`

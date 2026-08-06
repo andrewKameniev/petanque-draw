@@ -778,4 +778,28 @@ describe('Archived protocol integration', () => {
     expect(context.activeTab).toBe('ranking');
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'auto' });
   });
+
+  it('selects the first personal tournament when Show All is disabled', () => {
+    const originalLocalStorage = globalThis.localStorage;
+    const unsubscribe = vi.fn();
+    const context = {
+      showAllUsers: false,
+      activeKey: 'foreign',
+      tournament: { id: 'foreign' },
+      tournamentKeys: ['mine-first', 'mine-second'],
+      _unsubscribe: unsubscribe,
+    };
+
+    globalThis.localStorage = { setItem: vi.fn() };
+    try {
+      Archived.methods.onShowAllChange.call(context);
+    } finally {
+      globalThis.localStorage = originalLocalStorage;
+    }
+
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(context._unsubscribe).toBeNull();
+    expect(context.activeKey).toBe('mine-first');
+    expect(context.tournament).toBeNull();
+  });
 });

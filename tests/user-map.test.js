@@ -287,7 +287,7 @@ describe('User Tournament Map', () => {
       expect(store.savedTournamentIds).toEqual([]);
     });
 
-    it('makes an admin tournament active without copying owner data into the local owner list', async () => {
+    it('does not make a tournament active for an admin collaborator', async () => {
       store.userTournamentMap = {
         shared1: {
           status: 'archived',
@@ -303,13 +303,11 @@ describe('User Tournament Map', () => {
 
       const restored = await store.unarchiveTournament('shared1');
 
-      expect(restored).toBe(true);
-      expect(store.userTournamentMap.shared1).toMatchObject({
-        status: 'active',
-        archiveStatusVersion: 1,
-      });
+      expect(restored).toBe(false);
+      expect(userMapService.update).not.toHaveBeenCalled();
+      expect(store.userTournamentMap.shared1.status).toBe('archived');
       expect(store.tournaments.shared1).toBeUndefined();
-      expect(store.savedTournaments.shared1).toBeUndefined();
+      expect(store.savedTournaments.shared1).toBeDefined();
     });
   });
 

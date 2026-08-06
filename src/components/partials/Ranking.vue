@@ -1,40 +1,41 @@
 <template>
   <div>
-    <div
-      class="ranking-header mb-4"
-      v-if="
-        tournament.system === 'swiss' &&
-        (tournament.tournamentIsFinished || hasActiveBarrage) &&
-        !isForProtocol &&
-        !showInSaved
-      "
-    >
+    <div class="ranking-header mb-4" v-if="hasRankingSubtabs">
       <div class="round-tabs ranking-subtabs">
         <button
           v-if="tournament.tournamentIsFinished"
+          type="button"
           class="button is-small mr-1 mb-1"
           :class="{ 'is-purple': rankingSubtab === 'result' }"
+          :aria-pressed="rankingSubtab === 'result'"
           @click="rankingSubtab = 'result'"
         >
           {{ $t('ranking.tournamentResult') }}
         </button>
         <button
+          type="button"
           class="button is-small mr-1 mb-1"
           :class="{ 'is-purple': rankingSubtab === 'swiss' }"
+          :aria-pressed="rankingSubtab === 'swiss'"
           @click="rankingSubtab = 'swiss'"
         >
-          {{ $t('ranking.swissTable') }}
+          {{ $t(rankingTableLabel) }}
         </button>
         <button
-          v-if="tournament.barrage"
+          v-if="tournament.system === 'swiss' && tournament.barrage"
+          type="button"
           class="button is-small mr-1 mb-1"
           :class="{ 'is-purple': rankingSubtab === 'barrage' }"
+          :aria-pressed="rankingSubtab === 'barrage'"
           @click="rankingSubtab = 'barrage'"
         >
           {{ $t('games.poulesBarrage') }}
         </button>
       </div>
-      <div v-if="!readOnly && tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="ranking-header__actions">
+      <div
+        v-if="!readOnly && tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly"
+        class="ranking-header__actions"
+      >
         <button
           v-if="isTournamentOrg && portalIdTournament"
           class="button is-small btn-purple-outline"
@@ -59,8 +60,11 @@
         </button>
       </div>
     </div>
-    <div v-if="tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="mb-5">
-      <div v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)" class="ranking-header">
+    <div v-if="tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly" class="mb-5">
+      <div
+        v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
+        class="ranking-header"
+      >
         <div class="ranking-header__actions ml-auto">
           <button
             v-if="isTournamentOrg && portalIdTournament"
@@ -426,6 +430,7 @@
           v-for="(group, gIndex) in rankingTeams"
           v-show="isForProtocol || tournament.groups.length === 1 || activeGroupTab === gIndex"
           :key="gIndex"
+          class="group-ranking-table"
         >
           <h4 v-if="isForProtocol && tournament.groups.length > 1">
             {{ $t('common.group') }} {{ groupsNames[gIndex] }}
@@ -544,7 +549,7 @@
         </div>
       </div>
     </div>
-    <div v-else-if="!isResultOnly && !isSwissOnly" class="ranking-empty">
+    <div v-else-if="!isResultOnly && !isRankingTableOnly" class="ranking-empty">
       <Trophy :size="40" class="ranking-empty__icon" />
       <p class="ranking-empty__text">{{ $t('ranking.noRanking') }}</p>
     </div>
@@ -889,19 +894,26 @@ export default {
         !this.tournament.tournamentIsFinished
       );
     },
-    isSwissOnly() {
-      if (this.isForProtocol) return true;
-      return (
-        this.tournament.system === 'swiss' &&
-        (this.tournament.tournamentIsFinished || this.hasActiveBarrage) &&
-        this.rankingSubtab === 'swiss'
+    hasRankingSubtabs() {
+      if (this.isForProtocol || this.showInSaved) return false;
+      if (this.hasActiveBarrage) return this.tournament.system === 'swiss';
+      return Boolean(
+        this.tournament.tournamentIsFinished &&
+        this.tournament.games?.length &&
+        this.rankingTeams?.length &&
+        this.tournamentRanking.length,
       );
+    },
+    rankingTableLabel() {
+      return this.tournament.system === 'swiss' && !this.tournament.groups ? 'ranking.swissTable' : 'ranking.ranking';
+    },
+    isRankingTableOnly() {
+      if (this.isForProtocol) return true;
+      return this.hasRankingSubtabs && this.rankingSubtab === 'swiss';
     },
     isResultOnly() {
       if (this.isForProtocol) return false;
-      return (
-        this.tournament.system === 'swiss' && this.tournament.tournamentIsFinished && this.rankingSubtab === 'result'
-      );
+      return this.hasRankingSubtabs && this.tournament.tournamentIsFinished && this.rankingSubtab === 'result';
     },
     isBarrageOnly() {
       if (this.isForProtocol) return false;
@@ -930,7 +942,7 @@ export default {
       return sortSwissWithLiveStats(this.tournament);
     },
     effectiveRankingTeams() {
-      if (this.isSwissOnly && this.hasActiveBarrage) {
+      if (this.isRankingTableOnly && this.hasActiveBarrage) {
         return this.swissRankingTeams;
       }
       return this.rankingTeams;

@@ -57,6 +57,7 @@ export const useMainStore = defineStore('main', {
     userTournamentMap: {},
     savedTournaments: {},
     savedTournamentIds: [],
+    archiveIndex: null,
     currentTournamentIndex: null,
     isAdmin: false,
     user: false,
@@ -82,6 +83,9 @@ export const useMainStore = defineStore('main', {
     },
     isOwnerOrAdmin() {
       return this.currentRole === 'owner' || this.currentRole === 'admin';
+    },
+    isSuperAdmin() {
+      return this.user?.email === SUPER_ADMIN_EMAIL;
     },
     allScoresFilled() {
       const t = this.activeTournament;
@@ -260,6 +264,12 @@ export const useMainStore = defineStore('main', {
     },
     fetchSavedTournaments() {
       return getArchiveCollaborationRuntime(this).fetchSavedTournaments();
+    },
+    async fetchArchiveIndex() {
+      const { archiveIndexService } = await import('@/services/archive-index');
+      const snapshot = await archiveIndexService.getAll();
+      this.archiveIndex = snapshot.exists() ? snapshot.val() : {};
+      return this.archiveIndex;
     },
     savePreferences() {
       const { data, prefix } = this._getTarget();

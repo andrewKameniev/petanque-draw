@@ -104,6 +104,22 @@
       "$slug": {
         ".write": "auth != null && (!data.exists() || data.child('createdBy').val() === auth.uid)"
       }
+    },
+
+    "archive": {
+      ".read": "auth.token.email === 'nemo15.alex@gmail.com'",
+      "$tid": {
+        ".read": "auth != null && (auth.token.email === 'nemo15.alex@gmail.com' || data.child('ownerUid').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || (auth.token.email === 'nemo15.alex@gmail.com' && !data.child('portalId').exists()) || (auth.uid === data.child('ownerUid').val() && !data.child('portalId').exists()))"
+      }
+    },
+
+    "backups": {
+      ".read": "auth.token.email === 'nemo15.alex@gmail.com'",
+      "$tid": {
+        ".read": "auth != null && (auth.token.email === 'nemo15.alex@gmail.com' || data.child('meta/ownerUid').val() === auth.uid)",
+        ".write": "auth != null && !data.exists()"
+      }
     }
   }
 }

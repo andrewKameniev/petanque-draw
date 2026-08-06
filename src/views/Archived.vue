@@ -630,8 +630,7 @@ export default {
     canDeleteActive() {
       if (!this.activeKey || !this.tournament) return false;
       const hasPortalId =
-        !!getTournamentMetadata(this.tournament).portalIdTournament ||
-        !!this.archiveIndex?.[this.activeKey]?.portalId;
+        !!getTournamentMetadata(this.tournament).portalIdTournament || !!this.archiveIndex?.[this.activeKey]?.portalId;
       if (hasPortalId) return false;
       if (this.isSuperAdmin) return true;
       return this.activeMapEntry?.role === 'owner';

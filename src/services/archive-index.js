@@ -56,12 +56,18 @@ export function buildArchiveIndexEntry(tournament, { ownerUid, ownerEmail }) {
     portalId: metadata.portalIdTournament || null,
     archivedAt: new Date().toISOString(),
     tournamentIsFinished: main?.tournamentIsFinished || false,
+    isTestTournament: main?.preferences?.isTestTournament === true,
   };
 }
 
+export function isArchiveIndexEntryEligible(entry) {
+  return (
+    !!entry?.ownerUid && !!entry?.portalId && entry.tournamentIsFinished === true && entry.isTestTournament !== true
+  );
+}
+
 export function canDeleteArchived(entry, userEmail, userUid) {
-  if (entry.portalId) return false;
-  if (userEmail === SUPER_ADMIN_EMAIL) return true;
-  if (userUid === entry.ownerUid) return true;
+  if (entry?.portalId) return userEmail === SUPER_ADMIN_EMAIL && isArchiveIndexEntryEligible(entry);
+  if (userUid === entry?.ownerUid) return true;
   return false;
 }

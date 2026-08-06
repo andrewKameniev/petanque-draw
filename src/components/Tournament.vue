@@ -65,7 +65,7 @@
             <Trash2 :size="16" aria-hidden="true" />
             {{ $t('teams.removeTournament') }}
           </button>
-          <template v-if="tournament.tournamentIsFinished && !tournament.preferences?.isTestTournament">
+          <template v-if="canArchiveTournament">
             <span class="bottom-actions__tooltip-wrapper" :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''">
               <button
                 type="button"
@@ -252,7 +252,7 @@
               {{ $t('setup.redraw') }}
             </button>
             <span
-              v-if="(canSaveTournament || tournament.tournamentIsFinished) && !tournament.preferences?.isTestTournament"
+              v-if="canArchiveTournament"
               class="bottom-actions__tooltip-wrapper"
               :title="isAlreadyArchived ? $t('teams.alreadyArchived') : ''"
             >
@@ -410,7 +410,12 @@ import {
   getScoreToucheCount,
   rankWithTiebreakers,
 } from '@/services/tir';
-import { getActiveTournamentGroup, getTournamentPresentation, hasTournamentGroup } from '@/services/tournament-record';
+import {
+  getActiveTournamentGroup,
+  getTournamentPresentation,
+  getTournamentStorageTarget,
+  hasTournamentGroup,
+} from '@/services/tournament-record';
 
 export default {
   name: 'Tournament',
@@ -1197,6 +1202,16 @@ export default {
         (this.tournament.tournamentIsFinished && this.tournament.games?.length > 1) ||
         (this.tournament.playoff &&
           this.tournament.playoff[this.tournament.playoff.length - 1].teams[0].team_1_score !== null)
+      );
+    },
+    canArchiveTournament() {
+      if (this.activeTournamentGroup !== 'A') return false;
+      const main = getTournamentStorageTarget(this.currentTournament, 'A', { allowFallback: false }).data;
+      const tournamentB = getTournamentStorageTarget(this.currentTournament, 'B', { allowFallback: false });
+      return (
+        main?.tournamentIsFinished === true &&
+        main.preferences?.isTestTournament !== true &&
+        (!tournamentB.exists || tournamentB.data?.tournamentIsFinished === true)
       );
     },
     rankingTeams() {

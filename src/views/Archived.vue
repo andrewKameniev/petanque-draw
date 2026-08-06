@@ -131,12 +131,7 @@
               </button>
             </div>
             <div class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management">
-              <button
-                v-if="isActiveOwner || isSuperAdmin"
-                type="button"
-                class="button btn-make-active"
-                @click="makeActive"
-              >
+              <button v-if="isActiveOwner" type="button" class="button btn-make-active" @click="makeActive">
                 <ArchiveRestore :size="16" aria-hidden="true" />
                 <span>{{ $t('common.makeActive') }}</span>
               </button>
@@ -256,7 +251,7 @@
             </template>
             <div class="tournament-selector__mobile-actions">
               <button
-                v-if="isActiveOwner || isSuperAdmin"
+                v-if="isActiveOwner"
                 type="button"
                 class="button btn-make-active"
                 :aria-label="$t('common.makeActive')"
@@ -316,7 +311,17 @@
           </div>
 
           <template v-if="activeTournament && !showLoadingSkeleton">
-            <div class="tournament-info-card mt-3 mb-3">
+            <div
+              class="tournament-info-card mt-3 mb-3"
+              :class="{ 'tournament-info-card--with-switcher': hasTournamentB }"
+            >
+              <GroupSwitcher
+                v-if="hasTournamentB"
+                :model-value="archiveActiveGroup"
+                :full-labels="true"
+                class="tournament-info-card__switcher"
+                @update:model-value="archiveActiveGroup = $event"
+              />
               <span class="badge badge-corner" :class="badgeClass">
                 {{ badgeLabel }}
               </span>
@@ -441,6 +446,7 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
+import { isArchiveIndexEntryEligible } from '@/services/archive-index';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
@@ -461,10 +467,12 @@ import {
   getTournamentMain,
   getTournamentMetadata,
   getTournamentStorageTarget,
+  hasTournamentGroup,
   normalizeTournamentRecord,
 } from '@/services/tournament-record';
 import PublicPageShell from '@/components/ui/PublicPageShell.vue';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
+import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 import {
   GitFork,
   Users,
@@ -484,6 +492,7 @@ export default {
   components: {
     PublicPageShell,
     TournamentNav,
+    GroupSwitcher,
     Footer,
     Navbar,
     Menu,
@@ -517,6 +526,7 @@ export default {
       searchQuery: '',
       systemFilter: '',
       showAllUsers: localStorage.getItem('petanqueDrawArchiveShowAll') !== 'false',
+      archiveActiveGroup: 'A',
     };
   },
   directives: {
@@ -557,6 +567,7 @@ export default {
     activeKey: {
       handler(key) {
         if (key) {
+          this.archiveActiveGroup = 'A';
           const selected = this.savedTournaments?.[key];
           const tournament = getTournamentGroup(selected, 'A');
           this.activeTab = this.getDefaultTab(tournament);
@@ -564,6 +575,9 @@ export default {
         }
       },
       immediate: true,
+    },
+    archiveActiveGroup(group) {
+      this.activeTab = this.getDefaultTab(getTournamentGroup(this.tournament, group));
     },
     portalId(val) {
       this.portalIdInput = val || null;
@@ -578,7 +592,7 @@ export default {
     ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap', 'isSuperAdmin', 'archiveIndex']),
     archiveIndexEntries() {
       if (!this.archiveIndex) return [];
-      let entries = Object.entries(this.archiveIndex).filter(([, item]) => item.portalId);
+      let entries = Object.entries(this.archiveIndex).filter(([, item]) => isArchiveIndexEntryEligible(item));
       if (this.searchQuery) {
         const q = this.searchQuery.toLowerCase();
         entries = entries.filter(
@@ -612,7 +626,10 @@ export default {
       return this.tournamentKeys;
     },
     activeTournament() {
-      return getTournamentGroup(this.tournament, 'A');
+      return getTournamentGroup(this.tournament, this.archiveActiveGroup || 'A');
+    },
+    hasTournamentB() {
+      return hasTournamentGroup(this.tournament, 'B');
     },
     tournamentMetadata() {
       return getTournamentMetadata(this.tournament, { id: this.activeKey });
@@ -629,11 +646,18 @@ export default {
     },
     canDeleteActive() {
       if (!this.activeKey || !this.tournament) return false;
-      const hasPortalId =
-        !!getTournamentMetadata(this.tournament).portalIdTournament || !!this.archiveIndex?.[this.activeKey]?.portalId;
-      if (hasPortalId) return false;
-      if (this.isSuperAdmin) return true;
-      return this.activeMapEntry?.role === 'owner';
+      const metadata = getTournamentMetadata(this.tournament);
+      const indexEntry = this.archiveIndex?.[this.activeKey];
+      const main = getTournamentMain(this.tournament);
+      if (this.isSuperAdmin && isArchiveIndexEntryEligible(indexEntry)) {
+        return (
+          main?.tournamentIsFinished === true &&
+          main?.preferences?.isTestTournament !== true &&
+          !!metadata.portalIdTournament &&
+          String(metadata.portalIdTournament) === String(indexEntry.portalId)
+        );
+      }
+      return this.activeMapEntry?.role === 'owner' && !metadata.portalIdTournament;
     },
     isActiveOwner() {
       return this.activeMapEntry?.role === 'owner';
@@ -799,6 +823,7 @@ export default {
     },
     async selectTournament(key) {
       const tournamentChanged = key !== this.activeKey;
+      this.archiveActiveGroup = 'A';
       this.activeKey = key;
       this.selectorOpen = false;
       if (this.savedTournaments?.[key]) {
@@ -826,6 +851,19 @@ export default {
     },
     onShowAllChange() {
       localStorage.setItem('petanqueDrawArchiveShowAll', String(this.showAllUsers));
+      if (!this.showAllUsers) {
+        const firstKey = this.tournamentKeys[0] || null;
+        const selectionUnchanged = firstKey === this.activeKey;
+        if (this._unsubscribe) {
+          this._unsubscribe();
+          this._unsubscribe = null;
+        }
+        this.tournament = null;
+        this.archiveActiveGroup = 'A';
+        this.activeKey = firstKey;
+        if (selectionUnchanged && firstKey) this.subscribeTournament(firstKey);
+        return;
+      }
       if (this.showAllUsers && this.isSuperAdmin && !this.archiveIndex) {
         this.fetchArchiveIndex();
       }
@@ -848,19 +886,21 @@ export default {
       }
       this.editingName = false;
     },
-    removeTournament() {
+    async removeTournament() {
       if (
         !window.confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')
       )
         return;
-      this.removeSavedTournament(this.activeKey);
+      const removed = await this.removeSavedTournament(this.activeKey);
+      if (!removed) return;
       const remaining = this.tournamentKeys.filter((k) => k !== this.activeKey);
       this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
       this.tournament = null;
     },
-    removeFromView() {
+    async removeFromView() {
       if (!window.confirm(this.$t('modals.sureRemove') + '?')) return;
-      this.removeSavedTournament(this.activeKey);
+      const removed = await this.removeSavedTournament(this.activeKey);
+      if (!removed) return;
       const remaining = this.tournamentKeys.filter((k) => k !== this.activeKey);
       this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
       this.tournament = null;
@@ -915,32 +955,42 @@ export default {
       if (!this.portalId || this.fetchingLogos) return;
       this.fetchingLogos = true;
       try {
-        const results = await syncFromPortal(this.portalId, {
-          teams: this.activeTournament.teams || null,
-          tirParticipants: this.activeTournament.tirParticipants || null,
+        const tournament = this.tournament;
+        const tournamentId = this.activeKey;
+        const ownerUid = this.activeOwnerUid;
+        const portalId = this.portalId;
+        const targets = ['A', 'B']
+          .map((group) => getTournamentStorageTarget(tournament, group, { allowFallback: false }))
+          .filter((target) => target.exists && target.data);
+        const teams = targets.flatMap(({ data }) => (Array.isArray(data.teams) ? data.teams : []));
+        const tirParticipants = targets.flatMap(({ data }) =>
+          Array.isArray(data.tirParticipants) ? data.tirParticipants : [],
+        );
+        const results = await syncFromPortal(portalId, {
+          teams: teams.length ? teams : null,
+          tirParticipants: tirParticipants.length ? tirParticipants : null,
           fields: FIELD_SETS.media,
         });
+
+        if (this.tournament !== tournament || this.activeKey !== tournamentId || this.activeOwnerUid !== ownerUid)
+          return;
 
         const totalChanged = (results.teams?.changedPlayers || 0) + (results.tirParticipants?.changedPlayers || 0);
 
         if (totalChanged > 0) {
-          const basePath = getTournamentStorageTarget(this.tournament, 'A').prefix;
-          if (this.activeTournament.teams) {
-            await tournamentService.updatePath(
-              this.activeOwnerUid,
-              this.activeKey,
-              `${basePath}teams`,
-              this.activeTournament.teams,
-            );
-          }
-          if (this.activeTournament.tirParticipants) {
-            await tournamentService.updatePath(
-              this.activeOwnerUid,
-              this.activeKey,
-              `${basePath}tirParticipants`,
-              this.activeTournament.tirParticipants,
-            );
-          }
+          const writes = targets.flatMap(({ data, prefix }) => {
+            const groupWrites = [];
+            if (Array.isArray(data.teams)) {
+              groupWrites.push(tournamentService.updatePath(ownerUid, tournamentId, `${prefix}teams`, data.teams));
+            }
+            if (Array.isArray(data.tirParticipants)) {
+              groupWrites.push(
+                tournamentService.updatePath(ownerUid, tournamentId, `${prefix}tirParticipants`, data.tirParticipants),
+              );
+            }
+            return groupWrites;
+          });
+          await Promise.all(writes);
           this.$forceUpdate();
         }
       } catch (err) {
@@ -1926,8 +1976,24 @@ export default {
   background: var(--color-surface, #fff);
 }
 
+.tournament-info-card--with-switcher {
+  padding-top: 0;
+}
+
+.tournament-info-card--with-switcher .badge-corner {
+  top: 3.25rem;
+}
+
+.tournament-info-card__switcher {
+  width: calc(100% + 8.25rem);
+  margin-right: -7rem;
+  margin-bottom: 0.75rem;
+  margin-left: -1.25rem;
+  border-radius: 6px 6px 0 0;
+}
+
 @media screen and (max-width: 352px) {
-  .tournament-info-card {
+  .tournament-info-card:not(.tournament-info-card--with-switcher) {
     padding-right: 1.25rem;
     padding-top: 2.5rem;
   }

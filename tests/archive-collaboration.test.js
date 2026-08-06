@@ -111,6 +111,45 @@ describe('archive and collaboration runtime', () => {
     expect(store.userTournamentMap.t1.status).toBe('archived');
   });
 
+  it('deletes an eligible indexed tournament from its actual owner path', async () => {
+    const { firebase, runtime, store } = createHarness();
+    store.user = { uid: 'super-admin', email: 'nemo15.alex@gmail.com' };
+    store.userTournamentMap = {};
+    store.archiveIndex = {
+      t1: {
+        ownerUid: 'owner1',
+        portalId: '42',
+        tournamentIsFinished: true,
+        isTestTournament: false,
+      },
+    };
+    firebase.get.mockImplementation((path) =>
+      Promise.resolve({
+        exists: () => true,
+        val: () =>
+          path === 'archive/t1'
+            ? store.archiveIndex.t1
+            : {
+                portalIdTournament: '42',
+                tournamentIsFinished: true,
+                preferences: { isTestTournament: false },
+              },
+      }),
+    );
+
+    await expect(runtime.removeSavedTournament('t1')).resolves.toBe(true);
+
+    expect(firebase.get).toHaveBeenNthCalledWith(1, 'archive/t1');
+    expect(firebase.get).toHaveBeenNthCalledWith(2, 'owner1/tournaments/t1');
+    expect(firebase.update).toHaveBeenCalledWith('/', {
+      'archive/t1': null,
+      'owner1/tournaments/t1': null,
+      'users/owner1/tournaments/t1': null,
+      'users/super-admin/tournaments/t1': null,
+    });
+    expect(firebase.remove).not.toHaveBeenCalled();
+  });
+
   it('removes the tournament collaborator record when user-map creation fails', async () => {
     const { collaboratorService, runtime, userMapService } = createHarness();
     collaboratorService.findUserByEmail.mockResolvedValue({ exists: () => true, val: () => 'user2' });

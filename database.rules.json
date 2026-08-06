@@ -1,12 +1,13 @@
 {
   "rules": {
     "$uid": {
+      ".read": "auth.uid === $uid",
       ".write": "auth.uid === $uid",
 
       "tournaments": {
         "$tid": {
           ".read": true,
-          ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'",
+          ".write": "auth.uid === $uid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'",
 
           "collaborators": {
             ".write": "auth.uid === $uid"

@@ -191,7 +191,9 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           ownerUid: store.user.uid,
           ownerEmail: store.user.email,
         });
-        await archiveIndexService.write(id, indexEntry);
+        if (indexEntry.portalId) {
+          await archiveIndexService.write(id, indexEntry);
+        }
         await archiveBackupService.write(id, tournament, indexEntry);
       } catch (indexError) {
         console.warn('[Archive] Failed to write index/backup:', indexError);

@@ -511,7 +511,7 @@ export default {
     ...mapState(useMainStore, ['savedTournaments', 'user', 'userTournamentMap', 'isSuperAdmin', 'archiveIndex']),
     archiveIndexEntries() {
       if (!this.archiveIndex) return [];
-      let entries = Object.entries(this.archiveIndex);
+      let entries = Object.entries(this.archiveIndex).filter(([, item]) => item.portalId);
       if (this.searchQuery) {
         const q = this.searchQuery.toLowerCase();
         entries = entries.filter(
@@ -555,11 +555,16 @@ export default {
     },
     activeOwnerUid() {
       if (this.activeMapEntry?.role === 'admin') return this.activeMapEntry.ownerUid;
+      if (this.useArchiveIndex && this.archiveIndex?.[this.activeKey]?.ownerUid) {
+        return this.archiveIndex[this.activeKey].ownerUid;
+      }
       return this.user?.uid;
     },
     canDeleteActive() {
       if (!this.activeKey || !this.tournament) return false;
-      const hasPortalId = !!getTournamentMetadata(this.tournament).portalIdTournament;
+      const hasPortalId =
+        !!getTournamentMetadata(this.tournament).portalIdTournament ||
+        !!this.archiveIndex?.[this.activeKey]?.portalId;
       if (hasPortalId) return false;
       if (this.isSuperAdmin) return true;
       return this.activeMapEntry?.role === 'owner';
@@ -872,9 +877,7 @@ export default {
           this.$forceUpdate();
         }
       } catch (err) {
-        if (err instanceof PortalError) {
-          console.error(`Portal sync failed: ${err.message}`);
-        }
+        console.error(`Logo refresh failed:`, err);
       } finally {
         this.fetchingLogos = false;
       }

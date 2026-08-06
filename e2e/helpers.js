@@ -28,6 +28,7 @@ async function login(page) {
   await dismissModals(page);
   await page.locator('[data-testid="btn-submit"]').click();
   await page.locator('[data-testid="input-email"]').waitFor({ state: 'hidden', timeout: 10000 });
+  await teamInput.or(prefsBtn).first().waitFor({ state: 'visible', timeout: 10000 });
 }
 
 async function register(page) {

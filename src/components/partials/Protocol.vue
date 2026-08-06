@@ -423,9 +423,7 @@
         @close="$emit('close')"
       />
     </div>
-    <button class="protocol-back-top" @click="scrollToggle">
-      <ChevronUp :size="20" :class="{ 'protocol-back-top__icon--down': !showBackTop }" />
-    </button>
+    <ScrollButtons v-if="!hideScrollButton" />
   </div>
 </template>
 
@@ -462,7 +460,8 @@ import {
   restoreProtocolEditableHtml,
   saveProtocolHtml,
 } from '@/services/protocol-runtime';
-import { AlertTriangle, ChevronUp } from 'lucide-vue-next';
+import { AlertTriangle } from 'lucide-vue-next';
+import ScrollButtons from '@/components/ui/ScrollButtons.vue';
 
 export default {
   name: 'Protocol',
@@ -470,12 +469,12 @@ export default {
     Ranking,
     Results,
     AlertTriangle,
-    ChevronUp,
+    ScrollButtons,
     ProtocolFooter,
     ProtocolGate,
     ProtocolParticipantTools,
   },
-  props: ['tournament', 'tournamentMeta', 'rankingTeams', 'skipGate', 'hideClose'],
+  props: ['tournament', 'tournamentMeta', 'rankingTeams', 'skipGate', 'hideClose', 'hideScrollButton'],
   emits: ['close'],
   data() {
     return {
@@ -491,7 +490,6 @@ export default {
       exportingDocx: false,
       showArbitrCertificate: true,
       replaceAfpuWithSecondCategory: false,
-      showBackTop: false,
       arbitres: [],
     };
   },
@@ -510,10 +508,6 @@ export default {
     this.$nextTick(() => {
       this.restoreProtocolFromStorage();
     });
-    window.addEventListener('scroll', this.handleScroll);
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
   },
   watch: {
     tournamentName() {
@@ -584,16 +578,6 @@ export default {
   },
   methods: {
     ...mapActions(useMainStore, ['showMessage']),
-    handleScroll() {
-      this.showBackTop = window.scrollY > 400;
-    },
-    scrollToggle() {
-      if (this.showBackTop) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      }
-    },
     copyCard() {
       navigator.clipboard.writeText('5353542324470856');
       this.cardCopied = true;
@@ -1352,32 +1336,5 @@ export default {
 #protocol.is-exporting table.is-bordered td,
 #protocol.is-exporting table.is-bordered th {
   border-top: none;
-}
-
-.protocol-back-top {
-  position: fixed;
-  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-  right: 1.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 12px var(--color-primary-shadow);
-  transition: transform 0.2s;
-  z-index: 50;
-}
-
-.protocol-back-top:hover {
-  transform: scale(1.1);
-}
-
-.protocol-back-top__icon--down {
-  transform: rotate(180deg);
 }
 </style>

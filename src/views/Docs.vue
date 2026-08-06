@@ -731,14 +731,7 @@
         </section>
       </template>
     </main>
-    <div class="docs__scroll-buttons">
-      <button class="docs__scroll-btn" @click="scrollToTop">
-        <ChevronUp :size="20" />
-      </button>
-      <button class="docs__scroll-btn" @click="scrollToBottom">
-        <ChevronDown :size="20" />
-      </button>
-    </div>
+    <ScrollButtons container-selector=".docs__content" />
   </div>
 </template>
 
@@ -746,6 +739,7 @@
 import Navbar from '@/components/Navbar.vue';
 import MenuComponent from '@/components/Menu.vue';
 import DocsSidebar from '@/components/docs/DocsSidebar.vue';
+import ScrollButtons from '@/components/ui/ScrollButtons.vue';
 import {
   Menu,
   X,
@@ -776,6 +770,7 @@ export default {
     Navbar,
     MenuComponent,
     DocsSidebar,
+    ScrollButtons,
     Menu,
     X,
     ChevronDown,
@@ -987,22 +982,6 @@ export default {
           const top = el.offsetTop - container.offsetTop;
           this.smoothScroll(container, top);
         }
-      }
-    },
-    scrollToTop() {
-      const isMobile = window.innerWidth <= 768;
-      if (isMobile) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (this.$refs.content) {
-        this.smoothScroll(this.$refs.content, 0);
-      }
-    },
-    scrollToBottom() {
-      const isMobile = window.innerWidth <= 768;
-      if (isMobile) {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      } else if (this.$refs.content) {
-        this.smoothScroll(this.$refs.content, this.$refs.content.scrollHeight);
       }
     },
     setupObserver() {
@@ -1686,31 +1665,6 @@ export default {
 
 .docs__link-btn:hover {
   opacity: 0.9;
-}
-
-/* Back to top */
-
-.docs__back-top {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 12px var(--color-primary-shadow);
-  transition: transform 0.2s;
-  z-index: 50;
-}
-
-.docs__back-top:hover {
-  transform: scale(1.1);
 }
 
 /* Search results */

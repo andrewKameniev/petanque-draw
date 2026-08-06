@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      class="round-tabs ranking-subtabs mb-4"
+      class="ranking-header mb-4"
       v-if="
         tournament.system === 'swiss' &&
         (tournament.tournamentIsFinished || hasActiveBarrage) &&
@@ -9,32 +9,58 @@
         !showInSaved
       "
     >
-      <button
-        v-if="tournament.tournamentIsFinished"
-        class="button is-small mr-1 mb-1"
-        :class="{ 'is-purple': rankingSubtab === 'result' }"
-        @click="rankingSubtab = 'result'"
-      >
-        {{ $t('ranking.tournamentResult') }}
-      </button>
-      <button
-        class="button is-small mr-1 mb-1"
-        :class="{ 'is-purple': rankingSubtab === 'swiss' }"
-        @click="rankingSubtab = 'swiss'"
-      >
-        {{ $t('ranking.swissTable') }}
-      </button>
-      <button
-        v-if="tournament.barrage"
-        class="button is-small mr-1 mb-1"
-        :class="{ 'is-purple': rankingSubtab === 'barrage' }"
-        @click="rankingSubtab = 'barrage'"
-      >
-        {{ $t('games.poulesBarrage') }}
-      </button>
+      <div class="round-tabs ranking-subtabs">
+        <button
+          v-if="tournament.tournamentIsFinished"
+          class="button is-small mr-1 mb-1"
+          :class="{ 'is-purple': rankingSubtab === 'result' }"
+          @click="rankingSubtab = 'result'"
+        >
+          {{ $t('ranking.tournamentResult') }}
+        </button>
+        <button
+          class="button is-small mr-1 mb-1"
+          :class="{ 'is-purple': rankingSubtab === 'swiss' }"
+          @click="rankingSubtab = 'swiss'"
+        >
+          {{ $t('ranking.swissTable') }}
+        </button>
+        <button
+          v-if="tournament.barrage"
+          class="button is-small mr-1 mb-1"
+          :class="{ 'is-purple': rankingSubtab === 'barrage' }"
+          @click="rankingSubtab = 'barrage'"
+        >
+          {{ $t('games.poulesBarrage') }}
+        </button>
+      </div>
+      <div v-if="!readOnly && tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="ranking-header__actions">
+        <button
+          v-if="isTournamentOrg && portalIdTournament"
+          class="button is-small btn-purple-outline"
+          @click="showExportConfirm = true"
+        >
+          <Upload :size="18" />
+          <span class="is-hidden-mobile">{{ $t('ranking.exportResults') }}</span>
+        </button>
+        <button
+          class="button is-small btn-purple-outline"
+          :class="{ 'btn-purple-outline--copied': resultsCopied }"
+          @click="copyResults"
+        >
+          <template v-if="resultsCopied">
+            <Check :size="18" />
+          </template>
+          <template v-else>
+            <Copy :size="18" class="is-hidden-mobile" />
+            <span class="is-hidden-mobile">{{ $t('ranking.copyResults') }}</span>
+            <Copy class="is-hidden-tablet" :size="20" />
+          </template>
+        </button>
+      </div>
     </div>
     <div v-if="tournament.tournamentIsFinished && !isSwissOnly && !isBarrageOnly" class="mb-5">
-      <div v-if="!isForProtocol && !readOnly" class="ranking-header">
+      <div v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)" class="ranking-header">
         <div class="ranking-header__actions ml-auto">
           <button
             v-if="isTournamentOrg && portalIdTournament"

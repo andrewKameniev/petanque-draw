@@ -555,6 +555,9 @@ export default {
     },
     activeOwnerUid() {
       if (this.activeMapEntry?.role === 'admin') return this.activeMapEntry.ownerUid;
+      if (this.useArchiveIndex && this.archiveIndex?.[this.activeKey]?.ownerUid) {
+        return this.archiveIndex[this.activeKey].ownerUid;
+      }
       return this.user?.uid;
     },
     canDeleteActive() {

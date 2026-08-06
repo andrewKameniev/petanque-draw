@@ -42,7 +42,7 @@ export function buildArchiveIndexEntry(tournament, { ownerUid, ownerEmail }) {
   const main = getTournamentMain(tournament);
   const metadata = getTournamentMetadata(tournament);
   const name = metadata.name || tournament.name || '';
-  const date = main?.games?.[0]?.[0]?.date || metadata.createdAt || '';
+  const date = main?.games?.[0]?.[0]?.date || metadata.date || metadata.createdAt || '';
 
   return {
     name,

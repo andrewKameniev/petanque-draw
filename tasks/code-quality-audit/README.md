@@ -4,17 +4,19 @@ These briefs convert the code reuse/duplication audit into standalone implementa
 
 ## Tasks
 
-| #   | Task                                                                            | Primary risk area                     | Dependencies                                |
-| --- | ------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------- |
-| 1   | [Extract `PublicGameCard`](./01-extract-public-game-card.md)                    | Public match rendering                | None                                        |
-| 2   | [Consolidate tir domain logic](./02-consolidate-tir-domain-logic.md)            | Tir scoring/playoff behavior          | Coordinate with Task 9                      |
-| 3   | [Canonical tournament adapter](./03-canonical-tournament-adapter.md)            | New/legacy record compatibility       | None                                        |
-| 4   | [Decompose the main store](./04-decompose-main-store.md)                        | Firebase sync, archive, collaboration | Prefer Task 3 first; coordinate with Task 5 |
-| 5   | [Unify public live subscriptions](./05-unify-public-live-subscriptions.md)      | Public/TV realtime updates            | Prefer Task 3 first                         |
-| 6   | [Consolidate group ranking](./06-consolidate-group-ranking.md)                  | Tournament standings/rules            | None                                        |
-| 7   | [Unify presentation selectors](./07-unify-tournament-presentation-selectors.md) | Public/archive/TV metadata            | Prefer Tasks 3 and 6 where applicable       |
-| 8   | [Extract portal player sync](./08-extract-portal-player-sync.md)                | Player identity/media updates         | Prefer Task 3 for storage targets           |
-| 9   | [Consolidate shared UI primitives](./09-consolidate-shared-ui-primitives.md)    | Visual/responsive consistency         | Coordinate with Tasks 1 and 2               |
+| #   | Task                                                                                                              | Primary risk area                             | Dependencies                                   |
+| --- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
+| 1   | [Extract `PublicGameCard`](./01-extract-public-game-card.md)                                                      | Public match rendering                        | None                                           |
+| 2   | [Consolidate tir domain logic](./02-consolidate-tir-domain-logic.md)                                              | Tir scoring/playoff behavior                  | Coordinate with Task 9                         |
+| 3   | [Canonical tournament adapter](./03-canonical-tournament-adapter.md)                                              | New/legacy record compatibility               | None                                           |
+| 4   | [Decompose the main store](./04-decompose-main-store.md)                                                          | Firebase sync, archive, collaboration         | Prefer Task 3 first; coordinate with Task 5    |
+| 5   | [Unify public live subscriptions](./05-unify-public-live-subscriptions.md)                                        | Public/TV realtime updates                    | Prefer Task 3 first                            |
+| 6   | [Consolidate group ranking](./06-consolidate-group-ranking.md)                                                    | Tournament standings/rules                    | None                                           |
+| 7   | [Unify presentation selectors](./07-unify-tournament-presentation-selectors.md)                                   | Public/archive/TV metadata                    | Prefer Tasks 3 and 6 where applicable          |
+| 8   | [Extract portal player sync](./08-extract-portal-player-sync.md)                                                  | Player identity/media updates                 | Prefer Task 3 for storage targets              |
+| 9   | [Consolidate shared UI primitives](./09-consolidate-shared-ui-primitives.md)                                      | Visual/responsive consistency                 | Coordinate with Tasks 1 and 2                  |
+| 10  | [Harden archive durability and access control](./10-harden-archive-durability-and-access-control.md)              | Archive security, durability, recovery        | Requires explicit infrastructure decisions     |
+| 11  | [Finish shared UI primitives and establish AI standards](./11-finish-shared-ui-primitives-and-agent-standards.md) | UI accessibility, visual proof, agent quality | Follows Task 9; coordinate with Tasks 2 and 10 |
 
 ## Mandatory Regression-Coverage Gate
 
@@ -48,3 +50,7 @@ If current copies behave differently, the agent must not silently choose one beh
 ## Suggested Execution Strategy
 
 Tasks 1, 6, and 8 are relatively bounded extractions. Tasks 2, 3, and 5 affect larger feature boundaries. Task 4 should be staged last among the data-architecture tasks so it can reuse the adapter/subscription work instead of creating temporary abstractions. Task 9 should be coordinated with Tasks 1 and 2 to avoid editing the same templates/styles concurrently.
+
+Task 10 is a security- and durability-sensitive remediation program, not a parallel cleanup. Complete its contract and infrastructure decisions first, then stage server operations, rules, restore tooling, UI, migration, and production enablement in the order specified by the task. Its live deployment and migration checkpoints require explicit approval.
+
+Task 11 is the corrective completion pass for Task 9 and the source of the future shared Codex/Claude engineering contract. Establish its baseline and agent-contract gates before making further primitive changes, and coordinate Archived/deployment edits with Task 10.

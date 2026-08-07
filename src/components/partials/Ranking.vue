@@ -549,7 +549,7 @@
         </div>
       </div>
     </div>
-    <div v-else-if="!isResultOnly && !isRankingTableOnly" class="ranking-empty">
+    <div v-else-if="!tournament.tournamentIsFinished && !isResultOnly && !isRankingTableOnly" class="ranking-empty">
       <Trophy :size="40" class="ranking-empty__icon" />
       <p class="ranking-empty__text">{{ $t('ranking.noRanking') }}</p>
     </div>

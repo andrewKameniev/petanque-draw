@@ -7,11 +7,27 @@
         <aside class="archived-sidebar">
           <div class="archived-sidebar__card">
             <div class="archived-sidebar__header">
-              {{ $t('common.archivedTournaments') }}
-              <label v-if="isSuperAdmin" class="archived-sidebar__toggle">
-                <input type="checkbox" v-model="showAllUsers" @change="onShowAllChange" />
-                <span>{{ $t('common.showAll') }}</span>
-              </label>
+              <span>{{ $t('common.archivedTournaments') }}</span>
+              <div class="archived-sidebar__scope" role="group" :aria-label="$t('common.archivedTournaments')">
+                <button
+                  type="button"
+                  class="archived-sidebar__scope-button"
+                  :class="{ 'archived-sidebar__scope-button--active': !showAllUsers }"
+                  :aria-pressed="!showAllUsers"
+                  @click="setArchiveScope(false)"
+                >
+                  {{ $t('common.mine') }}
+                </button>
+                <button
+                  type="button"
+                  class="archived-sidebar__scope-button"
+                  :class="{ 'archived-sidebar__scope-button--active': showAllUsers }"
+                  :aria-pressed="showAllUsers"
+                  @click="setArchiveScope(true)"
+                >
+                  {{ $t('common.all') }}
+                </button>
+              </div>
             </div>
             <div class="archived-sidebar__search">
               <input
@@ -47,10 +63,10 @@
               >
                 <span class="archived-sidebar__item-name">{{ getRecordMetadata(item).name }}</span>
                 <span class="archived-sidebar__item-meta">
+                  <span v-if="getFormatTag(item)" class="archived-sidebar__item-tag">{{ getFormatTag(item) }}</span>
                   <span v-if="formatDate(getRecordMetadata(item).date)" class="archived-sidebar__item-date">{{
                     formatDate(getRecordMetadata(item).date)
                   }}</span>
-                  <span v-if="getFormatTag(item)" class="archived-sidebar__item-tag">{{ getFormatTag(item) }}</span>
                 </span>
               </button>
             </div>
@@ -73,33 +89,60 @@
             </div>
           </div>
           <div v-else-if="activeKey && tournament" class="archived-sidebar__actions">
-            <div class="sidebar-action-row">
-              <label class="sidebar-action-row__label"
-                >DB ID: <span class="sidebar-action-row__db-id" @click="copyDbId">{{ activeKey }}</span></label
-              >
+            <div v-if="isSuperAdmin" class="sidebar-action-row">
+              <div class="sidebar-action-row__label">
+                {{ $t('common.databaseId') }}:
+                <button
+                  type="button"
+                  class="sidebar-action-row__db-id"
+                  :aria-label="$t('common.copyDatabaseId')"
+                  @click="copyDbId"
+                >
+                  {{ activeKey }}
+                </button>
+              </div>
             </div>
             <div class="sidebar-action-row">
-              <label class="sidebar-action-row__label">Portal ID</label>
+              <label for="archived-portal-id" class="sidebar-action-row__label">{{
+                $t('common.portalTournamentId')
+              }}</label>
               <div class="sidebar-action-row__input-group">
                 <input
-                  v-model="portalIdInput"
+                  id="archived-portal-id"
+                  :value="isSuperAdmin ? (portalIdInput ?? portalId ?? '') : (portalId ?? '')"
                   class="sidebar-action-row__input"
                   type="number"
                   :placeholder="$t('teams.tournamentId')"
+                  :disabled="!isSuperAdmin"
+                  @input="onPortalIdInput"
                   @keyup.enter="savePortalId"
                 />
                 <button
+                  v-if="isSuperAdmin"
+                  type="button"
                   class="sidebar-action-row__save"
                   @click="savePortalId"
                   :disabled="!portalIdInput || portalIdInput == portalId"
                 >
                   {{ $t('common.save') }}
                 </button>
+                <a
+                  v-if="portalTournamentUrl"
+                  class="sidebar-action-row__portal-link"
+                  :href="portalTournamentUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :aria-label="$t('common.openInPortal')"
+                  :title="$t('common.openInPortal')"
+                >
+                  <ExternalLink :size="16" aria-hidden="true" />
+                </a>
               </div>
             </div>
             <div class="sidebar-action-row sidebar-action-row--buttons">
               <button
-                v-if="portalId"
+                type="button"
+                v-if="canRefreshClubLogos"
                 class="archived-links__btn archived-links__btn--secondary"
                 :disabled="fetchingLogos"
                 @click="refreshClubLogos"
@@ -107,23 +150,22 @@
                 <RefreshCw :size="14" :class="{ spin: fetchingLogos }" />
                 {{ fetchingLogos ? '...' : $t('common.refreshLogos') }}
               </button>
-              <button class="archived-links__btn" @click="copyPublicLink">
-                <Link2 :size="14" />
+              <button v-if="canCopyPublicLink" type="button" class="archived-links__btn" @click="copyPublicLink">
+                <Link2 :size="14" aria-hidden="true" />
                 {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
               </button>
             </div>
-            <div class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management">
-              <button v-if="isActiveOwner" class="button btn-make-active" @click="makeActive">
-                <ArchiveRestore :size="16" />
+            <div
+              v-if="isActiveOwner || canDeleteActive"
+              class="sidebar-action-row sidebar-action-row--buttons sidebar-action-row--management"
+            >
+              <button v-if="isActiveOwner" type="button" class="button btn-make-active" @click="makeActive">
+                <ArchiveRestore :size="16" aria-hidden="true" />
                 <span>{{ $t('common.makeActive') }}</span>
               </button>
-              <button v-if="canDeleteActive" class="button btn-remove-archived" @click="removeTournament">
-                <Trash2 :size="16" />
+              <button v-if="canDeleteActive" type="button" class="button btn-remove-archived" @click="removeTournament">
+                <Trash2 :size="16" aria-hidden="true" />
                 <span>{{ $t('common.remove') }}</span>
-              </button>
-              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click="removeFromView">
-                <EyeOff :size="16" />
-                <span>{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
           </div>
@@ -198,8 +240,15 @@
             </template>
             <template v-else>
               <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
-              <button class="tournament-selector__edit" @click.stop="startEditName" :title="$t('common.edit')">
-                <Pencil :size="16" />
+              <button
+                v-if="isSuperAdmin"
+                type="button"
+                class="tournament-selector__edit"
+                :aria-label="$t('common.edit')"
+                :title="$t('common.edit')"
+                @click.stop="startEditName"
+              >
+                <Pencil :size="16" aria-hidden="true" />
               </button>
             </template>
             <svg
@@ -219,10 +268,6 @@
               <button v-if="canDeleteActive" class="button btn-remove-archived" @click.stop="removeTournament">
                 <Trash2 :size="16" />
                 <span class="is-hidden-mobile">{{ $t('common.remove') }}</span>
-              </button>
-              <button v-else-if="!isActiveOwner" class="button btn-remove-archived" @click.stop="removeFromView">
-                <EyeOff :size="16" />
-                <span class="is-hidden-mobile">{{ $t('common.removeFromList') }}</span>
               </button>
             </div>
             <div class="tournament-selector__dropdown" v-if="selectorOpen">
@@ -293,13 +338,14 @@
                 <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
                 <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
               </div>
-              <div class="archived-links archived-links--mobile">
-                <button class="archived-links__btn" @click="copyPublicLink">
-                  <Link2 :size="14" />
+              <div v-if="canCopyPublicLink || canRefreshClubLogos" class="archived-links archived-links--mobile">
+                <button v-if="canCopyPublicLink" type="button" class="archived-links__btn" @click="copyPublicLink">
+                  <Link2 :size="14" aria-hidden="true" />
                   {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
                 </button>
                 <button
-                  v-if="portalId"
+                  type="button"
+                  v-if="canRefreshClubLogos"
                   class="archived-links__btn archived-links__btn--secondary"
                   :disabled="fetchingLogos"
                   @click="refreshClubLogos"
@@ -315,6 +361,7 @@
               :tournament="activeTournament"
               :protocol-available="activeTournament.tournamentIsFinished"
               :protocol-tournament-meta="protocolTournamentMeta"
+              :skip-protocol-gate="isSuperAdmin"
               class="mt-3"
             />
             <template v-else>
@@ -354,7 +401,7 @@
                     :tournament="activeTournament"
                     :tournament-meta="protocolTournamentMeta"
                     :rankingTeams="rankingTeams"
-                    :skipGate="true"
+                    :skipGate="isSuperAdmin"
                     :hide-close="true"
                   />
                 </div>
@@ -383,9 +430,8 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
-import { isArchiveIndexEntryEligible } from '@/services/archive-index';
+import { archiveIndexService, isArchiveIndexEntryEligible } from '@/services/archive-index';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
-import { PortalError } from '@/services/portal';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
   getActiveRound,
@@ -420,9 +466,9 @@ import {
   Pencil,
   Link2,
   RefreshCw,
+  ExternalLink,
   ArchiveRestore,
   Trash2,
-  EyeOff,
 } from 'lucide-vue-next';
 
 export default {
@@ -444,9 +490,9 @@ export default {
     Pencil,
     Link2,
     RefreshCw,
+    ExternalLink,
     ArchiveRestore,
     Trash2,
-    EyeOff,
   },
   data() {
     return {
@@ -463,7 +509,7 @@ export default {
       portalIdInput: null,
       searchQuery: '',
       systemFilter: '',
-      showAllUsers: localStorage.getItem('petanqueDrawArchiveShowAll') !== 'false',
+      showAllUsers: localStorage.getItem('petanqueDrawArchiveShowAll') === 'true',
       archiveActiveGroup: 'A',
     };
   },
@@ -483,7 +529,7 @@ export default {
   async created() {
     try {
       const promises = [this.fetchSavedTournaments()];
-      if (this.isSuperAdmin) promises.push(this.fetchArchiveIndex());
+      if (this.showAllUsers) promises.push(this.fetchArchiveIndex());
       await Promise.all(promises);
       const keys = this.filteredKeys;
       if (keys.length) {
@@ -517,8 +563,11 @@ export default {
     archiveActiveGroup(group) {
       this.activeTab = this.getDefaultTab(getTournamentGroup(this.tournament, group));
     },
-    portalId(val) {
-      this.portalIdInput = val || null;
+    portalId: {
+      handler(val) {
+        this.portalIdInput = val || null;
+      },
+      immediate: true,
     },
   },
   beforeUnmount() {
@@ -543,7 +592,7 @@ export default {
       return entries.sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''));
     },
     useArchiveIndex() {
-      return this.isSuperAdmin && this.showAllUsers && this.archiveIndex;
+      return this.showAllUsers && this.archiveIndex !== null;
     },
     tournamentEntries() {
       if (this.useArchiveIndex) return this.archiveIndexEntries;
@@ -576,18 +625,18 @@ export default {
       return this.userTournamentMap?.[this.activeKey] || null;
     },
     activeOwnerUid() {
-      if (this.activeMapEntry?.role === 'admin') return this.activeMapEntry.ownerUid;
+      if (this.activeMapEntry?.ownerUid) return this.activeMapEntry.ownerUid;
       if (this.useArchiveIndex && this.archiveIndex?.[this.activeKey]?.ownerUid) {
         return this.archiveIndex[this.activeKey].ownerUid;
       }
       return this.user?.uid;
     },
     canDeleteActive() {
-      if (!this.activeKey || !this.tournament) return false;
+      if (!this.isSuperAdmin || !this.activeKey || !this.tournament) return false;
       const metadata = getTournamentMetadata(this.tournament);
       const indexEntry = this.archiveIndex?.[this.activeKey];
       const main = getTournamentMain(this.tournament);
-      if (this.isSuperAdmin && isArchiveIndexEntryEligible(indexEntry)) {
+      if (isArchiveIndexEntryEligible(indexEntry)) {
         return (
           main?.tournamentIsFinished === true &&
           main?.preferences?.isTestTournament !== true &&
@@ -599,6 +648,15 @@ export default {
     },
     isActiveOwner() {
       return this.activeMapEntry?.role === 'owner';
+    },
+    canUseArchiveActions() {
+      return this.isSuperAdmin || this.isActiveOwner;
+    },
+    canCopyPublicLink() {
+      return !!this.publicLink;
+    },
+    canRefreshClubLogos() {
+      return this.canUseArchiveActions && !!this.portalId;
     },
     showLoadingSkeleton() {
       return this.isArchiveLoading || this.isLoading;
@@ -617,13 +675,13 @@ export default {
       const t = this.activeTournament;
       const list = [];
       if (this.hasPlayoffBracket) {
-        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork });
+        list.push({ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork, tone: 'primary' });
       }
-      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: Users });
-      list.push({ id: 'results', label: this.$t('teams.results'), icon: List });
-      list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon });
+      list.push({ id: 'teams', label: this.$t('teams.teams'), icon: Users, tone: 'danger' });
+      list.push({ id: 'results', label: this.$t('teams.results'), icon: List, tone: 'success' });
+      list.push({ id: 'ranking', label: this.$t('teams.ranking'), icon: TrophyIcon, tone: 'warning' });
       if (t?.tournamentIsFinished && t?.teams?.length) {
-        list.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
+        list.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText, tone: 'primary' });
       }
       return list;
     },
@@ -691,6 +749,11 @@ export default {
     },
     portalId() {
       return this.tournamentMetadata.portalIdTournament || null;
+    },
+    portalTournamentUrl() {
+      const portalId = String(this.portalId || '').trim();
+      if (!/^\d+$/.test(portalId)) return '';
+      return `https://portal.petanque.org.ua/tournament/${encodeURIComponent(portalId)}`;
     },
     allTeamsHaveLogos() {
       const t = this.activeTournament;
@@ -787,7 +850,12 @@ export default {
         this.$nextTick(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
       }
     },
-    onShowAllChange() {
+    async setArchiveScope(showAllUsers) {
+      if (this.showAllUsers === showAllUsers) return;
+      this.showAllUsers = showAllUsers;
+      await this.onShowAllChange();
+    },
+    async onShowAllChange() {
       localStorage.setItem('petanqueDrawArchiveShowAll', String(this.showAllUsers));
       if (!this.showAllUsers) {
         const firstKey = this.tournamentKeys[0] || null;
@@ -802,14 +870,21 @@ export default {
         if (selectionUnchanged && firstKey) this.subscribeTournament(firstKey);
         return;
       }
-      if (this.showAllUsers && this.isSuperAdmin && !this.archiveIndex) {
-        this.fetchArchiveIndex();
+      if (this.showAllUsers && this.archiveIndex === null) {
+        await this.fetchArchiveIndex();
+      }
+      if (!this.tournamentKeys.includes(this.activeKey)) {
+        this.tournament = null;
+        this.archiveActiveGroup = 'A';
+        this.activeKey = this.tournamentKeys[0] || null;
       }
     },
     closeSelector() {
       this.selectorOpen = false;
     },
     startEditName() {
+      if (!this.isSuperAdmin) return;
+      this.selectorOpen = false;
       this.editingName = true;
       this.$nextTick(() => {
         this.$refs.nameInput?.focus();
@@ -817,6 +892,7 @@ export default {
       });
     },
     saveName(value) {
+      if (!this.isSuperAdmin) return;
       const name = value.trim();
       if (name && name !== this.savedTournaments[this.activeKey].name) {
         this.renameSavedTournament(this.activeKey, name, this.activeOwnerUid);
@@ -824,6 +900,7 @@ export default {
       this.editingName = false;
     },
     async removeTournament() {
+      if (!this.canDeleteActive) return;
       if (
         !window.confirm(this.$t('modals.sureRemove') + ' ' + (this.savedTournaments[this.activeKey]?.name || '') + '?')
       )
@@ -834,15 +911,8 @@ export default {
       this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
       this.tournament = null;
     },
-    async removeFromView() {
-      if (!window.confirm(this.$t('modals.sureRemove') + '?')) return;
-      const removed = await this.removeSavedTournament(this.activeKey);
-      if (!removed) return;
-      const remaining = this.tournamentKeys.filter((k) => k !== this.activeKey);
-      this.activeKey = remaining.length ? remaining[remaining.length - 1] : null;
-      this.tournament = null;
-    },
     async makeActive() {
+      if (!this.isActiveOwner) return;
       const key = this.activeKey;
       if (!key) return;
       const restored = await this.unarchiveTournament(key);
@@ -889,7 +959,7 @@ export default {
       );
     },
     async refreshClubLogos() {
-      if (!this.portalId || this.fetchingLogos) return;
+      if (!this.canRefreshClubLogos || this.fetchingLogos) return;
       this.fetchingLogos = true;
       try {
         const tournament = this.tournament;
@@ -946,16 +1016,23 @@ export default {
       return `${dd}.${mm}.${yy}`;
     },
     async savePortalId() {
-      if (!this.portalIdInput) return;
+      if (!this.isSuperAdmin || !this.portalIdInput) return;
       const value = String(this.portalIdInput);
-      await tournamentService.updatePath(this.activeOwnerUid, this.activeKey, 'portalIdTournament', value);
+      await archiveIndexService.updatePortalId(this.activeKey, this.activeOwnerUid, value);
+      if (this.archiveIndex?.[this.activeKey]) this.archiveIndex[this.activeKey].portalId = value;
       this.tournament = { ...this.tournament, portalIdTournament: value };
       this.portalIdInput = null;
     },
+    onPortalIdInput(event) {
+      if (!this.isSuperAdmin) return;
+      this.portalIdInput = event.target.value;
+    },
     copyDbId() {
+      if (!this.isSuperAdmin) return;
       navigator.clipboard.writeText(this.activeKey);
     },
     copyPublicLink() {
+      if (!this.canCopyPublicLink) return;
       navigator.clipboard.writeText(this.publicLink);
       this.publicLinkCopied = true;
       setTimeout(() => {
@@ -1622,18 +1699,42 @@ export default {
   justify-content: space-between;
 }
 
-.archived-sidebar__toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+.archived-sidebar__scope {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-alt);
   text-transform: none;
-  cursor: pointer;
 }
 
-.archived-sidebar__toggle input {
-  margin: 0;
+.archived-sidebar__scope-button {
+  min-width: 58px;
+  padding: 0.3rem 0.65rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.archived-sidebar__scope-button--active {
+  background: var(--color-primary);
+  color: var(--color-btn-text, #fff);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+.archived-sidebar__scope-button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .archived-sidebar__search {
@@ -1786,6 +1887,13 @@ export default {
   border-color: var(--color-primary);
 }
 
+.sidebar-action-row__input:disabled {
+  opacity: 1;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  cursor: not-allowed;
+}
+
 .sidebar-action-row__save {
   padding: 0.4rem 0.75rem;
   border: 1px solid var(--color-primary);
@@ -1801,6 +1909,29 @@ export default {
 .sidebar-action-row__save:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.sidebar-action-row__portal-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-height: 34px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.sidebar-action-row__portal-link:hover {
+  background: var(--color-primary-bg);
+}
+
+.sidebar-action-row__portal-link:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
 .sidebar-action-row--buttons {

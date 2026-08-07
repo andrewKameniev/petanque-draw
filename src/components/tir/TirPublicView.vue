@@ -224,7 +224,7 @@
         v-if="view === 'protocol'"
         :tournament="tournament"
         :tournament-meta="protocolTournamentMeta"
-        :skip-gate="true"
+        :skip-gate="skipProtocolGate"
         :hide-close="true"
       />
     </div>
@@ -270,6 +270,7 @@ export default {
     tournament: { type: Object, required: true },
     protocolAvailable: { type: Boolean, default: false },
     protocolTournamentMeta: { type: Object, default: null },
+    skipProtocolGate: { type: Boolean, default: false },
   },
   data() {
     return {

@@ -267,7 +267,7 @@ export const useMainStore = defineStore('main', {
     },
     async fetchArchiveIndex() {
       const { archiveIndexService } = await import('@/services/archive-index');
-      const snapshot = await archiveIndexService.getAll();
+      const snapshot = await archiveIndexService.getAll({ includeLegacy: this.isSuperAdmin });
       this.archiveIndex = snapshot.exists() ? snapshot.val() : {};
       return this.archiveIndex;
     },

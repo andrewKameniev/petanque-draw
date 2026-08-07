@@ -319,27 +319,50 @@ export const useMainStore = defineStore('main', {
         });
       });
     },
-    setTournaments(tournaments, { routeQueryT } = {}) {
+    async setTournaments(tournaments, { routeQueryT } = {}) {
       this.tournaments = Object.fromEntries(
         Object.entries(tournaments).map(([key, tournament]) => [
           key,
           normalizeTournamentRecord(tournament, { id: key }),
         ]),
       );
-      if (!Object.keys(this.tournaments).length) {
-        this.addTournament();
-      }
       const pinned = routeQueryT || localStorage.getItem('petanqueDrawPinned');
       if (pinned && this.tournaments[pinned]) {
         this.setActiveTournament(pinned);
+        return true;
       } else if (pinned && this.userTournamentMap[pinned] && this.userTournamentMap[pinned].role !== 'owner') {
         const entry = this.userTournamentMap[pinned];
-        this.loadSharedTournament(pinned, entry.ownerUid);
-      } else {
-        this.setActiveTournament(
-          this.tournaments[Object.keys(this.tournaments)[Object.keys(this.tournaments).length - 1]].id,
-        );
+        if (await this.loadSharedTournament(pinned, entry.ownerUid)) return true;
       }
+
+      const tournamentIds = Object.keys(this.tournaments);
+      const ownedIds = tournamentIds.filter((id) => {
+        const entry = this.userTournamentMap[id];
+        return !entry || entry.role === 'owner';
+      });
+      if (ownedIds.length) {
+        this.setActiveTournament(ownedIds[ownedIds.length - 1]);
+        return true;
+      }
+
+      const loadedSharedIds = tournamentIds.filter((id) => {
+        const entry = this.userTournamentMap[id];
+        return entry?.role !== 'owner' && entry?.status !== 'archived';
+      });
+      if (loadedSharedIds.length) {
+        this.setActiveTournament(loadedSharedIds[loadedSharedIds.length - 1]);
+        return true;
+      }
+
+      const activeSharedEntries = Object.entries(this.userTournamentMap).filter(
+        ([, entry]) => entry.role !== 'owner' && entry.status !== 'archived' && entry.ownerUid,
+      );
+      for (const [id, entry] of activeSharedEntries) {
+        if (await this.loadSharedTournament(id, entry.ownerUid)) return true;
+      }
+
+      this.setActiveTournament(null);
+      return false;
     },
     setSavedTournaments(tournaments) {
       this.savedTournaments = Object.fromEntries(
@@ -406,15 +429,11 @@ export const useMainStore = defineStore('main', {
       });
 
       remove(dataRef)
-        .then(() => {
+        .then(async () => {
           userMapService.remove(this.user.uid, tournamentId);
           delete this.userTournamentMap[tournamentId];
           delete this.tournaments[tournamentId];
-          if (Object.keys(this.tournaments).length >= 1) {
-            this.setActiveTournament(Object.keys(this.tournaments)[0]);
-          } else {
-            this.addTournament();
-          }
+          await this.setTournaments(this.tournaments);
           this.showMessage({
             title: i18n.global.t('messages.removed'),
             text: i18n.global.t('messages.tournamentRemoved'),

@@ -41,6 +41,7 @@ describe('Tournament URL routing (?t= query param)', () => {
   let store;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     setActivePinia(createPinia());
     localStorage.clear();
     store = useMainStore();
@@ -94,7 +95,34 @@ describe('Tournament URL routing (?t= query param)', () => {
       expect(store.currentTournamentIndex).toBe('last');
     });
 
-    it('loads shared tournament when routeQueryT matches userTournamentMap', () => {
+    it('loads an active shared tournament when the user has no active owned tournaments', async () => {
+      store.userTournamentMap = {
+        archived: { role: 'owner', status: 'archived', name: 'Archived' },
+        shared: { role: 'scorer', ownerUid: 'owner-abc', status: 'active', name: 'Shared' },
+      };
+      mockGet.mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({ name: 'Shared', main: { teams: [], games: [], system: 'swiss', preferences: {} } }),
+      });
+
+      await store.setTournaments({});
+
+      expect(store.currentTournamentIndex).toBe('shared');
+      expect(store.currentTournament._ownerUid).toBe('owner-abc');
+    });
+
+    it('keeps the tournament selection empty when no active tournament is available', async () => {
+      store.userTournamentMap = {
+        archived: { role: 'owner', status: 'archived', name: 'Archived' },
+      };
+
+      await store.setTournaments({});
+
+      expect(store.tournaments).toEqual({});
+      expect(store.currentTournamentIndex).toBeNull();
+    });
+
+    it('loads shared tournament when routeQueryT matches userTournamentMap', async () => {
       store.userTournamentMap = {
         'shared-123': { role: 'scorer', ownerUid: 'owner-abc', status: 'active', name: 'Shared' },
       };
@@ -107,9 +135,9 @@ describe('Tournament URL routing (?t= query param)', () => {
       const tournaments = {
         mine: { id: 'mine', name: 'Mine', main: { teams: [], games: [], system: 'swiss', preferences: {} } },
       };
-      store.setTournaments(tournaments, { routeQueryT: 'shared-123' });
+      await store.setTournaments(tournaments, { routeQueryT: 'shared-123' });
 
-      expect(store.currentTournamentIndex).not.toBe('mine');
+      expect(store.currentTournamentIndex).toBe('shared-123');
     });
 
     it('ignores routeQueryT when it does not match any tournament or map entry', () => {
@@ -226,6 +254,28 @@ describe('Tournament URL routing (?t= query param)', () => {
       await store.getTournaments({ routeQueryT: 't1' });
 
       expect(store.currentTournamentIndex).toBe('t1');
+    });
+
+    it('loads an active collaborator tournament when the owned snapshot has no active entries', async () => {
+      const { get } = await import('firebase/database');
+      const { userMapService } = await import('@/services/db');
+
+      userMapService.getAll.mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({
+          archived: { status: 'archived', role: 'owner', name: 'Archived' },
+          shared: { status: 'active', role: 'admin', ownerUid: 'owner-abc', name: 'Shared' },
+        }),
+      });
+      get.mockResolvedValueOnce({ exists: () => false }).mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({ name: 'Shared', main: { teams: [], games: [], system: 'swiss', preferences: {} } }),
+      });
+
+      await store.getTournaments();
+
+      expect(store.currentTournamentIndex).toBe('shared');
+      expect(store.currentTournament._ownerUid).toBe('owner-abc');
     });
   });
 });

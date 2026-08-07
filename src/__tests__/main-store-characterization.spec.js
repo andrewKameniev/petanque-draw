@@ -235,6 +235,18 @@ describe('main-store façade baseline', () => {
     expect(store.tournaments['shared-1']).toBeUndefined();
   });
 
+  it('leaves the selection empty after archiving the final active tournament', async () => {
+    vi.stubGlobal('localStorage', { getItem: vi.fn(() => null) });
+    const store = createStore();
+    store.userTournamentMap['tournament-1'] = { role: 'owner', status: 'active', name: 'Test' };
+
+    await store.addToSaved(store.currentTournament);
+
+    expect(store.tournaments).toEqual({});
+    expect(store.currentTournamentIndex).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
   it('cancels a pending match write before changing the active tournament', async () => {
     vi.useFakeTimers();
     const store = createStore();

@@ -96,7 +96,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       if (ownActive.length) ownActive.forEach((id) => all[id] && (active[id] = all[id]));
       else if (!Object.keys(store.userTournamentMap).length) Object.assign(active, all);
     }
-    store.setTournaments(active, { routeQueryT });
+    await store.setTournaments(active, { routeQueryT });
     store.savedTournamentIds = Object.entries(store.userTournamentMap)
       .filter(([, entry]) => entry.status === 'archived')
       .map(([id]) => id);
@@ -183,9 +183,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       if (!store.savedTournamentIds.includes(id)) store.savedTournamentIds.push(id);
       delete store.tournaments[id];
       if (String(store.currentTournamentIndex) === id) {
-        const remaining = Object.keys(store.tournaments);
-        if (remaining.length) store.setActiveTournament(remaining[remaining.length - 1]);
-        else store.addTournament();
+        await store.setTournaments(store.tournaments);
       }
       try {
         const indexEntry = buildArchiveIndexEntry(tournament, {
@@ -405,7 +403,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
     const tournamentSnapshot = await firebase.get(
       firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${tournamentId}`),
     );
-    if (!isCurrent(operation) || !tournamentSnapshot.exists()) return;
+    if (!isCurrent(operation) || !tournamentSnapshot.exists()) return false;
     store.tournaments[tournamentId] = normalizeTournamentRecord(tournamentSnapshot.val(), {
       id: tournamentId,
       ownerUid,
@@ -413,6 +411,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
     store.setActiveTournament(tournamentId);
     store.subscribeTournament();
     watchCollaboratorAccess(tournamentId, ownerUid);
+    return true;
   }
 
   function disposeAccessWatcher() {

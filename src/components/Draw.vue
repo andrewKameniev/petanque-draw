@@ -6,6 +6,22 @@
       <div class="columns">
         <div class="column" v-if="user">
           <Tournament v-if="tournament" />
+          <section v-else class="tournament-empty" data-testid="tournament-empty-state">
+            <div class="tournament-empty__icon" aria-hidden="true">
+              <Trophy :size="44" :stroke-width="1.6" />
+            </div>
+            <h1 class="tournament-empty__title">{{ $t('common.noActiveTournamentsTitle') }}</h1>
+            <p class="tournament-empty__text">{{ $t('common.noActiveTournamentsText') }}</p>
+            <button
+              type="button"
+              class="button tournament-empty__button"
+              data-testid="create-tournament-empty"
+              @click="addTournament"
+            >
+              <Plus :size="20" aria-hidden="true" />
+              {{ $t('common.createTournament') }}
+            </button>
+          </section>
         </div>
         <div v-else class="login-section">
           <!-- Forgot password form -->
@@ -151,6 +167,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswor
 import { auth } from '@/firebase';
 import Footer from '@/components/partials/Footer.vue';
 import PageLoader from '@/components/ui/PageLoader.vue';
+import { Plus, Trophy } from 'lucide-vue-next';
 
 export default {
   name: 'Draw',
@@ -196,6 +213,7 @@ export default {
       'loginUser',
       'getTournaments',
       'showMessage',
+      'addTournament',
     ]),
     async resetPassword() {
       try {
@@ -290,6 +308,8 @@ export default {
     Tournament,
     Menu,
     Message,
+    Plus,
+    Trophy,
   },
 };
 </script>
@@ -305,5 +325,74 @@ export default {
 
 .columns > .column {
   min-width: 0;
+}
+
+.tournament-empty {
+  display: flex;
+  min-height: 520px;
+  margin: 1.5rem 0;
+  padding: 4rem 2rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--color-surface-semi);
+  border: 1px solid var(--color-border-light);
+  border-radius: 1rem;
+}
+
+.tournament-empty__icon {
+  display: grid;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 1.5rem;
+  place-items: center;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  border-radius: 50%;
+}
+
+.tournament-empty__title {
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+  font-size: clamp(1.65rem, 3vw, 2.15rem);
+  font-weight: 700;
+}
+
+.tournament-empty__text {
+  max-width: 480px;
+  margin: 0 0 1.75rem;
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.tournament-empty__button {
+  display: inline-flex;
+  min-height: 48px;
+  padding: 0.7rem 1.4rem;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--grey-0);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  border-radius: 0.65rem;
+  font-weight: 700;
+}
+
+.tournament-empty__button:hover,
+.tournament-empty__button:focus-visible {
+  color: var(--grey-0);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-shadow);
+}
+
+@media (max-width: 768px) {
+  .tournament-empty {
+    min-height: 400px;
+    margin: 0.75rem 0;
+    padding: 3rem 1.25rem;
+  }
 }
 </style>

@@ -5,6 +5,7 @@ import { createPinia } from 'pinia';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import Ranking from '@/components/partials/Ranking.vue';
+import { useMainStore } from '@/stores/main';
 
 const wrappers = [];
 
@@ -17,6 +18,7 @@ const rankingTeams = [
 
 const finishedGroupTournament = {
   system: 'groups',
+  portalIdTournament: '735',
   tournamentIsFinished: true,
   teams: rankingTeams[0],
   groups: [['Alpha', 'Bravo']],
@@ -34,16 +36,23 @@ const finishedGroupTournament = {
   preferences: {},
 };
 
-const mountRanking = () => {
+const mountRanking = ({
+  readOnly = true,
+  tournament = finishedGroupTournament,
+  teamsRanking = rankingTeams,
+  userEmail = 'ancam1987@gmail.com',
+} = {}) => {
+  const pinia = createPinia();
+  useMainStore(pinia).user = { uid: 'ranking-user', email: userEmail };
   const wrapper = mount(Ranking, {
     props: {
-      tournament: finishedGroupTournament,
-      rankingTeams,
+      tournament,
+      rankingTeams: teamsRanking,
       activeRound: 2,
-      readOnly: true,
+      readOnly,
     },
     global: {
-      plugins: [createPinia()],
+      plugins: [pinia],
       mocks: { $t: (key) => key },
     },
   });
@@ -72,5 +81,31 @@ describe('Ranking finished-tournament table selection', () => {
     expect(wrapper.find('#table-finish-ranking').exists()).toBe(false);
     expect(wrapper.find('.group-ranking-table').exists()).toBe(true);
     expect(controls.map((button) => button.attributes('aria-pressed'))).toEqual(['false', 'true']);
+  });
+  it('renders one export and copy action set for an editable finished ranking', async () => {
+    const wrapper = mountRanking({
+      readOnly: false,
+      tournament: { ...finishedGroupTournament, system: 'supermele', groups: undefined },
+    });
+    await wrapper.setData({ isTournamentOrg: true });
+
+    const actionButtons = wrapper.findAll('.ranking-header__actions button');
+
+    expect(actionButtons).toHaveLength(2);
+    expect(actionButtons.map((button) => button.text())).toEqual(['ranking.exportResults', 'ranking.copyResults']);
+  });
+
+  it('hides export and copy actions from accounts other than ancam and nemo', async () => {
+    const wrapper = mountRanking({ readOnly: false, userEmail: 'viewer@example.com' });
+    await wrapper.setData({ isTournamentOrg: true });
+
+    expect(wrapper.find('.ranking-header__actions').exists()).toBe(false);
+    expect(wrapper.vm.canUseResultActions).toBe(false);
+  });
+
+  it.each(['ancam1987@gmail.com', 'nemo15.alex@gmail.com'])('allows result actions for %s', (userEmail) => {
+    const wrapper = mountRanking({ readOnly: false, userEmail });
+
+    expect(wrapper.vm.canUseResultActions).toBe(true);
   });
 });

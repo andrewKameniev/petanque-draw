@@ -33,7 +33,9 @@
         </button>
       </div>
       <div
-        v-if="!readOnly && tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly"
+        v-if="
+          canUseResultActions && !readOnly && tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly
+        "
         class="ranking-header__actions"
       >
         <button
@@ -62,7 +64,7 @@
     </div>
     <div v-if="tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly" class="mb-5">
       <div
-        v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
+        v-if="canUseResultActions && !isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
         class="ranking-header"
       >
         <div class="ranking-header__actions ml-auto">
@@ -591,6 +593,8 @@ import { useMainStore } from '@/stores/main';
 import { tournamentOrgsService } from '@/services/db';
 import Modal from '@/components/Modal';
 
+const RESULT_ACTION_EMAILS = new Set(['ancam1987@gmail.com', 'nemo15.alex@gmail.com']);
+
 export default {
   name: 'Ranking',
   components: { Copy, Check, Upload, Trophy, Modal },
@@ -771,6 +775,7 @@ export default {
       return results;
     },
     async exportResults() {
+      if (!this.canUseResultActions || this.readOnly) return;
       const token = import.meta.env.VITE_FPU_AUTH_TOKEN;
       if (!token) {
         this.showMessage({ title: this.$t('messages.error'), text: 'API token not configured', type: 'error' });
@@ -840,6 +845,7 @@ export default {
       }
     },
     copyResults() {
+      if (!this.canUseResultActions || this.readOnly) return;
       let content = '';
       this.tournamentRanking.forEach((item) => {
         content += item.place + ' ' + item.title + '\n';
@@ -857,6 +863,9 @@ export default {
   },
   computed: {
     ...mapState(useMainStore, ['user', 'currentTournament']),
+    canUseResultActions() {
+      return RESULT_ACTION_EMAILS.has(String(this.user?.email || '').toLowerCase());
+    },
     portalIdTournament() {
       return this.currentTournament?.portalIdTournament || this.tournament.portalIdTournament;
     },

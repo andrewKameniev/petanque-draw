@@ -35,12 +35,16 @@ vi.mock('@/services/portal-sync', () => ({
 
 import Tournament from '@/components/Tournament.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
+import Protocol from '@/components/partials/Protocol.vue';
+import TirPublicView from '@/components/tir/TirPublicView.vue';
 import Archived from '@/views/Archived.vue';
+import { update as updateDatabase } from 'firebase/database';
 
 function tournamentRecord({ mainFinished = true, tournamentBFinished = true, activeGroup = 'A' } = {}) {
   return {
-    id: 'archive-with-b',
+    id: '1784965464060',
     name: 'Archive with B',
+    date: '2026-08-07',
     portalIdTournament: '42',
     activeGroup,
     main: {
@@ -83,7 +87,16 @@ function tournamentHarness(record) {
   };
 }
 
-function archivedHarness(record) {
+function archivedHarness(
+  record,
+  {
+    archiveIndex = null,
+    isSuperAdmin = false,
+    role = 'owner',
+    savedTournaments = { [record.id]: record },
+    showAllUsers = false,
+  } = {},
+) {
   return {
     ...Archived,
     created() {},
@@ -95,18 +108,18 @@ function archivedHarness(record) {
         tournament: record,
         isArchiveLoading: false,
         isLoading: false,
-        showAllUsers: false,
+        showAllUsers,
       };
     },
     computed: {
       ...Archived.computed,
       savedTournaments() {
-        return { [record.id]: this.tournament };
+        return savedTournaments;
       },
       user: () => ({ uid: 'owner-1', email: 'owner@example.com' }),
-      userTournamentMap: () => ({ [record.id]: { role: 'owner' } }),
-      isSuperAdmin: () => false,
-      archiveIndex: () => null,
+      userTournamentMap: () => (role ? { [record.id]: { role } } : {}),
+      isSuperAdmin: () => isSuperAdmin,
+      archiveIndex: () => archiveIndex,
     },
   };
 }
@@ -128,6 +141,7 @@ describe('Main and Tournament B archive behavior', () => {
     localStorage.clear();
     serviceMocks.syncFromPortal.mockReset();
     serviceMocks.updatePath.mockClear();
+    updateDatabase.mockClear();
   });
 
   afterEach(() => {
@@ -189,5 +203,142 @@ describe('Main and Tournament B archive behavior', () => {
     );
 
     wrapper.unmount();
+  });
+
+  it('offers an accessible Mine/All switch to every user and places the date after the type tag', async () => {
+    const record = tournamentRecord();
+    const wrapper = shallowMount(
+      archivedHarness(record, { archiveIndex: {} }),
+      mountOptions({ PublicPageShell: false }),
+    );
+
+    const scope = wrapper.get('.archived-sidebar__scope');
+    const [mine, all] = scope.findAll('button');
+    expect(scope.attributes('role')).toBe('group');
+    expect(mine.attributes('aria-pressed')).toBe('true');
+    expect(all.attributes('aria-pressed')).toBe('false');
+
+    await all.trigger('click');
+    expect(wrapper.vm.showAllUsers).toBe(true);
+    expect(all.attributes('aria-pressed')).toBe('true');
+
+    await mine.trigger('click');
+    const metadataClasses = wrapper
+      .get('.archived-sidebar__item-meta')
+      .findAll(':scope > span')
+      .map((item) => item.classes()[0]);
+    expect(metadataClasses).toEqual(['archived-sidebar__item-tag', 'archived-sidebar__item-date']);
+
+    wrapper.unmount();
+  });
+
+  it('keeps foreign archives read-only while exposing portal and public-link actions', async () => {
+    const record = tournamentRecord();
+    const owner = shallowMount(archivedHarness(record), mountOptions({ PublicPageShell: false }));
+
+    expect(owner.get('.sidebar-action-row__input').attributes('disabled')).toBeDefined();
+    expect(owner.get('.sidebar-action-row__portal-link').attributes()).toMatchObject({
+      href: 'https://portal.petanque.org.ua/tournament/42',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    });
+    expect(owner.find('.sidebar-action-row__save').exists()).toBe(false);
+    expect(owner.find('.sidebar-action-row__db-id').exists()).toBe(false);
+    expect(owner.find('.archived-links__btn--secondary').exists()).toBe(true);
+    expect(owner.find('.btn-make-active').exists()).toBe(true);
+    expect(owner.find('.btn-remove-archived').exists()).toBe(false);
+    expect(owner.find('.tournament-selector__edit').exists()).toBe(false);
+    owner.unmount();
+
+    const archiveIndex = {
+      [record.id]: {
+        name: record.name,
+        nameLower: record.name.toLowerCase(),
+        date: record.date,
+        system: 'swiss',
+        ownerUid: 'foreign-owner',
+        portalId: '42',
+        tournamentIsFinished: true,
+        isTestTournament: false,
+      },
+    };
+    const foreign = shallowMount(
+      archivedHarness(record, { archiveIndex, role: null, savedTournaments: {}, showAllUsers: true }),
+      mountOptions({ PublicPageShell: false }),
+    );
+    expect(foreign.find('.archived-sidebar__actions').exists()).toBe(true);
+    expect(foreign.get('.sidebar-action-row__input').attributes('disabled')).toBeDefined();
+    expect(foreign.get('.sidebar-action-row__input').element.value).toBe('42');
+    expect(foreign.get('.sidebar-action-row__portal-link').attributes('href')).toBe(
+      'https://portal.petanque.org.ua/tournament/42',
+    );
+    expect(foreign.find('.sidebar-action-row__save').exists()).toBe(false);
+    expect(foreign.find('.archived-links__btn').exists()).toBe(true);
+    expect(foreign.find('.archived-links__btn--secondary').exists()).toBe(false);
+    expect(foreign.find('.btn-make-active').exists()).toBe(false);
+    foreign.vm.onPortalIdInput({ target: { value: '99' } });
+    await foreign.vm.savePortalId();
+    expect(serviceMocks.updatePath).not.toHaveBeenCalled();
+    expect(foreign.find('.archived-content').exists()).toBe(true);
+    foreign.unmount();
+
+    const superAdmin = shallowMount(
+      archivedHarness(record, {
+        archiveIndex,
+        isSuperAdmin: true,
+        role: null,
+        savedTournaments: {},
+        showAllUsers: true,
+      }),
+      mountOptions({ PublicPageShell: false }),
+    );
+    expect(superAdmin.get('.sidebar-action-row__input').attributes('disabled')).toBeUndefined();
+    expect(superAdmin.find('.sidebar-action-row__save').exists()).toBe(true);
+    expect(superAdmin.get('.sidebar-action-row__portal-link').attributes('href')).toBe(
+      'https://portal.petanque.org.ua/tournament/42',
+    );
+    superAdmin.vm.onPortalIdInput({ target: { value: '43' } });
+    await superAdmin.vm.savePortalId();
+    expect(updateDatabase).toHaveBeenCalledWith(undefined, {
+      [`foreign-owner/tournaments/${record.id}/portalIdTournament`]: '43',
+      [`archive/${record.id}/portalId`]: '43',
+    });
+    await superAdmin.vm.$nextTick();
+    expect(superAdmin.get('.sidebar-action-row__portal-link').attributes('href')).toBe(
+      'https://portal.petanque.org.ua/tournament/43',
+    );
+    expect(superAdmin.find('.sidebar-action-row__db-id').exists()).toBe(true);
+    expect(superAdmin.find('.btn-remove-archived').exists()).toBe(true);
+    superAdmin.unmount();
+  });
+
+  it('gates archived standard and TIR protocols for everyone except the superuser', async () => {
+    const standard = tournamentRecord();
+    const regular = shallowMount(archivedHarness(standard), mountOptions({ PublicPageShell: false }));
+    regular.vm.activeTab = 'protocol';
+    await regular.vm.$nextTick();
+    expect(regular.getComponent(Protocol).props('skipGate')).toBe(false);
+    regular.unmount();
+
+    const tir = {
+      id: '1784965464061',
+      name: 'Archived TIR',
+      date: '2026-08-07',
+      portalIdTournament: '43',
+      system: 'tir',
+      tirParticipants: [{ id: 1, name: 'Player' }],
+      tournamentIsFinished: true,
+      preferences: {},
+    };
+    const regularTir = shallowMount(archivedHarness(tir), mountOptions({ PublicPageShell: false }));
+    expect(regularTir.getComponent(TirPublicView).props('skipProtocolGate')).toBe(false);
+    regularTir.unmount();
+
+    const superTir = shallowMount(
+      archivedHarness(tir, { isSuperAdmin: true }),
+      mountOptions({ PublicPageShell: false }),
+    );
+    expect(superTir.getComponent(TirPublicView).props('skipProtocolGate')).toBe(true);
+    superTir.unmount();
   });
 });

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createArchiveCollaborationRuntime } from '@/services/archive-collaboration';
+import { buildArchiveIndexEntry } from '@/services/archive-index';
 
 function createHarness() {
   const userMapService = {
@@ -72,6 +73,23 @@ describe('archive and collaboration runtime', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+  });
+
+  it('keeps owner email out of the archive index exposed to authenticated users', () => {
+    const entry = buildArchiveIndexEntry(
+      {
+        name: 'Public archive entry',
+        portalIdTournament: '808',
+        tournamentIsFinished: true,
+        preferences: {},
+        teams: [],
+        games: [],
+      },
+      { ownerUid: 'owner-1', ownerEmail: 'private@example.test' },
+    );
+
+    expect(entry).toMatchObject({ ownerUid: 'owner-1', portalId: '808', visibility: 'public' });
+    expect(entry).not.toHaveProperty('ownerEmail');
   });
 
   it('rolls back the owner map when collaborator archive propagation fails', async () => {

@@ -228,14 +228,15 @@
     <div v-else class="teams-table-wrapper">
       <table id="table-list" class="table is-fullwidth">
         <tr
-          v-for="team in sortedTeams"
+          v-for="(team, teamIndex) in sortedTeams"
           :key="team.title"
           :data-team-title="team.title"
           :class="{ 'search-highlight': isTeamHighlighted(team.title), 'team-table-row--clickable': hasGamesStarted }"
           @click="hasGamesStarted && toggleExpand(team.title)"
         >
-          <td>
+          <td :colspan="hasTeamDetails(team) ? 1 : 3">
             <div class="team-table-row">
+              <span class="team-table-row__rank">{{ teamIndex + 1 }}.</span>
               <span>
                 {{ team.title }}
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
@@ -264,18 +265,18 @@
               @navigate-to-team="navigateToTeam"
             />
           </td>
-          <td class="is-hidden-mobile is-size-7" v-if="team.players && team.players.length > 1">
+          <td v-if="hasTeamDetails(team) && team.players && team.players.length > 1" class="is-hidden-mobile is-size-7">
             <span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
               >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
             >
           </td>
-          <td class="is-hidden-mobile is-size-7" v-else></td>
-          <td class="is-hidden-mobile is-size-7 has-text-grey" v-if="getTeamClub(team)">
+          <td v-else-if="hasTeamDetails(team)" class="is-hidden-mobile is-size-7"></td>
+          <td v-if="hasTeamDetails(team) && getTeamClub(team)" class="is-hidden-mobile is-size-7 has-text-grey">
             <span v-for="(line, i) in formatClub(getTeamClub(team))" :key="i"
               >{{ line }}<br v-if="i === 0 && formatClub(getTeamClub(team)).length > 1"
             /></span>
           </td>
-          <td class="is-hidden-mobile" v-else></td>
+          <td v-else-if="hasTeamDetails(team)" class="is-hidden-mobile"></td>
           <td class="td-100" v-if="tournament.useRating">
             <span class="rating-badge"
               ><Star :size="12" />{{ team.rating ? Number(team.rating).toFixed(2) : '—' }}</span
@@ -454,6 +455,9 @@ export default {
     ...mapActions(useMainStore, ['removeTeam']),
     toggleExpand(teamTitle) {
       this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
+    },
+    hasTeamDetails(team) {
+      return Boolean(team.players?.length > 1 || this.getTeamClub(team));
     },
     navigateToTeam(teamTitle) {
       this.activeClubFilter = null;
@@ -827,6 +831,17 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.teams-table-wrapper #table-list tr td:first-child::before {
+  content: none;
+}
+
+.team-table-row__rank {
+  flex: 0 0 2rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .teams-table-wrapper {

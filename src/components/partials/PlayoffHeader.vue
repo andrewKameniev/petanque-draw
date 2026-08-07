@@ -11,7 +11,8 @@
       class="button playoff-header__bracket-btn"
       @click="$emit('show-bracket')"
     >
-      <GitFork :size="16" /> {{ $t('games.showBracket') }}
+      <GitFork class="playoff-header__bracket-icon" :size="18" aria-hidden="true" />
+      <span>{{ $t('games.showBracket') }}</span>
     </button>
   </header>
 </template>
@@ -73,21 +74,45 @@ export default {
   align-items: center;
   gap: 0.45rem;
   min-height: 2.6rem;
-  border: 2px solid var(--color-primary) !important;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-primary) !important;
+  border-radius: 8px;
   background: var(--color-surface) !important;
   color: var(--color-primary) !important;
   font-weight: 700;
+  line-height: 1.2;
+  box-shadow: none !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.playoff-header__bracket-icon {
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.playoff-header__bracket-btn:hover {
+  border-color: var(--color-primary-hover) !important;
+  background: var(--color-primary-bg) !important;
+  color: var(--color-primary-hover) !important;
   box-shadow: none !important;
 }
 
-.playoff-header__bracket-btn:hover,
-.playoff-header__bracket-btn:focus,
-.playoff-header__bracket-btn:focus-visible,
-.playoff-header__bracket-btn:active {
+.playoff-header__bracket-btn:focus-visible {
   border-color: var(--color-primary-hover) !important;
   background: var(--color-primary-bg) !important;
   color: var(--color-primary-hover) !important;
   box-shadow: 0 0 0 3px var(--color-primary-shadow) !important;
+}
+
+.playoff-header__bracket-btn:active {
+  border-color: var(--color-primary-hover) !important;
+  background: var(--color-primary-bg) !important;
+  color: var(--color-primary-hover) !important;
+  box-shadow: none !important;
 }
 
 @media screen and (max-width: 768px) {

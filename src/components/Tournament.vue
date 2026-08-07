@@ -1165,13 +1165,17 @@ export default {
           { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
         ];
       }
-      return [
+      const tabs = [
         { id: 'teams', label: this.$t('teams.teams'), icon: Users },
         { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
         { id: 'results', label: this.$t('teams.results'), icon: List },
         { id: 'ranking', label: this.$t('teams.ranking'), icon: Trophy },
         { id: 'streams', label: this.$t('streams.title'), icon: Radio },
       ];
+      if (this.tournament.system === 'playoff' && !this.tournament.tournamentIsFinished) {
+        return tabs.filter((tab) => tab.id !== 'ranking');
+      }
+      return tabs;
     },
     isAllTeamsGroup() {
       return this.tournament.system === 'groups' && this.teamsInGroup === this.tournament.teams.length;

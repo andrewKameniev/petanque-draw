@@ -14,6 +14,26 @@
           <Copy v-else :size="16" />
           {{ linkCopied ? $t('messages.success') : $t('remote.copyLink') }}
         </button>
+        <button
+          v-if="canSendPortalLink"
+          type="button"
+          class="button qr-modal__btn"
+          :class="{ 'qr-modal__btn--copied': portalLinkSent }"
+          :disabled="portalLinkSending || portalLinkSent"
+          data-testid="btn-send-portal-link"
+          @click="sendPortalLink"
+        >
+          <Check v-if="portalLinkSent" :size="16" aria-hidden="true" />
+          <LoaderCircle v-else-if="portalLinkSending" :size="16" class="qr-modal__spinner" aria-hidden="true" />
+          <Send v-else :size="16" aria-hidden="true" />
+          {{
+            portalLinkSent
+              ? $t('remote.linkSentToPortal')
+              : portalLinkSending
+                ? $t('remote.sendingLinkToPortal')
+                : $t('remote.sendLinkToPortal')
+          }}
+        </button>
       </div>
       <template v-if="!isTir">
         <div class="qr-modal__divider"></div>
@@ -104,17 +124,45 @@ import QrcodeVue from 'qrcode.vue';
 import Modal from '@/components/Modal';
 import { mapState, mapActions } from 'pinia';
 import { SUPER_ADMIN_EMAIL, useMainStore } from '@/stores/main';
+import { updatePortalTournament } from '@/services/portal';
 import { encodeTournamentRef } from '@/services/tournament-ref';
-import { Copy, Check, Monitor, Users, ChevronDown, UserPlus, X, ShieldCheck } from 'lucide-vue-next';
+import { getTournamentMain, getTournamentMetadata } from '@/services/tournament-record';
+import {
+  Copy,
+  Check,
+  Monitor,
+  Users,
+  ChevronDown,
+  UserPlus,
+  X,
+  ShieldCheck,
+  Send,
+  LoaderCircle,
+} from 'lucide-vue-next';
 
 export default {
   name: 'QrCode',
-  components: { Modal, QrcodeVue, Copy, Check, Monitor, Users, ChevronDown, UserPlus, X, ShieldCheck },
+  components: {
+    Modal,
+    QrcodeVue,
+    Copy,
+    Check,
+    Monitor,
+    Users,
+    ChevronDown,
+    UserPlus,
+    X,
+    ShieldCheck,
+    Send,
+    LoaderCircle,
+  },
   data() {
     return {
       size: 300,
       linkCopied: false,
       tvLinkCopied: false,
+      portalLinkSending: false,
+      portalLinkSent: false,
       collabOpen: false,
       collabEmail: '',
       collabRole: 'scorer',
@@ -141,6 +189,13 @@ export default {
     tvLink() {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tv?ref=${this.shortRef}`;
+    },
+    portalTournamentId() {
+      return getTournamentMetadata(this.tournament).portalIdTournament || '';
+    },
+    canSendPortalLink() {
+      const main = getTournamentMain(this.tournament);
+      return !!String(this.portalTournamentId).trim() && main?.preferences?.isTestTournament !== true;
     },
     collaboratorsList() {
       const collabs = this.tournament?.collaborators;
@@ -172,6 +227,26 @@ export default {
       setTimeout(() => {
         this.tvLinkCopied = false;
       }, 2000);
+    },
+    async sendPortalLink() {
+      if (!this.canSendPortalLink || this.portalLinkSending || this.portalLinkSent) return;
+      this.portalLinkSending = true;
+      try {
+        await updatePortalTournament(this.portalTournamentId, this.shortRef);
+        this.portalLinkSent = true;
+        this.showMessage({
+          title: this.$t('messages.success'),
+          text: this.$t('remote.linkSentToPortal'),
+        });
+      } catch (error) {
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t(error?.code === 'MISSING_TOKEN' ? 'remote.portalTokenMissing' : 'remote.linkPortalError'),
+          type: 'error',
+        });
+      } finally {
+        this.portalLinkSending = false;
+      }
     },
     async handleAddCollaborator() {
       if (!this.collabEmail || this.collabLoading) return;
@@ -249,6 +324,10 @@ export default {
 
 .qr-modal__actions {
   margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .qr-modal__btn {
@@ -277,6 +356,21 @@ export default {
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-surface) !important;
+}
+
+.qr-modal__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.qr-modal__spinner {
+  animation: qr-modal-spin 1s linear infinite;
+}
+
+@keyframes qr-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .qr-modal__divider {

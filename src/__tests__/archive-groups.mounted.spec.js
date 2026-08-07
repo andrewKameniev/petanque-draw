@@ -4,8 +4,10 @@ import { flushPromises, shallowMount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const serviceMocks = vi.hoisted(() => ({
+  showMessage: vi.fn(),
   syncFromPortal: vi.fn(),
   updatePath: vi.fn(() => Promise.resolve()),
+  updatePortalTournament: vi.fn(),
 }));
 
 vi.mock('@/firebase', () => ({ auth: {}, database: {} }));
@@ -32,12 +34,19 @@ vi.mock('@/services/portal-sync', () => ({
   FIELD_SETS: { media: ['club_logo_url'] },
   syncFromPortal: serviceMocks.syncFromPortal,
 }));
+vi.mock('@/services/portal', () => ({
+  updatePortalTournament: serviceMocks.updatePortalTournament,
+}));
 
 import Tournament from '@/components/Tournament.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 import Protocol from '@/components/partials/Protocol.vue';
 import TirPublicView from '@/components/tir/TirPublicView.vue';
 import Archived from '@/views/Archived.vue';
+import en from '@/locales/en';
+import es from '@/locales/es';
+import fr from '@/locales/fr';
+import ua from '@/locales/ua';
 import { update as updateDatabase } from 'firebase/database';
 
 function tournamentRecord({ mainFinished = true, tournamentBFinished = true, activeGroup = 'A' } = {}) {
@@ -121,6 +130,10 @@ function archivedHarness(
       isSuperAdmin: () => isSuperAdmin,
       archiveIndex: () => archiveIndex,
     },
+    methods: {
+      ...Archived.methods,
+      showMessage: serviceMocks.showMessage,
+    },
   };
 }
 
@@ -140,7 +153,9 @@ describe('Main and Tournament B archive behavior', () => {
   beforeEach(() => {
     localStorage.clear();
     serviceMocks.syncFromPortal.mockReset();
+    serviceMocks.showMessage.mockReset();
     serviceMocks.updatePath.mockClear();
+    serviceMocks.updatePortalTournament.mockReset();
     updateDatabase.mockClear();
   });
 
@@ -340,5 +355,53 @@ describe('Main and Tournament B archive behavior', () => {
     );
     expect(superTir.getComponent(TirPublicView).props('skipProtocolGate')).toBe(true);
     superTir.unmount();
+  });
+
+  it('lets only the super admin send an eligible archived public link to the portal', async () => {
+    const record = tournamentRecord();
+    serviceMocks.updatePortalTournament.mockResolvedValue({ status: 'ok' });
+
+    const owner = shallowMount(archivedHarness(record), mountOptions({ PublicPageShell: false }));
+    expect(owner.find('[data-testid="btn-send-archived-portal-link"]').exists()).toBe(false);
+    owner.unmount();
+
+    const superAdmin = shallowMount(
+      archivedHarness(record, { isSuperAdmin: true }),
+      mountOptions({ PublicPageShell: false }),
+    );
+    const buttons = superAdmin.findAll('[data-testid="btn-send-archived-portal-link"]');
+    expect(buttons.length).toBeGreaterThan(0);
+
+    await buttons[0].trigger('click');
+    await flushPromises();
+
+    expect(serviceMocks.updatePortalTournament).toHaveBeenCalledWith('42', superAdmin.vm.publicTournamentRef);
+    expect(serviceMocks.updatePortalTournament.mock.calls[0][1]).not.toContain('http');
+    expect(serviceMocks.showMessage).toHaveBeenCalledWith({
+      title: 'messages.success',
+      text: 'remote.linkSentToPortal',
+    });
+    superAdmin.unmount();
+
+    const testRecord = tournamentRecord();
+    testRecord.main.preferences.isTestTournament = true;
+    const testArchive = shallowMount(
+      archivedHarness(testRecord, { isSuperAdmin: true }),
+      mountOptions({ PublicPageShell: false }),
+    );
+    expect(testArchive.find('[data-testid="btn-send-archived-portal-link"]').exists()).toBe(false);
+    testArchive.unmount();
+  });
+
+  it('defines every archived portal-link action label in all supported locales', () => {
+    for (const locale of [en, es, fr, ua]) {
+      expect(locale.common.databaseId).toBeTruthy();
+      expect(locale.common.copyDatabaseId).toBeTruthy();
+      expect(locale.remote.sendLinkToPortal).toBeTruthy();
+      expect(locale.remote.sendingLinkToPortal).toBeTruthy();
+      expect(locale.remote.linkSentToPortal).toBeTruthy();
+      expect(locale.remote.linkPortalError).toBeTruthy();
+      expect(locale.remote.portalTokenMissing).toBeTruthy();
+    }
   });
 });

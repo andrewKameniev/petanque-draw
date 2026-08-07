@@ -42,6 +42,19 @@ Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and
 - Production domain detection: `import.meta.env.PROD`
 - Dev server: `npm run dev` (Vite, localhost:5173)
 
+### Portal API
+
+Authenticated portal writes require `VITE_FPU_AUTH_TOKEN`. The GitHub Pages
+workflow reads it from the `FPU_AUTH_TOKEN` secret in the `github-pages`
+environment. For local development, create an untracked `.env.local` file:
+
+```dotenv
+VITE_FPU_AUTH_TOKEN=<portal api_password>
+```
+
+Restart the Vite dev server after changing the file. Never commit the password;
+`.env.local` is gitignored.
+
 ## Cloud Function
 
 Notification sending uses a Cloud Run endpoint:

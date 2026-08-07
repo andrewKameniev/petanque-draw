@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchPortalTeams, PortalError } from '@/services/portal';
+import { fetchPortalTeams, PortalError, updatePortalTournament } from '@/services/portal';
 
 describe('fetchPortalTeams', () => {
   let fetchMock;
@@ -98,5 +98,84 @@ describe('fetchPortalTeams', () => {
     await fetchPortalTeams(456);
     const [url] = fetchMock.mock.calls[0];
     expect(url.toString()).toContain('/tournament/team_export/456');
+  });
+});
+
+describe('updatePortalTournament', () => {
+  let fetchMock;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sends only the draw tournament ref to the primary portal endpoint', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ status: 'ok', updated_teams: [] }),
+    });
+
+    await expect(updatePortalTournament('123', 'owner-1.encoded-id', { token: 'secret-token' })).resolves.toEqual({
+      status: 'ok',
+      updated_teams: [],
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('https://portal.petanque.org.ua/api/tournament/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'secret-token',
+      },
+      body: JSON.stringify({
+        tournament_id: 123,
+        petanque_draw_id: 'owner-1.encoded-id',
+      }),
+    });
+  });
+
+  it('fails closed when the API token is missing', async () => {
+    await expect(updatePortalTournament('123', 'owner-1.encoded-id', { token: '' })).rejects.toMatchObject({
+      code: 'MISSING_TOKEN',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('validates the portal tournament ID and public link before sending', async () => {
+    await expect(updatePortalTournament('', 'owner-1.encoded-id', { token: 'token' })).rejects.toMatchObject({
+      code: 'MISSING_ID',
+    });
+    await expect(updatePortalTournament('abc', 'owner-1.encoded-id', { token: 'token' })).rejects.toMatchObject({
+      code: 'INVALID_ID',
+    });
+    await expect(updatePortalTournament('123', '', { token: 'token' })).rejects.toMatchObject({
+      code: 'MISSING_DRAW_ID',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('surfaces portal API errors without exposing the token', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: () => Promise.resolve({ error: 'Invalid credentials' }),
+    });
+
+    await expect(updatePortalTournament('123', 'owner-1.encoded-id', { token: 'secret-token' })).rejects.toMatchObject({
+      code: 'HTTP_ERROR',
+      status: 401,
+      message: 'Invalid credentials',
+    });
+  });
+
+  it('normalizes network failures', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(updatePortalTournament('123', 'owner-1.encoded-id', { token: 'token' })).rejects.toMatchObject({
+      code: 'NETWORK_ERROR',
+    });
   });
 });

@@ -154,6 +154,26 @@
                 <Link2 :size="14" aria-hidden="true" />
                 {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
               </button>
+              <button
+                v-if="canSendPortalLink"
+                type="button"
+                class="archived-links__btn"
+                :class="{ 'archived-links__btn--sent': portalLinkSent }"
+                :disabled="portalLinkSending || portalLinkSent"
+                data-testid="btn-send-archived-portal-link"
+                @click="sendPortalLink"
+              >
+                <Check v-if="portalLinkSent" :size="14" aria-hidden="true" />
+                <LoaderCircle v-else-if="portalLinkSending" :size="14" class="spin" aria-hidden="true" />
+                <Send v-else :size="14" aria-hidden="true" />
+                {{
+                  portalLinkSent
+                    ? $t('remote.linkSentToPortal')
+                    : portalLinkSending
+                      ? $t('remote.sendingLinkToPortal')
+                      : $t('remote.sendLinkToPortal')
+                }}
+              </button>
             </div>
             <div
               v-if="isActiveOwner || canDeleteActive"
@@ -338,10 +358,33 @@
                 <span class="has-text-grey-dark">{{ $t('games.playOff') }}:</span>
                 <span class="has-text-weight-semibold">{{ playOffTeamsCount }} {{ $t('common.teamsLabel') }}</span>
               </div>
-              <div v-if="canCopyPublicLink || canRefreshClubLogos" class="archived-links archived-links--mobile">
+              <div
+                v-if="canCopyPublicLink || canRefreshClubLogos || canSendPortalLink"
+                class="archived-links archived-links--mobile"
+              >
                 <button v-if="canCopyPublicLink" type="button" class="archived-links__btn" @click="copyPublicLink">
                   <Link2 :size="14" aria-hidden="true" />
                   {{ publicLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
+                </button>
+                <button
+                  v-if="canSendPortalLink"
+                  type="button"
+                  class="archived-links__btn"
+                  :class="{ 'archived-links__btn--sent': portalLinkSent }"
+                  :disabled="portalLinkSending || portalLinkSent"
+                  data-testid="btn-send-archived-portal-link"
+                  @click="sendPortalLink"
+                >
+                  <Check v-if="portalLinkSent" :size="14" aria-hidden="true" />
+                  <LoaderCircle v-else-if="portalLinkSending" :size="14" class="spin" aria-hidden="true" />
+                  <Send v-else :size="14" aria-hidden="true" />
+                  {{
+                    portalLinkSent
+                      ? $t('remote.linkSentToPortal')
+                      : portalLinkSending
+                        ? $t('remote.sendingLinkToPortal')
+                        : $t('remote.sendLinkToPortal')
+                  }}
                 </button>
                 <button
                   type="button"
@@ -432,6 +475,7 @@ import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
 import { archiveIndexService, isArchiveIndexEntryEligible } from '@/services/archive-index';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
+import { updatePortalTournament } from '@/services/portal';
 import { encodeTournamentRef } from '@/services/tournament-ref';
 import {
   getActiveRound,
@@ -469,6 +513,9 @@ import {
   ExternalLink,
   ArchiveRestore,
   Trash2,
+  Check,
+  LoaderCircle,
+  Send,
 } from 'lucide-vue-next';
 
 export default {
@@ -493,6 +540,9 @@ export default {
     ExternalLink,
     ArchiveRestore,
     Trash2,
+    Check,
+    LoaderCircle,
+    Send,
   },
   data() {
     return {
@@ -505,6 +555,8 @@ export default {
       isLoading: false,
       editingName: false,
       publicLinkCopied: false,
+      portalLinkSending: false,
+      portalLinkSent: false,
       fetchingLogos: false,
       portalIdInput: null,
       searchQuery: '',
@@ -550,6 +602,7 @@ export default {
     },
     activeKey: {
       handler(key) {
+        this.portalLinkSent = false;
         if (key) {
           this.archiveActiveGroup = 'A';
           const selected = this.savedTournaments?.[key];
@@ -654,6 +707,15 @@ export default {
     },
     canCopyPublicLink() {
       return !!this.publicLink;
+    },
+    canSendPortalLink() {
+      const main = getTournamentMain(this.tournament);
+      return (
+        this.isSuperAdmin &&
+        !!String(this.portalId || '').trim() &&
+        !!this.publicLink &&
+        main?.preferences?.isTestTournament !== true
+      );
     },
     canRefreshClubLogos() {
       return this.canUseArchiveActions && !!this.portalId;
@@ -769,11 +831,14 @@ export default {
       return true;
     },
     publicLink() {
+      if (!this.publicTournamentRef) return '';
+      const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
+      return `${window.location.origin}${domain}tournament?ref=${this.publicTournamentRef}`;
+    },
+    publicTournamentRef() {
       if (!this.activeKey || !this.activeOwnerUid) return '';
       const tournamentId = this.savedTournaments[this.activeKey]?.id || this.activeKey;
-      const ref = encodeTournamentRef(this.activeOwnerUid, tournamentId);
-      const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-      return `${window.location.origin}${domain}tournament?ref=${ref}`;
+      return encodeTournamentRef(this.activeOwnerUid, tournamentId);
     },
     tournamentExtrasLine() {
       const extras = getTournamentExtras(this.activeTournament);
@@ -799,6 +864,7 @@ export default {
       'removeSavedTournament',
       'renameSavedTournament',
       'unarchiveTournament',
+      'showMessage',
     ]),
     getRecordMetadata(record) {
       if (record.nameLower !== undefined) return record;
@@ -1021,6 +1087,7 @@ export default {
       await archiveIndexService.updatePortalId(this.activeKey, this.activeOwnerUid, value);
       if (this.archiveIndex?.[this.activeKey]) this.archiveIndex[this.activeKey].portalId = value;
       this.tournament = { ...this.tournament, portalIdTournament: value };
+      this.portalLinkSent = false;
       this.portalIdInput = null;
     },
     onPortalIdInput(event) {
@@ -1038,6 +1105,26 @@ export default {
       setTimeout(() => {
         this.publicLinkCopied = false;
       }, 2000);
+    },
+    async sendPortalLink() {
+      if (!this.canSendPortalLink || this.portalLinkSending || this.portalLinkSent) return;
+      this.portalLinkSending = true;
+      try {
+        await updatePortalTournament(this.portalId, this.publicTournamentRef);
+        this.portalLinkSent = true;
+        this.showMessage({
+          title: this.$t('messages.success'),
+          text: this.$t('remote.linkSentToPortal'),
+        });
+      } catch (error) {
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t(error?.code === 'MISSING_TOKEN' ? 'remote.portalTokenMissing' : 'remote.linkPortalError'),
+          type: 'error',
+        });
+      } finally {
+        this.portalLinkSending = false;
+      }
     },
   },
 };
@@ -1345,6 +1432,11 @@ export default {
   background: var(--color-primary-bg);
   color: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.archived-links__btn--sent {
+  border-color: var(--color-success);
+  color: var(--color-success);
 }
 
 .archived-links__btn:disabled {

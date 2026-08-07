@@ -41,7 +41,12 @@
             </button>
           </div>
           <button
-            v-if="hasPlayOffResults && !isForProtocol && !hideBracketButton && tournament.playOffBracket?.format !== 'double'"
+            v-if="
+              hasPlayOffResults &&
+              !isForProtocol &&
+              !hideBracketButton &&
+              tournament.playOffBracket?.format !== 'double'
+            "
             class="button is-small btn-purple-outline mb-1"
             @click="showBracket = true"
           >
@@ -67,27 +72,40 @@
             {{ $t('common.group') }} {{ groupsNames[gIndex] }}
           </button>
         </div>
-        <div v-if="selectedRound !== 'playoff' && selectedRound !== 'cadrage' && cardView" class="results-card-list">
+        <div
+          v-if="
+            selectedRound !== 'playoff' && selectedRound !== 'cadrage' && (cardView || tournament.system === 'club')
+          "
+          class="results-card-list"
+        >
           <template v-for="(round, index) in filteredSortedRounds" :key="index">
             <template v-if="selectedRound === -1 || selectedRound === index">
               <div v-if="selectedRound === -1" class="results-card-round-label">
                 {{ getRoundLabel(index) }}
               </div>
-              <Game
-                v-for="(game, i) in round"
-                :key="i"
-                :active-tournament="tournament"
-                :game="game"
-                :game-index="i"
-                :active-round="index"
-                :compact-view="true"
-                :public-view="true"
-                :highlighted-team="highlightedTeam || ''"
-                :team-club-map="teamClubMap || {}"
-                :tournament-finished="
-                  tournament.tournamentIsFinished || (!isRoundActive(index) && game.team_1_score != null)
-                "
-              />
+              <template v-for="(game, i) in round" :key="i">
+                <ClubMatch
+                  v-if="tournament.system === 'club' && game.clubMatch"
+                  :game="game"
+                  :tournament="tournament"
+                  :game-index="i"
+                  :read-only="true"
+                />
+                <Game
+                  v-else
+                  :active-tournament="tournament"
+                  :game="game"
+                  :game-index="i"
+                  :active-round="index"
+                  :compact-view="true"
+                  :public-view="true"
+                  :highlighted-team="highlightedTeam || ''"
+                  :team-club-map="teamClubMap || {}"
+                  :tournament-finished="
+                    tournament.tournamentIsFinished || (!isRoundActive(index) && game.team_1_score != null)
+                  "
+                />
+              </template>
             </template>
           </template>
         </div>
@@ -473,11 +491,12 @@ import { getDatabase, ref, update } from 'firebase/database';
 import Bracket from '@/components/partials/Bracket';
 import EditResultModal from '@/components/partials/EditResultModal.vue';
 import Game from '@/components/partials/Game.vue';
+import ClubMatch from '@/components/club/ClubMatch.vue';
 import { GitFork, List, Pencil } from 'lucide-vue-next';
 
 export default {
   name: 'Results',
-  components: { Bracket, EditResultModal, Game, GitFork, List, Pencil },
+  components: { Bracket, EditResultModal, Game, ClubMatch, GitFork, List, Pencil },
   props: [
     'previewTournament',
     'isForProtocol',

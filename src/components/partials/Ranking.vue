@@ -202,13 +202,29 @@
                   <th v-for="(col, colIndex) in group" :key="colIndex" align="center">
                     {{ colIndex + 1 }}
                   </th>
-                  <th align="center">
+                  <th v-if="tournament.system === 'club'" align="center">
+                    <span class="is-hidden-mobile">{{ $t('clubCup.matchesPlayed') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('clubCup.matchesPlayedShort') }}</span>
+                  </th>
+                  <th v-if="tournament.system === 'club'" align="center">
+                    <span class="is-hidden-mobile">{{ $t('clubCup.matchPoints') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('clubCup.matchPointsShort') }}</span>
+                  </th>
+                  <th v-if="tournament.system === 'club'" align="center">
+                    <span class="is-hidden-mobile">{{ $t('clubCup.gamesWon') }}</span>
+                    <span class="is-hidden-tablet">{{ $t('clubCup.gamesWonShort') }}</span>
+                  </th>
+                  <th v-else align="center">
                     <span class="is-hidden-mobile">{{ $t('ranking.wins') }}</span>
                     <span class="is-hidden-tablet">{{ $t('ranking.winsMobile') }}</span>
                   </th>
                   <th align="center">
-                    <span class="is-hidden-mobile">{{ $t('ranking.points') }}</span>
-                    <span class="is-hidden-tablet">{{ $t('ranking.pointsMobile') }}</span>
+                    <span class="is-hidden-mobile">{{
+                      tournament.system === 'club' ? $t('clubCup.gamePoints') : $t('ranking.points')
+                    }}</span>
+                    <span class="is-hidden-tablet">{{
+                      tournament.system === 'club' ? $t('clubCup.gamePointsShort') : $t('ranking.pointsMobile')
+                    }}</span>
                   </th>
                 </tr>
               </thead>
@@ -231,7 +247,14 @@
                       </div>
                     </template>
                   </td>
-                  <td align="center" class="td-highlight">{{ team.wins }}</td>
+                  <td v-if="tournament.system === 'club'" align="center">{{ team.gamesPlayed }}</td>
+                  <td v-if="tournament.system === 'club'" align="center" class="td-highlight">
+                    {{ team.matchPoints }}
+                  </td>
+                  <td v-if="tournament.system === 'club'" align="center" class="nowrap">
+                    {{ team.gamesWon }} : {{ team.gamesLost }}
+                  </td>
+                  <td v-else align="center" class="td-highlight">{{ team.wins }}</td>
                   <td align="center" class="nowrap">{{ team.pointsPlus }} : {{ team.pointsMinus }}</td>
                 </tr>
               </tbody>

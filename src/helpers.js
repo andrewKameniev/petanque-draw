@@ -1,4 +1,5 @@
 import { rankPoulesGroups, rankBarrageGroups, rankRoundRobinGroups, rankSwissGroups } from '@/services/group-ranking';
+import { getDoubleEliminationPlacements } from '@/services/playoff';
 
 const tournamentNames = [
   'A',
@@ -62,9 +63,34 @@ function getGameResultInGroup(where, team1, team2, difference) {
   }
 }
 
+function getDoubleEliminationRanking(tournament) {
+  const bracket = tournament.playOffBracket;
+  const placements = {
+    ...getDoubleEliminationPlacements(bracket),
+    ...(bracket.placements || {}),
+  };
+
+  return Object.entries(placements)
+    .map(([title, place]) => ({
+      place: String(place),
+      title,
+      players: tournament.teams.find((team) => team.title === title)?.players || [],
+    }))
+    .sort((first, second) => {
+      const firstPlace = Number.parseInt(first.place.split('-')[0], 10);
+      const secondPlace = Number.parseInt(second.place.split('-')[0], 10);
+      return firstPlace - secondPlace;
+    });
+}
+
 function getTournamentRanking(tournament, rankingTeams) {
   let tournamentRanking = [];
   if (tournament.playOffBracket) {
+    const isDoubleElimination =
+      tournament.playOffBracket.format === 'double' ||
+      tournament.playOffBracket.stages?.some((stage) => stage.bracket === 'lower');
+    if (isDoubleElimination) return getDoubleEliminationRanking(tournament);
+
     const playOffList = JSON.parse(JSON.stringify(tournament.playOffBracket.stages)).reverse();
     const thirdPlaceGame = tournament.playOffBracket.thirdPlace
       ? JSON.parse(JSON.stringify(tournament.playOffBracket.thirdPlace))

@@ -62,7 +62,7 @@
     </div>
     <div v-if="tournament.tournamentIsFinished && !isRankingTableOnly && !isBarrageOnly" class="mb-5">
       <div
-        v-if="!isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
+        v-if="!hasRankingSubtabs && !isForProtocol && !readOnly && !(tournament.system === 'swiss' && !showInSaved)"
         class="ranking-header"
       >
         <div class="ranking-header__actions ml-auto">

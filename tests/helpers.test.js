@@ -9,6 +9,7 @@ import {
   getTeamsRanking,
   getTournamentRanking,
 } from '@/helpers';
+import { buildDoubleEliminationBracket, recordDoubleEliminationResult } from '@/services/playoff';
 
 function makeTeam(title, wins = 0, opponents = [], pointsPlus = 0, pointsMinus = 0, rating = 0) {
   return { title, wins, opponents, pointsPlus, pointsMinus, rating, buhgolts: 0, smallBuhgolts: 0 };
@@ -319,6 +320,30 @@ describe('getTournamentRanking', () => {
     expect(result[2].title).toBe('C');
     expect(result[3].place).toBe('4');
     expect(result[3].title).toBe('D');
+  });
+
+  it('returns one correctly placed row per team for a finished double-elimination bracket', () => {
+    const teams = Array.from({ length: 8 }, (_, index) => makeTeam(`T${index + 1}`));
+    const bracket = buildDoubleEliminationBracket(teams);
+    const finish = (matchId) => recordDoubleEliminationResult(bracket, matchId, 13, 7);
+
+    ['U1M1', 'U1M2', 'U1M3', 'U1M4', 'U2M1', 'U2M2', 'L1M1', 'L1M2'].forEach(finish);
+    ['L2M1', 'L2M2', 'U3M1', 'L3M1', 'L4M1', 'GF1'].forEach(finish);
+
+    const result = getTournamentRanking({ system: 'playoff', teams, games: [[]], playOffBracket: bracket }, teams);
+
+    expect(result.map(({ place, title }) => ({ place, title }))).toEqual([
+      { place: '1', title: 'T1' },
+      { place: '2', title: 'T8' },
+      { place: '3', title: 'T3' },
+      { place: '4', title: 'T6' },
+      { place: '5-6', title: 'T7' },
+      { place: '5-6', title: 'T5' },
+      { place: '7-8', title: 'T4' },
+      { place: '7-8', title: 'T2' },
+    ]);
+    expect(new Set(result.map((team) => team.title))).toHaveLength(8);
+    expect(result.every((team) => !String(team.place).includes('NaN'))).toBe(true);
   });
 
   it('cadrage losers get shared range place, remaining teams get individual places', () => {

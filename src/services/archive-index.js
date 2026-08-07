@@ -1,12 +1,13 @@
-import { get, ref, set, remove } from 'firebase/database';
+import { equalTo, get, orderByChild, query, ref, remove, set, update } from 'firebase/database';
 import { database as db } from '@/firebase';
 import { getTournamentMain, getTournamentMetadata } from '@/services/tournament-record';
 
 const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 
 export const archiveIndexService = {
-  getAll() {
-    return get(ref(db, 'archive'));
+  getAll({ includeLegacy = false } = {}) {
+    const archiveRef = ref(db, 'archive');
+    return get(includeLegacy ? archiveRef : query(archiveRef, orderByChild('visibility'), equalTo('public')));
   },
   getOne(tid) {
     return get(ref(db, `archive/${tid}`));
@@ -16,6 +17,12 @@ export const archiveIndexService = {
   },
   remove(tid) {
     return remove(ref(db, `archive/${tid}`));
+  },
+  updatePortalId(tid, ownerUid, portalId) {
+    return update(ref(db), {
+      [`${ownerUid}/tournaments/${tid}/portalIdTournament`]: portalId,
+      [`archive/${tid}/portalId`]: portalId,
+    });
   },
 };
 
@@ -38,7 +45,7 @@ export const archiveBackupService = {
   },
 };
 
-export function buildArchiveIndexEntry(tournament, { ownerUid, ownerEmail }) {
+export function buildArchiveIndexEntry(tournament, { ownerUid }) {
   const main = getTournamentMain(tournament);
   const metadata = getTournamentMetadata(tournament);
   const name = metadata.name || tournament.name || '';
@@ -52,7 +59,7 @@ export function buildArchiveIndexEntry(tournament, { ownerUid, ownerEmail }) {
     teamsCount: main?.teams?.length || main?.tirParticipants?.length || 0,
     roundsPlayed: main?.games?.length || 0,
     ownerUid,
-    ownerEmail,
+    visibility: 'public',
     portalId: metadata.portalIdTournament || null,
     archivedAt: new Date().toISOString(),
     tournamentIsFinished: main?.tournamentIsFinished || false,

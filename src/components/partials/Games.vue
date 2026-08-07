@@ -110,7 +110,20 @@
             {{ $t('games.shuffleLanes') }}
           </button>
         </div>
-        <div class="games-list" v-if="tournament.barrage">
+        <div class="games-list club-games-list" v-if="tournament.system === 'club'">
+          <ClubMatch
+            v-for="(game, index) in currentRoundGames"
+            :key="game.team_1 + '-' + game.team_2"
+            :game="game"
+            :tournament="tournament"
+            :game-index="index"
+            @update="onGameUpdate"
+          />
+          <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-4">
+            {{ $t('clubCup.finishAllDisciplines') }}
+          </div>
+        </div>
+        <div class="games-list" v-else-if="tournament.barrage">
           <div v-for="(group, gIdx) in poulesGroupedGames" :key="gIdx" class="poules-group">
             <h4 class="poules-group__title">{{ $t('common.group') }} {{ groupNames[gIdx] }}</h4>
             <Game
@@ -237,6 +250,12 @@
           {{ $t('games.circlesPlayed') }}: {{ tournament.roundRobinCircle || 1 }}
         </div>
       </div>
+      <div
+        v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system === 'club'"
+        class="draw-card"
+      >
+        <p class="has-text-centered">{{ $t('clubCup.roundRobinComplete') }}</p>
+      </div>
       <div v-else-if="tournament.games && tournament.games.length >= teamsCount && tournament.system !== 'poules'">
         {{ $t('games.quantityError') }}
       </div>
@@ -309,6 +328,7 @@ import {
   getPoulesQualifiedTeams,
 } from '@/services/draw';
 import Game from '@/components/partials/Game.vue';
+import ClubMatch from '@/components/club/ClubMatch.vue';
 import Cadrage from '@/components/partials/Cadrage.vue';
 import { ChevronDown, Shuffle } from 'lucide-vue-next';
 import WinnerTrophyIcon from '@/components/icons/WinnerTrophyIcon.vue';
@@ -316,12 +336,14 @@ import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
 import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import { getGameLaneNumber } from '@/services/lanes';
+import { isClubMatchComplete } from '@/services/club-tournament';
 
 export default {
   name: 'Games',
   components: {
     Cadrage,
     Game,
+    ClubMatch,
     PlayOff,
     TeamPlayoff,
     ChevronDown,
@@ -535,7 +557,7 @@ export default {
     },
     onGameUpdate(gameIndex) {
       const game = this.tournament.games[this.activeRound - 1][gameIndex];
-      updateScoreHistory(game);
+      if (this.tournament.system !== 'club') updateScoreHistory(game);
       this.syncGameMatch(this.activeRound - 1, gameIndex, game);
     },
     onGameFinish(gameIndex) {
@@ -570,6 +592,19 @@ export default {
     },
     validateAndFinishRound() {
       const games = this.currentRoundGames;
+      if (this.tournament.system === 'club') {
+        if (games.some((game) => !isClubMatchComplete(game))) {
+          this.scoreError = true;
+          this.showMessage({
+            title: this.$t('messages.error'),
+            text: this.$t('clubCup.finishAllDisciplines'),
+            type: 'error',
+          });
+          return;
+        }
+        this.finishRound();
+        return;
+      }
       for (const game of games) {
         if (game.team_2 === 'Technical') continue;
         const s1 = Number(game.team_1_score);
@@ -1084,6 +1119,12 @@ export default {
 </script>
 
 <style scoped>
+.club-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .draw-card {
   display: flex;
   flex-direction: column;

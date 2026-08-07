@@ -33,6 +33,10 @@
           {{ $t('teams.groups') }}
         </label>
         <label class="setup-card__radio">
+          <input type="radio" name="system" value="club" v-model="tournament.system" data-testid="radio-system-club" />
+          {{ $t('teams.club') }}
+        </label>
+        <label class="setup-card__radio">
           <input
             type="radio"
             name="system"
@@ -67,6 +71,13 @@
           {{ $t('teams.tir') }}
         </label>
       </div>
+    </div>
+
+    <div v-if="tournament.system === 'club'" class="setup-card__field">
+      <span class="setup-card__hint setup-card__hint--info">
+        <Info :size="14" />
+        {{ $t('clubCup.setupHint') }}
+      </span>
     </div>
 
     <div v-if="tournament.system === 'groups'" class="setup-card__field">

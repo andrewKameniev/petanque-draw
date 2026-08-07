@@ -1,5 +1,6 @@
 import { rankPoulesGroups, rankBarrageGroups, rankRoundRobinGroups, rankSwissGroups } from '@/services/group-ranking';
 import { getDoubleEliminationPlacements } from '@/services/playoff';
+import { rankClubTournament } from '@/services/club-tournament';
 
 const tournamentNames = [
   'A',
@@ -213,7 +214,10 @@ function getTournamentRanking(tournament, rankingTeams) {
     const isNested = Array.isArray(rankingTeams?.[0]);
     if (
       (tournament.system === 'swiss' && !isNested) ||
-      ((tournament.system === 'swiss' || tournament.system === 'groups' || tournament.system === 'poules') &&
+      ((tournament.system === 'swiss' ||
+        tournament.system === 'groups' ||
+        tournament.system === 'poules' ||
+        tournament.system === 'club') &&
         isNested &&
         rankingTeams?.length === 1)
     ) {
@@ -506,6 +510,10 @@ function sortSwissWithLiveStats(tournament) {
 
 function getTeamsRanking(tournament, activeRound) {
   if (!tournament.teams) return [];
+
+  if (tournament.system === 'club') {
+    return rankClubTournament(tournament);
+  }
 
   if (tournament.system === 'poules' && tournament.groups && activeRound > 1) {
     return rankPoulesGroups(tournament);

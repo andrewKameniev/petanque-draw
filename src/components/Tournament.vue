@@ -46,7 +46,10 @@
           @restore="restoreTeamsFromLocalStorage"
         />
         <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
-        <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
+        <ClubRosterEditor v-if="tournament.system === 'club' && tournament.teams?.length" :tournament="tournament" />
+        <div v-if="!tournament.teams?.length" class="setup-empty">
+          {{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}
+        </div>
         <div v-if="!(tournament.teams?.length > 2)" class="setup-card__actions setup-card__actions--delete-only">
           <button class="setup-card__delete" @click="removeConfirmId = 1">
             <Trash2 :size="16" />
@@ -363,6 +366,7 @@ import PlayoffConfirmModal from '@/components/partials/PlayoffConfirmModal';
 import SetupCard from '@/components/partials/SetupCard';
 import TournamentHeader from '@/components/partials/TournamentHeader';
 import RemoteToolbar from '@/components/partials/RemoteToolbar';
+import ClubRosterEditor from '@/components/club/ClubRosterEditor.vue';
 import { IconSettings, IconArchive } from '@/components/icons';
 import { Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
 import { autoFillScores as autoFillScoresFn } from '@/services/testUtils';
@@ -395,6 +399,7 @@ import {
   getTournamentStorageTarget,
   hasTournamentGroup,
 } from '@/services/tournament-record';
+import { autoFillClubRound, createClubRound } from '@/services/club-tournament';
 
 export default {
   name: 'Tournament',
@@ -1020,6 +1025,22 @@ export default {
         } else {
           round = drawGroupsRound(this.tournament);
         }
+      } else if (this.tournament.system === 'club') {
+        const result = generateConstrainedGroups(this.tournament, this.tournament.teams.length);
+        this.tournament.groups = result.groups;
+        this.tournament.groupsScheme = result.schemas;
+        this.tournament.preferences.groupFormat = 'round_robin';
+        const totalRounds =
+          this.tournament.teams.length % 2 === 0 ? this.tournament.teams.length - 1 : this.tournament.teams.length;
+        this.tournament.preferences.groupTotalRounds = totalRounds;
+        this.groupRoundsCount = totalRounds;
+        const schedule = [];
+        for (let i = 0; i < totalRounds; i++) {
+          const clubRound = createClubRound(drawGroupsRound(this.tournament));
+          schedule.push(assignLanes(shuffleArray(clubRound), this.tournament));
+        }
+        this.tournament.groupSchedule = schedule;
+        round = schedule[0];
       } else if (this.tournament.system === 'poules') {
         const { groups } = createPoules(this.tournament);
         this.tournament.groups = groups;
@@ -1081,14 +1102,23 @@ export default {
         team.lanes = [];
       });
 
-      if (this.tournament.system === 'groups' && this.tournament.groups) {
+      if ((this.tournament.system === 'groups' || this.tournament.system === 'club') && this.tournament.groups) {
         const { groups, schemas } = reshuffleGroupSchedule(this.tournament);
         this.tournament.groups = groups;
         this.tournament.groupsScheme = schemas;
         this.tournament.groupSchedule = null;
 
         let round;
-        if (this.tournament.preferences.groupFormat === 'swiss') {
+        if (this.tournament.system === 'club') {
+          const totalRounds = this.tournament.preferences?.groupTotalRounds || this.groupRoundsCount;
+          const schedule = [];
+          for (let i = 0; i < totalRounds; i++) {
+            const clubRound = createClubRound(drawGroupsRound(this.tournament));
+            schedule.push(assignLanes(shuffleArray(clubRound), this.tournament));
+          }
+          this.tournament.groupSchedule = schedule;
+          round = schedule[0];
+        } else if (this.tournament.preferences.groupFormat === 'swiss') {
           round = drawGroupsSwissRound(this.tournament, 1);
         } else if (this.isAllTeamsGroup) {
           const totalRounds = this.tournament.preferences?.groupTotalRounds || this.groupRoundsCount;
@@ -1120,6 +1150,11 @@ export default {
       this.showMessage({ title: this.$t('messages.redrawDone'), text: this.$t('messages.redrawDoneText') });
     },
     autoFillScores() {
+      if (this.tournament.system === 'club') {
+        autoFillClubRound(this.tournament.games?.[this.activeRound - 1] || []);
+        this.syncGames();
+        return;
+      }
       autoFillScoresFn(this.tournament, this.activeRound);
       if (this.tournament.playOffBracket?.format === 'double') {
         this.setPlayOffBracket(this.tournament.playOffBracket);
@@ -1178,7 +1213,10 @@ export default {
       return tabs;
     },
     isAllTeamsGroup() {
-      return this.tournament.system === 'groups' && this.teamsInGroup === this.tournament.teams.length;
+      return (
+        this.tournament.system === 'club' ||
+        (this.tournament.system === 'groups' && this.teamsInGroup === this.tournament.teams.length)
+      );
     },
     canSaveTournament() {
       return (
@@ -1263,6 +1301,7 @@ export default {
     SetupCard,
     TournamentHeader,
     RemoteToolbar,
+    ClubRosterEditor,
     TeamsList,
     AddTeam,
     Games,

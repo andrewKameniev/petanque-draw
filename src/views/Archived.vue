@@ -768,7 +768,9 @@ export default {
     rankingTeams() {
       if (!this.activeTournament?.teams || !this.activeTournament?.games) return [];
       if (
-        (this.activeTournament.system === 'groups' || this.activeTournament.system === 'poules') &&
+        (this.activeTournament.system === 'groups' ||
+          this.activeTournament.system === 'poules' ||
+          this.activeTournament.system === 'club') &&
         !this.activeTournament.groups
       )
         return [];
@@ -786,6 +788,7 @@ export default {
         tir: this.$t('teams.tir'),
         twoRoundsShort: this.$t('tir.twoRoundsShort'),
         system_groups: this.$t('teams.groups'),
+        system_club: this.$t('teams.club'),
         system_poules: this.$t('teams.poules'),
         system_supermele: this.$t('teams.supermele'),
       });

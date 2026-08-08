@@ -316,6 +316,7 @@ import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal.vue';
 import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import { getGameLaneNumber } from '@/services/lanes';
+import { reopenDoubleEliminationFinal } from '@/services/playoff';
 
 export default {
   name: 'Games',
@@ -786,6 +787,15 @@ export default {
       const bracket = this.tournament.playOffBracket;
       const currentStage = this.tournament.playOffStage ?? this.tournament.playOff?.[0]?.stage;
       const firstPlayoffStageLabel = bracket?.stages?.find((s) => s.stageLabel !== 'cadrage')?.stageLabel;
+
+      if (bracket?.format === 'double' && currentStage === 0) {
+        const restored = reopenDoubleEliminationFinal(bracket);
+        if (restored) {
+          this.setPlayOffBracket(restored.bracket);
+          this.setPlayOffStage(restored.stageId);
+        }
+        return;
+      }
 
       if (bracket && currentStage === 0) {
         const restoredBracket = JSON.parse(JSON.stringify(bracket));

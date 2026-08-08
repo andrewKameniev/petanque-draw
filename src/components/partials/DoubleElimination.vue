@@ -168,8 +168,26 @@
       data-testid="double-elimination-active-round"
       @update="onPanelMatchUpdate"
       @finish="onPanelMatchFinish"
+      @swap-lane="onPanelSwapLane"
       @save="saveCurrentStage"
-    />
+    >
+      <template #actions>
+        <div class="double-elimination__panel-actions">
+          <button
+            type="button"
+            class="double-elimination__shuffle"
+            data-testid="btn-shuffle-lanes"
+            :disabled="currentRoundHasStarted"
+            :aria-label="$t('games.shuffleLanes')"
+            :title="$t('games.shuffleLanes')"
+            @click="shuffleCurrentLanes"
+          >
+            <Shuffle :size="15" />
+            <span>{{ $t('games.shuffleLanes') }}</span>
+          </button>
+        </div>
+      </template>
+    </PlayoffMatchPanel>
 
     <PlayoffMatchPanel
       v-if="isPublicView && !bracketOnly && !tvView"
@@ -185,7 +203,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia';
-import { Trophy, X } from 'lucide-vue-next';
+import { Trophy, X, Shuffle } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, updateScoreHistory } from '@/helpers';
 import {
@@ -199,10 +217,11 @@ import {
 import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
 import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
 import BracketFullscreenButton from '@/components/partials/BracketFullscreenButton.vue';
+import { assignPlayoffLanes } from '@/services/results';
 
 export default {
   name: 'DoubleElimination',
-  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, Trophy, X },
+  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, Trophy, X, Shuffle },
   props: {
     activeTournament: { type: Object, default: null },
     isPublicView: { type: Boolean, default: false },
@@ -258,7 +277,7 @@ export default {
         matches: this.stageMatches(stage).map((match, displayIndex) => ({
           game: match,
           gameIndex: stage.teams.indexOf(match),
-          laneNumber: this.activeLaneNumber(stage, displayIndex),
+          laneNumber: this.activeLaneNumber(stage, match, displayIndex),
         })),
       }));
     },
@@ -271,7 +290,7 @@ export default {
         matches: this.publicMatches(stage).map((match, displayIndex) => ({
           game: match,
           gameIndex: stage.teams.indexOf(match),
-          laneNumber: this.publicLaneNumber(stage, displayIndex),
+          laneNumber: this.publicLaneNumber(stage, match, displayIndex),
         })),
       }));
     },
@@ -326,6 +345,17 @@ export default {
         transform: `scale(${this.fullscreenScale})`,
         transformOrigin: 'top left',
       };
+    },
+    currentRoundHasStarted() {
+      return this.activeStages.some((stage) =>
+        this.stageMatches(stage).some(
+          (match) =>
+            match.status === 'finished' ||
+            match.status === 'in_progress' ||
+            match.team_1_score != null ||
+            match.team_2_score != null,
+        ),
+      );
     },
   },
   mounted() {
@@ -566,16 +596,20 @@ export default {
     publicMatches(stage) {
       return getPublicDoubleEliminationMatches(stage);
     },
-    activeLaneNumber(stage, gameIndex) {
+    activeLaneNumber(stage, match, displayIndex) {
+      const gameIndex = stage.teams.indexOf(match);
+      const assignedLane = stage.laneOrder?.[gameIndex];
+      if (assignedLane != null) return assignedLane;
       let offset = 0;
       for (const activeStage of this.activeStages) {
         if (activeStage.id === stage.id) break;
         offset += this.stageMatches(activeStage).length;
       }
-      return offset + gameIndex;
+      return offset + displayIndex;
     },
-    publicLaneNumber(stage, gameIndex) {
-      if (this.activeStageIds.includes(stage.id)) return this.activeLaneNumber(stage, gameIndex);
+    publicLaneNumber(stage, match, displayIndex) {
+      const gameIndex = stage.teams.indexOf(match);
+      if (this.activeStageIds.includes(stage.id)) return this.activeLaneNumber(stage, match, displayIndex);
       return stage.laneOrder?.[gameIndex] ?? gameIndex;
     },
     matchClass(match) {
@@ -616,6 +650,42 @@ export default {
     onPanelMatchFinish({ stage, gameIndex }) {
       this.onMatchFinish(stage.source, gameIndex);
     },
+    onPanelSwapLane({ stage, payload }) {
+      const bracket = JSON.parse(JSON.stringify(this.bracket));
+      const sourceStage = bracket.stages.find((candidate) => candidate.id === stage.id);
+      if (!sourceStage) return;
+
+      const fieldsStart = Math.max(Number(this.tournament.preferences.fieldsStart) || 1, 1);
+      const targetLane = payload.targetLane - fieldsStart;
+      const fromLane = sourceStage.laneOrder?.[payload.fromIndex];
+      let targetStage;
+      let targetIndex = -1;
+      for (const activeStage of bracket.stages.filter((candidate) => this.activeStageIds.includes(candidate.id))) {
+        const index = activeStage.laneOrder?.indexOf(targetLane) ?? -1;
+        if (index !== -1) {
+          targetStage = activeStage;
+          targetIndex = index;
+          break;
+        }
+      }
+      if (
+        fromLane == null ||
+        !targetStage ||
+        (targetStage.id === sourceStage.id && targetIndex === payload.fromIndex)
+      ) {
+        return;
+      }
+      sourceStage.laneOrder[payload.fromIndex] = targetLane;
+      targetStage.laneOrder[targetIndex] = fromLane;
+      this.setPlayOffBracket(bracket);
+    },
+    shuffleCurrentLanes() {
+      if (this.currentRoundHasStarted) return;
+      const bracket = JSON.parse(JSON.stringify(this.bracket));
+      const stages = bracket.stages.filter((stage) => this.activeStageIds.includes(stage.id));
+      assignPlayoffLanes(stages, this.tournament, { shared: true, playableOnly: true });
+      this.setPlayOffBracket(bracket);
+    },
     saveCurrentStage() {
       const currentMatches = this.activeStages.flatMap((stage) => this.stageMatches(stage));
       if (
@@ -635,6 +705,12 @@ export default {
         return;
       }
       this.scoreError = false;
+      if (!bracket.champion) {
+        assignPlayoffLanes(getEditableDoubleEliminationStages(bracket), this.tournament, {
+          shared: true,
+          playableOnly: true,
+        });
+      }
       this.setPlayOffBracket(bracket);
       if (bracket.champion) {
         this.setPlayOffStage(0);
@@ -654,6 +730,38 @@ export default {
   max-width: 100%;
   overflow: hidden;
   color: var(--color-text);
+}
+
+.double-elimination__panel-actions {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.double-elimination__shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 28px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.double-elimination__shuffle:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.double-elimination__shuffle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .double-elimination__champion {
@@ -1105,6 +1213,10 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .double-elimination__shuffle span {
+    display: none;
+  }
+
   .double-elimination__section {
     padding: 0.75rem;
   }

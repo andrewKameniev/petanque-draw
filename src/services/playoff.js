@@ -329,6 +329,39 @@ export function recordDoubleEliminationResult(bracket, matchId, team1Score, team
   return advanceDoubleEliminationBracket(bracket);
 }
 
+/** Reopens only the completed grand final while preserving every earlier result. */
+export function reopenDoubleEliminationFinal(bracket) {
+  if (bracket?.format !== 'double') return null;
+
+  const restoredBracket = JSON.parse(JSON.stringify(bracket));
+  const finalStage = [...restoredBracket.stages]
+    .reverse()
+    .find(
+      (stage) =>
+        stage.bracket === 'grand' &&
+        stage.teams.some((match) => match.status === 'finished' && match.resultCommitted !== false && !match.isBye),
+    );
+  if (!finalStage) return null;
+
+  finalStage.teams.forEach((match) => {
+    if (match.status !== 'finished' || match.isBye) return;
+    match.team_1_score = null;
+    match.team_2_score = null;
+    match.status = 'not_started';
+    match.resultCommitted = false;
+    match.isBye = false;
+    delete match.winner;
+    delete match.loser;
+    delete match.score_history;
+    delete match.updated_at;
+  });
+  restoredBracket.champion = null;
+  restoredBracket.runnerUp = null;
+  advanceDoubleEliminationBracket(restoredBracket);
+
+  return { bracket: restoredBracket, stageId: finalStage.id };
+}
+
 export function stageDoubleEliminationResult(match, team1Score, team2Score) {
   const first = Number(team1Score);
   const second = Number(team2Score);

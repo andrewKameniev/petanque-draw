@@ -1,3 +1,5 @@
+import { getAvailableLaneNumbers } from '@/services/lanes';
+
 /**
  * Determines the default selected round tab in the Results view.
  * Priority: playoff > cadrage > last round.
@@ -74,24 +76,45 @@ export { rankPoulesGroups as computePoulesGroupRankings } from '@/services/group
  * Assigns shuffled lane numbers to playoff bracket stages, skipping bye games.
  * Lanes are randomized so that seeding position doesn't dictate the terrain.
  */
-export function assignPlayoffLanes(stages) {
-  stages.forEach((stage) => {
-    const realGameCount = stage.teams.filter((game) => !game.isBye).length;
-    const lanes = Array.from({ length: realGameCount }, (_, i) => i);
-    for (let i = lanes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [lanes[i], lanes[j]] = [lanes[j], lanes[i]];
-    }
-    const laneOrder = [];
-    let laneIdx = 0;
-    stage.teams.forEach((game) => {
-      if (game.isBye) {
-        laneOrder.push(null);
-      } else {
-        laneOrder.push(lanes[laneIdx++]);
-      }
+export function getShuffledPlayoffLaneOffsets(tournament, count) {
+  const fieldsStart = Math.max(Number(tournament?.preferences?.fieldsStart) || 1, 1);
+  const availableLanes = getAvailableLaneNumbers(tournament, count);
+  const laneNumbers = [...availableLanes];
+
+  // Invalid legacy configurations should still render every match. The playoff
+  // confirmation modal prevents new configurations from reaching this branch.
+  for (let lane = fieldsStart; laneNumbers.length < count; lane++) {
+    if (!laneNumbers.includes(lane)) laneNumbers.push(lane);
+  }
+
+  for (let i = laneNumbers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [laneNumbers[i], laneNumbers[j]] = [laneNumbers[j], laneNumbers[i]];
+  }
+
+  return laneNumbers.slice(0, count).map((lane) => lane - fieldsStart);
+}
+
+export function assignPlayoffLanes(stages, tournament, options = {}) {
+  const { shared = false, playableOnly = false } = options;
+  const isAssignable = (game) =>
+    !game.isBye && game.status !== 'skipped' && (!playableOnly || (Boolean(game.team_1) && Boolean(game.team_2)));
+  const assign = (targetStages, lanes) => {
+    let laneIndex = 0;
+    targetStages.forEach((stage) => {
+      stage.laneOrder = stage.teams.map((game) => (isAssignable(game) ? lanes[laneIndex++] : null));
     });
-    stage.laneOrder = laneOrder;
+  };
+
+  if (shared) {
+    const gameCount = stages.reduce((count, stage) => count + stage.teams.filter(isAssignable).length, 0);
+    assign(stages, getShuffledPlayoffLaneOffsets(tournament, gameCount));
+    return stages;
+  }
+
+  stages.forEach((stage) => {
+    const gameCount = stage.teams.filter(isAssignable).length;
+    assign([stage], getShuffledPlayoffLaneOffsets(tournament, gameCount));
   });
   return stages;
 }

@@ -60,51 +60,66 @@
             @update="onPanelUpdate"
           >
             <template #actions>
-              <div class="playoff-search-wrapper">
+              <div class="playoff-panel-actions">
                 <button
-                  class="playoff-search-btn"
-                  :class="{ 'playoff-search-btn--active': highlightedTeam }"
-                  :aria-pressed="!!highlightedTeam"
-                  @click="showSearch = !showSearch"
+                  v-if="!isPublicView && isOwnerOrAdmin"
+                  type="button"
+                  class="playoff-shuffle-btn"
+                  data-testid="btn-shuffle-lanes"
+                  :disabled="currentRoundHasStarted"
+                  :aria-label="$t('games.shuffleLanes')"
+                  :title="$t('games.shuffleLanes')"
+                  @click="shuffleCurrentLanes"
                 >
-                  <Search :size="14" />
-                  <UserRound :size="14" />
+                  <Shuffle :size="15" />
+                  <span>{{ $t('games.shuffleLanes') }}</span>
                 </button>
-                <div v-if="showSearch" class="playoff-search-popover">
-                  <input
-                    ref="searchInput"
-                    v-model="searchQuery"
-                    class="playoff-search-input"
-                    :placeholder="$t('teams.searchTeam')"
-                    @keydown.escape="showSearch = false"
-                    @keydown.enter="applySearch"
-                  />
-                  <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
-                    <li
-                      v-for="club in filteredClubs"
-                      :key="'club-' + club"
-                      class="playoff-search-item playoff-search-item--club"
-                      :class="{ 'playoff-search-item--active': highlightedTeam === club }"
-                      @click="selectTeam(club)"
-                    >
-                      <Building2 class="playoff-search-item__icon" :size="14" />
-                      {{ club }}
-                    </li>
-                  </ul>
-                  <ul class="playoff-search-list">
-                    <li
-                      v-for="team in filteredTeams"
-                      :key="team"
-                      class="playoff-search-item"
-                      :class="{ 'playoff-search-item--active': isTeamHighlighted(team) }"
-                      @click="selectTeam(team)"
-                    >
-                      {{ team }}
-                    </li>
-                    <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">
-                      {{ $t('teams.noResults') }}
-                    </li>
-                  </ul>
+                <div class="playoff-search-wrapper">
+                  <button
+                    class="playoff-search-btn"
+                    :class="{ 'playoff-search-btn--active': highlightedTeam }"
+                    :aria-pressed="!!highlightedTeam"
+                    @click="showSearch = !showSearch"
+                  >
+                    <Search :size="14" />
+                    <UserRound :size="14" />
+                  </button>
+                  <div v-if="showSearch" class="playoff-search-popover">
+                    <input
+                      ref="searchInput"
+                      v-model="searchQuery"
+                      class="playoff-search-input"
+                      :placeholder="$t('teams.searchTeam')"
+                      @keydown.escape="showSearch = false"
+                      @keydown.enter="applySearch"
+                    />
+                    <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
+                      <li
+                        v-for="club in filteredClubs"
+                        :key="'club-' + club"
+                        class="playoff-search-item playoff-search-item--club"
+                        :class="{ 'playoff-search-item--active': highlightedTeam === club }"
+                        @click="selectTeam(club)"
+                      >
+                        <Building2 class="playoff-search-item__icon" :size="14" />
+                        {{ club }}
+                      </li>
+                    </ul>
+                    <ul class="playoff-search-list">
+                      <li
+                        v-for="team in filteredTeams"
+                        :key="team"
+                        class="playoff-search-item"
+                        :class="{ 'playoff-search-item--active': isTeamHighlighted(team) }"
+                        @click="selectTeam(team)"
+                      >
+                        {{ team }}
+                      </li>
+                      <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">
+                        {{ $t('teams.noResults') }}
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </template>
@@ -121,8 +136,8 @@ import DoubleElimination from './DoubleElimination.vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, shuffleArray, updateScoreHistory } from '@/helpers';
-import { assignPlayoffLanes } from '@/services/results';
-import { Search, UserRound, Building2 } from 'lucide-vue-next';
+import { assignPlayoffLanes, getShuffledPlayoffLaneOffsets } from '@/services/results';
+import { Search, UserRound, Building2, Shuffle } from 'lucide-vue-next';
 import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
@@ -138,6 +153,7 @@ export default {
     Search,
     UserRound,
     Building2,
+    Shuffle,
     FinishedBanner,
     RoundTimerControls,
     PlayoffHeader,
@@ -287,13 +303,24 @@ export default {
             {
               game: this.playOffBracket.thirdPlace,
               gameIndex: 1,
-              laneNumber: 1,
+              laneNumber: this.playOffBracket.thirdPlaceLane ?? 1,
               isThird: true,
             },
           ],
         });
       }
       return stages;
+    },
+    currentRoundHasStarted() {
+      return this.singlePanelStages.some((stage) =>
+        stage.matches.some(
+          ({ game }) =>
+            game.status === 'finished' ||
+            game.status === 'in_progress' ||
+            game.team_1_score != null ||
+            game.team_2_score != null,
+        ),
+      );
     },
   },
   methods: {
@@ -383,6 +410,26 @@ export default {
     onTimerRestart(minutes) {
       this.restartRoundTimer(minutes);
     },
+    shuffleCurrentLanes() {
+      if (this.currentRoundHasStarted) return;
+      const bracket = JSON.parse(JSON.stringify(this.playOffBracket));
+      const stage = bracket.stages[this.currentPlayOffBracketIndex];
+      if (!stage) return;
+
+      const hasThirdPlace = this.singlePanelStages.some((panelStage) =>
+        panelStage.matches.some((entry) => entry.isThird),
+      );
+      if (hasThirdPlace) {
+        const gameCount = stage.teams.filter((game) => !game.isBye).length;
+        const lanes = getShuffledPlayoffLaneOffsets(this.tournament, gameCount + 1);
+        let laneIndex = 0;
+        stage.laneOrder = stage.teams.map((game) => (game.isBye ? null : lanes[laneIndex++]));
+        bracket.thirdPlaceLane = lanes[laneIndex];
+      } else {
+        assignPlayoffLanes([stage], this.tournament);
+      }
+      this.setPlayOffBracket(bracket);
+    },
     swapPlayoffLane({ fromIndex, targetLane }) {
       const fieldsStart = this.tournament.preferences.fieldsStart;
       const laneOrder = [...this.currentStageLaneOrder];
@@ -445,6 +492,16 @@ export default {
             }
           }
         });
+        const nextStage = bracket.stages[this.currentPlayOffBracketIndex + 1];
+        if (bracket.stages[this.currentPlayOffBracketIndex].teamsCount === 4) {
+          const gameCount = nextStage.teams.filter((game) => !game.isBye).length;
+          const lanes = getShuffledPlayoffLaneOffsets(this.tournament, gameCount + 1);
+          let laneIndex = 0;
+          nextStage.laneOrder = nextStage.teams.map((game) => (game.isBye ? null : lanes[laneIndex++]));
+          bracket.thirdPlaceLane = lanes[laneIndex];
+        } else {
+          assignPlayoffLanes([nextStage], this.tournament);
+        }
         this.setPlayOffBracket(bracket);
         this.setPlayOffStage(this.playOffStageCurrent / 2);
       }
@@ -503,7 +560,7 @@ export default {
       }
 
       // Assign sequential lane numbers skipping bye games
-      assignPlayoffLanes(brackets.stages);
+      assignPlayoffLanes(brackets.stages, this.tournament);
 
       if (this.tournament.cadrage) {
         const seeding = this.getTournamentSeeding(this.tournament.cadrage.length);
@@ -547,12 +604,44 @@ export default {
 </script>
 
 <style scoped>
-.playoff-search-wrapper {
+.playoff-panel-actions {
   position: absolute;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   z-index: 100;
+}
+
+.playoff-search-wrapper {
+  position: relative;
+}
+
+.playoff-shuffle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 28px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.playoff-shuffle-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.playoff-shuffle-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .playoff-search-btn {
@@ -675,6 +764,10 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
+  .playoff-shuffle-btn span {
+    display: none;
+  }
+
   .play-off-stage-wrapper {
     display: contents;
     padding-right: 0;

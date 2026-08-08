@@ -20,6 +20,7 @@ import {
 } from '@/services/round-timer';
 import { createTournamentSyncRuntime } from '@/services/tournament-sync';
 import { createArchiveCollaborationRuntime } from '@/services/archive-collaboration';
+import { replaceTeamInCompetition, TeamReplacementError } from '@/services/team-replacement';
 
 export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 
@@ -181,6 +182,9 @@ export const useMainStore = defineStore('main', {
     },
     _syncPath(path, data) {
       return getTournamentSyncRuntime(this).syncPath(path, data);
+    },
+    _syncPaths(pathValues) {
+      return getTournamentSyncRuntime(this).syncPaths(pathValues);
     },
     _syncMatchDebounced(namespace, key, data) {
       getTournamentSyncRuntime(this).syncMatchDebounced(namespace, key, data);
@@ -453,6 +457,41 @@ export const useMainStore = defineStore('main', {
     removeTeam(titleToRemove) {
       const { data } = this._getTarget();
       data.teams = data.teams.filter((team) => team.title !== titleToRemove);
+    },
+    async replaceTournamentTeam({ oldTitle, portalTeam }) {
+      if (!this.user?.uid || !this.isOwnerOrAdmin) {
+        throw new TeamReplacementError('Only an owner or admin can replace teams', 'REPLACEMENT_FORBIDDEN');
+      }
+
+      const { data, prefix } = this._getTarget();
+      const result = replaceTeamInCompetition(data, oldTitle, portalTeam);
+      if (!Object.keys(result.updates).length) return result;
+
+      const previousValues = Object.fromEntries(result.changedTopLevelPaths.map((path) => [path, data[path]]));
+      result.changedTopLevelPaths.forEach((path) => {
+        data[path] = result.competition[path];
+      });
+
+      const updates = Object.fromEntries(
+        Object.entries(result.updates).map(([path, value]) => [`${prefix}${path}`, value]),
+      );
+
+      try {
+        await this._syncPaths(updates);
+      } catch (error) {
+        Object.entries(previousValues).forEach(([path, value]) => {
+          data[path] = value;
+        });
+        throw error;
+      }
+
+      try {
+        localStorage.setItem('petanqueDrawTeamsRestore', JSON.stringify(data.teams));
+      } catch (error) {
+        console.warn('Could not update the local team restore cache:', error);
+      }
+
+      return result;
     },
     clearTeams() {
       const { data, prefix } = this._getTarget();

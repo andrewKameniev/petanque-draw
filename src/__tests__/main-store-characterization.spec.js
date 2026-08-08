@@ -67,12 +67,12 @@ const GETTERS = [
 
 const ACTIONS = `
   _doSync _getTarget _getTournamentOwnerUid _handleAccessRevoked _mergeBracketPlayoff _mergeCadrage
-  _mergeGames _mergeTeamPlayoff _mergeTirPlayoff _syncMatchDebounced _syncPath _watchCollaboratorAccess
+  _mergeGames _mergeTeamPlayoff _mergeTirPlayoff _syncMatchDebounced _syncPath _syncPaths _watchCollaboratorAccess
   addCollaborator addRoundToGames addTeamToStore addToSaved addTournament addTournamentBTeams
   changeDrawType changeTournamentName clearRoundTimer clearTeams completeTournamentBElimination endRound
   endRoundTimer fetchArchiveIndex fetchSavedTournaments finishTournament getTournaments hideMessage initTournamentB leaveSharedTournament
   loadSharedTournament loginUser pauseRoundTimer removeCollaborator removeSavedTournament removeTeam removeTournament
-  removeTournamentB renameSavedTournament restartRoundTimer restoreRound resumeRoundTimer revertFinishTournament
+  removeTournamentB renameSavedTournament replaceTournamentTeam restartRoundTimer restoreRound resumeRoundTimer revertFinishTournament
   saveCadrageScores saveLanesToTeams savePreferences saveTournamentData setActiveBracketMatchPath setActiveCadrageIndex
   setActiveGameMatchPath setActiveGroup setActivePlayoffMatchPath setActiveTeamPlayoffMatchPath setActiveTournament
   setBarrage setBarrageGames setCadrage setPlayOff setPlayOffBracket setPlayOffStage setSavedTournaments
@@ -129,6 +129,124 @@ describe('main-store façade baseline', () => {
 
     expect(mockSet).toHaveBeenCalledWith('owner-1/tournaments/tournament-1/preferences', payload);
     expect(mockSet.mock.calls[0][1]).not.toBe(payload);
+  });
+
+  it('replaces a team through one atomic prefixed update while preserving competition progress', async () => {
+    vi.stubGlobal('localStorage', { setItem: vi.fn() });
+    const oldTitle = 'Manual Team';
+    const store = createStore({
+      activeGroup: 'A',
+      main: {
+        system: 'swiss',
+        preferences: {},
+        teams: [
+          {
+            title: oldTitle,
+            players: false,
+            rating: 11.85,
+            wins: 3,
+            pointsPlus: 32,
+            pointsMinus: 48,
+            opponents: ['Opponent'],
+            lanes: [1, 2, 0, 1, 5],
+          },
+          { title: 'Opponent', opponents: [oldTitle] },
+        ],
+        games: [[{ team_1: oldTitle, team_2: 'Opponent', winner: oldTitle, team_1_score: 13 }]],
+      },
+    });
+
+    await store.replaceTournamentTeam({
+      oldTitle,
+      portalTeam: {
+        id: 3895,
+        name: 'Portal Team',
+        power: '11.8594',
+        players: [{ id: 738, name: 'Player' }],
+      },
+    });
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      'user-1/tournaments/tournament-1',
+      expect.objectContaining({
+        'main/teams/0/title': 'Portal Team',
+        'main/teams/0/portalTeamId': 3895,
+        'main/teams/1/opponents/0': 'Portal Team',
+        'main/games/0/0/team_1': 'Portal Team',
+        'main/games/0/0/winner': 'Portal Team',
+      }),
+    );
+    expect(store.activeTournament.teams[0]).toMatchObject({
+      title: 'Portal Team',
+      wins: 3,
+      pointsPlus: 32,
+      pointsMinus: 48,
+      lanes: [1, 2, 0, 1, 5],
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it('rolls back the local replacement when the atomic write fails', async () => {
+    vi.stubGlobal('localStorage', { setItem: vi.fn() });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const store = createStore({
+      activeGroup: 'A',
+      main: {
+        system: 'swiss',
+        preferences: {},
+        teams: [{ title: 'Manual Team', players: false, wins: 3 }],
+        games: [],
+      },
+    });
+    mockUpdate.mockRejectedValueOnce(new Error('write failed'));
+
+    await expect(
+      store.replaceTournamentTeam({
+        oldTitle: 'Manual Team',
+        portalTeam: { id: 3895, name: 'Portal Team', power: 12, players: [] },
+      }),
+    ).rejects.toThrow('write failed');
+
+    expect(store.activeTournament.teams).toEqual([{ title: 'Manual Team', players: false, wins: 3 }]);
+    expect(localStorage.setItem).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps the committed replacement when updating the local restore cache fails', async () => {
+    vi.stubGlobal('localStorage', {
+      setItem: vi.fn(() => {
+        throw new Error('quota exceeded');
+      }),
+    });
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const store = createStore({
+      activeGroup: 'A',
+      main: {
+        system: 'swiss',
+        preferences: {},
+        teams: [{ title: 'Manual Team', players: false, wins: 3 }],
+        games: [],
+      },
+    });
+
+    await expect(
+      store.replaceTournamentTeam({
+        oldTitle: 'Manual Team',
+        portalTeam: { id: 3895, name: 'Portal Team', power: 12, players: [] },
+      }),
+    ).resolves.toMatchObject({ newTitle: 'Portal Team' });
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(store.activeTournament.teams[0]).toMatchObject({
+      title: 'Portal Team',
+      portalTeamId: 3895,
+      wins: 3,
+    });
+    expect(consoleWarn).toHaveBeenCalledOnce();
+    consoleWarn.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it('replaces a same-match debounce while retaining different paths', async () => {

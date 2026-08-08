@@ -97,6 +97,12 @@
             "
             :import-hidden="tournament.system === 'supermele' && tournament.games && tournament.games.length > 0"
           />
+          <TeamReplacementPanel
+            v-if="isOwnerOrAdmin && tournamentStarted && tournament.system !== 'supermele'"
+            :teams="tournament.teams || []"
+            :portal-tournament-id="tournamentWrapper.portalIdTournament || tournament.portalIdTournament"
+            @replace="onReplaceTeam"
+          />
           <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
           <div v-else class="mb-5 mt-5">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
         </div>
@@ -374,6 +380,7 @@ import { IconSettings, IconArchive } from '@/components/icons';
 import { Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
 import { autoFillScores as autoFillScoresFn } from '@/services/testUtils';
 import StreamPresets from '@/components/partials/StreamPresets.vue';
+import TeamReplacementPanel from '@/components/partials/TeamReplacementPanel.vue';
 import {
   drawSwissRound,
   drawSupermeleRound,
@@ -431,6 +438,13 @@ export default {
     };
   },
   watch: {
+    tournament: {
+      immediate: true,
+      handler(activeTournament) {
+        // eslint-disable-next-line no-console
+        console.log('Active tournament:', activeTournament);
+      },
+    },
     withCadrage(val) {
       if (val) this.withBarrage = false;
     },
@@ -492,7 +506,24 @@ export default {
       'setActiveGroup',
       'initTournamentB',
       'addTournamentBTeams',
+      'replaceTournamentTeam',
     ]),
+    async onReplaceTeam(payload) {
+      try {
+        const result = await this.replaceTournamentTeam(payload);
+        this.showMessage({
+          title: this.$t('messages.success'),
+          text: this.$t('teams.teamReplacementSuccess', { team: result.newTitle }),
+        });
+      } catch (error) {
+        console.error('Error replacing tournament team:', error);
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t('teams.teamReplacementError'),
+          type: 'error',
+        });
+      }
+    },
     migrateMissingTechnicalGames() {
       const t = this.tournament;
       if (!t.groups?.length || !t.games?.length || t.preferences?.groupFormat !== 'swiss') return;
@@ -1288,6 +1319,7 @@ export default {
     TirModule,
     Download,
     StreamPresets,
+    TeamReplacementPanel,
   },
 };
 </script>

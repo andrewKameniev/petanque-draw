@@ -11,17 +11,22 @@ const MAIN_PATHS = [
   'system',
   'teams',
   'games',
+  'groups',
+  'groupSchedule',
+  'groupsScheme',
   'preferences',
   'roundIsActive',
   'roundTimer',
   'tournamentIsFinished',
   'playOff',
+  'playoff',
   'playOffBracket',
   'playOffStage',
   'cadrage',
   'barrage',
   'eliminationRound',
   'streamPresets',
+  'ranking',
   'tirParticipants',
   'tirRound',
   'tirR2Participants',
@@ -45,15 +50,20 @@ const LEGACY_SIMPLE_PATHS = [
   'tournamentIsFinished',
   'tournamentMessage',
   'teams',
+  'groups',
+  'groupSchedule',
+  'groupsScheme',
   'preferences',
   'streamPresets',
   'playOff',
+  'playoff',
   'playOffStage',
   'barrage',
   'tirStarted',
   'tirConfig',
   'activeGroup',
   'groupB',
+  'ranking',
 ];
 
 export function serializeFirebaseValue(value) {
@@ -210,6 +220,26 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       recentSyncPaths.delete(path);
       if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
       console.error('Error updating path:', path, error);
+    });
+  }
+
+  function syncPaths(pathValues) {
+    const { ownerUid, tournamentId, userUid } = context();
+    if (!userUid || !tournamentId) return undefined;
+
+    const updates = Object.fromEntries(
+      Object.entries(pathValues || {})
+        .filter(([path, value]) => path && value !== undefined)
+        .map(([path, value]) => [path, serializeFirebaseValue(value)]),
+    );
+    if (!Object.keys(updates).length) return Promise.resolve();
+
+    const writeGeneration = generation;
+    const basePath = `${ownerUid}/tournaments/${tournamentId}`;
+    return firebase.update(firebase.ref(firebase.getDatabase(), basePath), updates).catch((error) => {
+      if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
+      console.error('Error updating tournament paths:', Object.keys(updates), error);
+      throw error;
     });
   }
 
@@ -412,5 +442,6 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     subscribeTournament,
     syncMatchDebounced,
     syncPath,
+    syncPaths,
   };
 }

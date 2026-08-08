@@ -62,6 +62,35 @@ describe('tournament synchronization runtime', () => {
     expect(dependencies.set.mock.calls[0][1]).not.toBe(payload);
   });
 
+  it('writes multiple tournament leaves atomically at the owner tournament path', async () => {
+    const record = { _ownerUid: 'owner1', games: [], teams: [] };
+    const { dependencies, runtime } = harness(record);
+    const updates = {
+      'main/teams/20/title': 'New title',
+      'main/games/0/1/team_2': 'New title',
+      'main/teams/20/players': [{ id: 738 }],
+    };
+
+    await runtime.syncPaths(updates);
+
+    expect(dependencies.update).toHaveBeenCalledTimes(1);
+    expect(dependencies.update).toHaveBeenCalledWith('owner1/tournaments/t1', updates);
+    expect(dependencies.set).not.toHaveBeenCalled();
+  });
+
+  it('rejects a failed atomic update and reports permission loss for shared tournaments', async () => {
+    const record = { _ownerUid: 'owner1', games: [], teams: [] };
+    const { dependencies, runtime, store } = harness(record);
+    const error = { code: 'PERMISSION_DENIED' };
+    dependencies.update.mockRejectedValueOnce(error);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await expect(runtime.syncPaths({ 'main/teams/0/title': 'New title' })).rejects.toBe(error);
+
+    expect(store._handleAccessRevoked).toHaveBeenCalledWith('t1');
+    consoleError.mockRestore();
+  });
+
   it('replaces same-path debounce, allows another path, and clears successful echoes', async () => {
     const { dependencies, runtime } = harness();
     runtime.syncMatchDebounced('games', '0/0', { score: 1 });
@@ -127,12 +156,15 @@ describe('tournament synchronization runtime', () => {
     const { runtime, subscriptions, unsubscribe } = harness(record);
     runtime.subscribeTournament();
     const gameSubscription = subscriptions.get('user1/tournaments/t1/main/games');
+    const groupsSubscription = subscriptions.get('user1/tournaments/t1/main/groups');
 
     await runtime.syncPath('main/games', record.main.games);
     gameSubscription.callback(snapshot([[{ score: 'echo' }]]));
     expect(record.main.games[0][0].score).toBe('local');
     gameSubscription.callback(snapshot([[{ score: 'remote' }]]));
     expect(record.main.games[0][0].score).toBe('remote');
+    groupsSubscription.callback(snapshot([[{ title: 'Renamed team' }]]));
+    expect(record.main.groups).toEqual([[{ title: 'Renamed team' }]]);
 
     runtime.dispose();
     expect(unsubscribe).toHaveBeenCalledTimes(subscriptions.size);

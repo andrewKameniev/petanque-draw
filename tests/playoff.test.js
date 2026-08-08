@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { buildPlayOffScheme, reorderBracket, buildCadrageGames } from '@/services/playoff';
+import {
+  buildPlayOffScheme,
+  reorderBracket,
+  buildCadrageGames,
+  buildDoubleEliminationBracket,
+  getEditableDoubleEliminationStages,
+  recordDoubleEliminationResult,
+  reopenDoubleEliminationFinal,
+} from '@/services/playoff';
 
 function makeTeam(title, place) {
   return { title, place };
@@ -117,5 +125,39 @@ describe('reorderBracket', () => {
     expect(result[1].id).toBe(1);
     expect(result[2].id).toBe(8);
     expect(result[3].id).toBe(9);
+  });
+});
+
+describe('double-elimination rollback', () => {
+  it('reopens only the grand final of a finished tournament', () => {
+    const bracket = buildDoubleEliminationBracket(makeTeamList(4));
+    let rounds = 0;
+
+    while (!bracket.champion && rounds++ < 10) {
+      const matches = getEditableDoubleEliminationStages(bracket).flatMap((stage) =>
+        stage.teams.filter((match) => match.team_1 && match.team_2 && !match.isBye && match.status !== 'finished'),
+      );
+      expect(matches.length).toBeGreaterThan(0);
+      matches.forEach((match) => recordDoubleEliminationResult(bracket, match.id, 13, 4));
+    }
+
+    expect(bracket.champion).toBeTruthy();
+    const earlierStages = JSON.parse(JSON.stringify(bracket.stages.filter((stage) => stage.bracket !== 'grand')));
+
+    const restored = reopenDoubleEliminationFinal(bracket);
+    const final = restored.bracket.stages.find((stage) => stage.id === restored.stageId).teams[0];
+
+    expect(restored.stageId).toBe('grand-final-1');
+    expect(restored.bracket.champion).toBeNull();
+    expect(restored.bracket.runnerUp).toBeNull();
+    expect(final).toMatchObject({
+      status: 'not_started',
+      resultCommitted: false,
+      team_1_score: null,
+      team_2_score: null,
+    });
+    expect(final.winner).toBeUndefined();
+    expect(restored.bracket.stages.filter((stage) => stage.bracket !== 'grand')).toEqual(earlierStages);
+    expect(bracket.champion).toBeTruthy();
   });
 });

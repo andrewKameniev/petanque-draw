@@ -163,6 +163,64 @@
           </div>
         </div>
 
+        <div class="confirm-playoff__lanes" data-testid="confirm-playoff-lanes">
+          <div class="confirm-playoff__section-header">
+            <LayoutGrid :size="16" />
+            <span>{{ $t('modals.lanesSection') }}</span>
+          </div>
+          <span class="confirm-playoff__hint confirm-playoff__hint--flush">{{ $t('modals.lanesSectionHint') }}</span>
+          <label class="confirm-playoff__checkbox">
+            <input type="checkbox" v-model="localLanesPoolEnabled" data-testid="confirm-lanes-pool-enabled" />
+            {{ $t('modals.lanesPool') }}
+          </label>
+          <span class="confirm-playoff__hint">{{ $t('modals.lanesPoolHint') }}</span>
+          <div v-if="localLanesPoolEnabled" class="confirm-playoff__lane-row">
+            <label>
+              <span class="confirm-playoff__label">{{ $t('modals.lanesPoolFrom') }}</span>
+              <input
+                class="confirm-playoff__input"
+                v-model.number="localLanesPoolFrom"
+                type="number"
+                min="1"
+                data-testid="confirm-lanes-pool-from"
+              />
+            </label>
+            <label>
+              <span class="confirm-playoff__label">{{ $t('modals.lanesPoolTo') }}</span>
+              <input
+                class="confirm-playoff__input"
+                v-model.number="localLanesPoolTo"
+                type="number"
+                min="1"
+                data-testid="confirm-lanes-pool-to"
+              />
+            </label>
+          </div>
+          <div v-else class="confirm-playoff__field">
+            <label class="confirm-playoff__label">{{ $t('modals.fieldsStart') }}</label>
+            <input
+              class="confirm-playoff__input"
+              v-model.number="localFieldsStart"
+              type="number"
+              min="1"
+              data-testid="confirm-fields-start"
+            />
+            <span class="confirm-playoff__hint confirm-playoff__hint--flush">{{ $t('modals.fieldsStartHint') }}</span>
+          </div>
+          <div class="confirm-playoff__field">
+            <label class="confirm-playoff__label">{{ $t('modals.lanesExcluded') }}</label>
+            <input
+              class="confirm-playoff__input"
+              v-model="localLanesExcluded"
+              type="text"
+              placeholder="1, 2, 3"
+              data-testid="confirm-lanes-excluded"
+            />
+            <span class="confirm-playoff__hint confirm-playoff__hint--flush">{{ $t('modals.lanesExcludedHint') }}</span>
+          </div>
+          <span v-if="lanesError" class="confirm-playoff__error">{{ lanesError }}</span>
+        </div>
+
         <div v-if="timeLimitEnabled" class="confirm-playoff__time-block">
           <div class="confirm-playoff__time-header">
             <Clock :size="16" />
@@ -194,6 +252,7 @@
         <button
           class="confirm-playoff__btn confirm-playoff__btn--confirm"
           data-testid="btn-confirm-playoff"
+          :disabled="!!lanesError"
           @click="onConfirm"
         >
           {{ $t('ranking.go') }}
@@ -207,11 +266,12 @@
 import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
-import { Clock, ChevronDown } from 'lucide-vue-next';
+import { Clock, ChevronDown, LayoutGrid } from 'lucide-vue-next';
+import { parseExcludedLaneNumbers } from '@/services/lanes';
 
 export default {
   name: 'PlayoffConfirmModal',
-  components: { Modal, Clock, ChevronDown },
+  components: { Modal, Clock, ChevronDown, LayoutGrid },
   emits: ['confirm', 'cancel'],
   props: {
     isSwiss: { type: Boolean, default: false },
@@ -229,6 +289,11 @@ export default {
     rankingTeams: { type: Array, default: () => [] },
     cadrageLosersToB: { type: Boolean, default: false },
     playOffFormat: { type: String, default: 'single' },
+    fieldsStart: { type: Number, default: 1 },
+    lanesPoolEnabled: { type: Boolean, default: false },
+    lanesPoolFrom: { type: Number, default: 1 },
+    lanesPoolTo: { type: Number, default: 1 },
+    lanesExcluded: { type: String, default: '' },
   },
   data() {
     return {
@@ -241,6 +306,11 @@ export default {
       localNoTimeLimitFinale: this.noTimeLimitFinale,
       localCadrageLosersToB: this.cadrageLosersToB,
       localPlayOffFormat: this.playOffFormat,
+      localFieldsStart: this.fieldsStart,
+      localLanesPoolEnabled: this.lanesPoolEnabled,
+      localLanesPoolFrom: this.lanesPoolFrom,
+      localLanesPoolTo: this.lanesPoolTo,
+      localLanesExcluded: this.lanesExcluded,
       localWithElimination: false,
       localEliminationCount: 2,
       localGroupBMode: 'swiss',
@@ -297,6 +367,37 @@ export default {
       }
       return values;
     },
+    minLanesRequired() {
+      const teams = this.localWithBarrage ? this.localBarrageTeams : this.localPlayOffTeams;
+      return Math.max(1, Math.floor((Number(teams) || 2) / 2));
+    },
+    availableLanesCount() {
+      const excluded = new Set(parseExcludedLaneNumbers(this.localLanesExcluded));
+      if (this.localLanesPoolEnabled) {
+        const from = Number(this.localLanesPoolFrom);
+        const to = Number(this.localLanesPoolTo);
+        if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from) return 0;
+        let count = 0;
+        for (let lane = from; lane <= to; lane++) {
+          if (!excluded.has(lane)) count++;
+        }
+        return count;
+      }
+
+      const first = Math.max(Number(this.localFieldsStart) || 1, 1);
+      let count = 0;
+      for (let lane = first; lane < first + this.minLanesRequired; lane++) {
+        if (!excluded.has(lane)) count++;
+      }
+      return count;
+    },
+    lanesError() {
+      if (this.availableLanesCount >= this.minLanesRequired) return null;
+      return this.$t('modals.lanesErrorNotEnough', {
+        min: this.minLanesRequired,
+        available: this.availableLanesCount,
+      });
+    },
     groupBLegend() {
       if (!this.localPlayB) return null;
       const withdrawn = this.rankingTeams.filter((t) => t.withdrawn).length;
@@ -316,6 +417,7 @@ export default {
       this.toggleWithdrawn(teamTitle);
     },
     onConfirm() {
+      if (this.lanesError) return;
       this.$emit('confirm', {
         withCadrage: this.localWithCadrage,
         withBarrage: this.localWithBarrage,
@@ -330,6 +432,11 @@ export default {
         groupBMode: this.localGroupBMode,
         playOffFormat: this.localPlayOffFormat,
         grandFinalMode: 'single',
+        fieldsStart: Math.max(Number(this.localFieldsStart) || 1, 1),
+        lanesPoolEnabled: this.localLanesPoolEnabled,
+        lanesPoolFrom: Number(this.localLanesPoolFrom) || 1,
+        lanesPoolTo: Number(this.localLanesPoolTo) || 1,
+        lanesExcluded: this.localLanesExcluded,
       });
     },
   },
@@ -378,6 +485,18 @@ export default {
   background-color: #fff;
 }
 
+.confirm-playoff__input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 1rem;
+  color: var(--color-text);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+}
+
 .confirm-playoff__checkbox {
   display: flex;
   align-items: center;
@@ -403,6 +522,44 @@ export default {
 
 .confirm-playoff__hint--sub {
   margin-left: 2.75rem;
+}
+
+.confirm-playoff__hint--flush {
+  margin-left: 0;
+}
+
+.confirm-playoff__lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+}
+
+.confirm-playoff__section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #555);
+}
+
+.confirm-playoff__lane-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.confirm-playoff__lanes .confirm-playoff__field,
+.confirm-playoff__lane-row .confirm-playoff__label {
+  margin-bottom: 0;
+}
+
+.confirm-playoff__error {
+  color: var(--color-danger, #e53935);
+  font-size: 0.9rem;
 }
 
 .confirm-playoff__sub-field {
@@ -616,5 +773,10 @@ export default {
 .confirm-playoff__btn--confirm:hover {
   background: var(--color-primary-light, #5b21b6);
   border-color: var(--color-primary-light, #5b21b6);
+}
+
+.confirm-playoff__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 </style>

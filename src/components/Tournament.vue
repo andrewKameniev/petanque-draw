@@ -312,6 +312,11 @@
       :ranking-teams="flatRankingTeams"
       :cadrage-losers-to-b="!!tournament.preferences.cadrageLosersToB"
       :play-off-format="tournament.preferences.playOffFormat || 'single'"
+      :fields-start="Number(tournament.preferences.fieldsStart) || 1"
+      :lanes-pool-enabled="!!tournament.preferences.lanesPoolEnabled"
+      :lanes-pool-from="Number(tournament.preferences.lanesPoolFrom) || 1"
+      :lanes-pool-to="Number(tournament.preferences.lanesPoolTo) || 1"
+      :lanes-excluded="tournament.preferences.lanesExcluded || ''"
       @confirm="onPlayoffConfirm"
       @cancel="showPlayoffConfirm = false"
     />
@@ -353,8 +358,10 @@ import {
   buildPlayOffScheme,
   buildCadrageGames,
   buildDoubleEliminationBracket,
+  getEditableDoubleEliminationStages,
   getNextDoubleEliminationStage,
 } from '@/services/playoff';
+import { assignPlayoffLanes } from '@/services/results';
 import QrCode from '@/components/partials/QrCode';
 import Preferences from '@/components/partials/Preferences';
 import Protocol from '@/components/partials/Protocol';
@@ -675,6 +682,11 @@ export default {
       this.tournament.preferences.cadrageLosersToB = config.cadrageLosersToB || false;
       this.tournament.preferences.playOffFormat = config.playOffFormat || 'single';
       this.tournament.preferences.grandFinalMode = 'single';
+      this.tournament.preferences.fieldsStart = config.fieldsStart;
+      this.tournament.preferences.lanesPoolEnabled = config.lanesPoolEnabled;
+      this.tournament.preferences.lanesPoolFrom = config.lanesPoolFrom;
+      this.tournament.preferences.lanesPoolTo = config.lanesPoolTo;
+      this.tournament.preferences.lanesExcluded = config.lanesExcluded;
       this._playoffConfig = config;
       this.savePreferences();
       this.setPlayOffList();
@@ -815,6 +827,10 @@ export default {
     startPlayOff(playOffList) {
       if (this.tournament.preferences.playOffFormat === 'double') {
         const bracket = buildDoubleEliminationBracket(playOffList);
+        assignPlayoffLanes(getEditableDoubleEliminationStages(bracket), this.tournament, {
+          shared: true,
+          playableOnly: true,
+        });
         this.setPlayOff(bracket.stages[0].teams);
         this.setPlayOffBracket(bracket);
         this.setPlayOffStage(getNextDoubleEliminationStage(bracket)?.id || 0);

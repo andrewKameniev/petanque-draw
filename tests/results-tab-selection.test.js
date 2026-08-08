@@ -454,4 +454,54 @@ describe('assignPlayoffLanes', () => {
     const result = assignPlayoffLanes(stages);
     expect(result).toBe(stages);
   });
+
+  it('uses the configured playoff lane pool and skips excluded lanes', () => {
+    const tournament = {
+      preferences: {
+        fieldsStart: 5,
+        lanesPoolEnabled: true,
+        lanesPoolFrom: 10,
+        lanesPoolTo: 12,
+        lanesExcluded: '11',
+      },
+    };
+    const stages = [
+      {
+        teams: [
+          { team_1: 'A', team_2: 'B' },
+          { team_1: 'C', team_2: 'D' },
+        ],
+      },
+    ];
+
+    assignPlayoffLanes(stages, tournament);
+
+    expect([...stages[0].laneOrder].sort((a, b) => a - b)).toEqual([5, 7]);
+  });
+
+  it('assigns unique lanes across simultaneously active double-elimination stages', () => {
+    const tournament = {
+      preferences: {
+        fieldsStart: 1,
+        lanesPoolEnabled: true,
+        lanesPoolFrom: 5,
+        lanesPoolTo: 7,
+        lanesExcluded: '',
+      },
+    };
+    const stages = [
+      { teams: [{ team_1: 'A', team_2: 'B' }] },
+      {
+        teams: [
+          { team_1: 'C', team_2: 'D' },
+          { team_1: 'E', team_2: 'F' },
+        ],
+      },
+    ];
+
+    assignPlayoffLanes(stages, tournament, { shared: true, playableOnly: true });
+
+    const lanes = stages.flatMap((stage) => stage.laneOrder).sort((a, b) => a - b);
+    expect(lanes).toEqual([4, 5, 6]);
+  });
 });

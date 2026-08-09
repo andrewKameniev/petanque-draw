@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  POULES_DRAW_ERROR,
-  createPoules,
-  getPoulesQualifiedTeams,
-  drawPoulesRound,
-} from '@/services/draw';
+import { POULES_DRAW_ERROR, createPoules, getPoulesQualifiedTeams, drawPoulesRound } from '@/services/draw';
 
 function makeTeam(title) {
   return {

@@ -60,6 +60,34 @@ const legacy = normalizeTournamentRecord(
   { id: 'legacy-1' },
 );
 
+function createSubscribedService(record) {
+  let bootstrapCallback;
+  let bootstrapErrorCallback;
+  const parentUnsubscribe = vi.fn();
+  const pathUnsubscribe = vi.fn();
+  const service = {
+    getOne: vi.fn(),
+    subscribe: vi.fn((_ownerUid, _tournamentId, callback, errorCallback) => {
+      bootstrapCallback = callback;
+      bootstrapErrorCallback = errorCallback;
+      return parentUnsubscribe;
+    }),
+    subscribePath: vi.fn(() => pathUnsubscribe),
+  };
+
+  return {
+    service,
+    parentUnsubscribe,
+    pathUnsubscribe,
+    emit(value = record, exists = true) {
+      bootstrapCallback({ exists: () => exists, val: () => value });
+    },
+    fail(error) {
+      bootstrapErrorCallback(error);
+    },
+  };
+}
+
 describe('tournament-record UI consumers', () => {
   it.each([
     ['wrapper', wrapper, 'A Team', 'B Team'],
@@ -135,32 +163,28 @@ describe('tournament-record UI consumers', () => {
 
   it('createLiveTournamentSource emits ready with normalized record and updates on field changes', async () => {
     const states = [];
-    const mockService = {
-      getOne: vi.fn().mockResolvedValue({
-        exists: () => true,
-        val: () => ({
-          id: 'wrapper-1',
-          name: 'Wrapper Cup',
-          date: '2026-08-05',
-          portalIdTournament: '725',
-          activeGroup: 'B',
-          tournamentMessage: 'Wrapper message',
-          main: { system: 'swiss', teams: [{ title: 'A Team' }], games: [], preferences: {} },
-          tournamentB: { system: 'playoff', teams: [{ title: 'B Team' }], games: [], preferences: {} },
-        }),
-      }),
-      subscribePath: vi.fn(() => () => {}),
-    };
+    const setup = createSubscribedService({
+      id: 'wrapper-1',
+      name: 'Wrapper Cup',
+      date: '2026-08-05',
+      portalIdTournament: '725',
+      activeGroup: 'B',
+      tournamentMessage: 'Wrapper message',
+      main: { system: 'swiss', teams: [{ title: 'A Team' }], games: [], preferences: {} },
+      tournamentB: { system: 'playoff', teams: [{ title: 'B Team' }], games: [], preferences: {} },
+    });
 
     const liveSource = createLiveTournamentSource({
       profile: 'public',
-      service: mockService,
+      service: setup.service,
       documentTarget: null,
       windowTarget: null,
       onState: (s) => states.push({ ...s }),
     });
 
-    await liveSource.start({ type: 'firebase', ownerUid: 'owner', tournamentId: 'wrapper-1' });
+    const started = liveSource.start({ type: 'firebase', ownerUid: 'owner', tournamentId: 'wrapper-1' });
+    setup.emit();
+    await started;
 
     expect(states[0].status).toBe('loading');
     const ready = states.find((s) => s.status === 'ready');
@@ -172,75 +196,81 @@ describe('tournament-record UI consumers', () => {
     const tvMeta = TvDashboard.computed.tournamentMetadata.call({ tournamentRecord: ready.record });
     expect(tvMeta.tournamentMessage).toBe('Wrapper message');
 
-    expect(mockService.subscribePath).toHaveBeenCalled();
+    expect(setup.service.getOne).not.toHaveBeenCalled();
+    expect(setup.service.subscribe).toHaveBeenCalledTimes(1);
+    expect(setup.service.subscribePath).toHaveBeenCalled();
+    expect(setup.parentUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('createLiveTournamentSource emits missing when snapshot does not exist', async () => {
     const states = [];
-    const mockService = {
-      getOne: vi.fn().mockResolvedValue({ exists: () => false }),
-      subscribePath: vi.fn(),
-    };
+    const setup = createSubscribedService(null);
 
     const liveSource = createLiveTournamentSource({
       profile: 'tv',
-      service: mockService,
+      service: setup.service,
       documentTarget: null,
       windowTarget: null,
       onState: (s) => states.push({ ...s }),
     });
 
-    await liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    const started = liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    setup.emit(null, false);
+    await started;
 
     expect(states.at(-1).status).toBe('missing');
     expect(states.at(-1).record).toBeNull();
+    expect(setup.service.getOne).not.toHaveBeenCalled();
   });
 
-  it('createLiveTournamentSource emits error on fetch failure', async () => {
+  it('createLiveTournamentSource emits error on bootstrap subscription failure', async () => {
     const states = [];
-    const mockService = {
-      getOne: vi.fn().mockRejectedValue(new Error('Network error')),
-      subscribePath: vi.fn(),
-    };
+    const setup = createSubscribedService(null);
 
     const liveSource = createLiveTournamentSource({
       profile: 'public',
-      service: mockService,
+      service: setup.service,
       documentTarget: null,
       windowTarget: null,
       onState: (s) => states.push({ ...s }),
     });
 
-    await liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    const started = liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    setup.fail(new Error('Network error'));
+    await started;
 
     expect(states.at(-1).status).toBe('error');
     expect(states.at(-1).error.message).toBe('Network error');
+    expect(setup.service.getOne).not.toHaveBeenCalled();
   });
 
   it('stop clears subscriptions and emits idle', async () => {
-    const unsubscribe = vi.fn();
     const states = [];
-    const mockService = {
-      getOne: vi.fn().mockResolvedValue({
-        exists: () => true,
-        val: () => ({ id: 't1', name: 'T', system: 'swiss', teams: [], games: [], preferences: {} }),
-      }),
-      subscribePath: vi.fn(() => unsubscribe),
-    };
+    const setup = createSubscribedService({
+      id: 't1',
+      name: 'T',
+      system: 'swiss',
+      teams: [],
+      games: [],
+      preferences: {},
+    });
 
     const liveSource = createLiveTournamentSource({
       profile: 'public',
-      service: mockService,
+      service: setup.service,
       documentTarget: null,
       windowTarget: null,
       onState: (s) => states.push({ ...s }),
     });
 
-    await liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    const started = liveSource.start({ type: 'firebase', ownerUid: 'u1', tournamentId: 't1' });
+    setup.emit();
+    await started;
     liveSource.stop();
 
     expect(states.at(-1).status).toBe('idle');
     expect(states.at(-1).record).toBeNull();
-    expect(unsubscribe).toHaveBeenCalled();
+    expect(setup.parentUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(setup.pathUnsubscribe).toHaveBeenCalled();
   });
 });

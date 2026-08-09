@@ -49,8 +49,10 @@ service/runtime boundary, not be duplicated in components.
 ### Public and TV viewing
 
 1. `tournament-ref.js` resolves a public reference or slug.
-2. `live-tournament.js` loads and normalizes the record.
-3. A named public/TV profile subscribes only to required fields.
+2. `live-tournament.js` bootstraps and normalizes the record with a temporary
+   parent listener.
+3. A named public/TV profile attaches its required field listeners before the
+   parent listener is removed, preserving Firebase's local-cache handoff.
 4. Shared presentation selectors feed page components and UI primitives.
 
 ### Archives and collaboration

@@ -54,15 +54,20 @@ service/runtime boundary, not be duplicated in components.
 1. Direct public, TV, public-statistics, and custom-slug navigation mounts
    without waiting for authentication or loading private account data.
 2. `tournament-ref.js` resolves a public reference or slug.
-3. `live-tournament.js` subscribes to the V1 public projection and accepts only
-   complete, supported, non-regressed revisions.
+3. `live-tournament.js` first uses one complete-node subscription for the V1
+   public projection and accepts only complete, supported, non-regressed
+   revisions.
 4. A valid projection is normalized through `tournament-record.js` and remains
-   the only network source for Public/TV rendering.
+   the only network source for Public/TV rendering; phase, tab, and group
+   listener planning does not run on this path.
 5. During the migration window, an unavailable or invalid projection switches
-   to the canonical bootstrap. A named public/TV profile attaches its required
-   field listeners before the temporary parent listener is removed, preserving
-   Firebase's local-cache handoff.
-6. Shared presentation selectors feed page components and UI primitives.
+   to canonical compatibility. Public discovers the persisted record format,
+   then promotes and demotes canonical listeners for the selected phase, tab,
+   and group. It uses a bounded query to observe unselected Tournament B and
+   subscribes its full node only when B is selected.
+6. TV canonical compatibility keeps its fixed profile and cache-preserving
+   parent-to-field handoff rather than using Public's dynamic listener plan.
+7. Shared presentation selectors feed page components and UI primitives.
 
 Authenticated public-field mutations flow in the opposite direction:
 components delegate to `tournament-sync.js` or an archive runtime, and the

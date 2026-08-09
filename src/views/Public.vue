@@ -233,7 +233,7 @@
                 />
               </div>
               <div v-else class="match-list">
-                <template v-if="activeTournamentView?.groups && activeTournamentView.groups.length > 1">
+                <template v-if="groupedCurrentGames.length > 1">
                   <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
                     <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
                     <PublicGameCard
@@ -406,6 +406,9 @@ export default {
         this.liveError = error;
         this.isLoading = status === 'loading';
         this.tournament = record;
+        if (status === 'ready') {
+          this.$nextTick(() => this.syncLiveSelection());
+        }
       },
     });
     this.getInfo();
@@ -416,6 +419,17 @@ export default {
   watch: {
     '$route.fullPath'() {
       this.getInfo();
+    },
+    activeTab() {
+      this.syncLiveSelection();
+    },
+    publicActiveGroup() {
+      this.syncLiveSelection();
+    },
+    hasTournamentB(hasGroupB) {
+      if (!hasGroupB && this.publicActiveGroup === 'B') {
+        this.publicActiveGroup = 'A';
+      }
     },
     isLoading(val) {
       if (!val && !this.tournament) {
@@ -675,6 +689,13 @@ export default {
     },
     pluralizeRounds(n) {
       return pluralizeRounds(n, this.$i18n.locale);
+    },
+    syncLiveSelection() {
+      if (this.liveStatus !== 'ready' || this.activeTournamentView?.system === 'tir') return;
+      this._liveTournamentSource?.setSelection?.({
+        tab: this.activeTab,
+        group: this.publicActiveGroup,
+      });
     },
     getInfo() {
       return this._liveTournamentSource?.start(this.tournamentSource);

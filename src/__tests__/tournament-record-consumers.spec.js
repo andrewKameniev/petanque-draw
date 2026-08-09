@@ -102,6 +102,47 @@ describe('tournament-record UI consumers', () => {
     expect(Public.computed.hasTournamentB.call({ tournament })).toBe(true);
   });
 
+  it('forwards the current public selection only after the live source is ready', () => {
+    const setSelection = vi.fn();
+    const context = {
+      liveStatus: 'loading',
+      activeTab: 'ranking',
+      publicActiveGroup: 'A',
+      _liveTournamentSource: { setSelection },
+    };
+
+    Public.methods.syncLiveSelection.call(context);
+    expect(setSelection).not.toHaveBeenCalled();
+
+    context.liveStatus = 'ready';
+    context.activeTab = 'results';
+    context.publicActiveGroup = 'B';
+    Public.methods.syncLiveSelection.call(context);
+
+    expect(setSelection).toHaveBeenCalledWith({ tab: 'results', group: 'B' });
+  });
+
+  it('falls back to public Group A when Group B disappears', () => {
+    const context = { publicActiveGroup: 'B' };
+
+    Public.watch.hasTournamentB.call(context, false);
+
+    expect(context.publicActiveGroup).toBe('A');
+  });
+
+  it.each([
+    ['current round', { games: [[{ team_1: 'Round A', team_2: 'Round B' }]] }, ['Round A', 'Round B']],
+    ['cadrage', { cadrage: [{ team_1: 'Cadrage A', team_2: 'Cadrage B' }] }, ['Cadrage A', 'Cadrage B']],
+    ['playoff', { playOff: [{ team_1: 'Playoff A', team_2: 'Playoff B' }] }, ['Playoff A', 'Playoff B']],
+  ])('derives TeamSearch names from the %s while detailed teams are unloaded', (_label, phase, expected) => {
+    const context = {
+      activeTournamentView: { teams: [], games: [], ...phase },
+      activeRound: 1,
+    };
+
+    expect(Public.computed.teamNames.call(context)).toEqual(expected);
+  });
+
   it.each([
     ['wrapper', wrapper, 'Wrapper Cup', '2026-08-05', 'swiss', 'Wrapper message'],
     ['legacy', legacy, 'Legacy Cup', '2025-06-07', 'groups', 'Legacy message'],
@@ -175,7 +216,7 @@ describe('tournament-record UI consumers', () => {
     });
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,
@@ -228,7 +269,7 @@ describe('tournament-record UI consumers', () => {
     const setup = createSubscribedService(null);
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,
@@ -256,7 +297,7 @@ describe('tournament-record UI consumers', () => {
     });
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,

@@ -1,4 +1,4 @@
-import { get, ref, set, remove, update, onValue } from 'firebase/database';
+import { get, limitToLast, onValue, query, ref, remove, set, update } from 'firebase/database';
 import { database as db } from '@/firebase';
 
 export const tournamentService = {
@@ -24,8 +24,9 @@ export const tournamentService = {
   getOne(uid, tournamentId) {
     return get(ref(db, `${uid}/tournaments/${tournamentId}`));
   },
-  subscribePath(uid, tournamentId, path, callback, errorCallback) {
-    const dbRef = ref(db, `${uid}/tournaments/${tournamentId}/${path}`);
+  subscribePath(uid, tournamentId, path, callback, errorCallback, options = {}) {
+    const pathRef = ref(db, `${uid}/tournaments/${tournamentId}/${path}`);
+    const dbRef = options.limitToLast ? query(pathRef, limitToLast(options.limitToLast)) : pathRef;
     return onValue(dbRef, callback, errorCallback);
   },
 };

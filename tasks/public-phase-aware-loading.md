@@ -40,12 +40,12 @@ the public UI needs them.
 
 ## Acceptance criteria
 
-- [ ] Normal current-round loads avoid TIR and inactive playoff payloads.
-- [ ] TIR loads avoid standard history/group payloads that it does not render.
-- [ ] Ranking/Results history and detailed Teams data load on demand.
-- [ ] Group B data is not transferred until selected, while creation/removal is
+- [x] Normal current-round loads avoid TIR and inactive playoff payloads.
+- [x] TIR loads avoid standard history/group payloads that it does not render.
+- [x] Ranking/Results history and detailed Teams data load on demand.
+- [x] Group B data is not transferred until selected, while creation/removal is
       still reflected in the switcher.
-- [ ] All supported persisted formats and systems retain presentation parity.
+- [x] All supported persisted formats and systems retain presentation parity.
 
 ## Test plan
 
@@ -62,7 +62,26 @@ the public UI needs them.
 
 ## Completion evidence
 
-- Changed behavior:
+- Changed behavior: Public now discovers legacy/envelope format through scalar
+  paths, reconciles exact phase/tab listener plans, queries only the latest
+  standard round for current and elimination views, promotes full history and
+  detailed teams on demand, and watches only Tournament B presence probes until
+  B is selected. TIR remains isolated from standard/group payloads, normalized
+  preference defaults and stream presets retain presentation parity, and an
+  asynchronous tab/group promotion remains loading until its listeners are
+  initialized. The static TV lifecycle from Task 1 is unchanged.
 - Exact commands and outcomes:
-- Deferred follow-up with reason:
-- Documentation synchronized:
+  - `npm run test:run -- src/__tests__/live-tournament-phase-aware.spec.js src/__tests__/live-tournament.spec.js src/__tests__/tournament-record-consumers.spec.js tests/tournament-record.test.js tests/tournament-presentation.test.js src/__tests__/presentation-parity.spec.js src/__tests__/public-game-card.spec.js` — 7 files, 149 tests passed.
+  - `npm run test:run` — 72 files, 1,253 tests passed.
+  - `npm run lint` — ESLint, tooling lint, Stylelint, and Prettier passed.
+  - `npm run docs:check` — 59 Markdown files passed.
+  - `npm run build` — production build passed (2,586 modules); existing dynamic-import and chunk-size warnings remain.
+  - `npm run quality:diff` — passed against the Task 1 base commit with 9 changed files.
+  - `git diff --check` — passed.
+- Deferred follow-up with reason: Targeted public E2E was not run because no
+  explicitly enabled isolated Firebase harness was provided. The final public
+  projection remains owned by Task 6 and is intentionally not introduced here.
+- Documentation synchronized: `docs/architecture.md` and `docs/firebase.md`
+  describe scalar discovery, phase/tab promotion, latest-round queries,
+  selection loading, stream paths, lazy Tournament B, and the unchanged TV
+  bootstrap contract.

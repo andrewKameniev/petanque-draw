@@ -6,11 +6,15 @@ import {
   WRAPPER_FIELDS,
   applyTournamentSnapshot,
   buildTournamentSubscriptionPlan,
-  createLiveTournamentSource,
+  createLiveTournamentSource as createSource,
 } from '@/services/live-tournament';
 import { normalizeTournamentRecord } from '@/services/tournament-record';
 
 vi.mock('@/firebase', () => ({ database: {} }));
+
+function createLiveTournamentSource(options = {}) {
+  return createSource({ profile: 'tv', ...options });
+}
 
 const wrapperRecord = {
   name: 'Wrapper Cup',
@@ -108,6 +112,7 @@ describe('live tournament profiles and paths', () => {
         'tirPlayoff',
         'tirRound',
         'tirStarted',
+        'useRating',
         'streamPresets',
       ]),
     );
@@ -115,28 +120,15 @@ describe('live tournament profiles and paths', () => {
     expect(WRAPPER_FIELDS).toEqual(expect.arrayContaining(['name', 'activeGroup', 'tournamentMessage']));
   });
 
-  it('builds wrapper Public paths without duplicate Group B child subscriptions', () => {
-    const plan = buildTournamentSubscriptionPlan(normalizeTournamentRecord(wrapperRecord), 'public');
-    const paths = plan.map(({ path }) => path);
-
-    expect(paths).toEqual(expect.arrayContaining(['activeGroup', 'tournamentMessage', 'main/games', 'tournamentB']));
-    expect(paths.some((path) => path.startsWith('tournamentB/'))).toBe(false);
-    expect(new Set(paths).size).toBe(paths.length);
-  });
-
-  it('builds legacy Public and wrapper TV paths for their exact profiles', () => {
-    const legacyPaths = buildTournamentSubscriptionPlan(normalizeTournamentRecord(legacyRecord), 'public').map(
-      ({ path }) => path,
-    );
+  it('builds wrapper TV paths for its exact static profile', () => {
     const tvPaths = buildTournamentSubscriptionPlan(normalizeTournamentRecord(wrapperRecord), 'tv').map(
       ({ path }) => path,
     );
 
-    expect(legacyPaths).toEqual(expect.arrayContaining(['games', 'tournamentMessage', 'groupB']));
     expect(tvPaths).toEqual(expect.arrayContaining(['name', 'tournamentMessage', 'main/games', 'main/groupSchedule']));
     expect(tvPaths).not.toContain('activeGroup');
     expect(tvPaths).not.toContain('tournamentB');
-    expect(LIVE_TOURNAMENT_PROFILES.public.includeGroupB).toBe(true);
+    expect(LIVE_TOURNAMENT_PROFILES.public.phaseAware).toBe(true);
     expect(LIVE_TOURNAMENT_PROFILES.tv.includeGroupB).toBe(false);
   });
 
@@ -170,15 +162,15 @@ describe('live tournament profiles and paths', () => {
 });
 
 describe.each([
-  ['public', wrapperRecord, 'main/games'],
-  ['tv', legacyRecord, 'games'],
-])('createLiveTournamentSource %s profile', (profile, record, gamesPath) => {
+  ['wrapper', wrapperRecord, 'main/games'],
+  ['legacy', legacyRecord, 'games'],
+])('createLiveTournamentSource TV profile with a %s record', (_label, record, gamesPath) => {
   it('bootstraps from a temporary parent listener, then subscribes and applies live values', async () => {
     const { service, callbacks, emitBootstrap, events, parentUnsubscribers } = createService(record);
     const states = [];
     const source = createLiveTournamentSource({
       service,
-      profile,
+      profile: 'tv',
       onState: (state) => states.push(state),
       documentTarget: null,
       windowTarget: null,
@@ -243,7 +235,7 @@ describe('live tournament source states and lifecycle', () => {
     expect(errorSetup.service.getOne).not.toHaveBeenCalled();
   });
 
-  it('applies live root metadata and Group B creation/removal', async () => {
+  it('applies live root metadata and competition-field removal', async () => {
     const { service, callbacks, emitBootstrap } = createService();
     const source = createLiveTournamentSource({ service, documentTarget: null, windowTarget: null });
     const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
@@ -256,11 +248,8 @@ describe('live tournament source states and lifecycle', () => {
     callbacks.get('name')(snapshot('Renamed Cup'));
     expect(source.getState().record.name).toBe('Renamed Cup');
 
-    callbacks.get('tournamentB')(snapshot({ teams: [{ title: 'B Team' }], preferences: {} }));
-    expect(source.getState().record.tournamentB.teams[0].title).toBe('B Team');
-
-    callbacks.get('tournamentB')(snapshot(null));
-    expect(source.getState().record.tournamentB).toBeNull();
+    callbacks.get('main/games')(snapshot(null));
+    expect(source.getState().record.main.games).toBeNull();
   });
 
   it('keeps same-source starts idempotent while loading and after ready', async () => {
@@ -459,7 +448,6 @@ describe('live tournament source states and lifecycle', () => {
     const states = [];
     const source = createLiveTournamentSource({
       service,
-      profile: 'public',
       documentTarget: null,
       windowTarget: null,
       onState: (nextState) => states.push(nextState),

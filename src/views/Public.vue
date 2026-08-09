@@ -55,15 +55,11 @@
           <span class="has-text-grey-dark">{{ $t('teams.system') }}:</span>
           <span class="has-text-weight-semibold">{{ systemDescription }}</span>
         </div>
-        <div class="tournament-info-row" v-if="activeTournamentView?.teams">
+        <div class="tournament-info-row" v-if="teamCountDisplay != null">
           <span class="has-text-grey-dark"
             >{{ activeTournamentView.system === 'tir' ? $t('tir.participants') : $t('common.teamsCount') }}:</span
           >
-          <span class="has-text-weight-semibold">{{
-            activeTournamentView.system === 'tir'
-              ? (activeTournamentView.tirParticipants || activeTournamentView.teams).length
-              : activeTournamentView.teams.length
-          }}</span>
+          <span class="has-text-weight-semibold">{{ teamCountDisplay }}</span>
         </div>
         <div class="tournament-info-row" v-if="groupTotalRoundsDisplay">
           <span class="has-text-grey-dark">{{ $t('common.totalRounds') }}:</span>
@@ -208,7 +204,7 @@
                 />
               </div>
               <div v-else class="match-list">
-                <template v-if="activeTournamentView?.groups && activeTournamentView.groups.length > 1">
+                <template v-if="groupedCurrentGames.length > 1">
                   <div v-for="(group, gIdx) in groupedCurrentGames" :key="gIdx" class="match-group">
                     <h4 class="match-group__title">{{ $t('common.group') }} {{ groupLabels[gIdx] }}</h4>
                     <PublicGameCard
@@ -378,6 +374,9 @@ export default {
         this.liveError = error;
         this.isLoading = status === 'loading';
         this.tournament = record;
+        if (status === 'ready') {
+          this.$nextTick(() => this.syncLiveSelection());
+        }
       },
     });
     this.getInfo();
@@ -388,6 +387,17 @@ export default {
   watch: {
     '$route.fullPath'() {
       this.getInfo();
+    },
+    activeTab() {
+      this.syncLiveSelection();
+    },
+    publicActiveGroup() {
+      this.syncLiveSelection();
+    },
+    hasTournamentB(hasGroupB) {
+      if (!hasGroupB && this.publicActiveGroup === 'B') {
+        this.publicActiveGroup = 'A';
+      }
     },
     isLoading(val) {
       if (!val && !this.tournament) {
@@ -618,8 +628,23 @@ export default {
     },
     teamNames() {
       const t = this.activeTournamentView;
-      if (!t?.teams) return [];
-      return t.teams.map((team) => team.title);
+      if (t?.teams?.length) return t.teams.map((team) => team.title);
+
+      const currentRoundGames = t?.games?.[this.activeRound - 1] || [];
+      const phaseGames = t?.cadrage?.length ? t.cadrage : t?.playOff?.length ? t.playOff : currentRoundGames;
+      const names = new Set();
+      phaseGames.forEach((game) => {
+        if (game?.team_1 && game.team_1 !== 'Technical') names.add(game.team_1);
+        if (game?.team_2 && game.team_2 !== 'Technical') names.add(game.team_2);
+      });
+      return [...names];
+    },
+    teamCountDisplay() {
+      const t = this.activeTournamentView;
+      if (!t) return null;
+      if (t.system === 'tir') return (t.tirParticipants || t.teams || []).length;
+      if (t.teams?.length) return t.teams.length;
+      return t.roundIsActive && this.teamNames.length ? this.teamNames.length : null;
     },
     teamClubMap() {
       const t = this.activeTournamentView;
@@ -647,6 +672,13 @@ export default {
     },
     pluralizeRounds(n) {
       return pluralizeRounds(n, this.$i18n.locale);
+    },
+    syncLiveSelection() {
+      if (this.liveStatus !== 'ready') return;
+      this._liveTournamentSource?.setSelection?.({
+        tab: this.activeTab,
+        group: this.publicActiveGroup,
+      });
     },
     getInfo() {
       return this._liveTournamentSource?.start(this.tournamentSource);

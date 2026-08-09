@@ -48,15 +48,32 @@ owns granular path writes, match debouncing, subscription merge policies, echo
 suppression, and disposal. Public and TV pages use the read-only profiles in
 `src/services/live-tournament.js`.
 
-Public and TV live sources bootstrap through a temporary tournament-node
-listener. They attach their granular profile listeners while that parent is
-still active, then remove the parent so Firebase can reuse its populated local
-cache instead of retransferring the profile fields during listener handoff.
-Re-starting an active source with the same owner and tournament is a no-op;
-explicit reload is the retry boundary. Browser visibility and online events
-rely on Firebase listener reconnection and do not recreate the source. A missing
-tournament keeps the parent listener active so a later creation can hydrate
-without polling.
+The Public live source discovers envelope versus legacy storage through scalar
+`main/system` and root `system` listeners. After discovery it subscribes an
+explicit plan under `main/` or the legacy root. Standard current rounds and
+active elimination retain a `limitToLast(1)` selector on `games`; scalar phase
+probes activate current cadrage, playoff, or team-playoff payloads without
+transferring inactive subtrees. Match-rendering plans also include the existing
+`streamPresets` path. The TIR plan omits standard games, group schedules, and
+elimination payloads. Ranking, Results, and Teams promote the full history and
+team paths their renderers need, and demote them when the view no longer needs
+them. A tab or group promotion reports loading until its newly required
+listeners have all delivered an initial snapshot.
+
+While Group A is selected, Public watches only small Tournament B presence
+fields under `tournamentB/` or `groupB/`, including the first team title needed
+for partial legacy compatibility. Selecting B subscribes its existing full node;
+switching back restores Group A's staged plan. No record shape or authoritative
+path is rewritten. If scalar discovery cannot distinguish a missing or unusually
+partial record, the source retains the temporary tournament-node listener as a
+compatibility and live-creation fallback.
+
+TV keeps the temporary tournament-node bootstrap from the static live profile.
+It attaches its granular field listeners while that parent is active, then
+removes the parent so Firebase can reuse its populated local cache. Re-starting
+an active source with the same owner and tournament is a no-op; explicit reload
+is the retry boundary. Browser visibility and online events rely on Firebase
+listener reconnection and do not recreate the source.
 
 Specialized competition listeners treat `null` snapshots for `games`,
 `cadrage`, `playOffBracket`, `tirPlayoff`, and `teamPlayoff` as explicit remote

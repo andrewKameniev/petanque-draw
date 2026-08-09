@@ -49,11 +49,19 @@ service/runtime boundary, not be duplicated in components.
 ### Public and TV viewing
 
 1. `tournament-ref.js` resolves a public reference or slug.
-2. `live-tournament.js` bootstraps and normalizes the record with a temporary
-   parent listener.
-3. A named public/TV profile attaches its required field listeners before the
-   parent listener is removed, preserving Firebase's local-cache handoff.
-4. Shared presentation selectors feed page components and UI primitives.
+2. The Public profile in `live-tournament.js` discovers the persisted format
+   from scalar `main/system` and root `system` listeners, then normalizes a
+   partial legacy or envelope record through `tournament-record.js`.
+3. Its listener plan follows the selected competition phase and Public tab:
+   current rounds and standard elimination retain a last-round query, active
+   match views include their stream presets, TIR uses its own payload, and
+   history plus detailed teams are promoted on demand. A tab or group promotion
+   remains loading until every newly required listener has initialized.
+4. Unselected Tournament B uses only presence probes; selecting it replaces
+   Group A's staged plan with the existing full `tournamentB` or `groupB` node.
+5. The TV profile keeps the cache-preserving parent-to-field handoff because
+   its dashboard renders one fixed, simultaneous field set.
+6. Shared presentation selectors feed page components and UI primitives.
 
 ### Archives and collaboration
 

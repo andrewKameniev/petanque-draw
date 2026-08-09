@@ -148,6 +148,36 @@ describe('tournament-record UI consumers', () => {
     expect(liveSource.stop).toHaveBeenCalledTimes(1);
   });
 
+  it('synchronizes Public tab and group selection only for tabbed tournaments', () => {
+    const setSelection = vi.fn();
+    const context = {
+      liveStatus: 'loading',
+      activeTournamentView: { system: 'swiss' },
+      activeTab: 'results',
+      publicActiveGroup: 'B',
+      _liveTournamentSource: { setSelection },
+    };
+
+    Public.methods.syncLiveSelection.call(context);
+    expect(setSelection).not.toHaveBeenCalled();
+
+    context.liveStatus = 'ready';
+    Public.methods.syncLiveSelection.call(context);
+    expect(setSelection).toHaveBeenCalledWith({ tab: 'results', group: 'B' });
+
+    context.activeTournamentView = { system: 'tir' };
+    Public.methods.syncLiveSelection.call(context);
+    expect(setSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to Public Group A when Group B disappears', () => {
+    const context = { publicActiveGroup: 'B' };
+
+    Public.watch.hasTournamentB.call(context, false);
+
+    expect(context.publicActiveGroup).toBe('A');
+  });
+
   it.each([
     ['wrapper', wrapper, 'Wrapper Cup', '2026-08-05', '725'],
     ['legacy', legacy, 'Legacy Cup', '2025-06-07', undefined],
@@ -175,7 +205,7 @@ describe('tournament-record UI consumers', () => {
     });
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,
@@ -228,7 +258,7 @@ describe('tournament-record UI consumers', () => {
     const setup = createSubscribedService(null);
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,
@@ -256,7 +286,7 @@ describe('tournament-record UI consumers', () => {
     });
 
     const liveSource = createLiveTournamentSource({
-      profile: 'public',
+      profile: 'tv',
       service: setup.service,
       documentTarget: null,
       windowTarget: null,

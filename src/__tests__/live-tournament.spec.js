@@ -6,12 +6,16 @@ import {
   WRAPPER_FIELDS,
   applyTournamentSnapshot,
   buildTournamentSubscriptionPlan,
-  createLiveTournamentSource,
+  createLiveTournamentSource as createSource,
 } from '@/services/live-tournament';
 import { normalizeTournamentRecord } from '@/services/tournament-record';
 import { createPublicTournamentProjection } from '@/services/public-tournament-projection';
 
 vi.mock('@/firebase', () => ({ database: {} }));
+
+function createLiveTournamentSource(options = {}) {
+  return createSource({ profile: 'tv', ...options });
+}
 
 const wrapperRecord = {
   name: 'Wrapper Cup',
@@ -138,6 +142,8 @@ describe('live tournament profiles and paths', () => {
       'preferences',
       'groups',
       'system',
+      'playoff',
+      'useRating',
       'teamPlayoff',
       'roundRobinCircle',
       'groupSchedule',
@@ -154,36 +160,15 @@ describe('live tournament profiles and paths', () => {
     expect(WRAPPER_FIELDS).toEqual(['name', 'tournamentMessage']);
   });
 
-  it('builds wrapper Public paths without duplicate Group B child subscriptions', () => {
-    const plan = buildTournamentSubscriptionPlan(normalizeTournamentRecord(wrapperRecord), 'public');
-    const paths = plan.map(({ path }) => path);
-
-    expect(paths).toEqual(
-      expect.arrayContaining(['name', 'tournamentMessage', 'main/games', 'main/tirTiebreakerCount', 'tournamentB']),
-    );
-    for (const omittedPath of ['activeGroup', 'main/tirTiebreakerActive', 'main/tirTiebreakerParticipantIds']) {
-      expect(paths).not.toContain(omittedPath);
-    }
-    expect(paths.some((path) => path.startsWith('tournamentB/'))).toBe(false);
-    expect(new Set(paths).size).toBe(paths.length);
-  });
-
-  it('builds legacy Public and wrapper TV paths for their exact profiles', () => {
-    const legacyPaths = buildTournamentSubscriptionPlan(normalizeTournamentRecord(legacyRecord), 'public').map(
-      ({ path }) => path,
-    );
+  it('builds wrapper TV paths for its exact static profile', () => {
     const tvPaths = buildTournamentSubscriptionPlan(normalizeTournamentRecord(wrapperRecord), 'tv').map(
       ({ path }) => path,
     );
 
-    expect(legacyPaths).toEqual(expect.arrayContaining(['games', 'tournamentMessage', 'groupB']));
-    for (const omittedPath of ['activeGroup', 'tirTiebreakerActive', 'tirTiebreakerParticipantIds']) {
-      expect(legacyPaths).not.toContain(omittedPath);
-    }
     expect(tvPaths).toEqual(expect.arrayContaining(['name', 'tournamentMessage', 'main/games', 'main/groupSchedule']));
     expect(tvPaths).not.toContain('activeGroup');
     expect(tvPaths).not.toContain('tournamentB');
-    expect(LIVE_TOURNAMENT_PROFILES.public.includeGroupB).toBe(true);
+    expect(LIVE_TOURNAMENT_PROFILES.public.phaseAware).toBe(true);
     expect(LIVE_TOURNAMENT_PROFILES.tv.includeGroupB).toBe(false);
   });
 
@@ -247,6 +232,12 @@ describe('projection-first live tournament compatibility', () => {
     expect(canonical.service.subscribe).not.toHaveBeenCalled();
     expect(canonical.service.subscribePath).not.toHaveBeenCalled();
 
+    const projectedState = source.getState();
+    await source.setSelection({ tab: 'teams', group: 'B' });
+    expect(source.getState()).toBe(projectedState);
+    expect(projection.service.subscribe).toHaveBeenCalledTimes(1);
+    expect(canonical.service.subscribePath).not.toHaveBeenCalled();
+
     projection.emit(
       createPublicTournamentProjection(
         { ...wrapperRecord, name: 'Projection Rename' },
@@ -288,7 +279,6 @@ describe('projection-first live tournament compatibility', () => {
     const source = createLiveTournamentSource({
       service: canonical.service,
       projectionService: projection.service,
-      profile: 'public',
     });
 
     const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
@@ -371,15 +361,15 @@ describe('projection-first live tournament compatibility', () => {
 });
 
 describe.each([
-  ['public', wrapperRecord, 'main/games'],
-  ['tv', legacyRecord, 'games'],
-])('createLiveTournamentSource %s profile', (profile, record, gamesPath) => {
+  ['wrapper', wrapperRecord, 'main/games'],
+  ['legacy', legacyRecord, 'games'],
+])('createLiveTournamentSource TV profile with a %s record', (_label, record, gamesPath) => {
   it('bootstraps from a temporary parent listener, then subscribes and applies live values', async () => {
     const { service, callbacks, emitBootstrap, events, parentUnsubscribers } = createService(record);
     const states = [];
     const source = createLiveTournamentSource({
       service,
-      profile,
+      profile: 'tv',
       onState: (state) => states.push(state),
       documentTarget: null,
       windowTarget: null,
@@ -444,7 +434,7 @@ describe('live tournament source states and lifecycle', () => {
     expect(errorSetup.service.getOne).not.toHaveBeenCalled();
   });
 
-  it('applies live root metadata and Group B creation/removal', async () => {
+  it('applies live root metadata and competition-field removal', async () => {
     const { service, callbacks, emitBootstrap } = createService();
     const source = createLiveTournamentSource({ service, documentTarget: null, windowTarget: null });
     const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
@@ -457,14 +447,11 @@ describe('live tournament source states and lifecycle', () => {
     callbacks.get('name')(snapshot('Renamed Cup'));
     expect(source.getState().record.name).toBe('Renamed Cup');
 
-    callbacks.get('main/tirTiebreakerCount')(snapshot(2));
-    expect(source.getState().record.main.tirTiebreakerCount).toBe(2);
+    callbacks.get('main/roundTimer')(snapshot({ timerStatus: 'running' }));
+    expect(source.getState().record.main.roundTimer).toEqual({ timerStatus: 'running' });
 
-    callbacks.get('tournamentB')(snapshot({ teams: [{ title: 'B Team' }], preferences: {} }));
-    expect(source.getState().record.tournamentB.teams[0].title).toBe('B Team');
-
-    callbacks.get('tournamentB')(snapshot(null));
-    expect(source.getState().record.tournamentB).toBeNull();
+    callbacks.get('main/games')(snapshot(null));
+    expect(source.getState().record.main.games).toBeNull();
   });
 
   it('keeps same-source starts idempotent while loading and after ready', async () => {
@@ -663,7 +650,6 @@ describe('live tournament source states and lifecycle', () => {
     const states = [];
     const source = createLiveTournamentSource({
       service,
-      profile: 'public',
       documentTarget: null,
       windowTarget: null,
       onState: (nextState) => states.push(nextState),

@@ -64,22 +64,36 @@ It permits shipping the dual writer before the additive projection rules have
 reached every environment without blocking editors or archive workflows.
 
 Public and TV pages use the read-only source in
-`src/services/live-tournament.js`. It subscribes to the complete projection
-node first. A valid revision supplies the normalized Public/TV record without
-reading the authoritative node. Missing, partial, malformed,
-unsupported-version, and projection permission/error states detach that
-listener and enter the canonical compatibility flow described below. A stale
-revision preserves the last valid projected record instead of replacing it.
+`src/services/live-tournament.js`. It first attaches one listener to the
+complete `publicTournaments/{uid}/{id}` node. A valid revision supplies the
+normalized Public/TV record without canonical reads or phase/tab/group child
+listeners. Missing, partial, malformed, unsupported-version, and projection
+permission/error states detach that listener and enter canonical compatibility.
+A stale revision preserves the last valid projected record instead of replacing
+it.
 
-Public and TV live sources bootstrap through a temporary tournament-node
-listener. They attach their granular profile listeners while that parent is
-still active, then remove the parent so Firebase can reuse its populated local
-cache instead of retransferring the profile fields during listener handoff.
-Re-starting an active source with the same owner and tournament is a no-op;
-explicit reload is the retry boundary. Browser visibility and online events
-rely on Firebase listener reconnection and do not recreate the source. A missing
-tournament keeps the parent listener active so a later creation can hydrate
-without polling.
+Public canonical compatibility discovers envelope versus legacy storage from
+small metadata listeners, then reconciles an explicit listener plan for the
+selected phase, tab, and group. Current-round reads can use a bounded latest
+child query instead of transferring game history; history and other optional
+payloads are promoted only for views that render them and demoted after the
+selection changes. The source reports loading until newly required listeners
+have delivered their initial snapshots.
+
+While Group A is selected, Public canonical compatibility uses a bounded query
+at the `tournamentB` or `groupB` node to observe live creation and removal
+without attaching the full-node listener. Selecting B replaces Group A's staged
+plan with a full listener for that existing B node; switching back restores the
+phase/tab plan. This query strategy changes no authoritative record format.
+
+TV canonical compatibility remains a fixed profile. It bootstraps through a
+temporary tournament-node listener, attaches its field listeners while that
+parent is active, then removes the parent so Firebase can reuse its populated
+local cache. Re-starting an active source with the same owner and tournament is
+a no-op; explicit reload is the retry boundary. Browser visibility and online
+events rely on Firebase listener reconnection and do not recreate the source. A
+missing canonical tournament keeps the compatibility listener live so later
+creation can hydrate without polling.
 
 Specialized competition listeners treat `null` snapshots for `games`,
 `cadrage`, `playOffBracket`, `tirPlayoff`, and `teamPlayoff` as explicit remote

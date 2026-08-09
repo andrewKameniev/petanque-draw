@@ -1,79 +1,74 @@
-# Firebase Integration
+# Firebase Boundaries
 
-## Services Used
+This document owns current database paths, access boundaries, and synchronization
+architecture. Persisted tournament fields are documented in
+[Data model](./data-model.md).
 
-- **Firebase Auth** — Email/password authentication
-- **Firebase Realtime Database** — All app data storage
-- **Firebase Cloud Messaging** — Push notifications to viewers
-- **Cloud Functions** — `sendMessage` endpoint for triggering notifications
+## Client services
 
-## Database Structure
+- Firebase Authentication provides email/password identity.
+- Realtime Database stores tournament, archive, statistics, training, route,
+  collaboration, and notification-token data.
+- Cloud Messaging delivers viewer notifications through the configured remote
+  notification endpoint.
 
-```
-root/
-├── {userId}/
-│   ├── tournaments/
-│   │   └── {tournamentId}/      # Tournament object (see below)
-│   ├── saved/
-│   │   └── {tournamentId}/      # Archived tournament snapshots
-│   ├── stats/
-│   │   ├── tags/                # User's stat tags
-│   │   └── {timestamp}/         # Individual game stat records
-│   └── training/
-│       └── list/
-│           └── {exerciseId}/    # Exercise definitions + results
-├── tokens/
-│   └── {userId}/
-│       └── {tournamentId}/      # FCM tokens for push notifications
-└── apikey                       # VAPID key for FCM
-```
+The web client identifiers in `src/firebase.js` are public Firebase client
+configuration, not privileged server credentials. Do not replace or hide them
+as secrets. User passwords, service-account material, and private API tokens
+must never be tracked.
 
-## Tournament Object
+## Canonical paths
 
-```json
-{
-  "id": 1234567890,
-  "name": "Tournament A",
-  "system": "swiss|groups|supermele",
-  "teams": [{ "title", "rating", "players", "wins", "buhgolts", "smallBuhgolts", "pointsPlus", "pointsMinus", "opponents", "lanes" }],
-  "games": [[ { "team_1", "team_1_score", "team_2", "team_2_score", "lane" } ]],
-  "gamesCopy": [],
-  "roundIsActive": false,
-  "useRating": false,
-  "playoff": false,
-  "isCadrage": false,
-  "supermelePlayers": 2,
-  "tournamentIsFinished": false,
-  "tournamentMessage": "",
-  "preferences": {
-    "technical": { "technicalFirst": 13, "technicalSecond": 7 },
-    "maxScore": 13,
-    "playOffTeams": 8,
-    "fieldsStart": 1
-  }
-}
-```
+| Path                                            | Purpose                                              | Primary owner                                   |
+| ----------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `{uid}/tournaments/{id}`                        | Authoritative active and archived tournament records | `tournamentService`, store runtimes             |
+| `users/{uid}/tournaments/{id}`                  | Per-user status, role, owner, and display metadata   | `userMapService`, archive/collaboration runtime |
+| `{uid}/saved/{id}`                              | Legacy archive source read during migration          | archive/collaboration runtime                   |
+| `archive/{id}`                                  | Queryable public archive metadata                    | `archiveIndexService`                           |
+| `backups/{id}`                                  | Write-once archive backup payload                    | `archiveBackupService`                          |
+| `{uid}/stats`, `{uid}/statPlayerIdentities`     | Statistics and normalized player identity            | statistics services                             |
+| `{uid}/training`                                | Exercises, results, and TIR sessions                 | `trainingService`                               |
+| `{uid}/arbiterRegistry`, `{uid}/arbiterPresets` | Protocol arbiter data                                | arbiter services                                |
+| `customRoutes/{slug}`                           | Public slug routing                                  | `customRoutesService`                           |
+| `tokens/{uid}/{id}`                             | Notification tokens for a tournament                 | tournament/notification flow                    |
+| `emails`, `tournamentOrgs`                      | Account lookup and organizer authorization metadata  | auth/collaboration flows                        |
 
-## Auth Flow
+`src/services/db.js` owns ordinary path wrappers. `database.rules.json` is the
+actual authorization boundary; UI visibility and Pinia roles are not security
+controls.
 
-1. User registers or logs in via `LoginUser.vue`
-2. `onAuthStateChanged` in `Draw.vue` detects auth state
-3. On login: user object stored in Vuex, tournaments fetched from DB
-4. All DB operations use `{user.uid}` as root path
+## Tournament writes and subscriptions
 
-## Realtime Sync
+`src/services/tournament-record.js` resolves whether competition data lives at
+the legacy root, `groupB/`, `main/`, or `tournamentB/`. Callers must use that
+storage target rather than reconstructing prefixes.
 
-The Vuex store uses `store.subscribe()` to auto-save after specific mutations:
+Authenticated editing passes through `src/services/tournament-sync.js`, which
+owns granular path writes, match debouncing, subscription merge policies, echo
+suppression, and disposal. Public and TV pages use the read-only profiles in
+`src/services/live-tournament.js`.
 
-- `savePreferences`, `saveTournamentData`, `finishTournament`
-- `changeTournamentName`, `setPlayOffStage`, `setPlayOffBracket`
-- `setPlayOff`, `setCadrage`, `saveCadrageScores`
-- `restoreRound`, `addRoundToGames`
-- `endRound`, `startRound`, `shuffleLanesStore`
+When a user, tournament, or component lifecycle changes, listeners and pending
+writes must be disposed before the next context becomes active. Permission
+denial for shared data is handled as access revocation, not as an empty record.
 
-## Push Notifications
+## Archives
 
-1. Public viewer opens shared link → browser requests notification permission
-2. On grant: FCM token generated and stored in `tokens/{userId}/{tournamentId}`
-3. Organizer clicks "Send notification" → reads tokens → calls Cloud Function
-4. Cloud Function sends FCM messages to all stored tokens
+Archiving changes the user-map status while retaining the authoritative
+tournament record. Eligible finished portal tournaments may also receive a
+public `archive/` index entry and a write-once `backups/` payload. The old
+`saved/` tree is a compatibility source, not the current archive destination.
+
+## Test safety
+
+The current Playwright suite can write to the remote project and is disabled
+unless `E2E_ALLOW_REMOTE=1` and environment-injected test credentials are
+present. See [e2e/README.md](../e2e/README.md). Missing safety configuration must
+fail before browser or fixture writes; never add a live-project fallback.
+
+## Update triggers
+
+Update this document with changes to database paths, rules, record ownership,
+subscription/write strategy, archive behavior, or remote-test policy. External
+deployment, migration, and production data changes require separate explicit
+authorization.

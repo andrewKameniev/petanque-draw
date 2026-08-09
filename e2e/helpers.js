@@ -1,5 +1,23 @@
-const TEST_EMAIL = 'e2e-test-petanque@mailinator.com';
-const TEST_PASSWORD = 'TestPass123!';
+const TEST_EMAIL = process.env.E2E_TEST_EMAIL;
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD;
+
+function assertRemoteE2EAllowed(context = 'Playwright E2E') {
+  if (process.env.E2E_ALLOW_REMOTE !== '1') {
+    throw new Error(
+      `${context} is disabled because it can write to the remote Firebase project. ` +
+        'Set E2E_ALLOW_REMOTE=1 only after explicitly approving that remote access.',
+    );
+  }
+
+  const missing = [!TEST_EMAIL && 'E2E_TEST_EMAIL', !TEST_PASSWORD && 'E2E_TEST_PASSWORD'].filter(Boolean);
+  if (missing.length) {
+    throw new Error(`${context} requires environment variable(s): ${missing.join(', ')}`);
+  }
+}
+
+// Every current Playwright spec imports this module. Abort while loading the
+// suite so a missing opt-in cannot fall through to browser or fixture writes.
+assertRemoteE2EAllowed();
 
 // --- Auth flows ---
 
@@ -395,6 +413,7 @@ async function deleteAllTournaments(page) {
 export {
   TEST_EMAIL,
   TEST_PASSWORD,
+  assertRemoteE2EAllowed,
   register,
   login,
   ensureCleanTournament,

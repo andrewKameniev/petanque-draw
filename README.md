@@ -1,61 +1,58 @@
 # Petanque Draw
 
-Tournament organizer, game statistics tracker, and training tool for petanque.
+Tournament organization, live results, statistics, and training tools for
+petanque.
 
-**Live**: [https://andrewkameniev.github.io/petanque-draw/](https://andrewkameniev.github.io/petanque-draw/)
+**Live:** <https://andrewkameniev.github.io/petanque-draw/>
 
-## What it does
+## Capabilities
 
-- **Tournament Draw** — Swiss system, round-robin (groups), supermele, and playoff/knockout brackets. Automatic pairing algorithm, lane assignment, ranking with Buchholz coefficients.
-- **Remote Viewing** — Shareable link + QR code for players to follow live draws and standings. Push notifications on updates.
-- **Game Statistics** — Throw-by-throw stat tracking during games with simple and French scoring systems. Archive, tags, player analysis with charts.
-- **Training** — Custom exercise builder for shooting practice with distance tracking and progress history.
+- Swiss, groups, barrage, supermele, TIR, cadrage, and playoff formats
+- Shareable public and TV views with realtime results
+- Tournament archives, protocols, portal integration, and collaboration
+- Throw-by-throw statistics and shooting-practice sessions
+- English, Ukrainian, French, and Spanish interfaces
 
-## Tech Stack
+## Stack
 
-Vue 3 | Vuex 4 | Vue Router 5 | Firebase (Auth, Realtime DB, FCM) | Bulma CSS | ApexCharts | Vite 8
+Vue 3, Pinia, Vue Router, Firebase Auth and Realtime Database, Vite, Vitest,
+Playwright, Bulma, and semantic CSS custom properties. Exact dependency
+versions are owned by `package.json` and `package-lock.json`.
 
-## Setup
+## Local development
 
 ```bash
 npm install
-npm run dev      # Dev server at localhost:5173
-npm run build    # Production build to dist/
-npm run lint     # ESLint + Stylelint + Prettier check
-npm run lint:fix # Auto-fix all linting/formatting issues
+npm run dev
+npm run lint
+npm run test:run
+npm run build
 ```
+
+The development server uses `http://localhost:5173` with a strict port. Browser
+tests can write remote Firebase data and therefore require a separate explicit
+opt-in; read [e2e/README.md](./e2e/README.md) first.
+
+## Code map
+
+```text
+src/
+├── views/          route-level pages and public surfaces
+├── components/     feature components and reusable UI primitives
+├── services/       domain logic, adapters, Firebase runtimes, and integrations
+├── stores/main.js  Pinia application façade
+├── locales/        localized application strings
+├── assets/css/     shared styles, themes, and design tokens
+├── helpers.js      legacy-compatible tournament helpers
+└── firebase.js     Firebase client initialization
+```
+
+Start with [docs/README.md](./docs/README.md) for an index that routes each kind
+of change to only the relevant documentation. Coding agents must also follow
+`AGENTS.md` and the closest scoped `AGENTS.md`.
 
 ## Deployment
 
-Deployed automatically to GitHub Pages via GitHub Actions on push to `develop`.
-
-## Project Structure
-
-```
-src/
-├── views/          # Route-level pages (Login, Public, Stats, Training)
-├── components/     # UI components
-│   ├── partials/   # Tournament management (Games, Ranking, PlayOff, etc.)
-│   ├── stats/      # Statistics tracking components
-│   └── training/   # Training exercise components
-├── store.js        # Vuex state + Firebase sync
-├── i18n.js         # vue-i18n instance (shared between app and store)
-├── helpers.js      # Tournament logic (draw, ranking, sorting)
-├── helpers-stat.js # Statistics calculations
-├── firebase.js     # Firebase initialization
-└── languages.js    # i18n translations (English + Ukrainian)
-```
-
-## Features
-
-- Up to 10 simultaneous tournaments
-- Import teams from Ukrainian Petanque Federation portal
-- Swiss draw with backtracking algorithm (handles constraint violations)
-- Playoff brackets up to 64 teams with cadrage support
-- Offline team restore via localStorage
-- PDF protocol export
-- Bilingual (EN/UA)
-
-## Documentation
-
-See [docs/](./docs/README.md) for detailed architecture, domain, and feature documentation.
+Pushes to `develop` are built and deployed to GitHub Pages by
+`.github/workflows/deploy.yml`. Repository changes do not authorize a deploy,
+Firebase migration, or other external mutation.

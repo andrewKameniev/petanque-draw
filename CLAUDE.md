@@ -1,56 +1,31 @@
-# Petanque Draw
+# Claude Entry Point
 
-Vue 3 + Vite tournament drawing application for petanque.
+Follow the [repository agent contract](./AGENTS.md) and any closer scoped
+`AGENTS.md`. For implementation work, open [docs/README.md](./docs/README.md),
+then read only the documents routed for the affected area.
 
-## Dev Server
-
-```bash
-npm run dev
-```
-
-Always runs on port 5173 (strictPort: true in vite.config.js).
-
-## Testing
-
-### Unit Tests (Vitest)
+## Commands
 
 ```bash
-npm test           # watch mode
-npm run test:run   # single run
+npm run dev       # localhost:5173; strict port
+npm run lint      # ESLint, Stylelint, and formatting
+npm run test:run  # unit and mounted tests
+npm run build     # production build
 ```
 
-### E2E Tests (Playwright)
+Use focused Vitest files while iterating, followed by the applicable full
+checks required by `AGENTS.md`.
 
-**IMPORTANT:** Read `e2e/README.md` before running e2e tests. It contains:
+Before browser work, read [e2e/README.md](./e2e/README.md) and
+[e2e/AGENTS.md](./e2e/AGENTS.md). The current Playwright suite can write to a
+remote Firebase project and fails closed unless the documented opt-in and
+environment-injected credentials are present. Never request, embed, or print
+those values.
 
-- Test account credentials (do NOT ask the user for them)
-- Helper functions API
-- Cleanup requirements (every test must delete its tournament)
+## Stable ownership anchors
 
-```bash
-npm run e2e          # headless
-npm run e2e:headed   # with browser
-npm run e2e:ui       # interactive UI
-```
-
-**When using Playwright MCP (`playwright-cli` skill):**
-
-- Base URL: `http://localhost:5173`
-- Test account: see `e2e/README.md` for credentials
-- Always use the `playwright-cli` skill, not raw bash commands
-
-## Linting
-
-```bash
-npm run lint       # check all
-npm run lint:fix   # fix all
-```
-
-## Project Structure
-
-- `src/` — Vue application source
-- `src/helpers.js` — Core logic (ranking, sorting, tournament algorithms)
-- `src/components/partials/Protocol.vue` — Tournament protocol generation
-- `src/views/Docs.vue` — Documentation page
-- `e2e/` — Playwright e2e tests
-- `docs/` — Internal developer documentation
+- `src/stores/main.js` — Pinia façade
+- `src/services/` — domain and integration boundaries
+- `src/components/ui/` — reusable UI primitives
+- `src/assets/css/variables.css` — shared design tokens
+- `docs/systems/README.md` — tournament-rule index

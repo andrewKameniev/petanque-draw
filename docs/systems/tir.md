@@ -107,7 +107,7 @@ tournament.tirParticipants = [{
   lane: 1
 }]
 tournament.tirPlayoff = {
-  size: 4,
+  size: 5, // qualified-player count; the bracket may contain automatic byes
   qualified: ["Player A", "Player B", ...],
   rounds: [{ matches: [Match, ...] }],
   thirdPlace: Match | null,
@@ -166,12 +166,13 @@ All scoring, ranking, and bracket logic lives in `src/services/tir.js`. Componen
 | `getScoreToucheCount(participant, scoresKey)`                               | Count touche results                       |
 | `getCombinedTotal(participant)`                                             | R1 + R2 combined                           |
 | `getThrowCount(participant, scoresKey)`                                     | Number of recorded throws                  |
-| `isParticipantComplete(participant, scoresKey, config)`                     | All ateliers filled?                       |
+| `isParticipantComplete(participant, scoresKey, totalThrows)`                | All ateliers filled?                       |
 | `getAtelierScore(participant, scoresKey, atelierIndex)`                     | One atelier total                          |
-| `isAtelierComplete(participant, scoresKey, atelierIndex, config)`           | All distances scored?                      |
+| `isAtelierComplete(participant, scoresKey, atelierIndex, distancesCount)`   | All distances scored?                      |
 | `toggleParticipantScore(participant, scoresKey, atelier, distance, result)` | Returns new participant with toggled score |
 | `fillMissingAtelierScores(participant, scoresKey, atelier, distances)`      | Fill unscored as manqué                    |
-| `generateSeededBracket(qualifiedNames, size)`                               | Standard seeded bracket                    |
+| `generateSeededBracket(size)`                                               | Seed positions for a power-of-two bracket  |
+| `buildPlayoffBracket(qualifiedNames, size)`                                 | Bracket with byes for any field of 2+      |
 | `getTirPlayoffDisplayRounds(playoff, labels)`                               | Display-ready round structure for public   |
 | `toggleTirMatchScore(match, player, atelier, distance, result)`             | Returns new match with toggled score       |
 | `selectTirMatchTieWinner(match, playerIndex)`                               | Returns match with explicit tie winner     |

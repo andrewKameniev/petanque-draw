@@ -1,100 +1,85 @@
-# Architecture
+# Application Architecture
 
-## Tech Stack
+This document owns the current high-level code map and dependency boundaries.
+For persistence details use [Data model](./data-model.md) and
+[Firebase](./firebase.md); for engineering rules use the
+[code-quality index](./code-quality/README.md).
 
-- **Framework**: Vue 3 (Options API)
-- **State**: Pinia
-- **Router**: Vue Router 5 (hash mode)
-- **Backend**: Firebase Realtime Database (no custom server)
-- **Auth**: Firebase Authentication (email/password)
-- **Notifications**: Firebase Cloud Messaging (FCM)
-- **CSS**: Bulma + custom styles + CSS variables for theming
-- **Build**: Vite 8
-- **i18n**: vue-i18n 11 (English, Ukrainian, French, Spanish)
-- **Icons**: lucide-vue-next
-- **Charts**: ApexCharts 5 (vue3-apexcharts)
-- **PDF**: html2pdf.js
-- **Linting**: ESLint 9 + Prettier + Stylelint
-- **CI/CD**: GitHub Actions (auto-deploy to Pages on push to develop)
+## Runtime stack
 
-## Project Structure
+- Vue 3 application with Vue Router and Pinia
+- Firebase Authentication, Realtime Database, and Cloud Messaging
+- Vite build, Vitest unit/mounted coverage, and Playwright browser coverage
+- Bulma plus shared semantic CSS variables and component-owned styles
+- vue-i18n locale modules for English, Ukrainian, French, and Spanish
 
-```
-src/
-├── main.js              # App entry, router + i18n setup
-├── App.vue              # Root (just router-view)
-├── stores/main.js       # Pinia store (tournaments state + Firebase sync)
-├── firebase.js          # Firebase init (auth, db, messaging)
-├── helpers.js           # Tournament logic (ranking, sorting, draw utils)
-├── helpers-stat.js      # Statistics calculation (French/Simple systems)
-├── i18n.js              # Shared vue-i18n instance
-├── locales/             # Translation files
-│   ├── en.js
-│   ├── ua.js
-│   ├── fr.js
-│   └── es.js
-├── services/
-│   ├── db.js            # Firebase CRUD services
-│   └── results.js       # Tournament result calculation
-├── views/
-│   ├── LoginUser.vue    # Auth page (login/register)
-│   ├── Public.vue       # Public tournament viewer (shared link)
-│   ├── Stats.vue        # Game statistics tracking
-│   └── Training.vue     # Training exercises
-├── components/
-│   ├── Draw.vue         # Main app shell (auth-gated)
-│   ├── Tournament.vue   # Active tournament management
-│   ├── Navbar.vue       # Top navigation
-│   ├── Menu.vue         # Side menu
-│   ├── Message.vue      # Toast notifications
-│   ├── Modal.vue        # Generic modal (default slot only)
-│   ├── partials/        # Tournament sub-components
-│   │   ├── Games.vue        # Draw algorithm + round management
-│   │   ├── Game.vue         # Single game score input
-│   │   ├── PlayOff.vue      # Knockout stage management
-│   │   ├── Bracket.vue      # Playoff bracket visualization
-│   │   ├── Cadrage.vue      # Cadrage round
-│   │   ├── Ranking.vue      # Standings table
-│   │   ├── Results.vue      # Round-by-round results
-│   │   ├── AddTeam.vue      # Team registration + portal import
-│   │   ├── TeamsList.vue    # Team list display
-│   │   ├── Preferences.vue  # Tournament settings modal
-│   │   └── ...
-│   ├── tir/             # TIR (precision shooting) module
-│   │   ├── TirModule.vue         # Admin: tabs + all views
-│   │   ├── TirPublicView.vue     # Public: read-only tournament view
-│   │   ├── TirPlayoffMatch.vue   # Shared: match scoring (readOnly prop)
-│   │   ├── TirParticipantView.vue # Per-participant scoring
-│   │   └── TirAtelierView.vue    # Per-atelier scoring (all participants)
-│   ├── stats/           # Statistics sub-components
-│   └── training/        # Training sub-components
-└── assets/
-    ├── css/             # Bulma + custom CSS + variables.css
-    └── img/             # Backgrounds, logos
-```
+Exact versions and executable commands are owned by `package.json`.
 
-## Data Flow
+## Ownership map
 
-1. User authenticates via Firebase Auth
-2. On login, Pinia store dispatches `getTournaments` which reads from Firebase RTDB at `/{uid}/tournaments/`
-3. Store actions that modify tournament data call `syncToFirebase()` which writes the current tournament back to Firebase
-4. Public viewers subscribe to tournament data using Firebase `onValue` for real-time updates
+| Area                     | Owner                                     | Responsibility                                                           |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------ |
+| Route/page state         | `src/views/`                              | Route decoding, loading/error state, page composition                    |
+| Feature UI               | `src/components/`                         | Interaction and feature-level orchestration                              |
+| UI primitives            | `src/components/ui/`                      | Reusable markup, accessibility, and generic behavior                     |
+| Domain/integration logic | `src/services/`                           | Pure rules, adapters, subscriptions, persistence runtimes, external APIs |
+| Application state        | `src/stores/main.js`                      | Reactive façade and delegation to focused services                       |
+| Tournament compatibility | `src/services/tournament-record.js`       | Envelope/legacy normalization and storage targets                        |
+| Public live data         | `src/services/live-tournament.js`         | Public/TV loading profiles and subscription lifecycle                    |
+| Presentation selectors   | `src/services/tournament-presentation.js` | Shared phase, status, round, and metadata selectors                      |
+| Design tokens            | `src/assets/css/variables.css`            | Primitive and semantic colors shared by feature CSS                      |
+| Localization             | `src/locales/`, `src/i18n.js`             | User-facing strings and lazy locale modules                              |
 
-## Component Reuse Pattern
+Views and components may orchestrate services and store actions. Reusable
+ranking, scoring, normalization, matching, and persistence logic belongs in a
+service rather than a render path. Firebase access should pass through a
+service/runtime boundary, not be duplicated in components.
 
-Shared components accept a `readOnly` prop to disable interaction while reusing the same rendering logic. Example: `TirPlayoffMatch` is used in both admin (scoring) and public (viewing) contexts.
+## Data flows
 
-When the same UI is needed on admin and public pages, extract it into a shared component rather than reimplementing inline.
+### Authenticated editing
 
-## Routing
+1. `src/main.js` resolves Firebase authentication.
+2. `useMainStore` loads owned/shared tournament references.
+3. `tournament-record.js` normalizes either persisted record shape.
+4. Components invoke façade actions.
+5. `tournament-sync.js` writes the smallest owned Firebase paths and manages
+   realtime subscriptions, echo suppression, debounce, and cleanup.
 
-| Path          | Component | Purpose                                  |
-| ------------- | --------- | ---------------------------------------- |
-| `/`           | Draw      | Main tournament management (auth-gated)  |
-| `/tournament` | Public    | Public tournament viewer (query: `ref=`) |
-| `/show`       | redirect  | Legacy redirect → `/tournament`          |
-| `/login-user` | LoginUser | Authentication                           |
-| `/doc`        | Help      | Documentation / help                     |
-| `/stats`      | Stats     | Game statistics                          |
-| `/training`   | Training  | Training exercises                       |
-| `/archived`   | Archived  | Archived tournaments (auth-gated)        |
+### Public and TV viewing
+
+1. `tournament-ref.js` resolves a public reference or slug.
+2. `live-tournament.js` loads and normalizes the record.
+3. A named public/TV profile subscribes only to required fields.
+4. Shared presentation selectors feed page components and UI primitives.
+
+### Archives and collaboration
+
+`archive-collaboration.js` owns user-map loading, archive status, collaborator
+operations, shared access watching, rollback, and lifecycle cleanup. Archive
+index and backup records are handled by `archive-index.js`.
+
+## Routes
+
+| Path                     | Surface                                |
+| ------------------------ | -------------------------------------- |
+| `/`                      | Authenticated tournament management    |
+| `/tournament`            | Public tournament by encoded reference |
+| `/public/:slug`          | Public tournament by custom slug       |
+| `/tv`                    | TV dashboard                           |
+| `/stats`, `/stats/share` | Private and public statistics          |
+| `/training`              | Training                               |
+| `/archived`              | Archived tournaments                   |
+| `/routes`                | Custom route management                |
+| `/doc`, `/docs`          | Help/documentation surfaces            |
+| `/show`                  | Legacy redirect to `/tournament`       |
+| `/login-user`            | Legacy redirect to `/`                 |
+
+`src/main.js` is authoritative for route guards, lazy locale loading, and new
+routes.
+
+## Update triggers
+
+Update this document when a top-level owner, dependency direction, runtime data
+flow, or route changes. Do not add inventories of every action or component;
+link to the focused owner document instead.

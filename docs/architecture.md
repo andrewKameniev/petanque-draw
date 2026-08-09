@@ -39,8 +39,10 @@ service/runtime boundary, not be duplicated in components.
 
 ### Authenticated editing
 
-1. `src/main.js` resolves Firebase authentication.
-2. `useMainStore` loads owned/shared tournament references.
+1. `src/main.js` mounts the application immediately, while `/` and routes with
+   `meta.requiresAuth` wait for Firebase authentication in the navigation guard.
+2. That private-route guard asks `useMainStore` to load owned/shared tournament
+   references using the destination route's tournament query.
 3. `tournament-record.js` normalizes either persisted record shape.
 4. Components invoke façade actions.
 5. `tournament-sync.js` writes the smallest owned Firebase paths and manages
@@ -48,12 +50,14 @@ service/runtime boundary, not be duplicated in components.
 
 ### Public and TV viewing
 
-1. `tournament-ref.js` resolves a public reference or slug.
-2. `live-tournament.js` bootstraps and normalizes the record with a temporary
+1. Direct public, TV, public-statistics, and custom-slug navigation mounts
+   without waiting for authentication or loading private account data.
+2. `tournament-ref.js` resolves a public reference or slug.
+3. `live-tournament.js` bootstraps and normalizes the record with a temporary
    parent listener.
-3. A named public/TV profile attaches its required field listeners before the
+4. A named public/TV profile attaches its required field listeners before the
    parent listener is removed, preserving Firebase's local-cache handoff.
-4. Shared presentation selectors feed page components and UI primitives.
+5. Shared presentation selectors feed page components and UI primitives.
 
 ### Archives and collaboration
 

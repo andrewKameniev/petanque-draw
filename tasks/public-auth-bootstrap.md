@@ -41,11 +41,11 @@ private account data.
 
 ## Acceptance criteria
 
-- [ ] A public initial route never calls `getTournaments()` because the router
+- [x] A public initial route never calls `getTournaments()` because the router
       is still at its start location.
-- [ ] Public rendering is not blocked on `authStateReady()`.
-- [ ] Signed-in public loads do not rewrite `emails/{email}`.
-- [ ] Private route guards, current-tournament selection, logout, and user
+- [x] Public rendering is not blocked on `authStateReady()`.
+- [x] Signed-in public loads do not rewrite `emails/{email}`.
+- [x] Private route guards, current-tournament selection, logout, and user
       switching retain their existing behavior.
 
 ## Test plan
@@ -62,7 +62,17 @@ private account data.
 
 ## Completion evidence
 
-- Changed behavior:
-- Exact commands and outcomes:
-- Deferred follow-up with reason:
-- Documentation synchronized:
+- Changed behavior: the app mounts before auth resolution; only `/` and
+  `meta.requiresAuth` navigation waits for auth and loads private tournaments.
+  Passive auth restoration applies user state without rewriting the email
+  index, while explicit successful sign-up/sign-in keeps that index current.
+- Exact commands and outcomes: the focused startup/auth/routing/archive command
+  passed 59 tests in 5 files; full `npm run test:run` passed 1,237 tests in 73
+  files; `npm run lint`, `npm run build`, and `npm run docs:check` passed.
+- Deferred follow-up with reason: E2E was not added because deterministic
+  router/auth integration tests prove both initial-navigation orderings without
+  remote Firebase data. Read-only side effects, route code splitting,
+  phase-aware loading, and public projections remain isolated follow-up tasks.
+- Documentation synchronized: `docs/architecture.md`, `docs/firebase.md`, and
+  `docs/main-store-architecture.md` describe startup gating and email-index
+  ownership.

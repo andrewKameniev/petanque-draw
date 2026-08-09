@@ -29,7 +29,7 @@ instead of copying it into documentation.
 | `src/services/tournament-sync.js`       | Granular writes, debounce, subscriptions, merge policy, echo suppression, cleanup         |
 | `src/services/archive-collaboration.js` | Tournament loading, user maps, archives, collaborators, access watching, rollback         |
 | `src/services/team-replacement.js`      | Validated team replacement across competition structures                                  |
-| `src/stores/main.js`                    | Reactive assignment, editing orchestration, notifications, delegation                     |
+| `src/stores/main.js`                    | Reactive identity/state assignment, editing orchestration, notifications, delegation      |
 
 Runtime services are created per store instance. Mutable timers, listeners, and
 echo state must not become module-global singletons.
@@ -39,6 +39,9 @@ echo state must not become module-global singletons.
 - Changing the active tournament disposes old subscriptions, access watchers,
   pending debounces, and echo markers before selecting the next record.
 - Logout or user switch performs the same cleanup before clearing state.
+- `loginUser` applies auth identity and that cleanup only. Explicit sign-up and
+  sign-in flows separately call `syncUserEmailIndex`; passive auth restoration
+  has no email-index persistence side effect.
 - Component unmount may call cleanup repeatedly; disposal remains idempotent.
 - A delayed callback captures owner, tournament, user, and generation so it
   cannot write into a later selection.

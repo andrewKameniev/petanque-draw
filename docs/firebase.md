@@ -127,14 +127,17 @@ The separately approved production sequence is:
 2. Deploy the dual writer and projection-first reader, then observe projection
    readiness, fallback reasons, errors, revisions, and read payloads.
 3. Run an explicitly authorized, idempotent full-projection backfill for records
-   that did not receive a complete writer publication.
+   that did not receive a complete writer publication, following the
+   [projection backfill runbook](./public-tournament-backfill.md).
 4. After the measured compatibility window, separately approve and deploy the
    rule change that revokes anonymous reads of `{uid}/tournaments/{id}`.
 
 Rollback keeps authoritative records intact: restore or retain canonical reads
 and let the current reader use its compatibility path. Do not delete projections
-or rewrite canonical records as part of rollback. This implementation does not
-deploy rules, run a backfill, revoke canonical reads, or change production data.
+or rewrite canonical records as part of rollback. The backfill implementation
+only prepares a local command; merging or deploying the application does not run
+it. Running that command against production, revoking canonical reads, and other
+production-data changes each require separate explicit authorization.
 
 ## Archives
 

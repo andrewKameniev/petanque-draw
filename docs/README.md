@@ -15,6 +15,7 @@ the canonical document in the same change.
 | Pinia façade and runtime lifecycle                | [Main store architecture](./main-store-architecture.md) | Store API ownership or cleanup behavior changes                      |
 | Persisted tournament shapes                       | [Data model](./data-model.md)                           | Stored fields, compatibility, or normalization changes               |
 | Firebase paths, access, and synchronization       | [Firebase](./firebase.md)                               | Paths, rules, subscriptions, archives, or remote-write policy change |
+| Public projection backfill operations             | [Projection backfill](./public-tournament-backfill.md)  | Dry-run, approval, batching, reports, or recovery behavior changes   |
 | Tournament rules and algorithms                   | [System index](./systems/README.md)                     | Pairing, ranking, phase, or setting behavior changes                 |
 | Statistics                                        | [Statistics](./statistics.md)                           | Statistics workflow or storage changes                               |
 | Training                                          | [Training](./training.md)                               | Training workflow or storage changes                                 |

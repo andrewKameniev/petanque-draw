@@ -400,10 +400,17 @@ export const useMainStore = defineStore('main', {
         this.isAdmin = false;
       }
       this.user = value;
-      if (value && value.email && value.uid) {
+    },
+    async syncUserEmailIndex(value) {
+      if (!value || !value.email || !value.uid) return false;
+      try {
         const db = getDatabase();
         const emailKey = value.email.replace(/\./g, ',');
-        set(ref(db, `emails/${emailKey}`), value.uid);
+        await set(ref(db, `emails/${emailKey}`), value.uid);
+        return true;
+      } catch (error) {
+        console.error('Error synchronizing user email index:', error);
+        return false;
       }
     },
     setActiveTournament(index) {

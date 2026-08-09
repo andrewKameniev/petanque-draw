@@ -31,7 +31,8 @@ must never be tracked.
 | `{uid}/arbiterRegistry`, `{uid}/arbiterPresets` | Protocol arbiter data                                | arbiter services                                |
 | `customRoutes/{slug}`                           | Public slug routing                                  | `customRoutesService`                           |
 | `tokens/{uid}/{id}`                             | Notification tokens for a tournament                 | tournament/notification flow                    |
-| `emails`, `tournamentOrgs`                      | Account lookup and organizer authorization metadata  | auth/collaboration flows                        |
+| `emails/{email-with-dots-as-commas}`            | Account UID lookup for collaborator invitations      | `syncUserEmailIndex`, `collaboratorService`     |
+| `tournamentOrgs/{email-with-dots-as-commas}`    | Organizer authorization metadata                     | `tournamentOrgsService`                         |
 
 `src/services/db.js` owns ordinary path wrappers. `database.rules.json` is the
 actual authorization boundary; UI visibility and Pinia roles are not security
@@ -62,6 +63,12 @@ Specialized competition listeners treat `null` snapshots for `games`,
 `cadrage`, `playOffBracket`, `tirPlayoff`, and `teamPlayoff` as explicit remote
 deletions while ignoring `undefined`; same-path local write echoes remain
 suppressed.
+
+The main-store `loginUser` action applies reactive identity and user lifecycle
+cleanup without writing Firebase. Explicit successful sign-up and sign-in flows
+call `syncUserEmailIndex` to refresh the `emails/` lookup used by
+`collaboratorService.findUserByEmail`; passive auth restoration, including a
+signed-in public visit, never rewrites that index.
 
 When a user, tournament, or component lifecycle changes, listeners and pending
 writes must be disposed before the next context becomes active. Permission

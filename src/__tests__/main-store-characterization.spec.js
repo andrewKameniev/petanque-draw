@@ -80,7 +80,7 @@ const ACTIONS = `
   shuffleLanesStore startRound startRoundTimer subscribeTournament swapLanesStore syncBracketMatch syncCadrageFull
   syncCadrageMatch syncDrawStart syncEliminationGames syncGameMatch syncGames syncGamesAndTeams syncHistoricalResultEdit syncPathNull
   syncPoulesRound syncRedraw syncStreamPresets syncTeamPlayoff syncTeamPlayoffMatch syncTeams syncTirParticipants
-  syncTirPlayoff syncTirPlayoffMatch syncTirStart syncTirState syncTournamentMessage syncTournamentStarted
+  syncTirPlayoff syncTirPlayoffMatch syncTirStart syncTirState syncTournamentMessage syncTournamentStarted syncUserEmailIndex
   toggleWithdrawn unarchiveTournament unsubscribeTournament updateGameScore
 `
   .trim()
@@ -396,6 +396,62 @@ describe('main-store façade baseline', () => {
     expect(store.tournaments).toEqual({});
     expect(store.userTournamentMap).toEqual({});
     expect(store.savedTournaments).toEqual({});
+    expect(store.currentTournamentIndex).toBeNull();
+  });
+
+  it('applies passive signed-in auth state without rewriting the email index', () => {
+    const store = createStore();
+    const user = { uid: 'user-1', email: 'signed.in@example.com' };
+    vi.clearAllMocks();
+
+    store.loginUser(user);
+
+    expect(store.user).toEqual(user);
+    expect(mockRef).not.toHaveBeenCalled();
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  it('synchronizes the email index only through the explicit account lifecycle action', async () => {
+    const store = createStore();
+    const user = { uid: 'user-1', email: 'signed.in@example.com' };
+    vi.clearAllMocks();
+
+    const result = await store.syncUserEmailIndex(user);
+
+    expect(result).toBe(true);
+    expect(mockRef).toHaveBeenCalledWith('database', 'emails/signed,in@example,com');
+    expect(mockSet).toHaveBeenCalledWith('emails/signed,in@example,com', 'user-1');
+  });
+
+  it('keeps an email-index failure from disrupting explicit authentication', async () => {
+    const store = createStore();
+    const error = new Error('email index unavailable');
+    mockSet.mockRejectedValueOnce(error);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await store.syncUserEmailIndex({ uid: 'user-1', email: 'signed.in@example.com' });
+
+    expect(result).toBe(false);
+    expect(consoleError).toHaveBeenCalledWith('Error synchronizing user email index:', error);
+    consoleError.mockRestore();
+  });
+
+  it('releases private state before applying a different signed-in user', () => {
+    const store = createStore();
+    store.userTournamentMap = { 'tournament-1': { role: 'owner' } };
+    store.savedTournaments = { archived: { id: 'archived' } };
+    store.savedTournamentIds = ['archived'];
+    const unsubscribe = vi.spyOn(store, 'unsubscribeTournament');
+    const nextUser = { uid: 'user-2', email: 'next@example.com' };
+
+    store.loginUser(nextUser);
+
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(store.user).toEqual(nextUser);
+    expect(store.tournaments).toEqual({});
+    expect(store.userTournamentMap).toEqual({});
+    expect(store.savedTournaments).toEqual({});
+    expect(store.savedTournamentIds).toEqual([]);
     expect(store.currentTournamentIndex).toBeNull();
   });
 });

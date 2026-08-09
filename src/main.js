@@ -106,9 +106,8 @@ const router = createRouter({
 
 app.use(pinia).use(router).use(i18n);
 
-const publicRoutes = ['/tournament', '/tv', '/stats/share', '/public'];
-function isPublicRoute(path) {
-  return publicRoutes.some((route) => path.startsWith(route));
+function needsPrivateBootstrap(route) {
+  return route.path === '/' || route.meta?.requiresAuth === true;
 }
 
 let authInitialResolved = false;
@@ -117,21 +116,19 @@ function getRouteQueryT() {
   return router.currentRoute.value?.query?.t || null;
 }
 
-const authReadyPromise = auth.authStateReady().then(async () => {
+const authReadyPromise = auth.authStateReady().then(() => {
   const store = useMainStore();
   const user = auth.currentUser;
   store.loginUser(user || false);
-  if (user && !isPublicRoute(router.currentRoute.value.path)) {
-    await store.getTournaments({ routeQueryT: getRouteQueryT() });
-  }
   authInitialResolved = true;
 });
 
 onAuthStateChanged(auth, async (user) => {
   if (!authInitialResolved) return;
   const store = useMainStore();
+  const previousUid = store.user?.uid;
   store.loginUser(user || false);
-  if (user && !isPublicRoute(router.currentRoute.value.path)) {
+  if (user && previousUid !== user.uid && needsPrivateBootstrap(router.currentRoute.value)) {
     await store.getTournaments({ routeQueryT: getRouteQueryT() });
   }
 });
@@ -145,22 +142,28 @@ const routeLocaleMap = {
 };
 
 router.beforeEach(async (to) => {
-  if (to.meta.requiresAuth || to.path === '/') {
+  const privateRoute = needsPrivateBootstrap(to);
+  if (privateRoute) {
     await authReadyPromise;
     const store = useMainStore();
-    if (!store.user) {
-      if (to.meta.requiresAuth) return '/';
-    } else if (!Object.keys(store.tournaments).length) {
+    if (!store.user && to.meta.requiresAuth) return '/';
+  }
+  const modules = routeLocaleMap[to.name];
+  if (modules) await Promise.all(modules.map((m) => loadLocaleModule(m)));
+  if (privateRoute) {
+    const store = useMainStore();
+    while (store.user && !Object.keys(store.tournaments).length) {
+      const loadingUid = store.user.uid;
       await store.getTournaments({ routeQueryT: to.query?.t || null });
+      if (store.user?.uid === loadingUid) break;
     }
+    if (!store.user && to.meta.requiresAuth) return '/';
     if (to.path === '/' && store.currentTournamentIndex) {
       if (String(to.query.t) !== String(store.currentTournamentIndex)) {
         return { path: '/', query: { t: store.currentTournamentIndex } };
       }
     }
   }
-  const modules = routeLocaleMap[to.name];
-  if (modules) await Promise.all(modules.map((m) => loadLocaleModule(m)));
 });
 
 const zoomableRoutes = ['Statistics', 'PublicStats', 'Training'];
@@ -173,4 +176,4 @@ router.afterEach((to) => {
   }
 });
 
-authReadyPromise.then(() => app.mount('#app'));
+app.mount('#app');

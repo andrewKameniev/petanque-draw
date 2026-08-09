@@ -75,7 +75,7 @@ export default {
     ...mapState(useMainStore, ['message']),
   },
   methods: {
-    ...mapActions(useMainStore, ['loginUser', 'showMessage']),
+    ...mapActions(useMainStore, ['loginUser', 'showMessage', 'syncUserEmailIndex']),
     async resetPassword() {
       try {
         this.resetErrors();
@@ -96,6 +96,7 @@ export default {
         createUserWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
           .then((data) => {
             this.loginUser(data.user);
+            this.syncUserEmailIndex(data.user);
             this.$router.push('/');
           })
           .catch((error) => {
@@ -106,6 +107,7 @@ export default {
         signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
           .then((data) => {
             this.loginUser(data.user);
+            this.syncUserEmailIndex(data.user);
             this.$router.push('/');
           })
           .catch((error) => {

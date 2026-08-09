@@ -211,6 +211,7 @@ export default {
       'setActiveTournament',
       'loadSharedTournament',
       'loginUser',
+      'syncUserEmailIndex',
       'getTournaments',
       'showMessage',
       'addTournament',
@@ -243,6 +244,7 @@ export default {
         createUserWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
           .then((data) => {
             this.loginUser(data.user);
+            this.syncUserEmailIndex(data.user);
             this.$store.dispatch('getTournaments');
           })
           .catch((error) => {
@@ -252,6 +254,7 @@ export default {
         signInWithEmailAndPassword(auth, this.email.trim(), this.password.trim())
           .then((data) => {
             this.loginUser(data.user);
+            this.syncUserEmailIndex(data.user);
             this.$store.dispatch('getTournaments');
           })
           .catch((error) => {

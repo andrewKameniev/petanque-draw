@@ -371,7 +371,8 @@ export default {
     drawMethodBalancedBest2: 'Evitar situaciones de "grupo de la muerte"',
     drawMethodBalancedBest3: 'Hacer que los grupos se sientan justos por fuerza total',
     poulesInfo: 'grupos × 4 equipos → {count} equipos de play-off',
-    poulesHint: 'Las poules funcionan mejor cuando el número total de equipos es divisible por 4',
+    poulesHint:
+      'Las poules requieren al menos 8 equipos y un total divisible entre 4. Añade o elimina equipos antes del sorteo.',
     straightPlayoff: 'Play-off directo (eliminación)',
     straightPlayoffHint: 'Todos los equipos van directamente a un cuadro de eliminación',
     straightPlayoffTechWins: 'Los equipos mejor clasificados reciben exenciones',

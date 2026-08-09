@@ -325,7 +325,7 @@ test.describe('TIR Tournament', () => {
     await completePlayoffMatchesViaJS(page, 'medals');
     await expect(page.locator('.tir-playoff__advance-btn')).toBeVisible();
     await page.locator('.tir-playoff__advance-btn').click();
-    await expect(page.locator('#tir-admin-tab-protocol')).toBeVisible();
+    await expect(page.locator('#tir-admin-tab-protocol')).toHaveCount(0);
     await expect
       .poll(() =>
         page.evaluate(() => {

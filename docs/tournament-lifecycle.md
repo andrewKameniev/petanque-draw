@@ -134,9 +134,9 @@ Hard stop. No playoff. Tournament ends with Swiss ranking as final result.
 - Archived tournaments visible in mobile menu and /archived route
 - Original active tournament can be deleted after archiving
 
-### Protocol (admin only)
+### Protocol (archive only)
 
-If tournament was imported from FPU portal, generates an official protocol document.
+After the finished tournament is archived, its Archive view provides the official protocol preview and export tools. The active finished-tournament view does not expose a separate protocol action.
 
 ---
 

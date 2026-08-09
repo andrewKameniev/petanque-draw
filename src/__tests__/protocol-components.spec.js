@@ -449,10 +449,26 @@ describe('Protocol component behavior', () => {
       { title: 'C', players: [{}, {}] },
     ];
 
-    expect(Protocol.computed.participantChunks.call({ participantsList: teams, maxRowsPerPage: 38 })).toEqual([
-      [teams[0], teams[1]],
-      [teams[2]],
-    ]);
+    expect(
+      Protocol.computed.participantChunks.call({
+        participantsList: teams,
+        firstParticipantPageRows: 38,
+        maxRowsPerPage: 38,
+      }),
+    ).toEqual([[teams[0], teams[1]], [teams[2]]]);
+  });
+
+  it('reserves first-page space for the title and tournament details', () => {
+    const teams = Array.from({ length: 11 }, (_, index) => ({
+      title: `Team ${index + 1}`,
+      players: [{}, {}],
+    }));
+
+    expect(
+      Protocol.computed.participantChunks
+        .call({ participantsList: teams, firstParticipantPageRows: 30, maxRowsPerPage: 38 })
+        .map((chunk) => chunk.length),
+    ).toEqual([10, 1]);
   });
 
   it('calculates participant chunk offsets', () => {
@@ -653,9 +669,9 @@ describe('Protocol component behavior', () => {
     expect(saveProtocolToStorage).toHaveBeenCalledOnce();
   });
 
-  it('updates the rendered protocol title from the selected archived tournament', () => {
+  it('keeps the rendered protocol title on the same line as the selected archived tournament', () => {
     const originalDocument = globalThis.document;
-    const title = { innerHTML: '' };
+    const title = { innerHTML: '', textContent: '' };
     globalThis.document = {
       getElementById: () => ({ querySelector: (selector) => (selector === 'h2' ? title : null) }),
     };
@@ -666,7 +682,8 @@ describe('Protocol component behavior', () => {
       globalThis.document = originalDocument;
     }
 
-    expect(title.innerHTML).toContain('Selected archive');
+    expect(title.textContent).toBe('Підсумковий протокол Selected archive');
+    expect(title.innerHTML).not.toContain('<br>');
   });
 
   it('uses ScrollButtons component for page scrolling', () => {

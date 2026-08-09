@@ -104,6 +104,17 @@ describe('tir score editor ownership', () => {
   });
 });
 
+describe('TirModule navigation', () => {
+  it('keeps finished-tournament protocol access in the archive', () => {
+    const tabs = TirModule.computed.navigationTabs.call({
+      tournament: { tournamentIsFinished: true },
+      $t: (key) => key,
+    });
+
+    expect(tabs.map((tab) => tab.id)).toEqual(['participants', 'scoring', 'table']);
+  });
+});
+
 describe('TirModule synchronization ownership', () => {
   it('applies participant copies before invoking the existing granular sync action', () => {
     const participant = { id: 'A', name: 'Before', scores: {} };

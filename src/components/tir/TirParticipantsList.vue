@@ -22,7 +22,14 @@
         @click="selectParticipant(participant, index)"
       >
         <span class="tir-plist__rank">{{ index + 1 }}</span>
-        <img v-if="getAvatar(participant)" :src="getAvatar(participant)" class="tir-plist__avatar" alt="" />
+        <img
+          v-if="getAvatar(participant)"
+          :src="getAvatar(participant)"
+          class="tir-plist__avatar"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
         <span v-else class="tir-plist__avatar tir-plist__avatar--default">
           <User :size="20" />
         </span>
@@ -70,8 +77,8 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import { CheckCircle, AlertCircle, Circle, User } from 'lucide-vue-next';
-import TirParticipantView from './TirParticipantView.vue';
 import TirRoundTabs from '@/components/ui/TirRoundTabs.vue';
 import {
   SCORING,
@@ -87,6 +94,8 @@ import {
   getMatchPlayerThrows,
   getPlayoffMatchAtelierPercent,
 } from '@/services/tir';
+
+const TirParticipantView = defineAsyncComponent(() => import('./TirParticipantView.vue'));
 
 export default {
   name: 'TirParticipantsList',

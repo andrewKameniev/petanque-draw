@@ -13,7 +13,14 @@
         @click="toggleClubFilter(club.id)"
         :title="club.name"
       >
-        <img v-if="club.logo" :src="club.logo" class="club-filter__logo" :alt="club.name" />
+        <img
+          v-if="club.logo"
+          :src="club.logo"
+          class="club-filter__logo"
+          :alt="club.name"
+          loading="lazy"
+          decoding="async"
+        />
         <span v-else class="club-filter__fallback">{{ club.name.charAt(0) }}</span>
         <span class="club-filter__count">{{ club.count }}</span>
       </button>
@@ -53,9 +60,18 @@
                     :src="club.logo"
                     class="team-card__club-logo"
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
-                <img v-else-if="getClubLogo(team)" :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
+                <img
+                  v-else-if="getClubLogo(team)"
+                  :src="getClubLogo(team)"
+                  class="team-card__club-logo"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div class="team-card__title-block">
                   <span class="team-card__name">{{ team.title }}</span>
                   <a
@@ -169,7 +185,14 @@
                 class="team-card__club-link"
                 @click.stop
               >
-                <img v-if="club.logo" :src="club.logo" class="team-card__club-logo" alt="" />
+                <img
+                  v-if="club.logo"
+                  :src="club.logo"
+                  class="team-card__club-logo"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
               </a>
             </div>
             <a
@@ -179,7 +202,7 @@
               class="team-card__club-link"
               @click.stop
             >
-              <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" />
+              <img :src="getClubLogo(team)" class="team-card__club-logo" alt="" loading="lazy" decoding="async" />
             </a>
             <div class="team-card__title-block">
               <span class="team-card__name">{{ team.title }}</span>
@@ -300,6 +323,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
@@ -307,7 +331,8 @@ import { rankRoundRobinGroups, rankByWinsAndDiff, computeGroupStats } from '@/se
 import { getTeamPlayoffPlaces, getBracketPlayoffPlaces } from '@/services/tir';
 import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
-import ParticipantGames from '@/components/partials/ParticipantGames.vue';
+
+const ParticipantGames = defineAsyncComponent(() => import('@/components/partials/ParticipantGames.vue'));
 
 export default {
   name: 'TeamsList',

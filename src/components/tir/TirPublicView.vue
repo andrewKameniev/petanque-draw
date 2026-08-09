@@ -54,6 +54,8 @@
                     :src="getParticipantAvatar(row.name)"
                     class="tir-table__avatar"
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                   />
                   <span>{{ row.name }}</span>
                 </td>
@@ -86,6 +88,8 @@
                     :src="getParticipantAvatar(participant.name)"
                     class="tir-table__avatar"
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                   />
                   <span>{{ participant.name }}</span>
                 </td>
@@ -244,10 +248,9 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import { Users, TableProperties, Trophy, ChevronRight, FileText } from 'lucide-vue-next';
-import TirPlayoffComparison from './TirPlayoffComparison.vue';
 import TirParticipantsList from './TirParticipantsList.vue';
-import TirProtocol from './TirProtocol.vue';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
 
 import {
@@ -266,6 +269,9 @@ import {
   getR2QualifiersWithTies,
   getTirPlayoffDisplayRounds,
 } from '@/services/tir';
+
+const TirPlayoffComparison = defineAsyncComponent(() => import('./TirPlayoffComparison.vue'));
+const TirProtocol = defineAsyncComponent(() => import('./TirProtocol.vue'));
 
 export default {
   name: 'TirPublicView',

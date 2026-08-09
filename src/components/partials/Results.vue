@@ -469,6 +469,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames } from '@/helpers';
@@ -478,10 +479,11 @@ import {
   sortGamesByGroup,
 } from '@/services/results';
 import { saveResultsForRound } from '@/services/draw';
-import Bracket from '@/components/partials/Bracket';
-import EditResultModal from '@/components/partials/EditResultModal.vue';
 import Game from '@/components/partials/Game.vue';
 import { GitFork, List, Pencil } from 'lucide-vue-next';
+
+const Bracket = defineAsyncComponent(() => import('@/components/partials/Bracket.vue'));
+const EditResultModal = defineAsyncComponent(() => import('@/components/partials/EditResultModal.vue'));
 
 export default {
   name: 'Results',

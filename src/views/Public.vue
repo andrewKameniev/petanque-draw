@@ -15,10 +15,10 @@
     </div>
     <div v-if="colorSchema" class="public-sponsors">
       <div class="public-sponsors__marquee">
-        <img src="../assets/img/tv-sponsors.png" alt="" class="public-sponsors__img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="public-sponsors__img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="public-sponsors__img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="public-sponsors__img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="public-sponsors__img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="public-sponsors__img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="public-sponsors__img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="public-sponsors__img" />
       </div>
     </div>
     <div v-if="tournament" class="container">
@@ -90,7 +90,14 @@
         <div class="winner-card__team-name">{{ winnerTeam.title }}</div>
         <div v-if="winnerTeam.players && winnerTeam.players.length" class="winner-card__players">
           <div v-for="(player, pIdx) in winnerTeam.players" :key="pIdx" class="winner-card__player">
-            <img v-if="player.avatar_url" :src="player.avatar_url" class="winner-card__avatar" alt="" />
+            <img
+              v-if="player.avatar_url"
+              :src="player.avatar_url"
+              class="winner-card__avatar"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
             <div v-else class="winner-card__avatar winner-card__avatar--placeholder">
               <Users :size="16" />
             </div>
@@ -110,7 +117,14 @@
           <div class="podium-runner__team-name">{{ runnerUpTeams[0].title }}</div>
           <div v-if="runnerUpTeams[0].players && runnerUpTeams[0].players.length" class="podium-runner__players">
             <div v-for="(p, i) in runnerUpTeams[0].players" :key="i" class="podium-runner__player">
-              <img v-if="p.avatar_url" :src="p.avatar_url" class="podium-runner__avatar" alt="" />
+              <img
+                v-if="p.avatar_url"
+                :src="p.avatar_url"
+                class="podium-runner__avatar"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
               <div v-else class="podium-runner__avatar podium-runner__avatar--placeholder">
                 <Users :size="14" />
               </div>
@@ -129,7 +143,14 @@
           <div class="podium-runner__team-name">{{ runnerUpTeams[1].title }}</div>
           <div v-if="runnerUpTeams[1].players && runnerUpTeams[1].players.length" class="podium-runner__players">
             <div v-for="(p, i) in runnerUpTeams[1].players" :key="i" class="podium-runner__player">
-              <img v-if="p.avatar_url" :src="p.avatar_url" class="podium-runner__avatar" alt="" />
+              <img
+                v-if="p.avatar_url"
+                :src="p.avatar_url"
+                class="podium-runner__avatar"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
               <div v-else class="podium-runner__avatar podium-runner__avatar--placeholder">
                 <Users :size="14" />
               </div>
@@ -292,9 +313,7 @@
 </template>
 
 <script>
-import Ranking from '@/components/partials/Ranking';
-import Results from '@/components/partials/Results';
-import TeamsList from '@/components/partials/TeamsList';
+import { defineAsyncComponent } from 'vue';
 import { getTeamsRanking, getTournamentRanking, pluralizeRounds, tournamentNames } from '@/helpers';
 import { getGameLaneNumber } from '@/services/lanes';
 import {
@@ -311,16 +330,11 @@ import {
   isTournamentStarted,
   splitTournamentMessage,
 } from '@/services/tournament-presentation';
-import PlayOff from '@/components/partials/PlayOff.vue';
-import DoubleElimination from '@/components/partials/DoubleElimination.vue';
-import Bracket from '@/components/partials/Bracket.vue';
-import TeamPlayoff from '@/components/partials/TeamPlayoff.vue';
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
 import Footer from '@/components/partials/Footer.vue';
 import { GitFork, X } from 'lucide-vue-next';
 import TeamSearch from '@/components/partials/TeamSearch.vue';
-import TirPublicView from '@/components/tir/TirPublicView.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
 import PublicGameCard from '@/components/partials/PublicGameCard.vue';
@@ -331,6 +345,16 @@ import { resolveTournamentSource } from '@/services/tournament-ref';
 import PageLoader from '@/components/ui/PageLoader.vue';
 import PublicPageShell from '@/components/ui/PublicPageShell.vue';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
+
+const Ranking = defineAsyncComponent(() => import('@/components/partials/Ranking.vue'));
+const Results = defineAsyncComponent(() => import('@/components/partials/Results.vue'));
+const TeamsList = defineAsyncComponent(() => import('@/components/partials/TeamsList.vue'));
+const PlayOff = defineAsyncComponent(() => import('@/components/partials/PlayOff.vue'));
+const DoubleElimination = defineAsyncComponent(() => import('@/components/partials/DoubleElimination.vue'));
+const Bracket = defineAsyncComponent(() => import('@/components/partials/Bracket.vue'));
+const TeamPlayoff = defineAsyncComponent(() => import('@/components/partials/TeamPlayoff.vue'));
+const TirPublicView = defineAsyncComponent(() => import('@/components/tir/TirPublicView.vue'));
+
 export default {
   name: 'Public',
   components: {

@@ -121,14 +121,20 @@ describe('main-store façade baseline', () => {
     expect(actions.sort()).toEqual(ACTIONS);
   });
 
-  it('writes a plain payload to the exact owner path', async () => {
+  it('writes a plain canonical payload and sanitized projection patch atomically', async () => {
     const store = createStore({ _ownerUid: 'owner-1' });
     const payload = { nested: { value: 2 } };
 
     await store._syncPath('preferences', payload);
 
-    expect(mockSet).toHaveBeenCalledWith('owner-1/tournaments/tournament-1/preferences', payload);
-    expect(mockSet.mock.calls[0][1]).not.toBe(payload);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'owner-1/tournaments/tournament-1/preferences': payload,
+        'publicTournaments/owner-1/tournament-1/record/main/preferences': {},
+      }),
+    );
+    expect(mockUpdate.mock.calls[0][1]['owner-1/tournaments/tournament-1/preferences']).not.toBe(payload);
   });
 
   it('replaces a team through one atomic prefixed update while preserving competition progress', async () => {
@@ -168,13 +174,15 @@ describe('main-store façade baseline', () => {
 
     expect(mockUpdate).toHaveBeenCalledTimes(1);
     expect(mockUpdate).toHaveBeenCalledWith(
-      'user-1/tournaments/tournament-1',
+      '/',
       expect.objectContaining({
-        'main/teams/0/title': 'Portal Team',
-        'main/teams/0/portalTeamId': 3895,
-        'main/teams/1/opponents/0': 'Portal Team',
-        'main/games/0/0/team_1': 'Portal Team',
-        'main/games/0/0/winner': 'Portal Team',
+        'user-1/tournaments/tournament-1/main/teams/0/title': 'Portal Team',
+        'user-1/tournaments/tournament-1/main/teams/0/portalTeamId': 3895,
+        'user-1/tournaments/tournament-1/main/teams/1/opponents/0': 'Portal Team',
+        'user-1/tournaments/tournament-1/main/games/0/0/team_1': 'Portal Team',
+        'user-1/tournaments/tournament-1/main/games/0/0/winner': 'Portal Team',
+        'publicTournaments/user-1/tournament-1/record/main/teams/0/title': 'Portal Team',
+        'publicTournaments/user-1/tournament-1/record/main/games/0/0/team_1': 'Portal Team',
       }),
     );
     expect(store.activeTournament.teams[0]).toMatchObject({
@@ -258,9 +266,21 @@ describe('main-store façade baseline', () => {
     store._syncMatchDebounced('games', '0/1', { score: 3 });
     await vi.advanceTimersByTimeAsync(200);
 
-    expect(mockSet).toHaveBeenCalledTimes(2);
-    expect(mockSet).toHaveBeenCalledWith('user-1/tournaments/tournament-1/games/0/0', { score: 2 });
-    expect(mockSet).toHaveBeenCalledWith('user-1/tournaments/tournament-1/games/0/1', { score: 3 });
+    expect(mockUpdate).toHaveBeenCalledTimes(2);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user-1/tournaments/tournament-1/games/0/0': { score: 2 },
+        'publicTournaments/user-1/tournament-1/record/main/games/0/0': { score: 2 },
+      }),
+    );
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user-1/tournaments/tournament-1/games/0/1': { score: 3 },
+        'publicTournaments/user-1/tournament-1/record/main/games/0/1': { score: 3 },
+      }),
+    );
     expect(store._recentMatchSyncs.size).toBe(0);
   });
 

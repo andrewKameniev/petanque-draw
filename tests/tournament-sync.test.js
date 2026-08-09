@@ -12,12 +12,24 @@ function snapshot(value) {
   return { val: () => value };
 }
 
+function envelopeRecord(overrides = {}) {
+  return {
+    name: 'Wrapper',
+    activeGroup: 'A',
+    main: { system: 'swiss', games: [], teams: [], preferences: {} },
+    tournamentB: { system: 'swiss', games: [], teams: [], preferences: {} },
+    ...overrides,
+  };
+}
+
 function harness(record = { games: [], teams: [] }) {
   const subscriptions = new Map();
   const unsubscribe = vi.fn();
   const dependencies = {
     getDatabase: () => 'database',
+    increment: vi.fn(() => ({ '.sv': { increment: 1 } })),
     ref: (_database, path) => path,
+    serverTimestamp: vi.fn(() => ({ '.sv': 'timestamp' })),
     set: vi.fn(() => Promise.resolve()),
     update: vi.fn(() => Promise.resolve()),
     onValue: vi.fn((path, callback, errorCallback) => {
@@ -53,17 +65,21 @@ describe('tournament synchronization runtime', () => {
     ['main/playOffBracket', { stages: [] }],
     ['tournamentB/games', [[{ score: 7 }]]],
   ])('writes %s with an exact plain payload', async (path, payload) => {
-    const record = { _ownerUid: 'owner1', games: [], teams: [] };
+    const record = envelopeRecord({ _ownerUid: 'owner1' });
     const { dependencies, runtime } = harness(record);
 
     await runtime.syncPath(path, payload);
 
-    expect(dependencies.set).toHaveBeenCalledWith(`owner1/tournaments/t1/${path}`, payload);
-    expect(dependencies.set.mock.calls[0][1]).not.toBe(payload);
+    const rootUpdates = dependencies.update.mock.calls[0][1];
+    expect(dependencies.update).toHaveBeenCalledWith('/', expect.any(Object));
+    expect(rootUpdates[`owner1/tournaments/t1/${path}`]).toEqual(payload);
+    expect(rootUpdates[`owner1/tournaments/t1/${path}`]).not.toBe(payload);
+    expect(rootUpdates).toHaveProperty(`publicTournaments/owner1/t1/record/${path}`);
+    expect(dependencies.set).not.toHaveBeenCalled();
   });
 
-  it('writes multiple tournament leaves atomically at the owner tournament path', async () => {
-    const record = { _ownerUid: 'owner1', games: [], teams: [] };
+  it('writes multiple canonical and projected leaves in one root update', async () => {
+    const record = envelopeRecord({ _ownerUid: 'owner1' });
     const { dependencies, runtime } = harness(record);
     const updates = {
       'main/teams/20/title': 'New title',
@@ -74,15 +90,56 @@ describe('tournament synchronization runtime', () => {
     await runtime.syncPaths(updates);
 
     expect(dependencies.update).toHaveBeenCalledTimes(1);
-    expect(dependencies.update).toHaveBeenCalledWith('owner1/tournaments/t1', updates);
+    expect(dependencies.update).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'owner1/tournaments/t1/main/teams/20/title': 'New title',
+        'owner1/tournaments/t1/main/games/0/1/team_2': 'New title',
+        'publicTournaments/owner1/t1/record/main/teams/20/title': 'New title',
+        'publicTournaments/owner1/t1/record/main/games/0/1/team_2': 'New title',
+      }),
+    );
     expect(dependencies.set).not.toHaveBeenCalled();
   });
 
+  it('publishes a complete projection atomically with a full owned-record save', async () => {
+    const record = envelopeRecord({ name: 'New tournament' });
+    const { dependencies, runtime } = harness(record);
+
+    await runtime.doSync();
+
+    expect(dependencies.update).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user1/tournaments/t1': expect.objectContaining({ name: 'New tournament' }),
+        'publicTournaments/user1/t1/complete': true,
+        'publicTournaments/user1/t1/schemaVersion': 1,
+        'publicTournaments/user1/t1/record': expect.objectContaining({
+          name: 'New tournament',
+          main: expect.objectContaining({ system: 'swiss' }),
+        }),
+      }),
+    );
+  });
+
+  it('falls back to the canonical update while projection write rules are not available yet', async () => {
+    const record = envelopeRecord({ _ownerUid: 'owner1' });
+    const { dependencies, runtime, store } = harness(record);
+    dependencies.update.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
+
+    await runtime.syncPaths({ 'main/teams/0/title': 'New title' });
+
+    expect(dependencies.update).toHaveBeenNthCalledWith(1, '/', expect.any(Object));
+    expect(dependencies.set).toHaveBeenCalledWith('owner1/tournaments/t1/main/teams/0/title', 'New title');
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+  });
+
   it('rejects a failed atomic update and reports permission loss for shared tournaments', async () => {
-    const record = { _ownerUid: 'owner1', games: [], teams: [] };
+    const record = envelopeRecord({ _ownerUid: 'owner1' });
     const { dependencies, runtime, store } = harness(record);
     const error = { code: 'PERMISSION_DENIED' };
     dependencies.update.mockRejectedValueOnce(error);
+    dependencies.set.mockRejectedValueOnce(error);
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await expect(runtime.syncPaths({ 'main/teams/0/title': 'New title' })).rejects.toBe(error);
@@ -99,8 +156,14 @@ describe('tournament synchronization runtime', () => {
 
     await vi.advanceTimersByTimeAsync(200);
 
-    expect(dependencies.set).toHaveBeenCalledTimes(2);
-    expect(dependencies.set).toHaveBeenCalledWith('user1/tournaments/t1/games/0/0', { score: 2 });
+    expect(dependencies.update).toHaveBeenCalledTimes(2);
+    expect(dependencies.update).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user1/tournaments/t1/games/0/0': { score: 2 },
+        'publicTournaments/user1/t1/record/main/games/0/0': { score: 2 },
+      }),
+    );
     expect(runtime.recentMatchSyncs.size).toBe(0);
   });
 
@@ -112,12 +175,13 @@ describe('tournament synchronization runtime', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(dependencies.set).not.toHaveBeenCalled();
+    expect(dependencies.update).not.toHaveBeenCalled();
     expect(runtime.recentMatchSyncs.size).toBe(0);
   });
 
   it('clears failed writes and reports permission loss for shared tournaments', async () => {
     const { dependencies, runtime, store } = harness({ _ownerUid: 'owner1', games: [], teams: [] });
+    dependencies.update.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
     dependencies.set.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
     runtime.syncMatchDebounced('games', '0/0', { score: 1 });
 
@@ -131,6 +195,7 @@ describe('tournament synchronization runtime', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { dependencies, runtime, store } = harness({ _ownerUid: 'owner1', games: [], teams: [] });
     let rejectWrite;
+    dependencies.update.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
     dependencies.set.mockReturnValue(
       new Promise((_resolve, reject) => {
         rejectWrite = reject;
@@ -232,7 +297,7 @@ describe('tournament synchronization runtime', () => {
   it('does not report permission loss for network errors on owned tournaments', async () => {
     const { dependencies, runtime, store } = harness();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    dependencies.set.mockRejectedValueOnce(new Error('Network error'));
+    dependencies.update.mockRejectedValueOnce(new Error('Network error'));
 
     await runtime.syncPath('games', []);
 

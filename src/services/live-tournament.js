@@ -1,4 +1,8 @@
-import { tournamentService } from '@/services/db';
+import { publicTournamentService, tournamentService } from '@/services/db';
+import {
+  PUBLIC_TOURNAMENT_PROJECTION_ERROR,
+  readPublicTournamentProjection,
+} from '@/services/public-tournament-projection';
 import {
   getTournamentStorageTarget,
   normalizeTournamentRecord,
@@ -64,6 +68,10 @@ const LIVE_RUN_PHASE = Object.freeze({
   error: 'error',
 });
 
+function permissionDenied(error) {
+  return error?.code?.toLowerCase() === 'permission_denied';
+}
+
 function getProfile(profile) {
   if (typeof profile === 'string') return LIVE_TOURNAMENT_PROFILES[profile];
   return profile;
@@ -109,6 +117,7 @@ export function applyTournamentSnapshot(record, subscription, value, tournamentI
 
 export function createLiveTournamentSource(options = {}) {
   const service = options.service || tournamentService;
+  const projectionService = options.projectionService || (options.service ? null : publicTournamentService);
   const profile = getProfile(options.profile || 'public');
   const onState = options.onState || (() => {});
 
@@ -117,7 +126,14 @@ export function createLiveTournamentSource(options = {}) {
   let active = false;
   let source = null;
   let currentRun = null;
-  let state = { status: 'idle', record: null, error: null, source: null };
+  let state = {
+    status: 'idle',
+    record: null,
+    error: null,
+    source: null,
+    dataSource: null,
+    projection: null,
+  };
 
   function emit(status, changes = {}) {
     state = { ...state, ...changes, status, source };
@@ -144,7 +160,17 @@ export function createLiveTournamentSource(options = {}) {
     unsubscribe();
   }
 
+  function detachProjection(run) {
+    run.projectionDetachRequested = true;
+    if (run.projectionDetached || typeof run.projectionUnsubscribe !== 'function') return;
+    run.projectionDetached = true;
+    const unsubscribe = run.projectionUnsubscribe;
+    run.projectionUnsubscribe = null;
+    unsubscribe();
+  }
+
   function clearRunSubscriptions(run) {
+    detachProjection(run);
     detachParent(run);
     const current = [...run.childUnsubscribers];
     run.childUnsubscribers.clear();
@@ -164,7 +190,14 @@ export function createLiveTournamentSource(options = {}) {
     run.phase = LIVE_RUN_PHASE.error;
     clearRunSubscriptions(run);
     settleRun(run);
-    emit('error', { error });
+    emit('error', {
+      error,
+      dataSource: run.mode === 'legacy' ? 'legacy' : 'projection',
+      projection:
+        run.mode === 'legacy'
+          ? { status: 'fallback', reason: run.fallbackReason }
+          : { status: 'error', reason: 'projection-error' },
+    });
   }
 
   function subscribeToRecord(run, record) {
@@ -187,7 +220,12 @@ export function createLiveTournamentSource(options = {}) {
               snapshot.val(),
               run.source.tournamentId,
             );
-            emit('ready', { record: nextRecord, error: null });
+            emit('ready', {
+              record: nextRecord,
+              error: null,
+              dataSource: 'legacy',
+              projection: { status: 'fallback', reason: run.fallbackReason },
+            });
           },
           (error) => failRun(run, error),
         );
@@ -206,27 +244,11 @@ export function createLiveTournamentSource(options = {}) {
     }
   }
 
-  function beginBootstrap(runSource) {
-    let resolveRun;
-    const completion = new Promise((resolve) => {
-      resolveRun = resolve;
-    });
-    const run = {
-      source: { ...runSource },
-      phase: LIVE_RUN_PHASE.loading,
-      promise: completion.then(() => state),
-      resolve: resolveRun,
-      settled: false,
-      disposed: false,
-      parentUnsubscribe: null,
-      parentDetachRequested: false,
-      parentDetached: false,
-      childUnsubscribers: new Set(),
-    };
-    currentRun = run;
-    emit('loading', { error: null });
-    if (!isCurrentRun(run)) return run.promise;
-
+  function subscribeCanonical(run) {
+    run.mode = 'legacy';
+    run.phase = LIVE_RUN_PHASE.loading;
+    run.parentDetachRequested = false;
+    run.parentDetached = false;
     try {
       run.parentUnsubscribe = service.subscribe(
         run.source.ownerUid,
@@ -238,7 +260,14 @@ export function createLiveTournamentSource(options = {}) {
             const shouldEmit = run.phase !== LIVE_RUN_PHASE.missing;
             run.phase = LIVE_RUN_PHASE.missing;
             settleRun(run);
-            if (shouldEmit && isCurrentRun(run)) emit('missing', { record: null, error: null });
+            if (shouldEmit && isCurrentRun(run)) {
+              emit('missing', {
+                record: null,
+                error: null,
+                dataSource: 'legacy',
+                projection: { status: 'fallback', reason: run.fallbackReason },
+              });
+            }
             return;
           }
 
@@ -250,7 +279,14 @@ export function createLiveTournamentSource(options = {}) {
             const shouldEmit = run.phase !== LIVE_RUN_PHASE.missing;
             run.phase = LIVE_RUN_PHASE.missing;
             settleRun(run);
-            if (shouldEmit && isCurrentRun(run)) emit('missing', { record: null, error: null });
+            if (shouldEmit && isCurrentRun(run)) {
+              emit('missing', {
+                record: null,
+                error: null,
+                dataSource: 'legacy',
+                projection: { status: 'fallback', reason: run.fallbackReason },
+              });
+            }
             return;
           }
 
@@ -264,7 +300,12 @@ export function createLiveTournamentSource(options = {}) {
           if (!isCurrentRun(run)) return;
           run.phase = LIVE_RUN_PHASE.ready;
           settleRun(run);
-          emit('ready', { record, error: null });
+          emit('ready', {
+            record,
+            error: null,
+            dataSource: 'legacy',
+            projection: { status: 'fallback', reason: run.fallbackReason },
+          });
         },
         (error) => {
           if (run.phase !== LIVE_RUN_PHASE.ready) failRun(run, error);
@@ -274,6 +315,112 @@ export function createLiveTournamentSource(options = {}) {
     } catch (error) {
       if (run.phase !== LIVE_RUN_PHASE.ready) failRun(run, error);
     }
+  }
+
+  function fallbackToCanonical(run, reason) {
+    if (!isCurrentRun(run) || run.mode === 'legacy') return;
+    const replacingReadyProjection = run.phase === LIVE_RUN_PHASE.ready;
+    run.fallbackReason = reason;
+    detachProjection(run);
+    if (replacingReadyProjection) {
+      emit('loading', {
+        error: null,
+        dataSource: 'legacy',
+        projection: { status: 'fallback', reason },
+      });
+    }
+    subscribeCanonical(run);
+  }
+
+  function subscribeProjection(run) {
+    run.mode = 'projection';
+    try {
+      run.projectionUnsubscribe = projectionService.subscribe(
+        run.source.ownerUid,
+        run.source.tournamentId,
+        (snapshot) => {
+          if (!isCurrentRun(run) || run.mode !== 'projection') return;
+          const result = readPublicTournamentProjection(snapshot.exists() ? snapshot.val() : null, {
+            tournamentId: run.source.tournamentId,
+            ownerUid: run.source.ownerUid,
+            previousRevision: run.projectionRevision,
+          });
+          if (!result.valid) {
+            if (
+              result.reason === PUBLIC_TOURNAMENT_PROJECTION_ERROR.STALE &&
+              run.phase === LIVE_RUN_PHASE.ready &&
+              state.dataSource === 'projection'
+            ) {
+              emit('ready', {
+                error: null,
+                projection: {
+                  status: 'stale',
+                  reason: result.reason,
+                  revision: run.projectionRevision,
+                },
+              });
+              return;
+            }
+            fallbackToCanonical(run, result.reason);
+            return;
+          }
+
+          run.phase = LIVE_RUN_PHASE.ready;
+          run.projectionRevision = result.revision;
+          settleRun(run);
+          emit('ready', {
+            record: result.record,
+            error: null,
+            dataSource: 'projection',
+            projection: {
+              status: 'ready',
+              schemaVersion: result.schemaVersion,
+              revision: result.revision,
+              updatedAt: result.updatedAt,
+            },
+          });
+        },
+        (error) => fallbackToCanonical(run, permissionDenied(error) ? 'permission-denied' : 'projection-error'),
+      );
+      if (run.projectionDetachRequested || run.disposed) detachProjection(run);
+    } catch (error) {
+      fallbackToCanonical(run, permissionDenied(error) ? 'permission-denied' : 'projection-error');
+    }
+  }
+
+  function beginBootstrap(runSource) {
+    let resolveRun;
+    const completion = new Promise((resolve) => {
+      resolveRun = resolve;
+    });
+    const run = {
+      source: { ...runSource },
+      mode: projectionService ? 'projection' : 'legacy',
+      fallbackReason: projectionService ? null : 'not-configured',
+      phase: LIVE_RUN_PHASE.loading,
+      promise: completion.then(() => state),
+      resolve: resolveRun,
+      settled: false,
+      disposed: false,
+      projectionRevision: null,
+      projectionUnsubscribe: null,
+      projectionDetachRequested: false,
+      projectionDetached: false,
+      parentUnsubscribe: null,
+      parentDetachRequested: false,
+      parentDetached: false,
+      childUnsubscribers: new Set(),
+    };
+    currentRun = run;
+    emit('loading', {
+      error: null,
+      dataSource: null,
+      projection: projectionService ? { status: 'loading' } : { status: 'fallback', reason: 'not-configured' },
+    });
+    if (!isCurrentRun(run)) return run.promise;
+
+    if (projectionService) subscribeProjection(run);
+    else subscribeCanonical(run);
 
     return run.promise;
   }
@@ -303,7 +450,14 @@ export function createLiveTournamentSource(options = {}) {
     active = true;
 
     if (source?.type !== 'firebase') {
-      return Promise.resolve(emit('invalid', { record: null, error: source?.error || null }));
+      return Promise.resolve(
+        emit('invalid', {
+          record: null,
+          error: source?.error || null,
+          dataSource: null,
+          projection: null,
+        }),
+      );
     }
 
     return beginBootstrap(source);
@@ -314,7 +468,7 @@ export function createLiveTournamentSource(options = {}) {
     active = false;
     disposeRun(currentRun);
     source = null;
-    return emit('idle', { record: null, error: null });
+    return emit('idle', { record: null, error: null, dataSource: null, projection: null });
   }
 
   return {

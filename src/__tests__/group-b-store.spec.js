@@ -134,6 +134,18 @@ describe('Tournament B store actions (new format)', () => {
       expect(store.currentTournament.activeGroup).toBe('A');
     });
 
+    it('persists the Group B node and active group atomically', () => {
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockImplementation(() => undefined);
+
+      store.initTournamentB([{ title: 'T1' }]);
+
+      expect(syncPaths).toHaveBeenCalledOnce();
+      expect(syncPaths).toHaveBeenCalledWith({
+        tournamentB: store.currentTournament.tournamentB,
+        activeGroup: 'A',
+      });
+    });
+
     it('clones teams', () => {
       const teams = [{ title: 'T1', wins: 2 }];
       store.initTournamentB(teams);
@@ -145,6 +157,21 @@ describe('Tournament B store actions (new format)', () => {
       store.initTournamentB([{ title: 'T1' }]);
       store.setActiveGroup('B');
       expect(store.activeTournament).toBe(store.currentTournament.tournamentB);
+    });
+  });
+
+  describe('removeTournamentB', () => {
+    it('removes Group B and switches to A in one persisted update', () => {
+      store.initTournamentB([{ title: 'T1' }]);
+      store.setActiveGroup('B');
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockImplementation(() => undefined);
+
+      store.removeTournamentB();
+
+      expect(store.currentTournament.tournamentB).toBeNull();
+      expect(store.currentTournament.activeGroup).toBe('A');
+      expect(syncPaths).toHaveBeenCalledOnce();
+      expect(syncPaths).toHaveBeenCalledWith({ tournamentB: null, activeGroup: 'A' });
     });
   });
 

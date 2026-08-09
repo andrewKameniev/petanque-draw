@@ -9,6 +9,7 @@ import {
   createLiveTournamentSource,
 } from '@/services/live-tournament';
 import { normalizeTournamentRecord } from '@/services/tournament-record';
+import { createPublicTournamentProjection } from '@/services/public-tournament-projection';
 
 vi.mock('@/firebase', () => ({ database: {} }));
 
@@ -73,6 +74,31 @@ function createService(record = wrapperRecord) {
     },
     failBootstrap(error, index = bootstrapErrorCallbacks.length - 1) {
       bootstrapErrorCallbacks[index](error);
+    },
+  };
+}
+
+function createProjectionService() {
+  const callbacks = [];
+  const errorCallbacks = [];
+  const unsubscribers = [];
+  const service = {
+    subscribe: vi.fn((_ownerUid, _tournamentId, callback, errorCallback) => {
+      callbacks.push(callback);
+      errorCallbacks.push(errorCallback);
+      const unsubscribe = vi.fn();
+      unsubscribers.push(unsubscribe);
+      return unsubscribe;
+    }),
+  };
+  return {
+    service,
+    unsubscribers,
+    emit(value, exists = value != null, index = callbacks.length - 1) {
+      callbacks[index](snapshot(value, exists));
+    },
+    fail(error, index = errorCallbacks.length - 1) {
+      errorCallbacks[index](error);
     },
   };
 }
@@ -187,6 +213,160 @@ describe('live tournament profiles and paths', () => {
     expect(nextMessage.tournamentMessage).toBeNull();
     expect(nextGames.main.games).toBeNull();
     expect(nextGroupB.tournamentB.teams[0].title).toBe('B Team');
+  });
+});
+
+describe('projection-first live tournament compatibility', () => {
+  it('uses a valid V1 projection without reading the authoritative tournament and applies newer revisions', async () => {
+    const canonical = createService();
+    const projection = createProjectionService();
+    const source = createLiveTournamentSource({
+      service: canonical.service,
+      projectionService: projection.service,
+      profile: 'public',
+    });
+
+    const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
+    expect(projection.service.subscribe).toHaveBeenCalledWith(
+      'owner',
+      '123',
+      expect.any(Function),
+      expect.any(Function),
+    );
+    expect(canonical.service.subscribe).not.toHaveBeenCalled();
+
+    projection.emit(createPublicTournamentProjection(wrapperRecord, { revision: 3, updatedAt: 100 }));
+    await started;
+
+    expect(source.getState()).toMatchObject({
+      status: 'ready',
+      dataSource: 'projection',
+      record: { name: 'Wrapper Cup', _ownerUid: 'owner' },
+      projection: { status: 'ready', schemaVersion: 1, revision: 3 },
+    });
+    expect(canonical.service.subscribe).not.toHaveBeenCalled();
+    expect(canonical.service.subscribePath).not.toHaveBeenCalled();
+
+    projection.emit(
+      createPublicTournamentProjection(
+        { ...wrapperRecord, name: 'Projection Rename' },
+        { revision: 4, updatedAt: 101 },
+      ),
+    );
+    expect(source.getState().record.name).toBe('Projection Rename');
+    expect(source.getState().projection.revision).toBe(4);
+  });
+
+  it.each([
+    ['missing', (projection) => projection.emit(null, false), 'missing'],
+    [
+      'unsupported version',
+      (projection) =>
+        projection.emit({
+          ...createPublicTournamentProjection(wrapperRecord, { revision: 1, updatedAt: 1 }),
+          schemaVersion: 2,
+        }),
+      'unsupported-version',
+    ],
+    [
+      'partial write',
+      (projection) =>
+        projection.emit({
+          ...createPublicTournamentProjection(wrapperRecord, { revision: 1, updatedAt: 1 }),
+          complete: false,
+        }),
+      'partial',
+    ],
+    [
+      'projection permission denial',
+      (projection) => projection.fail({ code: 'PERMISSION_DENIED' }),
+      'permission-denied',
+    ],
+  ])('falls back to authoritative compatibility reads for %s', async (_label, failProjection, reason) => {
+    const canonical = createService(legacyRecord);
+    const projection = createProjectionService();
+    const source = createLiveTournamentSource({
+      service: canonical.service,
+      projectionService: projection.service,
+      profile: 'public',
+    });
+
+    const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
+    failProjection(projection);
+
+    expect(canonical.service.subscribe).toHaveBeenCalledTimes(1);
+    canonical.emitBootstrap();
+    await started;
+
+    expect(source.getState()).toMatchObject({
+      status: 'ready',
+      dataSource: 'legacy',
+      record: { name: 'Legacy Cup' },
+      projection: { status: 'fallback', reason },
+    });
+    expect(projection.unsubscribers[0]).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the last valid projection on a stale revision and uses canonical data after projection rollback', async () => {
+    const canonical = createService(legacyRecord);
+    const projection = createProjectionService();
+    const source = createLiveTournamentSource({
+      service: canonical.service,
+      projectionService: projection.service,
+    });
+    const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
+    projection.emit(createPublicTournamentProjection(wrapperRecord, { revision: 5, updatedAt: 100 }));
+    await started;
+
+    projection.emit(
+      createPublicTournamentProjection({ ...wrapperRecord, name: 'Stale Rename' }, { revision: 4, updatedAt: 99 }),
+    );
+    expect(source.getState()).toMatchObject({
+      status: 'ready',
+      dataSource: 'projection',
+      record: { name: 'Wrapper Cup' },
+      projection: { status: 'stale', reason: 'stale', revision: 5 },
+    });
+    expect(canonical.service.subscribe).not.toHaveBeenCalled();
+
+    projection.emit(null, false);
+    expect(source.getState()).toMatchObject({
+      status: 'loading',
+      dataSource: 'legacy',
+      projection: { status: 'fallback', reason: 'missing' },
+    });
+    canonical.emitBootstrap();
+    expect(source.getState()).toMatchObject({
+      status: 'ready',
+      dataSource: 'legacy',
+      record: { name: 'Legacy Cup' },
+    });
+    expect(projection.unsubscribers[0]).toHaveBeenCalledTimes(1);
+
+    source.stop();
+    source.stop();
+    expect(projection.unsubscribers[0]).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces an error when projection access and the post-revocation authoritative fallback are both denied', async () => {
+    const canonical = createService();
+    const projection = createProjectionService();
+    const source = createLiveTournamentSource({
+      service: canonical.service,
+      projectionService: projection.service,
+    });
+    const started = source.start({ type: 'firebase', ownerUid: 'owner', tournamentId: '123' });
+
+    projection.fail({ code: 'PERMISSION_DENIED' });
+    canonical.failBootstrap({ code: 'PERMISSION_DENIED' });
+    await started;
+
+    expect(source.getState()).toMatchObject({
+      status: 'error',
+      dataSource: 'legacy',
+      error: { code: 'PERMISSION_DENIED' },
+      projection: { status: 'fallback', reason: 'permission-denied' },
+    });
   });
 });
 

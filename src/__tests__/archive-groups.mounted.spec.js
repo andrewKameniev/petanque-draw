@@ -209,12 +209,14 @@ describe('Main and Tournament B archive behavior', () => {
       '42',
       expect.objectContaining({ teams: [record.main.teams[0], record.tournamentB.teams[0]] }),
     );
-    expect(serviceMocks.updatePath).toHaveBeenCalledWith('owner-1', record.id, 'main/teams', record.main.teams);
-    expect(serviceMocks.updatePath).toHaveBeenCalledWith(
-      'owner-1',
-      record.id,
-      'tournamentB/teams',
-      record.tournamentB.teams,
+    expect(updateDatabase).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        [`owner-1/tournaments/${record.id}/main/teams`]: record.main.teams,
+        [`owner-1/tournaments/${record.id}/tournamentB/teams`]: record.tournamentB.teams,
+        [`publicTournaments/owner-1/${record.id}/record/main/teams`]: record.main.teams,
+        [`publicTournaments/owner-1/${record.id}/record/tournamentB/teams`]: record.tournamentB.teams,
+      }),
     );
 
     wrapper.unmount();

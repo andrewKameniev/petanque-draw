@@ -2,6 +2,7 @@ import { get, getDatabase, onValue, ref, remove, set, update } from 'firebase/da
 import { database } from '@/firebase';
 import { collaboratorService, userMapService } from '@/services/db';
 import { getTournamentMain, getTournamentMetadata, normalizeTournamentRecord } from '@/services/tournament-record';
+import { createPublicTournamentWriter } from '@/services/public-tournament-projection';
 import {
   archiveIndexService,
   archiveBackupService,
@@ -35,6 +36,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   const maps = dependencies.userMapService || userMapService;
   const collaborators = dependencies.collaboratorService || collaboratorService;
   const translate = dependencies.translate || ((key) => key);
+  const publicWriter = dependencies.publicTournamentWriter || createPublicTournamentWriter(firebase);
   let accessWatcherUnsubscribe = null;
   let accessRevokedHandled = false;
   let accessRevokedResetTimeout = null;
@@ -135,7 +137,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           );
           if (savedSnapshot.exists()) {
             const data = savedSnapshot.val();
-            await firebase.set(firebase.ref(firebase.getDatabase(), `${operation.userUid}/tournaments/${id}`), data);
+            await publicWriter.writeFull({ ownerUid: operation.userUid, tournamentId: id, record: data });
             await firebase.remove(firebase.ref(firebase.getDatabase(), `${operation.userUid}/saved/${id}`));
             results[id] = data;
             migrated.push({ id, name: getTournamentMetadata(data, { name: id }).name });
@@ -254,17 +256,20 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
           return false;
         }
 
-        const deletion = {
-          [`${indexedOwnerUid}/tournaments/${id}`]: null,
+        const additionalUpdates = {
           [`archive/${id}`]: null,
           [`users/${indexedOwnerUid}/tournaments/${id}`]: null,
           [`users/${store.user.uid}/tournaments/${id}`]: null,
         };
         adminCollaboratorUids(indexedTournament).forEach((uid) => {
-          deletion[`users/${uid}/tournaments/${id}`] = null;
+          additionalUpdates[`users/${uid}/tournaments/${id}`] = null;
         });
 
-        await firebase.update(firebase.ref(firebase.getDatabase(), '/'), deletion);
+        await publicWriter.removeTournament({
+          ownerUid: indexedOwnerUid,
+          tournamentId: id,
+          additionalUpdates,
+        });
         if (store.archiveIndex) delete store.archiveIndex[id];
         delete store.userTournamentMap[id];
         delete store.savedTournaments[id];
@@ -291,7 +296,7 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
     if (isOwner) {
       if (!canDeleteArchived(localEntry, store.user.email, store.user.uid)) return false;
       try {
-        await firebase.remove(firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${id}`));
+        await publicWriter.removeTournament({ ownerUid, tournamentId: id });
         await maps.remove(store.user.uid, id);
         delete store.userTournamentMap[id];
         delete store.savedTournaments[id];
@@ -327,7 +332,8 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
   }
 
   function renameSavedTournament(id, name, ownerUid = store.user.uid) {
-    return firebase.update(firebase.ref(firebase.getDatabase(), `${ownerUid}/tournaments/${id}`), { name }).then(() => {
+    const record = store.savedTournaments[id];
+    return publicWriter.writePaths({ ownerUid, tournamentId: id, record, pathValues: { name } }).then(() => {
       if (store.savedTournaments[id]) store.savedTournaments[id].name = name;
       if (store.userTournamentMap[id]) store.userTournamentMap[id].name = name;
       return maps.update(store.user.uid, id, { name });

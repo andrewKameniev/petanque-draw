@@ -102,25 +102,36 @@ describe('Results shared-tournament persistence', () => {
     await flushPromises();
 
     expect(firebaseMocks.update).toHaveBeenCalledTimes(1);
-    expect(firebaseMocks.update).toHaveBeenCalledWith('owner-1/tournaments/shared-1', {
-      'main/games/0/0': expect.objectContaining({
-        team_1: 'Alpha',
-        team_2: 'Beta',
-        team_1_score: 7,
-        team_2_score: 13,
-        winner: 'Beta',
-        status: 'finished',
+    expect(firebaseMocks.update).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'owner-1/tournaments/shared-1/main/games/0/0': expect.objectContaining({
+          team_1: 'Alpha',
+          team_2: 'Beta',
+          team_1_score: 7,
+          team_2_score: 13,
+          winner: 'Beta',
+          status: 'finished',
+        }),
+        'owner-1/tournaments/shared-1/main/teams/0/wins': 0,
+        'owner-1/tournaments/shared-1/main/teams/0/opponents': ['Beta'],
+        'owner-1/tournaments/shared-1/main/teams/0/pointsPlus': 7,
+        'owner-1/tournaments/shared-1/main/teams/0/pointsMinus': 13,
+        'owner-1/tournaments/shared-1/main/teams/1/wins': 1,
+        'owner-1/tournaments/shared-1/main/teams/1/opponents': ['Alpha'],
+        'owner-1/tournaments/shared-1/main/teams/1/pointsPlus': 13,
+        'owner-1/tournaments/shared-1/main/teams/1/pointsMinus': 7,
+        'publicTournaments/owner-1/shared-1/record/main/games/0/0': expect.any(Object),
+        'publicTournaments/owner-1/shared-1/record/main/teams/0/wins': 0,
+        'publicTournaments/owner-1/shared-1/record/main/teams/1/wins': 1,
+        'publicTournaments/owner-1/shared-1/schemaVersion': 1,
+        'publicTournaments/owner-1/shared-1/revision': { '.sv': { increment: 1 } },
+        'publicTournaments/owner-1/shared-1/updatedAt': { '.sv': 'timestamp' },
       }),
-      'main/teams/0/wins': 0,
-      'main/teams/0/opponents': ['Beta'],
-      'main/teams/0/pointsPlus': 7,
-      'main/teams/0/pointsMinus': 13,
-      'main/teams/1/wins': 1,
-      'main/teams/1/opponents': ['Alpha'],
-      'main/teams/1/pointsPlus': 13,
-      'main/teams/1/pointsMinus': 7,
-    });
-    expect(firebaseMocks.update.mock.calls[0][0]).not.toContain('collaborator-1/tournaments');
+    );
+    expect(Object.keys(firebaseMocks.update.mock.calls[0][1])).not.toEqual(
+      expect.arrayContaining([expect.stringContaining('collaborator-1/tournaments')]),
+    );
     expect(showMessage).toHaveBeenCalledWith({
       title: 'messages.success',
       text: 'results.resultUpdated',

@@ -10,13 +10,14 @@ globalThis.localStorage = {
 const mockGet = vi.fn();
 const mockSet = vi.fn(() => Promise.resolve());
 const mockRemove = vi.fn(() => Promise.resolve());
+const mockUpdate = vi.fn(() => Promise.resolve());
 const mockRef = vi.fn((db, path) => path);
 
 vi.mock('firebase/database', () => ({
   get: (...args) => mockGet(...args),
   set: (...args) => mockSet(...args),
   remove: (...args) => mockRemove(...args),
-  update: vi.fn(() => Promise.resolve()),
+  update: (...args) => mockUpdate(...args),
   ref: (...args) => mockRef(...args),
   onValue: vi.fn(),
   getDatabase: () => 'mockDb',
@@ -201,7 +202,14 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     await store.fetchSavedTournaments();
 
-    expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', realData);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user1/tournaments/t1': realData,
+        'publicTournaments/user1/t1/complete': true,
+        'publicTournaments/user1/t1/record': expect.any(Object),
+      }),
+    );
     expect(mockRemove).toHaveBeenCalledWith('user1/saved/t1');
     expect(store.savedTournaments.t1).toMatchObject(realData);
   });
@@ -219,7 +227,14 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     await store.fetchSavedTournaments();
 
-    expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', savedData);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user1/tournaments/t1': savedData,
+        'publicTournaments/user1/t1/complete': true,
+        'publicTournaments/user1/t1/record': expect.any(Object),
+      }),
+    );
     expect(mockRemove).toHaveBeenCalledWith('user1/saved/t1');
     expect(store.savedTournaments.t1).toMatchObject(savedData);
   });
@@ -264,7 +279,14 @@ describe('fetchSavedTournaments - saved/ to tournaments/ migration', () => {
 
     await store.fetchSavedTournaments();
 
-    expect(mockSet).toHaveBeenCalledWith('user1/tournaments/t1', mainData);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'user1/tournaments/t1': mainData,
+        'publicTournaments/user1/t1/complete': true,
+        'publicTournaments/user1/t1/record': expect.any(Object),
+      }),
+    );
     expect(store.savedTournaments.t1).toMatchObject(mainData);
     expect(store.savedTournaments.t1.main).toMatchObject({ teams: [{ title: 'D' }], games: [], preferences: {} });
   });

@@ -1,5 +1,6 @@
 import { get, ref, set, remove, update, onValue } from 'firebase/database';
 import { database as db } from '@/firebase';
+import { getPublicTournamentProjectionPath } from '@/services/public-tournament-projection';
 
 export const tournamentService = {
   getAll(uid) {
@@ -27,6 +28,12 @@ export const tournamentService = {
   subscribePath(uid, tournamentId, path, callback, errorCallback) {
     const dbRef = ref(db, `${uid}/tournaments/${tournamentId}/${path}`);
     return onValue(dbRef, callback, errorCallback);
+  },
+};
+
+export const publicTournamentService = {
+  subscribe(uid, tournamentId, callback, errorCallback) {
+    return onValue(ref(db, getPublicTournamentProjectionPath(uid, tournamentId)), callback, errorCallback);
   },
 };
 

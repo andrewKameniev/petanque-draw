@@ -8,8 +8,11 @@ Teams are placed into groups and play a full round-robin within each group. This
 
 ### Group Formation
 
-- Organizer sets group size (e.g., 3 or 4 teams per group)
+- Poules requires at least eight teams and a total divisible by four
+- Teams are placed into fixed four-team groups
 - Distribution follows the same logic as [Groups](./groups.md) (snake seeding with rating, random without)
+- If the team count changes after Poules is selected, the draw is rejected and
+  the setup remains available for correction
 
 ### Round Scheduling
 

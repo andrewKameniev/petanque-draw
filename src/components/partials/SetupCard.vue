@@ -42,7 +42,7 @@
           />
           {{ $t('teams.playoff') }}
         </label>
-        <label class="setup-card__radio" v-if="tournament.teams?.length >= 8 && tournament.teams?.length % 4 === 0">
+        <label class="setup-card__radio" v-if="poulesTeamCountIsValid">
           <input
             type="radio"
             name="system"
@@ -121,7 +121,7 @@
       <span class="setup-card__hint"
         >{{ Math.floor(tournament.teams.length / 4) }} {{ $t('setup.poulesInfo', { count: poulesPlayoffCount }) }}</span
       >
-      <span v-if="tournament.teams.length % 4 !== 0" class="setup-card__hint setup-card__hint--warn">{{
+      <span v-if="!poulesTeamCountIsValid" class="setup-card__hint setup-card__hint--warn">{{
         $t('setup.poulesHint')
       }}</span>
     </div>
@@ -494,6 +494,7 @@
 
 <script>
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
+import { isValidPoulesTeamCount } from '@/services/draw';
 import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info, LayoutGrid } from 'lucide-vue-next';
 
 export default {
@@ -666,6 +667,9 @@ export default {
     },
     hasTeamRatings() {
       return this.tournament.useRating && this.tournament.teams?.some((t) => t.rating > 0);
+    },
+    poulesTeamCountIsValid() {
+      return isValidPoulesTeamCount(this.tournament.teams?.length);
     },
     poulesPlayoffCount() {
       const groups = Math.floor(this.tournament.teams?.length / 4) || 0;

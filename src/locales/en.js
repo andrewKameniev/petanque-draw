@@ -381,7 +381,7 @@ export default {
     drawMethodBalancedBest2: 'Avoiding "group of death" situations',
     drawMethodBalancedBest3: 'Making groups feel fair by total strength',
     poulesInfo: 'groups × 4 teams → {count} playoff teams',
-    poulesHint: 'Poules work best when the total number of teams is divisible by 4',
+    poulesHint: 'Poules require at least 8 teams and a total divisible by 4. Add or remove teams before drawing.',
     straightPlayoff: 'Straight play-off (elimination)',
     straightPlayoffHint: 'All teams go directly into an elimination bracket',
     straightPlayoffTechWins: 'Top-rated teams get byes to fill the bracket',

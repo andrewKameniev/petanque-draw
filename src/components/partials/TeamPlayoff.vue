@@ -116,10 +116,10 @@ export default {
     };
   },
   mounted() {
-    this.subscribeTournament();
+    if (!this.readOnly) this.subscribeTournament();
   },
   beforeUnmount() {
-    this.unsubscribeTournament();
+    if (!this.readOnly) this.unsubscribeTournament();
   },
   computed: {
     ...mapState(useMainStore, ['currentTournament', 'isOwnerOrAdmin']),

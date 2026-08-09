@@ -38,11 +38,11 @@ permission/account requests that cannot affect their rendered UI.
 
 ## Acceptance criteria
 
-- [ ] Public Team Playoff renders the public record and starts no Pinia editor
+- [x] Public Team Playoff renders the public record and starts no Pinia editor
       listeners.
-- [ ] Read-only Ranking performs no organizer lookup, including on remount.
-- [ ] No rendered public field loses realtime updates.
-- [ ] Editable/admin versions retain their current subscription and capability
+- [x] Read-only Ranking performs no organizer lookup, including on remount.
+- [x] No rendered public field loses realtime updates.
+- [x] Editable/admin versions retain their current subscription and capability
       behavior.
 
 ## Test plan
@@ -59,7 +59,20 @@ permission/account requests that cannot affect their rendered UI.
 
 ## Completion evidence
 
-- Changed behavior:
+- Changed behavior: Public passes its selected live tournament into Team Playoff,
+  whose read-only lifecycle no longer touches editor subscriptions. Ranking only
+  checks organizer access for editable accounts with result-action capability.
+  The public live profile no longer subscribes `activeGroup`,
+  `tirTiebreakerActive`, or `tirTiebreakerParticipantIds`; live tournament-name
+  and rendered TIR tie-break-count updates remain covered.
 - Exact commands and outcomes:
-- Deferred follow-up with reason:
-- Documentation synchronized:
+  `npm run test:run -- src/__tests__/public-readonly-side-effects.mounted.spec.js src/__tests__/ranking-subtabs.mounted.spec.js src/__tests__/live-tournament.spec.js src/__tests__/tournament-record-consumers.spec.js`
+  passed 46 tests; `npm run lint` passed; the full `npm run test:run` passed
+  1,221 tests in 72 files; and `npm run build` passed.
+- Deferred follow-up with reason: the bootstrap parent and whole Group B node
+  can still carry fields outside the steady-state public profile. Narrowing
+  hydration or Group B loading belongs to the phase-aware/projection tasks
+  because it changes record-loading contracts.
+- Documentation synchronized: no canonical document changed because database
+  paths, lifecycle ownership, and the documented live-source strategy remain
+  unchanged; this task brief records the completed profile delta and evidence.

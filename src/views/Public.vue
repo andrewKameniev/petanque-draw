@@ -158,7 +158,11 @@
           }"
         >
           <div v-if="activeTab === 'round'">
-            <TeamPlayoff v-if="activeTournamentView?.teamPlayoff" :read-only="true" />
+            <TeamPlayoff
+              v-if="activeTournamentView?.teamPlayoff"
+              :active-tournament="activeTournamentView"
+              :read-only="true"
+            />
             <PlayOff
               v-else-if="activeTournamentView?.playOff || isDoubleElimination"
               ref="playOff"

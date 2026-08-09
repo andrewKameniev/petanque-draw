@@ -644,7 +644,7 @@ export default {
       }
     };
     document.addEventListener('click', this._onClickOutside);
-    if (this.user?.email) {
+    if (!this.readOnly && this.canUseResultActions && this.user?.email) {
       const snapshot = await tournamentOrgsService.check(this.user.email);
       this.isTournamentOrg = snapshot.exists();
     }

@@ -934,8 +934,20 @@ function findBalancedOrder(group, schedule) {
   return bestOrder;
 }
 
+export const POULES_DRAW_ERROR = Object.freeze({
+  INVALID_TEAM_COUNT: 'invalidPoulesTeamCount',
+});
+
+export function isValidPoulesTeamCount(teamsCount) {
+  return Number.isInteger(teamsCount) && teamsCount >= 8 && teamsCount % 4 === 0;
+}
+
 export function createPoules(tournament) {
-  const teamsCount = tournament.teams.length;
+  const teamsCount = tournament?.teams?.length;
+  if (!isValidPoulesTeamCount(teamsCount)) {
+    return { groups: null, error: POULES_DRAW_ERROR.INVALID_TEAM_COUNT };
+  }
+
   const groupsQuantity = teamsCount / 4;
   const groups = [];
   for (let i = 0; i < groupsQuantity; i++) {
@@ -963,7 +975,7 @@ export function createPoules(tournament) {
     }
   }
 
-  return { groups };
+  return { groups, error: null };
 }
 
 export function drawPoulesRound(tournament) {

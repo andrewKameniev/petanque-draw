@@ -478,7 +478,6 @@ import {
   sortGamesByGroup,
 } from '@/services/results';
 import { saveResultsForRound } from '@/services/draw';
-import { getDatabase, ref, update } from 'firebase/database';
 import Bracket from '@/components/partials/Bracket';
 import EditResultModal from '@/components/partials/EditResultModal.vue';
 import Game from '@/components/partials/Game.vue';
@@ -606,7 +605,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['showMessage', 'syncBracketMatch']),
+    ...mapActions(useMainStore, ['showMessage', 'syncBracketMatch', 'syncHistoricalResultEdit']),
     stageHasContent(stage) {
       return stage.teams?.some((g) => g.team_1 || g.team_2);
     },
@@ -637,7 +636,7 @@ export default {
       this.editingGame = null;
       this.editingGameMeta = null;
     },
-    saveEditedResult({ score1, score2 }) {
+    async saveEditedResult({ score1, score2 }) {
       if (!this.editingGameMeta) return;
       const { roundIndex, gameIndex } = this.editingGameMeta;
       const actualGame = this.tournament.games?.[roundIndex]?.[gameIndex];
@@ -649,9 +648,17 @@ export default {
       actualGame.updated_at = new Date().toISOString();
 
       this.recalculateStandings();
-      this.persistToFirebase();
-      this.closeEditModal();
-      this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
+      try {
+        await this.syncHistoricalResultEdit({ roundIndex, gameIndex });
+        this.closeEditModal();
+        this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
+      } catch {
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t('messages.failedSaving'),
+          type: 'error',
+        });
+      }
     },
     openEditPlayoffModal(game, type, stageIndex, gameIndex) {
       if (!this.canEditPlayoff) return;
@@ -679,18 +686,6 @@ export default {
       this.editingPlayoffGame = null;
       this.editingPlayoffMeta = null;
       this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
-    },
-    persistToFirebase() {
-      const store = useMainStore();
-      if (!store.user || !store.user.uid || !store.currentTournamentIndex) return;
-      const db = getDatabase();
-      const tournament = store.tournaments[store.currentTournamentIndex];
-      const data = JSON.parse(JSON.stringify(tournament));
-      update(ref(db, `${store.user.uid}/tournaments/`), {
-        [store.currentTournamentIndex]: data,
-      }).catch((error) => {
-        console.error('Error persisting edited result:', error);
-      });
     },
     recalculateStandings() {
       this.tournament.teams.forEach((team) => {

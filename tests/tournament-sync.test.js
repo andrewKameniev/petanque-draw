@@ -170,6 +170,39 @@ describe('tournament synchronization runtime', () => {
     expect(unsubscribe).toHaveBeenCalledTimes(subscriptions.size);
   });
 
+  it.each([
+    ['games', [[{ score: 13 }]]],
+    ['cadrage', [{ score: 13 }]],
+    ['playOffBracket', { stages: [{ teams: [{ score: 13 }] }] }],
+    ['tirPlayoff', { rounds: [{ matches: [{ score: 13 }] }] }],
+    ['teamPlayoff', { rounds: [{ matches: [{ score: 13 }] }] }],
+  ])('converges %s to a remote deletion while preserving same-path echo suppression', async (path, localValue) => {
+    const remoteRecord = { teams: [], roundIsActive: true, [path]: localValue };
+    const remoteClient = harness(remoteRecord);
+    remoteClient.runtime.subscribeTournament();
+
+    remoteClient.subscriptions.get(`user1/tournaments/t1/${path}`).callback(snapshot(null));
+
+    expect(remoteRecord[path]).toBeNull();
+
+    const missingRecord = { teams: [], roundIsActive: true, [path]: localValue };
+    const missingClient = harness(missingRecord);
+    missingClient.runtime.subscribeTournament();
+
+    missingClient.subscriptions.get(`user1/tournaments/t1/${path}`).callback(snapshot(undefined));
+
+    expect(missingRecord[path]).toBe(localValue);
+
+    const localRecord = { teams: [], roundIsActive: true, [path]: localValue };
+    const localClient = harness(localRecord);
+    localClient.runtime.subscribeTournament();
+    await localClient.runtime.syncPath(path, null);
+
+    localClient.subscriptions.get(`user1/tournaments/t1/${path}`).callback(snapshot(null));
+
+    expect(localRecord[path]).toBe(localValue);
+  });
+
   it('routes subscription permission errors to access revocation once scoped to a shared owner', () => {
     const { runtime, subscriptions, store } = harness({ _ownerUid: 'owner1', games: [], teams: [] });
     runtime.subscribeTournament();

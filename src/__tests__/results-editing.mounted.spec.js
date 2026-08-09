@@ -77,14 +77,14 @@ describe('Results editing', () => {
 
   it('edits the selected repeated pairing instead of the first matching teams', async () => {
     const recalculateStandings = vi.fn();
-    const persistToFirebase = vi.fn();
+    const syncHistoricalResultEdit = vi.fn(() => Promise.resolve());
     const wrapper = shallowMount(
       {
         ...Results,
         methods: {
           ...Results.methods,
           recalculateStandings,
-          persistToFirebase,
+          syncHistoricalResultEdit,
         },
       },
       {
@@ -99,15 +99,13 @@ describe('Results editing', () => {
     expect(wrapper.vm.selectedRound).toBe(1);
     await wrapper.get('.edit-result-btn').trigger('click');
     expect(wrapper.vm.editingGameMeta).toEqual({ roundIndex: 1, gameIndex: 0 });
-    wrapper.vm.saveEditedResult({ score1: 13, score2: 10 });
+    await wrapper.vm.saveEditedResult({ score1: 13, score2: 10 });
 
-    expect(tournament.games[0][0]).toEqual(
-      expect.objectContaining({ team_1_score: 13, team_2_score: 4, winner: 'A' }),
-    );
+    expect(tournament.games[0][0]).toEqual(expect.objectContaining({ team_1_score: 13, team_2_score: 4, winner: 'A' }));
     expect(tournament.games[1][0]).toEqual(
       expect.objectContaining({ team_1_score: 13, team_2_score: 10, winner: 'A' }),
     );
     expect(recalculateStandings).toHaveBeenCalledOnce();
-    expect(persistToFirebase).toHaveBeenCalledOnce();
+    expect(syncHistoricalResultEdit).toHaveBeenCalledWith({ roundIndex: 1, gameIndex: 0 });
   });
 });

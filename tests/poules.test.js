@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getPoulesQualifiedTeams, drawPoulesRound } from '@/services/draw';
+import { POULES_DRAW_ERROR, createPoules, getPoulesQualifiedTeams, drawPoulesRound } from '@/services/draw';
 
 function makeTeam(title) {
   return {
@@ -25,6 +25,35 @@ function makePoules4Teams(teams) {
     preferences: { fieldsStart: 1, maxScore: 13 },
   };
 }
+
+describe('createPoules', () => {
+  it('rejects a stale Poules selection when the team count is no longer valid', () => {
+    const tournament = {
+      teams: Array.from({ length: 9 }, (_, index) => makeTeam(`Team ${index + 1}`)),
+      system: 'poules',
+    };
+    const originalTournament = JSON.parse(JSON.stringify(tournament));
+
+    expect(createPoules(tournament)).toEqual({
+      groups: null,
+      error: POULES_DRAW_ERROR.INVALID_TEAM_COUNT,
+    });
+    expect(tournament).toEqual(originalTournament);
+  });
+
+  it('creates four-team groups when the team count is valid', () => {
+    const tournament = {
+      teams: Array.from({ length: 8 }, (_, index) => makeTeam(`Team ${index + 1}`)),
+      system: 'poules',
+    };
+
+    const result = createPoules(tournament);
+
+    expect(result.error).toBeNull();
+    expect(result.groups).toHaveLength(2);
+    expect(result.groups.every((group) => group.length === 4)).toBe(true);
+  });
+});
 
 describe('getPoulesQualifiedTeams', () => {
   it('qualifies teams with >= 2 wins (includes group winner with 3 wins)', () => {

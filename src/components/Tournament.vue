@@ -1068,7 +1068,15 @@ export default {
           round = drawGroupsRound(this.tournament);
         }
       } else if (this.tournament.system === 'poules') {
-        const { groups } = createPoules(this.tournament);
+        const { groups, error } = createPoules(this.tournament);
+        if (error) {
+          this.showMessage({
+            title: this.$t('messages.cantDraw'),
+            text: this.$t('setup.poulesHint'),
+            type: 'error',
+          });
+          return;
+        }
         this.tournament.groups = groups;
         this.tournament.poulesRound = 1;
         round = drawPoulesRound(this.tournament);

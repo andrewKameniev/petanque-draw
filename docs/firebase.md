@@ -48,6 +48,11 @@ owns granular path writes, match debouncing, subscription merge policies, echo
 suppression, and disposal. Public and TV pages use the read-only profiles in
 `src/services/live-tournament.js`.
 
+Specialized competition listeners treat `null` snapshots for `games`,
+`cadrage`, `playOffBracket`, `tirPlayoff`, and `teamPlayoff` as explicit remote
+deletions while ignoring `undefined`; same-path local write echoes remain
+suppressed.
+
 When a user, tournament, or component lifecycle changes, listeners and pending
 writes must be disposed before the next context becomes active. Permission
 denial for shared data is handled as access revocation, not as an empty record.

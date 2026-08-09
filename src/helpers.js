@@ -63,14 +63,42 @@ function getGameResultInGroup(where, team1, team2, difference) {
   }
 }
 
-function getDoubleEliminationRanking(tournament) {
+function appendRemainingTournamentTeams(tournamentRanking, rankingTeams) {
+  const isNestedGroups = Array.isArray(rankingTeams?.[0]);
+  const flatRanking = isNestedGroups ? rankingTeams.flat() : rankingTeams || [];
+  const rankedTitles = new Set(tournamentRanking.map((team) => team.title));
+  const remainingTeams = flatRanking.filter((team) => !rankedTitles.has(team.title));
+
+  if (isNestedGroups) {
+    remainingTeams.sort(
+      (a, b) =>
+        b.wins - a.wins ||
+        b.buhgolts - a.buhgolts ||
+        b.smallBuhgolts - a.smallBuhgolts ||
+        b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus) ||
+        b.pointsPlus - a.pointsPlus ||
+        b.rating - a.rating,
+    );
+  }
+
+  const rangeStart = tournamentRanking.length + 1;
+  remainingTeams.forEach((team, index) => {
+    tournamentRanking.push({
+      place: rangeStart + index,
+      title: team.title,
+      players: team.players,
+    });
+  });
+}
+
+function getDoubleEliminationRanking(tournament, rankingTeams) {
   const bracket = tournament.playOffBracket;
   const placements = {
     ...getDoubleEliminationPlacements(bracket),
     ...(bracket.placements || {}),
   };
 
-  return Object.entries(placements)
+  const tournamentRanking = Object.entries(placements)
     .map(([title, place]) => ({
       place: String(place),
       title,
@@ -81,6 +109,9 @@ function getDoubleEliminationRanking(tournament) {
       const secondPlace = Number.parseInt(second.place.split('-')[0], 10);
       return firstPlace - secondPlace;
     });
+
+  if (tournament.games?.length > 0) appendRemainingTournamentTeams(tournamentRanking, rankingTeams);
+  return tournamentRanking;
 }
 
 function getTournamentRanking(tournament, rankingTeams) {
@@ -89,7 +120,7 @@ function getTournamentRanking(tournament, rankingTeams) {
     const isDoubleElimination =
       tournament.playOffBracket.format === 'double' ||
       tournament.playOffBracket.stages?.some((stage) => stage.bracket === 'lower');
-    if (isDoubleElimination) return getDoubleEliminationRanking(tournament);
+    if (isDoubleElimination) return getDoubleEliminationRanking(tournament, rankingTeams);
 
     const playOffList = JSON.parse(JSON.stringify(tournament.playOffBracket.stages)).reverse();
     const thirdPlaceGame = tournament.playOffBracket.thirdPlace
@@ -186,28 +217,7 @@ function getTournamentRanking(tournament, rankingTeams) {
     }
 
     if (tournament.games?.length > 0) {
-      const isNestedGroups = Array.isArray(rankingTeams?.[0]);
-      const flatRanking = isNestedGroups ? rankingTeams.flat() : rankingTeams;
-      const remainingTeams = flatRanking.filter((team) => !teamsInRanking.includes(team.title));
-      if (isNestedGroups) {
-        remainingTeams.sort(
-          (a, b) =>
-            b.wins - a.wins ||
-            b.buhgolts - a.buhgolts ||
-            b.smallBuhgolts - a.smallBuhgolts ||
-            b.pointsPlus - b.pointsMinus - (a.pointsPlus - a.pointsMinus) ||
-            b.pointsPlus - a.pointsPlus ||
-            b.rating - a.rating,
-        );
-      }
-      const rangeStart = teamsInRanking.length + 1;
-      remainingTeams.forEach((team, index) => {
-        tournamentRanking.push({
-          place: rangeStart + index,
-          title: team.title,
-          players: team.players,
-        });
-      });
+      appendRemainingTournamentTeams(tournamentRanking, rankingTeams);
     }
   } else {
     const isNested = Array.isArray(rankingTeams?.[0]);

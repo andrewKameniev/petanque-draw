@@ -141,6 +141,10 @@ Ensures top seeds are distributed so they meet latest possible:
 - 8 teams: swap positions [2↔4] and [3↔5]
 - 16/32/64/128 teams: predefined position arrays
 
+## Final Rankings After Playoff
+
+`getTournamentRanking()` combines playoff results with the preceding qualification ranking. Playoff participants receive their bracket-derived places first; teams that did not qualify continue from the next place in qualification order. The ranking table and protocol use this same result.
+
 ---
 
 ## Cadrage Game Building (buildCadrageGames)

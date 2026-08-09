@@ -346,6 +346,23 @@ describe('getTournamentRanking', () => {
     expect(result.every((team) => !String(team.place).includes('NaN'))).toBe(true);
   });
 
+  it('keeps non-playoff teams after double-elimination placements in qualification order', () => {
+    const teams = Array.from({ length: 10 }, (_, index) => makeTeam(`T${index + 1}`, 10 - index));
+    const bracket = buildDoubleEliminationBracket(teams.slice(0, 8));
+    const finish = (matchId) => recordDoubleEliminationResult(bracket, matchId, 13, 7);
+
+    ['U1M1', 'U1M2', 'U1M3', 'U1M4', 'U2M1', 'U2M2', 'L1M1', 'L1M2'].forEach(finish);
+    ['L2M1', 'L2M2', 'U3M1', 'L3M1', 'L4M1', 'GF1'].forEach(finish);
+
+    const result = getTournamentRanking({ system: 'swiss', teams, games: [[]], playOffBracket: bracket }, teams);
+
+    expect(result).toHaveLength(10);
+    expect(result.slice(-2).map(({ place, title }) => ({ place, title }))).toEqual([
+      { place: 9, title: 'T9' },
+      { place: 10, title: 'T10' },
+    ]);
+  });
+
   it('cadrage losers get shared range place, remaining teams get individual places', () => {
     const teams = [
       makeTeam('T1', 4),

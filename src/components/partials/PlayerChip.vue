@@ -5,7 +5,14 @@
     :href="player.id ? 'https://portal.petanque.org.ua/player/' + player.id : undefined"
     :target="player.id ? '_blank' : undefined"
   >
-    <img v-if="player.avatar_url" :src="player.avatar_url" class="player-chip__avatar" alt="" />
+    <img
+      v-if="player.avatar_url"
+      :src="player.avatar_url"
+      class="player-chip__avatar"
+      alt=""
+      loading="lazy"
+      decoding="async"
+    />
     <UserCircle v-else :size="30" class="player-chip__avatar-placeholder" />
     <div class="player-chip__info">
       <span class="player-chip__name">{{ player.surname }} {{ player.name }}</span>

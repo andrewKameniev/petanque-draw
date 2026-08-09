@@ -707,7 +707,8 @@ describe('Archived protocol integration', () => {
 
     expect(TirPublicView.props.protocolAvailable.default).toBe(false);
     expect(TirPublicView.props.protocolTournamentMeta.default).toBe(null);
-    expect(TirPublicView.components.TirProtocol.name).toBe('TirProtocol');
+    expect(TirPublicView.components.TirProtocol.__asyncLoader).toEqual(expect.any(Function));
+    expect((await TirPublicView.components.TirProtocol.__asyncLoader()).name).toBe('TirProtocol');
   });
 
   it('uses archived metadata in the TIR protocol and supports the archive gate controls', () => {

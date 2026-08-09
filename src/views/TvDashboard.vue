@@ -48,10 +48,10 @@
 
       <div class="tv__sponsors-strip">
         <div class="tv__marquee">
-          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-          <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+          <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
         </div>
       </div>
 
@@ -463,10 +463,10 @@
     <!-- Sponsors marquee (full width) -->
     <footer class="tv__footer">
       <div class="tv__marquee">
-        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
-        <img src="../assets/img/tv-sponsors.png" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
+        <img src="../assets/img/tv-sponsors.jpg" alt="" class="tv__marquee-img" />
       </div>
     </footer>
   </div>

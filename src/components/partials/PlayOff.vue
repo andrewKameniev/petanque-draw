@@ -131,8 +131,7 @@
   </div>
 </template>
 <script>
-import Bracket from './Bracket';
-import DoubleElimination from './DoubleElimination.vue';
+import { defineAsyncComponent } from 'vue';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, shuffleArray, updateScoreHistory } from '@/helpers';
@@ -142,6 +141,9 @@ import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
 import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
+
+const Bracket = defineAsyncComponent(() => import('./Bracket.vue'));
+const DoubleElimination = defineAsyncComponent(() => import('./DoubleElimination.vue'));
 
 export default {
   name: 'PlayOff',

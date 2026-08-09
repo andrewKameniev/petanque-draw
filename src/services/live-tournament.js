@@ -32,16 +32,14 @@ export const PUBLIC_FIELDS = Object.freeze([
   'tirPlayoff',
   'tirRound',
   'tirR2Participants',
-  'tirTiebreakerActive',
   'tirTiebreakerCount',
-  'tirTiebreakerParticipantIds',
   'tirConfig',
   'tirStarted',
   'streamPresets',
 ]);
 
 export const TV_FIELDS = Object.freeze([...SHARED_COMPETITION_FIELDS, 'groupSchedule']);
-export const WRAPPER_FIELDS = Object.freeze(['name', 'activeGroup', 'tournamentMessage']);
+export const WRAPPER_FIELDS = Object.freeze(['name', 'tournamentMessage']);
 
 export const LIVE_TOURNAMENT_PROFILES = Object.freeze({
   public: Object.freeze({
@@ -53,7 +51,7 @@ export const LIVE_TOURNAMENT_PROFILES = Object.freeze({
   tv: Object.freeze({
     name: 'tv',
     fields: TV_FIELDS,
-    rootFields: Object.freeze(['name', 'tournamentMessage']),
+    rootFields: WRAPPER_FIELDS,
     includeGroupB: false,
   }),
 });

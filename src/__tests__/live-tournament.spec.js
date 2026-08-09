@@ -97,29 +97,47 @@ describe('live tournament profiles and paths', () => {
     expect(new Set(TV_FIELDS).size).toBe(TV_FIELDS.length);
     expect(new Set(WRAPPER_FIELDS).size).toBe(WRAPPER_FIELDS.length);
 
-    expect(PUBLIC_FIELDS).toEqual(
-      expect.arrayContaining([
-        'games',
-        'roundTimer',
-        'playOffBracket',
-        'teamPlayoff',
-        'roundRobinCircle',
-        'tirParticipants',
-        'tirPlayoff',
-        'tirRound',
-        'tirStarted',
-        'streamPresets',
-      ]),
-    );
+    expect(PUBLIC_FIELDS).toEqual([
+      'games',
+      'roundIsActive',
+      'roundTimer',
+      'playOff',
+      'playOffBracket',
+      'playOffStage',
+      'cadrage',
+      'barrage',
+      'tournamentIsFinished',
+      'tournamentIsStarted',
+      'teams',
+      'preferences',
+      'groups',
+      'system',
+      'teamPlayoff',
+      'roundRobinCircle',
+      'groupSchedule',
+      'tirParticipants',
+      'tirPlayoff',
+      'tirRound',
+      'tirR2Participants',
+      'tirTiebreakerCount',
+      'tirConfig',
+      'tirStarted',
+      'streamPresets',
+    ]);
     expect(TV_FIELDS).toEqual(expect.arrayContaining(['games', 'roundTimer', 'teams', 'groups', 'groupSchedule']));
-    expect(WRAPPER_FIELDS).toEqual(expect.arrayContaining(['name', 'activeGroup', 'tournamentMessage']));
+    expect(WRAPPER_FIELDS).toEqual(['name', 'tournamentMessage']);
   });
 
   it('builds wrapper Public paths without duplicate Group B child subscriptions', () => {
     const plan = buildTournamentSubscriptionPlan(normalizeTournamentRecord(wrapperRecord), 'public');
     const paths = plan.map(({ path }) => path);
 
-    expect(paths).toEqual(expect.arrayContaining(['activeGroup', 'tournamentMessage', 'main/games', 'tournamentB']));
+    expect(paths).toEqual(
+      expect.arrayContaining(['name', 'tournamentMessage', 'main/games', 'main/tirTiebreakerCount', 'tournamentB']),
+    );
+    for (const omittedPath of ['activeGroup', 'main/tirTiebreakerActive', 'main/tirTiebreakerParticipantIds']) {
+      expect(paths).not.toContain(omittedPath);
+    }
     expect(paths.some((path) => path.startsWith('tournamentB/'))).toBe(false);
     expect(new Set(paths).size).toBe(paths.length);
   });
@@ -133,6 +151,9 @@ describe('live tournament profiles and paths', () => {
     );
 
     expect(legacyPaths).toEqual(expect.arrayContaining(['games', 'tournamentMessage', 'groupB']));
+    for (const omittedPath of ['activeGroup', 'tirTiebreakerActive', 'tirTiebreakerParticipantIds']) {
+      expect(legacyPaths).not.toContain(omittedPath);
+    }
     expect(tvPaths).toEqual(expect.arrayContaining(['name', 'tournamentMessage', 'main/games', 'main/groupSchedule']));
     expect(tvPaths).not.toContain('activeGroup');
     expect(tvPaths).not.toContain('tournamentB');
@@ -255,6 +276,9 @@ describe('live tournament source states and lifecycle', () => {
 
     callbacks.get('name')(snapshot('Renamed Cup'));
     expect(source.getState().record.name).toBe('Renamed Cup');
+
+    callbacks.get('main/tirTiebreakerCount')(snapshot(2));
+    expect(source.getState().record.main.tirTiebreakerCount).toBe(2);
 
     callbacks.get('tournamentB')(snapshot({ teams: [{ title: 'B Team' }], preferences: {} }));
     expect(source.getState().record.tournamentB.teams[0].title).toBe('B Team');

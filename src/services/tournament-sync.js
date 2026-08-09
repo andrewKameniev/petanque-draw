@@ -88,6 +88,10 @@ function mergeMatchCollection(localMatches, remoteMatches, keyForIndex, recentSy
 }
 
 export function mergeGames(local, remote, { prefix = '', recentSyncs = new Set() } = {}) {
+  if (remote.games === null) {
+    local.games = null;
+    return;
+  }
   if (!remote.games || !local.games) return;
   const activeRound = local.games.length - 1;
   mergeMatchCollection(
@@ -99,12 +103,20 @@ export function mergeGames(local, remote, { prefix = '', recentSyncs = new Set()
 }
 
 export function mergeCadrage(local, remote, { prefix = '', recentSyncs = new Set() } = {}) {
+  if (remote.cadrage === null) {
+    local.cadrage = null;
+    return;
+  }
   mergeMatchCollection(local.cadrage, remote.cadrage, (index) => `${prefix}cadrage:${index}`, recentSyncs);
 }
 
 export function mergeBracketPlayoff(local, remote, { prefix = '', recentSyncs = new Set() } = {}) {
   const localBracket = local.playOffBracket;
   const remoteBracket = remote.playOffBracket;
+  if (remoteBracket === null) {
+    local.playOffBracket = null;
+    return;
+  }
   if (!remoteBracket || !localBracket) return;
 
   if (remoteBracket.stages && localBracket.stages) {
@@ -135,7 +147,8 @@ export function mergeBracketPlayoff(local, remote, { prefix = '', recentSyncs = 
 }
 
 function mergePlayoff(localPlayoff, remotePlayoff, namespace, recentSyncs) {
-  if (!remotePlayoff || !localPlayoff) return;
+  if (remotePlayoff === undefined) return localPlayoff;
+  if (remotePlayoff === null || !localPlayoff) return remotePlayoff;
   if (remotePlayoff.rounds) {
     if (!localPlayoff.rounds) localPlayoff.rounds = remotePlayoff.rounds;
     else {
@@ -163,14 +176,19 @@ function mergePlayoff(localPlayoff, remotePlayoff, namespace, recentSyncs) {
   });
   if (remotePlayoff.qualified) localPlayoff.qualified = remotePlayoff.qualified;
   if (remotePlayoff.size) localPlayoff.size = remotePlayoff.size;
+  return localPlayoff;
 }
 
 export function mergeTeamPlayoff(local, remote, { prefix = '', recentSyncs = new Set() } = {}) {
-  mergePlayoff(local.teamPlayoff, remote.teamPlayoff, `${prefix}teamPlayoff`, recentSyncs);
+  if (remote.teamPlayoff !== undefined) {
+    local.teamPlayoff = mergePlayoff(local.teamPlayoff, remote.teamPlayoff, `${prefix}teamPlayoff`, recentSyncs);
+  }
 }
 
 export function mergeTirPlayoff(local, remote, { prefix = '', recentSyncs = new Set() } = {}) {
-  mergePlayoff(local.tirPlayoff, remote.tirPlayoff, `${prefix}tirPlayoff`, recentSyncs);
+  if (remote.tirPlayoff !== undefined) {
+    local.tirPlayoff = mergePlayoff(local.tirPlayoff, remote.tirPlayoff, `${prefix}tirPlayoff`, recentSyncs);
+  }
 }
 
 function shouldKeepLocalTimer(localTimer, remoteTimer, now) {
@@ -300,24 +318,25 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
   function applyCompetitionValue(path, value, localCompetition) {
     if (!localCompetition || value === undefined) return;
     if (path === 'games') {
-      if (value && localCompetition.games && localCompetition.roundIsActive) {
+      if (value === null || (value && localCompetition.games && localCompetition.roundIsActive)) {
         mergeGames(localCompetition, { games: value }, mergeOptions());
       }
       return;
     }
     if (path === 'cadrage') {
-      if (value && localCompetition.cadrage) mergeCadrage(localCompetition, { cadrage: value }, mergeOptions());
+      if (value === null || (value && localCompetition.cadrage)) {
+        mergeCadrage(localCompetition, { cadrage: value }, mergeOptions());
+      }
       return;
     }
     if (path === 'playOffBracket') {
-      if (value && localCompetition.playOffBracket) {
+      if (value === null || (value && localCompetition.playOffBracket)) {
         mergeBracketPlayoff(localCompetition, { playOffBracket: value }, mergeOptions());
       }
       return;
     }
     if (path === 'tirPlayoff' || path === 'teamPlayoff') {
-      if (!localCompetition[path]) localCompetition[path] = value;
-      else if (path === 'tirPlayoff') mergeTirPlayoff(localCompetition, { [path]: value }, mergeOptions());
+      if (path === 'tirPlayoff') mergeTirPlayoff(localCompetition, { [path]: value }, mergeOptions());
       else mergeTeamPlayoff(localCompetition, { [path]: value }, mergeOptions());
       return;
     }

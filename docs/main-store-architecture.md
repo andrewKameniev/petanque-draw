@@ -1,65 +1,58 @@
 # Main Store Architecture
 
-`useMainStore` remains the application-facing façade. Components keep the same state, getter, and action names while implementation responsibilities live in focused modules.
+`useMainStore` is the reactive application façade. Components may retain its
+public getters and actions, while focused services own reusable domain and
+runtime behavior.
 
-## Public state and getters
+## Stable public surface
 
-| API                                                                                                                                | Owner/domain                                           | Production consumers                                                                                           |
-| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `tournaments`, `currentTournamentIndex`                                                                                            | Active tournament selection                            | `Draw`, `Navbar`, `Tournament`, `Games`, `TeamsList`, `Results`, `Preferences`, `PlayOff`, `Cadrage`, `QrCode` |
-| `user`, `isAdmin`                                                                                                                  | Authentication/access                                  | App bootstrap, `Draw`, `Navbar`, `Menu`, tournament and statistics/training views                              |
-| `userTournamentMap`                                                                                                                | Archive/collaboration                                  | `Draw`, `Navbar`, `Archived`, `CustomRoutes`                                                                   |
-| `savedTournaments`, `savedTournamentIds`                                                                                           | Archive/collaboration                                  | `Archived`, `Tournament`                                                                                       |
-| `message`                                                                                                                          | UI notifications                                       | `Draw`, `Message`, login, statistics, and training views                                                       |
-| `_activePlayoffMatchPath`, `_activeTeamPlayoffMatchPath`, `_activeGameMatchPath`, `_activeBracketMatchPath`, `_activeCadrageIndex` | Runtime edit markers retained for façade compatibility | `Game`, `TeamPlayoff`, `TirModule`; otherwise internal                                                         |
-| `currentTournament`                                                                                                                | Selected persisted record                              | Most tournament editing and presentation components                                                            |
-| `activeTournament`                                                                                                                 | Canonical Group A/B selection                          | `Tournament`, `TeamsList`, `Results`, `Preferences`, `StreamPresets`, `QrCode`, `TirModule`                    |
-| `isNewFormat`                                                                                                                      | Canonical format detection                             | Store/component compatibility checks                                                                           |
-| `currentRole`, `isOwnerOrAdmin`                                                                                                    | Access control                                         | `Tournament`, `Games`, `PlayOff`, `DoubleElimination`, `TeamPlayoff`                                           |
-| `allScoresFilled`                                                                                                                  | Active-round model                                     | `Tournament`, `Games`                                                                                          |
+The main state groups are:
 
-The exact state/getter/action surface is locked by `src/__tests__/main-store-characterization.spec.js`.
+- owned/shared tournaments and the active tournament ID;
+- per-user tournament map and archived tournament collections;
+- Firebase user and derived access roles;
+- UI message state;
+- short-lived active-match edit markers used by synchronization.
 
-## Action inventory
-
-| Domain                        | Façade actions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Production callers                                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Model and Group A/B selection | `_getTarget`, `setActiveGroup`, `initTournamentB`, `removeTournamentB`, `addTournamentBTeams`, `setTournamentBEliminationRound`, `completeTournamentBElimination`, `toggleWithdrawn`, `setTournaments`, `setSavedTournaments`, `addTournament`                                                                                                                                                                                                                                                          | `Tournament`, `Games`, `EliminationRound`, `PlayoffConfirmModal`, `Navbar`, `Menu`; `_getTarget` is internal               |
-| Active editing                | `shuffleLanesStore`, `swapLanesStore`, `saveLanesToTeams`, `addTeamToStore`, `removeTeam`, `clearTeams`, `changeDrawType`, `startRound`, `endRound`, `addRoundToGames`, `restoreRound`, `setPlayOff`, `setCadrage`, `setBarrage`, `setBarrageGames`, `saveCadrageScores`, `setPlayOffBracket`, `setPlayOffStage`, `updateGameScore`, `finishTournament`, `revertFinishTournament`                                                                                                                       | `Tournament`, `Games`, `AddTeam`, `Cadrage`, `Game`, `Results`, `PlayOff`, `DoubleElimination`, `TeamPlayoff`, `TirModule` |
-| Granular writes               | `_syncPath`, `_syncMatchDebounced`, `_doSync`, `syncEliminationGames`, `savePreferences`, `syncStreamPresets`, `syncGameMatch`, `syncCadrageMatch`, `syncBracketMatch`, `syncTeamPlayoffMatch`, `syncTirPlayoffMatch`, `syncGames`, `syncTeams`, `syncGamesAndTeams`, `syncTeamPlayoff`, `syncCadrageFull`, `syncTirParticipants`, `syncTirState`, `syncTirPlayoff`, `syncTournamentMessage`, `syncTirStart`, `syncDrawStart`, `syncRedraw`, `syncPathNull`, `syncTournamentStarted`, `syncPoulesRound` | Tournament editing components listed above; underscore actions are internal façade delegates                               |
-| Subscription and merge        | `subscribeTournament`, `unsubscribeTournament`, `_mergeGames`, `_mergeCadrage`, `_mergeBracketPlayoff`, `_mergeTeamPlayoff`, `_mergeTirPlayoff`, `setActivePlayoffMatchPath`, `setActiveTeamPlayoffMatchPath`, `setActiveGameMatchPath`, `setActiveBracketMatchPath`, `setActiveCadrageIndex`                                                                                                                                                                                                           | `Games`, `TeamPlayoff`, `TirModule`, `Game`; merge actions are internal/test compatibility delegates                       |
-| Timer                         | `startRoundTimer`, `endRoundTimer`, `restartRoundTimer`, `pauseRoundTimer`, `resumeRoundTimer`, `clearRoundTimer`                                                                                                                                                                                                                                                                                                                                                                                       | `Games`, `Cadrage`, `PlayOff`, `Tournament`                                                                                |
-| Tournament/user lifecycle     | `_getTournamentOwnerUid`, `getTournaments`, `setTournamentIdFromPortal`, `setTournamentInfoFromPortal`, `loginUser`, `setActiveTournament`, `changeTournamentName`, `removeTournament`, `saveTournamentData`                                                                                                                                                                                                                                                                                            | App bootstrap, `Draw`, `LoginUser`, `Navbar`, `Menu`, `Tournament`, `AddTeam`, `ChangeTournamentName`, `QrCode`            |
-| Archive                       | `fetchSavedTournaments`, `addToSaved`, `removeSavedTournament`, `renameSavedTournament`, `unarchiveTournament`                                                                                                                                                                                                                                                                                                                                                                                          | `Archived`, `SaveTournament`, `SavedTournamentModal`                                                                       |
-| Collaboration/access          | `addCollaborator`, `removeCollaborator`, `leaveSharedTournament`, `loadSharedTournament`, `_handleAccessRevoked`, `_watchCollaboratorAccess`                                                                                                                                                                                                                                                                                                                                                            | `QrCode`, `Navbar`, `Draw`; underscore actions are synchronization callbacks                                               |
-| Notifications                 | `showMessage`, `hideMessage`                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `Message` and tournament/statistics/training/login views                                                                   |
-
-No façade action was removed. Repository-wide consumer searches and the contract test protect actions that currently have only internal or test callers.
+Important getters expose the current persisted record, normalized active Group
+A/B competition, record-format detection, access role, and score-completion
+state. `src/__tests__/main-store-characterization.spec.js` protects the façade
+contract; search the store and that suite for the current action inventory
+instead of copying it into documentation.
 
 ## Responsibility owners
 
-| Module                                  | Responsibility                                                                                                                 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `src/services/tournament-record.js`     | Pure creation, format detection, normalization, metadata/group selection, and storage targets                                  |
-| `src/services/round-timer.js`           | Pure timer creation, final-round policy, pause/resume/end/restart transitions                                                  |
-| `src/services/tournament-sync.js`       | Serialization, exact Firebase paths, debounced writes, echo prevention, subscriptions, remote merge policies, and sync cleanup |
-| `src/services/archive-collaboration.js` | User-map migration, archive loading/restoration, collaborator mutation, shared loading, access watching, and rollback          |
-| `src/stores/main.js`                    | Reactive façade, active tournament editing, UI notifications, and delegation to the owners above                               |
+| Owner                                   | Responsibility                                                                            |
+| --------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `src/services/tournament-record.js`     | Creation, format detection, normalization, metadata, Group A/B selection, storage targets |
+| `src/services/round-timer.js`           | Pure timer transitions and final-round policy                                             |
+| `src/services/tournament-sync.js`       | Granular writes, debounce, subscriptions, merge policy, echo suppression, cleanup         |
+| `src/services/archive-collaboration.js` | Tournament loading, user maps, archives, collaborators, access watching, rollback         |
+| `src/services/team-replacement.js`      | Validated team replacement across competition structures                                  |
+| `src/stores/main.js`                    | Reactive assignment, editing orchestration, notifications, delegation                     |
 
-Each runtime service is created per Pinia store instance. Neither service contains mutable module-global state.
+Runtime services are created per store instance. Mutable timers, listeners, and
+echo state must not become module-global singletons.
 
-## Runtime lifecycle
+## Lifecycle invariants
 
-- **Active tournament changes:** `setActiveTournament` disposes the previous synchronization subscriptions, access watcher, pending match/message debounces, and echo markers before selecting the next ID.
-- **User logout or user switch:** `loginUser` performs the same cleanup, then clears tournaments, maps, archives, selection, and admin state before installing the next identity.
-- **Shared access revocation:** a missing collaborator node or permission error disposes synchronization, removes only the local/shared map entry, and emits one guarded error notification. It never removes the owner's tournament node.
-- **Component unmount:** `unsubscribeTournament` deterministically releases every registered listener and pending debounce. Calls are idempotent.
-- **Network reconnect:** Firebase `onValue` listeners remain the authority. Initial/replayed values pass through the same per-path echo checks and explicit merge policies as live values.
-- **Pending debounce during a switch:** the synchronization runtime captures the original owner, tournament, user, and lifecycle generation. Cleanup cancels the timer; a stale callback that still runs fails the generation check and cannot write into the next tournament.
-- **Archive/collaboration multi-write failures:** local reactive state changes only after required writes succeed. Owner archive/restore status and collaborator creation use best-effort rollback when a later dependent write fails.
+- Changing the active tournament disposes old subscriptions, access watchers,
+  pending debounces, and echo markers before selecting the next record.
+- Logout or user switch performs the same cleanup before clearing state.
+- Component unmount may call cleanup repeatedly; disposal remains idempotent.
+- A delayed callback captures owner, tournament, user, and generation so it
+  cannot write into a later selection.
+- Shared permission loss removes only the local/shared reference and never
+  deletes the owner's tournament.
+- Archive and collaborator multi-path operations update local state only after
+  required remote writes and attempt bounded rollback on partial failure.
+- Record normalization stays pure; the store owns the explicit assignment into
+  Pinia reactivity.
 
-`_roundActivatedAt` remains a short-lived active-editing timestamp used only to reject a stale remote round-close event. The `_active*` edit markers remain declared Pinia state for API compatibility.
+## Change workflow
 
-## Verification matrix
-
-Before extraction, the focused characterization matrix passed 78 tests and the full suite passed 726 tests. After extraction, the same focused suites plus the pure service suites pass 106 tests; the full suite passes 764 tests. The required Playwright matrix passes 36 scenarios with one intentional skip; the archive/legacy matrix passes all five scenarios.
+Before changing the façade, map production consumers and add characterization
+coverage for any unprotected public behavior. Extract pure logic first, retain a
+compatibility delegate while consumers migrate, and remove it only after a
+repository-wide search proves there are no callers. Update this document when
+responsibility or lifecycle ownership changes, not for every new façade action.

@@ -1,7 +1,7 @@
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, remove, set } from 'firebase/database';
-import { TEST_EMAIL, TEST_PASSWORD } from './helpers.js';
+import { assertRemoteE2EAllowed, TEST_EMAIL, TEST_PASSWORD } from './helpers.js';
 import { encodeTournamentRef } from '../src/services/tournament-ref.js';
 
 const firebaseConfig = {
@@ -14,8 +14,8 @@ const firebaseConfig = {
   appId: '1:774303828599:web:78c14845b68be7fd4e5472',
 };
 
-const SHARED_OWNER_EMAIL = 'e2e-owner-petanque@mailinator.com';
-const SHARED_OWNER_PASSWORD = 'TestPass123!';
+const SHARED_OWNER_EMAIL = process.env.E2E_SHARED_OWNER_EMAIL;
+const SHARED_OWNER_PASSWORD = process.env.E2E_SHARED_OWNER_PASSWORD;
 const TASK03_OWNED_FIXTURE_NAMES = new Set([
   'Adapter Wrapper Cup',
   'Adapter Legacy Cup',
@@ -26,7 +26,25 @@ const TASK03_OWNED_FIXTURE_NAMES = new Set([
 
 const clients = new Map();
 
+function getSharedOwnerCredentials() {
+  const missing = [
+    !SHARED_OWNER_EMAIL && 'E2E_SHARED_OWNER_EMAIL',
+    !SHARED_OWNER_PASSWORD && 'E2E_SHARED_OWNER_PASSWORD',
+  ].filter(Boolean);
+  if (missing.length) {
+    throw new Error(`Shared Firebase fixtures require environment variable(s): ${missing.join(', ')}`);
+  }
+  return { email: SHARED_OWNER_EMAIL, password: SHARED_OWNER_PASSWORD };
+}
+
 async function getClient(name, email, password, { create = false } = {}) {
+  assertRemoteE2EAllowed(`Firebase fixture client "${name}"`);
+  if (!email || !password) {
+    throw new Error(
+      `Firebase fixture client "${name}" is missing credentials. ` +
+        'Set the documented E2E environment variables; no default account is available.',
+    );
+  }
   if (clients.has(name)) return clients.get(name);
   const app = getApps().some((candidate) => candidate.name === name)
     ? getApp(name)
@@ -65,8 +83,11 @@ export async function seedOwnedTournament(tournamentId, record, { status = 'acti
 }
 
 export async function seedSharedTournament(tournamentId, record) {
+  const ownerCredentials = getSharedOwnerCredentials();
   const viewer = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', ownerCredentials.email, ownerCredentials.password, {
+    create: true,
+  });
   const sharedRecord = {
     ...record,
     collaborators: {
@@ -96,7 +117,10 @@ export async function updateOwnedTournamentPath(tournamentId, path, value) {
 }
 
 export async function readSharedTournament(ownerUid, tournamentId) {
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const ownerCredentials = getSharedOwnerCredentials();
+  const owner = await getClient('task03-e2e-owner', ownerCredentials.email, ownerCredentials.password, {
+    create: true,
+  });
   if (owner.uid !== ownerUid) throw new Error('Unexpected shared fixture owner');
   return (await get(ref(owner.db, `${ownerUid}/tournaments/${tournamentId}`))).val();
 }
@@ -117,8 +141,11 @@ export async function cleanupOwnedTournament(tournamentId) {
 }
 
 export async function cleanupSharedTournament(ownerUid, tournamentId) {
+  const ownerCredentials = getSharedOwnerCredentials();
   const viewer = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', ownerCredentials.email, ownerCredentials.password, {
+    create: true,
+  });
   if (owner.uid !== ownerUid) throw new Error('Unexpected shared fixture owner');
   await Promise.all([
     remove(ref(owner.db, `${ownerUid}/tournaments/${tournamentId}`)),
@@ -128,6 +155,7 @@ export async function cleanupSharedTournament(ownerUid, tournamentId) {
 }
 
 export async function cleanupTask03Fixtures() {
+  const ownerCredentials = getSharedOwnerCredentials();
   const viewer = await getClient('task03-e2e-main', TEST_EMAIL, TEST_PASSWORD);
   const ownedSnapshot = await get(ref(viewer.db, `${viewer.uid}/tournaments`));
   const ownedIds = Object.entries(ownedSnapshot.val() || {})
@@ -135,7 +163,9 @@ export async function cleanupTask03Fixtures() {
     .map(([id]) => id);
   await Promise.all(ownedIds.map((id) => cleanupOwnedTournament(id)));
 
-  const owner = await getClient('task03-e2e-owner', SHARED_OWNER_EMAIL, SHARED_OWNER_PASSWORD, { create: true });
+  const owner = await getClient('task03-e2e-owner', ownerCredentials.email, ownerCredentials.password, {
+    create: true,
+  });
   const sharedSnapshot = await get(ref(owner.db, `${owner.uid}/tournaments`));
   const sharedIds = Object.entries(sharedSnapshot.val() || {})
     .filter(([, record]) => record.name === 'Shared Adapter Cup')

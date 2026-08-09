@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { TEST_EMAIL, TEST_PASSWORD } from './helpers';
+import { assertRemoteE2EAllowed, TEST_EMAIL, TEST_PASSWORD } from './helpers';
 
 test.describe('Authentication', () => {
+  test.beforeAll(() => assertRemoteE2EAllowed('Authentication E2E'));
+
   test('register a new user', async ({ page }) => {
     await page.goto('/#/');
     const toggleLink = page.locator('[data-testid="link-toggle-auth"]');

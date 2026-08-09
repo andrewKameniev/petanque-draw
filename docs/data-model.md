@@ -1,5 +1,8 @@
 # Data Model
 
+This document owns persisted application shapes and compatibility behavior.
+Firebase path ownership and access rules live in [Firebase](./firebase.md).
+
 ## Persisted Tournament Record Shapes
 
 Firebase contains two supported shapes. Both remain readable and writable; the
@@ -213,7 +216,7 @@ move, or rewrite any Firebase tournament path.
 ```javascript
 {
   id: 1,
-  stage: 8,                     // Stage value (8=quarterfinal, 4=semi, 2=final, 1=final)
+  stage: 4,                     // Denominator: 4=quarterfinal, 2=semifinal, 1=final
   team_1: "Kovalenko",
   team_1_place: 1,
   team_1_score: null,
@@ -229,7 +232,7 @@ move, or rewrite any Firebase tournament path.
 {
   stages: [
     {
-      stageLabel: 4,            // 4=quarterfinal, 2=semifinal, 1=final
+      stageLabel: 4,            // Denominator: 4=quarterfinal, 2=semifinal, 1=final
       teamsCount: 8,            // Total teams in this stage
       teams: [Game, ...]        // Games in this stage
     },
@@ -246,17 +249,21 @@ move, or rewrite any Firebase tournament path.
 ```
 {uid}/
   tournaments/
-    {tournamentId}: TournamentRecord // Max 10 active tournaments
+    {tournamentId}: TournamentRecord // Authoritative active or archived record
   saved/
-    {tournamentId}: Tournament    // Archived (no limit)
+    {tournamentId}: TournamentRecord // Legacy archive migration source
   stats/
     tags: { [tagId]: { name, color } }
     {gameKey}: StatGame
+  statPlayerIdentities/
+    {portalPlayerId}: PlayerIdentity
   training/
     list/
       {exerciseId}: Exercise
     {exerciseId}/
       {dateISO}: TrainingResult
+    sessions/
+      {sessionId}: TrainingSession
   arbiterRegistry/
     updatedAt: number
     source: string
@@ -264,11 +271,19 @@ move, or rewrite any Firebase tournament path.
   arbiterPresets/
     {presetId}: { name, createdAt, arbiters: [{ name, role, category, certificate, region }] }
 
+users/
+  {uid}/tournaments/{tournamentId}: UserTournamentReference
+archive/
+  {tournamentId}: PublicArchiveIndexEntry
+backups/
+  {tournamentId}: WriteOnceArchiveBackup
 tokens/
-  {uid}/{tournamentId}: {         // For public link sharing
-    share_token: string
-  }
+  {uid}/{tournamentId}: NotificationTokens
+customRoutes/
+  {slug}: TournamentReference
 ```
+
+See [Firebase](./firebase.md) for current path owners and archive behavior.
 
 ## TIR Participant Object
 
@@ -289,9 +304,9 @@ tokens/
 
 ```javascript
 {
-  size: 4,                      // Bracket size (power of 2)
+  size: 5,                      // Qualified-player count; may be non-power-of-two
   qualified: ["Name", ...],     // Names of qualified players
-  rounds: [{ matches: [TirMatch, ...] }],
+  rounds: [{ matches: [TirMatch, ...] }], // Internal bracket is padded with byes
   thirdPlace: TirMatch | null,
   final: TirMatch | null
 }
@@ -342,4 +357,7 @@ which triggers Vue reactivity. This is the designed boundary between the pure
 domain layer and the reactive application layer — the adapter guarantees
 immutability, and the store owns the single point of reactive assignment.
 
-For TIR module, scoring components call `this.$emit('update')` which bubbles up to `TirModule.vue` where `onScoreUpdate()` calls `syncToFirebase()`.
+TIR scoring components emit replacement participant or match values. The parent
+owns reactive assignment and delegates persistence through granular store
+actions such as `syncTirParticipants`, `syncTirState`, and
+`syncTirPlayoffMatch`; leaf components do not persist records directly.

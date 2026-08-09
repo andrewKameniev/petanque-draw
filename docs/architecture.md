@@ -27,6 +27,7 @@ Exact versions and executable commands are owned by `package.json`.
 | Tournament compatibility | `src/services/tournament-record.js`            | Envelope/legacy normalization and storage targets                        |
 | Public live data         | `src/services/live-tournament.js`              | Public/TV loading profiles and subscription lifecycle                    |
 | Public projection        | `src/services/public-tournament-projection.js` | V1 derivation, validation, atomic dual writes, and rollout fallback      |
+| Projection backfill      | `src/services/public-tournament-backfill.js`   | Idempotent planning, conditional writes, verification, and rollback      |
 | Presentation selectors   | `src/services/tournament-presentation.js`      | Shared phase, status, round, and metadata selectors                      |
 | Design tokens            | `src/assets/css/variables.css`                 | Primitive and semantic colors shared by feature CSS                      |
 | Localization             | `src/locales/`, `src/i18n.js`                  | User-facing strings and lazy locale modules                              |

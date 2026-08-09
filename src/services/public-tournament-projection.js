@@ -4,7 +4,7 @@ import {
   hasTournamentGroup,
   isTournamentEnvelope,
   normalizeTournamentRecord,
-} from '@/services/tournament-record';
+} from './tournament-record.js';
 
 export const PUBLIC_TOURNAMENT_PROJECTION_ROOT = 'publicTournaments';
 export const PUBLIC_TOURNAMENT_PROJECTION_VERSION = 1;

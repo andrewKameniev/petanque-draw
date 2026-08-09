@@ -2054,10 +2054,6 @@ export default {
     gap: 1rem;
   }
 
-  .archived-content {
-    max-width: 900px;
-  }
-
   .archived-sidebar {
     display: flex;
     flex-direction: column;

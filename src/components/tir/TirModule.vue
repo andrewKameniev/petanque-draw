@@ -196,12 +196,6 @@
         @finish="finishPlayoffTournament"
         @export="exportResults"
       />
-
-      <TirProtocol
-        v-if="view === 'protocol'"
-        :tournament="tournament"
-        :tournament-meta="tournamentMeta || currentTournament"
-      />
     </div>
   </div>
 </template>
@@ -214,9 +208,8 @@ import TirParticipantsList from './TirParticipantsList.vue';
 import TirScoringWorkspace from './TirScoringWorkspace.vue';
 import TirRoundTable from './TirRoundTable.vue';
 import TirPlayoffAdmin from './TirPlayoffAdmin.vue';
-import TirProtocol from './TirProtocol.vue';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
-import { Users, Grid3x3, TableProperties, Plus, Trophy, FileText } from 'lucide-vue-next';
+import { Users, Grid3x3, TableProperties, Plus, Trophy } from 'lucide-vue-next';
 
 import {
   SCORING,
@@ -249,7 +242,6 @@ export default {
     TirScoringWorkspace,
     TirRoundTable,
     TirPlayoffAdmin,
-    TirProtocol,
     TournamentNav,
     Plus,
   },
@@ -304,9 +296,6 @@ export default {
       ];
       if (this.tournament.tirPlayoff) {
         tabs.push({ id: 'playoff', label: this.$t('games.playOff'), icon: Trophy });
-      }
-      if (this.tournament.tournamentIsFinished) {
-        tabs.push({ id: 'protocol', label: this.$t('teams.protocol'), icon: FileText });
       }
       return tabs;
     },

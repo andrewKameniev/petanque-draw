@@ -1,5 +1,5 @@
 <template>
-  <div class="container protocol-container">
+  <div class="container protocol-container standard-protocol-container">
     <ProtocolGate
       v-if="!skipGate && password !== 499"
       v-model:password="password"
@@ -22,10 +22,7 @@
       />
       <div id="protocol" class="mb-3" @input="saveProtocolToStorage">
         <div class="protocol-page">
-          <h2 class="text-center is-size-3 mb-2">
-            Підсумковий протокол <br />
-            {{ tournamentName }}
-          </h2>
+          <h2 class="text-center is-size-3 mb-2">Підсумковий протокол {{ tournamentName }}</h2>
           <table class="table is-bordered protocol-info-table">
             <tbody>
               <tr>
@@ -82,18 +79,17 @@
               </tr>
             </tbody>
           </table>
-          <br />
           <h3 class="text-center is-size-4 mb-2">Учасники та результати</h3>
-          <table v-if="participantChunks.length" class="table is-bordered">
+          <table v-if="participantChunks.length" class="table is-bordered protocol-participants-table">
             <thead>
               <tr class="has-text-centered">
-                <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
+                <th>№ <span style="white-space: nowrap">з/п</span></th>
                 <th>ПІП</th>
-                <th style="width: 16%">Регіон</th>
-                <th style="width: 18%">Тренер(и)</th>
-                <th style="width: 10%">Спортивний розряд/звання</th>
+                <th>Регіон</th>
+                <th>Тренер(и)</th>
+                <th>Спортивний розряд/звання</th>
                 <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
-                <th style="width: 7%">Загальне підсумкове місце</th>
+                <th>Загальне підсумкове місце</th>
               </tr>
             </thead>
             <tbody v-for="(team, index) in participantChunks[0]" :key="index" class="team-group">
@@ -169,16 +165,16 @@
           </table>
         </div>
         <div v-for="(chunk, ci) in participantChunks.slice(1)" :key="'pc' + ci" class="pdf-page-break">
-          <table class="table is-bordered">
+          <table class="table is-bordered protocol-participants-table">
             <thead>
               <tr class="has-text-centered">
-                <th style="width: 30px">№ <span style="white-space: nowrap">з/п</span></th>
+                <th>№ <span style="white-space: nowrap">з/п</span></th>
                 <th>ПІП</th>
-                <th style="width: 16%">Регіон</th>
-                <th style="width: 18%">Тренер(и)</th>
-                <th style="width: 10%">Спортивний розряд/звання</th>
+                <th>Регіон</th>
+                <th>Тренер(и)</th>
+                <th>Спортивний розряд/звання</th>
                 <th v-if="tournament.playOff?.length">Місце після відбіркових ігор</th>
-                <th style="width: 7%">Загальне підсумкове місце</th>
+                <th>Загальне підсумкове місце</th>
               </tr>
             </thead>
             <tbody v-for="(team, index) in chunk" :key="index" class="team-group">
@@ -546,8 +542,8 @@ export default {
       }
       return this.tournament.system === 'swiss' ? this.rankingTeams : getAllTeams(this.rankingTeams);
     },
-    participantChunkSize() {
-      return 28;
+    firstParticipantPageRows() {
+      return 30;
     },
     maxRowsPerPage() {
       return 38;
@@ -560,7 +556,8 @@ export default {
       let rows = 0;
       for (const team of list) {
         const teamRows = team.players?.length > 1 ? team.players.length + 1 : 1;
-        if (chunk.length > 0 && rows + teamRows > this.maxRowsPerPage) {
+        const pageRowLimit = chunks.length === 0 ? this.firstParticipantPageRows : this.maxRowsPerPage;
+        if (chunk.length > 0 && rows + teamRows > pageRowLimit) {
           chunks.push(chunk);
           chunk = [];
           rows = 0;
@@ -684,7 +681,7 @@ export default {
       if (!el) return;
       const titleEl = el.querySelector('h2');
       if (titleEl) {
-        titleEl.innerHTML = `Підсумковий протокол <br>\n${this.tournamentName}`;
+        titleEl.textContent = `Підсумковий протокол ${this.tournamentName}`;
       }
     },
     resetProtocol() {
@@ -1222,51 +1219,52 @@ export default {
   }
 }
 
-#protocol {
+.standard-protocol-container #protocol {
   color: #000;
   font-family: 'Times New Roman', serif;
+  font-size: 9pt;
+  line-height: 1.3333;
   width: 210mm;
   min-width: 210mm;
   margin: 0 auto;
-  counter-reset: protocol-page 1;
 }
 
-#protocol > .protocol-page,
-#protocol .pdf-page-break {
+.standard-protocol-container #protocol > .protocol-page,
+.standard-protocol-container #protocol .pdf-page-break {
   background: #fff;
   border: 1px solid #bbb;
   box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
   box-sizing: border-box;
-  padding: 15mm;
-  padding-bottom: 20mm;
+  width: 210mm;
+  height: 297mm;
   min-height: 297mm;
+  padding: 12.7mm 6.35mm;
   position: relative;
-  counter-increment: protocol-page;
   margin-bottom: 24px;
   break-before: page;
   overflow: hidden;
 }
 
-#protocol > .protocol-page {
+.standard-protocol-container #protocol > .protocol-page {
   break-before: auto;
 }
 
-#protocol > .protocol-page::after,
-#protocol .pdf-page-break::after {
-  content: counter(protocol-page);
-  position: absolute;
-  bottom: 10mm;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10pt;
-  color: #aaa;
-  font-family: Arial, sans-serif;
+.standard-protocol-container #protocol h2,
+.standard-protocol-container #protocol h3,
+.standard-protocol-container #protocol h4 {
+  font-weight: bold;
+  line-height: 1;
+  margin: 6pt 0 8pt !important;
+  break-after: avoid;
 }
 
-#protocol h2,
-#protocol h3 {
-  font-weight: bold;
-  break-after: avoid;
+.standard-protocol-container #protocol h2 {
+  font-size: 14pt !important;
+}
+
+.standard-protocol-container #protocol h3,
+.standard-protocol-container #protocol h4 {
+  font-size: 12pt !important;
 }
 
 #protocol table tr,
@@ -1300,6 +1298,29 @@ export default {
   max-width: none;
 }
 
+.standard-protocol-container #protocol table {
+  width: 196.85mm;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 0 auto 2pt !important;
+  font-size: 8pt;
+  line-height: 1.3125;
+}
+
+.standard-protocol-container #protocol table th,
+.standard-protocol-container #protocol table td {
+  /* quality-allow-color: protocol preview mirrors the generated DOCX export. */
+  border: 0.75pt solid #7f7f7f;
+  padding: 0.75pt 4pt !important;
+  vertical-align: middle;
+  overflow-wrap: break-word;
+}
+
+.standard-protocol-container #protocol table th {
+  /* quality-allow-color: protocol preview mirrors the generated DOCX export. */
+  background: #ededed;
+}
+
 .protocol-info-table {
   width: 100%;
 }
@@ -1314,15 +1335,29 @@ export default {
   min-width: 300px;
 }
 
-#protocol.is-exporting {
+.standard-protocol-container #protocol .protocol-info-table td:first-child,
+.standard-protocol-container #protocol .protocol-info-table td:last-child {
+  width: 50%;
+  min-width: 0;
+  padding-top: 2pt !important;
+  padding-bottom: 2pt !important;
+}
+
+.standard-protocol-container .protocol-participants-table th:first-child {
+  width: 4.48%;
+}
+
+.standard-protocol-container #protocol.is-exporting {
   width: 200mm;
   min-width: 200mm;
 }
 
-#protocol.is-exporting > .protocol-page,
-#protocol.is-exporting .pdf-page-break {
+.standard-protocol-container #protocol.is-exporting > .protocol-page,
+.standard-protocol-container #protocol.is-exporting .pdf-page-break {
   border: none;
   box-shadow: none;
+  width: auto;
+  height: auto;
   min-height: auto;
   padding: 0;
   margin: 0;
@@ -1330,22 +1365,17 @@ export default {
   break-before: auto;
 }
 
-#protocol.is-exporting .pdf-page-break {
+.standard-protocol-container #protocol.is-exporting .pdf-page-break {
   padding-top: 10mm;
 }
 
-#protocol.is-exporting > .protocol-page::after,
-#protocol.is-exporting .pdf-page-break::after {
-  display: none;
-}
-
-#protocol.is-exporting table.is-bordered {
+.standard-protocol-container #protocol.is-exporting table.is-bordered {
   border-collapse: separate;
   border-spacing: 0;
 }
 
-#protocol.is-exporting table.is-bordered td,
-#protocol.is-exporting table.is-bordered th {
+.standard-protocol-container #protocol.is-exporting table.is-bordered td,
+.standard-protocol-container #protocol.is-exporting table.is-bordered th {
   border-top: none;
 }
 </style>

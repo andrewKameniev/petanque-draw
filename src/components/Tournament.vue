@@ -252,17 +252,6 @@
                 {{ $t('teams.saveTournament') }}
               </button>
             </span>
-            <button
-              v-if="
-                (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
-                tournament.tournamentIsFinished &&
-                tournament.teams?.length
-              "
-              class="bottom-actions__btn bottom-actions__btn--gold"
-              @click="showProtocol = !showProtocol"
-            >
-              {{ showProtocol ? $t('common.hide') : $t('common.show') }} {{ $t('teams.protocol') }}
-            </button>
           </div>
         </div>
       </div>
@@ -334,18 +323,6 @@
         removeConfirmId = 1;
       "
     />
-    <Protocol
-      v-if="
-        showProtocol &&
-        (tournamentWrapper.portalIdTournament || tournament.portalIdTournament) &&
-        tournament.tournamentIsFinished &&
-        tournament.system !== 'tir'
-      "
-      @close="showProtocol = false"
-      :tournament="tournament"
-      :tournament-meta="tournamentWrapper"
-      :rankingTeams="rankingTeams"
-    />
   </div>
 </template>
 
@@ -371,7 +348,6 @@ import {
 import { assignPlayoffLanes } from '@/services/results';
 import QrCode from '@/components/partials/QrCode';
 import Preferences from '@/components/partials/Preferences';
-import Protocol from '@/components/partials/Protocol';
 import ConfirmDialog from '@/components/partials/ConfirmDialog';
 import PlayoffConfirmModal from '@/components/partials/PlayoffConfirmModal';
 import SetupCard from '@/components/partials/SetupCard';
@@ -426,7 +402,6 @@ export default {
       showQrCode: false,
       loadingOnServer: false,
       showPreferences: false,
-      showProtocol: false,
       showFinishConfirm: false,
       showRevertFinishConfirm: false,
       setupPlayOff: false,
@@ -1311,7 +1286,6 @@ export default {
     Zap,
     IconSettings,
     IconArchive,
-    Protocol,
     Preferences,
     QrCode,
     ConfirmRemoveModal,
@@ -1445,20 +1419,6 @@ export default {
 .bottom-actions__btn--success:hover {
   background: var(--color-success-hover);
   border-color: var(--color-success-hover);
-}
-
-.bottom-actions__btn--gold {
-  background: var(--color-warning);
-  color: var(--color-btn-text);
-  border-color: var(--color-warning);
-  min-width: 10rem;
-  justify-content: center;
-}
-
-.bottom-actions__btn--gold:hover {
-  background: var(--color-warning-hover);
-  border-color: var(--color-warning-hover);
-  color: var(--color-btn-text);
 }
 
 .bottom-actions__btn--danger {

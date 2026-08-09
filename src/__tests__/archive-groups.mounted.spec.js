@@ -181,6 +181,15 @@ describe('Main and Tournament B archive behavior', () => {
     wrapper.unmount();
   });
 
+  it('keeps protocol access out of a finished active tournament', () => {
+    const wrapper = shallowMount(tournamentHarness(tournamentRecord()), mountOptions());
+
+    expect(wrapper.find('.bottom-actions__tooltip-wrapper').exists()).toBe(true);
+    expect(wrapper.findAll('button').some((button) => button.text().includes('teams.protocol'))).toBe(false);
+
+    wrapper.unmount();
+  });
+
   it('switches archived groups while one logo refresh updates Main and Tournament B', async () => {
     const record = tournamentRecord();
     serviceMocks.syncFromPortal.mockImplementation(async (_portalId, { teams }) => {

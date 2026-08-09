@@ -146,7 +146,7 @@ Clicking a match card opens `TirPlayoffComparison` — a detailed side-by-side v
 
 ## Final Protocol
 
-After a TIR tournament is finished, the final protocol appears as another tab in the native TIR navigation. The same native tab remains available in the archived tournament view.
+After a TIR tournament is finished and archived, its final protocol is available from the protocol tab in the archived tournament view. The active tournament navigation does not expose a protocol tab; Archive is the single protocol access path.
 
 The editable protocol includes tournament metadata, round-one and optional round-two scores, qualification and final places, playoff matches, judges, and signature rows. Its participant tools can refresh names, regions, coaches, and sporting titles from the FPU portal. The preview, PDF, and DOCX exports use A4 landscape layout; the DOCX result table follows the official 10-column TIR protocol proportions and includes page numbers.
 

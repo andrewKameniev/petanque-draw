@@ -48,6 +48,16 @@ owns granular path writes, match debouncing, subscription merge policies, echo
 suppression, and disposal. Public and TV pages use the read-only profiles in
 `src/services/live-tournament.js`.
 
+Public and TV live sources bootstrap through a temporary tournament-node
+listener. They attach their granular profile listeners while that parent is
+still active, then remove the parent so Firebase can reuse its populated local
+cache instead of retransferring the profile fields during listener handoff.
+Re-starting an active source with the same owner and tournament is a no-op;
+explicit reload is the retry boundary. Browser visibility and online events
+rely on Firebase listener reconnection and do not recreate the source. A missing
+tournament keeps the parent listener active so a later creation can hydrate
+without polling.
+
 Specialized competition listeners treat `null` snapshots for `games`,
 `cadrage`, `playOffBracket`, `tirPlayoff`, and `teamPlayoff` as explicit remote
 deletions while ignoring `undefined`; same-path local write echoes remain

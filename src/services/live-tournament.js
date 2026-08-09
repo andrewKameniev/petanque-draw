@@ -41,7 +41,7 @@ export const PUBLIC_FIELDS = Object.freeze([
 ]);
 
 export const TV_FIELDS = Object.freeze([...SHARED_COMPETITION_FIELDS, 'groupSchedule']);
-export const WRAPPER_FIELDS = Object.freeze(['activeGroup', 'tournamentMessage']);
+export const WRAPPER_FIELDS = Object.freeze(['name', 'activeGroup', 'tournamentMessage']);
 
 export const LIVE_TOURNAMENT_PROFILES = Object.freeze({
   public: Object.freeze({
@@ -53,9 +53,17 @@ export const LIVE_TOURNAMENT_PROFILES = Object.freeze({
   tv: Object.freeze({
     name: 'tv',
     fields: TV_FIELDS,
-    rootFields: Object.freeze(['tournamentMessage']),
+    rootFields: Object.freeze(['name', 'tournamentMessage']),
     includeGroupB: false,
   }),
+});
+
+const LIVE_RUN_PHASE = Object.freeze({
+  loading: 'loading',
+  missing: 'missing',
+  handoff: 'handoff',
+  ready: 'ready',
+  error: 'error',
 });
 
 function getProfile(profile) {
@@ -105,18 +113,12 @@ export function createLiveTournamentSource(options = {}) {
   const service = options.service || tournamentService;
   const profile = getProfile(options.profile || 'public');
   const onState = options.onState || (() => {});
-  const documentTarget =
-    options.documentTarget === undefined ? (typeof document === 'undefined' ? null : document) : options.documentTarget;
-  const windowTarget =
-    options.windowTarget === undefined ? (typeof window === 'undefined' ? null : window) : options.windowTarget;
 
   if (!profile) throw new Error(`Unknown live tournament profile: ${options.profile}`);
 
   let active = false;
   let source = null;
-  let generation = 0;
-  let unsubscribers = [];
-  let resumeListenersAttached = false;
+  let currentRun = null;
   let state = { status: 'idle', record: null, error: null, source: null };
 
   function emit(status, changes = {}) {
@@ -125,109 +127,194 @@ export function createLiveTournamentSource(options = {}) {
     return state;
   }
 
-  function clearSubscriptions() {
-    const current = unsubscribers;
-    unsubscribers = [];
+  function isCurrentRun(run) {
+    return active && currentRun === run && !run.disposed;
+  }
+
+  function settleRun(run) {
+    if (run.settled) return;
+    run.settled = true;
+    run.resolve();
+  }
+
+  function detachParent(run) {
+    run.parentDetachRequested = true;
+    if (run.parentDetached || typeof run.parentUnsubscribe !== 'function') return;
+    run.parentDetached = true;
+    const unsubscribe = run.parentUnsubscribe;
+    run.parentUnsubscribe = null;
+    unsubscribe();
+  }
+
+  function clearRunSubscriptions(run) {
+    detachParent(run);
+    const current = [...run.childUnsubscribers];
+    run.childUnsubscribers.clear();
     current.forEach((unsubscribe) => unsubscribe());
   }
 
-  function handleSubscriptionError(error, run) {
-    if (!active || run !== generation) return;
+  function disposeRun(run) {
+    if (!run || run.disposed) return;
+    run.disposed = true;
+    clearRunSubscriptions(run);
+    settleRun(run);
+    if (currentRun === run) currentRun = null;
+  }
+
+  function failRun(run, error) {
+    if (!isCurrentRun(run) || run.phase === LIVE_RUN_PHASE.error) return;
+    run.phase = LIVE_RUN_PHASE.error;
+    clearRunSubscriptions(run);
+    settleRun(run);
     emit('error', { error });
   }
 
-  function subscribeToRecord(record, run) {
+  function subscribeToRecord(run, record) {
     const plan = buildTournamentSubscriptionPlan(record, profile);
+    // The parent snapshot already contains these values; ignore synchronous
+    // cache echoes while the granular listeners are being installed.
+    let installingChildren = true;
     try {
       for (const subscription of plan) {
+        if (!isCurrentRun(run) || run.phase !== LIVE_RUN_PHASE.handoff) return false;
         const unsubscribe = service.subscribePath(
-          source.ownerUid,
-          source.tournamentId,
+          run.source.ownerUid,
+          run.source.tournamentId,
           subscription.path,
           (snapshot) => {
-            if (!active || run !== generation || !state.record) return;
-            const nextRecord = applyTournamentSnapshot(state.record, subscription, snapshot.val(), source.tournamentId);
+            if (installingChildren || !isCurrentRun(run) || run.phase !== LIVE_RUN_PHASE.ready || !state.record) return;
+            const nextRecord = applyTournamentSnapshot(
+              state.record,
+              subscription,
+              snapshot.val(),
+              run.source.tournamentId,
+            );
             emit('ready', { record: nextRecord, error: null });
           },
-          (error) => handleSubscriptionError(error, run),
+          (error) => failRun(run, error),
         );
-        if (typeof unsubscribe === 'function') unsubscribers.push(unsubscribe);
+        if (!isCurrentRun(run) || run.phase !== LIVE_RUN_PHASE.handoff) {
+          if (typeof unsubscribe === 'function') unsubscribe();
+          return false;
+        }
+        if (typeof unsubscribe === 'function') run.childUnsubscribers.add(unsubscribe);
       }
+      return true;
     } catch (error) {
-      clearSubscriptions();
-      handleSubscriptionError(error, run);
+      failRun(run, error);
+      return false;
+    } finally {
+      installingChildren = false;
     }
   }
 
-  async function reload() {
-    if (!active || source?.type !== 'firebase') return state;
-    const run = ++generation;
-    clearSubscriptions();
+  function beginBootstrap(runSource) {
+    let resolveRun;
+    const completion = new Promise((resolve) => {
+      resolveRun = resolve;
+    });
+    const run = {
+      source: { ...runSource },
+      phase: LIVE_RUN_PHASE.loading,
+      promise: completion.then(() => state),
+      resolve: resolveRun,
+      settled: false,
+      disposed: false,
+      parentUnsubscribe: null,
+      parentDetachRequested: false,
+      parentDetached: false,
+      childUnsubscribers: new Set(),
+    };
+    currentRun = run;
     emit('loading', { error: null });
+    if (!isCurrentRun(run)) return run.promise;
 
     try {
-      const snapshot = await service.getOne(source.ownerUid, source.tournamentId);
-      if (!active || run !== generation) return state;
-      if (!snapshot.exists()) return emit('missing', { record: null, error: null });
+      run.parentUnsubscribe = service.subscribe(
+        run.source.ownerUid,
+        run.source.tournamentId,
+        (snapshot) => {
+          if (!isCurrentRun(run) || ![LIVE_RUN_PHASE.loading, LIVE_RUN_PHASE.missing].includes(run.phase)) return;
 
-      const record = normalizeTournamentRecord(snapshot.val(), {
-        id: source.tournamentId,
-        ownerUid: source.ownerUid,
-      });
-      if (!record) return emit('missing', { record: null, error: null });
+          if (!snapshot.exists()) {
+            const shouldEmit = run.phase !== LIVE_RUN_PHASE.missing;
+            run.phase = LIVE_RUN_PHASE.missing;
+            settleRun(run);
+            if (shouldEmit && isCurrentRun(run)) emit('missing', { record: null, error: null });
+            return;
+          }
 
-      emit('ready', { record, error: null });
-      subscribeToRecord(record, run);
-      return state;
+          const record = normalizeTournamentRecord(snapshot.val(), {
+            id: run.source.tournamentId,
+            ownerUid: run.source.ownerUid,
+          });
+          if (!record) {
+            const shouldEmit = run.phase !== LIVE_RUN_PHASE.missing;
+            run.phase = LIVE_RUN_PHASE.missing;
+            settleRun(run);
+            if (shouldEmit && isCurrentRun(run)) emit('missing', { record: null, error: null });
+            return;
+          }
+
+          run.phase = LIVE_RUN_PHASE.handoff;
+          if (!subscribeToRecord(run, record)) {
+            detachParent(run);
+            return;
+          }
+
+          detachParent(run);
+          if (!isCurrentRun(run)) return;
+          run.phase = LIVE_RUN_PHASE.ready;
+          settleRun(run);
+          emit('ready', { record, error: null });
+        },
+        (error) => {
+          if (run.phase !== LIVE_RUN_PHASE.ready) failRun(run, error);
+        },
+      );
+      if (run.parentDetachRequested || run.disposed) detachParent(run);
     } catch (error) {
-      if (!active || run !== generation) return state;
-      return emit('error', { error });
+      if (run.phase !== LIVE_RUN_PHASE.ready) failRun(run, error);
     }
+
+    return run.promise;
   }
 
-  function onVisibilityChange() {
-    if (documentTarget?.visibilityState === 'visible') void reload();
+  function reload() {
+    if (!active || source?.type !== 'firebase') return Promise.resolve(state);
+    if (currentRun && !currentRun.settled) return currentRun.promise;
+    const runSource = source;
+    disposeRun(currentRun);
+    return beginBootstrap(runSource);
   }
 
-  function onOnline() {
-    void reload();
-  }
+  function start(nextSource) {
+    const sameFirebaseSource =
+      active &&
+      source?.type === 'firebase' &&
+      nextSource?.type === 'firebase' &&
+      source.ownerUid === nextSource.ownerUid &&
+      source.tournamentId === nextSource.tournamentId;
+    if (sameFirebaseSource && currentRun) {
+      return currentRun.settled ? Promise.resolve(state) : currentRun.promise;
+    }
 
-  function attachResumeListeners() {
-    if (resumeListenersAttached) return;
-    documentTarget?.addEventListener?.('visibilitychange', onVisibilityChange);
-    windowTarget?.addEventListener?.('online', onOnline);
-    resumeListenersAttached = true;
-  }
-
-  function detachResumeListeners() {
-    if (!resumeListenersAttached) return;
-    documentTarget?.removeEventListener?.('visibilitychange', onVisibilityChange);
-    windowTarget?.removeEventListener?.('online', onOnline);
-    resumeListenersAttached = false;
-  }
-
-  async function start(nextSource) {
-    generation++;
-    clearSubscriptions();
+    active = false;
+    disposeRun(currentRun);
     source = nextSource;
     active = true;
 
     if (source?.type !== 'firebase') {
-      detachResumeListeners();
-      return emit('invalid', { record: null, error: source?.error || null });
+      return Promise.resolve(emit('invalid', { record: null, error: source?.error || null }));
     }
 
-    attachResumeListeners();
-    return reload();
+    return beginBootstrap(source);
   }
 
   function stop() {
-    if (!active && !resumeListenersAttached && unsubscribers.length === 0) return state;
+    if (!active && !currentRun) return state;
     active = false;
-    generation++;
-    clearSubscriptions();
-    detachResumeListeners();
+    disposeRun(currentRun);
     source = null;
     return emit('idle', { record: null, error: null });
   }

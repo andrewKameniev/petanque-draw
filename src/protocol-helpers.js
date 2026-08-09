@@ -1,5 +1,13 @@
 import { regions } from '@/helpers';
-import { syncTeamPlayers, syncTirParticipants, FIELD_SETS } from '@/services/portal-sync';
+import {
+  formatCoachName,
+  syncTeamCoaches,
+  syncTeamPlayers,
+  syncTirParticipants,
+  FIELD_SETS,
+} from '@/services/portal-sync';
+
+export { formatCoachName };
 
 export function getProtocolTournamentMeta(tournament, tournamentMeta, currentTournament) {
   const sources = [tournamentMeta, tournament, currentTournament];
@@ -39,7 +47,14 @@ export function getPlayerThirdName(surname, name, playersNames) {
 
 export function refreshTournamentPlayerDetails(teams, portalTeams) {
   const result = syncTeamPlayers(teams, portalTeams, { fields: FIELD_SETS.protocol });
-  return { total: result.total, matched: result.matched, changed: result.changedPlayers, missing: result.missing };
+  const coachResult = syncTeamCoaches(teams, portalTeams);
+  return {
+    total: result.total,
+    matched: result.matched,
+    changed: result.changedPlayers,
+    coachesChanged: coachResult.changedTeams,
+    missing: result.missing,
+  };
 }
 
 export function refreshTirParticipantDetails(participants, portalTeams) {

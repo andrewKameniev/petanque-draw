@@ -1,5 +1,51 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { syncTeamPlayers, syncTirParticipants, syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
+import {
+  formatCoachName,
+  syncTeamCoaches,
+  syncTeamPlayers,
+  syncTirParticipants,
+  syncFromPortal,
+  FIELD_SETS,
+} from '@/services/portal-sync';
+
+describe('formatCoachName', () => {
+  it('formats a Portal coach object in protocol name order', () => {
+    expect(formatCoachName({ name: 'Іван', surname: 'Петренко', second_name: 'Олегович' })).toBe(
+      'Петренко Іван Олегович',
+    );
+  });
+
+  it('preserves manually entered coach strings and handles missing coaches', () => {
+    expect(formatCoachName('  Петренко Іван  ')).toBe('Петренко Іван');
+    expect(formatCoachName(null)).toBe('');
+  });
+});
+
+describe('syncTeamCoaches', () => {
+  it('copies coaches from Portal teams matched by stable team ID', () => {
+    const teams = [{ title: 'Local title', portalTeamId: 7, players: [] }];
+    const coach = { id: 55, name: 'Іван', surname: 'Петренко', second_name: '', avatar_url: null };
+    const portalTeams = [{ id: '7', name: 'Portal title', coach, players: [] }];
+
+    expect(syncTeamCoaches(teams, portalTeams)).toEqual({
+      total: 1,
+      matched: 1,
+      changedTeams: 1,
+      missing: 0,
+      ambiguous: 0,
+    });
+    expect(teams[0].coach).toEqual(coach);
+    expect(teams[0].coach).not.toBe(coach);
+  });
+
+  it('falls back to a unique team title and ignores an omitted coach field', () => {
+    const teams = [{ title: 'Team Name', coach: { id: 1, name: 'Existing' }, players: [] }];
+    const portalTeams = [{ id: 7, name: ' team name ', players: [] }];
+
+    expect(syncTeamCoaches(teams, portalTeams).changedTeams).toBe(0);
+    expect(teams[0].coach).toEqual({ id: 1, name: 'Existing' });
+  });
+});
 
 describe('syncTeamPlayers', () => {
   describe('identity matching', () => {
@@ -286,6 +332,23 @@ describe('syncTirParticipants', () => {
   });
 
   describe('field updates', () => {
+    it('formats and syncs the Portal team coach for TIR participants', () => {
+      const participants = [{ name: 'Коваль Олександр', portalTeamId: 91, coach: '' }];
+      const portalTeams = [
+        {
+          id: 91,
+          name: 'Коваль Олександр',
+          coach: { id: 55, name: 'Іван', surname: 'Петренко', second_name: 'Олегович' },
+          players: [{ surname: 'Коваль', name: 'Олександр' }],
+        },
+      ];
+
+      const stats = syncTirParticipants(participants, portalTeams);
+
+      expect(stats.changedPlayers).toBe(1);
+      expect(participants[0].coach).toBe('Петренко Іван Олегович');
+    });
+
     it('updates only configured fields for media sync', () => {
       const participants = [{ name: 'Коваль Олександр', portalTeamId: 91, club_logo_url: null }];
       const portalTeams = [
@@ -427,7 +490,7 @@ describe('FIELD_SETS', () => {
   });
 
   it('defines tir fields', () => {
-    expect(FIELD_SETS.tir).toEqual(['protocolName', 'portalTeamId', 'club_id', 'sport_title']);
+    expect(FIELD_SETS.tir).toEqual(['protocolName', 'portalTeamId', 'club_id', 'sport_title', 'coach']);
   });
 
   it('defines media fields', () => {

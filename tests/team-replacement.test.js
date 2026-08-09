@@ -86,6 +86,7 @@ const importedPortalTeam = {
   title: NEW_TITLE,
   rating: 11.8594,
   portalTeamId: 3895,
+  coach: { id: 55, name: 'Ivan', surname: 'Petrenko', second_name: '' },
   players: [
     { id: 738, name: 'Volodymyr', surname: 'Kuzmenko' },
     { id: 1393, name: 'Iryna', surname: 'Partner' },
@@ -104,6 +105,7 @@ describe('team replacement', () => {
       players: importedPortalTeam.players,
       rating: 11.8594,
       portalTeamId: 3895,
+      coach: importedPortalTeam.coach,
       wins: 3,
       buhgolts: 15,
       smallBuhgolts: 12,
@@ -130,6 +132,7 @@ describe('team replacement', () => {
       players: importedPortalTeam.players,
       rating: 11.8594,
       portalTeamId: 3895,
+      coach: importedPortalTeam.coach,
       wins: 1,
       lanes: [9],
     });
@@ -138,6 +141,7 @@ describe('team replacement', () => {
       players: importedPortalTeam.players,
       rating: 11.8594,
       portalTeamId: 3895,
+      coach: importedPortalTeam.coach,
       wins: 2,
       opponents: ['Foxtrot'],
     });
@@ -158,6 +162,7 @@ describe('team replacement', () => {
       'teams/0/players': importedPortalTeam.players,
       'teams/0/rating': 11.8594,
       'teams/0/portalTeamId': 3895,
+      'teams/0/coach': importedPortalTeam.coach,
       'teams/1/opponents/0': NEW_TITLE,
       'games/0/0/team_1': NEW_TITLE,
       'games/0/0/winner': NEW_TITLE,
@@ -165,10 +170,12 @@ describe('team replacement', () => {
       'groups/0/0/players': importedPortalTeam.players,
       'groups/0/0/rating': 11.8594,
       'groups/0/0/portalTeamId': 3895,
+      'groups/0/0/coach': importedPortalTeam.coach,
       'barrage/groups/0/0/title': NEW_TITLE,
       'barrage/groups/0/0/players': importedPortalTeam.players,
       'barrage/groups/0/0/rating': 11.8594,
       'barrage/groups/0/0/portalTeamId': 3895,
+      'barrage/groups/0/0/coach': importedPortalTeam.coach,
       'playOff/quarterFinals/0/team_1': NEW_TITLE,
       'playOffBracket/champion': NEW_TITLE,
       'playOffBracket/placements/Kuzmenko One, Kuzmenko Two': null,
@@ -199,6 +206,7 @@ describe('team replacement', () => {
       id: 912,
       players: [{ id: 1, name: 'Player' }],
       club: { id: 17, title: 'Poltava' },
+      coach: { id: 55, name: 'Ivan', surname: 'Petrenko', second_name: '' },
     };
     const normalized = normalizePortalTeam(rawPortalTeam);
     const result = replaceTeamInCompetition(createCompetition(), OLD_TITLE, rawPortalTeam);
@@ -209,9 +217,12 @@ describe('team replacement', () => {
       portalTeamId: 912,
       players: [{ id: 1, name: 'Player' }],
       club: { id: 17, title: 'Poltava' },
+      coach: { id: 55, name: 'Ivan', surname: 'Petrenko', second_name: '' },
     });
     expect(result.competition.teams[0].club).toEqual({ id: 17, title: 'Poltava' });
     expect(result.updates['teams/0/club']).toEqual({ id: 17, title: 'Poltava' });
+    expect(result.competition.teams[0].coach).toEqual(rawPortalTeam.coach);
+    expect(result.updates['teams/0/coach']).toEqual(rawPortalTeam.coach);
   });
 
   it('always updates the canonical team even when its stored object is minimal', () => {
@@ -228,12 +239,14 @@ describe('team replacement', () => {
       players: importedPortalTeam.players,
       rating: 11.8594,
       portalTeamId: 3895,
+      coach: importedPortalTeam.coach,
     });
     expect(result.updates).toMatchObject({
       'teams/0/title': NEW_TITLE,
       'teams/0/players': importedPortalTeam.players,
       'teams/0/rating': 11.8594,
       'teams/0/portalTeamId': 3895,
+      'teams/0/coach': importedPortalTeam.coach,
     });
   });
 

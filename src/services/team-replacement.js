@@ -109,6 +109,9 @@ export function normalizePortalTeam(portalTeam) {
   if (hasOwn(portalTeam, 'club') && portalTeam.club !== undefined) {
     normalized.club = cloneValue(portalTeam.club);
   }
+  if (hasOwn(portalTeam, 'coach') && portalTeam.coach !== undefined) {
+    normalized.coach = cloneValue(portalTeam.coach);
+  }
 
   return normalized;
 }
@@ -219,6 +222,10 @@ function updateIdentity(team, replacement, path, updates) {
   if (hasOwn(replacement, 'club') && !valuesEqual(team.club, replacement.club)) {
     team.club = cloneValue(replacement.club);
     updates[joinPath(path, 'club')] = cloneValue(replacement.club);
+  }
+  if (hasOwn(replacement, 'coach') && !valuesEqual(team.coach, replacement.coach)) {
+    team.coach = cloneValue(replacement.coach);
+    updates[joinPath(path, 'coach')] = cloneValue(replacement.coach);
   }
 }
 

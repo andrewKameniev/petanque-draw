@@ -95,7 +95,7 @@ export default {
       'setTournamentInfoFromPortal',
       'syncTeams',
     ]),
-    addTeam(title, rating, players = false, portalTeamId = null, club = null) {
+    addTeam(title, rating, players = false, portalTeamId = null, club = null, coach = null) {
       if (title !== null && title !== '') {
         let teamExists = false;
         if (!this.tournament.teams) {
@@ -112,6 +112,7 @@ export default {
             rating: rating,
             players: players,
             club: club,
+            coach: coach,
             portalTeamId: portalTeamId,
             wins: 0,
             buhgolts: 0,
@@ -152,7 +153,7 @@ export default {
           let importedList = await response.json();
 
           importedList.teams.forEach((team) => {
-            this.addTeam(team.name, +team.power, team.players, team.id, team.club);
+            this.addTeam(team.name, +team.power, team.players, team.id, team.club, team.coach);
           });
           this.setTournamentInfoFromPortal(importedList.tournament);
           this.setTournamentIdFromPortal(this.tournamentId);

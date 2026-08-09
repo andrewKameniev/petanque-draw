@@ -17,10 +17,15 @@ import { regions } from '../helpers';
 describe('club region mapping', () => {
   it('covers every club in the current portal club list', () => {
     const currentClubIds = [
-      1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31,
+      1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33,
     ];
 
     expect(currentClubIds.filter((id) => !regions[id])).toEqual([]);
+  });
+
+  it('maps the latest clubs to their regions', () => {
+    expect(regions[32]).toBe('Тернопільська');
+    expect(regions[33]).toBe('Житомирська');
   });
 });
 
@@ -130,6 +135,7 @@ describe('refreshTournamentPlayerDetails', () => {
       total: 1,
       matched: 1,
       changed: 1,
+      coachesChanged: 0,
       missing: 0,
     });
     expect(teams[0].players[0].second_name).toBe('Петрович');
@@ -165,6 +171,7 @@ describe('refreshTournamentPlayerDetails', () => {
       total: 2,
       matched: 2,
       changed: 1,
+      coachesChanged: 0,
       missing: 0,
     });
     expect(teams[0].players[0].second_name).toBe('');
@@ -204,6 +211,7 @@ describe('refreshTournamentPlayerDetails', () => {
       total: 1,
       matched: 1,
       changed: 1,
+      coachesChanged: 0,
       missing: 0,
     });
     expect(teams[0].players[0]).toEqual({
@@ -231,9 +239,25 @@ describe('refreshTournamentPlayerDetails', () => {
       total: 1,
       matched: 0,
       changed: 0,
+      coachesChanged: 0,
       missing: 1,
     });
     expect(teams[0].players[0]).toBe(player);
+  });
+
+  it('refreshes a team coach from the matching Portal team', () => {
+    const teams = [{ title: 'Team Name', portalTeamId: 7, players: [] }];
+    const coach = { id: 55, name: 'Іван', surname: 'Петренко', second_name: '' };
+    const portalTeams = [{ id: '7', name: 'Team Name', coach, players: [] }];
+
+    expect(refreshTournamentPlayerDetails(teams, portalTeams)).toEqual({
+      total: 0,
+      matched: 0,
+      changed: 0,
+      coachesChanged: 1,
+      missing: 0,
+    });
+    expect(teams[0].coach).toEqual(coach);
   });
 
   it('ignores missing portal fields and refuses to erase required names', () => {

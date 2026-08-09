@@ -166,7 +166,11 @@
                       {{ game.team_2 }}
                     </td>
                     <td v-if="canEditResults" class="is-narrow edit-cell">
-                      <button class="edit-result-btn" :title="$t('results.editResult')" @click="openEditModal(game)">
+                      <button
+                        class="edit-result-btn"
+                        :title="$t('results.editResult')"
+                        @click="openEditModal(game, index)"
+                      >
                         <Pencil :size="14" />
                       </button>
                     </td>
@@ -454,7 +458,7 @@
       :bracket="tournament.playOffBracket"
       @close-modal="showBracket = false"
     />
-    <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="editingGame = null" />
+    <EditResultModal v-if="editingGame" :game="editingGame" @save="saveEditedResult" @close="closeEditModal" />
     <EditResultModal
       v-if="editingPlayoffGame"
       :game="editingPlayoffGame"
@@ -501,6 +505,7 @@ export default {
       selectedGroup: 0,
       showBracket: false,
       editingGame: null,
+      editingGameMeta: null,
       editingPlayoffGame: null,
       editingPlayoffMeta: null,
     };
@@ -621,28 +626,22 @@ export default {
       }
       return stage.round === 1 ? this.$t('doubleElimination.grandFinal') : this.$t('doubleElimination.resetFinal');
     },
-    openEditModal(game) {
+    openEditModal(game, roundIndex) {
       if (!this.canEditResults) return;
+      const gameIndex = this.tournament.games?.[roundIndex]?.indexOf(game) ?? -1;
+      if (gameIndex === -1) return;
       this.editingGame = game;
+      this.editingGameMeta = { roundIndex, gameIndex };
+    },
+    closeEditModal() {
+      this.editingGame = null;
+      this.editingGameMeta = null;
     },
     saveEditedResult({ score1, score2 }) {
-      const game = this.editingGame;
-      if (!game) return;
-
-      let roundIndex = -1;
-      let gameIndex = -1;
-      for (let r = 0; r < this.tournament.games.length; r++) {
-        const idx = this.tournament.games[r].findIndex((g) => g.team_1 === game.team_1 && g.team_2 === game.team_2);
-        if (idx !== -1) {
-          roundIndex = r;
-          gameIndex = idx;
-          break;
-        }
-      }
-
-      if (roundIndex === -1) return;
-
-      const actualGame = this.tournament.games[roundIndex][gameIndex];
+      if (!this.editingGameMeta) return;
+      const { roundIndex, gameIndex } = this.editingGameMeta;
+      const actualGame = this.tournament.games?.[roundIndex]?.[gameIndex];
+      if (!actualGame) return;
       actualGame.team_1_score = score1;
       actualGame.team_2_score = score2;
       actualGame.winner = score1 > score2 ? actualGame.team_1 : actualGame.team_2;
@@ -651,7 +650,7 @@ export default {
 
       this.recalculateStandings();
       this.persistToFirebase();
-      this.editingGame = null;
+      this.closeEditModal();
       this.showMessage({ title: this.$t('messages.success'), text: this.$t('results.resultUpdated') });
     },
     openEditPlayoffModal(game, type, stageIndex, gameIndex) {

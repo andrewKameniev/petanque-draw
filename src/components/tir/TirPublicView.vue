@@ -175,7 +175,13 @@
                         :size="12"
                         class="tir-playoff__winner-icon"
                       />
-                      <span v-html="formatName(match.preview ? match.previewLabel1 : match.player1)"></span>
+                      <span
+                        v-for="part in getNameParts(match.preview ? match.previewLabel1 : match.player1)"
+                        :key="part.type"
+                        class="tir-playoff__name-part"
+                        :class="{ 'tir-playoff__name-part--surname': part.type === 'surname' }"
+                        >{{ part.text }}</span
+                      >
                     </span>
                     <span
                       class="tir-playoff__score"
@@ -198,7 +204,13 @@
                         'tir-playoff__player-name--winner': getMatchWinner(match) === match.player2,
                       }"
                     >
-                      <span v-html="formatName(match.preview ? match.previewLabel2 : match.player2)"></span>
+                      <span
+                        v-for="part in getNameParts(match.preview ? match.previewLabel2 : match.player2)"
+                        :key="part.type"
+                        class="tir-playoff__name-part"
+                        :class="{ 'tir-playoff__name-part--surname': part.type === 'surname' }"
+                        >{{ part.text }}</span
+                      >
                       <Trophy
                         v-if="getMatchWinner(match) === match.player2"
                         :size="12"
@@ -576,11 +588,14 @@ export default {
       if (!winner) return null;
       return winner === match.player1 ? match.player2 : match.player1;
     },
-    formatName(name) {
-      if (!name) return this.$t('tir.matchPending');
+    getNameParts(name) {
+      if (!name) return [{ type: 'pending', text: this.$t('tir.matchPending') }];
       const parts = name.split(' ');
-      if (parts.length <= 1) return `<b>${name}</b>`;
-      return `<b>${parts[0]}</b> ${parts.slice(1).join(' ')}`;
+      const nameParts = [{ type: 'surname', text: parts[0] }];
+      if (parts.length > 1) {
+        nameParts.push({ type: 'remaining', text: ` ${parts.slice(1).join(' ')}` });
+      }
+      return nameParts;
     },
     openPlayoffMatch(match, label, roundKey, mIdx) {
       if (!match.player1 || !match.player2) return;
@@ -981,6 +996,10 @@ td.tir-table__muted {
 
 .tir-playoff__player-name--winner {
   color: var(--tir-winner);
+  font-weight: 700;
+}
+
+.tir-playoff__name-part--surname {
   font-weight: 700;
 }
 

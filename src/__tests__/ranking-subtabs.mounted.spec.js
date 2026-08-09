@@ -97,8 +97,8 @@ describe('Ranking finished-tournament table selection', () => {
   });
 
   it('renders each double-elimination team once with its final place', () => {
-    const teams = Array.from({ length: 8 }, (_, index) => ({ title: `T${index + 1}`, players: [] }));
-    const bracket = buildDoubleEliminationBracket(teams);
+    const teams = Array.from({ length: 10 }, (_, index) => ({ title: `T${index + 1}`, players: [] }));
+    const bracket = buildDoubleEliminationBracket(teams.slice(0, 8));
     const finish = (matchId) => recordDoubleEliminationResult(bracket, matchId, 13, 7);
     ['U1M1', 'U1M2', 'U1M3', 'U1M4', 'U2M1', 'U2M2', 'L1M1', 'L1M2'].forEach(finish);
     ['L2M1', 'L2M2', 'U3M1', 'L3M1', 'L4M1', 'GF1'].forEach(finish);
@@ -116,7 +116,7 @@ describe('Ranking finished-tournament table selection', () => {
     });
     const rows = wrapper.findAll('#table-finish-ranking tbody tr');
 
-    expect(rows).toHaveLength(8);
+    expect(rows).toHaveLength(10);
     expect(
       rows.map((row) => {
         const cells = row.findAll('td');
@@ -131,6 +131,8 @@ describe('Ranking finished-tournament table selection', () => {
       ['5-6', 'T5'],
       ['7-8', 'T4'],
       ['7-8', 'T2'],
+      ['9', 'T9'],
+      ['10', 'T10'],
     ]);
   });
 

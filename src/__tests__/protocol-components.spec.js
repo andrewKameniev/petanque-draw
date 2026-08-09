@@ -701,6 +701,33 @@ describe('Protocol component behavior', () => {
   });
 });
 
+describe('Protocol tournament placements', () => {
+  it('includes teams outside double elimination in the final participant list', () => {
+    const teams = ['A', 'B', 'C', 'D'].map((title) => ({ title, players: [] }));
+    const tournament = {
+      system: 'swiss',
+      teams,
+      games: [[]],
+      playOffBracket: {
+        format: 'double',
+        stages: [],
+        champion: 'A',
+        runnerUp: 'B',
+        placements: { A: 1, B: 2 },
+      },
+    };
+    const tournamentRanking = Protocol.computed.tournamentRanking.call({ tournament, rankingTeams: teams });
+    const participants = Protocol.computed.participantsList.call({ tournament, tournamentRanking });
+
+    expect(participants.map(({ place, title }) => ({ place, title }))).toEqual([
+      { place: '1', title: 'A' },
+      { place: '2', title: 'B' },
+      { place: 3, title: 'C' },
+      { place: 4, title: 'D' },
+    ]);
+  });
+});
+
 describe('Archived protocol integration', () => {
   it('exposes protocol through the native TIR public tabs', async () => {
     const { default: TirPublicView } = await vi.importActual('@/components/tir/TirPublicView.vue');

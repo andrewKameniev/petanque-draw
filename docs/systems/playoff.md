@@ -71,6 +71,7 @@ Horizontally scrollable canvas showing both upper and lower brackets with stage 
 3. Onwards — by elimination round in the losers bracket (later elimination = higher place)
 
 Placements are computed by `getDoubleEliminationPlacements()` which walks lower stages from latest to earliest.
+When double elimination follows a qualification phase, non-playoff teams continue after the bracket field according to the shared [final-ranking policy](../ranking-algorithms.md#final-rankings-after-playoff).
 
 ### Automatic advancement
 

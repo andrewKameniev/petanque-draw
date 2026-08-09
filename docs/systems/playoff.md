@@ -80,6 +80,13 @@ Placements are computed by `getDoubleEliminationPlacements()` which walks lower 
 - Bye matches auto-complete (team vs empty = automatic win)
 - Multiple passes until no more changes
 
+### Round timer
+
+When playoff time limits are enabled, the active double-elimination stage uses
+the same timer controls as single elimination. Organizers can manage it from the
+admin view, public round views receive its live state, and saving the stage
+clears the timer before the next playable stage.
+
 ## Key files
 
 - `src/services/playoff.js` — bracket building, seeding, advancement, result recording

@@ -13,6 +13,21 @@
       @show-bracket="showBracket = true"
     />
 
+    <RoundTimerControls
+      v-if="!bracketOnly && !tvView"
+      :enabled="showTimerSection"
+      :timer="tournament.roundTimer"
+      :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
+      :cochonettes="tournament.preferences.cochonettes || 1"
+      :read-only="!!isPublicView"
+      @start="startRoundTimer"
+      @timer-ended="onTimerEnded"
+      @restart="onTimerRestart"
+      @pause="pauseRoundTimer"
+      @resume="resumeRoundTimer"
+      @reset="clearRoundTimer"
+    />
+
     <div v-if="bracket.champion" class="double-elimination__champion" data-testid="double-elimination-champion">
       <Trophy :size="24" />
       <span>{{ $t('doubleElimination.champion') }}</span>
@@ -218,10 +233,12 @@ import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
 import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
 import BracketFullscreenButton from '@/components/partials/BracketFullscreenButton.vue';
 import { assignPlayoffLanes } from '@/services/results';
+import { shouldSkipFinalTimer } from '@/services/round-timer';
+import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 
 export default {
   name: 'DoubleElimination',
-  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, Trophy, X, Shuffle },
+  components: { BracketFullscreenButton, PlayoffHeader, PlayoffMatchPanel, RoundTimerControls, Trophy, X, Shuffle },
   props: {
     activeTournament: { type: Object, default: null },
     isPublicView: { type: Boolean, default: false },
@@ -264,6 +281,14 @@ export default {
     },
     showCurrentMatches() {
       return !this.isPublicView && this.isOwnerOrAdmin && !this.bracket.champion && this.activeStages.length;
+    },
+    showTimerSection() {
+      return !!(
+        this.activeStages.length &&
+        !this.bracket.champion &&
+        this.tournament.preferences?.timeLimitEnabled &&
+        !shouldSkipFinalTimer(this.tournament)
+      );
     },
     publicMatchStages() {
       return this.activeStages.filter((stage) => this.publicMatches(stage).length);
@@ -394,7 +419,24 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['setPlayOffBracket', 'setPlayOffStage', 'syncBracketMatch', 'finishTournament']),
+    ...mapActions(useMainStore, [
+      'setPlayOffBracket',
+      'setPlayOffStage',
+      'syncBracketMatch',
+      'finishTournament',
+      'startRoundTimer',
+      'endRoundTimer',
+      'clearRoundTimer',
+      'restartRoundTimer',
+      'pauseRoundTimer',
+      'resumeRoundTimer',
+    ]),
+    onTimerEnded() {
+      this.endRoundTimer();
+    },
+    onTimerRestart(minutes) {
+      this.restartRoundTimer(minutes);
+    },
     async toggleFullscreen() {
       const element = this.$refs.bracketSection;
       if (!element) return;
@@ -711,6 +753,7 @@ export default {
           playableOnly: true,
         });
       }
+      this.clearRoundTimer();
       this.setPlayOffBracket(bracket);
       if (bracket.champion) {
         this.setPlayOffStage(0);

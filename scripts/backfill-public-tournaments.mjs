@@ -227,7 +227,10 @@ export function createFirebasePublicTournamentBackfillRepository(database) {
         undefined,
         false,
       );
-      return { committed: result.committed };
+      return {
+        committed: result.committed,
+        projection: result.snapshot.exists() ? result.snapshot.val() : null,
+      };
     },
   };
 }
@@ -242,6 +245,7 @@ function printSummary(summary) {
   console.log(`mode: ${summary.mode}`);
   console.log(`owners scanned: ${summary.ownersScanned}`);
   console.log(`tournaments scanned: ${summary.tournamentsScanned}`);
+  console.log(`default-empty placeholder candidates: ${summary.defaultEmptyCandidates}`);
   console.log(`valid projections: ${summary.valid}`);
   console.log(`planned projections: ${summary.planned}`);
   console.log(`applied projections: ${summary.applied}`);

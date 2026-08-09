@@ -5,6 +5,7 @@ import {
 } from '../src/services/public-tournament-projection.js';
 import {
   canonicalMatchesPublicTournamentProjection,
+  isDefaultEmptyPublicTournamentCandidate,
   planPublicTournamentBackfill,
   PUBLIC_TOURNAMENT_BACKFILL_ACTION,
   PUBLIC_TOURNAMENT_BACKFILL_STATUS,
@@ -36,8 +37,35 @@ function record(overrides = {}) {
   });
 }
 
+function defaultEmptyRecord(overrides = {}) {
+  return createTournamentRecord({
+    name: 'Tournament A',
+    id: 18,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  });
+}
+
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function firebaseStoredValue(value, { arrayItem = false } = {}) {
+  if (value == null) return arrayItem ? null : undefined;
+  if (Array.isArray(value)) {
+    if (!value.length) return arrayItem ? null : undefined;
+    return value.map((item) => firebaseStoredValue(item, { arrayItem: true }));
+  }
+  if (typeof value !== 'object') return value;
+  const entries = Object.entries(value)
+    .map(([key, item]) => [key, firebaseStoredValue(item)])
+    .filter(([, item]) => item !== undefined);
+  if (!entries.length) return arrayItem ? null : undefined;
+  return Object.fromEntries(entries);
+}
+
+function firebaseStoredProjection(value) {
+  return firebaseStoredValue(value) ?? null;
 }
 
 function fakeRepository(initialOwners, hooks = {}) {
@@ -65,16 +93,68 @@ function fakeRepository(initialOwners, hooks = {}) {
       const owner = (state[options.ownerUid] ||= { tournaments: {}, projections: {} });
       const current = owner.projections[options.tournamentId] ?? null;
       if (!publicTournamentBackfillValuesEqual(current, options.expectedProjection ?? null)) {
-        return { committed: false };
+        return { committed: false, projection: clone(current) };
       }
       if (options.nextProjection == null) delete owner.projections[options.tournamentId];
-      else owner.projections[options.tournamentId] = clone(options.nextProjection);
-      return { committed: true };
+      else {
+        owner.projections[options.tournamentId] = hooks.normalizeStoredProjection
+          ? hooks.normalizeStoredProjection(clone(options.nextProjection))
+          : clone(options.nextProjection);
+      }
+      return { committed: true, projection: clone(owner.projections[options.tournamentId] ?? null) };
     },
   };
 }
 
 describe('public tournament backfill planning', () => {
+  it('reports an exact generated empty tournament as a placeholder candidate but still plans its projection', () => {
+    const canonicalRecord = defaultEmptyRecord();
+    const plan = planPublicTournamentBackfill({
+      ownerUid: 'owner-1',
+      tournamentId: '18',
+      canonicalRecord,
+      updatedAt: 123,
+    });
+
+    expect(isDefaultEmptyPublicTournamentCandidate(canonicalRecord)).toBe(true);
+    expect(plan).toMatchObject({
+      action: PUBLIC_TOURNAMENT_BACKFILL_ACTION.WRITE,
+      status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.MISSING,
+    });
+  });
+
+  it('keeps configured, populated, TIR, and Group B records out of the placeholder diagnostic', () => {
+    const withGroupB = defaultEmptyRecord();
+    withGroupB.tournamentB = defaultEmptyRecord().main;
+
+    expect(isDefaultEmptyPublicTournamentCandidate(defaultEmptyRecord({ name: 'Scheduled Cup' }))).toBe(false);
+    expect(
+      isDefaultEmptyPublicTournamentCandidate(defaultEmptyRecord({ preferences: { isTestTournament: true } })),
+    ).toBe(false);
+    expect(isDefaultEmptyPublicTournamentCandidate(defaultEmptyRecord({ teams: [{ title: 'Alpha' }] }))).toBe(false);
+    expect(
+      isDefaultEmptyPublicTournamentCandidate(
+        defaultEmptyRecord({ system: 'tir', tirParticipants: [{ id: 1, name: 'Shooter' }] }),
+      ),
+    ).toBe(false);
+    expect(isDefaultEmptyPublicTournamentCandidate(withGroupB)).toBe(false);
+  });
+
+  it('keeps a valid empty projection while recognizing its diagnostic shape separately', () => {
+    const canonicalRecord = defaultEmptyRecord({ isPlayOff: false });
+    const projection = createPublicTournamentProjection(canonicalRecord, { revision: 2, updatedAt: 2 });
+
+    expect(isDefaultEmptyPublicTournamentCandidate(canonicalRecord)).toBe(true);
+    expect(
+      planPublicTournamentBackfill({
+        ownerUid: 'owner-1',
+        tournamentId: '18',
+        canonicalRecord,
+        currentProjection: projection,
+      }),
+    ).toEqual({ action: 'skip', status: 'valid' });
+  });
+
   it('derives a complete V1 projection for a missing record without private values', () => {
     const plan = planPublicTournamentBackfill({
       ownerUid: 'owner-1',
@@ -193,9 +273,67 @@ describe('public tournament backfill planning', () => {
     expect(canonicalRecord).toEqual(original);
     expect(canonicalMatchesPublicTournamentProjection({ ...canonicalRecord, name: 'Changed' }, projection)).toBe(false);
   });
+
+  it('treats every Firebase-elided null and empty public field as the same record', () => {
+    const canonicalRecord = record({
+      preferences: { swissRoundsCount: null },
+      groups: {},
+      groupSchedule: [],
+      roundTimer: null,
+      playOffBracket: {},
+      streamPresets: { teams: {}, lanes: {} },
+      tirParticipants: [],
+    });
+    const projection = createPublicTournamentProjection(canonicalRecord, { revision: 1, updatedAt: 1 });
+    const storedProjection = firebaseStoredProjection(projection);
+
+    expect(storedProjection.record.main).not.toHaveProperty('games');
+    expect(storedProjection.record.main.preferences).not.toHaveProperty('swissRoundsCount');
+    expect(storedProjection.record.main).not.toHaveProperty('groups');
+    expect(storedProjection.record.main).not.toHaveProperty('groupSchedule');
+    expect(storedProjection.record.main).not.toHaveProperty('roundTimer');
+    expect(storedProjection.record.main).not.toHaveProperty('playOffBracket');
+    expect(storedProjection.record.main).not.toHaveProperty('streamPresets');
+    expect(storedProjection.record.main).not.toHaveProperty('tirParticipants');
+    expect(storedProjection.record).not.toHaveProperty('tournamentB');
+    expect(
+      canonicalMatchesPublicTournamentProjection(canonicalRecord, storedProjection, {
+        ownerUid: 'owner-1',
+        tournamentId: '17',
+      }),
+    ).toBe(true);
+  });
 });
 
 describe('public tournament backfill execution', () => {
+  it('counts default-empty candidates without excluding them from planned writes and bytes', async () => {
+    const repository = fakeRepository({
+      'owner-1': {
+        tournaments: { blank: defaultEmptyRecord(), active: record() },
+        projections: {},
+      },
+    });
+
+    const result = await runPublicTournamentBackfill({
+      repository,
+      ownerUids: ['owner-1'],
+      clock: () => 500,
+    });
+
+    expect(result.summary).toMatchObject({
+      tournamentsScanned: 2,
+      defaultEmptyCandidates: 1,
+      missing: 2,
+      planned: 2,
+      writesAttempted: 0,
+    });
+    expect(result.summary.projectionBytes).toBeGreaterThan(0);
+    expect(result.items.find((item) => item.tournamentId === 'blank')).toMatchObject({
+      status: 'missing',
+      placeholderCandidate: true,
+    });
+  });
+
   it('keeps dry-run read-only and reports valid, missing, and orphan projections', async () => {
     const canonicalRecord = record();
     const repository = fakeRepository({
@@ -228,9 +366,12 @@ describe('public tournament backfill execution', () => {
   });
 
   it('applies only a missing projection and becomes a no-op when repeated', async () => {
-    const repository = fakeRepository({
-      'owner-1': { tournaments: { 17: record() }, projections: {} },
-    });
+    const repository = fakeRepository(
+      {
+        'owner-1': { tournaments: { 17: record() }, projections: {} },
+      },
+      { normalizeStoredProjection: firebaseStoredProjection },
+    );
 
     const first = await runPublicTournamentBackfill({
       repository,
@@ -283,6 +424,7 @@ describe('public tournament backfill execution', () => {
     const repository = fakeRepository(
       { 'owner-1': { tournaments: { 17: canonicalRecord }, projections: {} } },
       {
+        normalizeStoredProjection: firebaseStoredProjection,
         getCanonical() {
           canonicalReads += 1;
           return { ...canonicalRecord, name: 'Changed during backfill' };
@@ -583,9 +725,11 @@ describe('public tournament backfill CLI safety', () => {
           async transaction(update) {
             transactionPaths.push(path);
             const next = update(clone(values.get(path)));
-            if (next === undefined) return { committed: false };
+            if (next === undefined) {
+              return { committed: false, snapshot: snapshot(values.get(path)) };
+            }
             values.set(path, clone(next));
-            return { committed: true };
+            return { committed: true, snapshot: snapshot(values.get(path)) };
           },
         };
       },
@@ -596,12 +740,14 @@ describe('public tournament backfill CLI safety', () => {
     await repository.listTournaments('owner-1');
     await repository.listProjections('owner-1');
     await repository.getCanonical({ ownerUid: 'owner-1', tournamentId: 'one' });
-    await repository.compareAndSetProjection({
-      ownerUid: 'owner-1',
-      tournamentId: 'one',
-      expectedProjection: null,
-      nextProjection: { schemaVersion: 1 },
-    });
+    expect(
+      await repository.compareAndSetProjection({
+        ownerUid: 'owner-1',
+        tournamentId: 'one',
+        expectedProjection: null,
+        nextProjection: { schemaVersion: 1 },
+      }),
+    ).toEqual({ committed: true, projection: { schemaVersion: 1 } });
 
     expect(paths).toEqual([
       'users',

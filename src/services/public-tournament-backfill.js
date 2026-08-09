@@ -4,6 +4,13 @@ import {
   PUBLIC_TOURNAMENT_PROJECTION_ERROR,
   readPublicTournamentProjection,
 } from './public-tournament-projection.js';
+import {
+  createTournamentRecord,
+  getTournamentMain,
+  getTournamentMetadata,
+  hasTournamentGroup,
+  normalizeTournamentRecord,
+} from './tournament-record.js';
 
 export const PUBLIC_TOURNAMENT_BACKFILL_ACTION = Object.freeze({
   SKIP: 'skip',
@@ -27,6 +34,10 @@ export const PUBLIC_TOURNAMENT_BACKFILL_STATUS = Object.freeze({
   UNSUPPORTED_VERSION: 'unsupported-version',
   VALID: 'valid',
 });
+
+const GENERATED_TOURNAMENT_NAME = /^Tournament [A-Z]$/;
+const DEFAULT_EMPTY_COMPETITION = getTournamentMain(normalizeTournamentRecord(createTournamentRecord()));
+const DEFAULT_EMPTY_METADATA_FIELDS = new Set(['id', 'name', 'createdAt', 'tournamentMessage']);
 
 export class PublicTournamentBackfillError extends Error {
   constructor(code, message, options = {}) {
@@ -66,6 +77,17 @@ function serializedBytes(value) {
   return Buffer.byteLength(JSON.stringify(value));
 }
 
+function firebaseStoredComparableValue(value) {
+  if (value == null) return undefined;
+  if (!Array.isArray(value) && !isObject(value)) return value;
+
+  const entries = Object.entries(value)
+    .map(([key, item]) => [key, firebaseStoredComparableValue(item)])
+    .filter(([, item]) => item !== undefined);
+  if (!entries.length) return undefined;
+  return Object.fromEntries(entries);
+}
+
 function nextProjectionRevision(currentProjection) {
   const revision = currentProjection?.revision;
   if (revision == null) return 1;
@@ -82,6 +104,31 @@ function statusForProjectionReason(reason) {
   return PUBLIC_TOURNAMENT_BACKFILL_STATUS.MALFORMED;
 }
 
+/**
+ * Identify old records that still exactly match the application's generated
+ * empty tournament. This is diagnostic only: candidates remain eligible for
+ * projection so a later canonical-read revocation cannot break their links.
+ */
+export function isDefaultEmptyPublicTournamentCandidate(canonicalRecord) {
+  const normalized = normalizeTournamentRecord(canonicalRecord);
+  if (!normalized || hasTournamentGroup(normalized, 'B') || normalized.activeGroup !== 'A') return false;
+
+  const metadata = getTournamentMetadata(normalized);
+  if (!GENERATED_TOURNAMENT_NAME.test(metadata.name || '')) return false;
+  if (Object.keys(metadata).some((field) => !DEFAULT_EMPTY_METADATA_FIELDS.has(field))) return false;
+  if (metadata.tournamentMessage != null && metadata.tournamentMessage !== '') return false;
+
+  const metadataFields = new Set(Object.keys(metadata));
+  const competition = Object.fromEntries(
+    Object.entries(getTournamentMain(normalized) || {}).filter(
+      ([field]) => !metadataFields.has(field) && field !== 'activeGroup' && field !== 'groupB',
+    ),
+  );
+  if (competition.isPlayOff === false) delete competition.isPlayOff;
+
+  return publicTournamentBackfillValuesEqual(competition, DEFAULT_EMPTY_COMPETITION);
+}
+
 export function planPublicTournamentBackfill({
   ownerUid,
   tournamentId,
@@ -92,7 +139,7 @@ export function planPublicTournamentBackfill({
   const current = currentProjection ?? null;
   const currentRead = readPublicTournamentProjection(current, { ownerUid, tournamentId });
   if (currentRead.valid) {
-    if (canonicalMatchesPublicTournamentProjection(canonicalRecord, current)) {
+    if (canonicalMatchesPublicTournamentProjection(canonicalRecord, current, { ownerUid, tournamentId })) {
       return {
         action: PUBLIC_TOURNAMENT_BACKFILL_ACTION.SKIP,
         status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.VALID,
@@ -143,13 +190,27 @@ export function planPublicTournamentBackfill({
   };
 }
 
-export function canonicalMatchesPublicTournamentProjection(canonicalRecord, projection) {
+export function canonicalMatchesPublicTournamentProjection(
+  canonicalRecord,
+  projection,
+  { ownerUid, tournamentId } = {},
+) {
   const derived = createPublicTournamentProjection(canonicalRecord, {
     revision: projection?.revision ?? 1,
     updatedAt: projection?.updatedAt ?? 0,
     complete: true,
   });
-  return !!derived && publicTournamentBackfillValuesEqual(derived.record, projection?.record);
+  if (!derived) return false;
+  const derivedRead = readPublicTournamentProjection(derived, { ownerUid, tournamentId });
+  const storedRead = readPublicTournamentProjection(projection, { ownerUid, tournamentId });
+  return (
+    derivedRead.valid &&
+    storedRead.valid &&
+    publicTournamentBackfillValuesEqual(
+      firebaseStoredComparableValue(derivedRead.record) ?? null,
+      firebaseStoredComparableValue(storedRead.record) ?? null,
+    )
+  );
 }
 
 function createSummary({ dryRun }) {
@@ -158,6 +219,7 @@ function createSummary({ dryRun }) {
     ownersScanned: 0,
     tournamentsScanned: 0,
     orphanProjections: 0,
+    defaultEmptyCandidates: 0,
     valid: 0,
     stale: 0,
     missing: 0,
@@ -180,7 +242,8 @@ function createSummary({ dryRun }) {
   };
 }
 
-function recordPlannedStatus(summary, plan) {
+function recordPlannedStatus(summary, plan, { placeholderCandidate = false } = {}) {
+  if (placeholderCandidate) summary.defaultEmptyCandidates += 1;
   const counters = {
     [PUBLIC_TOURNAMENT_BACKFILL_STATUS.VALID]: 'valid',
     [PUBLIC_TOURNAMENT_BACKFILL_STATUS.STALE]: 'stale',
@@ -209,6 +272,13 @@ async function applyPlan({ repository, ownerUid, tournamentId, currentProjection
     nextProjection: plan.projection,
   });
   if (!write.committed) return { status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.CONCURRENT_CHANGE };
+  const writtenProjection = write.projection;
+  if (!writtenProjection) {
+    throw new PublicTournamentBackfillError(
+      'MISSING_COMMITTED_PROJECTION',
+      `The committed transaction for ${ownerUid}/${tournamentId} returned no projection snapshot`,
+    );
+  }
 
   let latestCanonical;
   try {
@@ -217,7 +287,7 @@ async function applyPlan({ repository, ownerUid, tournamentId, currentProjection
     const rollback = await repository.compareAndSetProjection({
       ownerUid,
       tournamentId,
-      expectedProjection: plan.projection,
+      expectedProjection: writtenProjection,
       nextProjection: currentProjection ?? null,
     });
     if (rollback.committed) {
@@ -230,14 +300,17 @@ async function applyPlan({ repository, ownerUid, tournamentId, currentProjection
     );
   }
 
-  if (latestCanonical && canonicalMatchesPublicTournamentProjection(latestCanonical, plan.projection)) {
+  if (
+    latestCanonical &&
+    canonicalMatchesPublicTournamentProjection(latestCanonical, writtenProjection, { ownerUid, tournamentId })
+  ) {
     return { status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.APPLIED };
   }
 
   const rollback = await repository.compareAndSetProjection({
     ownerUid,
     tournamentId,
-    expectedProjection: plan.projection,
+    expectedProjection: writtenProjection,
     nextProjection: currentProjection ?? null,
   });
   return rollback.committed
@@ -302,6 +375,7 @@ export async function runPublicTournamentBackfill({
     for (const tournamentId of Object.keys(tournaments).sort()) {
       const canonicalRecord = tournaments[tournamentId];
       const currentProjection = projections[tournamentId] ?? null;
+      const placeholderCandidate = isDefaultEmptyPublicTournamentCandidate(canonicalRecord);
       const plan = planPublicTournamentBackfill({
         ownerUid,
         tournamentId,
@@ -310,9 +384,10 @@ export async function runPublicTournamentBackfill({
         updatedAt: clock(),
       });
       summary.tournamentsScanned += 1;
-      recordPlannedStatus(summary, plan);
+      recordPlannedStatus(summary, plan, { placeholderCandidate });
 
       const item = { ownerUid, tournamentId, sourceStatus: plan.status, status: plan.status };
+      if (placeholderCandidate) item.placeholderCandidate = true;
       items.push(item);
       if (plan.action === PUBLIC_TOURNAMENT_BACKFILL_ACTION.WRITE) {
         candidates.push({ item, currentProjection, plan });

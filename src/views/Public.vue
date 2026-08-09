@@ -490,16 +490,10 @@ export default {
       const t = this.activeTournamentView;
       if (!this.isFinished || !t?.teams) return null;
       if (t.system === 'tir') {
-        const playoff = t.tirPlayoff;
-        if (playoff?.final?.score1 != null && playoff?.final?.score2 != null) {
-          const winnerName =
-            playoff.final.score1 > playoff.final.score2 ? playoff.final.player1 : playoff.final.player2;
-          if (winnerName) {
-            const participants = t.tirParticipants || [];
-            const winner = participants.find((p) => p.name === winnerName);
-            if (winner) return { title: winner.name, players: [winner] };
-          }
-        }
+        const winnerName = t.tirPlayoff?.final?.winner;
+        if (!winnerName) return null;
+        const winner = (t.tirParticipants || []).find((participant) => participant.name === winnerName);
+        if (winner) return { title: winner.name, players: [winner] };
         return null;
       }
       if (t.playOffBracket) {

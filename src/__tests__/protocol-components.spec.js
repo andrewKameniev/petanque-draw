@@ -8,6 +8,7 @@ const serviceMocks = vi.hoisted(() => ({
   presetRemove: vi.fn(),
   fetchRegistry: vi.fn(),
   downloadDocx: vi.fn(),
+  exportPdf: vi.fn(),
   tournamentSubscribe: vi.fn(),
 }));
 
@@ -34,6 +35,11 @@ vi.mock('@/services/arbiter-registry', async (importOriginal) => ({
 
 vi.mock('@/services/protocol-docx', () => ({
   downloadProtocolDocx: serviceMocks.downloadDocx,
+}));
+
+vi.mock('@/services/protocol-runtime', async (importOriginal) => ({
+  ...(await importOriginal()),
+  exportProtocolPdf: serviceMocks.exportPdf,
 }));
 
 vi.mock('@/stores/main', () => ({ useMainStore: vi.fn() }));
@@ -726,7 +732,7 @@ describe('Protocol component behavior', () => {
       globalThis.document = originalDocument;
     }
 
-    expect(serviceMocks.downloadDocx).toHaveBeenCalledWith(protocolElement, 'Tournament');
+    expect(serviceMocks.downloadDocx).toHaveBeenCalledWith(protocolElement, 'Tournament', { pageNumbers: true });
     expect(context.exportingDocx).toBe(false);
   });
 
@@ -812,6 +818,27 @@ describe('Archived protocol integration', () => {
     expect(
       TirProtocol.computed.tournamentName.call({ protocolTournamentMeta: archived, tournament: context.tournament }),
     ).toBe('Archived TIR');
+  });
+
+  it('exports fixed TIR pages without html2pdf inserting extra page-break padding', async () => {
+    const originalDocument = globalThis.document;
+    const protocolElement = { id: 'protocol' };
+    globalThis.document = { getElementById: () => protocolElement };
+    serviceMocks.exportPdf.mockResolvedValue(undefined);
+
+    try {
+      await tirProtocolMethods.exportPdf.call({ tournamentName: 'Archived TIR' });
+    } finally {
+      globalThis.document = originalDocument;
+    }
+
+    expect(serviceMocks.exportPdf).toHaveBeenCalledWith(protocolElement, {
+      html2pdf: expect.objectContaining({
+        margin: [0, 0, 0, 0],
+        pagebreak: { mode: [] },
+        jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
+      }),
+    });
   });
 
   it('uses the standard protocol region mapping for TIR participants', () => {

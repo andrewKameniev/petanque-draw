@@ -101,7 +101,7 @@
             </div>
           </div>
           <div v-else class="active-overlay__empty">
-            {{ $t('training.noSessions') }}
+            {{ $t('common.noActiveTournamentsTitle') }}
           </div>
           <template v-if="sharedTournaments.length">
             <div class="active-overlay__shared-header">{{ $t('collaborators.title') }}</div>

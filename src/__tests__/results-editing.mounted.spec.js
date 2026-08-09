@@ -108,4 +108,29 @@ describe('Results editing', () => {
     expect(recalculateStandings).toHaveBeenCalledOnce();
     expect(syncHistoricalResultEdit).toHaveBeenCalledWith({ roundIndex: 1, gameIndex: 0 });
   });
+
+  it('uses the same four equal columns as DOCX for protocol round results', () => {
+    const wrapper = shallowMount(Results, {
+      props: {
+        previewTournament: tournament,
+        isForProtocol: true,
+        onlyQualifying: true,
+        teamTitles: { A: 'Alpha', B: 'Beta' },
+      },
+      global: {
+        plugins: [pinia],
+        mocks: { $t: (key) => key },
+      },
+    });
+    wrappers.push(wrapper);
+
+    const tables = wrapper.findAll('.protocol-round-results-table');
+    expect(tables).toHaveLength(2);
+    for (const table of tables) {
+      expect(table.attributes('data-docx-column-widths')).toBe('2790,2790,2790,2790');
+      expect(table.findAll('thead th')).toHaveLength(4);
+      expect(table.find('.is-narrow').exists()).toBe(false);
+    }
+    expect(tables[0].findAll('tbody td').map((cell) => cell.text())).toEqual(['R1', 'Alpha', '13 : 4', 'Beta']);
+  });
 });

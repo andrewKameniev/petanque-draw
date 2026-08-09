@@ -808,7 +808,7 @@ export default {
 
       this.exportingDocx = true;
       try {
-        await downloadProtocolDocx(element, this.tournamentName);
+        await downloadProtocolDocx(element, this.tournamentName, { pageNumbers: true });
       } catch (error) {
         console.error('DOCX export error:', error);
         this.showMessage({
@@ -1227,6 +1227,7 @@ export default {
   width: 210mm;
   min-width: 210mm;
   margin: 0 auto;
+  counter-reset: protocol-page 0;
 }
 
 .standard-protocol-container #protocol > .protocol-page,
@@ -1243,10 +1244,22 @@ export default {
   margin-bottom: 24px;
   break-before: page;
   overflow: hidden;
+  counter-increment: protocol-page;
 }
 
 .standard-protocol-container #protocol > .protocol-page {
   break-before: auto;
+}
+
+.standard-protocol-container #protocol > .protocol-page::after,
+.standard-protocol-container #protocol .pdf-page-break::after {
+  content: counter(protocol-page);
+  position: absolute;
+  right: 6.35mm;
+  bottom: 4mm;
+  font-family: 'Times New Roman', serif;
+  font-size: 9pt;
+  line-height: 1;
 }
 
 .standard-protocol-container #protocol h2,
@@ -1369,6 +1382,12 @@ export default {
 
 .standard-protocol-container #protocol.is-exporting .pdf-page-break {
   padding-top: 10mm;
+}
+
+.standard-protocol-container #protocol.is-exporting > .protocol-page::after,
+.standard-protocol-container #protocol.is-exporting .pdf-page-break::after {
+  content: none;
+  display: none;
 }
 
 .standard-protocol-container #protocol.is-exporting table.is-bordered {

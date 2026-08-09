@@ -130,6 +130,45 @@ function getExplicitTableColumnWidths(table) {
   return widths.length === getTableColumnCount(table) ? widths : null;
 }
 
+function getDocxTableGroup(table) {
+  const value = table.dataset?.docxTableGroup || table.getAttribute?.('data-docx-table-group');
+  return String(value || '').trim();
+}
+
+function collectDocxTableGroups(root) {
+  const groups = new Map();
+
+  function collect(node) {
+    if (!node?.tagName || isHiddenDuplicate(node)) return;
+    if (node.tagName === 'TABLE') {
+      const group = getDocxTableGroup(node);
+      if (group) groups.set(group, [...(groups.get(group) || []), node]);
+      return;
+    }
+    Array.from(node.children || []).forEach((child) => collect(child));
+  }
+
+  Array.from(root.children || []).forEach((child) => collect(child));
+  return groups;
+}
+
+function mergeDocxTableGroup(tables) {
+  const firstTable = tables[0];
+  const rows = tables.flatMap((table, tableIndex) =>
+    Array.from(table.rows || []).filter(
+      (row) => tableIndex === 0 || String(row.parentElement?.tagName || '').toUpperCase() !== 'THEAD',
+    ),
+  );
+
+  return {
+    classList: firstTable.classList,
+    dataset: firstTable.dataset,
+    docxColumnWidths: firstTable.docxColumnWidths,
+    getAttribute: (name) => firstTable.getAttribute?.(name),
+    rows,
+  };
+}
+
 function getTableColumnWidths(table, tableWidth = DOCX_TABLE_WIDTH) {
   if (Array.isArray(table.docxColumnWidths)) return table.docxColumnWidths;
   const explicitWidths = getExplicitTableColumnWidths(table);
@@ -310,6 +349,8 @@ function playoffSectionToDocxChildren(section, docx, options = {}) {
 export function protocolElementToDocxChildren(element, docx, options = {}) {
   const { Paragraph } = docx;
   const children = [];
+  const groupedTables = collectDocxTableGroups(element);
+  const renderedTableGroups = new Set();
 
   function visit(node) {
     if (!node?.tagName || isHiddenDuplicate(node)) return;
@@ -320,7 +361,12 @@ export function protocolElementToDocxChildren(element, docx, options = {}) {
     }
 
     if (node.tagName === 'TABLE') {
-      children.push(tableToDocx(node, docx, options));
+      const tableGroup = getDocxTableGroup(node);
+      if (tableGroup && renderedTableGroups.has(tableGroup)) return;
+
+      const table = tableGroup ? mergeDocxTableGroup(groupedTables.get(tableGroup) || [node]) : node;
+      if (tableGroup) renderedTableGroups.add(tableGroup);
+      children.push(tableToDocx(table, docx, options));
       children.push(new Paragraph({ spacing: { after: 0, line: 40 } }));
       return;
     }

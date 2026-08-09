@@ -10,6 +10,15 @@ records. The command is never run by an application build, deploy, or merge.
 the same V1 projection used by the live writer, estimates its size, and reports
 what would change.
 
+The report separately counts `defaultEmptyCandidates`: records that still match
+the normalized factory defaults, have an auto-generated `Tournament A`–`Z` name,
+have no Tournament B, and contain no deliberate metadata. Older application
+versions could create these empty records automatically, but there is no stored
+provenance flag that proves an individual record is unused. The marker is
+therefore diagnostic only: candidates remain in `planned`, payload estimates,
+and apply writes. Projecting them keeps Public/TV safe when anonymous canonical
+reads are revoked later, and neither the marker nor the backfill deletes them.
+
 Apply mode:
 
 - skips complete valid V1 projections whose public fields already match the
@@ -21,8 +30,12 @@ Apply mode:
   observed during the scan;
 - rereads the canonical tournament after each write and keeps the projection
   only when its public fields still match;
+- compares public records after recursively applying Realtime Database's
+  storage semantics, so removed `null`, empty-array, and empty-object children
+  do not create false stale results;
 - conditionally restores the previous projection if the canonical public data
-  changed or disappeared during the write;
+  changed or disappeared during the write, using the transaction's actually
+  persisted snapshot as the rollback guard;
 - reports orphan projections but never deletes them.
 
 An apply run additionally requires exact project and database-host confirmations
@@ -119,9 +132,9 @@ npm run backfill:public -- \
   --report ../petanque-draw-backfill-reports/full-YYYYMMDD-HHMM.json
 ```
 
-Run the same scope again in dry-run mode. Completion means every eligible
-canonical tournament has a valid V1 projection and no write is planned. Preserve
-the reports outside source control.
+Run the same scope again in dry-run mode. Completion means every supported
+canonical tournament, including default-empty candidates, has a valid V1
+projection and no write is planned. Preserve the reports outside source control.
 
 If application rollback is needed, keep or restore anonymous canonical reads so
 the reader can use compatibility mode. Do not delete projections or canonical

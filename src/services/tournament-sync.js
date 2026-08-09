@@ -66,6 +66,8 @@ const LEGACY_SIMPLE_PATHS = [
   'ranking',
 ];
 
+const HISTORICAL_RESULT_TEAM_FIELDS = Object.freeze(['wins', 'opponents', 'pointsPlus', 'pointsMinus']);
+
 export function serializeFirebaseValue(value) {
   return value != null && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : value;
 }
@@ -259,6 +261,18 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       console.error('Error updating tournament paths:', Object.keys(updates), error);
       throw error;
     });
+  }
+
+  function syncHistoricalResultEdit({ prefix = '', roundIndex, gameIndex, game, teams }) {
+    const updates = {
+      [`${prefix}games/${roundIndex}/${gameIndex}`]: game,
+    };
+    teams.forEach((team, teamIndex) => {
+      HISTORICAL_RESULT_TEAM_FIELDS.forEach((field) => {
+        updates[`${prefix}teams/${teamIndex}/${field}`] = team[field];
+      });
+    });
+    return syncPaths(updates);
   }
 
   function syncMatchDebounced(namespace, key, data) {
@@ -459,6 +473,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     mergeTirPlayoff: (local, remote) => mergeTirPlayoff(local, remote, mergeOptions()),
     scheduleTournamentMessage,
     subscribeTournament,
+    syncHistoricalResultEdit,
     syncMatchDebounced,
     syncPath,
     syncPaths,

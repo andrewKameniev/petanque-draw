@@ -527,6 +527,16 @@ export const useMainStore = defineStore('main', {
       this._syncPath(`${prefix}games`, data.games);
       this._syncPath(`${prefix}teams`, data.teams);
     },
+    syncHistoricalResultEdit({ roundIndex, gameIndex }) {
+      const { data, prefix } = this._getTarget();
+      return getTournamentSyncRuntime(this).syncHistoricalResultEdit({
+        prefix,
+        roundIndex,
+        gameIndex,
+        game: data.games[roundIndex][gameIndex],
+        teams: data.teams,
+      });
+    },
     syncTeamPlayoff() {
       const { data, prefix } = this._getTarget();
       this._syncPath(`${prefix}teamPlayoff`, data.teamPlayoff);

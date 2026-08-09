@@ -78,7 +78,7 @@ const ACTIONS = `
   setBarrage setBarrageGames setCadrage setPlayOff setPlayOffBracket setPlayOffStage setSavedTournaments
   setTournamentBEliminationRound setTournamentIdFromPortal setTournamentInfoFromPortal setTournaments showMessage
   shuffleLanesStore startRound startRoundTimer subscribeTournament swapLanesStore syncBracketMatch syncCadrageFull
-  syncCadrageMatch syncDrawStart syncEliminationGames syncGameMatch syncGames syncGamesAndTeams syncPathNull
+  syncCadrageMatch syncDrawStart syncEliminationGames syncGameMatch syncGames syncGamesAndTeams syncHistoricalResultEdit syncPathNull
   syncPoulesRound syncRedraw syncStreamPresets syncTeamPlayoff syncTeamPlayoffMatch syncTeams syncTirParticipants
   syncTirPlayoff syncTirPlayoffMatch syncTirStart syncTirState syncTournamentMessage syncTournamentStarted
   toggleWithdrawn unarchiveTournament unsubscribeTournament updateGameScore

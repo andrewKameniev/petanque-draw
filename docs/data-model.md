@@ -214,7 +214,8 @@ snapshot.
   pointsPlus: 0,                // Total points scored
   pointsMinus: 0,               // Total points conceded
   lanes: [],                    // Lane numbers played [3, 1, 4, ...]
-  players: []                   // Player objects [{name, surname}] (for protocol)
+  players: [],                  // Player objects [{name, surname}] (for protocol)
+  coach: null                   // Portal coach {id, name, surname, second_name, avatar_url}, when supplied
 }
 ```
 

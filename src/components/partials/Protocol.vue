@@ -115,8 +115,9 @@
                   contenteditable="plaintext-only"
                   :data-protocol-edit-key="`participant.${team.title}.coach`"
                   data-protocol-manual="true"
-                  data-protocol-source=""
+                  :data-protocol-source="protocolCoachName(team)"
                   :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"
+                  v-text="protocolCoachName(team)"
                 ></td>
                 <td
                   :key="`participant-${team.title}-sport-${team.players?.[0]?.sport_title || ''}`"
@@ -199,8 +200,9 @@
                   contenteditable="plaintext-only"
                   :data-protocol-edit-key="`participant.${team.title}.coach`"
                   data-protocol-manual="true"
-                  data-protocol-source=""
+                  :data-protocol-source="protocolCoachName(team)"
                   :rowspan="team.players?.length > 1 ? team.players.length + 1 : 1"
+                  v-text="protocolCoachName(team)"
                 ></td>
                 <td
                   :key="`participant-${team.title}-sport-${team.players?.[0]?.sport_title || ''}`"
@@ -438,6 +440,7 @@ import {
   getAllTeams,
   countPlayers,
   buildTeamTitle,
+  formatCoachName,
   getProtocolTournamentMeta,
   refreshTournamentPlayerDetails,
 } from '@/protocol-helpers';
@@ -588,6 +591,10 @@ export default {
     },
     getTeamPlaceInGroups,
     formatDateToHumanReadable,
+    protocolCoachName(team) {
+      const tournamentTeam = this.tournament.teams?.find((candidate) => candidate.title === team?.title);
+      return formatCoachName(tournamentTeam ? tournamentTeam.coach : team?.coach);
+    },
     getSwissPlace(teamTitle) {
       const index = this.rankingTeams.findIndex((t) => t.title === teamTitle);
       return index !== -1 ? index + 1 : '';
@@ -608,10 +615,14 @@ export default {
         this.saveProtocolToStorage();
 
         const missingText = stats.missing ? ` Не знайдено: ${stats.missing}.` : '';
+        const hasChanges = stats.changed || stats.coachesChanged;
+        const changedParts = [];
+        if (stats.changed) changedParts.push(`гравців — ${stats.changed}`);
+        if (stats.coachesChanged) changedParts.push(`тренерів — ${stats.coachesChanged}`);
         this.showMessage({
-          title: stats.changed ? 'Оновлено' : 'Без змін',
-          text: stats.changed
-            ? `Оновлено ${stats.changed} з ${stats.matched} знайдених гравців.${missingText}`
+          title: hasChanges ? 'Оновлено' : 'Без змін',
+          text: hasChanges
+            ? `Оновлено дані: ${changedParts.join(', ')}.${missingText}`
             : `Дані ${stats.matched} знайдених гравців уже актуальні.${missingText}`,
         });
       } catch (e) {

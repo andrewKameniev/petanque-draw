@@ -11,6 +11,15 @@ function normalizeName(value) {
     .toLocaleUpperCase('uk-UA');
 }
 
+export function formatCoachName(coach) {
+  if (!coach) return '';
+  if (typeof coach === 'string') return coach.replace(/\s+/g, ' ').trim();
+  return [coach.surname, coach.name, coach.second_name]
+    .map((part) => String(part || '').trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
 function playerNameKey(player) {
   const surname = normalizeName(player?.surname);
   const name = normalizeName(player?.name);
@@ -63,6 +72,78 @@ function fieldChanged(currentValue, portalValue) {
   return String(currentValue ?? '').trim() !== String(portalValue ?? '').trim();
 }
 
+function cloneValue(value) {
+  if (Array.isArray(value)) return value.map(cloneValue);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)]));
+}
+
+function valuesEqual(left, right) {
+  if (Object.is(left, right)) return true;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return (
+      Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((item, index) => valuesEqual(item, right[index]))
+    );
+  }
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every((key) => Object.prototype.hasOwnProperty.call(right, key) && valuesEqual(left[key], right[key]))
+  );
+}
+
+function buildTeamIndex(portalTeams) {
+  const byId = new Map();
+  const byName = new Map();
+  portalTeams.forEach((team) => {
+    const id = normalizeId(team.id);
+    if (id) byId.set(id, team);
+
+    const name = normalizeName(team.name);
+    if (!name) return;
+    const matches = byName.get(name) || [];
+    matches.push(team);
+    byName.set(name, matches);
+  });
+  return { byId, byName };
+}
+
+export function syncTeamCoaches(teams, portalTeams) {
+  const index = buildTeamIndex(portalTeams);
+  const stats = { total: teams.length, matched: 0, changedTeams: 0, missing: 0, ambiguous: 0 };
+
+  teams.forEach((team) => {
+    const portalTeamId = normalizeId(team.portalTeamId);
+    const idMatch = portalTeamId ? index.byId.get(portalTeamId) : null;
+    const matches = idMatch ? [idMatch] : index.byName.get(normalizeName(team.title)) || [];
+
+    if (matches.length === 0) {
+      stats.missing += 1;
+      return;
+    }
+    if (matches.length > 1) {
+      stats.ambiguous += 1;
+      return;
+    }
+
+    const portalTeam = matches[0];
+    stats.matched += 1;
+    if (!Object.prototype.hasOwnProperty.call(portalTeam, 'coach') || portalTeam.coach === undefined) return;
+    if (valuesEqual(team.coach, portalTeam.coach)) return;
+
+    team.coach = cloneValue(portalTeam.coach);
+    stats.changedTeams += 1;
+  });
+
+  return stats;
+}
+
 function tirNameKeys(team, player) {
   const surname = String(player?.surname || '').trim();
   const firstName = String(player?.name || '').trim();
@@ -97,7 +178,7 @@ function buildTirIndex(portalTeams) {
 
 export const FIELD_SETS = {
   protocol: ['second_name', 'surname', 'name', 'club_id', 'sport_title'],
-  tir: ['protocolName', 'portalTeamId', 'club_id', 'sport_title'],
+  tir: ['protocolName', 'portalTeamId', 'club_id', 'sport_title', 'coach'],
   media: ['club_logo_url', 'avatar_url', 'club_id', 'club'],
 };
 
@@ -175,6 +256,7 @@ export function syncTirParticipants(participants, portalTeams, { fields = FIELD_
       club_logo_url: player.club_logo_url,
       avatar_url: player.avatar_url,
       club: player.club,
+      ...(Object.prototype.hasOwnProperty.call(team, 'coach') ? { coach: formatCoachName(team.coach) } : {}),
     };
 
     let changed = false;

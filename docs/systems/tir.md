@@ -148,7 +148,7 @@ Clicking a match card opens `TirPlayoffComparison` — a detailed side-by-side v
 
 After a TIR tournament is finished, the final protocol appears as another tab in the native TIR navigation. The same native tab remains available in the archived tournament view.
 
-The editable protocol includes tournament metadata, round-one and optional round-two scores, qualification and final places, playoff matches, judges, and signature rows. Its participant tools can refresh names, regions, and sporting titles from the FPU portal. The preview, PDF, and DOCX exports use A4 landscape layout; the DOCX result table follows the official 10-column TIR protocol proportions and includes page numbers.
+The editable protocol includes tournament metadata, round-one and optional round-two scores, qualification and final places, playoff matches, judges, and signature rows. Its participant tools can refresh names, regions, coaches, and sporting titles from the FPU portal. The preview, PDF, and DOCX exports use A4 landscape layout; the DOCX result table follows the official 10-column TIR protocol proportions and includes page numbers.
 
 TIR and standard protocols share the payment gate, participant preparation controls, judge-management footer, export controls, portal loader, persistence, copying, and PDF lifecycle. Only the generated protocol body and its export layout differ.
 

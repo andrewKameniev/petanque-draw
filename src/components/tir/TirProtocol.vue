@@ -132,7 +132,7 @@
                 contenteditable="plaintext-only"
                 :data-protocol-edit-key="`participant.${p.id || index}.coach`"
                 :data-protocol-source="String(p.id || p.name || index)"
-                v-text="p.coach || ''"
+                v-text="formatCoachName(p.coach)"
                 @blur="updateParticipantField(p, 'coach', $event)"
               ></td>
               <td
@@ -344,7 +344,7 @@
 import { mapActions, mapState } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { regions } from '@/helpers';
-import { getProtocolTournamentMeta, refreshTirParticipantDetails } from '@/protocol-helpers';
+import { formatCoachName, getProtocolTournamentMeta, refreshTirParticipantDetails } from '@/protocol-helpers';
 import { downloadProtocolDocx } from '@/services/protocol-docx';
 import { isMainArbiterRole, normalizeArbiterRole } from '@/services/arbiter-registry';
 import {
@@ -522,6 +522,7 @@ export default {
     getParticipantProtocolName(participant) {
       return participant.protocolName || participant.name || '';
     },
+    formatCoachName,
     getParticipantRegion(participant) {
       return regions[participant.club_id] || participant.city || '';
     },

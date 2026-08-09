@@ -360,6 +360,7 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import ConfirmRemoveModal from '@/components/ConfirmRemoveModal';
 import { getTeamsRanking, shuffleArray } from '@/helpers';
+import { formatCoachName } from '@/protocol-helpers';
 import {
   buildPlayOffScheme,
   buildCadrageGames,
@@ -1002,6 +1003,7 @@ export default {
               portalTeamId: team.portalTeamId || null,
               club_id: player?.club_id || null,
               sport_title: player?.sport_title || null,
+              coach: formatCoachName(team.coach),
             };
           });
         }

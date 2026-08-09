@@ -51,12 +51,39 @@ vi.mock('@/components/Menu.vue', () => ({ default: {} }));
 
 import Protocol from '@/components/partials/Protocol.vue';
 import ProtocolArbiterControls from '@/components/partials/ProtocolArbiterControls.vue';
+import AddTeam from '@/components/partials/AddTeam.vue';
 import TirProtocol from '@/components/tir/TirProtocol.vue';
 import Archived from '@/views/Archived.vue';
 
 const arbiterMethods = ProtocolArbiterControls.methods;
 const protocolMethods = Protocol.methods;
 const tirProtocolMethods = TirProtocol.methods;
+
+describe('Portal team import', () => {
+  it('stores the coach supplied with a Portal team', () => {
+    const coach = { id: 55, name: 'Іван', surname: 'Петренко', second_name: '' };
+    const context = {
+      tournament: { teams: [] },
+      addTeamToStore: vi.fn(),
+      syncTeams: vi.fn(),
+      showMessage: vi.fn(),
+      teamTitle: null,
+      teamRating: null,
+    };
+
+    AddTeam.methods.addTeam.call(context, 'Team Name', 1500, [{ id: 42 }], 7, { id: 3 }, coach);
+
+    expect(context.addTeamToStore).toHaveBeenCalledWith(expect.objectContaining({ coach }));
+    expect(tirProtocolMethods.formatCoachName(coach)).toBe('Петренко Іван');
+  });
+
+  it('resolves a playoff ranking row coach from the canonical tournament team', () => {
+    const coach = { id: 55, name: 'Іван', surname: 'Петренко', second_name: '' };
+    const context = { tournament: { teams: [{ title: 'Team Name', coach }] } };
+
+    expect(protocolMethods.protocolCoachName.call(context, { title: 'Team Name', players: [] })).toBe('Петренко Іван');
+  });
+});
 
 describe('ProtocolArbiterControls', () => {
   beforeEach(() => {
@@ -474,13 +501,23 @@ describe('Protocol component behavior', () => {
   it('refreshes player details from a cache-busted portal request and saves them', async () => {
     const originalWindow = globalThis.window;
     const originalFetch = globalThis.fetch;
-    const teams = [{ players: [{ id: 1, surname: 'Старе', name: 'Ім’я', second_name: '' }] }];
+    const teams = [
+      { title: 'Team Name', portalTeamId: 7, players: [{ id: 1, surname: 'Старе', name: 'Ім’я', second_name: '' }] },
+    ];
+    const coach = { id: 55, name: 'Іван', surname: 'Петренко', second_name: '' };
     globalThis.window = { URL: globalThis.URL };
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
-          teams: [{ players: [{ id: '1', surname: 'Нове', name: 'Ім’я', second_name: 'По батькові' }] }],
+          teams: [
+            {
+              id: '7',
+              name: 'Team Name',
+              coach,
+              players: [{ id: '1', surname: 'Нове', name: 'Ім’я', second_name: 'По батькові' }],
+            },
+          ],
         }),
     });
     const context = {
@@ -501,6 +538,7 @@ describe('Protocol component behavior', () => {
     }
 
     expect(teams[0].players[0]).toEqual(expect.objectContaining({ surname: 'Нове', second_name: 'По батькові' }));
+    expect(teams[0].coach).toEqual(coach);
     expect(context.saveProtocolToStorage).toHaveBeenCalledOnce();
     expect(context.showMessage).toHaveBeenCalledWith(expect.objectContaining({ title: 'Оновлено' }));
     expect(context.refreshing).toBe(false);

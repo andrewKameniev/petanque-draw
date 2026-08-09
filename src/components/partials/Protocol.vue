@@ -1311,6 +1311,8 @@ export default {
 .standard-protocol-container #protocol table td {
   /* quality-allow-color: protocol preview mirrors the generated DOCX export. */
   border: 0.75pt solid #7f7f7f;
+
+  /* Word's cell margins render more compactly than equivalent browser padding. */
   padding: 0.75pt 4pt !important;
   vertical-align: middle;
   overflow-wrap: break-word;

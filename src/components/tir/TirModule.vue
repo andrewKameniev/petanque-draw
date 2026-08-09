@@ -245,9 +245,6 @@ export default {
     TournamentNav,
     Plus,
   },
-  props: {
-    tournamentMeta: { type: Object, default: null },
-  },
   emits: ['finish'],
   data() {
     return {

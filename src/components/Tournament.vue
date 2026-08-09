@@ -58,7 +58,7 @@
 
     <!-- POST-START: Tir module (no tabs) -->
     <template v-else-if="tournament.system === 'tir'">
-      <TirModule ref="tirModule" :tournament-meta="tournamentWrapper" @finish="showFinishConfirm = true" />
+      <TirModule ref="tirModule" @finish="showFinishConfirm = true" />
       <div class="bottom-actions">
         <div class="bottom-actions__row">
           <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">

@@ -741,6 +741,9 @@ export default {
 
 <style>
 .tir-protocol-container #protocol {
+  /* quality-allow-color: protocol preview mirrors the generated DOCX export. */
+  color: #000;
+  font-family: 'Times New Roman', serif;
   width: 297mm;
   min-width: 297mm;
   min-height: 210mm;
@@ -751,6 +754,14 @@ export default {
   background: #fff;
   border: 1px solid #c8c8c8;
   box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
+}
+
+.tir-protocol-container #protocol h2,
+.tir-protocol-container #protocol h3,
+.tir-protocol-container #protocol h4 {
+  color: inherit;
+  font-weight: bold;
+  break-after: avoid;
 }
 
 .tir-protocol-container #protocol.is-exporting {

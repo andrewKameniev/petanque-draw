@@ -162,6 +162,7 @@ describe('archive and collaboration runtime', () => {
     expect(firebase.update).toHaveBeenCalledWith('/', {
       'archive/t1': null,
       'owner1/tournaments/t1': null,
+      'publicTournaments/owner1/t1': null,
       'users/owner1/tournaments/t1': null,
       'users/super-admin/tournaments/t1': null,
     });

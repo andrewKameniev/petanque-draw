@@ -6,6 +6,7 @@ import {
   normalizeTournamentRecord,
   replaceTournamentGroup,
 } from '@/services/tournament-record';
+import { createPublicTournamentWriter } from '@/services/public-tournament-projection';
 
 const MAIN_PATHS = [
   'system',
@@ -201,11 +202,14 @@ function shouldKeepLocalTimer(localTimer, remoteTimer, now) {
 export function createTournamentSyncRuntime(store, dependencies = {}) {
   const firebase = {
     getDatabase: dependencies.getDatabase || getDatabase,
+    increment: dependencies.increment,
     onValue: dependencies.onValue || onValue,
     ref: dependencies.ref || ref,
+    serverTimestamp: dependencies.serverTimestamp,
     set: dependencies.set || set,
     update: dependencies.update || update,
   };
+  const publicWriter = dependencies.publicTournamentWriter || createPublicTournamentWriter(firebase);
   const now = dependencies.now || Date.now;
   const recentSyncPaths = new Set();
   const recentMatchSyncs = new Set();
@@ -231,20 +235,26 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
   }
 
   function syncPath(path, data) {
-    const { ownerUid, tournamentId, userUid } = context();
+    const { ownerUid, tournament, tournamentId, userUid } = context();
     if (!userUid || !tournamentId) return undefined;
     const writeGeneration = generation;
     recentSyncPaths.add(path);
-    const fullPath = `${ownerUid}/tournaments/${tournamentId}/${path}`;
-    return firebase.set(firebase.ref(firebase.getDatabase(), fullPath), serializeFirebaseValue(data)).catch((error) => {
-      recentSyncPaths.delete(path);
-      if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
-      console.error('Error updating path:', path, error);
-    });
+    return publicWriter
+      .writePaths({
+        ownerUid,
+        tournamentId,
+        record: tournament,
+        pathValues: { [path]: serializeFirebaseValue(data) },
+      })
+      .catch((error) => {
+        recentSyncPaths.delete(path);
+        if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
+        console.error('Error updating path:', path, error);
+      });
   }
 
   function syncPaths(pathValues) {
-    const { ownerUid, tournamentId, userUid } = context();
+    const { ownerUid, tournament, tournamentId, userUid } = context();
     if (!userUid || !tournamentId) return undefined;
 
     const updates = Object.fromEntries(
@@ -255,12 +265,13 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     if (!Object.keys(updates).length) return Promise.resolve();
 
     const writeGeneration = generation;
-    const basePath = `${ownerUid}/tournaments/${tournamentId}`;
-    return firebase.update(firebase.ref(firebase.getDatabase(), basePath), updates).catch((error) => {
-      if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
-      console.error('Error updating tournament paths:', Object.keys(updates), error);
-      throw error;
-    });
+    return publicWriter
+      .writePaths({ ownerUid, tournamentId, record: tournament, pathValues: updates })
+      .catch((error) => {
+        if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
+        console.error('Error updating tournament paths:', Object.keys(updates), error);
+        throw error;
+      });
   }
 
   function syncHistoricalResultEdit({ prefix = '', roundIndex, gameIndex, game, teams }) {
@@ -291,10 +302,14 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
           recentMatchSyncs.delete(syncKey);
           return;
         }
-        const { ownerUid, tournamentId, userUid } = scheduledContext;
-        const path = `${ownerUid}/tournaments/${tournamentId}/${namespace}/${key}`;
-        firebase
-          .set(firebase.ref(firebase.getDatabase(), path), serializeFirebaseValue(data))
+        const { ownerUid, tournament, tournamentId, userUid } = scheduledContext;
+        publicWriter
+          .writePaths({
+            ownerUid,
+            tournamentId,
+            record: tournament,
+            pathValues: { [`${namespace}/${key}`]: serializeFirebaseValue(data) },
+          })
           .then(() => recentMatchSyncs.delete(syncKey))
           .catch((error) => {
             recentMatchSyncs.delete(syncKey);
@@ -309,9 +324,11 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     const { tournament, tournamentId, userUid } = context();
     if (!userUid || !tournamentId || tournament?._ownerUid) return undefined;
     const writeGeneration = generation;
-    return firebase
-      .update(firebase.ref(firebase.getDatabase(), `${userUid}/tournaments/`), {
-        [tournamentId]: serializeFirebaseValue(tournament),
+    return publicWriter
+      .writeFull({
+        ownerUid: userUid,
+        tournamentId,
+        record: serializeFirebaseValue(tournament),
       })
       .catch((error) => {
         if (generation !== writeGeneration) return;

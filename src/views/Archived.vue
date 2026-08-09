@@ -473,6 +473,7 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { getTeamsRanking } from '@/helpers';
 import { tournamentService } from '@/services/db';
+import { publicTournamentWriter } from '@/services/public-tournament-projection';
 import { archiveIndexService, isArchiveIndexEntryEligible } from '@/services/archive-index';
 import { syncFromPortal, FIELD_SETS } from '@/services/portal-sync';
 import { updatePortalTournament } from '@/services/portal';
@@ -1051,19 +1052,19 @@ export default {
         const totalChanged = (results.teams?.changedPlayers || 0) + (results.tirParticipants?.changedPlayers || 0);
 
         if (totalChanged > 0) {
-          const writes = targets.flatMap(({ data, prefix }) => {
-            const groupWrites = [];
-            if (Array.isArray(data.teams)) {
-              groupWrites.push(tournamentService.updatePath(ownerUid, tournamentId, `${prefix}teams`, data.teams));
-            }
+          const pathValues = {};
+          targets.forEach(({ data, prefix }) => {
+            if (Array.isArray(data.teams)) pathValues[`${prefix}teams`] = data.teams;
             if (Array.isArray(data.tirParticipants)) {
-              groupWrites.push(
-                tournamentService.updatePath(ownerUid, tournamentId, `${prefix}tirParticipants`, data.tirParticipants),
-              );
+              pathValues[`${prefix}tirParticipants`] = data.tirParticipants;
             }
-            return groupWrites;
           });
-          await Promise.all(writes);
+          await publicTournamentWriter.writePaths({
+            ownerUid,
+            tournamentId,
+            record: tournament,
+            pathValues,
+          });
           this.$forceUpdate();
         }
       } catch (err) {

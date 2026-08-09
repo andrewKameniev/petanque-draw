@@ -17,18 +17,19 @@ Exact versions and executable commands are owned by `package.json`.
 
 ## Ownership map
 
-| Area                     | Owner                                     | Responsibility                                                           |
-| ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------ |
-| Route/page state         | `src/views/`                              | Route decoding, loading/error state, page composition                    |
-| Feature UI               | `src/components/`                         | Interaction and feature-level orchestration                              |
-| UI primitives            | `src/components/ui/`                      | Reusable markup, accessibility, and generic behavior                     |
-| Domain/integration logic | `src/services/`                           | Pure rules, adapters, subscriptions, persistence runtimes, external APIs |
-| Application state        | `src/stores/main.js`                      | Reactive façade and delegation to focused services                       |
-| Tournament compatibility | `src/services/tournament-record.js`       | Envelope/legacy normalization and storage targets                        |
-| Public live data         | `src/services/live-tournament.js`         | Public/TV loading profiles and subscription lifecycle                    |
-| Presentation selectors   | `src/services/tournament-presentation.js` | Shared phase, status, round, and metadata selectors                      |
-| Design tokens            | `src/assets/css/variables.css`            | Primitive and semantic colors shared by feature CSS                      |
-| Localization             | `src/locales/`, `src/i18n.js`             | User-facing strings and lazy locale modules                              |
+| Area                     | Owner                                          | Responsibility                                                           |
+| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| Route/page state         | `src/views/`                                   | Route decoding, loading/error state, page composition                    |
+| Feature UI               | `src/components/`                              | Interaction and feature-level orchestration                              |
+| UI primitives            | `src/components/ui/`                           | Reusable markup, accessibility, and generic behavior                     |
+| Domain/integration logic | `src/services/`                                | Pure rules, adapters, subscriptions, persistence runtimes, external APIs |
+| Application state        | `src/stores/main.js`                           | Reactive façade and delegation to focused services                       |
+| Tournament compatibility | `src/services/tournament-record.js`            | Envelope/legacy normalization and storage targets                        |
+| Public live data         | `src/services/live-tournament.js`              | Public/TV loading profiles and subscription lifecycle                    |
+| Public projection        | `src/services/public-tournament-projection.js` | V1 derivation, validation, atomic dual writes, and rollout fallback      |
+| Presentation selectors   | `src/services/tournament-presentation.js`      | Shared phase, status, round, and metadata selectors                      |
+| Design tokens            | `src/assets/css/variables.css`                 | Primitive and semantic colors shared by feature CSS                      |
+| Localization             | `src/locales/`, `src/i18n.js`                  | User-facing strings and lazy locale modules                              |
 
 Views and components may orchestrate services and store actions. Reusable
 ranking, scoring, normalization, matching, and persistence logic belongs in a
@@ -53,11 +54,22 @@ service/runtime boundary, not be duplicated in components.
 1. Direct public, TV, public-statistics, and custom-slug navigation mounts
    without waiting for authentication or loading private account data.
 2. `tournament-ref.js` resolves a public reference or slug.
-3. `live-tournament.js` bootstraps and normalizes the record with a temporary
-   parent listener.
-4. A named public/TV profile attaches its required field listeners before the
-   parent listener is removed, preserving Firebase's local-cache handoff.
-5. Shared presentation selectors feed page components and UI primitives.
+3. `live-tournament.js` subscribes to the V1 public projection and accepts only
+   complete, supported, non-regressed revisions.
+4. A valid projection is normalized through `tournament-record.js` and remains
+   the only network source for Public/TV rendering.
+5. During the migration window, an unavailable or invalid projection switches
+   to the canonical bootstrap. A named public/TV profile attaches its required
+   field listeners before the temporary parent listener is removed, preserving
+   Firebase's local-cache handoff.
+6. Shared presentation selectors feed page components and UI primitives.
+
+Authenticated public-field mutations flow in the opposite direction:
+components delegate to `tournament-sync.js` or an archive runtime, and the
+projection service builds one root multi-path update for canonical and public
+leaves. Private canonical mutations remain canonical-only. The same service
+owns full publication, Group B path mapping, pre-rules permission fallback, and
+canonical/projection deletion so no second filtering or revision policy exists.
 
 ### Archives and collaboration
 

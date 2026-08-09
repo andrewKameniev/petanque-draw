@@ -326,7 +326,14 @@ describe('User Tournament Map', () => {
       store.renameSavedTournament('shared1', 'Renamed Tournament', 'owner1');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockUpdate).toHaveBeenCalledWith('owner1/tournaments/shared1', { name: 'Renamed Tournament' });
+      expect(mockUpdate).toHaveBeenCalledWith(
+        '/',
+        expect.objectContaining({
+          'owner1/tournaments/shared1/name': 'Renamed Tournament',
+          'publicTournaments/owner1/shared1/record/name': 'Renamed Tournament',
+          'publicTournaments/owner1/shared1/schemaVersion': 1,
+        }),
+      );
       expect(userMapService.update).toHaveBeenCalledWith('user1', 'shared1', { name: 'Renamed Tournament' });
     });
   });

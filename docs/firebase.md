@@ -22,6 +22,7 @@ must never be tracked.
 | Path                                            | Purpose                                              | Primary owner                                   |
 | ----------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
 | `{uid}/tournaments/{id}`                        | Authoritative active and archived tournament records | `tournamentService`, store runtimes             |
+| `publicTournaments/{uid}/{id}`                  | Versioned anonymous Public/TV projection             | public tournament projection service            |
 | `users/{uid}/tournaments/{id}`                  | Per-user status, role, owner, and display metadata   | `userMapService`, archive/collaboration runtime |
 | `{uid}/saved/{id}`                              | Legacy archive source read during migration          | archive/collaboration runtime                   |
 | `archive/{id}`                                  | Queryable public archive metadata                    | `archiveIndexService`                           |
@@ -46,8 +47,29 @@ storage target rather than reconstructing prefixes.
 
 Authenticated editing passes through `src/services/tournament-sync.js`, which
 owns granular path writes, match debouncing, subscription merge policies, echo
-suppression, and disposal. Public and TV pages use the read-only profiles in
-`src/services/live-tournament.js`.
+suppression, and disposal. `src/services/public-tournament-projection.js`
+derives the V1 public record and maps public canonical leaves. Root multi-path
+updates commit a canonical change, its projected leaf or full record, and the
+projection revision/timestamp atomically. Full saves mark `complete: true`;
+granular writes may create an incomplete staging node that readers reject until
+a full publication occurs. Group B creation/removal and active-group changes
+are written together, and tournament deletion removes the canonical and public
+nodes in one operation.
+
+During the additive-rules window, a projection permission denial retries the
+same canonical write without its projection paths. This is the only recovery
+case: network failures and canonical permission denial still surface normally.
+The retry also preserves archive/map deletion paths in one canonical update.
+It permits shipping the dual writer before the additive projection rules have
+reached every environment without blocking editors or archive workflows.
+
+Public and TV pages use the read-only source in
+`src/services/live-tournament.js`. It subscribes to the complete projection
+node first. A valid revision supplies the normalized Public/TV record without
+reading the authoritative node. Missing, partial, malformed,
+unsupported-version, and projection permission/error states detach that
+listener and enter the canonical compatibility flow described below. A stale
+revision preserves the last valid projected record instead of replacing it.
 
 Public and TV live sources bootstrap through a temporary tournament-node
 listener. They attach their granular profile listeners while that parent is
@@ -73,6 +95,32 @@ signed-in public visit, never rewrites that index.
 When a user, tournament, or component lifecycle changes, listeners and pending
 writes must be disposed before the next context becomes active. Permission
 denial for shared data is handled as access revocation, not as an empty record.
+
+## Projection rules rollout and rollback
+
+`database.rules.json` adds anonymous reads only for `publicTournaments` and
+keeps the existing anonymous authoritative tournament read during this
+compatibility change. Owners and admin collaborators may publish a complete
+projection. Scorer collaborators may update only the same scoring-owned fields
+they can write canonically. Projection rules reject unsupported metadata,
+unknown contract fields, editor preferences, over-depth values, malformed or
+sparse stream maps, collaborator/owner data, emails,
+tokens, and portal replacement metadata.
+
+The separately approved production sequence is:
+
+1. Deploy the additive projection rules while canonical anonymous reads remain.
+2. Deploy the dual writer and projection-first reader, then observe projection
+   readiness, fallback reasons, errors, revisions, and read payloads.
+3. Run an explicitly authorized, idempotent full-projection backfill for records
+   that did not receive a complete writer publication.
+4. After the measured compatibility window, separately approve and deploy the
+   rule change that revokes anonymous reads of `{uid}/tournaments/{id}`.
+
+Rollback keeps authoritative records intact: restore or retain canonical reads
+and let the current reader use its compatibility path. Do not delete projections
+or rewrite canonical records as part of rollback. This implementation does not
+deploy rules, run a backfill, revoke canonical reads, or change production data.
 
 ## Archives
 

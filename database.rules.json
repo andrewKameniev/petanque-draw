@@ -106,6 +106,141 @@
       }
     },
 
+    "publicTournaments": {
+      "$ownerUid": {
+        "$tid": {
+          ".read": true,
+          ".write": "auth != null && !newData.exists() && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com')",
+          ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt', 'record']) && (!newData.child('complete').exists() || newData.child('complete').isBoolean()) && (newData.child('complete').val() !== true || (newData.child('record').hasChildren(['activeGroup', 'main']) && (newData.child('record').child('activeGroup').val() !== 'B' || newData.child('record').child('tournamentB').exists())))",
+
+          "schemaVersion": {
+            ".write": "auth != null && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists())",
+            ".validate": "newData.isNumber() && newData.val() === 1"
+          },
+          "complete": {
+            ".write": "auth != null && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin')",
+            ".validate": "newData.isBoolean()"
+          },
+          "revision": {
+            ".write": "auth != null && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists())",
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
+          },
+          "updatedAt": {
+            ".write": "auth != null && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists())",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "record": {
+            ".write": "auth != null && (auth.uid === $ownerUid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin')",
+            ".validate": "newData.hasChildren()",
+            "name": {
+              ".validate": "newData.isString()"
+            },
+            "date": {
+              ".validate": "newData.isString()"
+            },
+            "tournamentMessage": {
+              ".validate": "newData.isString()"
+            },
+            "activeGroup": {
+              ".validate": "newData.val() === 'A' || newData.val() === 'B'"
+            },
+            "main": {
+              ".validate": "newData.hasChildren(['system']) && newData.child('system').isString()",
+              "$field": {
+                ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')",
+                ".validate": "($field === 'system' || $field === 'teams' || $field === 'games' || $field === 'groups' || $field === 'groupSchedule' || $field === 'preferences' || $field === 'roundIsActive' || $field === 'roundTimer' || $field === 'roundRobinCircle' || $field === 'tournamentIsFinished' || $field === 'tournamentIsStarted' || $field === 'useRating' || $field === 'playOff' || $field === 'playoff' || $field === 'playOffBracket' || $field === 'playOffStage' || $field === 'cadrage' || $field === 'barrage' || $field === 'teamPlayoff' || $field === 'tirParticipants' || $field === 'tirPlayoff' || $field === 'tirRound' || $field === 'tirR2Participants' || $field === 'tirTiebreakerCount' || $field === 'tirConfig' || $field === 'tirStarted' || $field === 'streamPresets') && ($field !== 'system' || newData.isString()) && ($field !== 'preferences' || newData.hasChildren()) && ($field !== 'streamPresets' || newData.hasChildren())",
+                "$d1": {
+                  ".validate": "!$d1.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && ($field !== 'preferences' || (($d1 === 'maxScore' || $d1 === 'fieldsStart' || $d1 === 'playOffEnabled' || $d1 === 'playOffTeams' || $d1 === 'playOffFormat' || $d1 === 'grandFinalMode' || $d1 === 'groupFormat' || $d1 === 'groupTotalRounds' || $d1 === 'swissRoundsCount' || $d1 === 'prizePlaces' || $d1 === 'timeLimitEnabled' || $d1 === 'timeLimit' || $d1 === 'playoffTimeLimit' || $d1 === 'noTimeLimitFinale' || $d1 === 'cochonettesEnabled' || $d1 === 'cochonettesEnabledPlayoff' || $d1 === 'cochonettes' || $d1 === 'colorSchema') && !newData.hasChildren())) && ($field !== 'streamPresets' || (($d1 === 'teams' || $d1 === 'lanes') && newData.hasChildren()))",
+                  "$d2": {
+                    ".validate": "$field === 'streamPresets' ? (newData.hasChildren() && newData.child('0').isString() && (!newData.child('1').exists() || newData.child('0').exists()) && (!newData.child('2').exists() || newData.child('1').exists()) && (!newData.child('3').exists() || newData.child('2').exists()) && (!newData.child('4').exists() || newData.child('3').exists()) && (!newData.child('5').exists() || newData.child('4').exists()) && (!newData.child('6').exists() || newData.child('5').exists()) && (!newData.child('7').exists() || newData.child('6').exists()) && (!newData.child('8').exists() || newData.child('7').exists()) && (!newData.child('9').exists() || newData.child('8').exists()) && (!newData.child('10').exists() || newData.child('9').exists()) && (!newData.child('11').exists() || newData.child('10').exists()) && (!newData.child('12').exists() || newData.child('11').exists()) && (!newData.child('13').exists() || newData.child('12').exists()) && (!newData.child('14').exists() || newData.child('13').exists()) && (!newData.child('15').exists() || newData.child('14').exists())) : !$d2.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                    "$d3": {
+                      ".validate": "$field === 'streamPresets' ? (($d3 === '0' || $d3 === '1' || $d3 === '2' || $d3 === '3' || $d3 === '4' || $d3 === '5' || $d3 === '6' || $d3 === '7' || $d3 === '8' || $d3 === '9' || $d3 === '10' || $d3 === '11' || $d3 === '12' || $d3 === '13' || $d3 === '14' || $d3 === '15') && newData.isString()) : !$d3.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                      "$d4": {
+                        ".validate": "$field !== 'streamPresets' && !$d4.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                        "$d5": {
+                          ".validate": "!$d5.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                          "$d6": {
+                            ".validate": "!$d6.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                            "$d7": {
+                              ".validate": "!$d7.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                              "$d8": {
+                                ".validate": "!$d8.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                "$d9": {
+                                  ".validate": "!$d9.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                  "$d10": {
+                                    ".validate": "!$d10.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                    "$d11": {
+                                      ".validate": "!$d11.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                      "$d12": {
+                                        ".validate": "!$d12.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && !newData.hasChildren()"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "tournamentB": {
+              ".validate": "newData.hasChildren(['system']) && newData.child('system').isString()",
+              "$field": {
+                ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')",
+                ".validate": "($field === 'system' || $field === 'teams' || $field === 'games' || $field === 'groups' || $field === 'groupSchedule' || $field === 'preferences' || $field === 'roundIsActive' || $field === 'roundTimer' || $field === 'roundRobinCircle' || $field === 'tournamentIsFinished' || $field === 'tournamentIsStarted' || $field === 'useRating' || $field === 'playOff' || $field === 'playoff' || $field === 'playOffBracket' || $field === 'playOffStage' || $field === 'cadrage' || $field === 'barrage' || $field === 'teamPlayoff' || $field === 'tirParticipants' || $field === 'tirPlayoff' || $field === 'tirRound' || $field === 'tirR2Participants' || $field === 'tirTiebreakerCount' || $field === 'tirConfig' || $field === 'tirStarted' || $field === 'streamPresets') && ($field !== 'system' || newData.isString()) && ($field !== 'preferences' || newData.hasChildren()) && ($field !== 'streamPresets' || newData.hasChildren())",
+                "$d1": {
+                  ".validate": "!$d1.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && ($field !== 'preferences' || (($d1 === 'maxScore' || $d1 === 'fieldsStart' || $d1 === 'playOffEnabled' || $d1 === 'playOffTeams' || $d1 === 'playOffFormat' || $d1 === 'grandFinalMode' || $d1 === 'groupFormat' || $d1 === 'groupTotalRounds' || $d1 === 'swissRoundsCount' || $d1 === 'prizePlaces' || $d1 === 'timeLimitEnabled' || $d1 === 'timeLimit' || $d1 === 'playoffTimeLimit' || $d1 === 'noTimeLimitFinale' || $d1 === 'cochonettesEnabled' || $d1 === 'cochonettesEnabledPlayoff' || $d1 === 'cochonettes' || $d1 === 'colorSchema') && !newData.hasChildren())) && ($field !== 'streamPresets' || (($d1 === 'teams' || $d1 === 'lanes') && newData.hasChildren()))",
+                  "$d2": {
+                    ".validate": "$field === 'streamPresets' ? (newData.hasChildren() && newData.child('0').isString() && (!newData.child('1').exists() || newData.child('0').exists()) && (!newData.child('2').exists() || newData.child('1').exists()) && (!newData.child('3').exists() || newData.child('2').exists()) && (!newData.child('4').exists() || newData.child('3').exists()) && (!newData.child('5').exists() || newData.child('4').exists()) && (!newData.child('6').exists() || newData.child('5').exists()) && (!newData.child('7').exists() || newData.child('6').exists()) && (!newData.child('8').exists() || newData.child('7').exists()) && (!newData.child('9').exists() || newData.child('8').exists()) && (!newData.child('10').exists() || newData.child('9').exists()) && (!newData.child('11').exists() || newData.child('10').exists()) && (!newData.child('12').exists() || newData.child('11').exists()) && (!newData.child('13').exists() || newData.child('12').exists()) && (!newData.child('14').exists() || newData.child('13').exists()) && (!newData.child('15').exists() || newData.child('14').exists())) : !$d2.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                    "$d3": {
+                      ".validate": "$field === 'streamPresets' ? (($d3 === '0' || $d3 === '1' || $d3 === '2' || $d3 === '3' || $d3 === '4' || $d3 === '5' || $d3 === '6' || $d3 === '7' || $d3 === '8' || $d3 === '9' || $d3 === '10' || $d3 === '11' || $d3 === '12' || $d3 === '13' || $d3 === '14' || $d3 === '15') && newData.isString()) : !$d3.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                      "$d4": {
+                        ".validate": "$field !== 'streamPresets' && !$d4.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                        "$d5": {
+                          ".validate": "!$d5.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                          "$d6": {
+                            ".validate": "!$d6.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                            "$d7": {
+                              ".validate": "!$d7.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                              "$d8": {
+                                ".validate": "!$d8.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                "$d9": {
+                                  ".validate": "!$d9.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                  "$d10": {
+                                    ".validate": "!$d10.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                    "$d11": {
+                                      ".validate": "!$d11.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/)",
+                                      "$d12": {
+                                        ".validate": "!$d12.toLowerCase().matches(/^(auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && !newData.hasChildren()"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+
     "archive": {
       ".read": "auth != null && (auth.token.email === 'nemo15.alex@gmail.com' || (query.orderByChild === 'visibility' && query.equalTo === 'public'))",
       ".indexOn": ["visibility"],

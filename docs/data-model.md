@@ -83,6 +83,67 @@ through `getTournamentMetadata`.
 This adapter is application-side compatibility code. It does **not** rename,
 move, or rewrite any Firebase tournament path.
 
+## Public Tournament Projection V1
+
+Anonymous Public and TV pages have a derived read model at
+`publicTournaments/{ownerUid}/{tournamentId}`. The authoritative legacy and
+envelope records above remain unchanged. `src/services/public-tournament-projection.js`
+is the single owner of projection derivation, validation, path mapping, and
+dual-write compatibility.
+
+```javascript
+{
+  schemaVersion: 1,
+  complete: true,
+  revision: number,       // monotonically incremented by Realtime Database
+  updatedAt: number,      // Realtime Database server timestamp
+  record: {
+    name?: string,
+    date?: string,
+    tournamentMessage?: string,
+    activeGroup: "A" | "B",
+    main: PublicCompetition,
+    tournamentB?: PublicCompetition
+  }
+}
+```
+
+Both authoritative formats project into this envelope. Legacy Group A fields
+become `record.main`, legacy `groupB` becomes `record.tournamentB`, and an
+envelope keeps `main` and `tournamentB`. Realtime Database omits empty arrays,
+empty objects, and null children; the reader restores empty `teams`, `games`,
+preferences, and the absent Tournament B through the canonical adapter.
+
+`PublicCompetition` is an exact allowlist of presentation state: system,
+teams, games, groups and group schedule, public preferences, round/timer state,
+playoff/cadrage/barrage and team-playoff state, TIR presentation state, rating
+mode, tournament start/finish state, and public stream links. Public preferences
+are limited to scoring, lane start, playoff format/count, group/Swiss round
+counts, prize places, time limits, cochonette behavior, and color schema.
+Stream presets retain only the `teams` and `lanes` URL maps.
+
+Nested public values are bounded to 12 levels below each competition field.
+Derivation truncates deeper containers, the reader rejects over-depth payloads,
+and rules enforce the same limit. Stream preset maps are stricter:
+`teams|lanes` → preset name → dense URL array, with at most 16 strings.
+Projection writes replace a preset array or map as a unit instead of mirroring
+individual indices that could create sparse Realtime Database objects.
+
+The persisted projection excludes record IDs supplied by the route,
+collaborators, owner and portal administration metadata, emails and tokens,
+backups, `gamesCopy`, ranking/schedule-generation history, technical/editor
+preferences, and portal team-replacement metadata. The derivation strips
+private sentinels recursively, and both the reader and Firebase rules reject
+them at every permitted nesting level as well as rejecting unknown V1 wrapper,
+competition, and preference fields.
+
+A full projection is readable only when `complete === true`, its V1 shape is
+valid, and its revision has not regressed below the last accepted revision.
+Missing, partial, malformed, unsupported-version, and permission-denied nodes
+use the canonical compatibility reader during the staged rollout. A regressed
+revision keeps the last valid in-memory record while awaiting a newer atomic
+snapshot.
+
 ## Competition Data
 
 ```javascript

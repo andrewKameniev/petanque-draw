@@ -16,6 +16,14 @@ import { useMainStore } from '@/stores/main';
 import Public from '@/views/Public.vue';
 
 const wrappers = new Set();
+const TeamPlayoffProbe = {
+  name: 'TeamPlayoffProbe',
+  props: {
+    activeTournament: { type: Object, default: null },
+    readOnly: { type: Boolean, default: false },
+  },
+  template: '<div />',
+};
 
 const publicTournament = {
   id: 'public-team-playoff',
@@ -146,7 +154,7 @@ afterEach(() => {
 });
 
 describe('public Team Playoff', () => {
-  it('passes the selected public tournament into the read-only bracket', () => {
+  it('passes the selected public tournament into the read-only bracket', async () => {
     const wrapper = track(
       shallowMount(Public, {
         data: () => ({ tournament: publicTournament, activeTab: 'round' }),
@@ -159,12 +167,14 @@ describe('public Team Playoff', () => {
           stubs: {
             PublicPageShell: { template: '<main><slot /></main>' },
             RouterLink: { template: '<a><slot /></a>' },
+            TeamPlayoff: TeamPlayoffProbe,
           },
         },
       }),
     );
+    await flushPromises();
 
-    const bracket = wrapper.getComponent(TeamPlayoff);
+    const bracket = wrapper.getComponent(TeamPlayoffProbe);
     expect(bracket.props('readOnly')).toBe(true);
     expect(bracket.props('activeTournament')).toEqual(publicTournament);
   });

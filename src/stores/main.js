@@ -19,6 +19,7 @@ import {
   resumeRoundTimerState,
 } from '@/services/round-timer';
 import { createTournamentSyncRuntime } from '@/services/tournament-sync';
+import { publicTournamentWriter } from '@/services/public-tournament-projection';
 import { createArchiveCollaborationRuntime } from '@/services/archive-collaboration';
 import { replaceTeamInCompetition, TeamReplacementError } from '@/services/team-replacement';
 
@@ -123,16 +124,14 @@ export const useMainStore = defineStore('main', {
         teams: teams.map((t) => ({ ...t })),
       });
       tournament.activeGroup = 'A';
-      this._syncPath('tournamentB', tournament.tournamentB);
-      this._syncPath('activeGroup', 'A');
+      this._syncPaths({ tournamentB: tournament.tournamentB, activeGroup: 'A' });
     },
     removeTournamentB() {
       const tournament = this.tournaments[this.currentTournamentIndex];
       if (!tournament || !tournament.tournamentB) return;
       tournament.tournamentB = null;
       tournament.activeGroup = 'A';
-      this._syncPath('tournamentB', null);
-      this._syncPath('activeGroup', 'A');
+      this._syncPaths({ tournamentB: null, activeGroup: 'A' });
     },
     addTournamentBTeams(newTeams) {
       const tournament = this.tournaments[this.currentTournamentIndex];
@@ -430,7 +429,6 @@ export const useMainStore = defineStore('main', {
     removeTournament() {
       const db = getDatabase();
       const tournamentId = this.currentTournamentIndex;
-      const dataRef = ref(db, `${this.user.uid}/tournaments/${tournamentId}`);
       const tokensRef = ref(db, `tokens/${this.user.uid}/${tournamentId}`);
 
       this.unsubscribeTournament();
@@ -439,7 +437,8 @@ export const useMainStore = defineStore('main', {
         console.error('Error deleting data:', error);
       });
 
-      remove(dataRef)
+      publicTournamentWriter
+        .removeTournament({ ownerUid: this.user.uid, tournamentId })
         .then(async () => {
           userMapService.remove(this.user.uid, tournamentId);
           delete this.userTournamentMap[tournamentId];

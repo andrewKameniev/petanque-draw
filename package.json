@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:rules": "firebase emulators:exec --project demo-petanque-draw-public-projection-rules --only database \"vitest run tests/public-tournament-rules.test.js\"",
     "test:quality": "vitest run tests/quality-tooling.test.js",
     "test:protocol": "vitest run src/__tests__/protocol-helpers.spec.js src/__tests__/arbiter-registry.spec.js src/__tests__/protocol-docx.spec.js src/__tests__/protocol-components.spec.js",
     "test:protocol:coverage": "npm run test:protocol -- --coverage --coverage.include=src/protocol-helpers.js --coverage.include=src/services/arbiter-registry.js --coverage.include=src/services/protocol-docx.js --coverage.reporter=text --coverage.thresholds.lines=95 --coverage.thresholds.functions=95 --coverage.thresholds.branches=85 --coverage.thresholds.statements=95",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@playwright/test": "1.62.1",
     "@stylistic/stylelint-plugin": "5.2.1",
     "@vitejs/plugin-vue": "6.0.8",
@@ -52,6 +54,7 @@
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.10.0",
+    "firebase-tools": "^15.26.0",
     "jsdom": "^29.1.1",
     "postcss-html": "^2.0.0",
     "prettier": "3.9.6",

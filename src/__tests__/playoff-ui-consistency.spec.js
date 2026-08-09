@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { URL } from 'node:url';
+import {
+  buildDoubleEliminationBracket,
+  getEditableDoubleEliminationStages,
+  getPublicDoubleEliminationMatches,
+  recordDoubleEliminationResult,
+} from '@/services/playoff';
 
 let Bracket;
 let BracketFullscreenButton;
@@ -48,6 +54,24 @@ describe('playoff UI consistency', () => {
     expect(DoubleElimination.components.PlayoffMatchPanel).toBe(PlayoffMatchPanel);
     expect(panelView).toContain('background: var(--color-surface);');
     expect(panelView).not.toContain('background: var(--color-primary-bg);');
+  });
+
+  it('shows only the current upper and lower rounds in the public playoff panel', () => {
+    const bracket = buildDoubleEliminationBracket(
+      Array.from({ length: 8 }, (_, index) => ({ title: `Team ${index + 1}` })),
+    );
+    ['U1M1', 'U1M2', 'U1M3', 'U1M4'].forEach((matchId) => {
+      recordDoubleEliminationResult(bracket, matchId, 13, 7);
+    });
+    const context = {
+      bracket,
+      activeStages: getEditableDoubleEliminationStages(bracket),
+      publicMatches: getPublicDoubleEliminationMatches,
+    };
+
+    const stages = DoubleElimination.computed.publicMatchStages.call(context);
+
+    expect(stages.map((stage) => stage.id)).toEqual(['upper-2', 'lower-1']);
   });
 
   it('presents playoff result saving as a visible success action', () => {

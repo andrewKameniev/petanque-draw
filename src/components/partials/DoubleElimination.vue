@@ -266,7 +266,7 @@ export default {
       return !this.isPublicView && this.isOwnerOrAdmin && !this.bracket.champion && this.activeStages.length;
     },
     publicMatchStages() {
-      return this.bracket.stages.filter((stage) => this.publicMatches(stage).length);
+      return this.activeStages.filter((stage) => this.publicMatches(stage).length);
     },
     adminMatchStages() {
       return this.activeStages.map((stage) => ({

@@ -164,6 +164,49 @@ describe('protocol DOCX export', () => {
     expect(footerXml).toContain('PAGE');
   });
 
+  it('merges preview table chunks with the same DOCX group into one table', async () => {
+    const cell = (tagName, text) => ({
+      tagName,
+      innerText: text,
+      classList: classList(),
+      colSpan: 1,
+      rowSpan: 1,
+      querySelector: () => null,
+    });
+    const table = (participant) => ({
+      tagName: 'TABLE',
+      classList: classList('tir-protocol-results-table'),
+      dataset: { docxTableGroup: 'tir-participants', docxColumnWidths: '500,9500' },
+      rows: [
+        {
+          cells: [cell('TH', '№ з/п'), cell('TH', 'ПІП')],
+          parentElement: { tagName: 'THEAD' },
+        },
+        {
+          cells: [cell('TD', String(participant.number)), cell('TD', participant.name)],
+          parentElement: { tagName: 'TBODY' },
+        },
+      ],
+    });
+    const protocol = {
+      children: [
+        { tagName: 'SECTION', classList: classList(), children: [table({ number: 1, name: 'Гравець 1' })] },
+        { tagName: 'SECTION', classList: classList(), children: [table({ number: 33, name: 'Гравець 33' })] },
+      ],
+    };
+
+    const blob = await createProtocolDocxBlob(protocol);
+    const zip = await JSZip.loadAsync(new Uint8Array(await blob.arrayBuffer()));
+    const documentXml = await zip.file('word/document.xml').async('string');
+
+    expect(documentXml.match(/<w:tbl>/g)).toHaveLength(1);
+    expect(documentXml.match(/№ з\/п/g)).toHaveLength(1);
+    expect(documentXml).toContain('Гравець 1');
+    expect(documentXml).toContain('Гравець 33');
+    expect(documentXml).toContain('<w:gridCol w:w="500"/>');
+    expect(documentXml).toContain('<w:gridCol w:w="9500"/>');
+  });
+
   it('exports playoff stages as bordered team-score-team tables', async () => {
     const span = (text, className) => ({
       tagName: 'SPAN',

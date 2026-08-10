@@ -101,22 +101,25 @@
             <h3 v-if="index === 0 && sectionTitle" class="text-center is-size-4 mb-2">
               {{ sectionTitle }}
             </h3>
-            <table class="table is-bordered round-chunk">
+            <table
+              class="table is-bordered round-chunk protocol-round-results-table"
+              data-docx-column-widths="2790,2790,2790,2790"
+            >
               <thead>
                 <tr>
-                  <th class="is-narrow">{{ getRoundLabel(index) }}</th>
+                  <th>{{ getRoundLabel(index) }}</th>
                   <th class="has-text-right">Команда 1</th>
-                  <th class="has-text-centered is-narrow">Рахунок</th>
+                  <th class="has-text-centered">Рахунок</th>
                   <th>Команда 2</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(game, i) in round" :key="i">
-                  <td class="is-narrow round-group-cell">
+                  <td class="round-group-cell">
                     <small class="round-badge">{{ getRoundLabel(index) }}</small>
                   </td>
                   <td class="has-text-right">{{ teamTitles[game.team_1] }}</td>
-                  <td class="has-text-centered is-narrow">
+                  <td class="has-text-centered">
                     <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
                     <span v-else class="score-empty">-- : --</span>
                   </td>
@@ -431,7 +434,7 @@
                   >
                     {{ isForProtocol ? teamTitles[game.team_1] : game.team_1 }}
                   </td>
-                  <td class="has-text-centered is-narrow">
+                  <td class="has-text-centered" :class="{ 'is-narrow': !isForProtocol }">
                     <strong v-if="game.team_1_score != null">{{ game.team_1_score }} : {{ game.team_2_score }}</strong>
                     <span v-else class="score-empty">-- : --</span>
                   </td>

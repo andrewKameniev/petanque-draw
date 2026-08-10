@@ -138,6 +138,8 @@ Hard stop. No playoff. Tournament ends with Swiss ranking as final result.
 
 After the finished tournament is archived, its Archive view provides the official protocol preview and export tools. The active finished-tournament view does not expose a separate protocol action.
 
+Standard protocol previews use numbered portrait A4 sheets, and generated DOCX files include footer numbering from the first page.
+
 ---
 
 ## Public View (Spectators)

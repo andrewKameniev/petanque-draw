@@ -542,11 +542,12 @@ export default {
       }
       return this.tournament.system === 'swiss' ? this.rankingTeams : getAllTeams(this.rankingTeams);
     },
+    // Keep one logical table row clear of the DOCX-equivalent page-number footer.
     firstParticipantPageRows() {
-      return 30;
+      return 29;
     },
     maxRowsPerPage() {
-      return 38;
+      return 37;
     },
     participantChunks() {
       const list = this.participantsList;
@@ -1256,7 +1257,7 @@ export default {
   content: counter(protocol-page);
   position: absolute;
   right: 6.35mm;
-  bottom: 4mm;
+  bottom: 12.49mm;
   font-family: 'Times New Roman', serif;
   font-size: 9pt;
   line-height: 1;

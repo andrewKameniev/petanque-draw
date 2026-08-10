@@ -179,7 +179,7 @@ function getTableColumnWidths(table, tableWidth = DOCX_TABLE_WIDTH) {
   if (columnCount <= 1) return [tableWidth];
 
   const firstHeaderText = textLines(table.rows[0]?.cells[0]).join(' ');
-  const hasNumberColumn = /^№(?:\s*з\/п)?$/i.test(firstHeaderText);
+  const hasNumberColumn = /^(?:#|№(?:\s*з\/п)?)$/i.test(firstHeaderText);
   if (!hasNumberColumn) {
     const width = Math.floor(tableWidth / columnCount);
     return Array.from({ length: columnCount }, (_, index) =>

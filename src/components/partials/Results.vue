@@ -103,11 +103,17 @@
             </h3>
             <table
               class="table is-bordered round-chunk protocol-round-results-table"
-              data-docx-column-widths="2790,2790,2790,2790"
+              data-docx-column-widths="900,3735,2790,3735"
             >
+              <colgroup>
+                <col style="width: 8.06%" />
+                <col style="width: 33.47%" />
+                <col style="width: 25%" />
+                <col style="width: 33.47%" />
+              </colgroup>
               <thead>
                 <tr>
-                  <th>{{ getRoundLabel(index) }}</th>
+                  <th>Раунд</th>
                   <th class="has-text-right">Команда 1</th>
                   <th class="has-text-centered">Рахунок</th>
                   <th>Команда 2</th>

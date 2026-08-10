@@ -109,7 +109,7 @@ describe('Results editing', () => {
     expect(syncHistoricalResultEdit).toHaveBeenCalledWith({ roundIndex: 1, gameIndex: 0 });
   });
 
-  it('uses the same four equal columns as DOCX for protocol round results', () => {
+  it('keeps the round column compact and labels it consistently in protocol results', () => {
     const wrapper = shallowMount(Results, {
       props: {
         previewTournament: tournament,
@@ -127,10 +127,22 @@ describe('Results editing', () => {
     const tables = wrapper.findAll('.protocol-round-results-table');
     expect(tables).toHaveLength(2);
     for (const table of tables) {
-      expect(table.attributes('data-docx-column-widths')).toBe('2790,2790,2790,2790');
+      expect(table.attributes('data-docx-column-widths')).toBe('900,3735,2790,3735');
+      expect(table.findAll('col').map((column) => column.attributes('style'))).toEqual([
+        'width: 8.06%;',
+        'width: 33.47%;',
+        'width: 25%;',
+        'width: 33.47%;',
+      ]);
       expect(table.findAll('thead th')).toHaveLength(4);
       expect(table.find('.is-narrow').exists()).toBe(false);
     }
+    expect(tables[0].findAll('thead th').map((cell) => cell.text())).toEqual([
+      'Раунд',
+      'Команда 1',
+      'Рахунок',
+      'Команда 2',
+    ]);
     expect(tables[0].findAll('tbody td').map((cell) => cell.text())).toEqual(['R1', 'Alpha', '13 : 4', 'Beta']);
   });
 });

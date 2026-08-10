@@ -246,7 +246,10 @@
         <template v-if="isForProtocol">
           <div v-for="(chunk, ci) in rankingChunks" :key="'rc' + ci" class="pdf-page-break">
             <h3 v-if="ci === 0 && sectionTitle" class="text-center is-size-4 mb-2" v-html="sectionTitle"></h3>
-            <table :id="ci === 0 ? 'table-ranking' : undefined" class="table is-bordered ranking-chunk">
+            <table
+              :id="ci === 0 ? 'table-ranking' : undefined"
+              class="table is-bordered ranking-chunk protocol-swiss-ranking-table"
+            >
               <thead>
                 <tr>
                   <th>#</th>
@@ -445,7 +448,7 @@
           </h4>
           <!-- Swiss format: buchholz table -->
           <div v-if="isSwissGroups" class="table-container mb-5">
-            <table class="table is-striped">
+            <table class="table is-striped" :class="{ 'protocol-swiss-ranking-table': isForProtocol }">
               <thead>
                 <tr>
                   <th>#</th>
@@ -967,6 +970,13 @@ export default {
 </script>
 
 <style scoped>
+.protocol-swiss-ranking-table th:first-child,
+.protocol-swiss-ranking-table td:first-child {
+  width: 4.48%;
+  white-space: nowrap;
+  text-align: center;
+}
+
 .ranking-header {
   display: flex;
   flex-wrap: wrap;

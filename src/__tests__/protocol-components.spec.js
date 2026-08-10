@@ -470,11 +470,18 @@ describe('Protocol component behavior', () => {
       players: [{}, {}],
     }));
 
+    const firstParticipantPageRows = Protocol.computed.firstParticipantPageRows.call({});
+    const maxRowsPerPage = Protocol.computed.maxRowsPerPage.call({});
+
+    expect({ firstParticipantPageRows, maxRowsPerPage }).toEqual({
+      firstParticipantPageRows: 29,
+      maxRowsPerPage: 37,
+    });
     expect(
       Protocol.computed.participantChunks
-        .call({ participantsList: teams, firstParticipantPageRows: 30, maxRowsPerPage: 38 })
+        .call({ participantsList: teams, firstParticipantPageRows, maxRowsPerPage })
         .map((chunk) => chunk.length),
-    ).toEqual([10, 1]);
+    ).toEqual([9, 2]);
   });
 
   it('calculates participant chunk offsets', () => {

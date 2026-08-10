@@ -73,8 +73,8 @@ describe('protocol DOCX export', () => {
     expect(sanitizeDocxFilename('   ')).toBe('protocol');
   });
 
-  it('keeps the ordinal table column compact in DOCX output', async () => {
-    const headerLabels = ['№ з/п', 'ПІП', 'Регіон', 'Тренер(и)', 'Розряд', 'Місце', 'Підсумкове місце'];
+  it.each(['№ з/п', '#'])('keeps the %s ordinal table column compact in DOCX output', async (ordinalLabel) => {
+    const headerLabels = [ordinalLabel, 'ПІП', 'Регіон', 'Тренер(и)', 'Розряд', 'Місце', 'Підсумкове місце'];
     const table = {
       tagName: 'TABLE',
       classList: classList(),
@@ -105,6 +105,21 @@ describe('protocol DOCX export', () => {
     expect(gridWidths[0]).toBe(500);
     expect(gridWidths[0]).toBeLessThan(gridWidths[1] / 3);
     expect(gridWidths.reduce((sum, width) => sum + width, 0)).toBe(11160);
+  });
+
+  it('keeps portrait margins and the page-number footer in DOCX output', async () => {
+    const blob = await createProtocolDocxBlob(
+      { children: [{ tagName: 'P', innerText: 'Protocol', classList: classList(), children: [] }] },
+      { pageNumbers: true },
+    );
+    const zip = await JSZip.loadAsync(new Uint8Array(await blob.arrayBuffer()));
+    const documentXml = await zip.file('word/document.xml').async('string');
+    const footerXml = await zip.file('word/footer1.xml').async('string');
+
+    expect(documentXml).toContain(
+      '<w:pgMar w:top="720" w:right="360" w:bottom="720" w:left="360" w:header="708" w:footer="708" w:gutter="0"/>',
+    );
+    expect(footerXml).toContain('PAGE');
   });
 
   it('supports the landscape TIR protocol geometry and page-number footer', async () => {

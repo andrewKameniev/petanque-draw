@@ -42,6 +42,8 @@ const mountRanking = ({
   tournament = finishedGroupTournament,
   teamsRanking = rankingTeams,
   userEmail = 'ancam1987@gmail.com',
+  isForProtocol = false,
+  teamTitles = {},
 } = {}) => {
   const pinia = createPinia();
   useMainStore(pinia).user = { uid: 'ranking-user', email: userEmail };
@@ -51,6 +53,8 @@ const mountRanking = ({
       rankingTeams: teamsRanking,
       activeRound: 2,
       readOnly,
+      isForProtocol,
+      teamTitles,
     },
     global: {
       plugins: [pinia],
@@ -148,5 +152,35 @@ describe('Ranking finished-tournament table selection', () => {
     const wrapper = mountRanking({ readOnly: false, userEmail });
 
     expect(wrapper.vm.canUseResultActions).toBe(true);
+  });
+
+  it('marks the Swiss protocol table for a compact ordinal column', () => {
+    const swissTeams = [
+      {
+        title: 'Alpha',
+        gamesPlayed: 1,
+        wins: 1,
+        buhgolts: 0,
+        smallBuhgolts: 0,
+        pointsPlus: 13,
+        pointsMinus: 7,
+      },
+    ];
+    const wrapper = mountRanking({
+      tournament: {
+        system: 'swiss',
+        tournamentIsFinished: true,
+        teams: swissTeams,
+        games: [[]],
+        preferences: {},
+      },
+      teamsRanking: swissTeams,
+      isForProtocol: true,
+      teamTitles: { Alpha: 'Alpha' },
+    });
+
+    const table = wrapper.get('.protocol-swiss-ranking-table');
+    expect(table.get('thead th').text()).toBe('#');
+    expect(table.get('tbody td').text()).toBe('1');
   });
 });

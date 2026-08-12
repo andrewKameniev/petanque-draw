@@ -128,6 +128,8 @@ export default {
     copyLink: 'Скопіювати посилання',
     linkCopied: 'Посилання скопійовано',
     qrAndLink: 'QR код та посилання на турнір',
+    downloadQrSvg: 'Завантажити QR (SVG)',
+    qrPrintHint: 'Для друку використовуйте завантажений SVG без обрізання чи редагування штучним інтелектом.',
     sendLinkToPortal: 'Надіслати лінк на портал',
     sendingLinkToPortal: 'Надсилаємо лінк...',
     linkSentToPortal: 'Лінк надіслано на портал',

@@ -15,6 +15,21 @@ vi.mock('@/services/portal', async (importOriginal) => ({
 
 import QrCode from '@/components/partials/QrCode.vue';
 
+const downloadQr = vi.fn();
+
+const QrcodeVueStub = {
+  name: 'QrcodeVue',
+  props: {
+    value: String,
+    size: Number,
+    level: String,
+    margin: Number,
+    renderAs: String,
+  },
+  methods: { download: downloadQr },
+  template: '<svg data-testid="tournament-qr" />',
+};
+
 function qrHarness({ portalId = '42', isTestTournament = false } = {}) {
   const tournament = {
     portalIdTournament: portalId,
@@ -53,7 +68,7 @@ function mountQr(options) {
       mocks: { $t: (key) => key },
       stubs: {
         Modal: { template: '<div><slot /></div>' },
-        QrcodeVue: true,
+        QrcodeVue: QrcodeVueStub,
       },
     },
   });
@@ -61,12 +76,50 @@ function mountQr(options) {
 
 describe('portal public-link action in the QR modal', () => {
   beforeEach(() => {
+    downloadQr.mockReset();
     portalMocks.showMessage.mockReset();
     portalMocks.updatePortalTournament.mockReset();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('renders a lower-density vector QR with the required quiet zone', () => {
+    const wrapper = mountQr();
+    const qr = wrapper.getComponent(QrcodeVueStub);
+
+    expect(qr.props()).toMatchObject({
+      value: wrapper.vm.tournamentLink,
+      level: 'M',
+      margin: 4,
+      renderAs: 'svg',
+    });
+    expect(wrapper.text()).toContain('remote.qrPrintHint');
+    wrapper.unmount();
+  });
+
+  it('downloads the print-safe QR as an SVG', async () => {
+    const wrapper = mountQr();
+
+    await wrapper.get('[data-testid="btn-download-qr-svg"]').trigger('click');
+
+    expect(downloadQr).toHaveBeenCalledWith('tournament-1784965464060-qr.svg');
+    wrapper.unmount();
+  });
+
+  it('provides print guidance in every supported locale', async () => {
+    const locales = await Promise.all([
+      import('@/locales/en'),
+      import('@/locales/es'),
+      import('@/locales/fr'),
+      import('@/locales/ua'),
+    ]);
+
+    for (const locale of locales) {
+      expect(locale.default.remote.downloadQrSvg).toBeTruthy();
+      expect(locale.default.remote.qrPrintHint).toBeTruthy();
+    }
   });
 
   it('is available only for a non-test tournament imported from the portal', () => {

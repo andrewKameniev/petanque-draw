@@ -3,16 +3,26 @@
     <div class="qr-modal">
       <h3 class="qr-modal__title">{{ $t('remote.qrAndLink') }}</h3>
       <div class="qr-modal__code">
-        <qrcode-vue :value="tournamentLink" :size="size" level="H" />
+        <qrcode-vue ref="tournamentQr" :value="tournamentLink" :size="size" level="M" :margin="4" render-as="svg" />
       </div>
+      <p class="qr-modal__print-hint">{{ $t('remote.qrPrintHint') }}</p>
       <div class="qr-modal__link-box">
         <a :href="tournamentLink" target="_blank" class="qr-modal__link">{{ tournamentLink }}</a>
       </div>
       <div class="qr-modal__actions">
-        <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': linkCopied }" @click="copyLink">
+        <button
+          type="button"
+          class="button qr-modal__btn"
+          :class="{ 'qr-modal__btn--copied': linkCopied }"
+          @click="copyLink"
+        >
           <Check v-if="linkCopied" :size="16" />
           <Copy v-else :size="16" />
           {{ linkCopied ? $t('messages.success') : $t('remote.copyLink') }}
+        </button>
+        <button type="button" class="button qr-modal__btn" data-testid="btn-download-qr-svg" @click="downloadQrSvg">
+          <Download :size="16" aria-hidden="true" />
+          {{ $t('remote.downloadQrSvg') }}
         </button>
         <button
           v-if="canSendPortalLink"
@@ -138,6 +148,7 @@ import {
   ShieldCheck,
   Send,
   LoaderCircle,
+  Download,
 } from 'lucide-vue-next';
 
 export default {
@@ -155,6 +166,7 @@ export default {
     ShieldCheck,
     Send,
     LoaderCircle,
+    Download,
   },
   data() {
     return {
@@ -220,6 +232,9 @@ export default {
       setTimeout(() => {
         this.linkCopied = false;
       }, 2000);
+    },
+    downloadQrSvg() {
+      this.$refs.tournamentQr?.download(`tournament-${this.currentTournamentIndex}-qr.svg`);
     },
     copyTvLink() {
       navigator.clipboard.writeText(this.tvLink);
@@ -295,12 +310,20 @@ export default {
 }
 
 .qr-modal__code {
-  display: inline-block;
+  display: block;
+  width: min(100%, 20.75rem);
+  margin: 0 auto;
   padding: 1rem;
   background: var(--color-qr-bg);
   border-radius: 12px;
   border: 1px solid var(--color-qr-border);
   box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
+}
+
+.qr-modal__code :deep(svg) {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .qr-modal__link-box {
@@ -309,6 +332,13 @@ export default {
   background: var(--color-qr-alt-bg);
   border-radius: 8px;
   border: 1px solid var(--color-qr-border);
+}
+
+.qr-modal__print-hint {
+  max-width: 32rem;
+  margin: 0.75rem auto 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
 }
 
 .qr-modal__link {
@@ -527,13 +557,5 @@ export default {
   font-size: 0.9rem;
   color: var(--color-text-secondary, #888);
   margin-top: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .qr-modal__code {
-    transform: scale(0.7);
-    transform-origin: center;
-    margin: -1.5rem auto;
-  }
 }
 </style>

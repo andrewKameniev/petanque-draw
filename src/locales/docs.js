@@ -422,7 +422,7 @@ export default {
         intro: 'Generate a QR code for your tournament so participants and spectators can open it on their phones.',
         qr: {
           title: 'QR Code',
-          text: 'Available in tournament settings. Scan to open the public tournament page directly.',
+          text: 'Available in tournament settings. For print layouts, download the SVG and place it without cropping or AI editing.',
         },
         link: {
           title: 'Public Link',
@@ -915,7 +915,7 @@ export default {
         intro: 'Згенеруйте QR-код для турніру щоб учасники та глядачі могли відкрити його на телефоні.',
         qr: {
           title: 'QR-код',
-          text: 'Доступний в налаштуваннях турніру. Скануйте щоб відкрити публічну сторінку турніру.',
+          text: 'Доступний у налаштуваннях турніру. Для друку завантажте SVG і розмістіть його без обрізання чи редагування штучним інтелектом.',
         },
         link: {
           title: 'Публічне посилання',
@@ -1343,7 +1343,7 @@ export default {
         intro: 'Générez un QR code pour que participants et spectateurs puissent ouvrir le tournoi sur leur téléphone.',
         qr: {
           title: 'QR Code',
-          text: 'Disponible dans les paramètres. Scannez pour ouvrir la page publique directement.',
+          text: 'Disponible dans les paramètres. Pour l’impression, téléchargez le SVG et placez-le sans le recadrer ni le modifier avec l’IA.',
         },
         link: {
           title: 'Lien public',
@@ -1728,7 +1728,7 @@ export default {
         intro: 'Genera un código QR para que participantes y espectadores puedan abrirlo en su teléfono.',
         qr: {
           title: 'Código QR',
-          text: 'Disponible en la configuración del torneo. Escanea para abrir la página pública directamente.',
+          text: 'Disponible en la configuración del torneo. Para imprimir, descarga el SVG y colócalo sin recortarlo ni editarlo con IA.',
         },
         link: {
           title: 'Enlace público',

@@ -256,6 +256,8 @@ export default {
     copyLink: 'Copiar enlace',
     linkCopied: 'Enlace copiado al portapapeles',
     qrAndLink: 'Código QR y enlace del torneo',
+    downloadQrSvg: 'Descargar QR (SVG)',
+    qrPrintHint: 'Para imprimir, usa el SVG descargado sin recortarlo ni editarlo con IA.',
     sendLinkToPortal: 'Enviar enlace al portal',
     sendingLinkToPortal: 'Enviando enlace...',
     linkSentToPortal: 'Enlace enviado al portal',

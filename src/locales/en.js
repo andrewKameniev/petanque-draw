@@ -257,6 +257,8 @@ export default {
     copyLink: 'Copy link',
     linkCopied: 'Link copied to clipboard',
     qrAndLink: 'QR code and link for tournament',
+    downloadQrSvg: 'Download QR (SVG)',
+    qrPrintHint: 'For printing, use the downloaded SVG without cropping it or editing it with AI.',
     sendLinkToPortal: 'Send link to portal',
     sendingLinkToPortal: 'Sending link...',
     linkSentToPortal: 'Link sent to portal',

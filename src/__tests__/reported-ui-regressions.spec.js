@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -19,6 +19,51 @@ vi.mock('firebase/database', () => ({
 
 import Tournament from '@/components/Tournament.vue';
 import Ranking from '@/components/partials/Ranking.vue';
+import { useMainStore } from '@/stores/main';
+
+function finishedSwissTournamentWithPlayoff() {
+  return {
+    id: 'finished-swiss',
+    name: 'Finished Swiss',
+    system: 'swiss',
+    teams: Array.from({ length: 32 }, (_, index) => ({
+      title: `Team ${index + 1}`,
+      players: [],
+      opponents: [],
+      lanes: [],
+    })),
+    games: [[{ team_1: 'Team 1', team_2: 'Team 2', status: 'finished' }]],
+    roundIsActive: false,
+    tournamentIsFinished: true,
+    preferences: {
+      fieldsStart: 1,
+      lanesExcluded: '',
+      lanesPoolEnabled: false,
+      playOffEnabled: true,
+      playOffFormat: 'single',
+      playOffTeams: 16,
+    },
+  };
+}
+
+function playoffConfig() {
+  return {
+    barrageTeams: 8,
+    cadrageLosersToB: false,
+    fieldsStart: 1,
+    lanesExcluded: '',
+    lanesPoolEnabled: false,
+    lanesPoolFrom: 1,
+    lanesPoolTo: 1,
+    noTimeLimitFinale: false,
+    playB: false,
+    playOffFormat: 'single',
+    playOffTeams: 16,
+    playoffTimeLimit: 30,
+    withBarrage: false,
+    withCadrage: false,
+  };
+}
 
 describe('reported UI regressions', () => {
   it('keeps the hand-entered team rank in the same visual row as its name', () => {
@@ -87,5 +132,44 @@ describe('reported UI regressions', () => {
     expect(wrapper.find('.ranking-empty').exists()).toBe(false);
 
     wrapper.unmount();
+  });
+
+  it('offers the playoff transition after playoff is enabled for a finished Swiss tournament', () => {
+    const pinia = createPinia();
+    const store = useMainStore(pinia);
+    store.currentTournamentIndex = 'finished-swiss';
+    store.tournaments = { 'finished-swiss': finishedSwissTournamentWithPlayoff() };
+
+    const wrapper = shallowMount(Tournament, {
+      global: {
+        plugins: [pinia],
+        mocks: { $t: (key) => key },
+      },
+    });
+
+    expect(wrapper.find('[data-testid="btn-go-playoff"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it('reopens a finished tournament before starting its confirmed playoff', () => {
+    const tournament = finishedSwissTournamentWithPlayoff();
+    const context = {
+      tournament,
+      showPlayoffConfirm: true,
+      withCadrage: false,
+      withBarrage: false,
+      playB: false,
+      revertFinishTournament: vi.fn(() => {
+        tournament.tournamentIsFinished = false;
+      }),
+      savePreferences: vi.fn(),
+      setPlayOffList: vi.fn(),
+    };
+
+    Tournament.methods.onPlayoffConfirm.call(context, playoffConfig());
+
+    expect(context.revertFinishTournament).toHaveBeenCalledOnce();
+    expect(context.setPlayOffList).toHaveBeenCalledOnce();
+    expect(tournament.tournamentIsFinished).toBe(false);
   });
 });

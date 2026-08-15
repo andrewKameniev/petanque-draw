@@ -174,7 +174,6 @@
             <button
               v-if="
                 hasPlayOffConfigured &&
-                !tournament.tournamentIsFinished &&
                 !tournament.roundIsActive &&
                 tournament.games?.length &&
                 !tournament.playOff?.length &&
@@ -695,6 +694,9 @@ export default {
       this.tournament.preferences.lanesPoolTo = config.lanesPoolTo;
       this.tournament.preferences.lanesExcluded = config.lanesExcluded;
       this._playoffConfig = config;
+      if (this.tournament.tournamentIsFinished) {
+        this.revertFinishTournament();
+      }
       this.savePreferences();
       this.setPlayOffList();
     },

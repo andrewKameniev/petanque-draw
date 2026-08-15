@@ -87,7 +87,10 @@ Manual control — choose number of playoff teams, toggle cadrage, then click "G
 
 ### Option C: "Finish Tournament" Button
 
-Hard stop. No playoff. Tournament ends with Swiss ranking as final result.
+Ends the current Swiss phase with its ranking as the final result. If the
+organizer later enables playoff in tournament settings, the "Go Playoff"
+action becomes available again; confirming it reopens the tournament and
+starts the configured playoff transition.
 
 ---
 

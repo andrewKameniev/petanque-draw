@@ -211,32 +211,27 @@
           </div>
         </div>
       </div>
-      <div v-if="isOwnerOrAdmin && canRemoveTournamentB" class="prefs__remove-b">
-        <div class="prefs__remove-b-copy">
-          <strong>{{ $t('ranking.tournamentB') }}</strong>
-          <p>{{ $t('teams.removeTournamentBHint') }}</p>
-        </div>
+      <p v-if="isOwnerOrAdmin && canRemoveTournamentB" class="prefs__remove-b-hint">
+        {{ $t('teams.removeTournamentBHint') }}
+      </p>
+      <div
+        class="prefs__footer"
+        :class="{
+          'prefs__footer--end': !isOwnerOrAdmin,
+          'prefs__footer--with-hint': isOwnerOrAdmin && canRemoveTournamentB,
+        }"
+      >
         <button
+          v-if="isOwnerOrAdmin"
           type="button"
           class="prefs__btn prefs__btn--danger"
-          :aria-label="$t('teams.removeTournamentB')"
-          data-testid="btn-remove-tournament-b"
-          @click="$emit('remove-tournament-b')"
+          :data-testid="canRemoveTournamentB ? 'btn-remove-tournament-b' : 'btn-remove-tournament'"
+          @click="$emit(canRemoveTournamentB ? 'remove-tournament-b' : 'remove-tournament')"
         >
           <Trash2 :size="16" />
-          {{ $t('common.remove') }}
-        </button>
-      </div>
-      <div class="prefs__footer" :class="{ 'prefs__footer--end': canRemoveTournamentB || !isOwnerOrAdmin }">
-        <button
-          v-if="isOwnerOrAdmin && !canRemoveTournamentB"
-          type="button"
-          class="prefs__btn prefs__btn--danger"
-          data-testid="btn-remove-tournament"
-          @click="$emit('remove-tournament')"
-        >
-          <Trash2 :size="16" />
-          <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+          <span :class="{ 'is-hidden-mobile': !canRemoveTournamentB }">{{
+            $t(canRemoveTournamentB ? 'teams.removeTournamentB' : 'teams.removeTournament')
+          }}</span>
         </button>
         <div class="prefs__footer-right">
           <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">
@@ -470,31 +465,23 @@ export default {
   justify-content: flex-end;
 }
 
-.prefs__remove-b {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 0.85rem 1.5rem;
+.prefs__remove-b-hint {
+  margin: 0;
+  padding: 0.75rem 1.5rem 0;
   border-top: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-  flex-shrink: 0;
-}
-
-.prefs__remove-b-copy {
-  min-width: 0;
-  color: var(--color-text);
-}
-
-.prefs__remove-b-copy p {
-  margin-top: 0.2rem;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   line-height: 1.35;
-  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
-.prefs__remove-b .prefs__btn {
-  flex-shrink: 0;
+.prefs__footer--with-hint {
+  border-top: 0;
+  padding-top: 0.75rem;
+}
+
+.prefs__footer--with-hint .prefs__btn {
+  padding-inline: 1rem;
 }
 
 @media (max-width: 600px) {
@@ -540,6 +527,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
   background: transparent;
   border: 1px solid var(--color-error);
   color: var(--color-error);

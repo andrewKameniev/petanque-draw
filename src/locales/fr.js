@@ -79,8 +79,7 @@ export default {
     useTeamRating: 'Utiliser le classement des équipes pour le tirage',
     removeTournament: 'Supprimer le tournoi',
     removeTournamentB: 'Supprimer le tournoi B',
-    removeTournamentBHint:
-      'Seul le tournoi B sera supprimé. Le tournoi principal A et ses résultats resteront inchangés.',
+    removeTournamentBHint: 'Seul le tournoi B sera supprimé. Le tournoi A restera inchangé.',
     removeTournamentBConfirm: 'Supprimer le tournoi B ? Le tournoi principal A et ses résultats resteront inchangés.',
     tournamentBRemoved: 'Le tournoi B a été supprimé. Le tournoi principal A reste inchangé.',
     removeTournamentBError: "Impossible de supprimer le tournoi B. Les données du tournoi n'ont pas été modifiées.",

@@ -58,15 +58,16 @@ describe('Tournament B removal controls', () => {
   it.each(['owner', 'admin'])('offers %s a B-only button and reassurance while viewing B', async (role) => {
     const wrapper = mountPreferences(role);
 
-    expect(wrapper.find('[data-testid="btn-remove-tournament-b"]').exists()).toBe(true);
-    expect(wrapper.find('.prefs__remove-b').text()).toContain(en.teams.removeTournamentBHint);
+    const removeButton = wrapper.find('[data-testid="btn-remove-tournament-b"]');
+    expect(removeButton.exists()).toBe(true);
+    expect(removeButton.classes()).toContain('prefs__btn--danger');
+    expect(wrapper.find('.prefs__footer').find('[data-testid="btn-remove-tournament-b"]').exists()).toBe(true);
+    expect(removeButton.text()).toBe(en.teams.removeTournamentB);
+    expect(wrapper.find('.prefs__remove-b-hint').text()).toBe(en.teams.removeTournamentBHint);
     expect(wrapper.find('.prefs__footer').text()).not.toContain(en.teams.removeTournamentBHint);
-    expect(wrapper.find('[data-testid="btn-remove-tournament-b"]').attributes('aria-label')).toBe(
-      en.teams.removeTournamentB,
-    );
     expect(wrapper.find('[data-testid="btn-remove-tournament"]').exists()).toBe(false);
 
-    await wrapper.find('[data-testid="btn-remove-tournament-b"]').trigger('click');
+    await removeButton.trigger('click');
     expect(wrapper.emitted('remove-tournament-b')).toHaveLength(1);
     wrapper.unmount();
   });

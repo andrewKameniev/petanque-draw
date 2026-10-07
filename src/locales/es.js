@@ -79,8 +79,7 @@ export default {
     useTeamRating: 'Usar la puntuación del equipo para el sorteo',
     removeTournament: 'Eliminar torneo',
     removeTournamentB: 'Eliminar torneo B',
-    removeTournamentBHint:
-      'Solo se eliminará el torneo B. El torneo principal A y sus resultados permanecerán sin cambios.',
+    removeTournamentBHint: 'Solo se eliminará el torneo B. El torneo A permanecerá sin cambios.',
     removeTournamentBConfirm: '¿Eliminar el torneo B? El torneo principal A y sus resultados permanecerán sin cambios.',
     tournamentBRemoved: 'Se eliminó el torneo B. El torneo principal A permanece sin cambios.',
     removeTournamentBError: 'No se pudo eliminar el torneo B. Los datos del torneo no se modificaron.',

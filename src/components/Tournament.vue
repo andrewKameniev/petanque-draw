@@ -34,8 +34,10 @@
         v-model:tirTwoRounds="tirTwoRounds"
         v-model:tirJunior="tirJunior"
         v-model:playoffTimeLimitEnabled="playoffTimeLimitEnabled"
+        :is-tournament-b="isActiveTournamentB"
+        :show-remove="!isActiveTournamentB || isOwnerOrAdmin"
         @draw="drawFirstRound"
-        @remove="removeConfirmId = 1"
+        @remove="requestRemoval"
       />
 
       <div class="setup-teams-card">
@@ -47,12 +49,21 @@
         />
         <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
         <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
-        <div v-if="!(tournament.teams?.length > 2)" class="setup-card__actions setup-card__actions--delete-only">
-          <button class="setup-card__delete" @click="removeConfirmId = 1">
+        <div
+          v-if="!(tournament.teams?.length > 2) && (!isActiveTournamentB || isOwnerOrAdmin)"
+          class="setup-card__actions setup-card__actions--delete-only"
+        >
+          <button type="button" class="setup-card__delete" @click="requestRemoval">
             <Trash2 :size="16" />
-            <span>{{ $t('teams.removeTournament') }}</span>
+            <span>{{ $t(isActiveTournamentB ? 'teams.removeTournamentB' : 'teams.removeTournament') }}</span>
           </button>
         </div>
+        <p
+          v-if="isActiveTournamentB && isOwnerOrAdmin && !(tournament.teams?.length > 2)"
+          class="setup-card__delete-hint"
+        >
+          {{ $t('teams.removeTournamentBHint') }}
+        </p>
       </div>
     </template>
 
@@ -265,6 +276,14 @@
         showPreferences = false;
       "
     />
+    <ConfirmRemoveModal
+      v-if="showRemoveBConfirm"
+      :hint="$t('teams.removeTournamentB')"
+      :message="$t('teams.removeTournamentBConfirm')"
+      :confirm-label="$t('teams.removeTournamentB')"
+      @close="showRemoveBConfirm = false"
+      @remove="onRemoveTournamentB"
+    />
     <ConfirmDialog
       v-if="showFinishConfirm"
       :message="$t('teams.finishTournamentConfirm')"
@@ -320,6 +339,10 @@
       @remove-tournament="
         showPreferences = false;
         removeConfirmId = 1;
+      "
+      @remove-tournament-b="
+        showPreferences = false;
+        showRemoveBConfirm = true;
       "
     />
   </div>
@@ -393,6 +416,7 @@ export default {
       activeTab: 'teams',
       showSaveTournament: false,
       removeConfirmId: null,
+      showRemoveBConfirm: false,
       playB: false,
       withCadrage: false,
       withBarrage: false,
@@ -458,6 +482,7 @@ export default {
     ...mapActions(useMainStore, [
       'startRound',
       'removeTournament',
+      'removeTournamentB',
       'setPlayOff',
       'setPlayOffBracket',
       'setPlayOffStage',
@@ -483,6 +508,21 @@ export default {
       'addTournamentBTeams',
       'replaceTournamentTeam',
     ]),
+    async onRemoveTournamentB() {
+      this.showRemoveBConfirm = false;
+      if (!this.isOwnerOrAdmin || !this.hasTournamentB) return;
+      if (await this.removeTournamentB()) {
+        this.showMessage({
+          title: this.$t('messages.removed'),
+          text: this.$t('teams.tournamentBRemoved'),
+        });
+      }
+    },
+    requestRemoval() {
+      if (this.isActiveTournamentB) {
+        if (this.isOwnerOrAdmin) this.showRemoveBConfirm = true;
+      } else this.removeConfirmId = 1;
+    },
     async onReplaceTeam(payload) {
       try {
         const result = await this.replaceTournamentTeam(payload);
@@ -1182,6 +1222,9 @@ export default {
     hasTournamentB() {
       return hasTournamentGroup(this.currentTournament, 'B');
     },
+    isActiveTournamentB() {
+      return this.hasTournamentB && this.activeTournamentGroup === 'B';
+    },
     activeTournamentGroup() {
       return getTournamentPresentation(this.currentTournament).group;
     },
@@ -1488,6 +1531,13 @@ export default {
 .setup-card__delete:hover {
   background: var(--color-error);
   color: var(--color-btn-text);
+}
+
+.setup-card__delete-hint {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  text-align: right;
 }
 
 .tabs-content-area {

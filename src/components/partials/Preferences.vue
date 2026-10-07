@@ -212,14 +212,30 @@
         </div>
       </div>
       <div class="prefs__footer">
-        <button
-          class="prefs__btn prefs__btn--danger"
-          data-testid="btn-remove-tournament"
-          @click="$emit('remove-tournament')"
-        >
-          <Trash2 :size="16" />
-          <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
-        </button>
+        <div v-if="isOwnerOrAdmin" class="prefs__delete-action">
+          <template v-if="canRemoveTournamentB">
+            <button
+              type="button"
+              class="prefs__btn prefs__btn--danger"
+              data-testid="btn-remove-tournament-b"
+              @click="$emit('remove-tournament-b')"
+            >
+              <Trash2 :size="16" />
+              {{ $t('teams.removeTournamentB') }}
+            </button>
+            <span class="prefs__hint">{{ $t('teams.removeTournamentBHint') }}</span>
+          </template>
+          <button
+            v-else
+            type="button"
+            class="prefs__btn prefs__btn--danger"
+            data-testid="btn-remove-tournament"
+            @click="$emit('remove-tournament')"
+          >
+            <Trash2 :size="16" />
+            <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+          </button>
+        </div>
         <div class="prefs__footer-right">
           <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">
             {{ $t('common.cancel') }}
@@ -235,12 +251,13 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
+import { hasTournamentGroup } from '@/services/tournament-record';
 import { Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid } from 'lucide-vue-next';
 
 export default {
   name: 'Preferences',
   components: { Modal, Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid },
-  emits: ['close-modal', 'remove-tournament'],
+  emits: ['close-modal', 'remove-tournament', 'remove-tournament-b'],
   computed: {
     ...mapState(useMainStore, [
       'tournaments',
@@ -248,7 +265,11 @@ export default {
       'currentTournament',
       'activeTournament',
       'user',
+      'isOwnerOrAdmin',
     ]),
+    canRemoveTournamentB() {
+      return this.currentTournament?.activeGroup === 'B' && hasTournamentGroup(this.currentTournament, 'B');
+    },
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
@@ -441,6 +462,35 @@ export default {
 .prefs__footer-right {
   display: flex;
   gap: 0.5rem;
+}
+
+.prefs__delete-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  max-width: 55%;
+}
+
+.prefs__delete-action .prefs__hint {
+  margin-top: 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .prefs__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .prefs__delete-action {
+    max-width: none;
+  }
+
+  .prefs__footer-right {
+    justify-content: flex-end;
+  }
 }
 
 .prefs__btn {

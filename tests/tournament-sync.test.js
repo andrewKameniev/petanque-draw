@@ -102,6 +102,32 @@ describe('tournament synchronization runtime', () => {
     expect(dependencies.set).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['envelope', envelopeRecord({ activeGroup: 'B', _ownerUid: 'owner1' }), 'tournamentB'],
+    [
+      'legacy',
+      {
+        activeGroup: 'B',
+        system: 'swiss',
+        teams: [{ title: 'A' }],
+        groupB: { teams: [{ title: 'B' }] },
+        _ownerUid: 'owner1',
+      },
+      'groupB',
+    ],
+  ])('deletes only the %s B path in the canonical and public records', async (_format, record, bPath) => {
+    const { dependencies, runtime } = harness(record);
+
+    await runtime.syncPaths({ [bPath]: null, activeGroup: 'A' });
+
+    const updates = dependencies.update.mock.calls[0][1];
+    expect(updates[`owner1/tournaments/t1/${bPath}`]).toBeNull();
+    expect(updates['owner1/tournaments/t1/activeGroup']).toBe('A');
+    expect(updates['publicTournaments/owner1/t1/record/tournamentB']).toBeNull();
+    expect(updates['publicTournaments/owner1/t1/record/activeGroup']).toBe('A');
+    expect(Object.keys(updates).some((path) => path.includes('/main/'))).toBe(false);
+  });
+
   it('publishes a complete projection atomically with a full owned-record save', async () => {
     const record = envelopeRecord({ name: 'New tournament' });
     const { dependencies, runtime } = harness(record);
@@ -233,6 +259,26 @@ describe('tournament synchronization runtime', () => {
 
     runtime.dispose();
     expect(unsubscribe).toHaveBeenCalledTimes(subscriptions.size);
+  });
+
+  it('removes an observed remote Tournament B without changing Main', () => {
+    const record = envelopeRecord({ activeGroup: 'B' });
+    const main = record.main;
+    const localB = record.tournamentB;
+    const { runtime, subscriptions } = harness(record);
+    runtime.subscribeTournament();
+    const bSubscription = subscriptions.get('user1/tournaments/t1/tournamentB');
+
+    bSubscription.callback(snapshot(null));
+    expect(record.tournamentB).toBe(localB);
+
+    bSubscription.callback(snapshot({ system: 'swiss', games: [], teams: [], preferences: {} }));
+    bSubscription.callback(snapshot(null));
+    subscriptions.get('user1/tournaments/t1/activeGroup').callback(snapshot('A'));
+
+    expect(record.tournamentB).toBeNull();
+    expect(record.activeGroup).toBe('A');
+    expect(record.main).toBe(main);
   });
 
   it.each([

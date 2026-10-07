@@ -78,6 +78,12 @@ export default {
     addTeamMessage: 'ajoutez la première équipe...',
     useTeamRating: 'Utiliser le classement des équipes pour le tirage',
     removeTournament: 'Supprimer le tournoi',
+    removeTournamentB: 'Supprimer le tournoi B',
+    removeTournamentBHint:
+      'Seul le tournoi B sera supprimé. Le tournoi principal A et ses résultats resteront inchangés.',
+    removeTournamentBConfirm: 'Supprimer le tournoi B ? Le tournoi principal A et ses résultats resteront inchangés.',
+    tournamentBRemoved: 'Le tournoi B a été supprimé. Le tournoi principal A reste inchangé.',
+    removeTournamentBError: "Impossible de supprimer le tournoi B. Les données du tournoi n'ont pas été modifiées.",
     alreadyArchived: 'Le tournoi est déjà archivé',
     saveTournament: 'Archiver le tournoi',
     startTournament: 'Démarrer le tournoi',

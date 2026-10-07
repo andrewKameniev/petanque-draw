@@ -59,7 +59,11 @@ describe('Tournament B removal controls', () => {
     const wrapper = mountPreferences(role);
 
     expect(wrapper.find('[data-testid="btn-remove-tournament-b"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain(en.teams.removeTournamentBHint);
+    expect(wrapper.find('.prefs__remove-b').text()).toContain(en.teams.removeTournamentBHint);
+    expect(wrapper.find('.prefs__footer').text()).not.toContain(en.teams.removeTournamentBHint);
+    expect(wrapper.find('[data-testid="btn-remove-tournament-b"]').attributes('aria-label')).toBe(
+      en.teams.removeTournamentB,
+    );
     expect(wrapper.find('[data-testid="btn-remove-tournament"]').exists()).toBe(false);
 
     await wrapper.find('[data-testid="btn-remove-tournament-b"]').trigger('click');

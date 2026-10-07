@@ -211,31 +211,33 @@
           </div>
         </div>
       </div>
-      <div class="prefs__footer">
-        <div v-if="isOwnerOrAdmin" class="prefs__delete-action">
-          <template v-if="canRemoveTournamentB">
-            <button
-              type="button"
-              class="prefs__btn prefs__btn--danger"
-              data-testid="btn-remove-tournament-b"
-              @click="$emit('remove-tournament-b')"
-            >
-              <Trash2 :size="16" />
-              {{ $t('teams.removeTournamentB') }}
-            </button>
-            <span class="prefs__hint">{{ $t('teams.removeTournamentBHint') }}</span>
-          </template>
-          <button
-            v-else
-            type="button"
-            class="prefs__btn prefs__btn--danger"
-            data-testid="btn-remove-tournament"
-            @click="$emit('remove-tournament')"
-          >
-            <Trash2 :size="16" />
-            <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
-          </button>
+      <div v-if="isOwnerOrAdmin && canRemoveTournamentB" class="prefs__remove-b">
+        <div class="prefs__remove-b-copy">
+          <strong>{{ $t('ranking.tournamentB') }}</strong>
+          <p>{{ $t('teams.removeTournamentBHint') }}</p>
         </div>
+        <button
+          type="button"
+          class="prefs__btn prefs__btn--danger"
+          :aria-label="$t('teams.removeTournamentB')"
+          data-testid="btn-remove-tournament-b"
+          @click="$emit('remove-tournament-b')"
+        >
+          <Trash2 :size="16" />
+          {{ $t('common.remove') }}
+        </button>
+      </div>
+      <div class="prefs__footer" :class="{ 'prefs__footer--end': canRemoveTournamentB || !isOwnerOrAdmin }">
+        <button
+          v-if="isOwnerOrAdmin && !canRemoveTournamentB"
+          type="button"
+          class="prefs__btn prefs__btn--danger"
+          data-testid="btn-remove-tournament"
+          @click="$emit('remove-tournament')"
+        >
+          <Trash2 :size="16" />
+          <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+        </button>
         <div class="prefs__footer-right">
           <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">
             {{ $t('common.cancel') }}
@@ -464,17 +466,35 @@ export default {
   gap: 0.5rem;
 }
 
-.prefs__delete-action {
+.prefs__footer--end {
+  justify-content: flex-end;
+}
+
+.prefs__remove-b {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
-  max-width: 55%;
+  gap: 0.6rem;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  flex-shrink: 0;
 }
 
-.prefs__delete-action .prefs__hint {
-  margin-top: 0;
+.prefs__remove-b-copy {
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.prefs__remove-b-copy p {
+  margin-top: 0.2rem;
   font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.prefs__remove-b .prefs__btn {
+  flex-shrink: 0;
 }
 
 @media (max-width: 600px) {
@@ -482,10 +502,6 @@ export default {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
-  }
-
-  .prefs__delete-action {
-    max-width: none;
   }
 
   .prefs__footer-right {

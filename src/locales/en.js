@@ -59,7 +59,7 @@ export default {
     femaleSingle: "Women's single",
     mixed: 'Mixed',
     scoreFor: 'Score: {club}',
-    scoreHint: 'Enter saves the score. Finish when one side has 13 and the other 0–12.',
+    scoreHint: 'Enter saves the score. Finish when the scores are different.',
     unsavedScore: 'Unsaved changes',
     savedScore: 'Saved',
     saveLive: 'Save',
@@ -81,7 +81,7 @@ export default {
       locked:
         'This action is unavailable. Rosters are fixed and lineups lock at stage start; restore the round before correcting an advanced bracket.',
       previous: 'Complete the previous stage first.',
-      score: 'Scores must be whole numbers from 0 to 13. To confirm: the winner has 13 and the opponent 0–12.',
+      score: 'Scores must be whole numbers from 0 to 13. To finish, the scores must be different.',
       missing: 'Match or participants not found.',
       access: 'Only the organizer or chief referee with admin access can enter data.',
     },

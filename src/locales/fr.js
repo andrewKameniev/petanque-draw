@@ -59,7 +59,7 @@ export default {
     femaleSingle: 'Tête-à-tête féminin',
     mixed: 'Mixte',
     scoreFor: 'Score : {club}',
-    scoreHint: 'Entrée enregistre le score. Terminez à 13 points contre 0 à 12.',
+    scoreHint: 'Entrée enregistre le score. Terminez lorsque les scores sont différents.',
     unsavedScore: 'Modifications non enregistrées',
     savedScore: 'Enregistré',
     saveLive: 'Enregistrer',
@@ -81,7 +81,7 @@ export default {
       locked:
         'Action indisponible. Les listes sont définitives et les compositions sont bloquées au départ ; restaurez le tour avant de corriger un tableau avancé.',
       previous: 'Terminez la phase précédente.',
-      score: 'Scores entiers de 0 à 13. Pour confirmer : 13 au vainqueur, 0 à 12 à l’adversaire.',
+      score: 'Scores entiers de 0 à 13. Pour terminer, les scores doivent être différents.',
       missing: 'Rencontre ou participants introuvables.',
       access: 'Seuls l’organisateur ou l’arbitre principal avec accès administrateur peuvent saisir les données.',
     },

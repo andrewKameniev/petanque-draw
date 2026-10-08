@@ -108,8 +108,8 @@ describe('club forms and persistence', () => {
     await button('Почати етап').trigger('click');
     await flushPromises();
     const first = wrapper.findAll('.club-encounter__score-form')[0];
-    await first.findAll('input')[0].setValue(13);
-    await first.findAll('input')[1].setValue(7);
+    await first.findAll('input')[0].setValue(2);
+    await first.findAll('input')[1].setValue(1);
     await first.trigger('submit');
     await flushPromises();
     expect(store.activeTournament.games[0][0].clubEncounter.points).toEqual([0, 0]);
@@ -138,7 +138,7 @@ describe('club forms and persistence', () => {
     await left.setValue(5);
     await right.setValue(3);
     expect(save.element.disabled).toBe(false);
-    expect(finish.element.disabled).toBe(true);
+    expect(finish.element.disabled).toBe(false);
     await form.trigger('submit');
     await flushPromises();
     const encounter = () => store.activeTournament.games[0][0].clubEncounter;
@@ -157,7 +157,7 @@ describe('club forms and persistence', () => {
       await right.setValue(s2);
       expect(finish.element.disabled).toBe(true);
     }
-    await left.setValue(13);
+    await left.setValue(5);
     await right.setValue(3);
     expect(finish.element.disabled).toBe(false);
     await finish.trigger('click');
@@ -168,13 +168,13 @@ describe('club forms and persistence', () => {
     await completed.get('button').trigger('click');
     const correction = wrapper.findAll('.club-encounter__score-form')[0];
     await correction.findAll('input')[0].setValue(3);
-    await correction.findAll('input')[1].setValue(13);
+    await correction.findAll('input')[1].setValue(5);
     await correction.get('button[type="button"]').trigger('click');
     await wrapper.findAll('[data-testid="club-game"]')[0].get('button').trigger('click');
     const reopened = wrapper.findAll('.club-encounter__score-form')[0];
-    expect(reopened.findAll('input').map((input) => input.element.value)).toEqual(['13', '3']);
+    expect(reopened.findAll('input').map((input) => input.element.value)).toEqual(['5', '3']);
     await reopened.findAll('input')[0].setValue(3);
-    await reopened.findAll('input')[1].setValue(13);
+    await reopened.findAll('input')[1].setValue(5);
     await reopened.trigger('submit');
     await flushPromises();
     expect(encounter().points).toEqual([12, 3]);

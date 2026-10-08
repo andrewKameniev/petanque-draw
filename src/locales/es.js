@@ -59,7 +59,7 @@ export default {
     femaleSingle: 'Individual femenino',
     mixed: 'Mixto',
     scoreFor: 'Marcador: {club}',
-    scoreHint: 'Intro guarda el marcador. Finaliza con 13 puntos frente a 0–12.',
+    scoreHint: 'Intro guarda el marcador. Finaliza cuando los marcadores sean diferentes.',
     unsavedScore: 'Cambios sin guardar',
     savedScore: 'Guardado',
     saveLive: 'Guardar',
@@ -81,7 +81,7 @@ export default {
       locked:
         'Acción no disponible. Las plantillas son definitivas y las alineaciones se bloquean al iniciar; restaure la ronda antes de corregir un cuadro avanzado.',
       previous: 'Complete primero la fase anterior.',
-      score: 'Marcadores enteros de 0 a 13. Para confirmar: 13 para el ganador y 0–12 para el rival.',
+      score: 'Marcadores enteros de 0 a 13. Para finalizar, los marcadores deben ser diferentes.',
       missing: 'No se encuentra el encuentro o sus participantes.',
       access: 'Solo el organizador o el árbitro principal con permisos de administrador pueden introducir datos.',
     },

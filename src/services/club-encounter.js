@@ -192,7 +192,7 @@ export function validClubScore(score1, score2, complete = true) {
   const valid = [score1, score2].every(
     (score) => typeof score === 'number' && Number.isInteger(score) && score >= 0 && score <= CLUB_GAME_SCORE,
   );
-  return valid && (!complete || (Math.max(score1, score2) === CLUB_GAME_SCORE && score1 !== score2));
+  return valid && (!complete || score1 !== score2);
 }
 
 function recalculate(encounter) {

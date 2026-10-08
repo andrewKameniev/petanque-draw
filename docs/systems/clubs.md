@@ -47,8 +47,9 @@ accessible label identifying the club, game position and player slot.
 
 ## Scoring and completion
 
-Only a confirmed result awards points. The winner has 13; the opponent has an
-integer from 0 to 12. Live results award zero. Every correction recomputes totals
+Only a confirmed result awards points. A final score contains two different
+integers from 0 to 13; reaching 13 is not required to record a winner.
+Live results may be tied and award zero. Every correction recomputes totals
 from current confirmed results, so repeating a save does not add points again.
 
 In discipline tabs, editable scores sit between the opposing lineups inside the

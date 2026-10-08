@@ -15,7 +15,6 @@ export default {
     rostersShort: 'Effectifs',
     sections: 'Sections de la rencontre interclubs',
     openCurrentStage: 'Ouvrir la phase en cours',
-    pointsShort: 'Points',
     editScore: 'Corriger le score',
     rosterList: 'Clubs inscrits',
 

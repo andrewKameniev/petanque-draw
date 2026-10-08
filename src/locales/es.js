@@ -15,7 +15,6 @@ export default {
     rostersShort: 'Plantillas',
     sections: 'Secciones del encuentro de clubes',
     openCurrentStage: 'Abrir fase actual',
-    pointsShort: 'Puntos',
     editScore: 'Corregir marcador',
     rosterList: 'Clubes inscritos',
 

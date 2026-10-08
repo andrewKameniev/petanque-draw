@@ -196,11 +196,7 @@
           >
             <div class="club-match__game-meta">
               <span :class="{ 'club-match__special': gameIndex === 0 }">{{ positionLabel(stageIndex, gameIndex) }}</span
-              ><span
-                >{{ $t(`club.status.${match.status}`) }} · {{ $t('club.pointsShort') }} {{ match.points1 }}:{{
-                  match.points2
-                }}</span
-              >
+              ><span>{{ $t(`club.status.${match.status}`) }}</span>
             </div>
             <PublicGameCard :game="individualGame(match)" :lane-number="match.position" :show-status="false">
               <template #team-one

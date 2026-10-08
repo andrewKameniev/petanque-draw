@@ -15,7 +15,6 @@ export default {
     rostersShort: 'Заявки',
     sections: 'Розділи клубної зустрічі',
     openCurrentStage: 'До поточного етапу',
-    pointsShort: 'Очки',
     editScore: 'Виправити рахунок',
     rosterList: 'Заявлені клуби',
 

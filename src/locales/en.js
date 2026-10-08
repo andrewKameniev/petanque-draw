@@ -15,7 +15,6 @@ export default {
     rostersShort: 'Rosters',
     sections: 'Club encounter sections',
     openCurrentStage: 'Open current stage',
-    pointsShort: 'Points',
     editScore: 'Correct score',
     rosterList: 'Registered clubs',
 

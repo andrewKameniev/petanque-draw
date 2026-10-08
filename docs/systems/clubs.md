@@ -74,7 +74,8 @@ or nine; the selected system's existing limits apply.
 
 The encounter uses the shared `TournamentNav` for overview, singles, doubles,
 triples and rosters. Overview displays all 11 games; only a discipline tab has
-lineup and score controls. Completed scores have an explicit correction action.
+lineup and score controls. Game captions show status only; club points are
+shown in the stage and encounter totals. Completed scores have an explicit correction action.
 `PublicGameCard` provides match presentation and `PlayerChip` provides photos,
 ratings and captain badges. The encounter header and each discipline show the
 portal club logos in opposing positions; absent logos use a neutral shield.

@@ -113,6 +113,12 @@
               $t('club.stagePoints', { count: definitions[stageIndex].count, points: definitions[stageIndex].points })
             }}
           </p>
+          <p
+            v-if="editable && stage.started && completedGames(stage) < definitions[stageIndex].count"
+            class="club-match__hint"
+          >
+            {{ $t('club.scoreHint') }}
+          </p>
           <div
             v-if="editable && !stage.started && encounter.status !== statuses.COMPLETED && available(stageIndex)"
             class="club-match__actions"
@@ -193,17 +199,26 @@
               </div>
             </template>
           </div>
-          <div
+          <component
+            :is="isScoreEditing(stageIndex, gameIndex) ? 'form' : 'div'"
             v-for="(match, gameIndex) in stage.games"
             :key="match.position"
             class="club-match__game"
+            :class="{ 'club-encounter__score-form': isScoreEditing(stageIndex, gameIndex) }"
+            :aria-label="positionLabel(stageIndex, gameIndex)"
             data-testid="club-game"
+            @submit.prevent="saveScore(stageIndex, gameIndex, match.status === statuses.COMPLETED)"
           >
             <div class="club-match__game-meta">
               <span :class="{ 'club-match__special': gameIndex === 0 }">{{ positionLabel(stageIndex, gameIndex) }}</span
               ><span>{{ $t(`club.status.${match.status}`) }}</span>
             </div>
-            <PublicGameCard :game="individualGame(match)" :lane-number="match.position" :show-status="false">
+            <PublicGameCard
+              :game="individualGame(match)"
+              :lane-number="match.position"
+              :show-status="false"
+              :class="{ 'club-match__card--editing': isScoreEditing(stageIndex, gameIndex) }"
+            >
               <template #team-one
                 ><div class="club-match__players">
                   <PlayerChip
@@ -214,6 +229,33 @@
                   /><span v-if="!match.players1?.length">{{ $t('club.awaitingLineups') }}</span>
                 </div></template
               >
+              <template v-if="isScoreEditing(stageIndex, gameIndex)" #score>
+                <span class="club-match__score-inputs">
+                  <template v-for="(club, side) in clubs" :key="club.clubId">
+                    <span v-if="side === 1" class="club-match__score-separator" aria-hidden="true">:</span>
+                    <input
+                      class="input"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      max="13"
+                      step="1"
+                      required
+                      :aria-label="$t('club.scoreFor', { club: club.title })"
+                      :aria-invalid="!!scoreErrors[`${stageIndex}-${gameIndex}`]"
+                      :aria-describedby="
+                        scoreErrors[`${stageIndex}-${gameIndex}`]
+                          ? `${tabPrefix}-score-error-${stageIndex}-${gameIndex}`
+                          : undefined
+                      "
+                      :disabled="busy"
+                      :value="draftScore(stageIndex, gameIndex, side)"
+                      @focus="$event.target.select()"
+                      @input="setScore(stageIndex, gameIndex, side, $event.target.value)"
+                    />
+                  </template>
+                </span>
+              </template>
               <template #team-two
                 ><div class="club-match__players">
                   <PlayerChip
@@ -225,56 +267,60 @@
                 </div></template
               >
             </PublicGameCard>
-            <template
-              v-if="editable && activeTab === stage.id && stage.started && match.status !== statuses.NOT_PLAYED"
-            >
-              <button
-                v-if="match.status === statuses.COMPLETED && editingResult !== `${stageIndex}-${gameIndex}`"
-                type="button"
-                class="club-match__edit"
-                @click="editingResult = `${stageIndex}-${gameIndex}`"
+            <div v-if="isScoreEditing(stageIndex, gameIndex)" class="club-match__score-footer">
+              <span class="club-match__save-state" role="status">
+                <template v-if="hasScoreChanges(stageIndex, gameIndex)">{{ $t('club.unsavedScore') }}</template>
+                <template v-else-if="match.score1 != null"
+                  ><Check :size="13" aria-hidden="true" />{{ $t('club.savedScore') }}</template
+                >
+              </span>
+              <div class="club-match__score-actions">
+                <button
+                  v-if="match.status !== statuses.COMPLETED"
+                  type="submit"
+                  class="button is-light is-small"
+                  :disabled="busy || !canSaveScore(stageIndex, gameIndex, false)"
+                >
+                  <Save :size="14" aria-hidden="true" />{{ $t('club.saveLive') }}
+                </button>
+                <button
+                  :type="match.status === statuses.COMPLETED ? 'submit' : 'button'"
+                  class="button is-success is-small"
+                  :disabled="busy || !canSaveScore(stageIndex, gameIndex, true)"
+                  @click="match.status !== statuses.COMPLETED && saveScore(stageIndex, gameIndex, true)"
+                >
+                  <Check :size="15" aria-hidden="true" />{{
+                    $t(match.status === statuses.COMPLETED ? 'club.correctResult' : 'club.confirmResult')
+                  }}
+                </button>
+                <button
+                  v-if="match.status === statuses.COMPLETED"
+                  type="button"
+                  class="button is-light is-small"
+                  :disabled="busy"
+                  @click="cancelScoreEdit(stageIndex, gameIndex)"
+                >
+                  {{ $t('club.cancel') }}
+                </button>
+              </div>
+              <p
+                v-if="scoreErrors[`${stageIndex}-${gameIndex}`]"
+                :id="`${tabPrefix}-score-error-${stageIndex}-${gameIndex}`"
+                role="alert"
+                class="club-match__score-error"
               >
-                <Pencil :size="13" aria-hidden="true" />{{ $t('club.editScore') }}
-              </button>
-              <form v-else class="club-encounter__score-form" @submit.prevent="saveScore(stageIndex, gameIndex, true)">
-                <div class="club-match__score-inputs">
-                  <label v-for="(club, side) in clubs" :key="club.clubId"
-                    ><span>{{ $t('club.scoreFor', { club: club.title }) }}</span
-                    ><input
-                      class="input"
-                      type="number"
-                      min="0"
-                      max="13"
-                      step="1"
-                      required
-                      :disabled="busy"
-                      :value="draftScore(stageIndex, gameIndex, side)"
-                      @input="setScore(stageIndex, gameIndex, side, $event.target.value)"
-                  /></label>
-                </div>
-                <div class="club-match__actions">
-                  <button
-                    v-if="match.status !== statuses.COMPLETED"
-                    type="button"
-                    class="button is-light is-small"
-                    :disabled="busy"
-                    @click="saveScore(stageIndex, gameIndex, false)"
-                  >
-                    {{ $t('club.saveLive') }}</button
-                  ><button type="submit" class="button is-success is-small" :disabled="busy">
-                    {{ $t(match.status === statuses.COMPLETED ? 'club.correctResult' : 'club.confirmResult') }}</button
-                  ><button
-                    v-if="match.status === statuses.COMPLETED"
-                    type="button"
-                    class="button is-light is-small"
-                    @click="editingResult = null"
-                  >
-                    {{ $t('club.cancel') }}
-                  </button>
-                </div>
-              </form>
-            </template>
-          </div>
+                <CircleAlert :size="15" aria-hidden="true" />{{ scoreErrors[`${stageIndex}-${gameIndex}`] }}
+              </p>
+            </div>
+            <button
+              v-else-if="editable && activeTab === stage.id && stage.started && match.status === statuses.COMPLETED"
+              type="button"
+              class="club-match__edit"
+              @click="editingResult = `${stageIndex}-${gameIndex}`"
+            >
+              <Pencil :size="13" aria-hidden="true" />{{ $t('club.editScore') }}
+            </button>
+          </component>
         </template>
         <button
           v-if="
@@ -324,6 +370,9 @@ import {
   ChevronRight,
   Trophy,
   Shield,
+  Save,
+  Check,
+  CircleAlert,
 } from 'lucide-vue-next';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
@@ -338,12 +387,24 @@ import {
   clubStageComplete,
   clubStagePoints,
   canEditClubGame,
+  validClubScore,
 } from '@/services/club-encounter';
 import { CLUB_CHANGE } from '@/services/club-competition';
 
 export default {
   name: 'ClubEncounter',
-  components: { TournamentNav, PlayerChip, PublicGameCard, Pencil, ChevronRight, Trophy, Shield },
+  components: {
+    TournamentNav,
+    PlayerChip,
+    PublicGameCard,
+    Pencil,
+    ChevronRight,
+    Trophy,
+    Shield,
+    Save,
+    Check,
+    CircleAlert,
+  },
   setup() {
     return { tabPrefix: useId() };
   },
@@ -364,6 +425,7 @@ export default {
       editingStage: null,
       lineups: [],
       scoreDrafts: {},
+      scoreErrors: {},
       busy: false,
       error: '',
     };
@@ -489,16 +551,50 @@ export default {
       )
         this.editingStage = null;
     },
+    isScoreEditing(stageIndex, gameIndex) {
+      const stage = this.encounter.stages[stageIndex];
+      const match = stage.games[gameIndex];
+      return (
+        this.editable &&
+        this.activeTab === stage.id &&
+        stage.started &&
+        match.status !== CLUB_STATUS.NOT_PLAYED &&
+        (match.status !== CLUB_STATUS.COMPLETED || this.editingResult === `${stageIndex}-${gameIndex}`)
+      );
+    },
+    hasScoreChanges(stageIndex, gameIndex) {
+      const match = this.encounter.stages[stageIndex].games[gameIndex];
+      return [0, 1].some((side) => this.draftScore(stageIndex, gameIndex, side) !== (match[`score${side + 1}`] ?? 0));
+    },
+    canSaveScore(stageIndex, gameIndex, complete) {
+      const match = this.encounter.stages[stageIndex].games[gameIndex];
+      if (
+        !validClubScore(this.draftScore(stageIndex, gameIndex, 0), this.draftScore(stageIndex, gameIndex, 1), complete)
+      )
+        return false;
+      if (complete && match.status !== CLUB_STATUS.COMPLETED) return true;
+      return this.hasScoreChanges(stageIndex, gameIndex) && (complete || match.status !== CLUB_STATUS.COMPLETED);
+    },
+    cancelScoreEdit(stageIndex, gameIndex) {
+      [0, 1].forEach((side) => {
+        delete this.scoreDrafts[`${stageIndex}-${gameIndex}-${side}`];
+      });
+      delete this.scoreErrors[`${stageIndex}-${gameIndex}`];
+      this.editingResult = null;
+    },
     draftScore(stageIndex, gameIndex, side) {
       const key = `${stageIndex}-${gameIndex}-${side}`;
-      return Object.hasOwn(this.scoreDrafts, key)
-        ? this.scoreDrafts[key]
-        : this.encounter.stages[stageIndex].games[gameIndex][`score${side + 1}`];
+      const draft = this.scoreDrafts[key];
+      return draft !== undefined
+        ? draft
+        : (this.encounter.stages[stageIndex].games[gameIndex][`score${side + 1}`] ?? 0);
     },
     setScore(stageIndex, gameIndex, side, value) {
       this.scoreDrafts[`${stageIndex}-${gameIndex}-${side}`] = value === '' ? null : Number(value);
+      delete this.scoreErrors[`${stageIndex}-${gameIndex}`];
     },
     async saveScore(stageIndex, gameIndex, complete) {
+      if (!this.canSaveScore(stageIndex, gameIndex, complete)) return;
       const command = {
         type: CLUB_COMMAND.SCORE,
         stageIndex,
@@ -517,14 +613,18 @@ export default {
     async perform(command) {
       if (!this.editable || this.busy) return false;
       this.busy = true;
-      this.error = '';
+      const scoreKey = command.type === CLUB_COMMAND.SCORE ? `${command.stageIndex}-${command.gameIndex}` : null;
+      if (scoreKey) delete this.scoreErrors[scoreKey];
+      else this.error = '';
       try {
         await this.changeClubCompetition({ type: CLUB_CHANGE.MATCH, locator: this.locator, command });
         return true;
       } catch (error) {
-        this.error = this.$te(`club.errors.${error.code}`)
+        const message = this.$te(`club.errors.${error.code}`)
           ? this.$t(`club.errors.${error.code}`)
           : this.$t('messages.failedSaving');
+        if (scoreKey) this.scoreErrors[scoreKey] = message;
+        else this.error = message;
         return false;
       } finally {
         this.busy = false;
@@ -857,40 +957,108 @@ export default {
   cursor: pointer;
 }
 
-.club-encounter__score-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  margin-top: 0.35rem;
-  border-radius: 10px;
-  background: var(--color-surface-alt);
+.club-match :deep(.club-match__card--editing) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .club-match__score-inputs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.club-match__score-inputs .input {
+  width: 54px;
+  height: 46px;
+  padding: 0.25rem;
+  border: 1px solid var(--color-border-medium);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  font-size: 23px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+
+.club-match__score-inputs .input::-webkit-inner-spin-button,
+.club-match__score-inputs .input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.club-match__score-inputs .input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.club-match__score-separator {
+  color: var(--color-text-muted);
+  font-size: 20px;
+}
+
+.club-match__score-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  flex: 1 1 180px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  background: var(--color-surface);
 }
 
-.club-match__score-inputs label {
-  min-width: 0;
+.club-match__score-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
-.club-match__score-inputs label span {
-  display: block;
-  margin-bottom: 0.25rem;
+.club-match__score-actions .button.is-small {
+  min-height: 36px;
+  border-radius: 8px;
+}
+
+.club-match__score-actions .button.is-light {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.club-match__score-actions .button:disabled {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-border-light);
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.club-match__save-state {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   color: var(--color-text-muted);
   font-size: 11px;
 }
 
-.club-match__score-inputs input {
-  height: 36px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
+.club-match__score-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-error);
+  font-size: 12px;
+}
+
+.club-match__score-error svg {
+  flex-shrink: 0;
 }
 
 .club-match__actions {
@@ -1094,8 +1262,33 @@ export default {
     font-size: 11px;
   }
 
+  .club-match :deep(.club-match__card--editing) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 36px 10px 12px;
+  }
+
+  .club-match :deep(.club-match__card--editing .match-team-right) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .club-match :deep(.club-match__card--editing .match-team:not(.match-team-right)) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .club-match :deep(.club-match__card--editing .match-vs) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
   .club-match__score-inputs {
-    flex-basis: 100%;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .club-match__score-inputs .input {
+    justify-self: center;
+    width: 64px;
   }
 
   .club-match__game-meta {

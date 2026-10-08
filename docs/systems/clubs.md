@@ -51,6 +51,13 @@ Only a confirmed result awards points. The winner has 13; the opponent has an
 integer from 0 to 12. Live results award zero. Every correction recomputes totals
 from current confirmed results, so repeating a save does not add points again.
 
+In discipline tabs, editable scores sit between the opposing lineups inside the
+shared game card. Save (or Enter) stores the live score without confirming it.
+Finish is a separate action enabled only for a valid final score. Unchanged
+scores cannot be saved again; failed saves retain the draft and display an error
+beside that game. Completed games offer an explicit correction action; cancelling
+a correction discards its draft. Public and overview cards remain read-only.
+
 Qualification and standalone Swiss/round-robin encounters require all 11 games.
 The official total then sums to 31. Playoff encounters automatically complete
 at 16 or more club points; remaining games become `not_played` while retaining

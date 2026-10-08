@@ -28,10 +28,12 @@
       ><slot name="team-one">{{ formattedTeamOne }}</slot></span
     >
     <span class="match-vs">
-      <span v-if="isInProgress || isFinished" class="match-score">
-        {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
-      </span>
-      <span v-else class="match-score match-score--pending">-- : --</span>
+      <slot name="score">
+        <span v-if="isInProgress || isFinished" class="match-score">
+          {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
+        </span>
+        <span v-else class="match-score match-score--pending">-- : --</span>
+      </slot>
     </span>
     <span
       class="match-team"

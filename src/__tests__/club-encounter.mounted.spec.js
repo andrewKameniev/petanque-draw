@@ -106,10 +106,11 @@ describe('club forms and persistence', () => {
     const first = wrapper.findAll('.club-encounter__score-form')[0];
     await first.findAll('input')[0].setValue(13);
     await first.findAll('input')[1].setValue(7);
-    await first.find('button[type="button"]').trigger('click');
+    await first.trigger('submit');
     await flushPromises();
     expect(store.activeTournament.games[0][0].clubEncounter.points).toEqual([0, 0]);
-    await first.trigger('submit');
+    expect(first.get('button[type="submit"]').element.disabled).toBe(true);
+    await first.get('button[type="button"]').trigger('click');
     await flushPromises();
     expect(store.activeTournament.games[0][0].clubEncounter.points).toEqual([2, 0]);
     expect(store.activeTournament.games[0][0].team_1_score).toBeNull();
@@ -119,6 +120,83 @@ describe('club forms and persistence', () => {
       writes.update.mock.calls.at(-1)[1]['publicTournaments/organizer/club-test/record/main/games/0/0'].clubEncounter
         .audit,
     ).toBeUndefined();
+  });
+  it('saves live scores with Enter and only enables finishing at a valid final score', async () => {
+    store.activeTournament.games[0][0] = clubMatchAfterSingles(store.activeTournament);
+    editor();
+    await wrapper.findAll('[role=tab]')[2].trigger('click');
+    const form = wrapper.findAll('.club-encounter__score-form')[0];
+    const [left, right] = form.findAll('input');
+    const save = form.get('button[type="submit"]');
+    const finish = form.get('button[type="button"]');
+    expect(save.element.disabled).toBe(true);
+    expect(finish.element.disabled).toBe(true);
+    await left.setValue(5);
+    await right.setValue(3);
+    expect(save.element.disabled).toBe(false);
+    expect(finish.element.disabled).toBe(true);
+    await form.trigger('submit');
+    await flushPromises();
+    const encounter = () => store.activeTournament.games[0][0].clubEncounter;
+    expect(encounter().stages[1].games[0]).toMatchObject({ score1: 5, score2: 3, status: 'in_progress' });
+    expect(encounter().points).toEqual([12, 0]);
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+    expect(form.text()).toContain('Збережено');
+    for (const [s1, s2] of [
+      [13, 13],
+      [14, 3],
+      [2.5, 3],
+      ['', 3],
+      [-1, 3],
+    ]) {
+      await left.setValue(s1);
+      await right.setValue(s2);
+      expect(finish.element.disabled).toBe(true);
+    }
+    await left.setValue(13);
+    await right.setValue(3);
+    expect(finish.element.disabled).toBe(false);
+    await finish.trigger('click');
+    await flushPromises();
+    expect(encounter().points).toEqual([15, 0]);
+    const completed = wrapper.findAll('[data-testid="club-game"]')[0];
+    expect(completed.find('input').exists()).toBe(false);
+    await completed.get('button').trigger('click');
+    const correction = wrapper.findAll('.club-encounter__score-form')[0];
+    await correction.findAll('input')[0].setValue(3);
+    await correction.findAll('input')[1].setValue(13);
+    await correction.get('button[type="button"]').trigger('click');
+    await wrapper.findAll('[data-testid="club-game"]')[0].get('button').trigger('click');
+    const reopened = wrapper.findAll('.club-encounter__score-form')[0];
+    expect(reopened.findAll('input').map((input) => input.element.value)).toEqual(['13', '3']);
+    await reopened.findAll('input')[0].setValue(3);
+    await reopened.findAll('input')[1].setValue(13);
+    await reopened.trigger('submit');
+    await flushPromises();
+    expect(encounter().points).toEqual([12, 3]);
+  });
+  it('keeps drafts and shows a failed save beside only the affected game', async () => {
+    store.activeTournament.games[0][0] = clubMatchAfterSingles(store.activeTournament);
+    editor();
+    await wrapper.findAll('[role=tab]')[2].trigger('click');
+    const before = JSON.parse(JSON.stringify(store.activeTournament));
+    const form = wrapper.findAll('.club-encounter__score-form')[0];
+    await form.findAll('input')[0].setValue(5);
+    await form.findAll('input')[1].setValue(3);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    writes.update.mockRejectedValueOnce(new Error('offline'));
+    await form.trigger('submit');
+    await flushPromises();
+    expect(store.activeTournament).toEqual(before);
+    expect(form.findAll('input').map((input) => input.element.value)).toEqual(['5', '3']);
+    expect(form.get('[role="alert"]').text()).toBe(ua.messages.failedSaving);
+    expect(wrapper.find('.club-match__error').exists()).toBe(false);
+    expect(wrapper.findAll('.club-encounter__score-form')[1].find('[role="alert"]').exists()).toBe(false);
+    expect(form.findAll('input')[0].attributes('aria-describedby')).toBe(form.get('[role="alert"]').attributes('id'));
+    await form.trigger('submit');
+    await flushPromises();
+    expect(form.find('[role="alert"]').exists()).toBe(false);
+    expect(form.text()).toContain('Збережено');
   });
   it.each(['legacy', 'envelope'])('writes and rolls back a %s match on persistence failure', async (format) => {
     if (format === 'legacy') store.tournaments['club-test'] = { id: 'club-test', ...makeClubTournament() };
@@ -286,7 +364,7 @@ describe('club forms and persistence', () => {
       const form = wrapper.findAll('.club-encounter__score-form')[0];
       await form.findAll('input')[0].setValue(13);
       await form.findAll('input')[1].setValue(7);
-      await form.trigger('submit');
+      await form.get('button[type="button"]').trigger('click');
       await flushPromises();
     }
     expect(wrapper.text()).toContain('Переможець: Club a');

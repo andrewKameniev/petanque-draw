@@ -1,6 +1,5 @@
 export default {
   club: {
-    changeCaptain: 'Змінити капітана',
     nextStage: 'Далі: {stage}',
 
     importClubs: 'Імпортувати клуби ({count})',
@@ -20,7 +19,6 @@ export default {
     rosterList: 'Заявлені клуби',
 
     absence: { rest: 'Відпочинок · без очок', walkover: 'Технічна перемога · без суперника' },
-    captain: 'Капітан',
     captainClubRule: 'Показуємо клуб капітана. Гравці можуть представляти інший клуб, ніж у своєму профілі.',
     removeDraftPlayer: 'Вилучити з чернетки',
 
@@ -28,7 +26,7 @@ export default {
     rosterLocked: 'Заявку зафіксовано',
     playerNumber: 'Гравець {number}',
     choose: 'Оберіть',
-    submitWarning: 'Після імпорту склад фіксується на весь турнір. Перевірте гравців і капітанів.',
+    submitWarning: 'Після імпорту склад фіксується на весь турнір. Перевірте список гравців.',
     clubPoints: 'Клубні очки',
     gameScore: 'Ігровий рахунок',
     winner: 'Переможець: {club}',

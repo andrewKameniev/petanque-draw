@@ -203,6 +203,8 @@ describe('club forms and persistence', () => {
     expect(wrapper.get('.player-chip__avatar').attributes('src')).toBe(players[0].avatar_url);
     expect(wrapper.get('.club-rosters__logo').attributes('src')).toBe(players[0].club_logo_url);
     expect(wrapper.text()).not.toContain('Бракує');
+    expect(wrapper.text()).not.toContain('Змінити капітана');
+    expect(wrapper.findAll('select')).toHaveLength(1);
     await button('Імпортувати клуби (1)').trigger('click');
     await flushPromises();
     expect(store.activeTournament.teams[0]).toMatchObject({
@@ -213,6 +215,30 @@ describe('club forms and persistence', () => {
     expect(store.activeTournament.teams[0].players).toHaveLength(7);
     expect(store.currentTournament.portalIdTournament).toBe('691');
     expect(wrapper.emitted('imported')).toHaveLength(1);
+  });
+  it('keeps the portal captain when reducing an imported roster to eight players', async () => {
+    store.activeTournament.games = [];
+    store.activeTournament.teams = [];
+    delete store.activeTournament.preferences.clubRosterSize;
+    const players = makeClub('c', 9).players;
+    wrapper = mount(ClubRosterSetup, {
+      props: {
+        tournament: store.activeTournament,
+        portalImport: { portalId: '691', teams: [{ id: 'portal-c', players }] },
+      },
+      global: { plugins: [pinia, i18n()] },
+    });
+    await wrapper.get('select').setValue('8');
+    const rows = wrapper.findAll('.club-rosters__player');
+    expect(rows[0].find('button').exists()).toBe(false);
+    await rows[1].get('button').trigger('click');
+    await button('Імпортувати клуби (1)').trigger('click');
+    await flushPromises();
+    const imported = store.activeTournament.teams[0];
+    expect(imported.captainId).toBe(players[0].id);
+    expect(imported.players).toHaveLength(8);
+    expect(imported.players.some((player) => player.id === players[0].id)).toBe(true);
+    expect(imported.players.some((player) => player.id === players[1].id)).toBe(false);
   });
   it('retains a final encounter for correction and clears its players when returning to semifinals', () => {
     const tournament = store.activeTournament;

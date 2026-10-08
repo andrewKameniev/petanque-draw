@@ -1,6 +1,5 @@
 export default {
   club: {
-    changeCaptain: 'Changer de capitaine',
     nextStage: 'Suite : {stage}',
 
     importClubs: 'Importer les clubs ({count})',
@@ -20,7 +19,6 @@ export default {
     rosterList: 'Clubs inscrits',
 
     absence: { rest: 'Repos · aucun point', walkover: 'Victoire technique · sans adversaire' },
-    captain: 'Capitaine',
     captainClubRule: 'Le club du capitaine représente cette liste. Les joueurs peuvent appartenir à d’autres clubs.',
     removeDraftPlayer: 'Retirer du brouillon',
 
@@ -28,7 +26,7 @@ export default {
     rosterLocked: 'Liste définitive',
     playerNumber: 'Joueur {number}',
     choose: 'Choisir',
-    submitWarning: 'L’importation fixe les effectifs pour tout le tournoi. Vérifiez les joueurs et les capitaines.',
+    submitWarning: 'L’importation fixe les effectifs pour tout le tournoi. Vérifiez la liste des joueurs.',
     clubPoints: 'Points de club',
     gameScore: 'Score de la partie',
     winner: 'Vainqueur : {club}',

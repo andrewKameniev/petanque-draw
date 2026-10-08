@@ -15,7 +15,9 @@ The organizer reviews the imported clubs and chooses a maximum roster size of
 8 or 9 before confirming all rosters. Seven-player rosters are valid; the lower
 bound is six, enough to fill every position of a stage. Import keeps the actual
 players and their portal photos, badges, ratings and profile clubs without
-padding. The selected captain determines the represented club and its logo.
+padding. The captain set on the portal determines the represented club and its
+logo. The app cannot change the captain or remove them when trimming an imported
+roster to its maximum size.
 Players can have other profile clubs. Each player ID may occur in only one
 registered club. Confirmation fixes rosters for the whole tournament.
 

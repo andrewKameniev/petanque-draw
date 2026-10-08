@@ -47,27 +47,11 @@
           >
           <ChevronDown :size="18" aria-hidden="true" />
         </summary>
-        <label v-if="portalImport && editingCaptain === club.portalTeamId" class="club-rosters__captain"
-          >{{ $t('club.captain')
-          }}<select v-model="club.captainId" class="input" :disabled="busy" @change="selectCaptain(club)">
-            <option v-for="player in club.players" :key="player.id" :value="player.id">
-              {{ player.surname }} {{ player.name }}
-            </option>
-          </select></label
-        >
-        <button
-          v-if="portalImport && editingCaptain !== club.portalTeamId"
-          type="button"
-          class="club-rosters__edit-captain"
-          @click="editingCaptain = club.portalTeamId"
-        >
-          {{ $t('club.changeCaptain') }}
-        </button>
         <div class="club-rosters__players">
           <div v-for="player in club.players" :key="player.id" class="club-rosters__player">
             <PlayerChip :player="player" :is-captain="String(player.id) === String(club.captainId)" />
             <button
-              v-if="portalImport && club.players.length > rosterLimit"
+              v-if="portalImport && club.players.length > rosterLimit && player.id !== club.captainId"
               type="button"
               class="button is-light is-small"
               :disabled="busy"
@@ -110,7 +94,7 @@ export default {
   props: { tournament: { type: Object, required: true }, portalImport: { type: Object, default: null } },
   emits: ['imported', 'cancel-import'],
   data() {
-    return { drafts: [], editingCaptain: null, rosterLimit: 9, rosterSizes: CLUB_ROSTER_SIZES, busy: false, error: '' };
+    return { drafts: [], rosterLimit: 9, rosterSizes: CLUB_ROSTER_SIZES, busy: false, error: '' };
   },
   computed: {
     ...mapState(useMainStore, ['isOwnerOrAdmin']),
@@ -133,18 +117,9 @@ export default {
     captain(club) {
       return club.players.find((player) => String(player.id) === String(club.captainId));
     },
-    selectCaptain(club) {
-      const player = this.captain(club);
-      club.clubId = player.club_id;
-      club.title = player.club;
-      this.editingCaptain = null;
-    },
     removeDraftPlayer(club, playerId) {
+      if (club.captainId === playerId) return;
       club.players = club.players.filter((player) => player.id !== playerId);
-      if (club.captainId === playerId) {
-        club.captainId = club.players[0]?.id;
-        this.selectCaptain(club);
-      }
     },
     async submitImport() {
       this.busy = true;
@@ -171,15 +146,6 @@ export default {
 </script>
 
 <style scoped>
-.club-rosters__edit-captain {
-  border: 0;
-  background: none;
-  color: var(--color-primary);
-  font-size: 12px;
-  padding: 0.5rem 0 0;
-  cursor: pointer;
-}
-
 .club-rosters {
   padding: 1.25rem;
   margin-bottom: 1rem;
@@ -272,10 +238,6 @@ export default {
   flex-shrink: 0;
 }
 
-.club-rosters__captain {
-  margin: 0.75rem 0;
-}
-
 .club-rosters__players {
   display: flex;
   flex-wrap: wrap;
@@ -314,10 +276,6 @@ export default {
 @media (max-width: 600px) {
   .club-rosters {
     padding: 1rem;
-  }
-
-  .club-rosters__captain {
-    flex-wrap: wrap;
   }
 
   .club-rosters__actions .button {

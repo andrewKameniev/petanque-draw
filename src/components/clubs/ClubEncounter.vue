@@ -22,7 +22,10 @@
       </div>
       <div class="club-match__scoreboard">
         <div class="club-match__club">
-          <img v-if="captain(clubs[0])?.club_logo_url" :src="captain(clubs[0]).club_logo_url" alt="" />
+          <span class="club-match__crest">
+            <img v-if="captain(clubs[0])?.club_logo_url" :src="captain(clubs[0]).club_logo_url" alt="" />
+            <Shield v-else :size="32" aria-hidden="true" />
+          </span>
           <h3>{{ game.team_1 }}</h3>
         </div>
         <div>
@@ -30,7 +33,10 @@
           ><small>{{ $t('club.clubPoints') }}</small>
         </div>
         <div class="club-match__club">
-          <img v-if="captain(clubs[1])?.club_logo_url" :src="captain(clubs[1]).club_logo_url" alt="" />
+          <span class="club-match__crest">
+            <img v-if="captain(clubs[1])?.club_logo_url" :src="captain(clubs[1]).club_logo_url" alt="" />
+            <Shield v-else :size="32" aria-hidden="true" />
+          </span>
           <h3>{{ game.team_2 }}</h3>
         </div>
       </div>
@@ -170,9 +176,17 @@
           </div>
         </form>
         <template v-else>
-          <div class="club-match__club-labels">
-            <span>{{ game.team_1 }}</span
-            ><span>{{ game.team_2 }}</span>
+          <div class="club-match__clash">
+            <template v-for="(club, side) in clubs" :key="club.clubId">
+              <span v-if="side === 1" class="club-match__versus" aria-hidden="true">{{ $t('club.versus') }}</span>
+              <div class="club-match__opponent" :class="{ 'club-match__opponent--right': side === 1 }">
+                <span class="club-match__crest">
+                  <img v-if="captain(club)?.club_logo_url" :src="captain(club).club_logo_url" alt="" loading="lazy" />
+                  <Shield v-else :size="32" aria-hidden="true" />
+                </span>
+                <strong>{{ club.title }}</strong>
+              </div>
+            </template>
           </div>
           <div
             v-for="(match, gameIndex) in stage.games"
@@ -308,6 +322,7 @@ import {
   Pencil,
   ChevronRight,
   Trophy,
+  Shield,
 } from 'lucide-vue-next';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
@@ -327,7 +342,7 @@ import { CLUB_CHANGE } from '@/services/club-competition';
 
 export default {
   name: 'ClubEncounter',
-  components: { TournamentNav, PlayerChip, PublicGameCard, Pencil, ChevronRight, Trophy },
+  components: { TournamentNav, PlayerChip, PublicGameCard, Pencil, ChevronRight, Trophy, Shield },
   setup() {
     return { tabPrefix: useId() };
   },
@@ -536,10 +551,28 @@ export default {
   gap: 0.5rem;
 }
 
-.club-match__club img {
-  width: 44px;
-  height: 44px;
+.club-match__crest {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 7px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.club-match__crest img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+}
+
+.club-match__club .club-match__crest {
+  width: 76px;
+  height: 76px;
 }
 
 .club-match__players {
@@ -736,18 +769,49 @@ export default {
   font-size: 13px;
 }
 
-.club-match__club-labels {
+.club-match__clash {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   gap: 1rem;
-  padding: 0 0.5rem;
-  margin: 0.5rem 0;
-  color: var(--color-text-muted);
-  font-size: 11px;
+  padding: 1rem;
+  margin: 0.75rem 0 1.25rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: linear-gradient(110deg, var(--color-primary-bg), var(--color-surface) 50%, var(--color-primary-bg));
 }
 
-.club-match__club-labels span:last-child {
+.club-match__opponent {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.club-match__opponent strong {
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.club-match__opponent--right {
+  flex-direction: row-reverse;
   text-align: right;
+}
+
+.club-match__versus {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .club-match__game {
@@ -977,6 +1041,29 @@ export default {
   outline-offset: 2px;
 }
 @media (max-width: 600px) {
+  .club-match__clash {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .club-match__opponent {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .club-match__opponent strong {
+    font-size: 12px;
+  }
+
+  .club-match__crest,
+  .club-match__club .club-match__crest {
+    width: 58px;
+    height: 58px;
+    padding: 6px;
+    border-radius: 13px;
+  }
+
   .club-match__header {
     padding: 0.75rem;
   }

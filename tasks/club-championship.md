@@ -602,3 +602,16 @@
 - `rtk npx vitest run src/__tests__/group-b-removal.mounted.spec.js src/__tests__/poules-draw-validation.spec.js src/__tests__/swiss-round-default.spec.js`
   — 11 тестів пройшли. ESLint для SetupCard, Prettier змінених файлів,
   `rtk npm run docs:check` і `rtk git diff --check` — успішно.
+
+### Уточнення 2026-10-09: логотипи й оформлення протистояння
+
+- Над іграми кожної дисципліни замінено дрібні назви клубів блоком
+  протистояння: логотипи з порталу, виразні назви й VS по центру.
+- У головній шапці емблеми збільшено; для відсутнього логотипа є нейтральний
+  щит. На вузькому екрані логотипи розташовані над назвами.
+- Реальний повторний імпорт 691: емблеми завантажені; ширини 1280px і
+  390px перевірено в браузері, горизонтального переповнення немає.
+- `rtk npx vitest run src/__tests__/club-encounter.mounted.spec.js src/__tests__/public-game-card.spec.js`
+  — 21 тест пройшов; `rtk npm run lint` — успішно.
+- Світлу й темну теми переглянуто на мобільному екрані; браузерних помилок
+  немає. `rtk npm run docs:check` та `rtk git diff --check` — успішно.

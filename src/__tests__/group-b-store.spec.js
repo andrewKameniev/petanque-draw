@@ -161,17 +161,83 @@ describe('Tournament B store actions (new format)', () => {
   });
 
   describe('removeTournamentB', () => {
-    it('removes Group B and switches to A in one persisted update', () => {
+    it('removes Group B and switches to A in one persisted update without writing Main', async () => {
       store.initTournamentB([{ title: 'T1' }]);
       store.setActiveGroup('B');
+      const main = store.currentTournament.main;
+      const mainSnapshot = JSON.parse(JSON.stringify(main));
       const syncPaths = vi.spyOn(store, '_syncPaths').mockImplementation(() => undefined);
 
-      store.removeTournamentB();
+      expect(await store.removeTournamentB()).toBe(true);
 
       expect(store.currentTournament.tournamentB).toBeNull();
       expect(store.currentTournament.activeGroup).toBe('A');
+      expect(store.currentTournament.main).toBe(main);
+      expect(store.currentTournament.main).toEqual(mainSnapshot);
       expect(syncPaths).toHaveBeenCalledOnce();
       expect(syncPaths).toHaveBeenCalledWith({ tournamentB: null, activeGroup: 'A' });
+    });
+
+    it('deletes only B when A is selected', async () => {
+      store.initTournamentB([{ title: 'T1' }]);
+      const main = store.currentTournament.main;
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.removeTournamentB()).toBe(true);
+
+      expect(store.currentTournament.main).toBe(main);
+      expect(syncPaths).toHaveBeenCalledWith({ tournamentB: null });
+    });
+
+    it('uses the legacy groupB path for an admin collaborator', async () => {
+      const id = store.currentTournamentIndex;
+      store.tournaments[id] = {
+        _ownerUid: 'owner-uid',
+        activeGroup: 'B',
+        system: 'swiss',
+        teams: [{ title: 'Main team' }],
+        groupB: { system: 'swiss', teams: [{ title: 'B team' }] },
+      };
+      store.userTournamentMap[id] = { role: 'admin', ownerUid: 'owner-uid' };
+      const mainTeams = store.currentTournament.teams;
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.removeTournamentB()).toBe(true);
+
+      expect(store.currentTournament.groupB).toBeNull();
+      expect(store.currentTournament.teams).toBe(mainTeams);
+      expect(store.currentTournament.activeGroup).toBe('A');
+      expect(syncPaths).toHaveBeenCalledWith({ groupB: null, activeGroup: 'A' });
+    });
+
+    it('refuses a scorer without changing either group', async () => {
+      store.initTournamentB([{ title: 'T1' }]);
+      const id = store.currentTournamentIndex;
+      store.currentTournament._ownerUid = 'owner-uid';
+      store.userTournamentMap[id] = { role: 'scorer', ownerUid: 'owner-uid' };
+      const originalB = store.currentTournament.tournamentB;
+      const syncPaths = vi.spyOn(store, '_syncPaths');
+
+      expect(await store.removeTournamentB()).toBe(false);
+
+      expect(store.currentTournament.tournamentB).toBe(originalB);
+      expect(syncPaths).not.toHaveBeenCalled();
+    });
+
+    it('restores B and the selection if persistence fails', async () => {
+      store.initTournamentB([{ title: 'T1' }]);
+      store.setActiveGroup('B');
+      const originalB = store.currentTournament.tournamentB;
+      const main = store.currentTournament.main;
+      vi.spyOn(store, '_syncPaths').mockRejectedValue(new Error('network'));
+      const showMessage = vi.spyOn(store, 'showMessage').mockImplementation(() => undefined);
+
+      expect(await store.removeTournamentB()).toBe(false);
+
+      expect(store.currentTournament.tournamentB).toBe(originalB);
+      expect(store.currentTournament.activeGroup).toBe('B');
+      expect(store.currentTournament.main).toBe(main);
+      expect(showMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
     });
   });
 

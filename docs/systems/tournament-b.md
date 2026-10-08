@@ -47,6 +47,19 @@ If B is selected but absent, selection and writes safely fall back to A.
 
 Full-width A/B pill toggle appears above tab content when `groupB` exists. Works in both admin and public views.
 
+### Removing Tournament B
+
+An owner or admin can remove B while viewing B. Before B starts, its setup
+screen labels the remove action and explains that only B is affected. After B
+starts, the same action and explanation appear in Preferences. A confirmation
+repeats the scope before deletion. Scorer collaborators do not get the B remove
+action.
+
+Removal deletes only the `tournamentB` or legacy `groupB` node. The main
+tournament's teams, games, preferences, and results are left as they are. If B
+was selected, the record switches back to A. Shared editors and public views
+observe B's removal through their existing subscriptions.
+
 ### Player Withdrawal
 
 Admin can mark teams as "withdrawn" before starting playoff (in the advanced settings of the playoff confirm modal). Withdrawn teams keep their swiss ranking but don't proceed to playoff/cadrage/barrage. Bottom teams "bubble up" to fill their spots.

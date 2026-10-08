@@ -211,14 +211,27 @@
           </div>
         </div>
       </div>
-      <div class="prefs__footer">
+      <p v-if="isOwnerOrAdmin && canRemoveTournamentB" class="prefs__remove-b-hint">
+        {{ $t('teams.removeTournamentBHint') }}
+      </p>
+      <div
+        class="prefs__footer"
+        :class="{
+          'prefs__footer--end': !isOwnerOrAdmin,
+          'prefs__footer--with-hint': isOwnerOrAdmin && canRemoveTournamentB,
+        }"
+      >
         <button
+          v-if="isOwnerOrAdmin"
+          type="button"
           class="prefs__btn prefs__btn--danger"
-          data-testid="btn-remove-tournament"
-          @click="$emit('remove-tournament')"
+          :data-testid="canRemoveTournamentB ? 'btn-remove-tournament-b' : 'btn-remove-tournament'"
+          @click="$emit(canRemoveTournamentB ? 'remove-tournament-b' : 'remove-tournament')"
         >
           <Trash2 :size="16" />
-          <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+          <span :class="{ 'is-hidden-mobile': !canRemoveTournamentB }">{{
+            $t(canRemoveTournamentB ? 'teams.removeTournamentB' : 'teams.removeTournament')
+          }}</span>
         </button>
         <div class="prefs__footer-right">
           <button class="prefs__btn prefs__btn--cancel" @click="$emit('close-modal')">
@@ -235,12 +248,13 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
+import { hasTournamentGroup } from '@/services/tournament-record';
 import { Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid } from 'lucide-vue-next';
 
 export default {
   name: 'Preferences',
   components: { Modal, Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid },
-  emits: ['close-modal', 'remove-tournament'],
+  emits: ['close-modal', 'remove-tournament', 'remove-tournament-b'],
   computed: {
     ...mapState(useMainStore, [
       'tournaments',
@@ -248,7 +262,11 @@ export default {
       'currentTournament',
       'activeTournament',
       'user',
+      'isOwnerOrAdmin',
     ]),
+    canRemoveTournamentB() {
+      return this.currentTournament?.activeGroup === 'B' && hasTournamentGroup(this.currentTournament, 'B');
+    },
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
@@ -443,6 +461,41 @@ export default {
   gap: 0.5rem;
 }
 
+.prefs__footer--end {
+  justify-content: flex-end;
+}
+
+.prefs__remove-b-hint {
+  margin: 0;
+  padding: 0.75rem 1.5rem 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  flex-shrink: 0;
+}
+
+.prefs__footer--with-hint {
+  border-top: 0;
+  padding-top: 0.75rem;
+}
+
+.prefs__footer--with-hint .prefs__btn {
+  padding-inline: 1rem;
+}
+
+@media (max-width: 600px) {
+  .prefs__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .prefs__footer-right {
+    justify-content: flex-end;
+  }
+}
+
 .prefs__btn {
   padding: 0.55rem 1.5rem;
   font-size: 1rem;
@@ -474,6 +527,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
   background: transparent;
   border: 1px solid var(--color-error);
   color: var(--color-error);

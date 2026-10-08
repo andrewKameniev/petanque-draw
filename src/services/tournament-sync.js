@@ -416,8 +416,13 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
           applyCompetitionValue(path, value, getTournamentMain(store.tournaments[tournamentId]));
         });
       });
+      let observedGroupB = false;
       subscribePath(groupBPrefix.slice(0, -1), (value, local) => {
-        if (value == null) return;
+        if (value == null) {
+          if (observedGroupB) local.tournamentB = null;
+          return;
+        }
+        observedGroupB = true;
         const recentSubPaths = [...recentSyncPaths].filter((path) => path.startsWith(groupBPrefix));
         if (recentSubPaths.length) {
           recentSubPaths.forEach((path) => recentSyncPaths.delete(path));

@@ -473,7 +473,7 @@
       </div>
     </div>
 
-    <div class="setup-card__actions">
+    <div class="setup-card__actions" :class="{ 'setup-card__actions--tournament-b': isTournamentB }">
       <button
         class="setup-card__start"
         data-testid="btn-draw-first-round"
@@ -483,12 +483,23 @@
         <Play :size="18" />
         {{ $t('setup.drawFirstRound') }}
       </button>
-      <span class="setup-card__or">{{ $t('common.or') }}</span>
-      <button class="setup-card__delete" data-testid="btn-delete-setup" @click="$emit('remove')">
+      <span v-if="showRemove" class="setup-card__or">{{ $t('common.or') }}</span>
+      <button
+        v-if="showRemove"
+        type="button"
+        class="setup-card__delete"
+        data-testid="btn-delete-setup"
+        @click="$emit('remove')"
+      >
         <Trash2 :size="16" />
-        <span class="is-hidden-mobile">{{ $t('teams.removeTournament') }}</span>
+        <span :class="{ 'is-hidden-mobile': !isTournamentB }">{{
+          $t(isTournamentB ? 'teams.removeTournamentB' : 'teams.removeTournament')
+        }}</span>
       </button>
     </div>
+    <p v-if="isTournamentB && showRemove" class="setup-card__hint setup-card__remove-hint">
+      {{ $t('teams.removeTournamentBHint') }}
+    </p>
   </div>
 </template>
 
@@ -515,6 +526,8 @@ export default {
   ],
   props: {
     tournament: { type: Object, required: true },
+    isTournamentB: { type: Boolean, default: false },
+    showRemove: { type: Boolean, default: true },
     teamsInGroup: { type: Number, default: null },
     groupRoundsCount: { type: Number, default: null },
     setupPlayOff: { type: Boolean, default: false },
@@ -912,6 +925,28 @@ export default {
   align-items: center;
   gap: 0.5rem;
   margin-top: 1.25rem;
+}
+
+.setup-card__remove-hint {
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .setup-card__actions--tournament-b {
+    flex-wrap: wrap;
+  }
+
+  .setup-card__actions--tournament-b .setup-card__start {
+    flex-basis: 100%;
+  }
+
+  .setup-card__actions--tournament-b .setup-card__or {
+    display: none;
+  }
+
+  .setup-card__actions--tournament-b .setup-card__delete {
+    margin-left: auto;
+  }
 }
 
 .setup-card__or {

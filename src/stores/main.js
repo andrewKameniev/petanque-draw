@@ -126,12 +126,35 @@ export const useMainStore = defineStore('main', {
       tournament.activeGroup = 'A';
       this._syncPaths({ tournamentB: tournament.tournamentB, activeGroup: 'A' });
     },
-    removeTournamentB() {
+    async removeTournamentB() {
       const tournament = this.tournaments[this.currentTournamentIndex];
-      if (!tournament || !tournament.tournamentB) return;
-      tournament.tournamentB = null;
-      tournament.activeGroup = 'A';
-      this._syncPaths({ tournamentB: null, activeGroup: 'A' });
+      if (!this.user?.uid || !this.isOwnerOrAdmin) return false;
+      const target = getTournamentStorageTarget(tournament, 'B', { allowFallback: false });
+      if (!target.exists) return false;
+
+      const key = target.prefix.slice(0, -1);
+      const previousGroup = tournament.activeGroup;
+      const previousB = target.data;
+      const updates = { [key]: null };
+      tournament[key] = null;
+      if (previousGroup === 'B') {
+        tournament.activeGroup = 'A';
+        updates.activeGroup = 'A';
+      }
+
+      try {
+        await this._syncPaths(updates);
+        return true;
+      } catch {
+        tournament[key] = previousB;
+        tournament.activeGroup = previousGroup;
+        this.showMessage({
+          title: i18n.global.t('messages.error'),
+          text: i18n.global.t('teams.removeTournamentBError'),
+          type: 'error',
+        });
+        return false;
+      }
     },
     addTournamentBTeams(newTeams) {
       const tournament = this.tournaments[this.currentTournamentIndex];

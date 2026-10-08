@@ -421,15 +421,9 @@
         <span class="setup-card__hint">{{ $t('modals.technicalScoreHint') }}</span>
       </div>
 
-      <div class="setup-card__field">
+      <div v-if="!isClub" class="setup-card__field">
         <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
-        <input
-          :disabled="isClub"
-          class="setup-card__input"
-          type="number"
-          v-model="tournament.preferences.maxScore"
-          min="1"
-        />
+        <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1" />
         <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
       </div>
 

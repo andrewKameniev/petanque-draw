@@ -23,7 +23,8 @@ registered club. Confirmation fixes rosters for the whole tournament.
 
 Gender is not entered or inferred. The referee checks the women-only and mixed
 positions against the paper forms. Club import configures games to 13 and
-technical results to 21:10. Double elimination, barrage, Tournament B, timers,
+technical results to 21:10. Club setup and preferences omit the maximum-score
+field because the game score is fixed. Double elimination, barrage, Tournament B, timers,
 and end-by-end scoring are not part of this format.
 
 ## Paper forms and stages

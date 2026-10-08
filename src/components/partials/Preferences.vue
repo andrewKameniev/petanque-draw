@@ -123,9 +123,9 @@
             <input class="prefs__input" v-model.number="tournament.preferences.prizePlaces" type="number" min="1" />
             <span class="prefs__hint">{{ $t('modals.prizePlacesHint') }}</span>
           </div>
-          <div v-if="!tournamentStarted" class="prefs__item">
+          <div v-if="!isClub && !tournamentStarted" class="prefs__item">
             <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
-            <input class="prefs__input" v-model="tournament.preferences.maxScore" :disabled="isClub" type="number" />
+            <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number" />
             <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
           </div>
           <div v-if="!tournamentStarted" class="prefs__item">

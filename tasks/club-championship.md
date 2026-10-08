@@ -585,3 +585,12 @@
 - Після виправлення: `rtk npx vitest run tests/club-competition.test.js src/__tests__/club-encounter.mounted.spec.js`
   — 22 тести пройшли; `rtk npm run lint`, `rtk npm run docs:check` та
   `rtk git diff --check` — успішно. Оновлення входить у PR #220.
+
+### Уточнення 2026-10-09: фіксований рахунок без зайвого поля
+
+- На прохання користувача прибрано поле «Максимально можливий рахунок»
+  разом із заголовком і підказкою з початкових налаштувань клубного турніру
+  та вікна налаштувань. Клубні ігри й надалі завершуються на 13.
+- Перевірка: `rtk npx vitest run src/__tests__/club-encounter.mounted.spec.js src/__tests__/group-b-removal.mounted.spec.js src/__tests__/poules-draw-validation.spec.js`
+  — 21 тест пройшов; `rtk npm run lint`, `rtk npm run docs:check` і
+  `rtk git diff --check` — успішно.

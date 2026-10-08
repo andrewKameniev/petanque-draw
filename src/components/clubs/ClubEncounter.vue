@@ -152,8 +152,13 @@
               <div v-for="(position, positionIndex) in lineups[side]" :key="positionIndex" class="club-match__position">
                 <strong>{{ positionLabel(stageIndex, positionIndex) }}</strong>
                 <label v-for="(_, playerIndex) in position" :key="playerIndex"
-                  ><span>{{ $t('club.playerNumber', { number: playerIndex + 1 }) }}</span>
-                  <select v-model="lineups[side][positionIndex][playerIndex]" required class="input">
+                  ><span v-if="position.length > 1">{{ $t('club.playerNumber', { number: playerIndex + 1 }) }}</span>
+                  <select
+                    v-model="lineups[side][positionIndex][playerIndex]"
+                    :aria-label="`${club.title} · ${positionLabel(stageIndex, positionIndex)} · ${$t('club.playerNumber', { number: playerIndex + 1 })}`"
+                    required
+                    class="input"
+                  >
                     <option value="" disabled>{{ $t('club.choose') }}</option>
                     <option
                       v-for="player in club.players"

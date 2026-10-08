@@ -625,3 +625,13 @@
 - `rtk npx vitest run src/__tests__/club-encounter.mounted.spec.js` — 12 тестів
   пройшли; ESLint змінених компонентів/локалей, Prettier,
   `rtk npm run docs:check` і `rtk git diff --check` — успішно.
+
+### Уточнення 2026-10-09: підписи місць у бланку
+
+- У тетах прибрано повторюване «Гравець 1»: номер окремої гри вже є
+  в заголовку позиції. Дуплети зберігають місця 1–2, триплети — 1–3.
+- Кожен список вибору має доступний підпис із клубом, номером гри та місцем
+  гравця; кількість позицій і правила складів залишаються тими самими.
+- `rtk npx vitest run src/__tests__/club-encounter.mounted.spec.js` — 12 тестів
+  пройшли; ESLint компонента, Prettier, `rtk npm run docs:check` і
+  `rtk git diff --check` — успішно.

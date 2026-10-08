@@ -41,6 +41,9 @@ position 1, and so on; there is no internal random draw. Players may change
 between stages and encounters. Future-stage forms unlock only after every game
 of the previous stage is completed. Published positions can be corrected before
 starting the stage, with an audit entry; starting locks its lineups.
+Singles forms identify each game by its position without a redundant player-slot
+label. Doubles and triples retain numbered player slots; every selector has an
+accessible label identifying the club, game position and player slot.
 
 ## Scoring and completion
 

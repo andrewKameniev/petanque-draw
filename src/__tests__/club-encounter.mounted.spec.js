@@ -76,15 +76,19 @@ describe('club forms and persistence', () => {
     expect(wrapper.text()).toContain(kind === CLUB_ABSENCE.REST ? 'Відпочинок' : '21 : 10');
     expect(writes.update).not.toHaveBeenCalled();
   });
-  it('shows all 11 games and both rosters without any gender entry or public editing', async () => {
+  it('shows all 11 games in four focused tabs without public editing', () => {
     editor(true);
     expect(wrapper.findAll('[data-testid="club-game"]')).toHaveLength(11);
     expect(wrapper.text()).toContain('Жіночий тет-а-тет');
     expect(wrapper.text()).toContain('Мікст');
     expect(wrapper.findAll('input, select, .club-encounter__score-form')).toHaveLength(0);
-    expect(wrapper.findAll('[role=tab]')).toHaveLength(5);
-    await wrapper.findAll('[role=tab]')[4].trigger('click');
-    expect(wrapper.text()).toContain('Surname7 Name7');
+    expect(wrapper.findAll('[role=tab]')).toHaveLength(4);
+    expect(wrapper.findAll('[role=tab]').map((tab) => tab.text())).toEqual([
+      'Огляд',
+      'Тет-а-тети',
+      'Дуплети',
+      'Триплети',
+    ]);
     expect(writes.update).not.toHaveBeenCalled();
   });
   it('enters paper positions, starts singles and separates live scores from confirmed points', async () => {

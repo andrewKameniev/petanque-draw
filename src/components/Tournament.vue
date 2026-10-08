@@ -141,6 +141,11 @@
           @startFirstRound="startFirstRound"
           @redraw="redrawRounds"
         />
+        <Bracket
+          v-if="activeTab === 'bracket' && isClub && tournament.playOffBracket?.stages?.length"
+          :bracket="tournament.playOffBracket"
+          :embedded="true"
+        />
         <Results
           v-if="activeTab === 'results'"
           :preview-tournament="activeTournamentGroup === 'B' ? tournament : undefined"
@@ -362,6 +367,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import AddTeam from './partials/AddTeam.vue';
 import Games from './partials/Games.vue';
 import Results from './partials/Results.vue';
@@ -389,7 +395,7 @@ import SetupCard from '@/components/partials/SetupCard';
 import TournamentHeader from '@/components/partials/TournamentHeader';
 import RemoteToolbar from '@/components/partials/RemoteToolbar';
 import { IconSettings, IconArchive } from '@/components/icons';
-import { Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
+import { Undo2, Trash2, Users, Grid3x3, GitFork, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
 import { autoFillScores as autoFillScoresFn } from '@/services/testUtils';
 import StreamPresets from '@/components/partials/StreamPresets.vue';
 import TeamReplacementPanel from '@/components/partials/TeamReplacementPanel.vue';
@@ -425,6 +431,8 @@ import {
   hasTournamentGroup,
 } from '@/services/tournament-record';
 
+const Bracket = defineAsyncComponent(() => import('./partials/Bracket.vue'));
+
 export default {
   name: 'Tournament',
   data() {
@@ -454,6 +462,9 @@ export default {
     };
   },
   watch: {
+    tabs(availableTabs) {
+      if (!availableTabs.some((tab) => tab.id === this.activeTab)) this.activeTab = 'games';
+    },
     'tournament.teams.length'(count) {
       if (this.isClub && !this.tournamentStarted) this.teamsInGroup = Math.max(2, count);
     },
@@ -1283,6 +1294,9 @@ export default {
       const tabs = [
         { id: 'teams', label: this.$t('teams.teams'), icon: Users },
         { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
+        ...(this.isClub && this.tournament.playOffBracket?.stages?.length
+          ? [{ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork }]
+          : []),
         { id: 'results', label: this.$t('teams.results'), icon: List },
         { id: 'ranking', label: this.$t('teams.ranking'), icon: Trophy },
         { id: 'streams', label: this.$t('streams.title'), icon: Radio },
@@ -1362,6 +1376,7 @@ export default {
     },
   },
   components: {
+    Bracket,
     ClubRosterSetup,
     TournamentNav,
     Undo2,

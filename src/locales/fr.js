@@ -12,7 +12,6 @@ export default {
     detected: 'Tournoi interclubs',
 
     overview: 'Aperçu',
-    rostersShort: 'Effectifs',
     sections: 'Sections de la rencontre interclubs',
     openCurrentStage: 'Ouvrir la phase en cours',
     editScore: 'Corriger le score',

@@ -82,9 +82,10 @@ or nine; the selected system's existing limits apply.
 
 ## UI and owners
 
-The encounter uses the shared `TournamentNav` for overview, singles, doubles,
-triples and rosters. Overview displays all 11 games; only a discipline tab has
-lineup and score controls. Game captions show status only; club points are
+The encounter uses the shared `TournamentNav` for overview, singles, doubles
+and triples. Tournament-level Teams shows the complete, fixed club rosters;
+they are not repeated inside each encounter. Overview displays all 11 games;
+only a discipline tab has lineup and score controls. Game captions show status only; club points are
 shown in the stage and encounter totals. Completed scores have an explicit correction action.
 `PublicGameCard` provides match presentation and `PlayerChip` provides player
 photos and names. Rating, sport-title and captain badges appear only in team
@@ -93,6 +94,8 @@ individual game history omit them and captain highlighting. The encounter header
 and each discipline show the portal club logos in opposing positions; absent logos use a neutral shield.
 Public and archive views use the same encounter
 component in read-only mode. Club setup omits the rating-based draw toggle.
+After a club playoff draw, the organizer sees a tournament-level Bracket tab
+beside Games, using the same embedded bracket as public and archive views.
 Club-specific TV presentation is outside scope.
 
 - `src/services/club-encounter.js`: roster/lineup validation, state transitions,

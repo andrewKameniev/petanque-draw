@@ -12,7 +12,6 @@ export default {
     detected: 'Клубний турнір',
 
     overview: 'Огляд',
-    rostersShort: 'Заявки',
     sections: 'Розділи клубної зустрічі',
     openCurrentStage: 'До поточного етапу',
     editScore: 'Виправити рахунок',

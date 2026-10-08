@@ -12,7 +12,6 @@ export default {
     detected: 'Club tournament',
 
     overview: 'Overview',
-    rostersShort: 'Rosters',
     sections: 'Club encounter sections',
     openCurrentStage: 'Open current stage',
     editScore: 'Correct score',

@@ -78,21 +78,6 @@
       :aria-labelledby="`${tabPrefix}-${activeTab}`"
     >
       <p v-if="error" role="alert" class="club-match__error">{{ error }}</p>
-      <div v-if="activeTab === 'teams'" class="club-match__rosters">
-        <section v-for="club in clubs" :key="club.clubId" class="club-match__roster">
-          <h4>
-            {{ club.title }} <small>{{ club.players.length }}</small>
-          </h4>
-          <div class="club-match__roster-players">
-            <PlayerChip
-              v-for="player in club.players"
-              :key="player.id"
-              :player="player"
-              :is-captain="String(player.id) === String(club.captainId)"
-            />
-          </div>
-        </section>
-      </div>
       <section v-for="{ stage, index: stageIndex } in displayedStages" :key="stage.id" class="club-encounter__stage">
         <header class="club-match__stage-heading">
           <button
@@ -365,7 +350,6 @@ import {
   UserRound,
   UsersRound,
   Users,
-  ClipboardList,
   Pencil,
   ChevronRight,
   Trophy,
@@ -438,7 +422,6 @@ export default {
         { id: 'singles', label: this.$t('club.stages.singles'), icon: UserRound },
         { id: 'doubles', label: this.$t('club.stages.doubles'), icon: UsersRound },
         { id: 'triples', label: this.$t('club.stages.triples'), icon: Users },
-        { id: 'teams', label: this.$t('club.rostersShort'), icon: ClipboardList },
       ];
     },
     displayedStages() {
@@ -706,11 +689,6 @@ export default {
   height: 26px;
 }
 
-.club-match__roster-players {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
 @media (max-width: 600px) {
   .club-match__players :deep(.player-chip) {
     flex-wrap: wrap;
@@ -1077,8 +1055,7 @@ export default {
   min-height: 34px;
 }
 
-.club-match__lineups,
-.club-match__rosters {
+.club-match__lineups {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
@@ -1127,39 +1104,6 @@ export default {
 .club-match__position select {
   min-width: 0;
   height: 38px;
-  font-size: 13px;
-}
-
-.club-match__roster {
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-}
-
-.club-match__roster h4 {
-  display: flex;
-  justify-content: space-between;
-  margin: 0 0 0.5rem;
-  font-weight: 700;
-}
-
-.club-match__roster small {
-  color: var(--color-text-muted);
-  font-size: 11px;
-}
-
-.club-match__roster ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.club-match__roster li {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border);
   font-size: 13px;
 }
 
@@ -1253,8 +1197,7 @@ export default {
     padding: 0.75rem;
   }
 
-  .club-match__lineups,
-  .club-match__rosters {
+  .club-match__lineups {
     grid-template-columns: minmax(0, 1fr);
   }
 

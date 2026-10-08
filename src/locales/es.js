@@ -12,7 +12,6 @@ export default {
     detected: 'Torneo de clubes',
 
     overview: 'Resumen',
-    rostersShort: 'Plantillas',
     sections: 'Secciones del encuentro de clubes',
     openCurrentStage: 'Abrir fase actual',
     editScore: 'Corregir marcador',

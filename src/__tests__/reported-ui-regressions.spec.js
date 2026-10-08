@@ -108,6 +108,26 @@ describe('reported UI regressions', () => {
     ]);
   });
 
+  it('shows the club playoff bracket beside games once the draw exists', () => {
+    const context = {
+      tournament: { system: 'playoff', tournamentIsFinished: false, playOffBracket: null },
+      isClub: true,
+      $t: (key) => key,
+    };
+
+    expect(Tournament.computed.tabs.call(context).map((tab) => tab.id)).not.toContain('bracket');
+    context.tournament.playOffBracket = { stages: [{ teams: [] }] };
+    expect(Tournament.computed.tabs.call(context).map((tab) => tab.id)).toEqual([
+      'teams',
+      'games',
+      'bracket',
+      'results',
+      'streams',
+    ]);
+    context.isClub = false;
+    expect(Tournament.computed.tabs.call(context).map((tab) => tab.id)).not.toContain('bracket');
+  });
+
   it('shows only final standings on a finished playoff table', () => {
     const wrapper = mount(Ranking, {
       props: {

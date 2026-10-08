@@ -77,7 +77,8 @@ triples and rosters. Overview displays all 11 games; only a discipline tab has
 lineup and score controls. Completed scores have an explicit correction action.
 `PublicGameCard` provides match presentation and `PlayerChip` provides photos,
 ratings and captain badges. Public and archive views use the same encounter
-component in read-only mode. Club-specific TV presentation is outside scope.
+component in read-only mode. Club setup omits the rating-based draw toggle.
+Club-specific TV presentation is outside scope.
 
 - `src/services/club-encounter.js`: roster/lineup validation, state transitions,
   score derivation, editing eligibility and byes.

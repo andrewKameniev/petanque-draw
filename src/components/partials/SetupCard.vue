@@ -187,7 +187,7 @@
       <span class="setup-card__hint">{{ $t('tir.juniorHint') }}</span>
     </div>
 
-    <div v-if="tournament.system !== 'tir'" class="setup-card__field">
+    <div v-if="!isClub && tournament.system !== 'tir'" class="setup-card__field">
       <label class="setup-card__checkbox">
         <input type="checkbox" v-model="tournament.useRating" />
         {{ $t('teams.useTeamRating') }}

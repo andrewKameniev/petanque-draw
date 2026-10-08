@@ -594,3 +594,11 @@
 - Перевірка: `rtk npx vitest run src/__tests__/club-encounter.mounted.spec.js src/__tests__/group-b-removal.mounted.spec.js src/__tests__/poules-draw-validation.spec.js`
   — 21 тест пройшов; `rtk npm run lint`, `rtk npm run docs:check` і
   `rtk git diff --check` — успішно.
+
+### Уточнення 2026-10-09: перемикач рейтингового жеребкування
+
+- На прохання користувача прибрано «Використовувати рейтинг під час
+  жеребкування» з початкових налаштувань клубного турніру.
+- `rtk npx vitest run src/__tests__/group-b-removal.mounted.spec.js src/__tests__/poules-draw-validation.spec.js src/__tests__/swiss-round-default.spec.js`
+  — 11 тестів пройшли. ESLint для SetupCard, Prettier змінених файлів,
+  `rtk npm run docs:check` і `rtk git diff --check` — успішно.

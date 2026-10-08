@@ -225,7 +225,7 @@
                     v-for="player in playersFor(match.players1, clubs[0])"
                     :key="player.id"
                     :player="player"
-                    :is-captain="String(player.id) === String(clubs[0].captainId)"
+                    :show-badges="false"
                   /><span v-if="!match.players1?.length">{{ $t('club.awaitingLineups') }}</span>
                 </div></template
               >
@@ -262,7 +262,7 @@
                     v-for="player in playersFor(match.players2, clubs[1])"
                     :key="player.id"
                     :player="player"
-                    :is-captain="String(player.id) === String(clubs[1].captainId)"
+                    :show-badges="false"
                   /><span v-if="!match.players2?.length">{{ $t('club.awaitingLineups') }}</span>
                 </div></template
               >

@@ -86,9 +86,11 @@ The encounter uses the shared `TournamentNav` for overview, singles, doubles,
 triples and rosters. Overview displays all 11 games; only a discipline tab has
 lineup and score controls. Game captions show status only; club points are
 shown in the stage and encounter totals. Completed scores have an explicit correction action.
-`PublicGameCard` provides match presentation and `PlayerChip` provides photos,
-ratings and captain badges. The encounter header and each discipline show the
-portal club logos in opposing positions; absent logos use a neutral shield.
+`PublicGameCard` provides match presentation and `PlayerChip` provides player
+photos and names. Rating, sport-title and captain badges appear only in team
+and roster lists, including import review. Match cards, encounter overview and
+individual game history omit them and captain highlighting. The encounter header
+and each discipline show the portal club logos in opposing positions; absent logos use a neutral shield.
 Public and archive views use the same encounter
 component in read-only mode. Club setup omits the rating-based draw toggle.
 Club-specific TV presentation is outside scope.

@@ -29,6 +29,32 @@
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import Modal from '@/components/Modal';
+import { getTournamentMain } from '@/services/tournament-record';
+
+function getYear(value) {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number' || /^\d{10,13}$/.test(String(value))) {
+    const date = new Date(Number(value));
+    return Number.isNaN(date.getTime()) ? null : date.getFullYear();
+  }
+  const match = String(value).match(/(?:^|\D)((?:19|20)\d{2})(?=\D|$)/);
+  return match ? Number(match[1]) : null;
+}
+
+function suggestedArchiveName(tournament) {
+  const name = typeof tournament?.name === 'string' ? tournament.name.trim() : '';
+  if (!name) return name;
+  if (/(?:^|\D)(?:19|20)\d{2}(?=\D|$)/.test(name)) return name;
+
+  const year =
+    getYear(tournament.date) ??
+    getYear(getTournamentMain(tournament)?.games?.[0]?.[0]?.date) ??
+    getYear(tournament.createdAt) ??
+    new Date().getFullYear();
+  const format = name.match(/\([^()]*\)$/u);
+  if (!format) return `${name} ${year}`.trim();
+  return `${name.slice(0, format.index).trimEnd()} ${year} ${format[0]}`.trim();
+}
 
 export default {
   name: 'SaveTournament',
@@ -42,7 +68,7 @@ export default {
     };
   },
   created() {
-    this.name = this.tournament.name;
+    this.name = suggestedArchiveName(this.tournament);
   },
   computed: {
     ...mapState(useMainStore, ['currentTournament']),

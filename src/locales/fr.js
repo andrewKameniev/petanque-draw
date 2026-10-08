@@ -1,4 +1,91 @@
 export default {
+  club: {
+    changeCaptain: 'Changer de capitaine',
+    nextStage: 'Suite : {stage}',
+
+    importClubs: 'Importer les clubs ({count})',
+
+    playerCount: '{count} joueurs',
+
+    rosterLimit: 'Effectif maximum',
+
+    detected: 'Tournoi interclubs',
+
+    overview: 'Aperçu',
+    rostersShort: 'Effectifs',
+    sections: 'Sections de la rencontre interclubs',
+    openCurrentStage: 'Ouvrir la phase en cours',
+    pointsShort: 'Points',
+    editScore: 'Corriger le score',
+    rosterList: 'Clubs inscrits',
+
+    absence: { rest: 'Repos · aucun point', walkover: 'Victoire technique · sans adversaire' },
+    captain: 'Capitaine',
+    captainClubRule: 'Le club du capitaine représente cette liste. Les joueurs peuvent appartenir à d’autres clubs.',
+    removeDraftPlayer: 'Retirer du brouillon',
+
+    rosterRule: 'Jusqu’à {count} joueurs pour le tournoi. Le capitaine en choisit six avant chaque phase.',
+    rosterLocked: 'Liste définitive',
+    playerNumber: 'Joueur {number}',
+    choose: 'Choisir',
+    submitWarning: 'L’importation fixe les effectifs pour tout le tournoi. Vérifiez les joueurs et les capitaines.',
+    clubPoints: 'Points de club',
+    gameScore: 'Score de la partie',
+    winner: 'Vainqueur : {club}',
+    continue: 'Continuer les parties',
+    phase: {
+      qualification: 'Les 11 parties obligatoires',
+      playoff: 'Phase finale · victoire à 16 points ou plus',
+    },
+    status: {
+      planned: 'Prévue',
+      in_progress: 'En cours',
+      completed: 'Terminée',
+      not_played: 'Non jouée',
+    },
+    stages: {
+      singles: 'Tête-à-tête',
+      doubles: 'Doublettes',
+      triples: 'Triplettes',
+    },
+    stagePoints: '{count} parties · {points} points de club par victoire',
+    editLineups: 'Corriger les compositions',
+    enterLineups: 'Saisir les compositions des capitaines',
+    startStage: 'Commencer la phase',
+    awaitingLineups: 'En attente des compositions',
+    awaitingPrevious: 'Terminez toutes les parties de la phase précédente',
+    awaitingClubs: 'En attente des listes des deux clubs',
+    lineupHint:
+      'Recopiez les positions des fiches papier. Les mêmes numéros se rencontrent. L’arbitre vérifie les positions féminines et mixtes.',
+    publish: 'Confirmer les compositions et publier les rencontres',
+    cancel: 'Annuler',
+    femaleSingle: 'Tête-à-tête féminin',
+    mixed: 'Mixte',
+    scoreFor: 'Score : {club}',
+    saveLive: 'Enregistrer le score en cours',
+    correctResult: 'Enregistrer la correction',
+    confirmResult: 'Confirmer le résultat',
+    audit: 'Historique des modifications',
+    actions: {
+      lineups: 'Compositions saisies / corrigées',
+      start: 'Phase commencée',
+      score: 'Score enregistré / corrigé',
+      continue: 'Parties reprises',
+    },
+    errors: {
+      rosterSize: 'Un effectif doit compter au moins 6 joueurs, dans la limite choisie de 8 ou 9.',
+      player: 'Vérifiez les identifiants et les noms. Seuls les joueurs inscrits sont autorisés.',
+      duplicate: 'Un joueur figure dans une autre liste ou dans plusieurs parties de cette phase.',
+      club: 'Vérifiez le nom et l’identifiant du club du capitaine. Le club est peut-être déjà inscrit.',
+      lineup: 'Complétez chaque position avec le nombre requis de joueurs.',
+      locked:
+        'Action indisponible. Les listes sont définitives et les compositions sont bloquées au départ ; restaurez le tour avant de corriger un tableau avancé.',
+      previous: 'Terminez la phase précédente.',
+      score: 'Scores entiers de 0 à 13. Pour confirmer : 13 au vainqueur, 0 à 12 à l’adversaire.',
+      missing: 'Rencontre ou participants introuvables.',
+      access: 'Seuls l’organisateur ou l’arbitre principal avec accès administrateur peuvent saisir les données.',
+    },
+  },
   doubleElimination: {
     bracketTab: 'Tableau',
     title: 'Double élimination',

@@ -19,6 +19,7 @@ Scoped agent instructions: [AGENTS.md](./AGENTS.md).
 
 ## Active tasks
 
+- [Клубна зустріч: правила, реалізація та прогрес](./club-championship.md) — реалізовано; фінальна перевірка та PR.
 - [Reduce duplicate public live-data traffic](./public-live-network-bootstrap.md)
 - [Decouple public routes from authenticated bootstrap](./public-auth-bootstrap.md)
 - [Remove read-only public side effects](./public-readonly-side-effects.md)

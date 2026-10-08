@@ -25,7 +25,7 @@
             </div>
           </div>
 
-          <div class="prefs__section">
+          <div v-if="!isClub" class="prefs__section">
             <label class="prefs__section-header">
               <Timer :size="18" />
               <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
@@ -75,7 +75,7 @@
             </div>
           </div>
 
-          <div class="prefs__section">
+          <div v-if="!isClub" class="prefs__section">
             <div class="prefs__section-header prefs__section-header--static">
               <ListOrdered :size="18" />
               <span>{{ $t('modals.perRoundScoringGeneric') }}</span>
@@ -125,7 +125,7 @@
           </div>
           <div v-if="!tournamentStarted" class="prefs__item">
             <label class="prefs__label">{{ $t('modals.maxScore') }}</label>
-            <input class="prefs__input" v-model="tournament.preferences.maxScore" type="number" />
+            <input class="prefs__input" v-model="tournament.preferences.maxScore" :disabled="isClub" type="number" />
             <span class="prefs__hint">{{ $t('modals.maxScoreHint') }}</span>
           </div>
           <div v-if="!tournamentStarted" class="prefs__item">
@@ -133,11 +133,21 @@
             <div class="prefs__inputs prefs__inputs--double">
               <div class="prefs__input-group">
                 <span class="prefs__input-label">{{ $t('modals.technicalScoreWinner') }}</span>
-                <input class="prefs__input" v-model="tournament.preferences.technical.technicalFirst" type="number" />
+                <input
+                  class="prefs__input"
+                  v-model="tournament.preferences.technical.technicalFirst"
+                  :disabled="isClub"
+                  type="number"
+                />
               </div>
               <div class="prefs__input-group">
                 <span class="prefs__input-label">{{ $t('modals.technicalScoreLoser') }}</span>
-                <input class="prefs__input" v-model="tournament.preferences.technical.technicalSecond" type="number" />
+                <input
+                  class="prefs__input"
+                  v-model="tournament.preferences.technical.technicalSecond"
+                  :disabled="isClub"
+                  type="number"
+                />
               </div>
             </div>
             <span class="prefs__hint">{{ $t('modals.technicalScoreHint') }}</span>
@@ -247,6 +257,7 @@
 <script>
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
+import { isClubCompetition } from '@/services/club-encounter';
 import Modal from '@/components/Modal';
 import { hasTournamentGroup } from '@/services/tournament-record';
 import { Trash2, Timer, Trophy, ListOrdered, Palette, LayoutGrid } from 'lucide-vue-next';
@@ -269,6 +280,9 @@ export default {
     },
     tournament() {
       return this.activeTournament || this.currentTournament;
+    },
+    isClub() {
+      return isClubCompetition(this.tournament);
     },
     tournamentStarted() {
       const t = this.tournament;

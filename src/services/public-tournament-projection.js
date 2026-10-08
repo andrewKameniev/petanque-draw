@@ -23,6 +23,7 @@ export const PUBLIC_TOURNAMENT_METADATA_FIELDS = Object.freeze(['name', 'date', 
 
 export const PUBLIC_TOURNAMENT_PREFERENCE_FIELDS = Object.freeze([
   'maxScore',
+  'clubRosterSize',
   'fieldsStart',
   'playOffEnabled',
   'playOffTeams',
@@ -73,6 +74,7 @@ export const PUBLIC_TOURNAMENT_COMPETITION_FIELDS = Object.freeze([
 ]);
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
+  'audit',
   'auth',
   'backup',
   'backups',

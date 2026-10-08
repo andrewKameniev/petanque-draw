@@ -1,5 +1,8 @@
 # Groups
 
+For club rosters, apply the [club encounter rules](./clubs.md) to each match,
+including its completion threshold and system-specific bye result.
+
 Teams split into groups. Within each group, teams play either full round-robin or Swiss system rounds.
 
 ## Group Format

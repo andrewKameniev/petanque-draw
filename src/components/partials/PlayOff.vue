@@ -448,6 +448,17 @@ export default {
     saveResults() {
       this.scoreError = false;
       const realGames = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.filter((game) => !game.isBye);
+      if (this.tournament.preferences.clubRosterSize) {
+        const third = this.playOffBracket.thirdPlace;
+        const matches =
+          this.playOffBracket.stages[this.currentPlayOffBracketIndex].teamsCount === 2 && third?.team_1 && third?.team_2
+            ? [...realGames, third]
+            : realGames;
+        if (matches.some((game) => !game.clubEncounter || isScoreError(game, this.tournament.preferences.maxScore))) {
+          this.scoreError = true;
+          return false;
+        }
+      }
       const unfinished = realGames.filter((game) => game.status !== 'finished');
       if (unfinished.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
         this.scoreError = true;

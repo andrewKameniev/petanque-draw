@@ -13,7 +13,7 @@
       <Game
         v-for="entry in stage.matches"
         :key="entry.game.id || `${stage.id}-${entry.gameIndex}`"
-        v-show="!entry.game.isBye"
+        v-show="!entry.game.isBye || entry.game.clubAbsence"
         :active-tournament="tournament"
         :game="entry.game"
         :game-index="entry.gameIndex"

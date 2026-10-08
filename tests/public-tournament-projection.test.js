@@ -39,6 +39,7 @@ function competition(overrides = {}) {
     tirTiebreakerActive: true,
     tirTiebreakerParticipantIds: [7],
     preferences: {
+      clubRosterSize: 9,
       maxScore: 13,
       fieldsStart: 3,
       playOffEnabled: true,

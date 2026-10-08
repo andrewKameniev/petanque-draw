@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <template>
-  <div v-if="tournament.teams?.length > 2" class="setup-card setup-card--system">
+  <div v-if="tournament.teams?.length > (isClub ? 1 : 2)" class="setup-card setup-card--system">
     <h3 class="setup-card__title">{{ $t('setup.readyToStart') }}</h3>
     <p class="setup-card__summary">
       {{ tournament.teams.length }}
@@ -42,7 +42,7 @@
           />
           {{ $t('teams.playoff') }}
         </label>
-        <label class="setup-card__radio" v-if="poulesTeamCountIsValid">
+        <label class="setup-card__radio" v-if="!isClub && poulesTeamCountIsValid">
           <input
             type="radio"
             name="system"
@@ -52,7 +52,7 @@
           />
           {{ $t('teams.poules') }}
         </label>
-        <label class="setup-card__radio">
+        <label v-if="!isClub" class="setup-card__radio">
           <input
             type="radio"
             name="system"
@@ -62,7 +62,7 @@
           />
           {{ $t('teams.supermele') }}
         </label>
-        <label class="setup-card__radio">
+        <label v-if="!isClub" class="setup-card__radio">
           <input type="radio" name="system" value="tir" v-model="tournament.system" data-testid="radio-system-tir" />
           {{ $t('teams.tir') }}
         </label>
@@ -139,9 +139,15 @@
         data-testid="select-playoff-format"
       >
         <option value="single">{{ $t('doubleElimination.singleElimination') }}</option>
-        <option value="double">{{ $t('doubleElimination.title') }}</option>
+        <option v-if="!isClub" value="double">{{ $t('doubleElimination.title') }}</option>
       </select>
-      <span class="setup-card__hint">{{ $t('doubleElimination.formatHint') }}</span>
+      <span class="setup-card__hint">{{
+        $t(
+          tournament.preferences.playOffFormat === 'double'
+            ? 'doubleElimination.formatHint'
+            : 'doubleElimination.singleEliminationRule',
+        )
+      }}</span>
       <template v-if="tournament.preferences.playOffFormat === 'double'">
         <span class="setup-card__hint">{{
           $t('doubleElimination.playerCountHint', { count: tournament.teams.length })
@@ -228,7 +234,7 @@
             data-testid="select-playoff-format"
           >
             <option value="single">{{ $t('doubleElimination.singleElimination') }}</option>
-            <option value="double">{{ $t('doubleElimination.title') }}</option>
+            <option v-if="!isClub" value="double">{{ $t('doubleElimination.title') }}</option>
           </select>
           <template v-if="tournament.preferences.playOffFormat === 'double'">
             <span class="setup-card__hint">{{
@@ -241,11 +247,14 @@
           {{ $t('ranking.withCadrage') }}
         </label>
         <span class="setup-card__hint setup-card__hint--sub">{{ $t('ranking.cadrageHint') }}</span>
-        <label v-if="tournament.system === 'swiss'" class="setup-card__checkbox setup-card__checkbox--sub mt-2">
+        <label
+          v-if="!isClub && tournament.system === 'swiss'"
+          class="setup-card__checkbox setup-card__checkbox--sub mt-2"
+        >
           <input type="checkbox" v-model="localWithBarrage" data-testid="checkbox-barrage" />
           {{ $t('ranking.withBarrage') }}
         </label>
-        <span v-if="tournament.system === 'swiss'" class="setup-card__hint setup-card__hint--sub">{{
+        <span v-if="!isClub && tournament.system === 'swiss'" class="setup-card__hint setup-card__hint--sub">{{
           $t('ranking.barrageHint')
         }}</span>
         <div v-if="localWithBarrage && tournament.system === 'swiss'" class="setup-card__sub">
@@ -268,6 +277,7 @@
     <div
       v-if="
         (tournament.system === 'swiss' || tournament.system === 'groups') &&
+        !isClub &&
         !tournament.isTournamentB &&
         tournament.system !== 'playoff'
       "
@@ -289,7 +299,7 @@
       </span>
     </div>
 
-    <div v-if="tournament.system !== 'tir'" class="setup-card__timer-section">
+    <div v-if="!isClub && tournament.system !== 'tir'" class="setup-card__timer-section">
       <label class="setup-card__timer-header">
         <Timer :size="18" />
         <input type="checkbox" v-model="tournament.preferences.timeLimitEnabled" />
@@ -358,7 +368,7 @@
         <span class="setup-card__hint">{{ $t('modals.prizePlacesHint') }}</span>
       </div>
 
-      <div class="setup-card__timer-section">
+      <div v-if="!isClub" class="setup-card__timer-section">
         <div class="setup-card__timer-header setup-card__timer-header--static">
           <ListOrdered :size="18" />
           <span>{{ $t('modals.perRoundScoringGeneric') }}</span>
@@ -393,6 +403,7 @@
               class="setup-card__input"
               type="number"
               v-model="tournament.preferences.technical.technicalFirst"
+              :disabled="isClub"
               min="0"
             />
           </div>
@@ -402,6 +413,7 @@
               class="setup-card__input"
               type="number"
               v-model="tournament.preferences.technical.technicalSecond"
+              :disabled="isClub"
               min="0"
             />
           </div>
@@ -411,7 +423,13 @@
 
       <div class="setup-card__field">
         <label class="setup-card__label">{{ $t('modals.maxScore') }}</label>
-        <input class="setup-card__input" type="number" v-model="tournament.preferences.maxScore" min="1" />
+        <input
+          :disabled="isClub"
+          class="setup-card__input"
+          type="number"
+          v-model="tournament.preferences.maxScore"
+          min="1"
+        />
         <span class="setup-card__hint">{{ $t('modals.maxScoreHint') }}</span>
       </div>
 
@@ -504,6 +522,7 @@
 </template>
 
 <script>
+import { isClubCompetition } from '@/services/club-encounter';
 import GroupDrawMethod from '@/components/partials/GroupDrawMethod';
 import { isValidPoulesTeamCount } from '@/services/draw';
 import { Play, Trash2, ChevronDown, Timer, ListOrdered, Trophy, Info, LayoutGrid } from 'lucide-vue-next';
@@ -570,6 +589,9 @@ export default {
     },
   },
   computed: {
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
     localTeamsInGroup: {
       get() {
         return this.teamsInGroup;

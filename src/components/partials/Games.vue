@@ -600,9 +600,21 @@ export default {
       this.finishRound();
     },
     finishRound() {
+      if (
+        this.tournament.preferences.clubRosterSize &&
+        this.currentRoundGames.some(
+          (game) =>
+            game.team_2 !== 'Technical' &&
+            (!game.clubEncounter || gameHasError(game, this.tournament.preferences.maxScore)),
+        )
+      ) {
+        this.showMessage({ title: this.$t('messages.error'), text: this.$t('games.finishAllGames'), type: 'error' });
+        return;
+      }
       this.scoreError = false;
       this.tournament.tournamentIsStarted = true;
       this.tournament.games[this.activeRound - 1].forEach((game) => {
+        if (game.clubAbsence) return;
         game.team_1_score = Number(game.team_1_score);
         game.team_2_score = Number(game.team_2_score);
         game.status = 'finished';
@@ -802,13 +814,14 @@ export default {
         const finalIndex = restoredBracket.stages.findIndex((s) => s.stageLabel === 1);
         if (finalIndex !== -1) {
           restoredBracket.stages[finalIndex].teams.forEach((game) => {
+            if (game.clubEncounter || game.clubAbsence) return;
             game.team_1_score = null;
             game.team_2_score = null;
             game.status = 'not_started';
             delete game.winner;
           });
         }
-        if (restoredBracket.thirdPlace) {
+        if (restoredBracket.thirdPlace && !restoredBracket.thirdPlace.clubEncounter) {
           restoredBracket.thirdPlace.team_1_score = null;
           restoredBracket.thirdPlace.team_2_score = null;
           restoredBracket.thirdPlace.status = 'not_started';
@@ -830,6 +843,9 @@ export default {
             game.team_2_score = null;
             game.status = 'not_started';
             delete game.winner;
+            delete game.loser;
+            delete game.clubEncounter;
+            delete game.clubAbsence;
           });
         }
         if (currentStage === 1 && restoredBracket.thirdPlace) {

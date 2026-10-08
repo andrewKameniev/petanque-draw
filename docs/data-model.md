@@ -219,6 +219,37 @@ snapshot.
 }
 ```
 
+## Club Competition Data
+
+`preferences.clubRosterSize` (8 or 9) enables the club overlay and sets the
+**maximum**, not exact, roster size. Missing/null keeps ordinary matches.
+The [club rules](./systems/clubs.md) own roster limits and game policy.
+
+Club teams add `clubId` and `captainId` to the existing team shape. `players`
+contain unique string IDs, name, surname, profile `club_id` and club label, plus
+portal media/rating fields such as `avatar_url`, `club_logo_url`, `rating_place`
+and `sport_title`. `portalTeamId` retains the imported entry ID. `title` is the
+captain's represented club; another player's profile club may differ.
+
+An ordinary round/bracket game stores `clubEncounter` with:
+
+- `phase`: `qualification` or `playoff`; `continuePlaying`: early-stop override;
+- `clubIds`, `points`, `winnerClubId`, and `status`;
+- `stages`: singles/doubles/triples, with `published`, `started`, and `games`;
+- each internal game: numbered `position`, `players1`/`players2` ID arrays,
+  `score1`/`score2`, derived `points1`/`points2`, `winnerClubId` and `status`;
+- internal statuses: `planned`, `in_progress`, `completed`, `not_played`;
+  `resumeStatus` retains the state before automatic playoff stopping;
+- `audit`: actor/time and before/after snapshots for lineup or score changes.
+
+Outer scores remain null until the encounter officially completes. Its outer
+`status`, `winner`, `loser` and scores then feed existing rankings and brackets.
+`clubAbsence: rest | walkover` replaces `clubEncounter` for byes: a rest has no
+score or winner; a walkover has 21:10 and the present club as winner. Firebase
+may omit null-valued fields; validators treat those as absent/null equivalents.
+The public projection preserves the encounter, roster media and roster limit,
+and removes `audit` recursively.
+
 ## Game Object (Swiss/Groups)
 
 ```javascript

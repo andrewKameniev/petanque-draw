@@ -25,6 +25,8 @@ belong in services and their tests; these documents describe observable policy.
 
 ## Shared policy
 
+- [Club encounters](./clubs.md): portal import, fixed rosters and staged club scoring.
+
 - [Tournament lifecycle](../tournament-lifecycle.md)
 - [Ranking and algorithms](../ranking-algorithms.md)
 - [Sorting policy](./sorting.md)

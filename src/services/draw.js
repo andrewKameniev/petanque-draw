@@ -1,5 +1,6 @@
 import { sortTeams, shuffleArray, toScore } from '@/helpers';
 import { getAvailableLaneNumbers } from '@/services/lanes';
+import { isClubCompetition, clubAbsenceGame, CLUB_ABSENCE } from '@/services/club-encounter';
 
 export function getRandomWithOneExclusion(lengthOfArray, indexToExclude1 = null, indexToExclude2 = null) {
   const exclusions = [indexToExclude1, indexToExclude2].filter((v) => v !== null);
@@ -105,14 +106,15 @@ export function drawSwissRound(tournament, rankingTeams, activeRound) {
       technicalTeamIndex = fewestTechnicals.index;
       technicalTeam = teamsToDraw[technicalTeamIndex];
     }
-    round.push({
+    const technicalGame = {
       team_1: technicalTeam.title,
       team_1_score: tournament.preferences.technical.technicalFirst,
       team_2: 'Technical',
       team_2_score: tournament.preferences.technical.technicalSecond,
       status: 'finished',
       winner: technicalTeam.title,
-    });
+    };
+    round.push(isClubCompetition(tournament) ? clubAbsenceGame(technicalGame) : technicalGame);
     teamsToDraw.splice(technicalTeamIndex, 1);
   }
 
@@ -837,6 +839,9 @@ export function drawGroupsRound(tournament) {
           team_2_score: null,
           status: 'not_started',
         });
+      } else if (isClubCompetition(tournament)) {
+        const resting = group[scheme.top[i]] || group[scheme.bottom[i]];
+        round.push(clubAbsenceGame({ group: index, team_1: resting.title, team_2: 'Technical' }, CLUB_ABSENCE.REST));
       }
     }
     rotateRoundRobinScheme(scheme);
@@ -1157,6 +1162,12 @@ export function saveResultsForRound(tournament, round) {
     });
   } else {
     tournament.games[round].forEach((game) => {
+      if (game.clubAbsence === CLUB_ABSENCE.REST) return;
+      if (
+        isClubCompetition(tournament) &&
+        (game.status !== 'finished' || game.team_1_score == null || game.team_2_score == null)
+      )
+        return;
       const s1 = toScore(game.team_1_score);
       const s2 = toScore(game.team_2_score);
       const firstTeam = teamMap.get(game.team_1);

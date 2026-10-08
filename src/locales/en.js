@@ -1,4 +1,91 @@
 export default {
+  club: {
+    changeCaptain: 'Change captain',
+    nextStage: 'Next: {stage}',
+
+    importClubs: 'Import clubs ({count})',
+
+    playerCount: '{count} players',
+
+    rosterLimit: 'Maximum roster size',
+
+    detected: 'Club tournament',
+
+    overview: 'Overview',
+    rostersShort: 'Rosters',
+    sections: 'Club encounter sections',
+    openCurrentStage: 'Open current stage',
+    pointsShort: 'Points',
+    editScore: 'Correct score',
+    rosterList: 'Registered clubs',
+
+    absence: { rest: 'Rest round · no points', walkover: 'Walkover · no opponent' },
+    captain: 'Captain',
+    captainClubRule: 'The captain’s club represents this roster. Players may come from other profile clubs.',
+    removeDraftPlayer: 'Remove from draft',
+
+    rosterRule: 'Up to {count} players for the tournament. The captain selects six before each stage.',
+    rosterLocked: 'Roster locked',
+    playerNumber: 'Player {number}',
+    choose: 'Select',
+    submitWarning: 'Import fixes the rosters for the entire tournament. Check the players and captains.',
+    clubPoints: 'Club points',
+    gameScore: 'Game score',
+    winner: 'Winner: {club}',
+    continue: 'Continue games',
+    phase: {
+      qualification: 'All 11 games',
+      playoff: 'Playoff · win at 16+ points',
+    },
+    status: {
+      planned: 'Planned',
+      in_progress: 'In progress',
+      completed: 'Completed',
+      not_played: 'Not played',
+    },
+    stages: {
+      singles: 'Singles',
+      doubles: 'Doubles',
+      triples: 'Triples',
+    },
+    stagePoints: '{count} games · {points} club points per win',
+    editLineups: 'Correct lineups',
+    enterLineups: 'Enter captain lineups',
+    startStage: 'Start stage',
+    awaitingLineups: 'Awaiting captain lineups',
+    awaitingPrevious: 'Finish all games in the previous stage first',
+    awaitingClubs: 'Awaiting both club rosters',
+    lineupHint:
+      'Copy the paper form positions. Matching numbers play each other. The referee checks the women’s and mixed positions.',
+    publish: 'Confirm lineups and publish pairings',
+    cancel: 'Cancel',
+    femaleSingle: "Women's single",
+    mixed: 'Mixed',
+    scoreFor: 'Score: {club}',
+    saveLive: 'Save live score',
+    correctResult: 'Save correction',
+    confirmResult: 'Confirm result',
+    audit: 'Change history',
+    actions: {
+      lineups: 'Lineups entered / corrected',
+      start: 'Stage started',
+      score: 'Score saved / corrected',
+      continue: 'Games resumed',
+    },
+    errors: {
+      rosterSize: 'A roster needs at least 6 players and no more than the selected maximum of 8 or 9.',
+      player: 'Check player IDs and names. Only registered players may be selected.',
+      duplicate: 'A player appears in another roster or more than one game in this stage.',
+      club: 'Check the captain’s club ID and name. The club may already be registered.',
+      lineup: 'Fill every position with the required number of players.',
+      locked:
+        'This action is unavailable. Rosters are fixed and lineups lock at stage start; restore the round before correcting an advanced bracket.',
+      previous: 'Complete the previous stage first.',
+      score: 'Scores must be whole numbers from 0 to 13. To confirm: the winner has 13 and the opponent 0–12.',
+      missing: 'Match or participants not found.',
+      access: 'Only the organizer or chief referee with admin access can enter data.',
+    },
+  },
   doubleElimination: {
     title: 'Double elimination',
     bracketTab: 'Bracket',

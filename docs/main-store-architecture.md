@@ -22,14 +22,15 @@ instead of copying it into documentation.
 
 ## Responsibility owners
 
-| Owner                                   | Responsibility                                                                            |
-| --------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `src/services/tournament-record.js`     | Creation, format detection, normalization, metadata, Group A/B selection, storage targets |
-| `src/services/round-timer.js`           | Pure timer transitions and final-round policy                                             |
-| `src/services/tournament-sync.js`       | Granular writes, debounce, subscriptions, merge policy, echo suppression, cleanup         |
-| `src/services/archive-collaboration.js` | Tournament loading, user maps, archives, collaborators, access watching, rollback         |
-| `src/services/team-replacement.js`      | Validated team replacement across competition structures                                  |
-| `src/stores/main.js`                    | Reactive identity/state assignment, editing orchestration, notifications, delegation      |
+| Owner                                                                | Responsibility                                                                            |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `src/services/tournament-record.js`                                  | Creation, format detection, normalization, metadata, Group A/B selection, storage targets |
+| `src/services/round-timer.js`                                        | Pure timer transitions and final-round policy                                             |
+| `src/services/tournament-sync.js`                                    | Granular writes, debounce, subscriptions, merge policy, echo suppression, cleanup         |
+| `src/services/archive-collaboration.js`                              | Tournament loading, user maps, archives, collaborators, access watching, rollback         |
+| `src/services/team-replacement.js`                                   | Validated team replacement across competition structures                                  |
+| `src/services/club-encounter.js`, `src/services/club-competition.js` | Club rules, import/configuration/match write plans and historical totals                  |
+| `src/stores/main.js`                                                 | Reactive identity/state assignment, editing orchestration, notifications, delegation      |
 
 Runtime services are created per store instance. Mutable timers, listeners, and
 echo state must not become module-global singletons.
@@ -51,6 +52,15 @@ echo state must not become module-global singletons.
   required remote writes and attempt bounded rollback on partial failure.
 - Record normalization stays pure; the store owns the explicit assignment into
   Pinia reactivity.
+
+## Club change transaction
+
+`changeClubCompetition` is owner/admin-only. A pure plan computes field
+replacements and granular paths. The store applies them reactively, delegates
+one multi-path write to the existing sync runtime, and rolls back its unchanged
+applied references on failure. `_clubSavePending` prevents overlapping club
+commands. Legacy team/score mutations cannot bypass fixed club rosters or
+internal score derivation. See [club encounters](./systems/clubs.md).
 
 ## Change workflow
 

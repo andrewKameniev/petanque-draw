@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!tournament.teams || !tournament.teams.length" class="teams-empty">
+  <ClubRosterSetup v-if="isClub" :tournament="tournament" />
+  <div v-else-if="!tournament.teams || !tournament.teams.length" class="teams-empty">
     <Users :size="40" class="teams-empty__icon" />
     <p class="teams-empty__text">{{ $t('common.noTeams') }}</p>
   </div>
@@ -330,13 +331,15 @@ import { tournamentNames, sortTeams, rankGroupByRegulations } from '@/helpers';
 import { rankRoundRobinGroups, rankByWinsAndDiff, computeGroupStats } from '@/services/group-ranking';
 import { getTeamPlayoffPlaces, getBracketPlayoffPlaces } from '@/services/tir';
 import { Users, X, Star, ChevronDown } from 'lucide-vue-next';
+import ClubRosterSetup from '@/components/clubs/ClubRosterSetup.vue';
+import { isClubCompetition } from '@/services/club-encounter';
 import PlayerChip from '@/components/partials/PlayerChip.vue';
 
 const ParticipantGames = defineAsyncComponent(() => import('@/components/partials/ParticipantGames.vue'));
 
 export default {
   name: 'TeamsList',
-  components: { Users, X, Star, ChevronDown, PlayerChip, ParticipantGames },
+  components: { ClubRosterSetup, Users, X, Star, ChevronDown, PlayerChip, ParticipantGames },
   props: ['previewTournament', 'activeRound', 'highlightedTeam', 'teamClubMap'],
   data() {
     return {
@@ -345,6 +348,9 @@ export default {
     };
   },
   computed: {
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
       return this.previewTournament || this.activeTournament || this.currentTournament;

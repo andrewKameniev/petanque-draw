@@ -1,5 +1,8 @@
 # Playoff
 
+For club rosters, apply the [club encounter rules](./clubs.md) to each match,
+including its completion threshold and system-specific bye result.
+
 The organizer can choose single or double elimination when enabling playoff.
 
 ## Single Elimination

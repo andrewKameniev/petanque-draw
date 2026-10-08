@@ -1,3 +1,4 @@
+import { clubGameHasError, clubAbsenceHasError } from '@/services/club-encounter';
 import { rankPoulesGroups, rankBarrageGroups, rankRoundRobinGroups, rankSwissGroups } from '@/services/group-ranking';
 import { getDoubleEliminationPlacements } from '@/services/playoff';
 
@@ -553,6 +554,8 @@ function getTeamsRanking(tournament, activeRound) {
   return sortSwissWithLiveStats(tournament);
 }
 function gameHasError(game, maxScore) {
+  if (game.clubAbsence) return clubAbsenceHasError(game);
+  if (game.clubEncounter) return clubGameHasError(game);
   const s1 = toScore(game.team_1_score);
   const s2 = toScore(game.team_2_score);
   return (s1 !== 0 && s2 !== 0 && s1 === s2) || s1 < 0 || s1 > maxScore || s2 < 0 || s2 > maxScore;
@@ -562,6 +565,8 @@ function copyContent(data) {
 }
 
 function isScoreError(game, maxScore) {
+  if (game.clubAbsence) return clubAbsenceHasError(game);
+  if (game.clubEncounter) return clubGameHasError(game);
   const s1 = toScore(game.team_1_score);
   const s2 = toScore(game.team_2_score);
   return (

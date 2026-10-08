@@ -3,21 +3,24 @@
     <div class="add-team-card__row" v-if="!importHidden">
       <input
         v-model="tournamentId"
-        @keydown.enter="importList"
         class="add-team-card__input"
         type="number"
+        min="1"
         data-testid="input-portal-id"
+        :aria-label="$t('teams.tournamentId')"
         :placeholder="$t('teams.tournamentId')"
         :disabled="importing"
+        @keydown.enter.prevent="importList"
       />
       <button
+        type="button"
         class="add-team-card__btn add-team-card__btn--import"
         data-testid="btn-import-portal"
+        :disabled="importing || !tournamentId"
         @click="importList"
-        :disabled="importing"
       >
-        <span v-if="importing" class="add-team-card__spinner"></span>
-        {{ importing ? $t('teams.importing') : $t('teams.importPortal') }}
+        <Download :size="16" aria-hidden="true" />
+        {{ $t(importing ? 'teams.importing' : 'teams.importPortal') }}
       </button>
       <button
         v-if="tournament.teams && tournament.teams.length"
@@ -62,13 +65,15 @@
 </template>
 
 <script>
+import { fetchPortalTournament } from '@/services/portal';
+import { isPortalClubTournament } from '@/services/club-competition';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import { Trash2 } from 'lucide-vue-next';
+import { Download, Trash2 } from 'lucide-vue-next';
 
 export default {
   name: 'AddTeam',
-  components: { Trash2 },
+  components: { Download, Trash2 },
   props: ['importHidden', 'showRestore'],
   data() {
     return {
@@ -78,7 +83,7 @@ export default {
       importing: false,
     };
   },
-  emits: ['add-team', 'change-draw-style', 'restore'],
+  emits: ['add-team', 'change-draw-style', 'restore', 'club-import'],
   computed: {
     ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
     tournament() {
@@ -142,29 +147,21 @@ export default {
       }
     },
     async importList() {
-      if (!this.tournamentId) return;
+      if (!this.tournamentId || this.importing) return;
+      const portalId = String(this.tournamentId).trim();
       this.importing = true;
       try {
-        let response = await fetch(
-          `https://portal.petanque.org.ua/tournament/team_export/${this.tournamentId}?format=json`,
-        );
-
-        if (response.ok) {
-          let importedList = await response.json();
-
-          importedList.teams.forEach((team) => {
-            this.addTeam(team.name, +team.power, team.players, team.id, team.club, team.coach);
-          });
-          this.setTournamentInfoFromPortal(importedList.tournament);
-          this.setTournamentIdFromPortal(this.tournamentId);
-          this.syncTeams();
-        } else {
-          this.showMessage({
-            title: this.$t('messages.error'),
-            text: this.$t('messages.tournamentNotFound'),
-            type: 'error',
-          });
+        const importedList = await fetchPortalTournament(portalId);
+        if (isPortalClubTournament(importedList)) {
+          this.$emit('club-import', { ...importedList, portalId });
+          return;
         }
+        importedList.teams.forEach((team) => {
+          this.addTeam(team.name, +team.power, team.players, team.id, team.club, team.coach);
+        });
+        this.setTournamentInfoFromPortal(importedList.tournament);
+        this.setTournamentIdFromPortal(portalId);
+        this.syncTeams();
       } catch {
         this.showMessage({
           title: this.$t('messages.error'),
@@ -243,16 +240,6 @@ export default {
   border-color: var(--color-add-team-btn-hover);
 }
 
-.add-team-card__btn--import {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.add-team-card__btn--import:hover:not(:disabled) {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary-light);
-}
-
 .add-team-card__btn--clear {
   display: inline-flex;
   align-items: center;
@@ -260,6 +247,17 @@ export default {
   background: transparent;
   border-color: var(--color-border);
   color: var(--color-text-secondary);
+}
+
+.add-team-card__btn--import {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.add-team-card__btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .add-team-card__btn--clear:hover {
@@ -271,24 +269,6 @@ export default {
 .add-team-card__btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.add-team-card__spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgb(255 255 255 / 30%);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-  margin-right: 0.25rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .add-team-card__footer {
@@ -340,6 +320,13 @@ export default {
 
   .add-team-card__input--rating {
     flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-team-card__btn--import {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

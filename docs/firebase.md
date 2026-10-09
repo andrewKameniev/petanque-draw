@@ -69,6 +69,10 @@ complete `publicTournaments/{uid}/{id}` node. A valid revision supplies the
 normalized Public/TV record without canonical reads or phase/tab/group child
 listeners. Missing, partial, malformed, unsupported-version, and projection
 permission/error states detach that listener and enter canonical compatibility.
+A club projection containing match details but missing its roster setting or a
+participating club is also partial: Public and TV read the authoritative record
+so individual games, players, and club points remain visible after a deferred
+projection write.
 A stale revision preserves the last valid projected record instead of replacing
 it.
 

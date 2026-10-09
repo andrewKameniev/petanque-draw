@@ -1,4 +1,5 @@
 import { getDatabase, ref, remove, set, update } from 'firebase/database';
+import { isClubCompetition } from './club-encounter.js';
 import {
   getTournamentStorageTarget,
   hasTournamentGroup,
@@ -269,6 +270,26 @@ function validRecordShape(record) {
   );
 }
 
+function hasIncompleteClubData(competition) {
+  if (!competition) return false;
+  const rounds = Array.isArray(competition.games) ? competition.games : [];
+  const stages = Array.isArray(competition.playOffBracket?.stages) ? competition.playOffBracket.stages : [];
+  const matches = [
+    ...rounds.flatMap((round) => (Array.isArray(round) ? round : [])),
+    ...(Array.isArray(competition.cadrage) ? competition.cadrage : []),
+    ...stages.flatMap((stage) => (Array.isArray(stage?.teams) ? stage.teams : [])),
+    competition.playOffBracket?.thirdPlace,
+  ].filter((match) => match?.clubEncounter || match?.clubAbsence);
+  if (!matches.length) return false;
+  if (!isClubCompetition(competition) || !Array.isArray(competition.teams)) return true;
+  const teamNames = new Set(competition.teams.map((team) => team?.title));
+  return matches.some(
+    (match) =>
+      (match.team_1 && match.team_1 !== 'Technical' && !teamNames.has(match.team_1)) ||
+      (match.team_2 && match.team_2 !== 'Technical' && !teamNames.has(match.team_2)),
+  );
+}
+
 export function readPublicTournamentProjection(projection, { tournamentId, ownerUid, previousRevision = null } = {}) {
   if (projection == null) return invalidProjection(PUBLIC_TOURNAMENT_PROJECTION_ERROR.MISSING);
   if (!isObject(projection)) return invalidProjection(PUBLIC_TOURNAMENT_PROJECTION_ERROR.MALFORMED);
@@ -284,6 +305,9 @@ export function readPublicTournamentProjection(projection, { tournamentId, owner
     !validRecordShape(projection.record)
   ) {
     return invalidProjection(PUBLIC_TOURNAMENT_PROJECTION_ERROR.MALFORMED);
+  }
+  if (hasIncompleteClubData(projection.record.main) || hasIncompleteClubData(projection.record.tournamentB)) {
+    return invalidProjection(PUBLIC_TOURNAMENT_PROJECTION_ERROR.PARTIAL);
   }
   if (Number.isSafeInteger(previousRevision) && projection.revision < previousRevision) {
     return invalidProjection(PUBLIC_TOURNAMENT_PROJECTION_ERROR.STALE);

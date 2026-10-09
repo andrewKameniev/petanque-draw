@@ -307,21 +307,6 @@
             </button>
           </component>
         </template>
-        <button
-          v-if="
-            editable &&
-            activeTab === stage.id &&
-            stageIndex < 2 &&
-            completedGames(stage) === definitions[stageIndex].count &&
-            encounter.status !== statuses.COMPLETED
-          "
-          type="button"
-          class="button is-purple is-small"
-          @click="openStage(stageIndex + 1)"
-        >
-          {{ $t('club.nextStage', { stage: $t(`club.stages.${definitions[stageIndex + 1].id}`) })
-          }}<ChevronRight :size="16" aria-hidden="true" />
-        </button>
       </section>
       <details v-if="editable && activeTab === 'games' && encounter.audit?.length" class="club-match__audit">
         <summary>{{ $t('club.audit') }}</summary>

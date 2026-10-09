@@ -1,7 +1,6 @@
 export default {
   club: {
     versus: 'VS',
-    nextStage: 'Next: {stage}',
 
     importClubs: 'Import clubs ({count})',
 

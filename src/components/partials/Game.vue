@@ -1,7 +1,16 @@
 <template>
   <div class="game-row-wrapper">
+    <ClubEncounter
+      v-if="isClub"
+      :game="game"
+      :tournament="tournament"
+      :locator="clubLocator"
+      :phase="isPlayoff || isThird || isCadrage ? clubPhases.PLAYOFF : clubPhases.QUALIFICATION"
+      :read-only="!!publicView || !isOwnerOrAdmin"
+    />
     <PublicGameCard
-      v-if="publicView"
+      v-else-if="publicView"
+      :tournament="tournament"
       :game="game"
       :lane-number="displayLane"
       :highlighted-team="highlightedTeam"
@@ -119,10 +128,12 @@ import { useMainStore } from '@/stores/main';
 import { X, Pencil, Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
 import PublicGameCard from '@/components/partials/PublicGameCard.vue';
+import ClubEncounter from '@/components/clubs/ClubEncounter.vue';
+import { isClubCompetition, CLUB_PHASE } from '@/services/club-encounter';
 
 export default {
   name: 'Game',
-  components: { X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video, PublicGameCard },
+  components: { ClubEncounter, X, Pencil, YoutubeIcon, Twitch, Facebook, Instagram, Video, PublicGameCard },
   props: [
     'activeTournament',
     'gameIndex',
@@ -141,6 +152,7 @@ export default {
   emits: ['save', 'swapLane', 'update', 'finish'],
   data() {
     return {
+      clubPhases: CLUB_PHASE,
       swapMode: false,
       swapTarget: null,
     };
@@ -264,7 +276,16 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
+    clubLocator() {
+      if (this.isThird) return { kind: 'thirdPlace' };
+      if (this.isPlayoff) return { kind: 'playoff', stageIndex: this.activeRound, gameIndex: this.gameIndex };
+      if (this.isCadrage) return { kind: 'cadrage', gameIndex: this.gameIndex };
+      return { kind: 'round', roundIndex: this.activeRound, gameIndex: this.gameIndex };
+    },
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'isOwnerOrAdmin']),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },

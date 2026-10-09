@@ -49,8 +49,13 @@
             :tournament="tournament"
             :stages="singlePanelStages"
             :title="isPublicView ? $t('games.playOff') : $t('doubleElimination.playNow')"
-            :score-error="scoreError"
-            :show-save="!isPublicView && isOwnerOrAdmin"
+            :score-error="scoreError && clubRoundReady"
+            :show-save="!isPublicView && isOwnerOrAdmin && clubRoundReady"
+            :save-label="
+              tournament.preferences?.clubRosterSize
+                ? $t(playOffStageCurrent === 1 ? 'club.finishPlayoff' : 'club.advancePlayoff')
+                : ''
+            "
             :public-view="!!isPublicView"
             :highlighted-team="highlightedTeam || ''"
             :team-club-map="teamClubMap"
@@ -124,6 +129,12 @@
               </div>
             </template>
           </PlayoffMatchPanel>
+          <p
+            v-if="!isPublicView && tournament.preferences?.clubRosterSize && !clubRoundReady"
+            class="club-playoff-hint"
+          >
+            {{ $t('club.completeEncountersFirst') }}
+          </p>
         </template>
       </div>
       <Bracket v-if="showBracket" :bracket="playOffBracket" @close-modal="showBracket = false" />
@@ -171,6 +182,9 @@ export default {
     };
   },
   watch: {
+    clubRoundReady() {
+      this.scoreError = false;
+    },
     showSearch(val) {
       if (val) {
         this.$nextTick(() => this.$refs.searchInput?.focus());
@@ -324,6 +338,23 @@ export default {
         ),
       );
     },
+    clubRoundReady() {
+      if (!this.tournament.preferences?.clubRosterSize) return true;
+      const stage = this.playOffBracket?.stages?.[this.currentPlayOffBracketIndex];
+      if (!stage) return false;
+      const matches = (stage.teams || []).filter((game) => !game.isBye);
+      const third = this.playOffBracket.thirdPlace;
+      if (stage.teamsCount === 2 && third?.team_1 && third?.team_2) matches.push(third);
+      return (
+        matches.length > 0 &&
+        matches.every(
+          (game) =>
+            (game.clubEncounter || game.clubAbsence) &&
+            game.status === 'finished' &&
+            !isScoreError(game, this.tournament.preferences.maxScore),
+        )
+      );
+    },
   },
   methods: {
     shuffleArray,
@@ -448,6 +479,10 @@ export default {
     saveResults() {
       this.scoreError = false;
       const realGames = this.playOffBracket.stages[this.currentPlayOffBracketIndex].teams.filter((game) => !game.isBye);
+      if (this.tournament.preferences.clubRosterSize && !this.clubRoundReady) {
+        this.scoreError = true;
+        return false;
+      }
       const unfinished = realGames.filter((game) => game.status !== 'finished');
       if (unfinished.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
         this.scoreError = true;
@@ -606,6 +641,12 @@ export default {
 </script>
 
 <style scoped>
+.club-playoff-hint {
+  margin: 0.75rem 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .playoff-panel-actions {
   position: absolute;
   right: 0;

@@ -30,6 +30,7 @@ Search these owners before creating another implementation.
 | Group statistics and ranking                                                      | `src/services/group-ranking.js`                                          |
 | Draw and lane algorithms                                                          | `src/services/draw.js`, `src/services/lanes.js`                          |
 | Playoff bracket rules and transitions                                             | `src/services/playoff.js`, `src/services/results.js`                     |
+| Club encounter state, roster rules and integration plans                          | `src/services/club-encounter.js`, `src/services/club-competition.js`     |
 | TIR scoring, ranking, and playoff rules                                           | `src/services/tir.js`                                                    |
 | Timer state transitions and final-round policy                                    | `src/services/round-timer.js`                                            |
 | Active-editor Firebase synchronization                                            | `src/services/tournament-sync.js` behind `src/stores/main.js`            |

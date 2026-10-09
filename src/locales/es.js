@@ -1,4 +1,95 @@
 export default {
+  club: {
+    versus: 'VS',
+
+    importClubs: 'Importar clubes ({count})',
+
+    playerCount: '{count} jugadores',
+
+    rosterLimit: 'Máximo de jugadores por plantilla',
+
+    detected: 'Torneo de clubes',
+
+    overview: 'Resumen',
+    sections: 'Secciones del encuentro de clubes',
+    openCurrentStage: 'Abrir fase actual',
+    editScore: 'Corregir marcador',
+    rosterList: 'Clubes inscritos',
+
+    absence: { rest: 'Descanso · sin puntos', walkover: 'Victoria técnica · sin rival' },
+    captainClubRule: 'Se muestra el club del capitán. Los jugadores pueden pertenecer a otros clubes.',
+    removeDraftPlayer: 'Quitar del borrador',
+
+    rosterRule: 'Hasta {count} jugadores para todo el torneo. El capitán elige seis antes de cada fase.',
+    rosterLocked: 'Plantilla cerrada',
+    playerNumber: 'Jugador {number}',
+    choose: 'Seleccionar',
+    submitWarning: 'La importación fija las plantillas para todo el torneo. Revisa la lista de jugadores.',
+    clubPoints: 'Puntos de club',
+    gameScore: 'Marcador de la partida',
+    winner: 'Ganador: {club}',
+    continue: 'Continuar las partidas',
+    confirmStageResults: 'Confirmar resultados de la fase',
+    completeEncountersFirst: 'Termina los encuentros entre clubes para pasar a la siguiente ronda.',
+    advancePlayoff: 'Pasar a la siguiente ronda',
+    finishPlayoff: 'Finalizar eliminatorias',
+    phase: {
+      qualification: 'Las 11 partidas obligatorias',
+      playoff: 'Eliminatorias · victoria con 16 puntos o más',
+    },
+    status: {
+      planned: 'Programada',
+      in_progress: 'En juego',
+      completed: 'Finalizada',
+      not_played: 'No disputada',
+    },
+    stages: {
+      singles: 'Individuales',
+      doubles: 'Dobletas',
+      triples: 'Tripletas',
+    },
+    stagePoints: '{count} partidas · {points} puntos de club por victoria',
+    editLineups: 'Corregir alineaciones',
+    enterLineups: 'Introducir alineaciones de los capitanes',
+    startStage: 'Iniciar fase',
+    awaitingLineups: 'Esperando alineaciones',
+    awaitingPrevious: 'Termine todas las partidas de la fase anterior',
+    awaitingClubs: 'Esperando las plantillas de ambos clubes',
+    lineupHint:
+      'Copie las posiciones del formulario. Se enfrentan los mismos números. El árbitro comprueba las posiciones femeninas y mixtas.',
+    publish: 'Confirmar alineaciones y publicar cruces',
+    cancel: 'Cancelar',
+    femaleSingle: 'Individual femenino',
+    mixed: 'Mixto',
+    scoreFor: 'Marcador: {club}',
+    scoreHint:
+      'Intro guarda el marcador provisional. Introduce todos los marcadores sin empate para confirmar la fase a la vez.',
+    unsavedScore: 'Cambios sin guardar',
+    savedScore: 'Guardado',
+    saveLive: 'Guardar',
+    correctResult: 'Guardar cambios',
+    confirmResult: 'Finalizar',
+    audit: 'Historial de cambios',
+    actions: {
+      lineups: 'Alineaciones introducidas / corregidas',
+      start: 'Fase iniciada',
+      score: 'Marcador guardado / corregido',
+      continue: 'Partidas reanudadas',
+    },
+    errors: {
+      rosterSize: 'La plantilla necesita al menos 6 jugadores y no superar el máximo elegido de 8 o 9.',
+      player: 'Revise los identificadores y nombres. Solo pueden jugar los inscritos.',
+      duplicate: 'Un jugador aparece en otra plantilla o en varias partidas de esta fase.',
+      club: 'Revise el nombre y el ID del club del capitán. El club puede estar ya inscrito.',
+      lineup: 'Complete cada posición con el número necesario de jugadores.',
+      locked:
+        'Acción no disponible. Las plantillas son definitivas y las alineaciones se bloquean al iniciar; restaure la ronda antes de corregir un cuadro avanzado.',
+      previous: 'Complete primero la fase anterior.',
+      score: 'Marcadores enteros de 0 a 13. Para finalizar, los marcadores deben ser diferentes.',
+      missing: 'No se encuentra el encuentro o sus participantes.',
+      access: 'Solo el organizador o el árbitro principal con permisos de administrador pueden introducir datos.',
+    },
+  },
   doubleElimination: {
     bracketTab: 'Cuadro',
     title: 'Doble eliminación',

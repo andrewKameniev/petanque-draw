@@ -17,20 +17,21 @@ Exact versions and executable commands are owned by `package.json`.
 
 ## Ownership map
 
-| Area                     | Owner                                          | Responsibility                                                           |
-| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| Route/page state         | `src/views/`                                   | Route decoding, loading/error state, page composition                    |
-| Feature UI               | `src/components/`                              | Interaction and feature-level orchestration                              |
-| UI primitives            | `src/components/ui/`                           | Reusable markup, accessibility, and generic behavior                     |
-| Domain/integration logic | `src/services/`                                | Pure rules, adapters, subscriptions, persistence runtimes, external APIs |
-| Application state        | `src/stores/main.js`                           | Reactive façade and delegation to focused services                       |
-| Tournament compatibility | `src/services/tournament-record.js`            | Envelope/legacy normalization and storage targets                        |
-| Public live data         | `src/services/live-tournament.js`              | Public/TV loading profiles and subscription lifecycle                    |
-| Public projection        | `src/services/public-tournament-projection.js` | V1 derivation, validation, atomic dual writes, and rollout fallback      |
-| Projection backfill      | `src/services/public-tournament-backfill.js`   | Idempotent planning, conditional writes, verification, and rollback      |
-| Presentation selectors   | `src/services/tournament-presentation.js`      | Shared phase, status, round, and metadata selectors                      |
-| Design tokens            | `src/assets/css/variables.css`                 | Primitive and semantic colors shared by feature CSS                      |
-| Localization             | `src/locales/`, `src/i18n.js`                  | User-facing strings and lazy locale modules                              |
+| Area                     | Owner                                                                | Responsibility                                                           |
+| ------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Route/page state         | `src/views/`                                                         | Route decoding, loading/error state, page composition                    |
+| Feature UI               | `src/components/`                                                    | Interaction and feature-level orchestration                              |
+| UI primitives            | `src/components/ui/`                                                 | Reusable markup, accessibility, and generic behavior                     |
+| Domain/integration logic | `src/services/`                                                      | Pure rules, adapters, subscriptions, persistence runtimes, external APIs |
+| Club encounters          | `src/services/club-encounter.js`, `src/services/club-competition.js` | [Club rules and integration](./systems/clubs.md)                         |
+| Application state        | `src/stores/main.js`                                                 | Reactive façade and delegation to focused services                       |
+| Tournament compatibility | `src/services/tournament-record.js`                                  | Envelope/legacy normalization and storage targets                        |
+| Public live data         | `src/services/live-tournament.js`                                    | Public/TV loading profiles and subscription lifecycle                    |
+| Public projection        | `src/services/public-tournament-projection.js`                       | V1 derivation, validation, atomic dual writes, and rollout fallback      |
+| Projection backfill      | `src/services/public-tournament-backfill.js`                         | Idempotent planning, conditional writes, verification, and rollback      |
+| Presentation selectors   | `src/services/tournament-presentation.js`                            | Shared phase, status, round, and metadata selectors                      |
+| Design tokens            | `src/assets/css/variables.css`                                       | Primitive and semantic colors shared by feature CSS                      |
+| Localization             | `src/locales/`, `src/i18n.js`                                        | User-facing strings and lazy locale modules                              |
 
 Views and components may orchestrate services and store actions. Reusable
 ranking, scoring, normalization, matching, and persistence logic belongs in a

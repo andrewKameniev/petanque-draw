@@ -69,6 +69,10 @@ complete `publicTournaments/{uid}/{id}` node. A valid revision supplies the
 normalized Public/TV record without canonical reads or phase/tab/group child
 listeners. Missing, partial, malformed, unsupported-version, and projection
 permission/error states detach that listener and enter canonical compatibility.
+A club projection containing match details but missing its roster setting or a
+participating club is also partial: Public and TV read the authoritative record
+so individual games, players, and club points remain visible after a deferred
+projection write.
 A stale revision preserves the last valid projected record instead of replacing
 it.
 
@@ -138,6 +142,22 @@ or rewrite canonical records as part of rollback. The backfill implementation
 only prepares a local command; merging or deploying the application does not run
 it. Running that command against production, revoking canonical reads, and other
 production-data changes each require separate explicit authorization.
+
+## Club encounter writes
+
+Club commands use existing competition prefixes and atomic canonical/public
+updates. Match updates target the containing round or bracket game; nested
+lineups, internal scores and derived outer results travel together. Historical
+qualification corrections include recalculated team statistics in that update.
+Bulk roster import writes configuration and all validated rosters together.
+
+Owners and admin collaborators can edit club encounters. Scorer collaborators
+cannot write club competition games, nested lineups, bracket results or their
+public mirrors. Projection rules allow the roster limit and nested game data
+but reject `audit` at any depth; the projection builder strips it. Existing
+canonical anonymous-read compatibility remains unchanged, so projection
+filtering does not make canonical audit data private. These rules require the
+normal separately authorized deployment before remote enforcement changes.
 
 ## Archives
 

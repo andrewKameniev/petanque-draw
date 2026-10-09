@@ -23,6 +23,14 @@
     />
     <!-- PRE-START: Setup flow -->
     <template v-if="!tournamentStarted">
+      <ClubRosterSetup
+        v-if="isClub || pendingClubImport"
+        :key="currentTournamentIndex"
+        :tournament="tournament"
+        :portal-import="pendingClubImport"
+        @imported="pendingClubImport = null"
+        @cancel-import="pendingClubImport = null"
+      />
       <SetupCard
         :tournament="tournament"
         v-model:teamsInGroup="teamsInGroup"
@@ -40,12 +48,13 @@
         @remove="requestRemoval"
       />
 
-      <div class="setup-teams-card">
+      <div v-if="!isClub && !pendingClubImport" class="setup-teams-card">
         <AddTeam
           v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
           :import-hidden="false"
           :show-restore="!tournament.teams?.length"
           @restore="restoreTeamsFromLocalStorage"
+          @club-import="pendingClubImport = $event"
         />
         <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
         <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
@@ -101,21 +110,24 @@
       <TournamentNav v-model="activeTab" :tabs="tabs" />
       <div id="tournament-tabpanel" class="tabs-content-area" role="tabpanel" :aria-labelledby="`tab-${activeTab}`">
         <div class="content tabs-content" v-if="activeTab === 'teams'">
-          <AddTeam
-            v-if="
-              (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) &&
-              !tournament.tirStarted
-            "
-            :import-hidden="tournament.system === 'supermele' && tournament.games && tournament.games.length > 0"
-          />
-          <TeamReplacementPanel
-            v-if="isOwnerOrAdmin && tournamentStarted && tournament.system !== 'supermele'"
-            :teams="tournament.teams || []"
-            :portal-tournament-id="tournamentWrapper.portalIdTournament || tournament.portalIdTournament"
-            @replace="onReplaceTeam"
-          />
-          <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
-          <div v-else class="mb-5 mt-5">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
+          <ClubRosterSetup v-if="isClub" :tournament="tournament" />
+          <template v-else>
+            <AddTeam
+              v-if="
+                (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) &&
+                !tournament.tirStarted
+              "
+              :import-hidden="tournament.system === 'supermele' && tournament.games && tournament.games.length > 0"
+            />
+            <TeamReplacementPanel
+              v-if="isOwnerOrAdmin && tournamentStarted && tournament.system !== 'supermele'"
+              :teams="tournament.teams || []"
+              :portal-tournament-id="tournamentWrapper.portalIdTournament || tournament.portalIdTournament"
+              @replace="onReplaceTeam"
+            />
+            <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
+            <div v-else class="mb-5 mt-5">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
+          </template>
         </div>
         <Games
           ref="games"
@@ -128,6 +140,11 @@
           @startPlayOff="startPlayOff"
           @startFirstRound="startFirstRound"
           @redraw="redrawRounds"
+        />
+        <Bracket
+          v-if="activeTab === 'bracket' && isClub && tournament.playOffBracket?.stages?.length"
+          :bracket="tournament.playOffBracket"
+          :embedded="true"
         />
         <Results
           v-if="activeTab === 'results'"
@@ -172,6 +189,7 @@
           <div class="bottom-actions__row">
             <button
               v-if="
+                !isClub &&
                 tournament.preferences?.isTestTournament &&
                 !tournament.tournamentIsFinished &&
                 (tournament.roundIsActive || tournament.cadrage?.length || tournament.playOff?.length)
@@ -349,6 +367,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import AddTeam from './partials/AddTeam.vue';
 import Games from './partials/Games.vue';
 import Results from './partials/Results.vue';
@@ -376,7 +395,7 @@ import SetupCard from '@/components/partials/SetupCard';
 import TournamentHeader from '@/components/partials/TournamentHeader';
 import RemoteToolbar from '@/components/partials/RemoteToolbar';
 import { IconSettings, IconArchive } from '@/components/icons';
-import { Undo2, Trash2, Users, Grid3x3, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
+import { Undo2, Trash2, Users, Grid3x3, GitFork, List, Trophy, RefreshCw, Radio, Download, Zap } from 'lucide-vue-next';
 import { autoFillScores as autoFillScoresFn } from '@/services/testUtils';
 import StreamPresets from '@/components/partials/StreamPresets.vue';
 import TeamReplacementPanel from '@/components/partials/TeamReplacementPanel.vue';
@@ -393,6 +412,9 @@ import {
   saveResultsForRound,
 } from '@/services/draw';
 import TirModule from '@/components/tir/TirModule.vue';
+import ClubRosterSetup from '@/components/clubs/ClubRosterSetup.vue';
+import { isClubCompetition, clubAbsenceGame } from '@/services/club-encounter';
+import { validateClubCompetitionStart } from '@/services/club-competition';
 import TournamentNav from '@/components/ui/TournamentNav.vue';
 import {
   getPlayoffPlaces,
@@ -408,6 +430,8 @@ import {
   getTournamentStorageTarget,
   hasTournamentGroup,
 } from '@/services/tournament-record';
+
+const Bracket = defineAsyncComponent(() => import('./partials/Bracket.vue'));
 
 export default {
   name: 'Tournament',
@@ -433,10 +457,17 @@ export default {
       tirTwoRounds: false,
       tirJunior: false,
       playoffTimeLimitEnabled: true,
+      pendingClubImport: null,
       pinnedState: localStorage.getItem('petanqueDrawPinned'),
     };
   },
   watch: {
+    tabs(availableTabs) {
+      if (!availableTabs.some((tab) => tab.id === this.activeTab)) this.activeTab = 'games';
+    },
+    'tournament.teams.length'(count) {
+      if (this.isClub && !this.tournamentStarted) this.teamsInGroup = Math.max(2, count);
+    },
     tournament: {
       immediate: true,
       handler(activeTournament) {
@@ -558,7 +589,7 @@ export default {
           });
           const missingTeam = [...groupTitles].find((title) => !playingTeams.has(title));
           if (missingTeam) {
-            round.push({
+            const missingGame = {
               team_1: missingTeam,
               team_1_score: technical.technicalFirst,
               team_2: 'Technical',
@@ -567,7 +598,8 @@ export default {
               winner: missingTeam,
               group: groupIndex,
               lane: 0,
-            });
+            };
+            round.push(isClubCompetition(t) ? clubAbsenceGame(missingGame) : missingGame);
             migrated = true;
           }
         });
@@ -884,7 +916,7 @@ export default {
         this.setPlayOffBracket(bracket);
         this.setPlayOffStage(getNextDoubleEliminationStage(bracket)?.id || 0);
       } else {
-        const playOffScheme = buildPlayOffScheme(playOffList, !!this.tournament.cadrage);
+        const playOffScheme = buildPlayOffScheme(playOffList, !!this.tournament.cadrage, this.tournament);
         this.setPlayOff(playOffScheme);
       }
 
@@ -991,7 +1023,7 @@ export default {
         this.setPlayOffBracket(bracket);
         this.setPlayOffStage(getNextDoubleEliminationStage(bracket)?.id || 0);
       } else {
-        const playOffScheme = buildPlayOffScheme(playOffList, false);
+        const playOffScheme = buildPlayOffScheme(playOffList, false, this.tournament);
         this.setPlayOff(playOffScheme);
       }
       this.syncDrawStart();
@@ -1005,6 +1037,16 @@ export default {
       });
     },
     drawFirstRound() {
+      try {
+        validateClubCompetitionStart(this.tournament);
+      } catch (error) {
+        this.showMessage({
+          title: this.$t('messages.error'),
+          text: this.$t(`club.errors.${error.code}`),
+          type: 'error',
+        });
+        return;
+      }
       if (this.tournament.system === 'tir') {
         this.tournament.tirStarted = true;
         if (!this.tournament.tirParticipants) {
@@ -1055,7 +1097,7 @@ export default {
         }
         round = result.round;
       } else if (this.tournament.system === 'groups') {
-        if (this.teamsInGroup < 3) {
+        if (this.teamsInGroup < (this.isClub ? 2 : 3)) {
           this.showMessage({
             title: this.$t('messages.cantDraw'),
             text: this.$t('messages.chooseCorrectTeams'),
@@ -1136,6 +1178,10 @@ export default {
       this.activeTab = 'games';
     },
     redrawRounds() {
+      if (this.isClub && this.tournament.games?.some((round) => round.some((game) => game.clubEncounter))) {
+        this.showMessage({ title: this.$t('messages.error'), text: this.$t('club.errors.locked'), type: 'error' });
+        return;
+      }
       if (this.tournament.system === 'playoff') {
         this.clearRoundTimer();
         this.tournament.playOff = null;
@@ -1203,6 +1249,9 @@ export default {
     },
   },
   computed: {
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
     ...mapState(useMainStore, [
       'tournaments',
       'currentTournamentIndex',
@@ -1245,6 +1294,9 @@ export default {
       const tabs = [
         { id: 'teams', label: this.$t('teams.teams'), icon: Users },
         { id: 'games', label: this.$t('teams.games'), icon: Grid3x3 },
+        ...(this.isClub && this.tournament.playOffBracket?.stages?.length
+          ? [{ id: 'bracket', label: this.$t('doubleElimination.bracketTab'), icon: GitFork }]
+          : []),
         { id: 'results', label: this.$t('teams.results'), icon: List },
         { id: 'ranking', label: this.$t('teams.ranking'), icon: Trophy },
         { id: 'streams', label: this.$t('streams.title'), icon: Radio },
@@ -1324,6 +1376,8 @@ export default {
     },
   },
   components: {
+    Bracket,
+    ClubRosterSetup,
     TournamentNav,
     Undo2,
     Trash2,

@@ -1,7 +1,7 @@
 <template>
   <a
     class="player-chip"
-    :class="{ 'player-chip--captain': isCaptain }"
+    :class="{ 'player-chip--captain': showBadges && isCaptain }"
     :href="player.id ? 'https://portal.petanque.org.ua/player/' + player.id : undefined"
     :target="player.id ? '_blank' : undefined"
   >
@@ -16,12 +16,14 @@
     <UserCircle v-else :size="30" class="player-chip__avatar-placeholder" />
     <div class="player-chip__info">
       <span class="player-chip__name">{{ player.surname }} {{ player.name }}</span>
-      <span v-if="player.rating_place" class="player-chip__rating"
+      <span v-if="showBadges && player.rating_place" class="player-chip__rating"
         ><TrendingUp :size="10" />{{ player.rating_place }}</span
       >
     </div>
-    <span v-if="player.sport_title" class="player-chip__sport-title">{{ sportTitleLabel(player.sport_title) }}</span>
-    <span v-if="isCaptain" class="player-chip__captain-badge">
+    <span v-if="showBadges && player.sport_title" class="player-chip__sport-title">{{
+      sportTitleLabel(player.sport_title)
+    }}</span>
+    <span v-if="showBadges && isCaptain" class="player-chip__captain-badge">
       <svg class="player-chip__captain-crown" viewBox="0 0 64 48" fill="none" aria-hidden="true">
         <defs>
           <linearGradient :id="gradientId" x1="16" y1="8" x2="46" y2="42">
@@ -65,6 +67,7 @@ export default {
   props: {
     player: { type: Object, required: true },
     isCaptain: { type: Boolean, default: false },
+    showBadges: { type: Boolean, default: true },
   },
   data() {
     return { instanceId: uid++ };

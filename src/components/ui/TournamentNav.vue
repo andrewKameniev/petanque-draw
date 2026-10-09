@@ -33,7 +33,7 @@ export default {
     variant: {
       type: String,
       default: 'default',
-      validator: (value) => ['default', 'tir'].includes(value),
+      validator: (value) => ['default', 'tir', 'match'].includes(value),
     },
   },
   emits: ['update:modelValue', 'change'],
@@ -151,5 +151,24 @@ export default {
 
 .tournament-nav--tir .tournament-nav__btn {
   padding: 6px;
+}
+
+.tournament-nav--match {
+  border-radius: 0;
+  background: var(--color-surface-alt);
+}
+
+.tournament-nav--match .tournament-nav__btn {
+  min-width: 0;
+  font-size: 11px;
+}
+
+.tournament-nav--match .tournament-nav__btn--active {
+  color: var(--color-primary);
+}
+
+.tournament-nav--match .tournament-nav__btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 </style>

@@ -9,7 +9,7 @@ export class PortalError extends Error {
   }
 }
 
-export async function fetchPortalTeams(portalId) {
+export async function fetchPortalTournament(portalId) {
   if (portalId == null || String(portalId).trim() === '') {
     throw new PortalError('Portal tournament ID is required', { code: 'MISSING_ID' });
   }
@@ -45,7 +45,11 @@ export async function fetchPortalTeams(portalId) {
     throw new PortalError('Portal returned an invalid tournament export', { code: 'INVALID_SHAPE' });
   }
 
-  return data.teams;
+  return data;
+}
+
+export async function fetchPortalTeams(portalId) {
+  return (await fetchPortalTournament(portalId)).teams;
 }
 
 export async function updatePortalTournament(portalId, drawId, { token = import.meta.env.VITE_FPU_AUTH_TOKEN } = {}) {

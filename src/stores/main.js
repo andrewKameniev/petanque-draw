@@ -22,6 +22,8 @@ import { createTournamentSyncRuntime } from '@/services/tournament-sync';
 import { publicTournamentWriter } from '@/services/public-tournament-projection';
 import { createArchiveCollaborationRuntime } from '@/services/archive-collaboration';
 import { replaceTeamInCompetition, TeamReplacementError } from '@/services/team-replacement';
+import { isClubCompetition, ClubEncounterError, CLUB_ERROR } from '@/services/club-encounter';
+import { planClubCompetitionChange } from '@/services/club-competition';
 
 export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 
@@ -68,6 +70,7 @@ export const useMainStore = defineStore('main', {
     _activeGameMatchPath: null,
     _activeBracketMatchPath: null,
     _activeCadrageIndex: null,
+    _clubSavePending: false,
   }),
   getters: {
     currentTournament: (state) => state.tournaments[state.currentTournamentIndex],
@@ -101,6 +104,31 @@ export const useMainStore = defineStore('main', {
     },
   },
   actions: {
+    async changeClubCompetition(change) {
+      if (!this.user || !this.isOwnerOrAdmin) throw new ClubEncounterError(CLUB_ERROR.ACCESS);
+      if (this._clubSavePending) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
+      const { data, prefix } = this._getTarget();
+      const { replacements, paths } = planClubCompetitionChange(data, change, {
+        at: new Date().toISOString(),
+        actorId: this.user.uid,
+      });
+      const previous = Object.fromEntries(Object.keys(replacements).map((field) => [field, data[field]]));
+      this._clubSavePending = true;
+      Object.assign(data, replacements);
+      const applied = Object.fromEntries(Object.keys(replacements).map((field) => [field, data[field]]));
+      try {
+        await this._syncPaths(
+          Object.fromEntries(Object.entries(paths).map(([path, value]) => [`${prefix}${path}`, value])),
+        );
+      } catch (error) {
+        Object.keys(previous).forEach((field) => {
+          if (data[field] === applied[field]) data[field] = previous[field];
+        });
+        throw error;
+      } finally {
+        this._clubSavePending = false;
+      }
+    },
     _getTournamentOwnerUid() {
       const tournament = this.tournaments[this.currentTournamentIndex];
       return tournament?._ownerUid || this.user.uid;
@@ -479,12 +507,14 @@ export const useMainStore = defineStore('main', {
     },
     addTeamToStore(team) {
       const { data } = this._getTarget();
+      if (isClubCompetition(data)) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
       if (!data.teams) data.teams = [];
       data.teams.push(team);
       localStorage.setItem('petanqueDrawTeamsRestore', JSON.stringify(data.teams));
     },
     removeTeam(titleToRemove) {
       const { data } = this._getTarget();
+      if (isClubCompetition(data)) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
       data.teams = data.teams.filter((team) => team.title !== titleToRemove);
     },
     async replaceTournamentTeam({ oldTitle, portalTeam }) {
@@ -493,6 +523,7 @@ export const useMainStore = defineStore('main', {
       }
 
       const { data, prefix } = this._getTarget();
+      if (isClubCompetition(data)) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
       const result = replaceTeamInCompetition(data, oldTitle, portalTeam);
       if (!Object.keys(result.updates).length) return result;
 
@@ -524,6 +555,7 @@ export const useMainStore = defineStore('main', {
     },
     clearTeams() {
       const { data, prefix } = this._getTarget();
+      if (isClubCompetition(data)) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
       data.teams = [];
       localStorage.removeItem('petanqueDrawTeamsRestore');
       this._syncPath(`${prefix}teams`, []);
@@ -733,6 +765,7 @@ export const useMainStore = defineStore('main', {
     },
     updateGameScore({ activeRound, gameIndex, team, score }) {
       const { data } = this._getTarget();
+      if (isClubCompetition(data)) throw new ClubEncounterError(CLUB_ERROR.LOCKED);
       data.games[activeRound][gameIndex][team] = score;
     },
     finishTournament() {

@@ -10,6 +10,7 @@ import {
   planPublicTournamentPathWrite,
   readPublicTournamentProjection,
 } from '@/services/public-tournament-projection';
+import { makeClubTournament, clubMatchAfterSingles } from './fixtures/club-competition';
 
 const privateSentinels = {
   collaborators: { scorer: { email: 'scorer@example.com', role: 'scorer' } },
@@ -39,6 +40,7 @@ function competition(overrides = {}) {
     tirTiebreakerActive: true,
     tirTiebreakerParticipantIds: [7],
     preferences: {
+      clubRosterSize: 9,
       maxScore: 13,
       fieldsStart: 3,
       playOffEnabled: true,
@@ -89,6 +91,35 @@ function envelopeRecord() {
 }
 
 describe('public tournament projection V1', () => {
+  it('falls back to canonical data when a club match was mirrored without its rosters and format', () => {
+    const tournament = makeClubTournament();
+    tournament.playOffBracket = { stages: [{ teams: [clubMatchAfterSingles(tournament)] }] };
+    const complete = createPublicTournamentProjection({ name: 'Club Cup', main: tournament });
+    expect(readPublicTournamentProjection(complete).valid).toBe(true);
+
+    const incomplete = globalThis.structuredClone(complete);
+    delete incomplete.record.main.teams;
+    delete incomplete.record.main.preferences.clubRosterSize;
+    expect(readPublicTournamentProjection(incomplete)).toEqual({
+      valid: false,
+      reason: PUBLIC_TOURNAMENT_PROJECTION_ERROR.PARTIAL,
+    });
+
+    const missingFormat = globalThis.structuredClone(complete);
+    delete missingFormat.record.main.preferences.clubRosterSize;
+    expect(readPublicTournamentProjection(missingFormat)).toEqual({
+      valid: false,
+      reason: PUBLIC_TOURNAMENT_PROJECTION_ERROR.PARTIAL,
+    });
+
+    const missingOpponent = globalThis.structuredClone(complete);
+    missingOpponent.record.main.teams.pop();
+    expect(readPublicTournamentProjection(missingOpponent)).toEqual({
+      valid: false,
+      reason: PUBLIC_TOURNAMENT_PROJECTION_ERROR.PARTIAL,
+    });
+  });
+
   it('derives an immutable, exact public envelope without private or editor-only fields', () => {
     const source = envelopeRecord();
     const snapshot = JSON.parse(JSON.stringify(source));

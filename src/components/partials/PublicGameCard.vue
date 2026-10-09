@@ -1,5 +1,7 @@
 <template>
+  <ClubEncounter v-if="isClub" :game="game" :tournament="tournament" :phase="clubPhase" />
   <div
+    v-else
     class="match-item public-game-card"
     data-testid="public-game-card"
     :class="{
@@ -23,13 +25,15 @@
         'match-team--highlighted': isTeamOneHighlighted,
         'match-team--winner': winnerTeam === game.team_1,
       }"
-      >{{ formattedTeamOne }}</span
+      ><slot name="team-one">{{ formattedTeamOne }}</slot></span
     >
     <span class="match-vs">
-      <span v-if="isInProgress || isFinished" class="match-score">
-        {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
-      </span>
-      <span v-else class="match-score match-score--pending">-- : --</span>
+      <slot name="score">
+        <span v-if="isInProgress || isFinished" class="match-score">
+          {{ game.team_1_score ?? 0 }} : {{ game.team_2_score ?? 0 }}
+        </span>
+        <span v-else class="match-score match-score--pending">-- : --</span>
+      </slot>
     </span>
     <span
       class="match-team"
@@ -37,7 +41,7 @@
         'match-team--highlighted': isTeamTwoHighlighted,
         'match-team--winner': winnerTeam === game.team_2,
       }"
-      >{{ formattedTeamTwo }}</span
+      ><slot name="team-two">{{ formattedTeamTwo }}</slot></span
     >
     <span v-if="resolvedStreams.length" class="match-status-badge match-status-badge--live">
       <span v-if="isInProgress" class="match-live-dot"></span>
@@ -54,10 +58,10 @@
         <component :is="streamIconFor(streamUrl)" :size="16" />
       </a>
     </span>
-    <span v-else-if="isInProgress" class="match-status-badge match-status-badge--progress">
+    <span v-else-if="showStatus && isInProgress" class="match-status-badge match-status-badge--progress">
       <span class="match-progress-dot"></span>{{ $t('teamPlayoff.matchInProgress') }}
     </span>
-    <span v-else-if="isFinished" class="match-status-badge match-status-badge--finished">
+    <span v-else-if="showStatus && isFinished" class="match-status-badge match-status-badge--finished">
       {{ $t('teamPlayoff.matchFinished') }}
     </span>
     <div v-if="scoreHistoryEnabled && game.score_history?.length" class="score-history">
@@ -72,13 +76,17 @@
 <script>
 import { Twitch, Facebook, Instagram, Video } from 'lucide-vue-next';
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
+import { defineAsyncComponent } from 'vue';
+import { isClubCompetition, CLUB_PHASE } from '@/services/club-encounter';
+const ClubEncounter = defineAsyncComponent(() => import('@/components/clubs/ClubEncounter.vue'));
 import { getGameStreams, getStreamIconClass, getStreamIconComponent } from '@/services/streams';
 
 export default {
   name: 'PublicGameCard',
-  components: { YoutubeIcon, Twitch, Facebook, Instagram, Video },
+  components: { ClubEncounter, YoutubeIcon, Twitch, Facebook, Instagram, Video },
   props: {
     game: { type: Object, required: true },
+    showStatus: { type: Boolean, default: true },
     laneNumber: { type: [Number, String], default: '' },
     highlightedTeam: { type: String, default: '' },
     teamClubMap: { type: Object, default: () => ({}) },
@@ -90,6 +98,17 @@ export default {
     tournamentFinished: { type: Boolean, default: false },
   },
   computed: {
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
+    clubPhase() {
+      return (
+        this.game.clubEncounter?.phase ||
+        (this.game.stage != null || this.tournament?.cadrage?.includes(this.game)
+          ? CLUB_PHASE.PLAYOFF
+          : CLUB_PHASE.QUALIFICATION)
+      );
+    },
     effectiveStatus() {
       return this.game.status || 'not_started';
     },

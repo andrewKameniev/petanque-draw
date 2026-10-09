@@ -44,6 +44,7 @@ const STATE_FIELDS = [
   '_activeGameMatchPath',
   '_activePlayoffMatchPath',
   '_activeTeamPlayoffMatchPath',
+  '_clubSavePending',
   'archiveIndex',
   'currentTournamentIndex',
   'isAdmin',
@@ -69,7 +70,7 @@ const ACTIONS = `
   _doSync _getTarget _getTournamentOwnerUid _handleAccessRevoked _mergeBracketPlayoff _mergeCadrage
   _mergeGames _mergeTeamPlayoff _mergeTirPlayoff _syncMatchDebounced _syncPath _syncPaths _watchCollaboratorAccess
   addCollaborator addRoundToGames addTeamToStore addToSaved addTournament addTournamentBTeams
-  changeDrawType changeTournamentName clearRoundTimer clearTeams completeTournamentBElimination endRound
+  changeClubCompetition changeDrawType changeTournamentName clearRoundTimer clearTeams completeTournamentBElimination endRound
   endRoundTimer fetchArchiveIndex fetchSavedTournaments finishTournament getTournaments hideMessage initTournamentB leaveSharedTournament
   loadSharedTournament loginUser pauseRoundTimer removeCollaborator removeSavedTournament removeTeam removeTournament
   removeTournamentB renameSavedTournament replaceTournamentTeam restartRoundTimer restoreRound resumeRoundTimer revertFinishTournament

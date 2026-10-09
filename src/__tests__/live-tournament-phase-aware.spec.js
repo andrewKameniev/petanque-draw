@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildPublicTournamentSubscriptionPlan, createLiveTournamentSource } from '@/services/live-tournament';
+import { createPublicTournamentProjection } from '@/services/public-tournament-projection';
 import { normalizeTournamentRecord } from '@/services/tournament-record';
+import { makeClubTournament, clubMatchAfterSingles } from '../../tests/fixtures/club-competition';
 
 vi.mock('@/firebase', () => ({ database: {} }));
 
@@ -85,6 +87,9 @@ function createProjectionHarness() {
   return {
     service,
     unsubscribe,
+    emit(value) {
+      callback(snapshot(value));
+    },
     emitMissing() {
       callback(snapshot(null, false));
     },
@@ -395,6 +400,44 @@ describe('public phase-aware listener decisions', () => {
 });
 
 describe('public phase-aware canonical fallback runtime', () => {
+  it('shows club rosters and individual playoff scores when the projection lacks club data', async () => {
+    const target = { type: 'firebase', ownerUid: 'owner', tournamentId: 'club-playoff' };
+    const tournament = makeClubTournament();
+    tournament.system = 'playoff';
+    tournament.playOff = [{ team_1: 'Club a', team_2: 'Club b' }];
+    tournament.playOffBracket = { stages: [{ teams: [clubMatchAfterSingles(tournament)] }] };
+    const record = { name: 'Club Cup', main: tournament, tournamentB: null };
+    const incomplete = createPublicTournamentProjection(record);
+    delete incomplete.record.main.teams;
+    delete incomplete.record.main.preferences.clubRosterSize;
+    const setup = createPathHarness([{ source: target, record }]);
+    const projection = createProjectionHarness();
+    const source = createLiveTournamentSource({
+      service: setup.service,
+      projectionService: projection.service,
+      profile: 'public',
+    });
+
+    const started = source.start(target);
+    projection.emit(incomplete);
+    await started;
+
+    const publicTournament = competitionData(source.getState().record);
+    expect(source.getState()).toMatchObject({
+      status: 'ready',
+      dataSource: 'legacy',
+      projection: { status: 'fallback', reason: 'partial' },
+    });
+    expect(publicTournament.teams).toHaveLength(2);
+    expect(publicTournament.preferences.clubRosterSize).toBe(8);
+    expect(publicTournament.playOffBracket.stages[0].teams[0].clubEncounter.stages[0].games[0]).toMatchObject({
+      score1: 13,
+      score2: 7,
+      players1: ['a-0'],
+      players2: ['b-0'],
+    });
+  });
+
   it('keeps the barrage start index needed by round presentation without loading the full barrage', async () => {
     const target = { type: 'firebase', ownerUid: 'owner', tournamentId: 'barrage-round' };
     const record = {

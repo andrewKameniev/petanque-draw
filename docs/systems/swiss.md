@@ -1,5 +1,8 @@
 # Swiss System
 
+For club rosters, apply the [club encounter rules](./clubs.md) to each match,
+including its completion threshold and system-specific bye result.
+
 The primary format for petanque tournaments. NOT a round-robin — teams play a limited number of rounds with intelligent pairing.
 
 ## Core Rules

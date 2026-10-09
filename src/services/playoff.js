@@ -1,3 +1,5 @@
+import { isClubCompetition, clubAbsenceGame } from '@/services/club-encounter';
+
 const BRACKET_ORDERS = {
   8: null,
   16: [0, 1, 8, 9, 13, 12, 5, 4, 15, 14, 7, 6, 2, 3, 10, 11],
@@ -19,7 +21,7 @@ const BRACKET_ORDERS = {
   ],
 };
 
-export function buildPlayOffScheme(playOffList, hasCadrage) {
+export function buildPlayOffScheme(playOffList, hasCadrage, tournament) {
   let playOffScheme = [];
   const stageValue = playOffList.length / 2;
 
@@ -54,7 +56,7 @@ export function buildPlayOffScheme(playOffList, hasCadrage) {
         isBye: !!(t1.isBye || t2.isBye),
       };
     }
-    playOffScheme.push(game);
+    playOffScheme.push(game.isBye && isClubCompetition(tournament) ? clubAbsenceGame(game) : game);
   }
 
   playOffScheme = reorderBracket(playOffScheme, stageValue);

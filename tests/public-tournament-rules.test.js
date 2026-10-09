@@ -3,6 +3,8 @@ import { URL } from 'node:url';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import { get, ref, remove, set, update } from 'firebase/database';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { makeClubTournament, clubMatchAfterSingles } from './fixtures/club-competition';
+import { projectPublicTournamentCompetition } from '../src/services/public-tournament-projection';
 
 const PROJECT_ID = 'demo-petanque-draw-public-projection-rules';
 const DATABASE_HOST = '127.0.0.1';
@@ -86,6 +88,50 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
 
   it('denies anonymous projection writes', async () => {
     await assertFails(writeProjection(databaseFor(null), 'owner-1', 'tournament-1', projection()));
+  });
+
+  it.each(['legacy', 'envelope'])('allows club writes only for owner/admin in a %s record', async (shape) => {
+    const tournament = makeClubTournament();
+    const record = shape === 'legacy' ? tournament : { main: tournament };
+    record.collaborators = { 'admin-1': { role: 'admin' }, 'scorer-1': { role: 'scorer' } };
+    await seed('owner-1/tournaments/clubs', record);
+    const game = clubMatchAfterSingles(tournament);
+    const path = `owner-1/tournaments/clubs/${shape === 'legacy' ? '' : 'main/'}games/0/0`;
+    await assertSucceeds(set(ref(databaseFor('owner-1'), path), game));
+    await assertSucceeds(set(ref(databaseFor('admin-1'), path), game));
+    await assertFails(set(ref(databaseFor('scorer-1'), path), game));
+    await assertFails(remove(ref(databaseFor('scorer-1'), `${path}/clubEncounter`)));
+    const publicData = projection();
+    tournament.games[0][0] = game;
+    publicData.record.main = projectPublicTournamentCompetition(tournament);
+    await assertSucceeds(writeProjection(databaseFor('owner-1'), 'owner-1', 'clubs', publicData));
+    await assertFails(
+      set(
+        ref(databaseFor('scorer-1'), 'publicTournaments/owner-1/clubs/record/main/games/0/0'),
+        publicData.record.main.games[0][0],
+      ),
+    );
+    await assertFails(
+      set(
+        ref(databaseFor('owner-1'), 'publicTournaments/owner-1/clubs/record/main/games/0/0/clubEncounter/audit'),
+        game.clubEncounter.audit,
+      ),
+    );
+  });
+
+  it('preserves deep club lineups in public playoff projections', async () => {
+    const tournament = makeClubTournament();
+    tournament.playOffBracket = { stages: [{ stageLabel: 1, teams: [clubMatchAfterSingles(tournament)] }] };
+    const publicData = projection();
+    publicData.record.main = projectPublicTournamentCompetition(tournament);
+    await assertSucceeds(writeProjection(databaseFor('owner-1'), 'owner-1', 'club-playoff', publicData));
+    const snapshot = await get(
+      ref(
+        databaseFor(null),
+        'publicTournaments/owner-1/club-playoff/record/main/playOffBracket/stages/0/teams/0/clubEncounter/stages/0/games/0/players1/0',
+      ),
+    );
+    expect(snapshot.val()).toBe('a-0');
   });
 
   it('allows complete projection writes by the owner and an admin collaborator', async () => {

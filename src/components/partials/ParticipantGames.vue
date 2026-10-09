@@ -78,7 +78,12 @@
             <ArrowUpRight :size="14" />
           </button>
           <div v-if="expandedMatch === `${stage.key}-${mIdx}`" class="participant-games__match-rosters">
-            <PlayerChip v-for="(player, pIdx) in getTeamPlayers(match.opponent)" :key="pIdx" :player="player" />
+            <PlayerChip
+              v-for="(player, pIdx) in getTeamPlayers(match.opponent)"
+              :key="pIdx"
+              :player="player"
+              :show-badges="false"
+            />
           </div>
         </div>
       </div>

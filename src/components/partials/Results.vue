@@ -1,6 +1,29 @@
 <template>
   <div class="content tabs-content">
-    <div v-if="tournament.games?.length || hasPlayOffResults">
+    <section v-if="isClub && !isForProtocol">
+      <label
+        >{{ $t('common.round') }}
+        <select v-model="selectedRound" class="input">
+          <option :value="-1">{{ $t('results.all') }}</option>
+          <option v-for="(_, index) in tournament.games || []" :key="index" :value="index">
+            {{ getRoundLabel(index) }}
+          </option>
+          <option v-if="tournament.cadrage?.length" value="cadrage">{{ $t('games.cadrage') }}</option>
+          <option v-if="hasPlayOffResults" value="playoff">{{ $t('games.playOff') }}</option>
+        </select>
+      </label>
+      <div v-for="entry in clubEntries" :key="entry.key" class="mt-4">
+        <h3>{{ entry.label }}</h3>
+        <ClubEncounter
+          :game="entry.game"
+          :tournament="tournament"
+          :locator="entry.locator"
+          :phase="entry.phase"
+          :read-only="!user || !!previewTournament"
+        />
+      </div>
+    </section>
+    <div v-else-if="tournament.games?.length || hasPlayOffResults">
       <div>
         <div
           v-if="!isForProtocol && (tournament.games?.length || tournament.cadrage?.length || hasPlayOffResults)"
@@ -479,6 +502,8 @@
 
 <script>
 import { defineAsyncComponent } from 'vue';
+import ClubEncounter from '@/components/clubs/ClubEncounter.vue';
+import { isClubCompetition, CLUB_PHASE } from '@/services/club-encounter';
 import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { tournamentNames } from '@/helpers';
@@ -496,7 +521,15 @@ const EditResultModal = defineAsyncComponent(() => import('@/components/partials
 
 export default {
   name: 'Results',
-  components: { Bracket, EditResultModal, Game, GitFork, List, Pencil },
+  components: {
+    ClubEncounter,
+    Bracket,
+    EditResultModal,
+    Game,
+    GitFork,
+    List,
+    Pencil,
+  },
   props: [
     'previewTournament',
     'isForProtocol',
@@ -541,6 +574,47 @@ export default {
     },
   },
   computed: {
+    isClub() {
+      return isClubCompetition(this.tournament);
+    },
+    clubEntries() {
+      const entries = [];
+      const add = (game, key, locator, label, phase) => {
+        if ((game.team_1 && game.team_2) || game.clubAbsence) entries.push({ game, key, locator, label, phase });
+      };
+      (this.tournament.games || []).forEach((round, roundIndex) => {
+        if (this.selectedRound !== -1 && this.selectedRound !== roundIndex) return;
+        round.forEach((game, gameIndex) =>
+          add(
+            game,
+            `r-${roundIndex}-${gameIndex}`,
+            { kind: 'round', roundIndex, gameIndex },
+            this.getRoundLabel(roundIndex),
+            CLUB_PHASE.QUALIFICATION,
+          ),
+        );
+      });
+      if (this.selectedRound === -1 || this.selectedRound === 'cadrage')
+        (this.tournament.cadrage || []).forEach((game, gameIndex) =>
+          add(game, `c-${gameIndex}`, { kind: 'cadrage', gameIndex }, this.$t('games.cadrage'), CLUB_PHASE.PLAYOFF),
+        );
+      if (!this.onlyQualifying && (this.selectedRound === -1 || this.selectedRound === 'playoff')) {
+        (this.tournament.playOffBracket?.stages || []).forEach((stage, stageIndex) =>
+          stage.teams.forEach((game, gameIndex) =>
+            add(
+              game,
+              `p-${stageIndex}-${gameIndex}`,
+              { kind: 'playoff', stageIndex, gameIndex },
+              this.playoffStageLabel(stage),
+              CLUB_PHASE.PLAYOFF,
+            ),
+          ),
+        );
+        const third = this.tournament.playOffBracket?.thirdPlace;
+        if (third) add(third, 'third', { kind: 'thirdPlace' }, this.$t('games.playOff'), CLUB_PHASE.PLAYOFF);
+      }
+      return entries;
+    },
     ...mapState(useMainStore, [
       'tournaments',
       'currentTournamentIndex',

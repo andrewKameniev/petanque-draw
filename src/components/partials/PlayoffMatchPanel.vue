@@ -13,7 +13,7 @@
       <Game
         v-for="entry in stage.matches"
         :key="entry.game.id || `${stage.id}-${entry.gameIndex}`"
-        v-show="!entry.game.isBye"
+        v-show="!entry.game.isBye || entry.game.clubAbsence"
         :active-tournament="tournament"
         :game="entry.game"
         :game-index="entry.gameIndex"
@@ -43,7 +43,7 @@
       data-testid="btn-save-playoff"
       @click="$emit('save')"
     >
-      <Save :size="16" /> {{ $t('games.saveResults') }}
+      <Save :size="16" /> {{ saveLabel || $t('games.saveResults') }}
     </button>
   </section>
 </template>
@@ -61,6 +61,7 @@ export default {
     title: { type: String, required: true },
     scoreError: { type: Boolean, default: false },
     showSave: { type: Boolean, default: true },
+    saveLabel: { type: String, default: '' },
     publicView: { type: Boolean, default: false },
     highlightedTeam: { type: String, default: '' },
     teamClubMap: { type: Object, default: () => ({}) },

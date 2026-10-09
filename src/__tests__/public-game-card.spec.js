@@ -39,7 +39,8 @@ async function renderPublicGame(game, props = {}) {
       }),
   });
   app.config.globalProperties.$t = (key) => translations[key] || key;
-  return renderToString(app);
+  // Slot fragments add SSR comments without changing the visible winner text.
+  return (await renderToString(app)).replace(/<!--\[-->|<!--\]-->/g, '');
 }
 
 describe('public game card characterization', () => {

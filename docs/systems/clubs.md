@@ -97,6 +97,9 @@ Public and archive views use the same encounter
 component in read-only mode. Club setup omits the rating-based draw toggle.
 After a club playoff draw, the organizer sees a tournament-level Bracket tab
 beside Games, using the same embedded bracket as public and archive views.
+That bracket shows current club points from confirmed individual games before
+the encounter is complete. It puts a quoted club name on a second line and
+reserves winner highlighting for a completed encounter.
 Club-specific TV presentation is outside scope.
 
 - `src/services/club-encounter.js`: roster/lineup validation, state transitions,

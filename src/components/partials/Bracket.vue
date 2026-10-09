@@ -33,6 +33,7 @@
             :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
             preserveAspectRatio="xMidYMid meet"
             class="bracket-svg"
+            :class="{ 'bracket-svg--club': isClubBracket }"
           >
             <g v-for="(stage, si) in stages" :key="si">
               <g v-for="(game, gi) in stage.games" :key="gi">
@@ -77,11 +78,18 @@
                 <!-- Team 1 name -->
                 <text
                   :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
-                  :y="game.y + boxHeight / 4 + 4"
+                  :y="game.y + boxHeight / 4 + (game.name1Lines.length > 1 ? -3 : 4)"
                   class="team-name"
                   :class="{ 'team-winner': isWinner(game.data, 1) }"
                 >
-                  {{ truncName(teamLabel(game.data, si, gi, 1), game.data.team_1_place || game.data.team_2_place) }}
+                  <tspan
+                    v-for="(line, index) in game.name1Lines"
+                    :key="index"
+                    :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
+                    :dy="index ? 13 : 0"
+                  >
+                    {{ line }}
+                  </tspan>
                 </text>
                 <!-- Team 1 score -->
                 <path
@@ -90,7 +98,7 @@
                   :class="'score-bg-' + teamBg(game.data, 1, stage.stageLabel)"
                 />
                 <text :x="game.x + boxWidth - 18" :y="game.y + boxHeight / 4 + 4" class="team-score">
-                  {{ game.data.team_1_score }}
+                  {{ displayScore(game.data, 1) }}
                 </text>
                 <!-- Team 2 place badge -->
                 <g v-if="game.data.team_2_place">
@@ -109,11 +117,18 @@
                 <!-- Team 2 name -->
                 <text
                   :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
-                  :y="game.y + (boxHeight * 3) / 4 + 4"
+                  :y="game.y + (boxHeight * 3) / 4 + (game.name2Lines.length > 1 ? -3 : 4)"
                   class="team-name"
                   :class="{ 'team-winner': isWinner(game.data, 2) }"
                 >
-                  {{ truncName(teamLabel(game.data, si, gi, 2), game.data.team_1_place || game.data.team_2_place) }}
+                  <tspan
+                    v-for="(line, index) in game.name2Lines"
+                    :key="index"
+                    :x="game.x + (game.data.team_1_place || game.data.team_2_place ? 30 : 10)"
+                    :dy="index ? 13 : 0"
+                  >
+                    {{ line }}
+                  </tspan>
                 </text>
                 <!-- Team 2 score -->
                 <path
@@ -122,7 +137,7 @@
                   :class="'score-bg-' + teamBg(game.data, 2, stage.stageLabel)"
                 />
                 <text :x="game.x + boxWidth - 18" :y="game.y + (boxHeight * 3) / 4 + 4" class="team-score">
-                  {{ game.data.team_2_score }}
+                  {{ displayScore(game.data, 2) }}
                 </text>
               </g>
             </g>
@@ -159,11 +174,18 @@
               />
               <text
                 :x="thirdPlaceGame.x + 10"
-                :y="thirdPlaceGame.y + boxHeight / 4 + 4"
+                :y="thirdPlaceGame.y + boxHeight / 4 + (thirdPlaceGame.name1Lines.length > 1 ? -3 : 4)"
                 class="team-name"
                 :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 1) }"
               >
-                {{ truncName(thirdPlaceTeamLabel(thirdPlaceGame.data, 1), false) }}
+                <tspan
+                  v-for="(line, index) in thirdPlaceGame.name1Lines"
+                  :key="index"
+                  :x="thirdPlaceGame.x + 10"
+                  :dy="index ? 13 : 0"
+                >
+                  {{ line }}
+                </tspan>
               </text>
               <path
                 v-if="teamBg(thirdPlaceGame.data, 1, 'third')"
@@ -171,15 +193,22 @@
                 :class="'score-bg-' + teamBg(thirdPlaceGame.data, 1, 'third')"
               />
               <text :x="thirdPlaceGame.x + boxWidth - 18" :y="thirdPlaceGame.y + boxHeight / 4 + 4" class="team-score">
-                {{ thirdPlaceGame.data.team_1_score }}
+                {{ displayScore(thirdPlaceGame.data, 1) }}
               </text>
               <text
                 :x="thirdPlaceGame.x + 10"
-                :y="thirdPlaceGame.y + (boxHeight * 3) / 4 + 4"
+                :y="thirdPlaceGame.y + (boxHeight * 3) / 4 + (thirdPlaceGame.name2Lines.length > 1 ? -3 : 4)"
                 class="team-name"
                 :class="{ 'team-winner': isWinner(thirdPlaceGame.data, 2) }"
               >
-                {{ truncName(thirdPlaceTeamLabel(thirdPlaceGame.data, 2), false) }}
+                <tspan
+                  v-for="(line, index) in thirdPlaceGame.name2Lines"
+                  :key="index"
+                  :x="thirdPlaceGame.x + 10"
+                  :dy="index ? 13 : 0"
+                >
+                  {{ line }}
+                </tspan>
               </text>
               <path
                 v-if="teamBg(thirdPlaceGame.data, 2, 'third')"
@@ -191,7 +220,7 @@
                 :y="thirdPlaceGame.y + (boxHeight * 3) / 4 + 4"
                 class="team-score"
               >
-                {{ thirdPlaceGame.data.team_2_score }}
+                {{ displayScore(thirdPlaceGame.data, 2) }}
               </text>
             </g>
             <!-- Connectors -->
@@ -247,8 +276,6 @@ export default {
   },
   data() {
     return {
-      boxWidth: 212,
-      boxHeight: 60,
       colGap: 40,
       rowGap: 16,
       headerHeight: 36,
@@ -258,6 +285,18 @@ export default {
     };
   },
   computed: {
+    isClubBracket() {
+      return (
+        this.bracket.stages?.some((stage) => stage.teams?.some((game) => game.clubEncounter || game.clubAbsence)) ||
+        !!(this.bracket.thirdPlace?.clubEncounter || this.bracket.thirdPlace?.clubAbsence)
+      );
+    },
+    boxWidth() {
+      return this.isClubBracket ? 260 : 212;
+    },
+    boxHeight() {
+      return this.isClubBracket ? 88 : 60;
+    },
     participantCount() {
       const firstStage =
         this.bracket.stages?.find((stage) => stage.stageLabel !== 'cadrage') || this.bracket.stages?.[0];
@@ -287,6 +326,8 @@ export default {
             x,
             y: this.headerHeight + this.padding + gi * spacing + (spacing - this.boxHeight) / 2,
             data,
+            name1Lines: this.teamNameLines(this.teamLabel(data, si, gi, 1), data.team_1_place || data.team_2_place),
+            name2Lines: this.teamNameLines(this.teamLabel(data, si, gi, 2), data.team_1_place || data.team_2_place),
           };
         });
         let label;
@@ -325,6 +366,8 @@ export default {
         x: finalStage.x,
         y: finalGame.y + this.boxHeight + this.rowGap + 170,
         data: tp,
+        name1Lines: this.teamNameLines(this.thirdPlaceTeamLabel(tp, 1), false),
+        name2Lines: this.teamNameLines(this.thirdPlaceTeamLabel(tp, 2), false),
       };
     },
     connectorPaths() {
@@ -432,6 +475,26 @@ export default {
       const maxChars = Math.floor(maxWidth / 6.5);
       if (name.length > maxChars) return name.slice(0, maxChars - 1) + '…';
       return name;
+    },
+    teamNameLines(name, hasPlace) {
+      if (!name) return [''];
+      if (!this.isClubBracket) return [this.truncName(name, hasPlace)];
+      const quoteIndex = name.search(/[«“"]/u);
+      if (quoteIndex > 0) {
+        return [
+          this.truncName(name.slice(0, quoteIndex).trim(), hasPlace),
+          this.truncName(name.slice(quoteIndex).trim(), hasPlace),
+        ];
+      }
+      const textStart = hasPlace ? 30 : 10;
+      const maxChars = Math.floor((this.boxWidth - 38 - textStart) / 6.5);
+      if (name.length <= maxChars) return [name];
+      const breakAt = name.lastIndexOf(' ', maxChars);
+      if (breakAt <= 0) return [this.truncName(name, hasPlace)];
+      return [this.truncName(name.slice(0, breakAt), hasPlace), this.truncName(name.slice(breakAt + 1), hasPlace)];
+    },
+    displayScore(game, team) {
+      return game.clubEncounter?.points?.[team - 1] ?? game[`team_${team}_score`];
     },
     isWinner(game, team) {
       if (!game || game.team_1_score == null || game.team_2_score == null) return false;
@@ -603,6 +666,10 @@ export default {
   fill: var(--bracket-text);
 }
 
+.bracket-svg--club .team-name {
+  font-size: 12px;
+}
+
 .team-name.team-winner {
   font-weight: 700;
 }
@@ -612,6 +679,10 @@ export default {
   font-weight: 700;
   fill: var(--bracket-text);
   text-anchor: middle;
+}
+
+.bracket-svg--club .team-score {
+  font-size: 13px;
 }
 
 .place-badge {

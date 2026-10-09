@@ -57,7 +57,10 @@ shared game card. Save (or Enter) stores the live score without confirming it.
 Finish is a separate action enabled only for a valid final score. Unchanged
 scores cannot be saved again; failed saves retain the draft and display an error
 beside that game. Completed games offer an explicit correction action; cancelling
-a correction discards its draft. Public and overview cards remain read-only.
+a correction discards its draft. Once all unfinished games in a stage have valid
+scores, the referee can confirm those results together in one atomic encounter
+update. Each confirmed game keeps its own audit entry. Public and overview cards
+remain read-only.
 
 Qualification and standalone Swiss/round-robin encounters require all 11 games.
 The official total then sums to 31. Playoff encounters automatically complete
@@ -97,6 +100,9 @@ Public and archive views use the same encounter
 component in read-only mode. Club setup omits the rating-based draw toggle.
 After a club playoff draw, the organizer sees a tournament-level Bracket tab
 beside Games, using the same embedded bracket as public and archive views.
+The playoff-round action appears only when all club encounters in that round
+(including a scheduled third-place encounter) have finished. It advances the
+bracket or finishes the tournament; it does not save scores within an encounter.
 That bracket shows current club points from confirmed individual games before
 the encounter is complete. It puts a quoted club name on a second line and
 reserves winner highlighting for a completed encounter.

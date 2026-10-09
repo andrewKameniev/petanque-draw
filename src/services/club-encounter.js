@@ -8,7 +8,13 @@ export const CLUB_STATUS = Object.freeze({
   NOT_PLAYED: 'not_played',
 });
 export const CLUB_PHASE = Object.freeze({ QUALIFICATION: 'qualification', PLAYOFF: 'playoff' });
-export const CLUB_COMMAND = Object.freeze({ LINEUPS: 'lineups', START: 'start', SCORE: 'score', CONTINUE: 'continue' });
+export const CLUB_COMMAND = Object.freeze({
+  LINEUPS: 'lineups',
+  START: 'start',
+  SCORE: 'score',
+  SCORE_STAGE: 'score_stage',
+  CONTINUE: 'continue',
+});
 export const CLUB_STAGES = Object.freeze([
   Object.freeze({ id: 'singles', count: 6, size: 1, points: 2 }),
   Object.freeze({ id: 'doubles', count: 3, size: 2, points: 3 }),
@@ -275,6 +281,49 @@ export function applyClubEncounterCommand(source, clubs, command, { at, actorId 
       stage.games.forEach((match) => {
         match.status = CLUB_STATUS.ACTIVE;
       });
+    } else if (type === CLUB_COMMAND.SCORE_STAGE) {
+      requireRule(stage.started, CLUB_ERROR.LOCKED);
+      const remaining = stage.games.flatMap((match, index) => (match.status === CLUB_STATUS.COMPLETED ? [] : [index]));
+      const results = command.results;
+      requireRule(
+        Array.isArray(results) && results.length === remaining.length && remaining.length > 0,
+        CLUB_ERROR.SCORE,
+      );
+      requireRule(
+        results.every((result) => result && Number.isInteger(result.gameIndex)),
+        CLUB_ERROR.SCORE,
+      );
+      const byIndex = new Map(results.map((result) => [result.gameIndex, result]));
+      requireRule(
+        byIndex.size === results.length &&
+          remaining.every((index) => {
+            const result = byIndex.get(index);
+            return (
+              stage.games[index].status === CLUB_STATUS.ACTIVE && result && validClubScore(result.score1, result.score2)
+            );
+          }),
+        CLUB_ERROR.SCORE,
+      );
+      const entries = remaining.map((index) => {
+        const match = stage.games[index];
+        const result = byIndex.get(index);
+        const before = [match.score1 ?? null, match.score2 ?? null, match.status];
+        match.score1 = result.score1;
+        match.score2 = result.score2;
+        match.status = CLUB_STATUS.COMPLETED;
+        return {
+          type: CLUB_COMMAND.SCORE,
+          at: at ?? null,
+          actorId: actorId ?? null,
+          stageIndex,
+          gameIndex: index,
+          before,
+          after: [result.score1, result.score2, CLUB_STATUS.COMPLETED],
+        };
+      });
+      recalculate(encounter);
+      encounter.audit = [...(encounter.audit || []), ...entries];
+      return encounter;
     } else {
       requireRule(stage.started && game && game.status !== CLUB_STATUS.NOT_PLAYED, CLUB_ERROR.LOCKED);
       requireRule(!correction || command.complete === true, CLUB_ERROR.LOCKED);

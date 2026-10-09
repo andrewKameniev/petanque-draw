@@ -188,6 +188,41 @@ describe('club match lifecycle', () => {
     encounter = score(encounter, 0, 0, false);
     expect(encounter.points).toEqual([0, 2]);
   });
+  it('confirms a complete stage in one atomic update and rejects any invalid score', () => {
+    const started = start(createClubEncounter(clubs, 8), 0);
+    const results = Array.from({ length: 6 }, (_, gameIndex) => ({ gameIndex, score1: 2, score2: 1 }));
+    expect(() =>
+      apply(started, {
+        type: COMMAND.SCORE_STAGE,
+        stageIndex: 0,
+        results: results.map((result, index) => (index === 5 ? { ...result, score2: 2 } : result)),
+      }),
+    ).toThrow('score');
+    expect(() =>
+      apply(started, { type: COMMAND.SCORE_STAGE, stageIndex: 0, results: [...results.slice(0, 5), null] }),
+    ).toThrow('score');
+    expect(started.points).toEqual([0, 0]);
+    expect(started.stages[0].games.every((game) => game.status === STATUS.ACTIVE)).toBe(true);
+
+    const confirmed = apply(started, { type: COMMAND.SCORE_STAGE, stageIndex: 0, results });
+    expect(confirmed.points).toEqual([12, 0]);
+    expect(confirmed.stages[0].games.every((game) => game.status === STATUS.COMPLETED)).toBe(true);
+    expect(confirmed.audit.slice(-6).map((entry) => entry.gameIndex)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(() => start(confirmed, 1)).not.toThrow();
+  });
+  it('keeps all submitted doubles when a playoff stage passes 16 points mid-batch', () => {
+    let encounter = finishStage(createClubEncounter(clubs, 8, PHASE.PLAYOFF), 0, [0, 1, 2, 3, 4, 5]);
+    encounter = start(encounter, 1);
+    encounter = apply(encounter, {
+      type: COMMAND.SCORE_STAGE,
+      stageIndex: 1,
+      results: [0, 1, 2].map((gameIndex) => ({ gameIndex, score1: 13, score2: 7 })),
+    });
+    expect(encounter.points).toEqual([21, 0]);
+    expect(encounter.status).toBe(STATUS.COMPLETED);
+    expect(encounter.stages[1].games.every((game) => game.status === STATUS.COMPLETED)).toBe(true);
+    expect(encounter.stages[2].games.every((game) => game.status === STATUS.NOT_PLAYED)).toBe(true);
+  });
   it('produces the specified 16:15 example and 31 points after all 11 games', () => {
     let encounter = finishStage(createClubEncounter(clubs, 8), 0, [0, 1, 2, 3]);
     encounter = finishStage(encounter, 1, [0]);

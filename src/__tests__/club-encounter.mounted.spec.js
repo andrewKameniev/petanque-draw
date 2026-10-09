@@ -12,8 +12,15 @@ import {
   clubMatchAfterSingles,
 } from '../../tests/fixtures/club-competition';
 import { CLUB_CHANGE } from '@/services/club-competition';
-import { CLUB_COMMAND, CLUB_PHASE } from '@/services/club-encounter';
+import {
+  CLUB_COMMAND,
+  CLUB_PHASE,
+  createClubEncounter,
+  clubGameWithResult,
+  applyClubEncounterCommand,
+} from '@/services/club-encounter';
 import { clubAbsenceGame, CLUB_ABSENCE } from '@/services/club-encounter';
+import { beginClubStage } from '../../tests/fixtures/club-competition';
 
 const writes = vi.hoisted(() => ({ update: vi.fn(() => Promise.resolve()) }));
 const portal = vi.hoisted(() => ({ fetchTournament: vi.fn() }));
@@ -37,6 +44,7 @@ const { default: ClubEncounter } = await import('@/components/clubs/ClubEncounte
 const { default: AddTeam } = await import('@/components/partials/AddTeam.vue');
 const { default: ClubRosterSetup } = await import('@/components/clubs/ClubRosterSetup.vue');
 const { default: Games } = await import('@/components/partials/Games.vue');
+const { default: PlayOff } = await import('@/components/partials/PlayOff.vue');
 const { useMainStore } = await import('@/stores/main');
 
 describe('club forms and persistence', () => {
@@ -90,6 +98,32 @@ describe('club forms and persistence', () => {
       'Триплети',
     ]);
     expect(writes.update).not.toHaveBeenCalled();
+  });
+  it('confirms a completed singles score sheet together and unlocks doubles', async () => {
+    const tournament = store.activeTournament;
+    const singles = beginClubStage(
+      createClubEncounter(tournament.teams, 8, CLUB_PHASE.QUALIFICATION),
+      tournament.teams,
+      0,
+    );
+    tournament.games[0][0] = clubGameWithResult(tournament.games[0][0], singles);
+    editor();
+    await wrapper.findAll('[role=tab]')[1].trigger('click');
+    expect(button('Підтвердити результати етапу').element.disabled).toBe(true);
+    for (const form of wrapper.findAll('.club-encounter__score-form')) {
+      await form.findAll('input')[0].setValue(2);
+      await form.findAll('input')[1].setValue(1);
+    }
+    expect(button('Підтвердити результати етапу').element.disabled).toBe(false);
+    await button('Підтвердити результати етапу').trigger('click');
+    await flushPromises();
+    expect(writes.update).toHaveBeenCalledOnce();
+    expect(tournament.games[0][0].clubEncounter.stages[0].games.every((game) => game.status === 'completed')).toBe(
+      true,
+    );
+    expect(tournament.games[0][0].clubEncounter.points).toEqual([12, 0]);
+    await wrapper.findAll('[role=tab]')[2].trigger('click');
+    expect(button('Внести бланки капітанів').exists()).toBe(true);
   });
   it('enters paper positions, starts singles and separates live scores from confirmed points', async () => {
     editor();
@@ -377,5 +411,51 @@ describe('club forms and persistence', () => {
     await flushPromises();
     expect(wrapper.text()).not.toContain('Не зіграно');
     expect(store.activeTournament.playOffBracket.stages[0].teams[0].team_1_score).toBeNull();
+  });
+  it('offers playoff advancement only after both club encounters are complete', async () => {
+    const tournament = store.activeTournament;
+    tournament.teams.push(makeClub('c'), makeClub('d'));
+    const first = clubMatchAfterSingles({ ...tournament, teams: tournament.teams.slice(0, 2) }, CLUB_PHASE.PLAYOFF);
+    const secondSource = {
+      ...tournament,
+      teams: tournament.teams.slice(2),
+      games: [[{ team_1: 'Club c', team_2: 'Club d', status: 'not_started' }]],
+    };
+    const second = clubMatchAfterSingles(secondSource, CLUB_PHASE.PLAYOFF);
+    tournament.playOff = [first, second];
+    tournament.playOffStage = 2;
+    tournament.playOffBracket = {
+      stages: [
+        { stageLabel: 2, teamsCount: 4, teams: [first, second] },
+        { stageLabel: 1, teamsCount: 2, teams: [{ team_1: null, team_2: null }] },
+      ],
+    };
+    wrapper = mount(PlayOff, {
+      props: { activeTournament: tournament },
+      global: { plugins: [pinia, i18n()], stubs: { Game: true } },
+    });
+    expect(wrapper.find('[data-testid="btn-save-playoff"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Завершіть клубні зустрічі');
+
+    for (const [index, source] of [first, second].entries()) {
+      let encounter = source.clubEncounter;
+      for (let gameIndex = 0; gameIndex < 2; gameIndex++)
+        encounter = applyClubEncounterCommand(encounter, tournament.teams.slice(index * 2, index * 2 + 2), {
+          type: CLUB_COMMAND.SCORE,
+          stageIndex: 1,
+          gameIndex,
+          score1: 13,
+          score2: 7,
+          complete: true,
+        });
+      tournament.playOffBracket.stages[0].teams[index] = clubGameWithResult(source, encounter);
+    }
+    await flushPromises();
+    expect(wrapper.get('[data-testid="btn-save-playoff"]').text()).toContain('Перейти до наступного раунду');
+    await wrapper.get('[data-testid="btn-save-playoff"]').trigger('click');
+    await flushPromises();
+    expect(tournament.playOffStage).toBe(1);
+    expect(tournament.playOffBracket.stages[1].teams[0].team_1).toBe('Club a');
+    expect(tournament.playOffBracket.stages[1].teams[0].team_2).toBe('Club c');
   });
 });

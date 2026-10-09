@@ -29,6 +29,10 @@ export default {
     gameScore: 'Score de la partie',
     winner: 'Vainqueur : {club}',
     continue: 'Continuer les parties',
+    confirmStageResults: 'Confirmer les résultats de la phase',
+    completeEncountersFirst: 'Terminez les rencontres entre clubs pour passer au tour suivant.',
+    advancePlayoff: 'Passer au tour suivant',
+    finishPlayoff: 'Terminer les éliminatoires',
     phase: {
       qualification: 'Les 11 parties obligatoires',
       playoff: 'Phase finale · victoire à 16 points ou plus',
@@ -58,7 +62,8 @@ export default {
     femaleSingle: 'Tête-à-tête féminin',
     mixed: 'Mixte',
     scoreFor: 'Score : {club}',
-    scoreHint: 'Entrée enregistre le score. Terminez lorsque les scores sont différents.',
+    scoreHint:
+      'Entrée enregistre le score provisoire. Saisissez tous les scores sans égalité pour confirmer la phase ensemble.',
     unsavedScore: 'Modifications non enregistrées',
     savedScore: 'Enregistré',
     saveLive: 'Enregistrer',

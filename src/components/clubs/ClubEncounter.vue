@@ -307,6 +307,25 @@
             </button>
           </component>
         </template>
+        <div
+          v-if="
+            editable &&
+            activeTab === stage.id &&
+            stage.started &&
+            completedGames(stage) < definitions[stageIndex].count &&
+            encounter.status !== statuses.COMPLETED
+          "
+          class="club-match__actions"
+        >
+          <button
+            type="button"
+            class="button is-success is-small"
+            :disabled="busy || !canConfirmStage(stageIndex)"
+            @click="confirmStage(stageIndex)"
+          >
+            {{ $t('club.confirmStageResults') }}
+          </button>
+        </div>
       </section>
       <details v-if="editable && activeTab === 'games' && encounter.audit?.length" class="club-match__audit">
         <summary>{{ $t('club.audit') }}</summary>
@@ -542,6 +561,38 @@ export default {
         return false;
       if (complete && match.status !== CLUB_STATUS.COMPLETED) return true;
       return this.hasScoreChanges(stageIndex, gameIndex) && (complete || match.status !== CLUB_STATUS.COMPLETED);
+    },
+    canConfirmStage(stageIndex) {
+      const remaining = this.encounter.stages[stageIndex].games
+        .map((game, gameIndex) => ({ game, gameIndex }))
+        .filter(({ game }) => game.status !== CLUB_STATUS.COMPLETED);
+      return (
+        remaining.length > 0 &&
+        remaining.every(
+          ({ game, gameIndex }) => game.status === CLUB_STATUS.ACTIVE && this.canSaveScore(stageIndex, gameIndex, true),
+        )
+      );
+    },
+    async confirmStage(stageIndex) {
+      if (!this.canConfirmStage(stageIndex)) return;
+      const results = this.encounter.stages[stageIndex].games.flatMap((game, gameIndex) =>
+        game.status === CLUB_STATUS.COMPLETED
+          ? []
+          : [
+              {
+                gameIndex,
+                score1: this.draftScore(stageIndex, gameIndex, 0),
+                score2: this.draftScore(stageIndex, gameIndex, 1),
+              },
+            ],
+      );
+      if (await this.perform({ type: CLUB_COMMAND.SCORE_STAGE, stageIndex, results })) {
+        results.forEach(({ gameIndex }) => {
+          [0, 1].forEach((side) => {
+            delete this.scoreDrafts[`${stageIndex}-${gameIndex}-${side}`];
+          });
+        });
+      }
     },
     cancelScoreEdit(stageIndex, gameIndex) {
       [0, 1].forEach((side) => {

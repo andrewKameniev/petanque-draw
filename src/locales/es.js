@@ -29,6 +29,10 @@ export default {
     gameScore: 'Marcador de la partida',
     winner: 'Ganador: {club}',
     continue: 'Continuar las partidas',
+    confirmStageResults: 'Confirmar resultados de la fase',
+    completeEncountersFirst: 'Termina los encuentros entre clubes para pasar a la siguiente ronda.',
+    advancePlayoff: 'Pasar a la siguiente ronda',
+    finishPlayoff: 'Finalizar eliminatorias',
     phase: {
       qualification: 'Las 11 partidas obligatorias',
       playoff: 'Eliminatorias · victoria con 16 puntos o más',
@@ -58,7 +62,8 @@ export default {
     femaleSingle: 'Individual femenino',
     mixed: 'Mixto',
     scoreFor: 'Marcador: {club}',
-    scoreHint: 'Intro guarda el marcador. Finaliza cuando los marcadores sean diferentes.',
+    scoreHint:
+      'Intro guarda el marcador provisional. Introduce todos los marcadores sin empate para confirmar la fase a la vez.',
     unsavedScore: 'Cambios sin guardar',
     savedScore: 'Guardado',
     saveLive: 'Guardar',

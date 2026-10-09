@@ -406,10 +406,15 @@ describe('club forms and persistence', () => {
       await flushPromises();
     }
     expect(wrapper.text()).toContain('Переможець: Club a');
-    expect(wrapper.text()).toContain('Не зіграно');
+    expect(store.activeTournament.playOffBracket.stages[0].teams[0].clubEncounter.stages[1].games[2].status).toBe(
+      'not_played',
+    );
+    expect(wrapper.findAll('[data-testid="club-game"]')[2].find('.match-item--upcoming').exists()).toBe(true);
     await button('Продовжити ігри').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).not.toContain('Не зіграно');
+    expect(store.activeTournament.playOffBracket.stages[0].teams[0].clubEncounter.stages[1].games[2].status).toBe(
+      'in_progress',
+    );
     expect(store.activeTournament.playOffBracket.stages[0].teams[0].team_1_score).toBeNull();
   });
   it('offers playoff advancement only after both club encounters are complete', async () => {

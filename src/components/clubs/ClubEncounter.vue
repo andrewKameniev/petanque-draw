@@ -194,10 +194,9 @@
             data-testid="club-game"
             @submit.prevent="saveScore(stageIndex, gameIndex, match.status === statuses.COMPLETED)"
           >
-            <div class="club-match__game-meta">
-              <span :class="{ 'club-match__special': gameIndex === 0 }">{{ positionLabel(stageIndex, gameIndex) }}</span
-              ><span>{{ $t(`club.status.${match.status}`) }}</span>
-            </div>
+            <p v-if="gameIndex === 0" class="club-match__special">
+              {{ $t(stageIndex === 0 ? 'club.femaleSingle' : 'club.mixed') }}
+            </p>
             <PublicGameCard
               :game="individualGame(match)"
               :lane-number="match.position"
@@ -933,18 +932,10 @@ export default {
   margin-bottom: 0.75rem;
 }
 
-.club-match__game-meta {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
-  margin: 0 0.2rem 0.25rem;
-  color: var(--color-text-muted);
-  font-size: 11px;
-}
-
 .club-match__special {
+  margin: 0 0.2rem 0.25rem;
   color: var(--color-primary);
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -1268,10 +1259,6 @@ export default {
   .club-match__score-inputs .input {
     justify-self: center;
     width: 64px;
-  }
-
-  .club-match__game-meta {
-    font-size: 10px;
   }
 }
 </style>

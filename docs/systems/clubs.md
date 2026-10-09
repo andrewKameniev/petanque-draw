@@ -89,8 +89,10 @@ or nine; the selected system's existing limits apply.
 The encounter uses the shared `TournamentNav` for overview, singles, doubles
 and triples. Tournament-level Teams shows the complete, fixed club rosters;
 they are not repeated inside each encounter. Overview displays all 11 games;
-only a discipline tab has lineup and score controls. Game captions show status only; club points are
-shown in the stage and encounter totals. Completed scores have an explicit correction action.
+only a discipline tab has lineup and score controls. The card itself shows the
+game number and completion through its styling; only the designated women-only or
+mixed game has an extra caption. Club points are shown in the stage and
+encounter totals. Completed scores have an explicit correction action.
 `PublicGameCard` provides match presentation and `PlayerChip` provides player
 photos and names. Rating, sport-title and captain badges appear only in team
 and roster lists, including import review. Match cards, encounter overview and

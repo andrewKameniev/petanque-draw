@@ -389,6 +389,15 @@ describe('Tournament B store actions', () => {
       expect(store.currentTournament.tournamentB.games).toHaveLength(0);
     });
 
+    it('restores the second B round when some teams have no opponents list', () => {
+      store.setActiveGroup('B');
+      store.currentTournament.tournamentB.games = [[{ team_1: 'B1', team_2: 'B2' }], [{ team_1: 'B1', team_2: 'B2' }]];
+      delete store.currentTournament.tournamentB.teams[0].opponents;
+
+      expect(() => store.restoreRound()).not.toThrow();
+      expect(store.currentTournament.tournamentB.games).toHaveLength(1);
+    });
+
     it('setPlayOff sets on tournamentB when active', () => {
       store.setActiveGroup('B');
       store.setPlayOff([{ teams: [{ title: 'B1' }, { title: 'B2' }] }]);

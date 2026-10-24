@@ -721,7 +721,7 @@ export const useMainStore = defineStore('main', {
     restoreRound() {
       const { data, prefix } = this._getTarget();
       data.games.pop();
-      data.teams.forEach((team) => team.opponents.pop());
+      data.teams.forEach((team) => team.opponents?.pop());
       data.teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
       });

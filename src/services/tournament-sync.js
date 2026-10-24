@@ -63,8 +63,18 @@ const LEGACY_SIMPLE_PATHS = [
   'tirStarted',
   'tirConfig',
   'activeGroup',
-  'groupB',
   'ranking',
+];
+
+const GROUP_B_EXTRA_PATHS = [
+  'tournamentIsStarted',
+  'isCadrage',
+  'useRating',
+  'poulesRound',
+  'isTournamentB',
+  'supermelePlayers',
+  'supermeleMode',
+  'supermeleTetATet',
 ];
 
 const HISTORICAL_RESULT_TEAM_FIELDS = Object.freeze(['wins', 'opponents', 'pointsPlus', 'pointsMinus']);
@@ -341,34 +351,35 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       });
   }
 
-  function mergeOptions() {
-    const { prefix } = getTournamentStorageTarget(context().tournament, context().tournament?.activeGroup);
+  function mergeOptions(prefix) {
+    prefix ??= getTournamentStorageTarget(context().tournament, context().tournament?.activeGroup).prefix;
     return { prefix, recentSyncs: store._recentMatchSyncs || recentMatchSyncs };
   }
 
-  function applyCompetitionValue(path, value, localCompetition) {
+  function applyCompetitionValue(path, value, localCompetition, prefix) {
     if (!localCompetition || value === undefined) return;
     if (path === 'games') {
       if (value === null || (value && localCompetition.games && localCompetition.roundIsActive)) {
-        mergeGames(localCompetition, { games: value }, mergeOptions());
+        if (value && value.length !== localCompetition.games.length) localCompetition.games = value;
+        else mergeGames(localCompetition, { games: value }, mergeOptions(prefix));
       }
       return;
     }
     if (path === 'cadrage') {
       if (value === null || (value && localCompetition.cadrage)) {
-        mergeCadrage(localCompetition, { cadrage: value }, mergeOptions());
+        mergeCadrage(localCompetition, { cadrage: value }, mergeOptions(prefix));
       }
       return;
     }
     if (path === 'playOffBracket') {
       if (value === null || (value && localCompetition.playOffBracket)) {
-        mergeBracketPlayoff(localCompetition, { playOffBracket: value }, mergeOptions());
+        mergeBracketPlayoff(localCompetition, { playOffBracket: value }, mergeOptions(prefix));
       }
       return;
     }
     if (path === 'tirPlayoff' || path === 'teamPlayoff') {
-      if (path === 'tirPlayoff') mergeTirPlayoff(localCompetition, { [path]: value }, mergeOptions());
-      else mergeTeamPlayoff(localCompetition, { [path]: value }, mergeOptions());
+      if (path === 'tirPlayoff') mergeTirPlayoff(localCompetition, { [path]: value }, mergeOptions(prefix));
+      else mergeTeamPlayoff(localCompetition, { [path]: value }, mergeOptions(prefix));
       return;
     }
     if (path === 'roundIsActive' && !value && localCompetition.roundIsActive) {
@@ -408,6 +419,28 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       if (typeof unsubscribe === 'function') tournamentUnsubscribers.push(unsubscribe);
     };
 
+    const subscribeGroupB = (prefix) => {
+      let observedGroupB = false;
+      subscribePath(prefix.slice(0, -1), (value, local) => {
+        if (value == null) {
+          if (observedGroupB) local[isTournamentEnvelope(local) ? 'tournamentB' : 'groupB'] = null;
+          return;
+        }
+        observedGroupB = true;
+        if (getTournamentStorageTarget(local, 'B', { allowFallback: false }).exists) return;
+        store.tournaments[tournamentId] = normalizeTournamentRecord(replaceTournamentGroup(local, 'B', value), {
+          id: tournamentId,
+          ownerUid: local._ownerUid,
+        });
+      });
+      [...MAIN_PATHS, ...GROUP_B_EXTRA_PATHS].forEach((path) => {
+        subscribePath(`${prefix}${path}`, (value, local) => {
+          const groupB = getTournamentStorageTarget(local, 'B', { allowFallback: false }).data;
+          applyCompetitionValue(path, value, groupB, prefix);
+        });
+      });
+    };
+
     if (isTournamentEnvelope(tournament)) {
       const mainPrefix = getTournamentStorageTarget(tournament, 'A').prefix;
       const groupBPrefix = getTournamentStorageTarget(tournament, 'B', { allowFallback: false }).prefix;
@@ -416,27 +449,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
           applyCompetitionValue(path, value, getTournamentMain(store.tournaments[tournamentId]));
         });
       });
-      let observedGroupB = false;
-      subscribePath(groupBPrefix.slice(0, -1), (value, local) => {
-        if (value == null) {
-          if (observedGroupB) local.tournamentB = null;
-          return;
-        }
-        observedGroupB = true;
-        const recentSubPaths = [...recentSyncPaths].filter((path) => path.startsWith(groupBPrefix));
-        if (recentSubPaths.length) {
-          recentSubPaths.forEach((path) => recentSyncPaths.delete(path));
-          return;
-        }
-        const localGroupB = getTournamentStorageTarget(local, 'B', { allowFallback: false }).data;
-        if (localGroupB) Object.assign(localGroupB, value);
-        else {
-          store.tournaments[tournamentId] = normalizeTournamentRecord(replaceTournamentGroup(local, 'B', value), {
-            id: tournamentId,
-            ownerUid: local._ownerUid,
-          });
-        }
-      });
+      subscribeGroupB(groupBPrefix);
       ['activeGroup', 'tournamentMessage', 'name'].forEach((path) => {
         subscribePath(path, (value, local) => {
           if (value !== undefined) local[path] = value;
@@ -455,6 +468,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       });
     });
     subscribePath('roundIsActive', (value, local) => applyCompetitionValue('roundIsActive', value, local));
+    subscribeGroupB(getTournamentStorageTarget(tournament, 'B', { allowFallback: false }).prefix);
   }
 
   function scheduleTournamentMessage(message) {

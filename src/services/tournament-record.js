@@ -300,3 +300,35 @@ export function updateTournamentGroup(record, group, patch) {
   const current = getTournamentStorageTarget(record, group, { allowFallback: false }).data || {};
   return replaceTournamentGroup(record, group, { ...current, ...cloneValue(patch) });
 }
+
+/** Plan an explicit legacy-to-envelope migration without changing persisted data. */
+export function migrateLegacyTournamentRecord(record) {
+  if (!isObject(record) || isTournamentEnvelope(record)) {
+    throw new Error('MIGRATION_REQUIRES_LEGACY_RECORD');
+  }
+  if (!isObject(record.groupB) || !Array.isArray(record.groupB.teams) || !Array.isArray(record.groupB.games)) {
+    throw new Error('MIGRATION_REQUIRES_GROUP_B');
+  }
+  if (typeof record.system !== 'string' || !Array.isArray(record.teams) || !Array.isArray(record.games)) {
+    throw new Error('MIGRATION_INVALID_GROUP_A');
+  }
+  if (typeof record.groupB.system !== 'string') {
+    throw new Error('MIGRATION_INVALID_GROUP_B');
+  }
+  if (isObject(record.tournamentB) && Array.isArray(record.tournamentB.games) && record.tournamentB.games.length) {
+    throw new Error('MIGRATION_CONFLICTING_GROUP_B');
+  }
+
+  const metadata = getTournamentMetadata(record);
+  const main = Object.fromEntries(
+    Object.entries(record)
+      .filter(([key]) => !Object.hasOwn(metadata, key) && !['activeGroup', 'groupB', 'tournamentB'].includes(key))
+      .map(([key, value]) => [key, cloneValue(value)]),
+  );
+  return {
+    ...metadata,
+    activeGroup: record.activeGroup === TOURNAMENT_GROUP_B ? TOURNAMENT_GROUP_B : TOURNAMENT_GROUP_A,
+    main,
+    tournamentB: cloneValue(record.groupB),
+  };
+}

@@ -166,6 +166,29 @@ tournament record. Eligible finished portal tournaments may also receive a
 public `archive/` index entry and a write-once `backups/` payload. The old
 `saved/` tree is a compatibility source, not the current archive destination.
 
+## Manual legacy tournament conversion
+
+`scripts/migrate-legacy-tournament.mjs` converts one explicitly named legacy
+record to the envelope format. Its default dry run saves the exact canonical
+record, public projection, proposed envelope, and an audit report under the
+specified local snapshot directory. Keep that directory outside version control
+and retain its access-restricted files until the tournament has been verified.
+The conversion preserves root metadata and Group A under `main`, moves the live
+`groupB` into `tournamentB`, and saves any stale pre-existing `tournamentB` only
+in the backup. It refuses a conflicting `tournamentB` with games or a change to
+the public projection.
+
+Production apply requires separate authorization, exact project/owner/tournament
+confirmations, and confirmation that all editors and scorers have paused and
+closed their tournament tabs. The script refuses an active round, takes fresh
+snapshots, and uses a full-record compare-and-swap transaction so a concurrent
+canonical change aborts the migration. It leaves the public projection alone
+because the dry run proves it is identical. After a successful apply, all
+editors and scorers must reload before scoring resumes; a tab still subscribed
+to legacy paths can write those paths again. If post-write verification fails,
+inspect the saved snapshots and current remote state before any retry or
+rollback.
+
 ## Test safety
 
 The current Playwright suite can write to the remote project and is disabled

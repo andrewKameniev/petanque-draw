@@ -173,7 +173,7 @@ describe('canonical tournament record adapter', () => {
     const source = {
       ...legacy,
       collaborators: { scorer: { role: 'scorer' } },
-      tournamentB: { system: 'groups', teams: [{ title: 'Stale B' }], roundIsActive: false },
+      tournamentB: { system: 'groups', teams: [{ title: 'Live B' }], roundIsActive: false },
       groupB: {
         system: 'swiss',
         teams: [{ title: 'Live B', wins: 1 }],
@@ -200,7 +200,6 @@ describe('canonical tournament record adapter', () => {
     });
     expect(migrated).not.toHaveProperty('groupB');
     expect(migrated).not.toHaveProperty('games');
-    expect(migrated.tournamentB).not.toHaveProperty('title', 'Stale B');
     expect(source).toEqual(original);
     migrated.tournamentB.teams[0].wins = 9;
     expect(source.groupB.teams[0].wins).toBe(1);
@@ -213,6 +212,12 @@ describe('canonical tournament record adapter', () => {
       tournamentB: { system: 'swiss', games: [[{ status: 'finished' }]] },
     };
     expect(() => migrateLegacyTournamentRecord(source)).toThrow('MIGRATION_CONFLICTING_GROUP_B');
+    expect(() =>
+      migrateLegacyTournamentRecord({
+        ...source,
+        tournamentB: { system: 'swiss', teams: [{ title: 'Different entrant' }] },
+      }),
+    ).toThrow('MIGRATION_CONFLICTING_GROUP_B');
     expect(() => migrateLegacyTournamentRecord(wrapper)).toThrow('MIGRATION_REQUIRES_LEGACY_RECORD');
   });
 });

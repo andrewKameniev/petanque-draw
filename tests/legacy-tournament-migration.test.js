@@ -30,7 +30,11 @@ const legacy = {
     ],
     roundIsActive: true,
   },
-  tournamentB: { system: 'swiss', teams: [{ title: 'Stale B' }], roundIsActive: false },
+  tournamentB: {
+    system: 'swiss',
+    teams: [{ title: 'B1' }, { title: 'B2' }],
+    roundIsActive: false,
+  },
 };
 
 describe('legacy tournament migration', () => {

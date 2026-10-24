@@ -400,6 +400,38 @@ describe('Tournament B store actions', () => {
       expect(store.currentTournament.tournamentB.teams[1].opponents).toEqual(['B1']);
     });
 
+    it('keeps a legacy B tournament on round two after restoring and redrawing it', () => {
+      const id = store.currentTournamentIndex;
+      const firstRound = [{ team_1: 'B1', team_2: 'B2', team_1_score: 13, team_2_score: 7, status: 'finished' }];
+      const secondRound = [{ team_1: 'B1', team_2: 'B2', team_1_score: null, team_2_score: null }];
+      store.tournaments[id] = {
+        activeGroup: 'B',
+        system: 'swiss',
+        games: [],
+        teams: [],
+        groupB: {
+          system: 'swiss',
+          games: [firstRound],
+          teams: [
+            { title: 'B1', opponents: ['B2'] },
+            { title: 'B2', opponents: ['B1'] },
+          ],
+          roundIsActive: false,
+        },
+      };
+
+      store.addRoundToGames(secondRound);
+      expect(store.activeTournament.games).toHaveLength(2);
+      store.restoreRound();
+      expect(store.activeTournament.games).toEqual([firstRound]);
+      expect(store.activeTournament.teams[0].opponents).toEqual(['B2']);
+      store.addRoundToGames(secondRound);
+
+      expect(store.activeTournament.games).toHaveLength(2);
+      expect(store.activeTournament.roundIsActive).toBe(true);
+      expect(store._getTarget().prefix).toBe('groupB/');
+    });
+
     it('setPlayOff sets on tournamentB when active', () => {
       store.setActiveGroup('B');
       store.setPlayOff([{ teams: [{ title: 'B1' }, { title: 'B2' }] }]);

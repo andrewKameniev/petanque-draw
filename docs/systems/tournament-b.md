@@ -85,6 +85,12 @@ record adapter used by `_getTarget()`:
 
 Envelope Group B data syncs under `tournamentB/`; legacy Group B data remains
 under `groupB/`. The `syncGameMatch` action routes to the matching
-`{prefix}games/{round}/{game}` path. No Firebase migration is performed, and
+`{prefix}games/{round}/{game}` path. Authenticated editors observe B creation
+and removal at the group node, then receive scores, teams, and round state from
+field listeners. A pending local match edit is retained while other B fields
+change. A scorer collaborator may write legacy B games under `groupB/games`;
+round and team management stays with the owner or admin. Drawing a round while
+one is already active does nothing, and restoring an active round keeps the
+completed rounds' opponent history. No Firebase migration is performed, and
 existing public links, archive ownership paths, and shared-owner paths remain
 unchanged.

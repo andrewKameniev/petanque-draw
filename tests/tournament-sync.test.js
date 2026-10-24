@@ -319,7 +319,7 @@ describe('tournament synchronization runtime', () => {
       activeGroup: 'B',
       games: [],
       teams: [],
-      groupB: { games: [[{ score: 13 }]], teams: [], roundIsActive: true },
+      groupB: { games: [[{ score: 13 }]], teams: [], roundIsActive: false },
     };
     const { runtime, subscriptions } = harness(record);
     runtime.subscribeTournament();
@@ -328,6 +328,8 @@ describe('tournament synchronization runtime', () => {
 
     expect(record.groupB.games).toHaveLength(2);
     expect(record.groupB.games[0][0].score).toBe(13);
+    subscriptions.get('user1/tournaments/t1/groupB/roundIsActive').callback(snapshot(true));
+    expect(record.groupB.roundIsActive).toBe(true);
   });
 
   it.each([

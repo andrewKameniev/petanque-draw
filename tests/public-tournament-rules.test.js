@@ -90,6 +90,27 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
     await assertFails(writeProjection(databaseFor(null), 'owner-1', 'tournament-1', projection()));
   });
 
+  it('allows a scorer to save a legacy Group B game without granting team edits', async () => {
+    await seed('owner-1/tournaments/legacy-b', {
+      system: 'swiss',
+      games: [],
+      teams: [],
+      collaborators: { 'scorer-1': { role: 'scorer' } },
+      groupB: {
+        system: 'swiss',
+        games: [[{ team_1: 'Alpha', team_2: 'Beta', team_1_score: null, team_2_score: null }]],
+        teams: [{ title: 'Alpha' }, { title: 'Beta' }],
+      },
+    });
+
+    const gamePath = 'owner-1/tournaments/legacy-b/groupB/games/0/0/team_1_score';
+    await assertSucceeds(set(ref(databaseFor('scorer-1'), gamePath), 13));
+    await assertFails(set(ref(databaseFor('unrelated-1'), gamePath), 7));
+    await assertFails(
+      set(ref(databaseFor('scorer-1'), 'owner-1/tournaments/legacy-b/groupB/teams/0/title'), 'Changed'),
+    );
+  });
+
   it.each(['legacy', 'envelope'])('allows club writes only for owner/admin in a %s record', async (shape) => {
     const tournament = makeClubTournament();
     const record = shape === 'legacy' ? tournament : { main: tournament };

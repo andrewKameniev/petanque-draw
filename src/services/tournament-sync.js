@@ -359,7 +359,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
   function applyCompetitionValue(path, value, localCompetition, prefix) {
     if (!localCompetition || value === undefined) return;
     if (path === 'games') {
-      if (value === null || (value && localCompetition.games && localCompetition.roundIsActive)) {
+      if (value === null || (value && localCompetition.games)) {
         if (value && value.length !== localCompetition.games.length) localCompetition.games = value;
         else mergeGames(localCompetition, { games: value }, mergeOptions(prefix));
       }

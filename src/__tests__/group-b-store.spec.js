@@ -34,7 +34,7 @@ vi.mock('firebase/database', () => ({
 
 const { useMainStore } = await import('../stores/main');
 
-describe('Tournament B store actions (new format)', () => {
+describe('Tournament B store actions', () => {
   let store;
 
   beforeEach(() => {
@@ -144,6 +144,27 @@ describe('Tournament B store actions (new format)', () => {
         tournamentB: store.currentTournament.tournamentB,
         activeGroup: 'A',
       });
+    });
+
+    it('creates Group B at the legacy groupB path', () => {
+      const id = store.currentTournamentIndex;
+      store.tournaments[id] = {
+        system: 'swiss',
+        teams: [{ title: 'Main team' }],
+        games: [],
+        preferences: { playOffEnabled: true, playOffTeams: 2 },
+        activeGroup: 'A',
+      };
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockImplementation(() => undefined);
+
+      store.initTournamentB([{ title: 'B team' }]);
+
+      expect(store.currentTournament.groupB.teams.map((team) => team.title)).toEqual(['B team']);
+      expect(store.currentTournament.tournamentB).toBeUndefined();
+      expect(syncPaths).toHaveBeenCalledWith({ groupB: store.currentTournament.groupB, activeGroup: 'A' });
+      store.setActiveGroup('B');
+      expect(store.activeTournament).toBe(store.currentTournament.groupB);
+      expect(store._getTarget().prefix).toBe('groupB/');
     });
 
     it('clones teams', () => {

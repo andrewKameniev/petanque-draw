@@ -393,9 +393,11 @@ describe('Tournament B store actions', () => {
       store.setActiveGroup('B');
       store.currentTournament.tournamentB.games = [[{ team_1: 'B1', team_2: 'B2' }], [{ team_1: 'B1', team_2: 'B2' }]];
       delete store.currentTournament.tournamentB.teams[0].opponents;
+      store.currentTournament.tournamentB.teams[1].opponents = ['B1'];
 
       expect(() => store.restoreRound()).not.toThrow();
       expect(store.currentTournament.tournamentB.games).toHaveLength(1);
+      expect(store.currentTournament.tournamentB.teams[1].opponents).toEqual(['B1']);
     });
 
     it('setPlayOff sets on tournamentB when active', () => {

@@ -282,6 +282,57 @@ describe('tournament synchronization runtime', () => {
   });
 
   it.each([
+    [
+      'legacy',
+      { activeGroup: 'B', games: [], teams: [], groupB: { games: [[{ score: 7 }]], teams: [], roundIsActive: true } },
+      'groupB',
+    ],
+    [
+      'envelope',
+      envelopeRecord({ activeGroup: 'B', tournamentB: { games: [[{ score: 7 }]], teams: [], roundIsActive: true } }),
+      'tournamentB',
+    ],
+  ])('keeps pending %s B scores when another B field changes', async (_format, record, key) => {
+    const { runtime, subscriptions } = harness(record);
+    runtime.subscribeTournament();
+    const groupB = record[key];
+
+    runtime.syncMatchDebounced(`${key}/games`, '0/0', { score: 7 });
+    subscriptions.get(`user1/tournaments/t1/${key}`).callback(
+      snapshot({
+        games: [[{ score: 0 }]],
+        teams: [],
+        roundIsActive: true,
+      }),
+    );
+    subscriptions.get(`user1/tournaments/t1/${key}/games`).callback(snapshot([[{ score: 0 }]]));
+
+    expect(record[key]).toBe(groupB);
+    expect(groupB.games[0][0].score).toBe(7);
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(runtime.recentMatchSyncs.size).toBe(0);
+  });
+
+  it('receives a new B round through the games leaf without counting it twice', () => {
+    const record = {
+      activeGroup: 'B',
+      games: [],
+      teams: [],
+      groupB: { games: [[{ score: 13 }]], teams: [], roundIsActive: false },
+    };
+    const { runtime, subscriptions } = harness(record);
+    runtime.subscribeTournament();
+
+    subscriptions.get('user1/tournaments/t1/groupB/games').callback(snapshot([[{ score: 13 }], [{ score: null }]]));
+
+    expect(record.groupB.games).toHaveLength(2);
+    expect(record.groupB.games[0][0].score).toBe(13);
+    subscriptions.get('user1/tournaments/t1/groupB/roundIsActive').callback(snapshot(true));
+    expect(record.groupB.roundIsActive).toBe(true);
+  });
+
+  it.each([
     ['games', [[{ score: 13 }]]],
     ['cadrage', [{ score: 13 }]],
     ['playOffBracket', { stages: [{ teams: [{ score: 13 }] }] }],

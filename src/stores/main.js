@@ -146,13 +146,15 @@ export const useMainStore = defineStore('main', {
     initTournamentB(teams, mode = 'swiss') {
       const tournament = this.tournaments[this.currentTournamentIndex];
       if (!tournament) return;
-      tournament.tournamentB = createTournamentData({
+      const key = getTournamentStorageTarget(tournament, 'B', { allowFallback: false }).prefix.slice(0, -1);
+      const tournamentB = createTournamentData({
         isTournamentB: true,
         system: mode,
         teams: teams.map((t) => ({ ...t })),
       });
+      tournament[key] = tournamentB;
       tournament.activeGroup = 'A';
-      this._syncPaths({ tournamentB: tournament.tournamentB, activeGroup: 'A' });
+      this._syncPaths({ [key]: tournamentB, activeGroup: 'A' });
     },
     async removeTournamentB() {
       const tournament = this.tournaments[this.currentTournamentIndex];
@@ -719,7 +721,6 @@ export const useMainStore = defineStore('main', {
     restoreRound() {
       const { data, prefix } = this._getTarget();
       data.games.pop();
-      data.teams.forEach((team) => team.opponents.pop());
       data.teams.forEach((team) => {
         if (team.lanes) team.lanes.pop();
       });

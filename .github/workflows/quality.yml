@@ -26,6 +26,11 @@ jobs:
           node-version: 22.22.0
           cache: npm
       - run: npm ci
+      - name: Require a version bump for every PR
+        if: github.event_name == 'pull_request'
+        run: npm run check:pr-version
+        env:
+          VERSION_BASE_SHA: ${{ github.event.pull_request.base.sha }}
       - run: npm run check:secrets
       - run: npm run docs:check
       - name: Check focused architecture rules

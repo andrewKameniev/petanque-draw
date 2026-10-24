@@ -53,6 +53,13 @@ and validation proportional to risk.
   index only when documents are added, moved, renamed, or removed.
 - **CI-001 — Do not bypass relevant gates.** Do not weaken or skip a check merely
   to make it pass. Report relevant checks that could not run.
+- **VERSION-001 — Bump every PR.** Every PR targeting `develop` must update
+  `package.json` and `package-lock.json` from the current base version. For a
+  small compatible change, increment the third digit (for example `1.36.0` →
+  `1.36.1`). For a larger compatible feature, increment the middle digit and
+  reset the third (`1.36.0` → `1.37.0`). For an incompatible change, increment
+  the first digit and reset the others (`1.36.0` → `2.0.0`). The PR version gate
+  accepts one such step; update a PR's base/version if another PR merges first.
 
 ## Route by change
 

@@ -1,8 +1,8 @@
 <script>
 import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
-import VueSelect from 'vue3-select-component';
-import 'vue3-select-component/dist/styles.css';
+import { Select as VueSelect } from 'vue3-select-component';
+import 'vue3-select-component/styles';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { calculatePlayerStat, getDate } from '@/helpers-stat';
@@ -24,7 +24,7 @@ export default {
       filterGamesTag: [],
       filterGamesType: null,
       filterThrowDistance: null,
-      player: '',
+      player: null,
       playerStatList: [],
       showSinusoids: false,
       chartData: [
@@ -194,6 +194,7 @@ export default {
           <VueSelect
             v-model="player"
             :options="playersList"
+            :teleport="false"
             :placeholder="$t('stat.findPlayer')"
             @option-selected="showPlayerStat"
           />
@@ -546,7 +547,8 @@ export default {
 
 /* Vue Select overrides */
 
-.analysis :deep(.vue-select) {
+.analysis :deep([data-assembled-select]),
+.analysis :deep([data-select-popover]) {
   --vs-border: 1px solid var(--color-border);
   --vs-border-radius: 8px;
   --vs-background-color: var(--color-bg-input);
@@ -558,11 +560,12 @@ export default {
   --vs-menu-border: 1px solid var(--color-border);
   --vs-menu-background-color: var(--color-white);
   --vs-menu-box-shadow: 0 8px 24px var(--color-dropdown-shadow);
+  --vs-menu-z-index: 100;
   --vs-option-focused-background-color: var(--color-primary-bg);
   --vs-option-focused-text-color: var(--color-primary);
   --vs-option-selected-background-color: var(--color-primary);
   --vs-option-selected-text-color: var(--color-btn-text);
-  --vs-indicator-icon-color: var(--color-text-muted);
+  --vs-trailing-icon-color: var(--color-text-muted);
 }
 
 /* DatePicker overrides */

@@ -13,6 +13,7 @@ npm run build
 ```
 
 Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and deploys it.
+Both quality checks and the GitHub Pages build use Node.js 22.22.0.
 
 ## CI/CD
 

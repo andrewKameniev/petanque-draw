@@ -289,7 +289,7 @@
       </label>
     </div>
 
-    <div v-if="tournament.system === 'swiss'" class="setup-card__field">
+    <div v-if="tournament.system === 'swiss' && tournament.teams?.length > 4" class="setup-card__field">
       <label class="setup-card__label">{{ $t('modals.swissRoundsCount') }}</label>
       <input class="setup-card__input" type="number" v-model.number="tournament.preferences.swissRoundsCount" min="1" />
       <span class="setup-card__hint">{{ $t('modals.swissRoundsCountHint') }}</span>

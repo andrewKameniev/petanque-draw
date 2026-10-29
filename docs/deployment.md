@@ -30,6 +30,9 @@ Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and
 - `base: '/'` in dev mode
 - Source maps enabled for production builds
 - `html2pdf.js` pre-bundled via `optimizeDeps.include`
+- PWA `theme_color` and the page's `theme-color` start white. The app updates the
+  page value to its current surface color when the user changes theme, so mobile
+  browser and Android system chrome follows the light or dark interface.
 
 ## Service Worker
 

@@ -68,7 +68,9 @@ export function planClubCompetitionChange(tournament, change, metadata) {
         cochonettesEnabledPlayoff: false,
         technical: { ...CLUB_TECHNICAL_SCORE },
       });
-      if (!CLUB_SYSTEMS.includes(next.system)) next.system = 'groups';
+      // New club competitions start with a system available for any club count.
+      // The organizer can choose Swiss after importing more than four clubs.
+      if (next.system === 'swiss' || !CLUB_SYSTEMS.includes(next.system)) next.system = 'groups';
     }
     replacements.preferences = next.preferences;
     replacements.system = next.system;

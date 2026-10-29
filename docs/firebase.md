@@ -21,6 +21,7 @@ must never be tracked.
 
 | Path                                            | Purpose                                              | Primary owner                                   |
 | ----------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `appMeta/version`                               | Deployed app version for live page updates           | Deploy workflow, app version monitor            |
 | `{uid}/tournaments/{id}`                        | Authoritative active and archived tournament records | `tournamentService`, store runtimes             |
 | `publicTournaments/{uid}/{id}`                  | Versioned anonymous Public/TV projection             | public tournament projection service            |
 | `users/{uid}/tournaments/{id}`                  | Per-user status, role, owner, and display metadata   | `userMapService`, archive/collaboration runtime |

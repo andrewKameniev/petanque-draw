@@ -1,11 +1,13 @@
 {
   "name": "petanque-draw",
-  "version": "1.36.0",
+  "version": "1.36.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "check:pr-version": "node scripts/check-pr-version.mjs",
+    "publish:app-version": "node scripts/publish-app-version.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",

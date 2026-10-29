@@ -90,6 +90,14 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
     await assertFails(writeProjection(databaseFor(null), 'owner-1', 'tournament-1', projection()));
   });
 
+  it('allows everyone to read the deployed app version but denies client writes', async () => {
+    await seed('appMeta/version', '1.36.1');
+    const versionPath = 'appMeta/version';
+    expect((await assertSucceeds(get(ref(databaseFor(null), versionPath)))).val()).toBe('1.36.1');
+    await assertFails(set(ref(databaseFor(null), versionPath), '1.37.0'));
+    await assertFails(set(ref(databaseFor('owner-1'), versionPath), '1.37.0'));
+  });
+
   it('allows a scorer to save a legacy Group B game without granting team edits', async () => {
     await seed('owner-1/tournaments/legacy-b', {
       system: 'swiss',

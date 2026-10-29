@@ -87,6 +87,8 @@ describe('club forms and persistence', () => {
   it('shows all 11 games in four focused tabs without public editing', () => {
     editor(true);
     expect(wrapper.findAll('[data-testid="club-game"]')).toHaveLength(11);
+    expect(wrapper.findAll('.club-match__scoreboard .club-match__club')).toHaveLength(2);
+    expect(wrapper.find('.club-match__clash').exists()).toBe(false);
     expect(wrapper.text()).toContain('Жіночий тет-а-тет');
     expect(wrapper.text()).toContain('Мікст');
     expect(wrapper.findAll('input, select, .club-encounter__score-form')).toHaveLength(0);

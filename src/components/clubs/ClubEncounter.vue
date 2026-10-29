@@ -172,18 +172,6 @@
           </div>
         </form>
         <template v-else>
-          <div class="club-match__clash">
-            <template v-for="(club, side) in clubs" :key="club.clubId">
-              <span v-if="side === 1" class="club-match__versus" aria-hidden="true">{{ $t('club.versus') }}</span>
-              <div class="club-match__opponent" :class="{ 'club-match__opponent--right': side === 1 }">
-                <span class="club-match__crest">
-                  <img v-if="captain(club)?.club_logo_url" :src="captain(club).club_logo_url" alt="" loading="lazy" />
-                  <Shield v-else :size="32" aria-hidden="true" />
-                </span>
-                <strong>{{ club.title }}</strong>
-              </div>
-            </template>
-          </div>
           <component
             :is="isScoreEditing(stageIndex, gameIndex) ? 'form' : 'div'"
             v-for="(match, gameIndex) in stage.games"
@@ -883,51 +871,6 @@ export default {
   font-size: 13px;
 }
 
-.club-match__clash {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  margin: 0.75rem 0 1.25rem;
-  border: 1px solid var(--color-border-light);
-  border-radius: 16px;
-  background: linear-gradient(110deg, var(--color-primary-bg), var(--color-surface) 50%, var(--color-primary-bg));
-}
-
-.club-match__opponent {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
-}
-
-.club-match__opponent strong {
-  color: var(--color-text);
-  font-size: 15px;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-.club-match__opponent--right {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.club-match__versus {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--color-border-light);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-primary);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
 .club-match__game {
   margin-bottom: 0.75rem;
 }
@@ -1181,22 +1124,6 @@ export default {
   outline-offset: 2px;
 }
 @media (max-width: 600px) {
-  .club-match__clash {
-    gap: 0.5rem;
-    padding: 0.75rem;
-  }
-
-  .club-match__opponent {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  .club-match__opponent strong {
-    font-size: 12px;
-  }
-
-  .club-match__crest,
   .club-match__club .club-match__crest {
     width: 58px;
     height: 58px;

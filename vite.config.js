@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
         name: 'Petanque Draw',
         short_name: 'Petanque',
         description: 'Program for drawing petanque tournaments: swiss, round & knockout systems',
-        theme_color: '#471aa0',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '.',

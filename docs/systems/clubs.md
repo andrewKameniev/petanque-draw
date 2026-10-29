@@ -26,6 +26,8 @@ positions against the paper forms. Club import configures games to 13 and
 technical results to 21:10. Club setup and preferences omit the maximum-score
 field because the game score is fixed. Double elimination, barrage, Tournament B, timers,
 and end-by-end scoring are not part of this format.
+New club competitions default to groups. Swiss can be selected when more than
+four clubs are registered; its round-count control appears only then.
 
 ## Paper forms and stages
 
@@ -97,7 +99,7 @@ encounter totals. Completed scores have an explicit correction action.
 photos and names. Rating, sport-title and captain badges appear only in team
 and roster lists, including import review. Match cards, encounter overview and
 individual game history omit them and captain highlighting. The encounter header
-and each discipline show the portal club logos in opposing positions; absent logos use a neutral shield.
+shows opposing portal club logos; absent logos use a neutral shield.
 Public and archive views use the same encounter
 component in read-only mode. Club setup omits the rating-based draw toggle.
 After a club playoff draw, the organizer sees a tournament-level Bracket tab

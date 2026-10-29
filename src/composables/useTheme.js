@@ -6,6 +6,8 @@ const theme = ref(localStorage.getItem(STORAGE_KEY) || 'light');
 
 function applyTheme(value) {
   document.documentElement.setAttribute('data-theme', value);
+  const surface = window.getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim();
+  if (surface) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surface);
 }
 
 applyTheme(theme.value);

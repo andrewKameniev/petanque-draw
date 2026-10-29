@@ -128,7 +128,7 @@ describe('club competition integration plans', () => {
     const empty = { ...competition, teams: [], games: [], system: 'swiss' };
     const plan = planClubCompetitionChange(empty, { type: CLUB_CHANGE.CONFIGURE, rosterSize: 9 });
     expect(plan.paths.preferences.clubRosterSize).toBe(9);
-    expect(plan.paths.system).toBe('swiss');
+    expect(plan.paths.system).toBe('groups');
     expect(plan.paths.preferences.technical).toEqual({ technicalFirst: 21, technicalSecond: 10 });
     expect(empty.preferences.clubRosterSize).toBe(8);
     expect(() => planClubCompetitionChange(competition, { type: CLUB_CHANGE.CONFIGURE, rosterSize: 9 })).toThrow(
@@ -150,6 +150,7 @@ describe('club competition integration plans', () => {
     const plan = planClubCompetitionChange(tournament, { type: CLUB_CHANGE.IMPORT, rosterSize: 9, clubs });
     expect(plan.replacements.teams.map((club) => club.players.length)).toEqual([7, 9, 8, 9]);
     expect(plan.paths.preferences.clubRosterSize).toBe(9);
+    expect(plan.paths.system).toBe('groups');
     expect(tournament.teams).toEqual([]);
     clubs[3].players[0].id = clubs[0].players[0].id;
     expect(() => planClubCompetitionChange(tournament, { type: CLUB_CHANGE.IMPORT, rosterSize: 9, clubs })).toThrow(

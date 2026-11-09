@@ -80,6 +80,12 @@ inheriting configuration such as `system` and preferences; they never inherit
 Group A teams, games, or results. Root metadata stays at the root and is read
 through `getTournamentMetadata`.
 
+`migrateLegacyTournamentRecord` can explicitly convert a valid legacy record
+with or without Group B. It accepts missing empty `teams` and `games` fields,
+which Realtime Database commonly omits, and materializes inherited Group B
+configuration so the normalized competition remains equivalent. Fragments
+without a root `system` are not treated as complete tournaments.
+
 This adapter is application-side compatibility code. It does **not** rename,
 move, or rewrite any Firebase tournament path.
 

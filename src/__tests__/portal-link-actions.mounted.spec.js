@@ -108,6 +108,14 @@ describe('portal public-link action in the QR modal', () => {
     wrapper.unmount();
   });
 
+  it('does not expose the TV dashboard link in the share modal', () => {
+    const wrapper = mountQr();
+
+    expect(wrapper.find('a[href*="/tv?ref="]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('TV Dashboard');
+    wrapper.unmount();
+  });
+
   it('provides print guidance in every supported locale', async () => {
     const locales = await Promise.all([
       import('@/locales/en'),

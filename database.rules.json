@@ -8,32 +8,55 @@
           ".read": true,
           ".write": "auth != null && ((auth.uid === $uid && (newData.exists() || !root.child('archive/' + $tid).exists())) || (root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin' && newData.exists()) || (auth.token.email === 'nemo15.alex@gmail.com' && (newData.exists() || (root.child('archive/' + $tid + '/ownerUid').val() === $uid && root.child('archive/' + $tid + '/portalId').exists() && root.child('archive/' + $tid + '/tournamentIsFinished').val() === true && root.child('archive/' + $tid + '/isTestTournament').val() !== true && data.child('portalIdTournament').exists() && (data.child('tournamentIsFinished').val() === true || data.child('main/tournamentIsFinished').val() === true) && data.child('preferences/isTestTournament').val() !== true && data.child('main/preferences/isTestTournament').val() !== true))))",
 
-          ".validate": "!(data.child('preferences/clubRosterSize').exists() || data.child('main/preferences/clubRosterSize').exists() || data.child('groupB/preferences/clubRosterSize').exists() || data.child('tournamentB/preferences/clubRosterSize').exists() || newData.child('preferences/clubRosterSize').exists() || newData.child('main/preferences/clubRosterSize').exists() || newData.child('groupB/preferences/clubRosterSize').exists() || newData.child('tournamentB/preferences/clubRosterSize').exists()) || (auth != null && (auth.uid === $uid || auth.token.email === 'nemo15.alex@gmail.com' || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin'))",
-
           "collaborators": {
             ".write": "auth.uid === $uid"
           },
 
-          "games": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          "$field": {
+            ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))"
           },
-          "cadrage": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          "tirParticipants": {
+            "$index": {
+              "$scoreKey": {
+                ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+              }
+            }
           },
-          "playOffBracket": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          "groupB": {
+            "$field": {
+              ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))"
+            },
+            "tirParticipants": {
+              "$index": {
+                "$scoreKey": {
+                  ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+                }
+              }
+            }
           },
-          "tirPlayoff": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          "main": {
+            "$field": {
+              ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))"
+            },
+            "tirParticipants": {
+              "$index": {
+                "$scoreKey": {
+                  ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+                }
+              }
+            }
           },
-          "teamPlayoff": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
-          },
-          "roundTimer": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
-          },
-          "barrage": {
-            ".write": "auth.uid === $uid || root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists()"
+          "tournamentB": {
+            "$field": {
+              ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))"
+            },
+            "tirParticipants": {
+              "$index": {
+                "$scoreKey": {
+                  ".write": "auth != null && root.child($uid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($uid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($uid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+                }
+              }
+            }
           }
         }
       },
@@ -148,8 +171,15 @@
             },
             "main": {
               ".validate": "newData.hasChildren(['system']) && newData.child('system').isString()",
+              "tirParticipants": {
+                "$index": {
+                  "$scoreKey": {
+                    ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($ownerUid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+                  }
+                }
+              },
               "$field": {
-                ".write": "auth != null && ((!root.child($ownerUid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() && !root.child($ownerUid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists()) || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin') && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')",
+                ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($ownerUid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))",
                 ".validate": "($field === 'system' || $field === 'teams' || $field === 'games' || $field === 'groups' || $field === 'groupSchedule' || $field === 'preferences' || $field === 'roundIsActive' || $field === 'roundTimer' || $field === 'roundRobinCircle' || $field === 'tournamentIsFinished' || $field === 'tournamentIsStarted' || $field === 'useRating' || $field === 'playOff' || $field === 'playoff' || $field === 'playOffBracket' || $field === 'playOffStage' || $field === 'cadrage' || $field === 'barrage' || $field === 'teamPlayoff' || $field === 'tirParticipants' || $field === 'tirPlayoff' || $field === 'tirRound' || $field === 'tirR2Participants' || $field === 'tirTiebreakerCount' || $field === 'tirConfig' || $field === 'tirStarted' || $field === 'streamPresets') && ($field !== 'system' || newData.isString()) && ($field !== 'preferences' || newData.hasChildren()) && ($field !== 'streamPresets' || newData.hasChildren())",
                 "$d1": {
                   ".validate": "!$d1.toLowerCase().matches(/^(audit|auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && ($field !== 'preferences' || (($d1 === 'clubRosterSize' || $d1 === 'maxScore' || $d1 === 'fieldsStart' || $d1 === 'playOffEnabled' || $d1 === 'playOffTeams' || $d1 === 'playOffFormat' || $d1 === 'grandFinalMode' || $d1 === 'groupFormat' || $d1 === 'groupTotalRounds' || $d1 === 'swissRoundsCount' || $d1 === 'prizePlaces' || $d1 === 'timeLimitEnabled' || $d1 === 'timeLimit' || $d1 === 'playoffTimeLimit' || $d1 === 'noTimeLimitFinale' || $d1 === 'cochonettesEnabled' || $d1 === 'cochonettesEnabledPlayoff' || $d1 === 'cochonettes' || $d1 === 'colorSchema') && !newData.hasChildren())) && ($field !== 'streamPresets' || (($d1 === 'teams' || $d1 === 'lanes') && newData.hasChildren()))",
@@ -191,8 +221,15 @@
             },
             "tournamentB": {
               ".validate": "newData.hasChildren(['system']) && newData.child('system').isString()",
+              "tirParticipants": {
+                "$index": {
+                  "$scoreKey": {
+                    ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && !(root.child($ownerUid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && $index.matches(/^(0|[1-9][0-9]*)$/) && ($scoreKey === 'scores' || $scoreKey === 'scores2' || $scoreKey.matches(/^tiebreaker_[1-9][0-9]*$/)) && data.parent().child('id').exists()"
+                  }
+                }
+              },
               "$field": {
-                ".write": "auth != null && ((!root.child($ownerUid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists() && !root.child($ownerUid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists()) || root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid + '/role').val() === 'admin') && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')",
+                ".write": "auth != null && root.child($ownerUid + '/tournaments/' + $tid + '/collaborators/' + auth.uid).exists() && ($field === 'streamPresets' || (!(root.child($ownerUid + '/tournaments/' + $tid + '/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/main/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/groupB/preferences/clubRosterSize').exists() || root.child($ownerUid + '/tournaments/' + $tid + '/tournamentB/preferences/clubRosterSize').exists()) && ($field === 'games' || $field === 'cadrage' || $field === 'playOffBracket' || $field === 'tirPlayoff' || $field === 'teamPlayoff' || $field === 'roundTimer' || $field === 'barrage')))",
                 ".validate": "($field === 'system' || $field === 'teams' || $field === 'games' || $field === 'groups' || $field === 'groupSchedule' || $field === 'preferences' || $field === 'roundIsActive' || $field === 'roundTimer' || $field === 'roundRobinCircle' || $field === 'tournamentIsFinished' || $field === 'tournamentIsStarted' || $field === 'useRating' || $field === 'playOff' || $field === 'playoff' || $field === 'playOffBracket' || $field === 'playOffStage' || $field === 'cadrage' || $field === 'barrage' || $field === 'teamPlayoff' || $field === 'tirParticipants' || $field === 'tirPlayoff' || $field === 'tirRound' || $field === 'tirR2Participants' || $field === 'tirTiebreakerCount' || $field === 'tirConfig' || $field === 'tirStarted' || $field === 'streamPresets') && ($field !== 'system' || newData.isString()) && ($field !== 'preferences' || newData.hasChildren()) && ($field !== 'streamPresets' || newData.hasChildren())",
                 "$d1": {
                   ".validate": "!$d1.toLowerCase().matches(/^(audit|auth|backup|backups|collaborators|createdby|editormetadata|gamescopy|notificationtokens|owner|owneruid|_owneruid|portalteam|portalteamid|private|.*emails?|.*password|.*tokens?)$/) && ($field !== 'preferences' || (($d1 === 'clubRosterSize' || $d1 === 'maxScore' || $d1 === 'fieldsStart' || $d1 === 'playOffEnabled' || $d1 === 'playOffTeams' || $d1 === 'playOffFormat' || $d1 === 'grandFinalMode' || $d1 === 'groupFormat' || $d1 === 'groupTotalRounds' || $d1 === 'swissRoundsCount' || $d1 === 'prizePlaces' || $d1 === 'timeLimitEnabled' || $d1 === 'timeLimit' || $d1 === 'playoffTimeLimit' || $d1 === 'noTimeLimitFinale' || $d1 === 'cochonettesEnabled' || $d1 === 'cochonettesEnabledPlayoff' || $d1 === 'cochonettes' || $d1 === 'colorSchema') && !newData.hasChildren())) && ($field !== 'streamPresets' || (($d1 === 'teams' || $d1 === 'lanes') && newData.hasChildren()))",

@@ -17,6 +17,7 @@
       :tournament-started="tournamentStarted"
       :is-test="!!tournament.preferences?.isTestTournament"
       :is-pinned="isPinned"
+      :editable="isOwnerOrAdmin"
       @update:name="changeTournamentName"
       @pin="pinTournament"
       @unpin="unpinTournament"
@@ -32,6 +33,7 @@
         @cancel-import="pendingClubImport = null"
       />
       <SetupCard
+        v-if="isOwnerOrAdmin"
         :tournament="tournament"
         v-model:teamsInGroup="teamsInGroup"
         v-model:groupRoundsCount="groupRoundsCount"
@@ -50,7 +52,9 @@
 
       <div v-if="!isClub && !pendingClubImport" class="setup-teams-card">
         <AddTeam
-          v-if="tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)"
+          v-if="
+            isOwnerOrAdmin && (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
+          "
           :import-hidden="false"
           :show-restore="!tournament.teams?.length"
           @restore="restoreTeamsFromLocalStorage"
@@ -59,7 +63,7 @@
         <TeamsList v-if="tournament.teams && tournament.teams.length" :activeRound="activeRound" />
         <div v-else class="setup-empty">{{ $t('common.please') }} {{ $t('teams.addTeamMessage') }}</div>
         <div
-          v-if="!(tournament.teams?.length > 2) && (!isActiveTournamentB || isOwnerOrAdmin)"
+          v-if="isOwnerOrAdmin && !(tournament.teams?.length > 2) && (isActiveTournamentB || currentRole === 'owner')"
           class="setup-card__actions setup-card__actions--delete-only"
         >
           <button type="button" class="setup-card__delete" @click="requestRemoval">
@@ -81,7 +85,11 @@
       <TirModule ref="tirModule" @finish="showFinishConfirm = true" />
       <div class="bottom-actions">
         <div class="bottom-actions__row">
-          <button class="bottom-actions__btn bottom-actions__btn--danger" @click="removeConfirmId = 1">
+          <button
+            v-if="currentRole === 'owner'"
+            class="bottom-actions__btn bottom-actions__btn--danger"
+            @click="removeConfirmId = 1"
+          >
             <Trash2 :size="16" />
             {{ $t('teams.removeTournament') }}
           </button>
@@ -114,6 +122,7 @@
           <template v-else>
             <AddTeam
               v-if="
+                isOwnerOrAdmin &&
                 (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff)) &&
                 !tournament.tirStarted
               "
@@ -146,10 +155,7 @@
           :bracket="tournament.playOffBracket"
           :embedded="true"
         />
-        <Results
-          v-if="activeTab === 'results'"
-          :preview-tournament="activeTournamentGroup === 'B' ? tournament : undefined"
-        />
+        <Results v-if="activeTab === 'results'" />
         <StreamPresets v-if="activeTab === 'streams'" />
         <div class="content tabs-content" v-if="activeTab === 'ranking'">
           <Ranking :tournament="tournament" :rankingTeams="activeViewRankingTeams" :activeRound="activeViewRound" />
@@ -330,7 +336,7 @@
       v-if="showPlayoffConfirm"
       :is-swiss="tournament.system === 'swiss'"
       :is-groups="tournament.system === 'groups'"
-      :is-tournament-b="!!tournament?.isTournamentB"
+      :is-tournament-b="isActiveTournamentB"
       :teams-count="tournament.teams?.length || 0"
       :play-off-teams="tournament.preferences.playOffTeams"
       :with-cadrage="withCadrage"
@@ -552,7 +558,7 @@ export default {
     requestRemoval() {
       if (this.isActiveTournamentB) {
         if (this.isOwnerOrAdmin) this.showRemoveBConfirm = true;
-      } else this.removeConfirmId = 1;
+      } else if (this.currentRole === 'owner') this.removeConfirmId = 1;
     },
     async onReplaceTeam(payload) {
       try {
@@ -1261,6 +1267,7 @@ export default {
       'savedTournamentIds',
       'allScoresFilled',
       'isOwnerOrAdmin',
+      'currentRole',
     ]),
     tournament() {
       return getActiveTournamentGroup(this.currentTournament);
@@ -1317,6 +1324,7 @@ export default {
       );
     },
     canArchiveTournament() {
+      if (!this.isOwnerOrAdmin) return false;
       if (this.activeTournamentGroup !== 'A') return false;
       const main = getTournamentStorageTarget(this.currentTournament, 'A', { allowFallback: false }).data;
       const tournamentB = getTournamentStorageTarget(this.currentTournament, 'B', { allowFallback: false });

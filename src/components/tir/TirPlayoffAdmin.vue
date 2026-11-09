@@ -30,7 +30,10 @@
           @click="$emit('open-match', entry.match, round.title)"
         >
           <div class="tir-playoff__match-top">
-            <span class="tir-playoff__match-num" @click.stop="$emit('edit-lane', roundIndex, matchIndex, entry.match)">
+            <span
+              class="tir-playoff__match-num"
+              @click.stop="canManage && $emit('edit-lane', roundIndex, matchIndex, entry.match)"
+            >
               {{ entry.lane }}
             </span>
             <span v-if="isComplete(entry.match)" class="tir-playoff__match-status tir-playoff__match-status--complete">
@@ -96,6 +99,7 @@ export default {
   name: 'TirPlayoffAdmin',
   components: { Download, Pencil, Trophy, TirPlayoffMatch },
   props: {
+    canManage: { type: Boolean, default: true },
     activeMatch: { type: Object, default: null },
     activeMatchLabel: { type: String, default: '' },
     ateliers: { type: Array, required: true },

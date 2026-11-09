@@ -34,7 +34,7 @@ vi.mock('firebase/database', () => ({
 
 const { useMainStore } = await import('../stores/main');
 
-describe('Tournament B store actions (new format)', () => {
+describe('Tournament B store actions', () => {
   let store;
 
   beforeEach(() => {
@@ -144,6 +144,27 @@ describe('Tournament B store actions (new format)', () => {
         tournamentB: store.currentTournament.tournamentB,
         activeGroup: 'A',
       });
+    });
+
+    it('creates Group B at the legacy groupB path', () => {
+      const id = store.currentTournamentIndex;
+      store.tournaments[id] = {
+        system: 'swiss',
+        teams: [{ title: 'Main team' }],
+        games: [],
+        preferences: { playOffEnabled: true, playOffTeams: 2 },
+        activeGroup: 'A',
+      };
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockImplementation(() => undefined);
+
+      store.initTournamentB([{ title: 'B team' }]);
+
+      expect(store.currentTournament.groupB.teams.map((team) => team.title)).toEqual(['B team']);
+      expect(store.currentTournament.tournamentB).toBeUndefined();
+      expect(syncPaths).toHaveBeenCalledWith({ groupB: store.currentTournament.groupB, activeGroup: 'A' });
+      store.setActiveGroup('B');
+      expect(store.activeTournament).toBe(store.currentTournament.groupB);
+      expect(store._getTarget().prefix).toBe('groupB/');
     });
 
     it('clones teams', () => {
@@ -275,6 +296,76 @@ describe('Tournament B store actions (new format)', () => {
     });
   });
 
+  describe('withdrawTournamentBTeam', () => {
+    beforeEach(() => {
+      store.initTournamentB([
+        { title: 'B1', opponents: [] },
+        { title: 'B2', opponents: [] },
+      ]);
+      store.currentTournament.activeGroup = 'B';
+      store.activeTournament.games = [
+        [{ team_1: 'B1', team_1_score: null, team_2: 'B2', team_2_score: null, status: 'not_started' }],
+      ];
+      store.activeTournament.roundIsActive = true;
+    });
+
+    it('persists the withdrawn team and current technical result together', async () => {
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.withdrawTournamentBTeam('B1')).toBe(true);
+
+      expect(store.activeTournament.teams[0].withdrawn).toBe(true);
+      expect(store.activeTournament.games[0][0]).toMatchObject({
+        team_1_score: 7,
+        team_2_score: 13,
+        status: 'finished',
+        winner: 'B2',
+      });
+      expect(syncPaths).toHaveBeenCalledWith({
+        'tournamentB/teams': store.activeTournament.teams,
+        'tournamentB/games': store.activeTournament.games,
+      });
+    });
+
+    it('uses the legacy Group B prefix', async () => {
+      const id = store.currentTournamentIndex;
+      store.tournaments[id] = {
+        activeGroup: 'B',
+        system: 'swiss',
+        teams: [{ title: 'A1' }],
+        groupB: {
+          system: 'swiss',
+          teams: [{ title: 'B1' }, { title: 'B2' }],
+          games: [[{ team_1: 'B1', team_1_score: null, team_2: 'B2', team_2_score: null }]],
+          roundIsActive: true,
+          preferences: { technical: { technicalFirst: 13, technicalSecond: 7 } },
+        },
+      };
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.withdrawTournamentBTeam('B2')).toBe(true);
+
+      expect(syncPaths).toHaveBeenCalledWith({
+        'groupB/teams': store.activeTournament.teams,
+        'groupB/games': store.activeTournament.games,
+      });
+    });
+
+    it('restores teams and games when the withdrawal cannot be persisted', async () => {
+      const previousTeams = store.activeTournament.teams;
+      const previousGames = store.activeTournament.games;
+      vi.spyOn(store, '_syncPaths').mockRejectedValue(new Error('network'));
+      const showMessage = vi.spyOn(store, 'showMessage').mockImplementation(() => undefined);
+
+      expect(await store.withdrawTournamentBTeam('B1')).toBe(false);
+
+      expect(store.activeTournament.teams).toBe(previousTeams);
+      expect(store.activeTournament.games).toBe(previousGames);
+      expect(store.activeTournament.teams[0].withdrawn).toBeUndefined();
+      expect(showMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    });
+  });
+
   describe('setTournamentBEliminationRound', () => {
     beforeEach(() => {
       store.initTournamentB([{ title: 'T1' }, { title: 'T2' }, { title: 'T3' }, { title: 'T4' }]);
@@ -366,6 +457,49 @@ describe('Tournament B store actions (new format)', () => {
       store.currentTournament.tournamentB.teams[1].opponents = ['B1'];
       store.restoreRound();
       expect(store.currentTournament.tournamentB.games).toHaveLength(0);
+    });
+
+    it('restores the second B round when some teams have no opponents list', () => {
+      store.setActiveGroup('B');
+      store.currentTournament.tournamentB.games = [[{ team_1: 'B1', team_2: 'B2' }], [{ team_1: 'B1', team_2: 'B2' }]];
+      delete store.currentTournament.tournamentB.teams[0].opponents;
+      store.currentTournament.tournamentB.teams[1].opponents = ['B1'];
+
+      expect(() => store.restoreRound()).not.toThrow();
+      expect(store.currentTournament.tournamentB.games).toHaveLength(1);
+      expect(store.currentTournament.tournamentB.teams[1].opponents).toEqual(['B1']);
+    });
+
+    it('keeps a legacy B tournament on round two after restoring and redrawing it', () => {
+      const id = store.currentTournamentIndex;
+      const firstRound = [{ team_1: 'B1', team_2: 'B2', team_1_score: 13, team_2_score: 7, status: 'finished' }];
+      const secondRound = [{ team_1: 'B1', team_2: 'B2', team_1_score: null, team_2_score: null }];
+      store.tournaments[id] = {
+        activeGroup: 'B',
+        system: 'swiss',
+        games: [],
+        teams: [],
+        groupB: {
+          system: 'swiss',
+          games: [firstRound],
+          teams: [
+            { title: 'B1', opponents: ['B2'] },
+            { title: 'B2', opponents: ['B1'] },
+          ],
+          roundIsActive: false,
+        },
+      };
+
+      store.addRoundToGames(secondRound);
+      expect(store.activeTournament.games).toHaveLength(2);
+      store.restoreRound();
+      expect(store.activeTournament.games).toEqual([firstRound]);
+      expect(store.activeTournament.teams[0].opponents).toEqual(['B2']);
+      store.addRoundToGames(secondRound);
+
+      expect(store.activeTournament.games).toHaveLength(2);
+      expect(store.activeTournament.roundIsActive).toBe(true);
+      expect(store._getTarget().prefix).toBe('groupB/');
     });
 
     it('setPlayOff sets on tournamentB when active', () => {

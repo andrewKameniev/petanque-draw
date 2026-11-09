@@ -36,7 +36,7 @@
             :enabled="showTimerSection"
             :timer="tournament.roundTimer"
             :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
-            :cochonettes="tournament.preferences.cochonettes || 1"
+            :cochonettes="tournament.preferences.cochonettes ?? 1"
             :read-only="!!isPublicView"
             @start="startRoundTimer"
             @timer-ended="onTimerEnded"
@@ -724,7 +724,9 @@ export default {
 }
 
 .playoff-search-btn--active {
-  background: var(--color-primary);
+  color: var(--color-search-highlight-text);
+  background: var(--color-search-highlight-bg);
+  box-shadow: inset 0 0 0 1px var(--color-search-highlight-border);
 }
 
 .playoff-search-popover {
@@ -777,8 +779,9 @@ export default {
 }
 
 .playoff-search-item--active {
-  background: var(--color-primary);
-  color: white;
+  color: var(--color-search-highlight-text);
+  background: var(--color-search-highlight-bg);
+  box-shadow: inset 3px 0 0 var(--color-search-highlight-border);
 }
 
 .playoff-search-clubs {

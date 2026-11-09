@@ -44,7 +44,7 @@ Configuration options available before and during the tournament.
 | Time limit           | 45 min  | Time for swiss/group rounds              |
 | Playoff time limit   | 70 min  | Time for playoff rounds (0 = no limit)   |
 | No time limit finale | false   | Disable timer for the final match        |
-| Cochonettes          | 1       | Number of cochonettes after time expires |
+| Cochonettes          | 1       | Number after time expires; select 0 for no additional cochonettes |
 
 ### Per-Round Scoring (cochonettes)
 

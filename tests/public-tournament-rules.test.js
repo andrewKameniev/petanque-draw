@@ -8,7 +8,7 @@ import { projectPublicTournamentCompetition } from '../src/services/public-tourn
 
 const PROJECT_ID = 'demo-petanque-draw-public-projection-rules';
 const DATABASE_HOST = '127.0.0.1';
-const DATABASE_PORT = 9000;
+const DATABASE_PORT = Number(process.env.FIREBASE_DATABASE_EMULATOR_HOST?.split(':').at(-1) || 9000);
 const RULES = readFileSync(new URL('../database.rules.json', import.meta.url), 'utf8');
 
 let testEnvironment;
@@ -88,6 +88,182 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
 
   it('denies anonymous projection writes', async () => {
     await assertFails(writeProjection(databaseFor(null), 'owner-1', 'tournament-1', projection()));
+  });
+
+  it('allows a scorer to save a legacy Group B game without granting team edits', async () => {
+    await seed('owner-1/tournaments/legacy-b', {
+      system: 'swiss',
+      games: [],
+      teams: [],
+      collaborators: { 'scorer-1': { role: 'scorer' } },
+      groupB: {
+        system: 'swiss',
+        games: [[{ team_1: 'Alpha', team_2: 'Beta', team_1_score: null, team_2_score: null }]],
+        teams: [{ title: 'Alpha' }, { title: 'Beta' }],
+      },
+    });
+
+    const gamePath = 'owner-1/tournaments/legacy-b/groupB/games/0/0/team_1_score';
+    await assertSucceeds(set(ref(databaseFor('scorer-1'), gamePath), 13));
+    await assertFails(set(ref(databaseFor('unrelated-1'), gamePath), 7));
+    await assertFails(
+      set(ref(databaseFor('scorer-1'), 'owner-1/tournaments/legacy-b/groupB/teams/0/title'), 'Changed'),
+    );
+    await assertSucceeds(
+      set(ref(databaseFor('scorer-1'), 'owner-1/tournaments/legacy-b/groupB/cadrage/0/team_1_score'), 13),
+    );
+  });
+
+  it.each(['main', 'tournamentB'])(
+    'allows a scorer to save an envelope %s game without granting team edits',
+    async (group) => {
+      await seed('owner-1/tournaments/envelope-score', {
+        activeGroup: group === 'main' ? 'A' : 'B',
+        collaborators: { 'scorer-1': { role: 'scorer' } },
+        main: {
+          system: 'swiss',
+          games: [[{ team_1: 'Alpha', team_2: 'Beta', team_1_score: null, team_2_score: null }]],
+          teams: [{ title: 'Alpha' }, { title: 'Beta' }],
+        },
+        tournamentB: {
+          system: 'swiss',
+          games: [[{ team_1: 'Gamma', team_2: 'Delta', team_1_score: null, team_2_score: null }]],
+          teams: [{ title: 'Gamma' }, { title: 'Delta' }],
+        },
+      });
+
+      const base = `owner-1/tournaments/envelope-score/${group}`;
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/games/0/0/team_1_score`), 13));
+      await assertFails(set(ref(databaseFor('unrelated-1'), `${base}/games/0/0/team_1_score`), 7));
+      await assertFails(set(ref(databaseFor('scorer-1'), `${base}/teams/0/title`), 'Changed'));
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/cadrage/0/team_1_score`), 13));
+    },
+  );
+
+  it('publishes an envelope score with its public mirror in one scorer write', async () => {
+    const tournamentId = 'atomic-score';
+    const publicRecord = projection();
+    const game = { team_1: 'Alpha', team_2: 'Beta', team_1_score: 13, team_2_score: 7 };
+    await seed(`owner-1/tournaments/${tournamentId}`, {
+      collaborators: { 'scorer-1': { role: 'scorer' } },
+      main: publicRecord.record.main,
+      activeGroup: 'A',
+    });
+    await seed(`publicTournaments/owner-1/${tournamentId}`, publicRecord);
+
+    await assertSucceeds(
+      update(ref(databaseFor('scorer-1')), {
+        [`owner-1/tournaments/${tournamentId}/main/games/0/0`]: game,
+        [`publicTournaments/owner-1/${tournamentId}/record/main/games/0/0`]: game,
+        [`publicTournaments/owner-1/${tournamentId}/schemaVersion`]: 1,
+        [`publicTournaments/owner-1/${tournamentId}/revision`]: 8,
+        [`publicTournaments/owner-1/${tournamentId}/updatedAt`]: 1_786_243_200_001,
+      }),
+    );
+
+    const canonical = await get(ref(databaseFor('scorer-1'), `owner-1/tournaments/${tournamentId}/main/games/0/0`));
+    expect(canonical.val()).toEqual(game);
+  });
+
+  it.each(['legacy', 'main', 'tournamentB'])(
+    'lets a scorer add, edit, and delete %s stream links, including in club tournaments',
+    async (shape) => {
+      const competition = { system: 'swiss', preferences: { clubRosterSize: 3 } };
+      await seed('owner-1/tournaments/streams', {
+        ...(shape === 'legacy' ? competition : { [shape]: competition }),
+        collaborators: { 'scorer-1': { role: 'scorer' } },
+      });
+      const base = `owner-1/tournaments/streams/${shape === 'legacy' ? '' : `${shape}/`}streamPresets`;
+      const streams = { teams: { Alpha: ['https://stream.example/one'] }, lanes: {} };
+
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), base), streams));
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/teams/Alpha/0`), 'https://stream.example/two'));
+      await assertSucceeds(remove(ref(databaseFor('scorer-1'), `${base}/teams/Alpha/0`)));
+      await assertFails(set(ref(databaseFor('stranger-1'), base), streams));
+      const competitionBase = base.slice(0, -'streamPresets'.length);
+      await assertFails(set(ref(databaseFor('scorer-1'), `${competitionBase}preferences/clubRosterSize`), 2));
+    },
+  );
+
+  it('lets a scorer publish a stream edit to the canonical and public tournament together', async () => {
+    const tournamentId = 'mirrored-stream';
+    await seed(`owner-1/tournaments/${tournamentId}`, {
+      main: { system: 'swiss', preferences: { clubRosterSize: 3 } },
+      collaborators: { 'scorer-1': { role: 'scorer' } },
+    });
+    await seed(`publicTournaments/owner-1/${tournamentId}`, projection());
+    const streams = { teams: { Alpha: ['https://stream.example/one'] }, lanes: {} };
+    const canonical = `owner-1/tournaments/${tournamentId}/main/streamPresets`;
+    const publicPath = `publicTournaments/owner-1/${tournamentId}/record/main/streamPresets`;
+
+    await assertSucceeds(
+      update(ref(databaseFor('scorer-1')), {
+        [canonical]: streams,
+        [publicPath]: streams,
+        [`publicTournaments/owner-1/${tournamentId}/revision`]: 8,
+        [`publicTournaments/owner-1/${tournamentId}/updatedAt`]: 1_786_243_200_001,
+      }),
+    );
+    expect((await get(ref(databaseFor(null), publicPath))).val().teams.Alpha).toEqual(['https://stream.example/one']);
+
+    await assertSucceeds(
+      update(ref(databaseFor('scorer-1')), {
+        [canonical]: null,
+        [publicPath]: null,
+        [`publicTournaments/owner-1/${tournamentId}/revision`]: 9,
+        [`publicTournaments/owner-1/${tournamentId}/updatedAt`]: 1_786_243_200_002,
+      }),
+    );
+    expect((await get(ref(databaseFor(null), publicPath))).exists()).toBe(false);
+  });
+
+  it.each(['legacy', 'main', 'tournamentB'])(
+    'lets a scorer edit %s Tir scores without editing participant identity',
+    async (shape) => {
+      const competition = {
+        system: 'tir',
+        tirParticipants: [{ id: 'participant-1', name: 'Alice', scores: { 0: { 6: 'reussi' } } }],
+      };
+      await seed('owner-1/tournaments/tir-scores', {
+        ...(shape === 'legacy' ? competition : { [shape]: competition }),
+        collaborators: { 'scorer-1': { role: 'scorer' } },
+      });
+      const base = `owner-1/tournaments/tir-scores/${shape === 'legacy' ? '' : `${shape}/`}tirParticipants/0`;
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/scores`), { 0: { 6: 'carreau' } }));
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/scores2`), { 0: { 6: 'touche' } }));
+      await assertSucceeds(set(ref(databaseFor('scorer-1'), `${base}/tiebreaker_1`), { 0: { 7: 'carreau' } }));
+      await assertFails(set(ref(databaseFor('scorer-1'), `${base}/name`), 'Changed'));
+      await assertFails(set(ref(databaseFor('scorer-1'), `${base}`), { id: 'participant-2', name: 'Changed' }));
+      await assertFails(set(ref(databaseFor('stranger-1'), `${base}/scores`), {}));
+    },
+  );
+
+  it('lets a scorer publish a Tir score leaf with its public mirror', async () => {
+    const tournamentId = 'mirrored-tir';
+    const tirParticipants = [{ id: 'participant-1', name: 'Alice', scores: { 0: { 6: 'reussi' } } }];
+    await seed(`owner-1/tournaments/${tournamentId}`, {
+      main: { system: 'tir', tirParticipants },
+      collaborators: { 'scorer-1': { role: 'scorer' } },
+    });
+    const publicRecord = projection();
+    publicRecord.record.main = { system: 'tir', tirParticipants, preferences: { maxScore: 13 } };
+    await seed(`publicTournaments/owner-1/${tournamentId}`, publicRecord);
+
+    await assertSucceeds(
+      update(ref(databaseFor('scorer-1')), {
+        [`owner-1/tournaments/${tournamentId}/main/tirParticipants/0/scores`]: { 0: { 6: 'carreau' } },
+        [`publicTournaments/owner-1/${tournamentId}/record/main/tirParticipants/0/scores`]: { 0: { 6: 'carreau' } },
+        [`publicTournaments/owner-1/${tournamentId}/revision`]: 8,
+        [`publicTournaments/owner-1/${tournamentId}/updatedAt`]: 1_786_243_200_001,
+      }),
+    );
+    expect(
+      (
+        await get(
+          ref(databaseFor(null), `publicTournaments/owner-1/${tournamentId}/record/main/tirParticipants/0/scores`),
+        )
+      ).val(),
+    ).toEqual([{ 6: 'carreau' }]);
   });
 
   it.each(['legacy', 'envelope'])('allows club writes only for owner/admin in a %s record', async (shape) => {

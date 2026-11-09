@@ -621,9 +621,12 @@ export default {
       'currentTournament',
       'activeTournament',
       'user',
+      'isOwnerOrAdmin',
     ]),
     canEditResults() {
-      return !!this.user && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups';
+      return (
+        this.isOwnerOrAdmin && !this.previewTournament && !this.isForProtocol && this.tournament.system === 'groups'
+      );
     },
     canEditPlayoff() {
       return (
@@ -921,11 +924,11 @@ export default {
 }
 
 .search-highlight td {
-  background: var(--color-primary-bg) !important;
+  background: var(--color-search-highlight-bg) !important;
 }
 
 .search-highlight td:first-child {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-search-highlight-border);
 }
 
 .results-card-list {

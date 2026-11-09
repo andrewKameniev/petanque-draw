@@ -16,7 +16,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament']),
+    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'isOwnerOrAdmin']),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
@@ -63,6 +63,7 @@ export default {
       this.syncCadrageFull();
     },
     saveResults() {
+      if (!this.isOwnerOrAdmin) return;
       this.scoreError = false;
       const unfinished = this.tournament.cadrage.filter((game) => game.status !== 'finished');
       if (unfinished.some((game) => isScoreError(game, this.tournament.preferences.maxScore))) {
@@ -102,7 +103,7 @@ export default {
       :enabled="showTimerSection"
       :timer="tournament.roundTimer"
       :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-      :cochonettes="tournament.preferences.cochonettes || 1"
+      :cochonettes="tournament.preferences.cochonettes ?? 1"
       @start="startRoundTimer"
       @timer-ended="onTimerEnded"
       @restart="onTimerRestart"
@@ -125,7 +126,7 @@ export default {
       @swapLane="swapCadrageLane"
     />
     <div v-if="scoreError" class="has-text-centered has-text-danger mb-5 mt-5">{{ $t('games.resultsError') }}</div>
-    <div class="text-center mt-5" v-if="!isPublicView">
+    <div class="text-center mt-5" v-if="!isPublicView && isOwnerOrAdmin">
       <button class="button is-success" data-testid="btn-save-cadrage" @click="saveResults">
         {{ $t('games.saveResults') }}
       </button>

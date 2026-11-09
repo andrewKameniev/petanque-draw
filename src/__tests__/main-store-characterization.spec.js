@@ -80,9 +80,9 @@ const ACTIONS = `
   setTournamentBEliminationRound setTournamentIdFromPortal setTournamentInfoFromPortal setTournaments showMessage
   shuffleLanesStore startRound startRoundTimer subscribeTournament swapLanesStore syncBracketMatch syncCadrageFull
   syncCadrageMatch syncDrawStart syncEliminationGames syncGameMatch syncGames syncGamesAndTeams syncHistoricalResultEdit syncPathNull
-  syncPoulesRound syncRedraw syncStreamPresets syncTeamPlayoff syncTeamPlayoffMatch syncTeams syncTirParticipants
+  syncPoulesRound syncRedraw syncStreamPresets syncTeamPlayoff syncTeamPlayoffMatch syncTeams syncTirParticipants syncTirScores
   syncTirPlayoff syncTirPlayoffMatch syncTirStart syncTirState syncTournamentMessage syncTournamentStarted syncUserEmailIndex
-  toggleWithdrawn unarchiveTournament unsubscribeTournament updateGameScore
+  toggleWithdrawn unarchiveTournament unsubscribeTournament updateGameScore withdrawTournamentBTeam
 `
   .trim()
   .split(/\s+/)
@@ -136,6 +136,30 @@ describe('main-store façade baseline', () => {
       }),
     );
     expect(mockUpdate.mock.calls[0][1]['owner-1/tournaments/tournament-1/preferences']).not.toBe(payload);
+  });
+
+  it('writes only the selected Tir participant score leaf and its public mirror', async () => {
+    const store = createStore({
+      _ownerUid: 'owner-1',
+      main: {
+        system: 'tir',
+        tirParticipants: [
+          { id: 'A', name: 'Alice', scores: {} },
+          { id: 'B', name: 'Bob', scores: { 0: { 6: 'carreau' } } },
+        ],
+      },
+    });
+
+    await store.syncTirScores(['B'], 'scores');
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      '/',
+      expect.objectContaining({
+        'owner-1/tournaments/tournament-1/main/tirParticipants/1/scores': { 0: { 6: 'carreau' } },
+        'publicTournaments/owner-1/tournament-1/record/main/tirParticipants/1/scores': { 0: { 6: 'carreau' } },
+      }),
+    );
+    expect(mockUpdate.mock.calls[0][1]).not.toHaveProperty('owner-1/tournaments/tournament-1/main/tirParticipants');
   });
 
   it('replaces a team through one atomic prefixed update while preserving competition progress', async () => {

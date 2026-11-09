@@ -109,6 +109,34 @@ describe('Results editing', () => {
     expect(syncHistoricalResultEdit).toHaveBeenCalledWith({ roundIndex: 1, gameIndex: 0 });
   });
 
+  it('hides historical result correction from a scorer collaborator', () => {
+    tournament._ownerUid = 'owner-1';
+    store.userTournamentMap['multi-circle'] = { role: 'scorer', ownerUid: 'owner-1' };
+    const wrapper = shallowMount(Results, {
+      global: { plugins: [pinia], mocks: { $t: (key) => key } },
+    });
+    wrappers.push(wrapper);
+
+    expect(wrapper.find('.edit-result-btn').exists()).toBe(false);
+    expect(wrapper.vm.canEditResults).toBe(false);
+  });
+
+  it('offers historical correction for the active Group B to an owner', () => {
+    store.tournaments['multi-circle'] = {
+      name: 'Cup',
+      activeGroup: 'B',
+      main: { ...tournament, games: [] },
+      tournamentB: tournament,
+    };
+    const wrapper = shallowMount(Results, {
+      global: { plugins: [pinia], mocks: { $t: (key) => key } },
+    });
+    wrappers.push(wrapper);
+
+    expect(wrapper.vm.tournament).toEqual(tournament);
+    expect(wrapper.find('.edit-result-btn').exists()).toBe(true);
+  });
+
   it('keeps the round column compact and labels it consistently in protocol results', () => {
     const wrapper = shallowMount(Results, {
       props: {

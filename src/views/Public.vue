@@ -214,7 +214,7 @@
                 :timer-status="activeTournamentView.roundTimer.timerStatus"
                 :remaining-ms="activeTournamentView.roundTimer.remainingMs || 0"
                 :cochonettes-enabled="!!activeTournamentView.preferences.timeLimitEnabled"
-                :cochonettes="activeTournamentView.preferences.cochonettes || 1"
+                :cochonettes="activeTournamentView.preferences.cochonettes ?? 1"
                 :read-only="true"
                 class="mb-3"
               />
@@ -764,8 +764,9 @@ export default {
   width: fit-content;
   gap: 0.3rem;
   padding: 0.25rem 0.6rem;
-  background: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-search-highlight-text);
+  background: var(--color-search-highlight-bg);
+  border: 1px solid var(--color-search-highlight-border);
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;

@@ -81,7 +81,7 @@
           :enabled="showTimerSection"
           :timer="tournament.roundTimer"
           :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-          :cochonettes="tournament.preferences.cochonettes || 1"
+          :cochonettes="tournament.preferences.cochonettes ?? 1"
           :read-only="!isOwnerOrAdmin"
           @start="startRoundTimer"
           @timer-ended="onTimerEnded"
@@ -681,6 +681,7 @@ export default {
       this.swapLanesStore({ roundIndex: this.activeRound - 1, indexA: fromIndex, indexB: targetIndex });
     },
     drawRound() {
+      if (this.tournament.roundIsActive) return;
       if (this.tournament.teams.length < 5 && this.tournament.system === 'swiss') {
         this.showMessage({
           title: this.$t('games.chooseSystem'),

@@ -10,7 +10,7 @@
       </header>
       <label class="club-rosters__format"
         >{{ $t('club.rosterLimit')
-        }}<select v-model.number="rosterLimit" class="input" :disabled="busy">
+        }}<select v-model.number="rosterLimit" class="input" :disabled="busy || !isOwnerOrAdmin">
           <option v-for="size in rosterSizes" :key="size" :value="size">{{ size }}</option>
         </select></label
       >
@@ -51,7 +51,7 @@
           <div v-for="player in club.players" :key="player.id" class="club-rosters__player">
             <PlayerChip :player="player" :is-captain="String(player.id) === String(club.captainId)" />
             <button
-              v-if="portalImport && club.players.length > rosterLimit && player.id !== club.captainId"
+              v-if="portalImport && isOwnerOrAdmin && club.players.length > rosterLimit && player.id !== club.captainId"
               type="button"
               class="button is-light is-small"
               :disabled="busy"
@@ -118,10 +118,12 @@ export default {
       return club.players.find((player) => String(player.id) === String(club.captainId));
     },
     removeDraftPlayer(club, playerId) {
+      if (!this.isOwnerOrAdmin) return;
       if (club.captainId === playerId) return;
       club.players = club.players.filter((player) => player.id !== playerId);
     },
     async submitImport() {
+      if (!this.isOwnerOrAdmin) return;
       this.busy = true;
       this.error = '';
       try {

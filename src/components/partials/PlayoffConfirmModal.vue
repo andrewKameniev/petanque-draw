@@ -141,7 +141,7 @@
           </div>
         </div>
 
-        <div v-if="rankingTeams.length" class="confirm-playoff__field" style="padding-top: 0.75rem">
+        <div v-if="!isTournamentB && rankingTeams.length" class="confirm-playoff__field" style="padding-top: 0.75rem">
           <label class="confirm-playoff__label">{{ $t('ranking.withdrawTeam') }}</label>
           <div class="confirm-playoff__withdraw-list">
             <div

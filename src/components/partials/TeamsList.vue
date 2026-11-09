@@ -75,6 +75,7 @@
                 />
                 <div class="team-card__title-block">
                   <span class="team-card__name">{{ team.title }}</span>
+                  <span v-if="team.withdrawn" class="team-withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
                   <a
                     v-if="getTeamClub(team)"
                     :href="getClubUrl(team)"
@@ -94,6 +95,17 @@
                   @click.stop="toggleExpand(team.title)"
                 >
                   <ChevronDown :size="16" />
+                </button>
+                <button
+                  v-if="canWithdrawTeam(team)"
+                  type="button"
+                  class="team-remove-btn"
+                  data-testid="btn-withdraw-team"
+                  :title="$t('teams.withdrawTournamentBTeam')"
+                  :aria-label="$t('teams.withdrawTournamentBTeam')"
+                  @click.stop.prevent="withdrawTeam(team.title)"
+                >
+                  <X :size="16" />
                 </button>
               </div>
               <div v-if="team.players && team.players.length" class="team-card__players">
@@ -127,6 +139,7 @@
               <div class="team-table-row">
                 <span>
                   {{ team.title }}
+                  <span v-if="team.withdrawn" class="team-withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
                   <div class="is-size-7" v-if="team.players && team.players.length > 1">
                     (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
                       >{{ player.name }} {{ player.surname
@@ -142,6 +155,17 @@
                   @click.stop="toggleExpand(team.title)"
                 >
                   <ChevronDown :size="16" />
+                </button>
+                <button
+                  v-if="canWithdrawTeam(team)"
+                  type="button"
+                  class="team-remove-btn"
+                  data-testid="btn-withdraw-team"
+                  :title="$t('teams.withdrawTournamentBTeam')"
+                  :aria-label="$t('teams.withdrawTournamentBTeam')"
+                  @click.stop.prevent="withdrawTeam(team.title)"
+                >
+                  <X :size="16" />
                 </button>
               </div>
               <ParticipantGames
@@ -207,6 +231,7 @@
             </a>
             <div class="team-card__title-block">
               <span class="team-card__name">{{ team.title }}</span>
+              <span v-if="team.withdrawn" class="team-withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
               <a
                 v-if="getTeamClub(team)"
                 :href="getClubUrl(team)"
@@ -228,6 +253,17 @@
               <ChevronDown :size="16" />
             </button>
             <button v-if="showRemove" class="team-remove-btn" @click.prevent="removeTeam(team.title)">
+              <X :size="16" />
+            </button>
+            <button
+              v-if="canWithdrawTeam(team)"
+              type="button"
+              class="team-remove-btn"
+              data-testid="btn-withdraw-team"
+              :title="$t('teams.withdrawTournamentBTeam')"
+              :aria-label="$t('teams.withdrawTournamentBTeam')"
+              @click.stop.prevent="withdrawTeam(team.title)"
+            >
               <X :size="16" />
             </button>
           </div>
@@ -263,6 +299,7 @@
               <span class="team-table-row__rank">{{ teamIndex + 1 }}.</span>
               <span>
                 {{ team.title }}
+                <span v-if="team.withdrawn" class="team-withdrawn-badge">{{ $t('ranking.withdrawn') }}</span>
                 <div class="is-size-7 is-hidden-tablet" v-if="team.players && team.players.length > 1">
                   (<span class="has-text-dark" v-for="(player, index) in team.players" :key="index"
                     >{{ player.name }} {{ player.surname }}<span v-if="index < team.players.length - 1">, </span></span
@@ -310,10 +347,19 @@
             class="td-50"
             v-if="
               !previewTournament &&
-              (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))
+              (canWithdrawTeam(team) ||
+                (isOwnerOrAdmin &&
+                  (tournament.system === 'supermele' || (!tournament.games?.length && !tournament.playOff))))
             "
           >
-            <button class="team-remove-btn" @click="removeTeam(team.title)">
+            <button
+              type="button"
+              class="team-remove-btn"
+              :data-testid="canWithdrawTeam(team) ? 'btn-withdraw-team' : undefined"
+              :title="canWithdrawTeam(team) ? $t('teams.withdrawTournamentBTeam') : undefined"
+              :aria-label="canWithdrawTeam(team) ? $t('teams.withdrawTournamentBTeam') : undefined"
+              @click.stop="canWithdrawTeam(team) ? withdrawTeam(team.title) : removeTeam(team.title)"
+            >
               <X :size="16" />
             </button>
           </td>
@@ -351,7 +397,13 @@ export default {
     isClub() {
       return isClubCompetition(this.tournament);
     },
-    ...mapState(useMainStore, ['tournaments', 'currentTournamentIndex', 'currentTournament', 'activeTournament']),
+    ...mapState(useMainStore, [
+      'tournaments',
+      'currentTournamentIndex',
+      'currentTournament',
+      'activeTournament',
+      'isOwnerOrAdmin',
+    ]),
     tournament() {
       return this.previewTournament || this.activeTournament || this.currentTournament;
     },
@@ -468,6 +520,7 @@ export default {
     showRemove() {
       return (
         !this.previewTournament &&
+        this.isOwnerOrAdmin &&
         (this.tournament.system === 'supermele' || (!this.tournament.games?.length && !this.tournament.playOff))
       );
     },
@@ -483,7 +536,21 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useMainStore, ['removeTeam']),
+    ...mapActions(useMainStore, ['removeTeam', 'withdrawTournamentBTeam']),
+    canWithdrawTeam(team) {
+      return Boolean(
+        !this.previewTournament &&
+          this.isOwnerOrAdmin &&
+          this.currentTournament?.activeGroup === 'B' &&
+          this.tournament.system === 'swiss' &&
+          !this.tournament.tournamentIsFinished &&
+          this.hasGamesStarted &&
+          !team.withdrawn,
+      );
+    },
+    withdrawTeam(teamTitle) {
+      return this.withdrawTournamentBTeam(teamTitle);
+    },
     toggleExpand(teamTitle) {
       this.expandedTeam = this.expandedTeam === teamTitle ? null : teamTitle;
     },
@@ -666,8 +733,8 @@ export default {
 }
 
 .team-card--highlighted {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light, rgb(139 92 246 / 6%));
+  border-color: var(--color-search-highlight-border);
+  background: var(--color-search-highlight-bg);
 }
 
 .team-card__rank {
@@ -774,6 +841,16 @@ export default {
   color: var(--color-error);
 }
 
+.team-withdrawn-badge {
+  align-self: flex-start;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .table tr:last-child td {
   border-bottom: none;
 }
@@ -795,11 +872,11 @@ export default {
 }
 
 .search-highlight td {
-  background: var(--color-primary-light, rgb(139 92 246 / 12%)) !important;
+  background: var(--color-search-highlight-bg) !important;
 }
 
 .search-highlight td:first-child {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-search-highlight-border);
 }
 
 @media (max-width: 480px) {

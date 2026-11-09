@@ -111,16 +111,23 @@ call `syncUserEmailIndex` to refresh the `emails/` lookup used by
 signed-in public visit, never rewrites that index.
 
 When a user, tournament, or component lifecycle changes, listeners and pending
-writes must be disposed before the next context becomes active. Permission
-denial for shared data is handled as access revocation, not as an empty record.
+writes must be disposed before the next context becomes active. A denied shared
+data subscription is handled as access revocation, not as an empty record. A
+denied write reports a save error and keeps the collaborator's tournament.
 
 ## Projection rules rollout and rollback
 
 `database.rules.json` adds anonymous reads only for `publicTournaments` and
 keeps the existing anonymous authoritative tournament read during this
 compatibility change. Owners and admin collaborators may publish a complete
-projection. Scorer collaborators may update only the same scoring-owned fields
-they can write canonically. Projection rules reject unsupported metadata,
+projection. Scorer collaborators may update scoring-owned fields and stream
+presets in both canonical records and their public mirrors. Stream presets can
+be added, edited, and removed, including in club tournaments. In TIR, scorer
+edits target only one participant's `scores`, `scores2`, or `tiebreaker_N` leaf;
+participant identity and phase changes remain owner/admin actions. Club
+competition scoring remains owner/admin only. Historical result corrections
+also remain owner/admin actions because they rewrite team standings. Projection
+rules reject unsupported metadata,
 unknown contract fields, editor preferences, over-depth values, malformed or
 sparse stream maps, collaborator/owner data, emails,
 tokens, and portal replacement metadata.
@@ -165,6 +172,53 @@ Archiving changes the user-map status while retaining the authoritative
 tournament record. Eligible finished portal tournaments may also receive a
 public `archive/` index entry and a write-once `backups/` payload. The old
 `saved/` tree is a compatibility source, not the current archive destination.
+
+## Manual legacy tournament conversion
+
+`scripts/migrate-legacy-tournament.mjs` converts one explicitly named legacy
+record to the envelope format. Its default dry run saves the exact canonical
+record, public projection, proposed envelope, and an audit report under the
+specified local snapshot directory. Keep that directory outside version control
+and retain its access-restricted files until the tournament has been verified.
+The conversion preserves root metadata and Group A under `main`, moves a live
+`groupB` into `tournamentB` when present, and saves any stale pre-existing
+`tournamentB` only in the backup. It refuses a conflicting `tournamentB` with
+games or a change to the public projection.
+
+Production apply requires separate authorization, exact project/owner/tournament
+confirmations, and confirmation that all editors and scorers have paused and
+closed their tournament tabs. The script refuses an active round, takes fresh
+snapshots, and uses a full-record compare-and-swap with Firebase REST ETags so a concurrent
+canonical change aborts the migration. It leaves the public projection alone
+because the dry run proves it is identical. After a successful apply, all
+editors and scorers must reload before scoring resumes; a tab still subscribed
+to legacy paths can write those paths again. If post-write verification fails,
+inspect the saved snapshots and current remote state before any retry or
+rollback.
+
+`scripts/migrate-all-legacy-tournaments.mjs` plans every canonical tournament
+under `{uid}/tournaments/{id}`. It can preview a local `.json.gz` database dump
+with `--dump`, or read the live database with `--project-id`, `--database-url`,
+and `--snapshot-dir`. Both modes are read-only by default. The live preview
+saves a private, verified full-database backup and a report outside the
+repository. The report separates existing envelopes, convertible legacy
+records, incomplete fragments, and blocked records. A fragment without a root
+`system` is never reconstructed from the public projection, which omits private
+canonical fields.
+
+Production apply requires separate authorization and the live preview's exact
+`planSha256`, plus the `--apply`, `--confirm-project`, `--confirm-plan`, and
+`--confirm-editors-paused` flags and confirmation that compatible code and
+database rules are deployed. Active rounds and skipped fragments require their
+own explicit confirmations when present. Stop scoring and close all editor
+tabs before applying; deploy compatible code and rules first, then reload all
+editors afterward. The script writes records serially using Firebase REST
+ETags, aborts on any changed record, verifies the stored envelope and unchanged
+public projection after each write, and records each verified path. A failure
+leaves completed records migrated and the remainder untouched; run a fresh
+preview before retrying. A final scan checks for remaining convertible legacy
+records. Do not remove legacy read compatibility until incomplete fragments
+have been resolved and the live database has been checked again.
 
 ## Test safety
 

@@ -116,24 +116,29 @@ describe('TirModule navigation', () => {
 });
 
 describe('TirModule synchronization ownership', () => {
-  it('applies participant copies before invoking the existing granular sync action', () => {
+  it('syncs only the edited participant score field', () => {
     const participant = { id: 'A', name: 'Before', scores: {} };
-    const syncTirParticipants = vi.fn();
+    const syncTirScores = vi.fn().mockResolvedValue();
     const context = {
       tirParticipants: [participant],
       activeParticipant: participant,
-      syncTirParticipants,
+      syncTirScores,
     };
 
-    TirModule.methods.onScoreUpdate.call(context, {
-      id: 'A',
-      name: 'Before',
-      scores: { 0: { 6: 'carreau' } },
-    });
+    TirModule.methods.onScoreUpdate.call(
+      context,
+      {
+        id: 'A',
+        name: 'Cannot rename',
+        scores: { 0: { 6: 'carreau' } },
+      },
+      'scores',
+    );
 
     expect(participant.scores).toEqual({ 0: { 6: 'carreau' } });
+    expect(participant.name).toBe('Before');
     expect(context.activeParticipant).toBe(participant);
-    expect(syncTirParticipants).toHaveBeenCalledOnce();
+    expect(syncTirScores).toHaveBeenCalledWith(['A'], 'scores');
   });
 
   it('applies a match copy and syncs only the active Firebase match path', () => {
@@ -152,20 +157,23 @@ describe('TirModule synchronization ownership', () => {
     expect(syncTirPlayoffMatch).toHaveBeenCalledWith('rounds/0/matches/1', activePlayoffMatch);
   });
 
-  it('preserves independent participant edits before each list sync', () => {
+  it('preserves independent participant edits before each score sync', () => {
     const participants = [
       { id: 'A', scores: {} },
       { id: 'B', scores: {} },
     ];
-    const syncTirParticipants = vi.fn();
-    const context = { tirParticipants: participants, activeParticipant: null, syncTirParticipants };
+    const syncTirScores = vi.fn().mockResolvedValue();
+    const context = { tirParticipants: participants, activeParticipant: null, syncTirScores };
 
-    TirModule.methods.onScoreUpdate.call(context, { id: 'A', scores: { 0: { 6: 'carreau' } } });
-    TirModule.methods.onScoreUpdate.call(context, { id: 'B', scores: { 2: { 8: 'reussi' } } });
+    TirModule.methods.onScoreUpdate.call(context, { id: 'A', scores: { 0: { 6: 'carreau' } } }, 'scores');
+    TirModule.methods.onScoreUpdate.call(context, { id: 'B', scores: { 2: { 8: 'reussi' } } }, 'scores');
 
     expect(participants[0].scores).toEqual({ 0: { 6: 'carreau' } });
     expect(participants[1].scores).toEqual({ 2: { 8: 'reussi' } });
-    expect(syncTirParticipants).toHaveBeenCalledTimes(2);
+    expect(syncTirScores.mock.calls).toEqual([
+      [['A'], 'scores'],
+      [['B'], 'scores'],
+    ]);
   });
 
   it('keeps concurrent match edits isolated to their Firebase paths', () => {

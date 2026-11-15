@@ -900,10 +900,6 @@ button.tag {
   opacity: 0.6;
 }
 
-.vue-select .menu {
-  z-index: 100;
-}
-
 /* Dark theme overrides for Bulma and global elements */
 
 [data-theme='dark'] .button {

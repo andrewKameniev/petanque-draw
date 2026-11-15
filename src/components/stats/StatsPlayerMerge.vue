@@ -52,7 +52,8 @@
           <VueSelect
             v-model="selectedAliases"
             :options="availableLegacyOptions"
-            :is-multi="true"
+            multiple
+            :teleport="false"
             :placeholder="$t('stat.selectLegacyNames')"
           />
           <p class="player-merge__hint">{{ $t('stat.legacyNamesHelp') }}</p>
@@ -97,8 +98,8 @@
 </template>
 
 <script>
-import VueSelect from 'vue3-select-component';
-import 'vue3-select-component/dist/styles.css';
+import { Select as VueSelect } from 'vue3-select-component';
+import 'vue3-select-component/styles';
 import { Check, Link2, LoaderCircle, Save, Unlink, UserRoundSearch } from 'lucide-vue-next';
 import { mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
@@ -250,6 +251,10 @@ export default {
 </script>
 
 <style scoped>
+.player-merge :deep([data-select-popover]) {
+  --vs-menu-z-index: 100;
+}
+
 .player-merge {
   display: flex;
   flex-direction: column;

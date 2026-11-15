@@ -13,6 +13,7 @@ npm run build
 ```
 
 Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and deploys it.
+Both quality checks and the GitHub Pages build use Node.js 24.22.3 (LTS).
 
 ## CI/CD
 
@@ -37,7 +38,7 @@ Outputs to `dist/` directory. The `dist/` folder is gitignored — CI builds and
 ## Service Worker
 
 - `public/firebase-messaging-sw.js` — Handles background push notifications
-- Uses Firebase JS SDK v8.10.1 (legacy compat API)
+- Loads the Firebase JS SDK compat bundles from Google's CDN. Update those URLs when upgrading the SDK.
 - `src/registerServiceWorker.js` exists but is commented out in `main.js`
 
 ## Environment

@@ -244,6 +244,14 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     if (permissionDenied(error) && ownerUid !== userUid) store._handleAccessRevoked(tournamentId);
   }
 
+  function notifySaveFailed() {
+    store.showMessage({
+      title: dependencies.translate?.('messages.error') || 'messages.error',
+      text: dependencies.translate?.('messages.failedSaving') || 'messages.failedSaving',
+      type: 'error',
+    });
+  }
+
   function syncPath(path, data) {
     const { ownerUid, tournament, tournamentId, userUid } = context();
     if (!userUid || !tournamentId) return undefined;
@@ -258,7 +266,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
       })
       .catch((error) => {
         recentSyncPaths.delete(path);
-        if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
+        if (generation === writeGeneration) notifySaveFailed();
         console.error('Error updating path:', path, error);
       });
   }
@@ -278,7 +286,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
     return publicWriter
       .writePaths({ ownerUid, tournamentId, record: tournament, pathValues: updates })
       .catch((error) => {
-        if (generation === writeGeneration) notifyRevoked(error, ownerUid, userUid, tournamentId);
+        if (generation === writeGeneration) notifySaveFailed();
         console.error('Error updating tournament paths:', Object.keys(updates), error);
         throw error;
       });
@@ -312,7 +320,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
           recentMatchSyncs.delete(syncKey);
           return;
         }
-        const { ownerUid, tournament, tournamentId, userUid } = scheduledContext;
+        const { ownerUid, tournament, tournamentId } = scheduledContext;
         publicWriter
           .writePaths({
             ownerUid,
@@ -323,7 +331,7 @@ export function createTournamentSyncRuntime(store, dependencies = {}) {
           .then(() => recentMatchSyncs.delete(syncKey))
           .catch((error) => {
             recentMatchSyncs.delete(syncKey);
-            notifyRevoked(error, ownerUid, userUid, tournamentId);
+            if (generation === scheduledGeneration) notifySaveFailed();
             console.error(`Error updating ${namespace}/${key}:`, error);
           });
       }, 200),

@@ -300,3 +300,59 @@ export function updateTournamentGroup(record, group, patch) {
   const current = getTournamentStorageTarget(record, group, { allowFallback: false }).data || {};
   return replaceTournamentGroup(record, group, { ...current, ...cloneValue(patch) });
 }
+
+/** Plan an explicit legacy-to-envelope migration without changing persisted data. */
+export function migrateLegacyTournamentRecord(record) {
+  if (!isObject(record) || isTournamentEnvelope(record)) {
+    throw new Error('MIGRATION_REQUIRES_LEGACY_RECORD');
+  }
+  if (record.main != null) throw new Error('MIGRATION_MALFORMED_MAIN');
+  if (
+    typeof record.system !== 'string' ||
+    (record.teams != null && !Array.isArray(record.teams)) ||
+    (record.games != null && !Array.isArray(record.games))
+  ) {
+    throw new Error('MIGRATION_INVALID_GROUP_A');
+  }
+  const hasGroupB = isObject(record.groupB);
+  if (
+    (record.groupB != null && !hasGroupB) ||
+    (hasGroupB &&
+      ((record.groupB.system != null && typeof record.groupB.system !== 'string') ||
+        (record.groupB.teams != null && !Array.isArray(record.groupB.teams)) ||
+        (record.groupB.games != null && !Array.isArray(record.groupB.games))))
+  ) {
+    throw new Error('MIGRATION_INVALID_GROUP_B');
+  }
+  if (isObject(record.tournamentB)) {
+    if (!hasGroupB) throw new Error('MIGRATION_CONFLICTING_GROUP_B');
+    const stale = record.tournamentB;
+    const liveTitles = new Set((record.groupB.teams || []).map((team) => team.title));
+    const staleTitles = Array.isArray(stale.teams) ? new Set(stale.teams.map((team) => team.title)) : null;
+    if (
+      (Array.isArray(stale.games) && stale.games.length > 0) ||
+      (Array.isArray(stale.playOff) && stale.playOff.length > 0) ||
+      (isObject(stale.playOffBracket) && Object.keys(stale.playOffBracket).length > 0) ||
+      ['playoff', 'cadrage', 'barrage', 'teamPlayoff', 'tirPlayoff'].some((field) => !!stale[field]) ||
+      stale.roundIsActive === true ||
+      (staleTitles &&
+        (staleTitles.size !== liveTitles.size || [...staleTitles].some((title) => !liveTitles.has(title)))) ||
+      (Array.isArray(stale.teams) && stale.teams.some((team) => team.wins || team.pointsPlus || team.pointsMinus))
+    ) {
+      throw new Error('MIGRATION_CONFLICTING_GROUP_B');
+    }
+  }
+
+  const metadata = getTournamentMetadata(record);
+  const main = Object.fromEntries(
+    Object.entries(record)
+      .filter(([key]) => !Object.hasOwn(metadata, key) && !['activeGroup', 'groupB', 'tournamentB'].includes(key))
+      .map(([key, value]) => [key, cloneValue(value)]),
+  );
+  return {
+    ...metadata,
+    activeGroup: record.activeGroup === TOURNAMENT_GROUP_B && hasGroupB ? TOURNAMENT_GROUP_B : TOURNAMENT_GROUP_A,
+    main,
+    tournamentB: hasGroupB ? normalizeCompetition(record.groupB, { groupB: true, fallbackCompetition: record }) : null,
+  };
+}

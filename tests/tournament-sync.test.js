@@ -160,7 +160,7 @@ describe('tournament synchronization runtime', () => {
     expect(store._handleAccessRevoked).not.toHaveBeenCalled();
   });
 
-  it('rejects a failed atomic update and reports permission loss for shared tournaments', async () => {
+  it('rejects a denied score write without removing a still shared tournament', async () => {
     const record = envelopeRecord({ _ownerUid: 'owner1' });
     const { dependencies, runtime, store } = harness(record);
     const error = { code: 'PERMISSION_DENIED' };
@@ -168,9 +168,23 @@ describe('tournament synchronization runtime', () => {
     dependencies.set.mockRejectedValueOnce(error);
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await expect(runtime.syncPaths({ 'main/teams/0/title': 'New title' })).rejects.toBe(error);
+    await expect(runtime.syncPaths({ 'main/games/0/0/team_1_score': 13 })).rejects.toBe(error);
 
-    expect(store._handleAccessRevoked).toHaveBeenCalledWith('t1');
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+    expect(store.showMessage).toHaveBeenCalledWith(expect.objectContaining({ text: 'messages.failedSaving' }));
+    consoleError.mockRestore();
+  });
+
+  it('keeps a shared tournament after a single score path is denied', async () => {
+    const { dependencies, runtime, store } = harness(envelopeRecord({ _ownerUid: 'owner1' }));
+    dependencies.update.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
+    dependencies.set.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await runtime.syncPath('main/games/0/0/team_1_score', 13);
+
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+    expect(store.showMessage).toHaveBeenCalledWith(expect.objectContaining({ text: 'messages.failedSaving' }));
     consoleError.mockRestore();
   });
 
@@ -205,7 +219,7 @@ describe('tournament synchronization runtime', () => {
     expect(runtime.recentMatchSyncs.size).toBe(0);
   });
 
-  it('clears failed writes and reports permission loss for shared tournaments', async () => {
+  it('clears failed score writes and reports the save error without revoking access', async () => {
     const { dependencies, runtime, store } = harness({ _ownerUid: 'owner1', games: [], teams: [] });
     dependencies.update.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
     dependencies.set.mockRejectedValueOnce({ code: 'PERMISSION_DENIED' });
@@ -214,7 +228,8 @@ describe('tournament synchronization runtime', () => {
     await vi.advanceTimersByTimeAsync(200);
 
     expect(runtime.recentMatchSyncs.size).toBe(0);
-    expect(store._handleAccessRevoked).toHaveBeenCalledWith('t1');
+    expect(store._handleAccessRevoked).not.toHaveBeenCalled();
+    expect(store.showMessage).toHaveBeenCalledWith(expect.objectContaining({ text: 'messages.failedSaving' }));
   });
 
   it('ignores a stale permission failure after lifecycle cleanup', async () => {

@@ -66,6 +66,7 @@
                 <label class="prefs__label">{{ $t('modals.cochonettes') }}</label>
                 <div class="select is-fullwidth">
                   <select v-model.number="tournament.preferences.cochonettes">
+                    <option :value="0">{{ $t('modals.noAdditionalCochonettes') }}</option>
                     <option :value="1">1</option>
                     <option :value="2">2</option>
                   </select>
@@ -232,7 +233,7 @@
         }"
       >
         <button
-          v-if="isOwnerOrAdmin"
+          v-if="isOwnerOrAdmin && (canRemoveTournamentB || currentRole === 'owner')"
           type="button"
           class="prefs__btn prefs__btn--danger"
           :data-testid="canRemoveTournamentB ? 'btn-remove-tournament-b' : 'btn-remove-tournament'"
@@ -274,6 +275,7 @@ export default {
       'activeTournament',
       'user',
       'isOwnerOrAdmin',
+      'currentRole',
     ]),
     canRemoveTournamentB() {
       return this.currentTournament?.activeGroup === 'B' && hasTournamentGroup(this.currentTournament, 'B');

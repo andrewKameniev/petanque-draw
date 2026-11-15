@@ -12,16 +12,21 @@
     <div id="tir-admin-tabpanel" role="tabpanel" :aria-labelledby="`tir-admin-tab-${view}`">
       <!-- Participants list -->
       <div v-if="view === 'participants'" class="tir-participants">
-        <div class="tir-participants__header" v-if="!tournament.tirStarted">
+        <div class="tir-participants__header" v-if="isOwnerOrAdmin && !tournament.tirStarted">
           <button class="tir-participants__add" @click="showAddParticipant = true">
             <Plus :size="18" />
           </button>
         </div>
-        <TirParticipantsList :tournament="tournament" :readOnly="!!tournament.tirPlayoff" @update="onScoreUpdate" />
+        <TirParticipantsList
+          :tournament="tournament"
+          :readOnly="!!tournament.tirPlayoff"
+          @update="onScoreUpdate($event.participants, $event.scoreKey)"
+        />
 
         <!-- Tiebreaker needed (participants view) -->
         <div
           v-if="
+            isOwnerOrAdmin &&
             isRound1Complete &&
             isTwoRoundSystem &&
             currentRound === 1 &&
@@ -112,6 +117,7 @@
         :max-total-score="maxTotalScore"
         :read-only="!!tournament.tirPlayoff"
         :show-tiebreaker="
+          isOwnerOrAdmin &&
           isRound1Complete &&
           isTwoRoundSystem &&
           currentRound === 1 &&
@@ -124,13 +130,17 @@
         :is-tiebreaker-in-progress="isTiebreakerInProgress"
         :is-tiebreaker-round-complete="isTiebreakerRoundComplete"
         :show-round-two-transition="
-          canTransitionToRound2 && !tournament.tirPlayoff && !activeParticipant && activeAtelier === null
+          isOwnerOrAdmin &&
+          canTransitionToRound2 &&
+          !tournament.tirPlayoff &&
+          !activeParticipant &&
+          activeAtelier === null
         "
         @select-round="scoringRound = $event"
         @select-mode="scoringMode = $event"
         @select-participant="activeParticipant = $event"
         @participant-back="onParticipantViewBack"
-        @score-update="onScoreUpdate"
+        @score-update="onScoreUpdate($event, activeScoresKey)"
         @next-participant="goToNextParticipant"
         @select-atelier="activeAtelier = $event"
         @finish-atelier="finishAtelier"
@@ -141,6 +151,7 @@
 
       <TirRoundTable
         v-if="view === 'table'"
+        :can-manage="isOwnerOrAdmin"
         :participants="tirParticipants"
         :rows="roundTableRows"
         :ranked-participants="rankedParticipants"
@@ -182,12 +193,13 @@
 
       <TirPlayoffAdmin
         v-if="view === 'playoff' && tournament.tirPlayoff"
+        :can-manage="isOwnerOrAdmin"
         :active-match="activePlayoffMatch"
         :active-match-label="activePlayoffMatchLabel"
         :ateliers="tirAteliers"
         :distances="tirDistances"
         :rounds="playoffAdminRounds"
-        :can-finish="canFinishPlayoff"
+        :can-finish="isOwnerOrAdmin && canFinishPlayoff"
         :tournament-finished="!!tournament.tournamentIsFinished"
         @close-match="closePlayoffMatch"
         @score-update="onPlayoffScoreChange"
@@ -278,7 +290,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournament', 'activeTournament']),
+    ...mapState(useMainStore, ['currentTournament', 'activeTournament', 'isOwnerOrAdmin']),
     tournament() {
       return this.activeTournament || this.currentTournament;
     },
@@ -564,6 +576,7 @@ export default {
   methods: {
     ...mapActions(useMainStore, [
       'syncTirParticipants',
+      'syncTirScores',
       'syncTirState',
       'syncTirPlayoff',
       'syncTirPlayoffMatch',
@@ -574,6 +587,7 @@ export default {
       'showMessage',
     ]),
     startTiebreaker() {
+      if (!this.isOwnerOrAdmin) return;
       const participants = this.activeTiebreakerParticipants;
       if (!participants.length) return;
       const tbKey = this.activeTiebreakerKey;
@@ -588,6 +602,7 @@ export default {
       this.syncTirState();
     },
     finishTiebreaker() {
+      if (!this.isOwnerOrAdmin) return;
       this.tournament.tirTiebreakerActive = false;
       this.tournament.tirTiebreakerParticipantIds = null;
       this.syncTirState();
@@ -620,6 +635,7 @@ export default {
       this.activeParticipant = null;
     },
     startRound2() {
+      if (!this.isOwnerOrAdmin) return;
       const r2Qualifiers = getR2QualifiersWithTies(this.tirParticipants, this.tiebreakerCount);
       this.tournament.tirR2Participants = r2Qualifiers.map((p) => p.id);
       r2Qualifiers.forEach((p) => {
@@ -630,12 +646,14 @@ export default {
       this.syncTirState();
     },
     returnToRound1() {
+      if (!this.isOwnerOrAdmin) return;
       this.tournament.tirRound = 1;
       this.tournament.tirR2Participants = null;
       this.scoringRound = 'r1';
       this.syncTirState();
     },
     addParticipant() {
+      if (!this.isOwnerOrAdmin) return;
       if (!this.newParticipant.name.trim()) return;
       if (!this.tournament.tirParticipants) {
         this.tournament.tirParticipants = [];
@@ -672,6 +690,7 @@ export default {
       this.swapTarget = null;
     },
     confirmLaneSwap() {
+      if (!this.isOwnerOrAdmin) return;
       if (!this.swapTarget || !this.swapParticipant) return;
       const targetLane = this.swapTarget;
       const sourceLane = this.getParticipantLane(this.swapParticipant);
@@ -701,15 +720,18 @@ export default {
     getThrowsCompleted(participant) {
       return getThrowCount(participant, this.activeScoresKey);
     },
-    onScoreUpdate(updatedParticipants) {
+    onScoreUpdate(updatedParticipants, scoreKey) {
+      if (!/^(scores2?|tiebreaker_[1-9]\d*)$/.test(scoreKey)) return;
       const updates = Array.isArray(updatedParticipants) ? updatedParticipants : [updatedParticipants];
+      const participantIds = [];
       updates.filter(Boolean).forEach((updatedParticipant) => {
         const participant = this.tirParticipants.find((item) => item.id === updatedParticipant.id);
-        if (!participant) return;
-        Object.assign(participant, updatedParticipant);
+        if (!participant || updatedParticipant[scoreKey] === undefined) return;
+        participant[scoreKey] = updatedParticipant[scoreKey];
         if (this.activeParticipant?.id === participant.id) this.activeParticipant = participant;
+        participantIds.push(participant.id);
       });
-      this.syncTirParticipants();
+      if (participantIds.length) this.syncTirScores(participantIds, scoreKey).catch(() => {});
     },
     goToNextParticipant() {
       const list = this.scoringListParticipants;
@@ -719,9 +741,9 @@ export default {
     },
     finishAtelier() {
       this.activeAtelier = null;
-      this.syncTirParticipants();
     },
     startTirPlayoff() {
+      if (!this.isOwnerOrAdmin) return;
       let qualified;
       if (this.isTwoRoundSystem) {
         const direct = this.directQualifiers;
@@ -790,6 +812,7 @@ export default {
       if (advancePlayoff(playoff)) this.syncTirPlayoffMatch(null, null);
     },
     finishPlayoffTournament() {
+      if (!this.isOwnerOrAdmin) return;
       this.finishTournament();
     },
     getMatchLane(rIdx, mIdx, match) {
@@ -800,6 +823,7 @@ export default {
       return mIdx + 1;
     },
     editLane(rIdx, mIdx, match) {
+      if (!this.isOwnerOrAdmin) return;
       const current = this.getMatchLane(rIdx, mIdx, match);
       const value = window.prompt(this.$t('games.lane'), current);
       if (value === null) return;

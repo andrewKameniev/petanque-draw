@@ -80,7 +80,7 @@ export function generateCompetitorsFirstLast(teamList, activeRound, useRating, r
 
 export function drawSwissRound(tournament, rankingTeams, activeRound) {
   const round = [];
-  let teamsToDraw = JSON.parse(JSON.stringify(rankingTeams));
+  let teamsToDraw = JSON.parse(JSON.stringify(rankingTeams.filter((team) => !team.withdrawn)));
   teamsToDraw = sortTeams(teamsToDraw);
 
   let expandListIteration = 0;

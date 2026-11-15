@@ -31,7 +31,7 @@
       </div>
     </template>
     <template v-else>
-      <strong class="pointer" @click="startEdit"> {{ name }}</strong>
+      <strong :class="{ pointer: editable }" @click="startEdit"> {{ name }}</strong>
     </template>
     <span v-if="tournamentStarted" class="is-size-5 is-capitalized">({{ system }})</span>
     <span v-if="isTest" class="test-badge">Test</span>
@@ -52,6 +52,7 @@ export default {
     tournamentStarted: { type: Boolean, default: false },
     isTest: { type: Boolean, default: false },
     isPinned: { type: Boolean, default: false },
+    editable: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -62,6 +63,7 @@ export default {
   },
   methods: {
     startEdit() {
+      if (!this.editable) return;
       this.editValue = this.name;
       this.editing = true;
       this.$nextTick(() => {

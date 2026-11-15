@@ -64,6 +64,13 @@ observe B's removal through their existing subscriptions.
 
 Admin can mark teams as "withdrawn" before starting playoff (in the advanced settings of the playoff confirm modal). Withdrawn teams keep their swiss ranking but don't proceed to playoff/cadrage/barrage. Bottom teams "bubble up" to fill their spots.
 
+While a Swiss Tournament B is running, an owner or admin can withdraw a team
+from the Teams tab. The team remains in the ranking with a withdrawn marker. If
+its match is in the active round, that match is completed as a technical loss
+using the tournament's configured technical score. Withdrawn teams are excluded
+from all later Swiss draws. Tournament B's playoff setup does not show
+Tournament A's withdrawal list.
+
 ### Cadrage Losers → Group B
 
 When cadrage is enabled, an option allows cadrage losers to be sent to Group B instead of being fully eliminated. After cadrage finishes, losers are added to the Group B team pool via `addGroupBTeams()`.

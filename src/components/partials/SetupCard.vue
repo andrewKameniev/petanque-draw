@@ -336,6 +336,7 @@
           <label class="setup-card__label">{{ $t('modals.cochonettes') }}</label>
           <div class="select is-fullwidth">
             <select v-model.number="tournament.preferences.cochonettes">
+              <option :value="0">{{ $t('modals.noAdditionalCochonettes') }}</option>
               <option :value="1">1</option>
               <option :value="2">2</option>
             </select>

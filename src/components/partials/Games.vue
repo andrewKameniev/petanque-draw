@@ -81,7 +81,7 @@
           :enabled="showTimerSection"
           :timer="tournament.roundTimer"
           :cochonettes-enabled="!!tournament.preferences.cochonettesEnabled"
-          :cochonettes="tournament.preferences.cochonettes || 1"
+          :cochonettes="tournament.preferences.cochonettes ?? 1"
           :read-only="!isOwnerOrAdmin"
           @start="startRoundTimer"
           @timer-ended="onTimerEnded"

@@ -6,6 +6,7 @@ import {
   getTournamentPresentation,
   getTournamentStorageTarget,
   isTournamentEnvelope,
+  migrateLegacyTournamentRecord,
   normalizeTournamentRecord,
   replaceTournamentGroup,
   updateTournamentGroup,
@@ -166,5 +167,104 @@ describe('canonical tournament record adapter', () => {
     expect(nextLegacy.groupB.teams[0].title).toBe('B2');
     expect(nextLegacy).not.toHaveProperty('main');
     expect(legacy.groupB.teams[0].title).toBe('B1');
+  });
+
+  it('moves the live legacy Group B into the envelope and leaves an empty stale B behind', () => {
+    const source = {
+      ...legacy,
+      collaborators: { scorer: { role: 'scorer' } },
+      tournamentB: { system: 'groups', teams: [{ title: 'Live B' }], roundIsActive: false },
+      groupB: {
+        system: 'swiss',
+        teams: [{ title: 'Live B', wins: 1 }],
+        games: [[{ team_1: 'Live B', team_1_score: 13, team_2_score: 4, status: 'finished' }], []],
+        roundIsActive: true,
+        preferences: { swissRoundsCount: 3 },
+      },
+    };
+    const original = JSON.parse(JSON.stringify(source));
+
+    const migrated = migrateLegacyTournamentRecord(source);
+
+    expect(migrated).toMatchObject({
+      id: 'legacy-1',
+      collaborators: source.collaborators,
+      activeGroup: 'B',
+      main: { system: 'groups', teams: [{ title: 'A1' }] },
+      tournamentB: {
+        system: 'swiss',
+        teams: [{ title: 'Live B', wins: 1 }],
+        games: source.groupB.games,
+        roundIsActive: true,
+      },
+    });
+    expect(migrated).not.toHaveProperty('groupB');
+    expect(migrated).not.toHaveProperty('games');
+    expect(source).toEqual(original);
+    migrated.tournamentB.teams[0].wins = 9;
+    expect(source.groupB.teams[0].wins).toBe(1);
+  });
+
+  it('moves a Group A-only legacy record even when Firebase omitted empty arrays', () => {
+    const source = {
+      name: 'Small cup',
+      collaborators: { helper: { role: 'scorer' } },
+      system: 'swiss',
+      preferences: { maxScore: 11 },
+      roundIsActive: false,
+    };
+
+    const migrated = migrateLegacyTournamentRecord(source);
+
+    expect(migrated).toEqual({
+      name: 'Small cup',
+      collaborators: source.collaborators,
+      activeGroup: 'A',
+      main: { system: 'swiss', preferences: { maxScore: 11 }, roundIsActive: false },
+      tournamentB: null,
+    });
+    expect(source).not.toHaveProperty('main');
+  });
+
+  it('materializes the settings inherited by a partial legacy Group B', () => {
+    const source = {
+      name: 'Groups cup',
+      system: 'groups',
+      preferences: { maxScore: 11, fieldsStart: 3 },
+      groupB: { teams: [{ title: 'B1' }], preferences: { maxScore: 9 } },
+    };
+
+    const migrated = migrateLegacyTournamentRecord(source);
+
+    expect(migrated.tournamentB).toMatchObject({
+      system: 'groups',
+      teams: [{ title: 'B1' }],
+      games: [],
+      preferences: { maxScore: 9, fieldsStart: 3 },
+    });
+    expect(normalizeTournamentRecord(migrated).tournamentB).toEqual(normalizeTournamentRecord(source).groupB);
+  });
+
+  it('rejects an orphan fragment and malformed competition arrays', () => {
+    expect(() => migrateLegacyTournamentRecord({ games: [] })).toThrow('MIGRATION_INVALID_GROUP_A');
+    expect(() => migrateLegacyTournamentRecord({ system: 'swiss', teams: 'not-an-array' })).toThrow(
+      'MIGRATION_INVALID_GROUP_A',
+    );
+  });
+
+  it('rejects conflicting Group B data instead of choosing a source silently', () => {
+    const source = {
+      ...legacy,
+      groupB: { system: 'swiss', teams: [], games: [] },
+      tournamentB: { system: 'swiss', games: [[{ status: 'finished' }]] },
+    };
+    expect(() => migrateLegacyTournamentRecord(source)).toThrow('MIGRATION_CONFLICTING_GROUP_B');
+    expect(() =>
+      migrateLegacyTournamentRecord({
+        ...source,
+        tournamentB: { system: 'swiss', teams: [{ title: 'Different entrant' }] },
+      }),
+    ).toThrow('MIGRATION_CONFLICTING_GROUP_B');
+    expect(() => migrateLegacyTournamentRecord(wrapper)).toThrow('MIGRATION_REQUIRES_LEGACY_RECORD');
   });
 });

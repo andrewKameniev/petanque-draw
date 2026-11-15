@@ -176,7 +176,9 @@ export default {
 }
 
 .team-search-btn--active {
-  background: var(--color-text-muted, #6b7280);
+  color: var(--color-search-highlight-text);
+  background: var(--color-search-highlight-bg);
+  box-shadow: inset 0 0 0 1px var(--color-search-highlight-border);
 }
 
 .team-search-popover {
@@ -229,8 +231,9 @@ export default {
 }
 
 .team-search-item--active {
-  background: var(--color-primary);
-  color: white;
+  color: var(--color-search-highlight-text);
+  background: var(--color-search-highlight-bg);
+  box-shadow: inset 3px 0 0 var(--color-search-highlight-border);
 }
 
 .team-search-clubs {

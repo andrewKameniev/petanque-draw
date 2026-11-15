@@ -18,7 +18,7 @@
       :enabled="showTimerSection"
       :timer="tournament.roundTimer"
       :cochonettes-enabled="!!tournament.preferences.cochonettesEnabledPlayoff"
-      :cochonettes="tournament.preferences.cochonettes || 1"
+      :cochonettes="tournament.preferences.cochonettes ?? 1"
       :read-only="!!isPublicView"
       @start="startRoundTimer"
       @timer-ended="onTimerEnded"

@@ -10,7 +10,7 @@
       @click="openSearch"
     >
       <Search :size="16" aria-hidden="true" />
-      <span>{{ modelValue || $t('teams.findCourt') }}</span>
+      <span>{{ clubLabels[modelValue] || modelValue || $t('teams.findCourt') }}</span>
     </button>
     <button
       v-if="modelValue"
@@ -45,10 +45,20 @@
               type="button"
               class="team-search-item"
               :aria-pressed="modelValue === club"
+              :aria-label="club"
+              :title="club"
               @click="selectTeam(club)"
             >
-              <Building2 :size="18" aria-hidden="true" />
-              <span>{{ club }}</span>
+              <img
+                v-if="clubLogos[club] && !failedLogos.includes(clubLogos[club])"
+                class="team-search-logo"
+                :src="clubLogos[club]"
+                alt=""
+                loading="lazy"
+                @error="failedLogos.push(clubLogos[club])"
+              />
+              <Building2 v-else :size="18" aria-hidden="true" />
+              <span>{{ clubLabels[club] }}</span>
             </button>
           </li>
         </ul>
@@ -80,6 +90,7 @@ export default {
   components: { Building2, Search, X },
   props: {
     teams: { type: Array, default: () => [] },
+    tournamentTeams: { type: Array, default: () => [] },
     teamClubMap: { type: Object, default: () => ({}) },
     modelValue: { type: String, default: null },
   },
@@ -88,6 +99,7 @@ export default {
     return {
       showSearch: false,
       searchQuery: '',
+      failedLogos: [],
     };
   },
   computed: {
@@ -97,8 +109,34 @@ export default {
     allClubs() {
       return [...new Set(Object.values(this.teamClubMap).filter(Boolean))].sort();
     },
+    clubLabels() {
+      const labels = {};
+      const counts = new Map();
+      for (const club of this.allClubs) {
+        const label = this.shortClubName(club);
+        labels[club] = label;
+        counts.set(label.toLocaleLowerCase(), (counts.get(label.toLocaleLowerCase()) || 0) + 1);
+      }
+      for (const club of this.allClubs) {
+        if (counts.get(labels[club].toLocaleLowerCase()) > 1) labels[club] = club;
+      }
+      return labels;
+    },
+    clubLogos() {
+      const logos = {};
+      for (const team of this.tournamentTeams) {
+        for (const player of team.players || []) {
+          if (player.club && player.club_logo_url && !logos[player.club]) {
+            logos[player.club] = player.club_logo_url;
+          }
+        }
+      }
+      return logos;
+    },
     filteredClubs() {
-      return this.allClubs.filter((club) => club.toLowerCase().includes(this.query));
+      return this.allClubs.filter(
+        (club) => club.toLowerCase().includes(this.query) || this.clubLabels[club].toLowerCase().includes(this.query),
+      );
     },
     filteredTeams() {
       if (!this.query) return this.teams;
@@ -111,6 +149,15 @@ export default {
     if (this.showSearch) this.closeSearch();
   },
   methods: {
+    shortClubName(club) {
+      const short = club
+        .replace(/^\s*(?:громадська\s+організація|го)\s*/iu, '')
+        .replace(/^[\s«"„“]+/u, '')
+        .replace(/^(?:спортивний\s+)?(?:петанк[ -])?клуб\s*/iu, '')
+        .replace(/^[\s«"„“]+|[\s»"”]+$/gu, '')
+        .trim();
+      return short || club;
+    },
     openSearch() {
       this.searchQuery = '';
       this.updateSearchViewport();
@@ -332,6 +379,13 @@ export default {
 .team-search-item {
   width: 100%;
   text-align: start;
+}
+
+.team-search-logo {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .team-search-item[aria-pressed='false']:hover,

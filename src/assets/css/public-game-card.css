@@ -39,8 +39,9 @@
 }
 
 .public-game-card.match-item--highlighted {
-  outline: 2px solid var(--color-search-highlight-border);
+  outline: 2px solid var(--color-search-highlight-match-border);
   outline-offset: -2px;
+  box-shadow: 0 3px 10px var(--color-primary-shadow);
 }
 
 .public-game-card .match-lane-left {
@@ -77,7 +78,7 @@
 }
 
 .public-game-card.match-item--highlighted .match-lane-left {
-  border-color: var(--color-search-highlight-border);
+  border-color: var(--color-search-highlight-match-border);
   color: var(--color-search-highlight-text);
 }
 

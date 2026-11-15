@@ -66,6 +66,46 @@ describe('court finder', () => {
     expect(wrapper.get('dialog').element.open).toBe(false);
     expect(wrapper.emitted('update:modelValue')).toHaveLength(1);
   });
+
+  it('shows short club names and logos while selecting the original club name', async () => {
+    const fullName = 'Громадська Організація «Спортивний клуб «Сталеві вовки»»';
+    const logo = 'https://example.com/club.png';
+    await wrapper.setProps({
+      teamClubMap: { [player]: fullName },
+      tournamentTeams: [{ players: [{ club: fullName }, { club: fullName, club_logo_url: logo }] }],
+    });
+    await wrapper.get('.team-search-btn').trigger('click');
+    const button = wrapper.get(`button[aria-label="${fullName}"]`);
+    expect(button.text()).toBe('Сталеві вовки');
+    expect(button.get('img').attributes('src')).toBe(logo);
+    await button.get('img').trigger('error');
+    expect(button.find('img').exists()).toBe(false);
+    expect(button.find('svg').exists()).toBe(true);
+    await button.trigger('click');
+    expect(wrapper.emitted('update:modelValue')).toEqual([[fullName]]);
+    await wrapper.setProps({ modelValue: fullName });
+    expect(wrapper.get('.team-search-btn').text()).toBe('Сталеві вовки');
+  });
+
+  it('keeps full club names when shortened names collide', async () => {
+    const names = ['ГО «Спортивний клуб «Лідер»»', 'ГО «Лідер»'];
+    await wrapper.setProps({ teamClubMap: { [player]: names[0], 'РОЖОК Олександр': names[1] } });
+    await wrapper.get('.team-search-btn').trigger('click');
+    for (const name of names) expect(wrapper.get(`button[aria-label="${name}"]`).text()).toBe(name);
+  });
+
+  it.each(['Зелені леви', 'Кошовий', 'Незламні. Наша грає', 'Сталеві Лицарі'])(
+    'shortens the sports petanque club prefix for %s',
+    async (name) => {
+      const fullName = `Спортивний петанк-клуб «${name}»`;
+      await wrapper.setProps({ teamClubMap: { [player]: fullName } });
+      await wrapper.get('.team-search-btn').trigger('click');
+      const button = wrapper.get(`button[aria-label="${fullName}"]`);
+      expect(button.text()).toBe(name);
+      await button.trigger('click');
+      expect(wrapper.emitted('update:modelValue')).toEqual([[fullName]]);
+    },
+  );
 });
 
 it('shows the finder in the quarterfinal and clears it for the semifinal and final', async () => {

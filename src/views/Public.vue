@@ -201,7 +201,12 @@
                   >{{ $t('common.round') }} {{ activeRound
                   }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></span
                 >
-                <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
+                <TeamSearch
+                  :teams="teamNames"
+                  :tournament-teams="activeTournamentView?.teams || []"
+                  :team-club-map="teamClubMap"
+                  v-model="highlightedTeam"
+                />
               </div>
               <RoundTimer
                 v-if="showPublicTimer"

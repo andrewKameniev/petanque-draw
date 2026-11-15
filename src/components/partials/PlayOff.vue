@@ -83,6 +83,7 @@
                   v-if="showCourtFinder"
                   v-model="highlightedTeam"
                   :teams="allParticipants"
+                  :tournament-teams="tournament.teams || []"
                   :team-club-map="teamClubMap"
                 />
               </div>

@@ -7,8 +7,6 @@ import { makeClubTournament, clubMatchAfterSingles } from './fixtures/club-compe
 import { projectPublicTournamentCompetition } from '../src/services/public-tournament-projection';
 
 const PROJECT_ID = 'demo-petanque-draw-public-projection-rules';
-const DATABASE_HOST = '127.0.0.1';
-const DATABASE_PORT = 9000;
 const RULES = readFileSync(new URL('../database.rules.json', import.meta.url), 'utf8');
 
 let testEnvironment;
@@ -59,8 +57,6 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
     testEnvironment = await initializeTestEnvironment({
       projectId: PROJECT_ID,
       database: {
-        host: DATABASE_HOST,
-        port: DATABASE_PORT,
         rules: RULES,
       },
     });

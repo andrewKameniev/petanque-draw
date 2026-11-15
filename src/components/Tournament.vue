@@ -474,13 +474,6 @@ export default {
     'tournament.teams.length'(count) {
       if (this.isClub && !this.tournamentStarted) this.teamsInGroup = Math.max(2, count);
     },
-    tournament: {
-      immediate: true,
-      handler(activeTournament) {
-        // eslint-disable-next-line no-console
-        console.log('Active tournament:', activeTournament);
-      },
-    },
     withCadrage(val) {
       if (val) this.withBarrage = false;
     },

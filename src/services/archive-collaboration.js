@@ -481,8 +481,10 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       if (mapEntry.role === 'owner' && restoredTournament) {
         const updateData = { status: 'active', archiveStatusVersion: ARCHIVE_STATUS_VERSION };
         await Promise.all(adminCollaboratorUids(restoredTournament).map((uid) => maps.update(uid, id, updateData)));
-        store.tournaments[id] = normalizeTournamentRecord(restoredTournament, { id });
       }
+      await firebase.remove(firebase.ref(firebase.database, `archive/${id}`));
+      if (store.archiveIndex) delete store.archiveIndex[id];
+      if (restoredTournament) store.tournaments[id] = normalizeTournamentRecord(restoredTournament, { id });
       Object.assign(mapEntry, { status: 'active', archiveStatusVersion: ARCHIVE_STATUS_VERSION });
       delete store.savedTournaments[id];
       store.savedTournamentIds = store.savedTournamentIds.filter((key) => key !== id);
@@ -492,6 +494,12 @@ export function createArchiveCollaborationRuntime(store, dependencies = {}) {
       if (ownMapUpdated) {
         try {
           await maps.update(store.user.uid, id, { status: previousStatus });
+          const restoredTournament = store.savedTournaments[id];
+          await Promise.all(
+            adminCollaboratorUids(restoredTournament).map((uid) =>
+              maps.update(uid, id, { status: previousStatus, archiveStatusVersion: ARCHIVE_STATUS_VERSION }),
+            ),
+          );
         } catch (rollbackError) {
           console.error('Error rolling back restore status:', rollbackError);
         }

@@ -478,7 +478,8 @@ export default {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: 0.4rem 0.75rem;
+  padding-block: 0.4rem;
+  padding-inline-start: 0.75rem;
   font-size: 1rem;
   border: 1px solid var(--color-border, #e0e0e0);
   border-radius: 6px;

@@ -874,7 +874,11 @@ export default {
     getFormatTag(item) {
       if (item.nameLower !== undefined) {
         if (item.system === 'tir') return this.$t('teams.tir');
-        return item.system || '';
+        const players = item.firstTeamPlayers;
+        if (players === 1) return this.$t('common.formatTete');
+        if (players === 2) return this.$t('common.formatDoublette');
+        if (players >= 3) return this.$t('common.formatTriplette');
+        return '';
       }
       const data = getTournamentGroup(item, 'A');
       if (data.system === 'tir') return this.$t('teams.tir');
@@ -1852,11 +1856,12 @@ export default {
 }
 
 .archived-sidebar__filter-select {
-  padding: 0.35rem 0.4rem;
+  padding-block: 0.35rem;
+  padding-inline-start: 0.4rem;
   font-size: 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text);
   min-width: 80px;
 }

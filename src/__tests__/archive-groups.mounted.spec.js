@@ -231,7 +231,7 @@ describe('Main and Tournament B archive behavior', () => {
     wrapper.unmount();
   });
 
-  it('offers an accessible Mine/All switch to every user and places the date after the type tag', async () => {
+  it('offers an accessible Mine/All switch and shows the team format beside the name', async () => {
     const record = tournamentRecord();
     const wrapper = shallowMount(
       archivedHarness(record, { archiveIndex: {} }),
@@ -254,6 +254,7 @@ describe('Main and Tournament B archive behavior', () => {
       .findAll(':scope > span')
       .map((item) => item.classes()[0]);
     expect(metadataClasses).toEqual(['archived-sidebar__item-tag', 'archived-sidebar__item-date']);
+    expect(wrapper.get('.archived-sidebar__item-tag').text()).toBe('common.formatTete');
 
     wrapper.unmount();
   });
@@ -282,6 +283,7 @@ describe('Main and Tournament B archive behavior', () => {
         nameLower: record.name.toLowerCase(),
         date: record.date,
         system: 'swiss',
+        firstTeamPlayers: 2,
         ownerUid: 'foreign-owner',
         portalId: '42',
         tournamentIsFinished: true,
@@ -301,6 +303,7 @@ describe('Main and Tournament B archive behavior', () => {
     expect(foreign.find('.sidebar-action-row__save').exists()).toBe(false);
     expect(foreign.find('.archived-links__btn').exists()).toBe(true);
     expect(foreign.find('.archived-links__btn--secondary').exists()).toBe(false);
+    expect(foreign.get('.archived-sidebar__item-tag').text()).toBe('common.formatDoublette');
     expect(foreign.find('.btn-make-active').exists()).toBe(false);
     foreign.vm.onPortalIdInput({ target: { value: '99' } });
     await foreign.vm.savePortalId();

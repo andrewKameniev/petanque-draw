@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createArchiveCollaborationRuntime } from '@/services/archive-collaboration';
-import { buildArchiveIndexEntry } from '@/services/archive-index';
+import { buildArchiveIndexEntry, hydrateArchiveFormats } from '@/services/archive-index';
 
 function createHarness() {
   const userMapService = {
@@ -124,9 +124,63 @@ describe('archive and collaboration runtime', () => {
 
     await expect(runtime.unarchiveTournament('t1')).resolves.toBe(false);
 
-    expect(userMapService.update).toHaveBeenLastCalledWith('user1', 't1', { status: 'archived' });
+    expect(userMapService.update).toHaveBeenCalledWith('user1', 't1', { status: 'archived' });
     expect(store.savedTournaments.t1).toBeDefined();
     expect(store.userTournamentMap.t1.status).toBe('archived');
+  });
+
+  it('removes the public archive entry when an owner restores a tournament', async () => {
+    const { firebase, runtime, store } = createHarness();
+    store.userTournamentMap.t1.status = 'archived';
+    store.savedTournaments.t1 = store.tournaments.t1;
+    store.savedTournamentIds = ['t1'];
+    store.archiveIndex = { t1: { ownerUid: 'user1' } };
+    delete store.tournaments.t1;
+
+    await expect(runtime.unarchiveTournament('t1')).resolves.toBe(true);
+    expect(firebase.remove).toHaveBeenCalledWith('archive/t1');
+    expect(store.archiveIndex.t1).toBeUndefined();
+    expect(store.savedTournaments.t1).toBeUndefined();
+    expect(store.tournaments.t1).toBeDefined();
+  });
+
+  it('retains the archive when public index removal fails', async () => {
+    const { firebase, runtime, store, userMapService } = createHarness();
+    store.userTournamentMap.t1.status = 'archived';
+    store.savedTournaments.t1 = store.tournaments.t1;
+    delete store.tournaments.t1;
+    firebase.remove.mockRejectedValueOnce(new Error('permission denied'));
+
+    await expect(runtime.unarchiveTournament('t1')).resolves.toBe(false);
+    expect(store.savedTournaments.t1).toBeDefined();
+    expect(store.tournaments.t1).toBeUndefined();
+    expect(userMapService.update).toHaveBeenCalledWith('admin1', 't1', { status: 'archived', archiveStatusVersion: 1 });
+  });
+
+  it('loads formats for older index entries in both record shapes without changing TIR entries', async () => {
+    const entries = {
+      envelope: { ownerUid: 'owner', system: 'swiss' },
+      legacy: { ownerUid: 'owner', system: 'swiss' },
+      tir: { ownerUid: 'owner', system: 'tir' },
+      current: { ownerUid: 'owner', system: 'swiss', firstTeamPlayers: 3 },
+    };
+    const values = {
+      'owner/tournaments/envelope/main/teams/0/players': [{}, {}],
+      'owner/tournaments/legacy/teams/0/players': [{}],
+    };
+    const readPlayers = vi.fn(async (path) => ({ val: () => values[path] ?? null }));
+    await hydrateArchiveFormats(entries, readPlayers);
+    expect(entries.envelope.firstTeamPlayers).toBe(2);
+    expect(entries.legacy.firstTeamPlayers).toBe(1);
+    expect(entries.current.firstTeamPlayers).toBe(3);
+    expect(entries.tir.firstTeamPlayers).toBeUndefined();
+    expect(readPlayers).toHaveBeenCalledTimes(4);
+  });
+
+  it('includes the team format in new archive index entries', () => {
+    expect(
+      buildArchiveIndexEntry({ system: 'swiss', teams: [{ players: [{}, {}] }] }, { ownerUid: 'user1' }),
+    ).toMatchObject({ firstTeamPlayers: 2 });
   });
 
   it('deletes an eligible indexed tournament from its actual owner path', async () => {

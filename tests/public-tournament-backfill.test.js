@@ -107,21 +107,24 @@ function fakeRepository(initialOwners, hooks = {}) {
 }
 
 describe('public tournament backfill planning', () => {
-  it('reports an exact generated empty tournament as a placeholder candidate but still plans its projection', () => {
-    const canonicalRecord = defaultEmptyRecord();
-    const plan = planPublicTournamentBackfill({
-      ownerUid: 'owner-1',
-      tournamentId: '18',
-      canonicalRecord,
-      updatedAt: 123,
-    });
+  it.each([false, true])(
+    'reports an exact generated empty tournament with useRating=%s as a candidate',
+    (useRating) => {
+      const canonicalRecord = defaultEmptyRecord({ useRating });
+      const plan = planPublicTournamentBackfill({
+        ownerUid: 'owner-1',
+        tournamentId: '18',
+        canonicalRecord,
+        updatedAt: 123,
+      });
 
-    expect(isDefaultEmptyPublicTournamentCandidate(canonicalRecord)).toBe(true);
-    expect(plan).toMatchObject({
-      action: PUBLIC_TOURNAMENT_BACKFILL_ACTION.WRITE,
-      status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.MISSING,
-    });
-  });
+      expect(isDefaultEmptyPublicTournamentCandidate(canonicalRecord)).toBe(true);
+      expect(plan).toMatchObject({
+        action: PUBLIC_TOURNAMENT_BACKFILL_ACTION.WRITE,
+        status: PUBLIC_TOURNAMENT_BACKFILL_STATUS.MISSING,
+      });
+    },
+  );
 
   it('keeps configured, populated, TIR, and Group B records out of the placeholder diagnostic', () => {
     const withGroupB = defaultEmptyRecord();

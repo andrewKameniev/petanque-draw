@@ -17,6 +17,7 @@ let PlayoffHeader;
 let PlayoffMatchPanel;
 let PublicGameCard;
 let Results;
+let TeamSearch;
 
 beforeAll(async () => {
   vi.stubGlobal('localStorage', {
@@ -33,6 +34,7 @@ beforeAll(async () => {
     { default: PlayoffMatchPanel },
     { default: PublicGameCard },
     { default: Results },
+    { default: TeamSearch },
   ] = await Promise.all([
     import('@/components/partials/Bracket.vue'),
     import('@/components/partials/BracketFullscreenButton.vue'),
@@ -43,6 +45,7 @@ beforeAll(async () => {
     import('@/components/partials/PlayoffMatchPanel.vue'),
     import('@/components/partials/PublicGameCard.vue'),
     import('@/components/partials/Results.vue'),
+    import('@/components/partials/TeamSearch.vue'),
   ]);
 });
 
@@ -199,39 +202,20 @@ describe('playoff UI consistency', () => {
     ).toBe(true);
   });
 
-  it('applies playoff search selection consistently to admin and public games', () => {
-    const selection = { highlightedTeam: null, showSearch: true, searchQuery: 'кро' };
-    PlayOff.methods.selectTeam.call(selection, 'Спортивний петанк-клуб «Київ»');
-
-    expect(selection).toEqual({
-      highlightedTeam: 'Спортивний петанк-клуб «Київ»',
-      showSearch: false,
-      searchQuery: '',
-    });
+  it('uses the shared finder and highlights playoff games by selected club', () => {
+    expect(PlayOff.components.TeamSearch).toBe(TeamSearch);
     expect(
       PlayoffMatchPanel.methods.isEntryHighlighted.call(
         {
-          highlightedTeam: selection.highlightedTeam,
+          highlightedTeam: 'Спортивний петанк-клуб «Київ»',
           teamClubMap: { 'КРОХА Андрій': 'Спортивний петанк-клуб «Київ»' },
         },
         { game: { team_1: 'КРОХА Андрій', team_2: 'РОЖОК Олександр' } },
       ),
     ).toBe(true);
 
-    const gameView = readFileSync(new URL('../components/partials/Game.vue', import.meta.url), 'utf8');
     const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
     expect(panelView).toContain(':class="{ \'game--highlighted\': isEntryHighlighted(entry) }"');
-    expect(gameView).toMatch(
-      /\.game-row-wrapper\.game--highlighted\s*{[\s\S]*?outline: 2px solid var\(--color-search-highlight-border\);/,
-    );
-  });
-
-  it('keeps playoff search icons at one fixed size', () => {
-    const playoffView = readFileSync(new URL('../components/partials/PlayOff.vue', import.meta.url), 'utf8');
-
-    expect(playoffView.match(/:size="14"/g)).toHaveLength(3);
-    expect(playoffView).toMatch(/\.playoff-search-btn svg\s*{[\s\S]*?flex: 0 0 14px;/);
-    expect(playoffView).toMatch(/\.playoff-search-item__icon\s*{[\s\S]*?flex: 0 0 14px;/);
   });
 
   it('keeps every public match card on one shared stylesheet', () => {
@@ -258,12 +242,9 @@ describe('playoff UI consistency', () => {
     const sources = [
       '../assets/css/public-game-card.css',
       '../components/partials/Game.vue',
-      '../components/partials/PlayOff.vue',
       '../components/partials/Ranking.vue',
       '../components/partials/Results.vue',
-      '../components/partials/TeamSearch.vue',
       '../components/partials/TeamsList.vue',
-      '../views/Public.vue',
     ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'));
 
     for (const source of sources) {

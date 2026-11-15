@@ -39,8 +39,8 @@
 }
 
 .public-game-card.match-item--highlighted {
-  border-color: var(--color-search-highlight-border);
-  background: var(--color-search-highlight-bg) !important;
+  outline: 2px solid var(--color-search-highlight-border);
+  outline-offset: -2px;
 }
 
 .public-game-card .match-lane-left {
@@ -76,6 +76,11 @@
   color: var(--color-match-winner);
 }
 
+.public-game-card.match-item--highlighted .match-lane-left {
+  border-color: var(--color-search-highlight-border);
+  color: var(--color-search-highlight-text);
+}
+
 .public-game-card .match-team {
   min-width: 0;
   overflow: hidden;
@@ -93,13 +98,13 @@
   text-align: right;
 }
 
-.public-game-card .match-team--highlighted {
-  color: var(--color-search-highlight-text);
-}
-
 .public-game-card .match-team--winner {
   color: var(--color-match-winner) !important;
   font-weight: 700;
+}
+
+.public-game-card .match-team--highlighted {
+  font-weight: 800;
 }
 
 .public-game-card .match-vs {

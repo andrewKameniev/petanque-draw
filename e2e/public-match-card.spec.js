@@ -68,10 +68,17 @@ test.describe('Public match cards', () => {
       );
 
       const teamName = (await firstCard.locator('.match-team-right').textContent()).trim();
+      await publicPage.setViewportSize({ width: 360, height: 640 });
+      await publicPage.addStyleTag({ content: 'html { font-size: 150% !important; }' });
       await publicPage.locator('.team-search-btn').click();
-      await publicPage.locator('.team-search-input').fill(teamName.toLocaleLowerCase());
-      await publicPage.locator('.team-search-input').press('Enter');
+      const courtFinder = publicPage.getByRole('dialog');
+      await expect(courtFinder).toBeInViewport({ ratio: 1 });
+      const search = courtFinder.getByRole('searchbox');
+      await search.fill(teamName.toLocaleLowerCase());
+      await search.press('Enter');
+      await expect(courtFinder).toBeHidden();
       await expect(firstCard).toHaveClass(/match-item--highlighted/);
+      await expect(firstCard).toHaveCSS('outline-width', '2px');
 
       await page.locator('#team_0').fill('3');
       await page.locator('#opponent_0').fill('1');

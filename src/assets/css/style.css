@@ -21,6 +21,21 @@ body {
   outline: none;
 }
 
+/* Standalone single-selects share an inset arrow; Bulma supplies its own. */
+
+select:not(.select select, [multiple], [size]) {
+  appearance: none;
+  padding-inline-end: 2.5rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentcolor 50%),
+    linear-gradient(135deg, currentcolor 50%, transparent 50%);
+  background-position:
+    right 1.05rem center,
+    right 0.7rem center;
+  background-size: 0.35rem 0.35rem;
+  background-repeat: no-repeat;
+}
+
 .select:not(.is-multiple, .is-loading)::after {
   border-color: var(--color-text-secondary);
   border-width: 2px;

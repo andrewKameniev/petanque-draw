@@ -120,6 +120,7 @@ describe('Tournament B store actions', () => {
       expect(tB.teams).toHaveLength(2);
       expect(tB.teams[0].title).toBe('Team_1');
       expect(tB.system).toBe('swiss');
+      expect(tB.useRating).toBe(true);
       expect(tB.games).toEqual([]);
       expect(tB.preferences).toBeDefined();
     });

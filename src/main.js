@@ -166,7 +166,7 @@ router.beforeEach(async (to) => {
   }
 });
 
-const zoomableRoutes = ['Statistics', 'PublicStats', 'Training'];
+const zoomableRoutes = ['view', 'PublicSlug', 'Statistics', 'PublicStats', 'Training'];
 router.afterEach((to) => {
   const viewport = document.querySelector('meta[name="viewport"]');
   if (viewport) {

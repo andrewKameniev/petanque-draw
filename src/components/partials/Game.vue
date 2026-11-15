@@ -377,10 +377,9 @@ export default {
 </script>
 
 <style scoped>
-.game-row-wrapper.game--highlighted {
+.game-row-wrapper.game--highlighted:not(:has(.public-game-card)) {
   border-radius: 14px;
   outline: 2px solid var(--color-search-highlight-border);
-  box-shadow: 0 0 0 4px var(--color-search-highlight-bg);
 }
 
 .game-row.has-background-danger {

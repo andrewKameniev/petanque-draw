@@ -24,6 +24,7 @@ import { createArchiveCollaborationRuntime } from '@/services/archive-collaborat
 import { replaceTeamInCompetition, TeamReplacementError } from '@/services/team-replacement';
 import { isClubCompetition, ClubEncounterError, CLUB_ERROR } from '@/services/club-encounter';
 import { planClubCompetitionChange } from '@/services/club-competition';
+import { planTournamentBWithdrawal } from '@/services/tournament-b-withdrawal';
 
 export const SUPER_ADMIN_EMAIL = 'nemo15.alex@gmail.com';
 
@@ -230,6 +231,41 @@ export const useMainStore = defineStore('main', {
       if (team) {
         team.withdrawn = !team.withdrawn;
         this._syncPath(`${prefix}teams`, data.teams);
+      }
+    },
+    async withdrawTournamentBTeam(teamTitle) {
+      const { data, prefix, group } = this._getTarget();
+      if (
+        !this.user?.uid ||
+        !this.isOwnerOrAdmin ||
+        group !== 'B' ||
+        data?.system !== 'swiss' ||
+        data.tournamentIsFinished
+      )
+        return false;
+
+      const result = planTournamentBWithdrawal(data, teamTitle);
+      if (!result.changed) return false;
+
+      const previousTeams = data.teams;
+      const previousGames = data.games;
+      data.teams = result.teams;
+      data.games = result.games;
+      const updates = { [`${prefix}teams`]: data.teams };
+      if (result.technicalLossApplied) updates[`${prefix}games`] = data.games;
+
+      try {
+        await this._syncPaths(updates);
+        return true;
+      } catch {
+        data.teams = previousTeams;
+        data.games = previousGames;
+        this.showMessage({
+          title: i18n.global.t('messages.error'),
+          text: i18n.global.t('teams.withdrawTournamentBTeamError'),
+          type: 'error',
+        });
+        return false;
       }
     },
     _syncPath(path, data) {
@@ -480,6 +516,7 @@ export const useMainStore = defineStore('main', {
       }
     },
     removeTournament() {
+      if (this.currentRole !== 'owner') return;
       const db = getDatabase();
       const tournamentId = this.currentTournamentIndex;
       const tokensRef = ref(db, `tokens/${this.user.uid}/${tournamentId}`);
@@ -611,6 +648,18 @@ export const useMainStore = defineStore('main', {
     syncTirParticipants() {
       const { data, prefix } = this._getTarget();
       this._syncPath(`${prefix}tirParticipants`, data.tirParticipants);
+    },
+    syncTirScores(participantIds, scoreKey) {
+      if (!/^(scores2?|tiebreaker_[1-9]\d*)$/.test(scoreKey)) return Promise.resolve();
+      const { data, prefix } = this._getTarget();
+      const updates = {};
+      participantIds.forEach((id) => {
+        const index = data.tirParticipants?.findIndex((participant) => String(participant.id) === String(id)) ?? -1;
+        if (index >= 0 && data.tirParticipants[index][scoreKey] !== undefined) {
+          updates[`${prefix}tirParticipants/${index}/${scoreKey}`] = data.tirParticipants[index][scoreKey];
+        }
+      });
+      return this._syncPaths(updates);
     },
     syncTirState() {
       const { data, prefix } = this._getTarget();

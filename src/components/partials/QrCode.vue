@@ -45,24 +45,6 @@
           }}
         </button>
       </div>
-      <template v-if="!isTir">
-        <div class="qr-modal__divider"></div>
-        <h4 class="qr-modal__tv-title">
-          <Monitor :size="18" />
-          TV Dashboard
-        </h4>
-        <div class="qr-modal__link-box">
-          <a :href="tvLink" target="_blank" class="qr-modal__link">{{ tvLink }}</a>
-        </div>
-        <div class="qr-modal__actions">
-          <button class="button qr-modal__btn" :class="{ 'qr-modal__btn--copied': tvLinkCopied }" @click="copyTvLink">
-            <Check v-if="tvLinkCopied" :size="16" />
-            <Copy v-else :size="16" />
-            {{ tvLinkCopied ? $t('messages.success') : $t('remote.copyLink') }}
-          </button>
-        </div>
-      </template>
-
       <div class="qr-modal__divider"></div>
       <div class="qr-modal__collab-section">
         <button class="qr-modal__collab-toggle" @click="collabOpen = !collabOpen">
@@ -140,7 +122,6 @@ import { getTournamentMain, getTournamentMetadata } from '@/services/tournament-
 import {
   Copy,
   Check,
-  Monitor,
   Users,
   ChevronDown,
   UserPlus,
@@ -158,7 +139,6 @@ export default {
     QrcodeVue,
     Copy,
     Check,
-    Monitor,
     Users,
     ChevronDown,
     UserPlus,
@@ -172,7 +152,6 @@ export default {
     return {
       size: 300,
       linkCopied: false,
-      tvLinkCopied: false,
       portalLinkSending: false,
       portalLinkSent: false,
       collabOpen: false,
@@ -184,12 +163,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament', 'activeTournament']),
+    ...mapState(useMainStore, ['currentTournamentIndex', 'user', 'currentTournament']),
     tournament() {
       return this.currentTournament;
-    },
-    isTir() {
-      return (this.activeTournament || this.currentTournament)?.system === 'tir';
     },
     shortRef() {
       return encodeTournamentRef(this._getTournamentOwnerUid(), this.currentTournamentIndex);
@@ -197,10 +173,6 @@ export default {
     tournamentLink() {
       const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
       return `${window.location.origin}${domain}tournament?ref=${this.shortRef}`;
-    },
-    tvLink() {
-      const domain = import.meta.env.PROD ? '/petanque-draw/#/' : '/#/';
-      return `${window.location.origin}${domain}tv?ref=${this.shortRef}`;
     },
     portalTournamentId() {
       return getTournamentMetadata(this.tournament).portalIdTournament || '';
@@ -235,13 +207,6 @@ export default {
     },
     downloadQrSvg() {
       this.$refs.tournamentQr?.download(`tournament-${this.currentTournamentIndex}-qr.svg`);
-    },
-    copyTvLink() {
-      navigator.clipboard.writeText(this.tvLink);
-      this.tvLinkCopied = true;
-      setTimeout(() => {
-        this.tvLinkCopied = false;
-      }, 2000);
     },
     async sendPortalLink() {
       if (!this.canSendPortalLink || this.portalLinkSending || this.portalLinkSent) return;
@@ -407,17 +372,6 @@ export default {
   height: 1px;
   background: var(--color-qr-border);
   margin: 1.25rem 0;
-}
-
-.qr-modal__tv-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: var(--color-text);
 }
 
 .qr-modal__collab-section {

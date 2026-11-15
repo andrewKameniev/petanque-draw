@@ -39,7 +39,8 @@
 }
 
 .public-game-card.match-item--highlighted {
-  background: var(--color-primary-bg) !important;
+  border-color: var(--color-search-highlight-border);
+  background: var(--color-search-highlight-bg) !important;
 }
 
 .public-game-card .match-lane-left {
@@ -93,7 +94,7 @@
 }
 
 .public-game-card .match-team--highlighted {
-  color: var(--color-primary);
+  color: var(--color-search-highlight-text);
 }
 
 .public-game-card .match-team--winner {

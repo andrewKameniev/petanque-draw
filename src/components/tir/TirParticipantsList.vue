@@ -70,7 +70,7 @@
       :scoresKey="activeScoresKey"
       :readOnly="readOnly"
       @back="expanded = null"
-      @update="$emit('update', $event)"
+      @update="$emit('update', { participants: $event, scoreKey: activeScoresKey })"
       @next="goToNext"
     />
   </div>

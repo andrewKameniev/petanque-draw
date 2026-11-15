@@ -63,7 +63,7 @@
     </div>
     <div v-else class="tir-table__empty">{{ $t('tir.noParticipants') }}</div>
 
-    <div v-if="showTiebreaker" class="tir-tiebreaker">
+    <div v-if="canManage && showTiebreaker" class="tir-tiebreaker">
       <div class="tir-tiebreaker__header">
         <h4 class="tir-tiebreaker__title">{{ $t('tir.tiebreaker') }} {{ tiebreakerDisplayNumber }}</h4>
         <p class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerDesc') }}</p>
@@ -81,7 +81,7 @@
       <p v-else class="tir-tiebreaker__desc">{{ $t('tir.tiebreakerInProgress') }}</p>
     </div>
 
-    <div v-if="canTransitionToRound2 && !hasPlayoff" class="tir-table__actions">
+    <div v-if="canManage && canTransitionToRound2 && !hasPlayoff" class="tir-table__actions">
       <p class="tir-table__hint">{{ $t('tir.round2Hint') }}</p>
       <div class="tir-table__actions-row">
         <button class="tir-table__playoff-btn" @click="$emit('start-round-two')">
@@ -90,7 +90,7 @@
       </div>
     </div>
 
-    <div v-if="currentRound >= 2 && !hasPlayoff" class="tir-table__actions">
+    <div v-if="canManage && currentRound >= 2 && !hasPlayoff" class="tir-table__actions">
       <div class="tir-table__actions-row">
         <button class="tir-table__return-btn" @click="$emit('return-to-round-one')">
           {{ $t('tir.returnToRound1') }}
@@ -98,7 +98,7 @@
       </div>
     </div>
 
-    <div v-if="canStartPlayoff && !tournamentFinished && !hasPlayoff" class="tir-table__actions">
+    <div v-if="canManage && canStartPlayoff && !tournamentFinished && !hasPlayoff" class="tir-table__actions">
       <div v-if="!isTwoRoundSystem" class="tir-table__playoff-row">
         <span class="tir-table__playoff-label">{{ $t('tir.qualifiedForPlayoff') }}:</span>
         <div class="select">
@@ -116,7 +116,7 @@
       </div>
     </div>
     <div
-      v-else-if="!tournamentFinished && !hasPlayoff && participants.length && !canTransitionToRound2"
+      v-else-if="canManage && !tournamentFinished && !hasPlayoff && participants.length && !canTransitionToRound2"
       class="tir-table__actions"
     >
       <div class="tir-table__actions-row">
@@ -141,6 +141,7 @@ export default {
   name: 'TirRoundTable',
   components: { Download },
   props: {
+    canManage: { type: Boolean, default: true },
     participants: { type: Array, required: true },
     rows: { type: Array, required: true },
     rankedParticipants: { type: Array, required: true },

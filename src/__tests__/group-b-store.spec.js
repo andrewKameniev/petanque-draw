@@ -296,6 +296,76 @@ describe('Tournament B store actions', () => {
     });
   });
 
+  describe('withdrawTournamentBTeam', () => {
+    beforeEach(() => {
+      store.initTournamentB([
+        { title: 'B1', opponents: [] },
+        { title: 'B2', opponents: [] },
+      ]);
+      store.currentTournament.activeGroup = 'B';
+      store.activeTournament.games = [
+        [{ team_1: 'B1', team_1_score: null, team_2: 'B2', team_2_score: null, status: 'not_started' }],
+      ];
+      store.activeTournament.roundIsActive = true;
+    });
+
+    it('persists the withdrawn team and current technical result together', async () => {
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.withdrawTournamentBTeam('B1')).toBe(true);
+
+      expect(store.activeTournament.teams[0].withdrawn).toBe(true);
+      expect(store.activeTournament.games[0][0]).toMatchObject({
+        team_1_score: 7,
+        team_2_score: 13,
+        status: 'finished',
+        winner: 'B2',
+      });
+      expect(syncPaths).toHaveBeenCalledWith({
+        'tournamentB/teams': store.activeTournament.teams,
+        'tournamentB/games': store.activeTournament.games,
+      });
+    });
+
+    it('uses the legacy Group B prefix', async () => {
+      const id = store.currentTournamentIndex;
+      store.tournaments[id] = {
+        activeGroup: 'B',
+        system: 'swiss',
+        teams: [{ title: 'A1' }],
+        groupB: {
+          system: 'swiss',
+          teams: [{ title: 'B1' }, { title: 'B2' }],
+          games: [[{ team_1: 'B1', team_1_score: null, team_2: 'B2', team_2_score: null }]],
+          roundIsActive: true,
+          preferences: { technical: { technicalFirst: 13, technicalSecond: 7 } },
+        },
+      };
+      const syncPaths = vi.spyOn(store, '_syncPaths').mockResolvedValue();
+
+      expect(await store.withdrawTournamentBTeam('B2')).toBe(true);
+
+      expect(syncPaths).toHaveBeenCalledWith({
+        'groupB/teams': store.activeTournament.teams,
+        'groupB/games': store.activeTournament.games,
+      });
+    });
+
+    it('restores teams and games when the withdrawal cannot be persisted', async () => {
+      const previousTeams = store.activeTournament.teams;
+      const previousGames = store.activeTournament.games;
+      vi.spyOn(store, '_syncPaths').mockRejectedValue(new Error('network'));
+      const showMessage = vi.spyOn(store, 'showMessage').mockImplementation(() => undefined);
+
+      expect(await store.withdrawTournamentBTeam('B1')).toBe(false);
+
+      expect(store.activeTournament.teams).toBe(previousTeams);
+      expect(store.activeTournament.games).toBe(previousGames);
+      expect(store.activeTournament.teams[0].withdrawn).toBeUndefined();
+      expect(showMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    });
+  });
+
   describe('setTournamentBEliminationRound', () => {
     beforeEach(() => {
       store.initTournamentB([{ title: 'T1' }, { title: 'T2' }, { title: 'T3' }, { title: 'T4' }]);

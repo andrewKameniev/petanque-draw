@@ -1065,11 +1065,11 @@ export default {
 }
 
 .search-highlight td {
-  background: var(--color-primary-bg) !important;
+  background: var(--color-search-highlight-bg) !important;
 }
 
 .search-highlight td:first-child {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-search-highlight-border);
 }
 
 .place-gold td {

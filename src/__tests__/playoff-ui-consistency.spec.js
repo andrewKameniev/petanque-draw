@@ -222,7 +222,7 @@ describe('playoff UI consistency', () => {
     const panelView = readFileSync(new URL('../components/partials/PlayoffMatchPanel.vue', import.meta.url), 'utf8');
     expect(panelView).toContain(':class="{ \'game--highlighted\': isEntryHighlighted(entry) }"');
     expect(gameView).toMatch(
-      /\.game-row-wrapper\.game--highlighted\s*{[\s\S]*?outline: 2px solid var\(--color-primary\);/,
+      /\.game-row-wrapper\.game--highlighted\s*{[\s\S]*?outline: 2px solid var\(--color-search-highlight-border\);/,
     );
   });
 
@@ -252,5 +252,27 @@ describe('playoff UI consistency', () => {
     expect(Game.components.PublicGameCard).toBe(PublicGameCard);
     expect(cardStyles).toContain('.public-game-card .match-lane-left--finished');
     expect(cardStyles).not.toContain('background: var(--color-success)');
+  });
+
+  it('uses the semantic gold treatment for public player-search selections', () => {
+    const sources = [
+      '../assets/css/public-game-card.css',
+      '../components/partials/Game.vue',
+      '../components/partials/PlayOff.vue',
+      '../components/partials/Ranking.vue',
+      '../components/partials/Results.vue',
+      '../components/partials/TeamSearch.vue',
+      '../components/partials/TeamsList.vue',
+      '../views/Public.vue',
+    ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'));
+
+    for (const source of sources) {
+      expect(source).toContain('var(--color-search-highlight-');
+    }
+
+    const variables = readFileSync(new URL('../assets/css/variables.css', import.meta.url), 'utf8');
+    expect(variables.match(/--color-search-highlight-bg:/g)).toHaveLength(2);
+    expect(variables.match(/--color-search-highlight-border:/g)).toHaveLength(2);
+    expect(variables.match(/--color-search-highlight-text:/g)).toHaveLength(2);
   });
 });

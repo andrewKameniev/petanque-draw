@@ -540,12 +540,12 @@ export default {
     canWithdrawTeam(team) {
       return Boolean(
         !this.previewTournament &&
-          this.isOwnerOrAdmin &&
-          this.currentTournament?.activeGroup === 'B' &&
-          this.tournament.system === 'swiss' &&
-          !this.tournament.tournamentIsFinished &&
-          this.hasGamesStarted &&
-          !team.withdrawn,
+        this.isOwnerOrAdmin &&
+        this.currentTournament?.activeGroup === 'B' &&
+        this.tournament.system === 'swiss' &&
+        !this.tournament.tournamentIsFinished &&
+        this.hasGamesStarted &&
+        !team.withdrawn,
       );
     },
     withdrawTeam(teamTitle) {

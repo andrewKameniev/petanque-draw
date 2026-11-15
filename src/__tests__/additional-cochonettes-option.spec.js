@@ -36,9 +36,9 @@ function makeTournament() {
 }
 
 function getCochonettesSelect(wrapper) {
-  return wrapper.findAll('select').find((select) =>
-    select.findAll('option').some((option) => option.attributes('value') === '0'),
-  );
+  return wrapper
+    .findAll('select')
+    .find((select) => select.findAll('option').some((option) => option.attributes('value') === '0'));
 }
 
 describe('additional cochonettes setting', () => {

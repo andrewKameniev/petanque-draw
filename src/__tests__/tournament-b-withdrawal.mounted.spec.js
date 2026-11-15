@@ -42,7 +42,10 @@ describe('Tournament B withdrawal UI', () => {
   });
 
   it('offers a withdrawal button for active Tournament B teams', async () => {
-    store.initTournamentB([{ title: 'B team', opponents: [] }, { title: 'Opponent', opponents: [] }]);
+    store.initTournamentB([
+      { title: 'B team', opponents: [] },
+      { title: 'Opponent', opponents: [] },
+    ]);
     store.currentTournament.activeGroup = 'B';
     store.activeTournament.games = [
       [{ team_1: 'B team', team_1_score: null, team_2: 'Opponent', team_2_score: null, status: 'not_started' }],

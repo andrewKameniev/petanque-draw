@@ -19,10 +19,13 @@ Configuration options available before and during the tournament.
 
 | Setting         | Default | Purpose                                                                 |
 | --------------- | ------- | ----------------------------------------------------------------------- |
-| Use rating      | false   | Seeded first-round pairing and group distribution based on team ratings |
+| Use rating      | true    | Seeded first-round pairing and group distribution based on team ratings |
 | Technical score | 13:7    | Walkover result for bye rounds (winner:loser)                           |
 | Max score       | 13      | Game ends at this score                                                 |
 | Test tournament | false   | Mark as training (not counted in official records)                      |
+
+New tournaments start with rating enabled. Existing tournaments keep their saved
+setting. Older records without the setting load with rating disabled.
 
 ### Playoff Settings
 

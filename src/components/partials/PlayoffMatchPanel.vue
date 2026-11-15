@@ -91,8 +91,10 @@ export default {
 .playoff-match-panel__header {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem 1rem;
   min-height: 2rem;
   margin-bottom: 0.75rem;
 }
@@ -103,6 +105,10 @@ export default {
   text-align: center;
   font-size: 1.2rem;
   font-weight: 800;
+}
+
+.playoff-match-panel__header:has(.team-search-wrapper) {
+  justify-content: flex-start;
 }
 
 .playoff-match-panel__stage + .playoff-match-panel__stage {

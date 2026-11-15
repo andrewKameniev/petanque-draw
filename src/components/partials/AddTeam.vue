@@ -1,14 +1,19 @@
 <template>
   <div class="add-team-card">
-    <div class="add-team-card__row" v-if="!importHidden">
+    <div
+      v-if="!importHidden"
+      class="add-team-card__row add-team-card__row--portal"
+      :class="{ 'add-team-card__row--empty': !tournament.teams?.length }"
+    >
       <input
         v-model="tournamentId"
         class="add-team-card__input"
         type="number"
+        inputmode="numeric"
         min="1"
         data-testid="input-portal-id"
         :aria-label="$t('teams.tournamentId')"
-        :placeholder="$t('teams.tournamentId')"
+        :placeholder="$t('teams.tournamentIdShort')"
         :disabled="importing"
         @keydown.enter.prevent="importList"
       />
@@ -16,19 +21,27 @@
         type="button"
         class="add-team-card__btn add-team-card__btn--import"
         data-testid="btn-import-portal"
+        :aria-label="$t(importing ? 'teams.importing' : 'teams.importPortal')"
         :disabled="importing || !tournamentId"
         @click="importList"
       >
         <Download :size="16" aria-hidden="true" />
-        {{ $t(importing ? 'teams.importing' : 'teams.importPortal') }}
+        <span v-if="importing">{{ $t('teams.importing') }}</span>
+        <template v-else>
+          <span class="add-team-card__label--full">{{ $t('teams.importPortal') }}</span>
+          <span class="add-team-card__label--short">{{ $t('teams.importPortalShort') }}</span>
+        </template>
       </button>
       <button
-        v-if="tournament.teams && tournament.teams.length"
+        v-if="tournament.teams?.length"
+        type="button"
         class="add-team-card__btn add-team-card__btn--clear"
+        :aria-label="$t('teams.clearTeams')"
         @click="onClearTeams"
       >
-        <Trash2 :size="14" />
-        {{ $t('teams.clearTeams') }}
+        <Trash2 :size="14" aria-hidden="true" />
+        <span class="add-team-card__label--full">{{ $t('teams.clearTeams') }}</span>
+        <span class="add-team-card__label--short">{{ $t('teams.clearTeamsShort') }}</span>
       </button>
     </div>
     <div class="add-team-card__row">
@@ -51,16 +64,14 @@
       <button class="add-team-card__btn" data-testid="btn-add-team" @click="addTeam(teamTitle, teamRating)">
         {{ $t('teams.addTeam') }}
       </button>
-    </div>
-    <div class="add-team-card__footer">
-      <label class="add-team-card__checkbox">
-        <input type="checkbox" :checked="tournament.useRating" @change="changeDrawType($event.target.checked)" />
-        {{ $t('teams.useTeamRating') }}
-      </label>
-      <button v-if="showRestore" class="add-team-card__restore" @click="$emit('restore')">
+      <button v-if="showRestore" type="button" class="add-team-card__restore" @click="$emit('restore')">
         {{ $t('teams.restoreTeams') }}
       </button>
     </div>
+    <label class="add-team-card__checkbox">
+      <input type="checkbox" :checked="tournament.useRating" @change="changeDrawType($event.target.checked)" />
+      {{ $t('teams.useTeamRating') }}
+    </label>
   </div>
 </template>
 
@@ -255,12 +266,16 @@ export default {
   gap: 0.4rem;
 }
 
+.add-team-card__label--short {
+  display: none;
+}
+
 .add-team-card__btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-.add-team-card__btn--clear:hover {
+.add-team-card__btn--clear:hover:not(:disabled) {
   background: var(--color-danger, #e53e3e);
   border-color: var(--color-danger, #e53e3e);
   color: #fff;
@@ -269,13 +284,6 @@ export default {
 .add-team-card__btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.add-team-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
 }
 
 .add-team-card__checkbox {
@@ -324,9 +332,63 @@ export default {
 }
 
 @media (max-width: 480px) {
-  .add-team-card__btn--import {
-    width: 100%;
+  .add-team-card__row--portal {
+    align-items: stretch;
+    gap: 0.375rem;
+  }
+
+  .add-team-card__row--portal .add-team-card__input {
+    flex: 0 0 auto;
+    width: clamp(60px, 8ch, 78px);
+    padding-inline: 0.5rem;
+  }
+
+  .add-team-card__row--portal .add-team-card__btn {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 100%;
     justify-content: center;
+    padding-inline: 0.5rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .add-team-card__row--portal .add-team-card__btn svg {
+    flex-shrink: 0;
+  }
+
+  .add-team-card__row--empty .add-team-card__btn--import {
+    flex: 1 1 0;
+  }
+
+  .add-team-card__label--full {
+    display: none;
+  }
+
+  .add-team-card__label--short {
+    display: inline;
+  }
+
+  .add-team-card__row--empty .add-team-card__label--full {
+    display: inline;
+  }
+
+  .add-team-card__row--empty .add-team-card__label--short {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .add-team-card__row--portal {
+    gap: 0.25rem;
+  }
+
+  .add-team-card__row--portal .add-team-card__btn {
+    padding-inline: 0.375rem;
+  }
+
+  .add-team-card__row--portal .add-team-card__btn svg {
+    display: none;
   }
 }
 </style>

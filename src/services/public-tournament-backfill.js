@@ -36,7 +36,9 @@ export const PUBLIC_TOURNAMENT_BACKFILL_STATUS = Object.freeze({
 });
 
 const GENERATED_TOURNAMENT_NAME = /^Tournament [A-Z]$/;
-const DEFAULT_EMPTY_COMPETITION = getTournamentMain(normalizeTournamentRecord(createTournamentRecord()));
+const DEFAULT_EMPTY_COMPETITIONS = [createTournamentRecord(), createTournamentRecord({ useRating: false })].map(
+  (record) => getTournamentMain(normalizeTournamentRecord(record)),
+);
 const DEFAULT_EMPTY_METADATA_FIELDS = new Set(['id', 'name', 'createdAt', 'tournamentMessage']);
 
 export class PublicTournamentBackfillError extends Error {
@@ -126,7 +128,7 @@ export function isDefaultEmptyPublicTournamentCandidate(canonicalRecord) {
   );
   if (competition.isPlayOff === false) delete competition.isPlayOff;
 
-  return publicTournamentBackfillValuesEqual(competition, DEFAULT_EMPTY_COMPETITION);
+  return DEFAULT_EMPTY_COMPETITIONS.some((defaults) => publicTournamentBackfillValuesEqual(competition, defaults));
 }
 
 export function planPublicTournamentBackfill({

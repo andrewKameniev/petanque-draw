@@ -149,6 +149,19 @@ describe('application auth startup', () => {
     expect(startup.store.getTournaments).not.toHaveBeenCalled();
   });
 
+  it.each(['view', 'PublicSlug'])('allows pinch zoom on the %s tournament route', async (name) => {
+    await importStartup();
+    const viewport = { content: '' };
+    vi.stubGlobal('document', { querySelector: () => viewport });
+
+    try {
+      startup.afterHook({ name });
+      expect(viewport.content).toBe('width=device-width,initial-scale=1.0');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('keeps private navigation gated on auth and loads its requested tournament', async () => {
     await importStartup();
 

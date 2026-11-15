@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createTournamentRecord,
   getActiveTournamentGroup,
   getTournamentGroup,
   getTournamentMetadata,
@@ -50,6 +51,22 @@ const legacy = {
 };
 
 describe('canonical tournament record adapter', () => {
+  it('enables rated draws for new tournaments and honors explicit opt-outs', () => {
+    expect(createTournamentRecord().main.useRating).toBe(true);
+    expect(createTournamentRecord({ useRating: false }).main.useRating).toBe(false);
+  });
+
+  it('preserves persisted ratings and keeps rated draws off for old records without the setting', () => {
+    const envelope = normalizeTournamentRecord({ main: {}, tournamentB: { useRating: false } });
+    expect(envelope.main.useRating).toBe(false);
+    expect(envelope.tournamentB.useRating).toBe(false);
+    expect(normalizeTournamentRecord({ system: 'swiss' }).useRating).toBe(false);
+
+    const legacyWithRating = normalizeTournamentRecord({ ...legacy, useRating: true });
+    expect(legacyWithRating.useRating).toBe(true);
+    expect(legacyWithRating.groupB.useRating).toBe(true);
+  });
+
   it.each([
     ['new group A', wrapper, 'A', 'main/', 'A1'],
     ['new group B', wrapper, 'B', 'tournamentB/', 'B1'],

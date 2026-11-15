@@ -201,11 +201,12 @@
                   >{{ $t('common.round') }} {{ activeRound
                   }}<template v-if="groupTotalRoundsDisplay">/{{ groupTotalRoundsDisplay }}</template></span
                 >
-                <TeamSearch :teams="teamNames" :team-club-map="teamClubMap" v-model="highlightedTeam" />
-              </div>
-              <div v-if="highlightedTeam" class="search-filter-chip" @click="highlightedTeam = null">
-                <span>{{ highlightedTeam }}</span>
-                <X :size="14" />
+                <TeamSearch
+                  :teams="teamNames"
+                  :tournament-teams="activeTournamentView?.teams || []"
+                  :team-club-map="teamClubMap"
+                  v-model="highlightedTeam"
+                />
               </div>
               <RoundTimer
                 v-if="showPublicTimer"
@@ -337,7 +338,7 @@ import {
 import LanguageSwitcher from '@/components/partials/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/partials/ThemeSwitcher.vue';
 import Footer from '@/components/partials/Footer.vue';
-import { GitFork, X } from 'lucide-vue-next';
+import { GitFork } from 'lucide-vue-next';
 import TeamSearch from '@/components/partials/TeamSearch.vue';
 import RoundTimer from '@/components/partials/RoundTimer.vue';
 import GroupSwitcher from '@/components/partials/GroupSwitcher.vue';
@@ -375,7 +376,6 @@ export default {
     TeamsList,
     Results,
     Ranking,
-    X,
     TeamSearch,
     TirPublicView,
     RoundTimer,
@@ -758,27 +758,6 @@ export default {
   margin-top: 1rem;
 }
 
-.search-filter-chip {
-  display: flex;
-  align-items: center;
-  width: fit-content;
-  gap: 0.3rem;
-  padding: 0.25rem 0.6rem;
-  color: var(--color-search-highlight-text);
-  background: var(--color-search-highlight-bg);
-  border: 1px solid var(--color-search-highlight-border);
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin: -0.25rem auto 0.5rem;
-  transition: opacity 0.15s;
-}
-
-.search-filter-chip:hover {
-  opacity: 0.85;
-}
-
 .tournament-info-card {
   position: relative;
   border: 2px solid var(--color-primary);
@@ -933,18 +912,23 @@ export default {
 
 .round-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-primary);
+  gap: 0.5rem 1rem;
   margin-bottom: 0.75rem;
-  position: relative;
 }
 
-.round-header .team-search {
-  position: absolute;
-  right: 0;
+.round-header .team-search-wrapper {
+  margin-inline-start: auto;
+}
+
+.round-header > span {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .match-list {

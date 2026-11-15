@@ -11,7 +11,8 @@ the same V1 projection used by the live writer, estimates its size, and reports
 what would change.
 
 The report separately counts `defaultEmptyCandidates`: records that still match
-the normalized factory defaults, have an auto-generated `Tournament A`–`Z` name,
+the normalized factory defaults with either historical or current rating defaults,
+have an auto-generated `Tournament A`–`Z` name,
 have no Tournament B, and contain no deliberate metadata. Older application
 versions could create these empty records automatically, but there is no stored
 provenance flag that proves an individual record is unused. The marker is

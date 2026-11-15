@@ -183,7 +183,7 @@ snapshot.
   roundIsActive: false,         // Currently entering scores
   tournamentIsFinished: false,
   // Config
-  useRating: false,             // Use rating for first-round seeding
+  useRating: true,              // Use rating for first-round seeding
   supermelePlayers: 2,          // (supermele) 2 or 3
   preferences: {
     technical: {

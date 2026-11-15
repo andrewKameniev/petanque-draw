@@ -78,7 +78,7 @@ export function createTournamentData(overrides = {}) {
     teams: [],
     system: 'swiss',
     roundIsActive: false,
-    useRating: false,
+    useRating: true,
     playoff: false,
     isCadrage: false,
     supermelePlayers: 2,
@@ -235,6 +235,7 @@ function normalizeCompetition(data, { groupB = false, fallbackCompetition = null
       }
     : {};
   const normalized = createTournamentData({
+    useRating: false,
     ...fallbackConfig,
     ...(isObject(data) ? data : {}),
     preferences: {

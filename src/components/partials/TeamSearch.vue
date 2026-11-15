@@ -1,131 +1,205 @@
 <template>
-  <div class="team-search-wrapper" ref="wrapper">
+  <div class="team-search-wrapper">
     <button
+      ref="trigger"
+      type="button"
       class="team-search-btn"
-      @click="showSearch = !showSearch"
-      :class="{ 'team-search-btn--active': modelValue }"
+      :aria-label="modelValue ? `${modelValue} (${$t('teams.findCourt')})` : undefined"
+      aria-haspopup="dialog"
+      :aria-expanded="showSearch"
+      @click="openSearch"
     >
-      <Search :size="16" />
-      <UserRound :size="16" />
+      <Search :size="16" aria-hidden="true" />
+      <span>{{ clubLabels[modelValue] || modelValue || $t('teams.findCourt') }}</span>
     </button>
-    <div v-if="showSearch" class="team-search-popover">
-      <input
-        ref="searchInput"
-        v-model="searchQuery"
-        class="team-search-input"
-        :placeholder="$t('teams.searchTeam')"
-        @keydown.escape="showSearch = false"
-        @keydown.enter="applySearch"
-      />
-      <ul v-if="filteredClubs.length" class="team-search-list team-search-clubs">
-        <li
-          v-for="club in filteredClubs"
-          :key="'club-' + club"
-          class="team-search-item team-search-item--club"
-          :class="{ 'team-search-item--active': modelValue === club }"
-          @click="selectTeam(club)"
-        >
-          <Building2 :size="12" />
-          {{ club }}
-        </li>
-      </ul>
-      <ul class="team-search-list">
-        <li
-          v-for="team in filteredTeams"
-          :key="team"
-          class="team-search-item"
-          :class="{ 'team-search-item--active': isHighlighted(team) }"
-          @click="selectTeam(team)"
-        >
-          {{ team }}
-        </li>
-        <li v-if="!filteredTeams.length && !filteredClubs.length" class="team-search-empty">
+    <button
+      v-if="modelValue"
+      type="button"
+      class="team-search-clear"
+      :aria-label="$t('teams.clearCourtSearch', { name: modelValue })"
+      @click="clearSelection"
+    >
+      <X :size="16" aria-hidden="true" />
+    </button>
+    <dialog ref="dialog" class="team-search-dialog" :aria-label="$t('teams.findCourt')" @cancel.prevent="closeSearch">
+      <header class="team-search-header">
+        <h2>{{ $t('teams.findCourt') }}</h2>
+        <button type="button" class="team-search-close" :aria-label="$t('common.close')" autofocus @click="closeSearch">
+          <X :size="22" aria-hidden="true" />
+        </button>
+      </header>
+      <div v-if="showSearch" class="team-search-body">
+        <label class="team-search-field">
+          {{ $t('teams.courtSearchQuery') }}
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="team-search-input"
+            enterkeyhint="search"
+            @keydown.enter="applySearch"
+          />
+        </label>
+        <ul v-if="filteredClubs.length" class="team-search-list">
+          <li v-for="club in filteredClubs" :key="club">
+            <button
+              type="button"
+              class="team-search-item"
+              :aria-pressed="modelValue === club"
+              :aria-label="club"
+              :title="club"
+              @click="selectTeam(club)"
+            >
+              <img
+                v-if="clubLogos[club] && !failedLogos.includes(clubLogos[club])"
+                class="team-search-logo"
+                :src="clubLogos[club]"
+                alt=""
+                loading="lazy"
+                @error="failedLogos.push(clubLogos[club])"
+              />
+              <Building2 v-else :size="18" aria-hidden="true" />
+              <span>{{ clubLabels[club] }}</span>
+            </button>
+          </li>
+        </ul>
+        <ul v-if="filteredTeams.length" class="team-search-list">
+          <li v-for="team in filteredTeams" :key="team">
+            <button
+              type="button"
+              class="team-search-item"
+              :aria-pressed="modelValue === team"
+              @click="selectTeam(team)"
+            >
+              <span>{{ team }}</span>
+            </button>
+          </li>
+        </ul>
+        <p v-if="!filteredTeams.length && !filteredClubs.length" class="team-search-empty" role="status">
           {{ $t('teams.noResults') }}
-        </li>
-      </ul>
-    </div>
+        </p>
+      </div>
+    </dialog>
   </div>
 </template>
 
 <script>
-import { Search, UserRound, Building2 } from 'lucide-vue-next';
+import { Building2, Search, X } from 'lucide-vue-next';
 
 export default {
   name: 'TeamSearch',
-  components: { Search, UserRound, Building2 },
+  components: { Building2, Search, X },
   props: {
     teams: { type: Array, default: () => [] },
+    tournamentTeams: { type: Array, default: () => [] },
     teamClubMap: { type: Object, default: () => ({}) },
-    modelValue: { default: null },
+    modelValue: { type: String, default: null },
   },
   emits: ['update:modelValue'],
   data() {
     return {
       showSearch: false,
       searchQuery: '',
+      failedLogos: [],
     };
-  },
-  watch: {
-    showSearch(val) {
-      if (val) {
-        this.$nextTick(() => this.$refs.searchInput?.focus());
-        document.addEventListener('click', this._onClickOutside);
-      } else {
-        document.removeEventListener('click', this._onClickOutside);
-      }
-    },
-  },
-  created() {
-    this._onClickOutside = (e) => {
-      if (this.$refs.wrapper && !this.$refs.wrapper.contains(e.target)) {
-        this.showSearch = false;
-      }
-    };
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this._onClickOutside);
   },
   computed: {
+    query() {
+      return this.searchQuery.trim().toLowerCase();
+    },
     allClubs() {
-      const clubs = new Set();
-      Object.values(this.teamClubMap).forEach((c) => {
-        if (c) clubs.add(c);
-      });
-      return [...clubs].sort();
+      return [...new Set(Object.values(this.teamClubMap).filter(Boolean))].sort();
+    },
+    clubLabels() {
+      const labels = {};
+      const counts = new Map();
+      for (const club of this.allClubs) {
+        const label = this.shortClubName(club);
+        labels[club] = label;
+        counts.set(label.toLocaleLowerCase(), (counts.get(label.toLocaleLowerCase()) || 0) + 1);
+      }
+      for (const club of this.allClubs) {
+        if (counts.get(labels[club].toLocaleLowerCase()) > 1) labels[club] = club;
+      }
+      return labels;
+    },
+    clubLogos() {
+      const logos = {};
+      for (const team of this.tournamentTeams) {
+        for (const player of team.players || []) {
+          if (player.club && player.club_logo_url && !logos[player.club]) {
+            logos[player.club] = player.club_logo_url;
+          }
+        }
+      }
+      return logos;
     },
     filteredClubs() {
-      if (!this.searchQuery.trim()) return this.allClubs;
-      const q = this.searchQuery.toLowerCase();
-      return this.allClubs.filter((c) => c.toLowerCase().includes(q));
+      return this.allClubs.filter(
+        (club) => club.toLowerCase().includes(this.query) || this.clubLabels[club].toLowerCase().includes(this.query),
+      );
     },
     filteredTeams() {
-      if (!this.searchQuery.trim()) return this.teams;
-      const q = this.searchQuery.toLowerCase();
+      if (!this.query) return this.teams;
       return this.teams.filter(
-        (t) => t.toLowerCase().includes(q) || (this.teamClubMap[t] && this.teamClubMap[t].toLowerCase().includes(q)),
+        (team) => team.toLowerCase().includes(this.query) || this.teamClubMap[team]?.toLowerCase().includes(this.query),
       );
     },
   },
+  beforeUnmount() {
+    if (this.showSearch) this.closeSearch();
+  },
   methods: {
+    shortClubName(club) {
+      const short = club
+        .replace(/^\s*(?:громадська\s+організація|го)\s*/iu, '')
+        .replace(/^[\s«"„“]+/u, '')
+        .replace(/^(?:спортивний\s+)?(?:петанк[ -])?клуб\s*/iu, '')
+        .replace(/^[\s«"„“]+|[\s»"”]+$/gu, '')
+        .trim();
+      return short || club;
+    },
+    openSearch() {
+      this.searchQuery = '';
+      this.updateSearchViewport();
+      this.$refs.dialog.showModal();
+      this.showSearch = true;
+      window.visualViewport?.addEventListener('resize', this.updateSearchViewport);
+      window.visualViewport?.addEventListener('scroll', this.updateSearchViewport);
+    },
+    closeSearch() {
+      this.$refs.dialog.close();
+      this.showSearch = false;
+      window.visualViewport?.removeEventListener('resize', this.updateSearchViewport);
+      window.visualViewport?.removeEventListener('scroll', this.updateSearchViewport);
+      this.$refs.trigger.focus();
+    },
+    updateSearchViewport() {
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+      const { style } = this.$refs.dialog;
+      style.setProperty('--search-viewport-left', `${viewport.offsetLeft}px`);
+      style.setProperty('--search-viewport-top', `${viewport.offsetTop}px`);
+      style.setProperty('--search-viewport-width', `${viewport.width}px`);
+      style.setProperty('--search-viewport-height', `${viewport.height}px`);
+    },
+    clearSelection() {
+      this.$emit('update:modelValue', null);
+      this.$refs.trigger.focus();
+    },
     selectTeam(team) {
       this.$emit('update:modelValue', this.modelValue === team ? null : team);
-      this.showSearch = false;
-      this.searchQuery = '';
+      this.closeSearch();
     },
     applySearch() {
+      if (!this.query) return;
       if (this.filteredTeams.length === 1) {
         this.selectTeam(this.filteredTeams[0]);
       } else if (this.filteredClubs.length === 1 && !this.filteredTeams.length) {
         this.selectTeam(this.filteredClubs[0]);
-      } else if (this.searchQuery.trim()) {
+      } else if (this.filteredTeams.length || this.filteredClubs.length) {
         this.$emit('update:modelValue', this.searchQuery.trim());
-        this.showSearch = false;
+        this.closeSearch();
       }
-    },
-    isHighlighted(team) {
-      if (!this.modelValue) return false;
-      if (this.modelValue === team) return true;
-      return this.teamClubMap[team] === this.modelValue;
     },
   },
 };
@@ -133,129 +207,193 @@ export default {
 
 <style scoped>
 .team-search-wrapper {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-width: 0;
+  max-width: min(100%, 22rem);
+  border-radius: 999px;
+}
+
+.team-search-wrapper::before {
   position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 100;
+  z-index: -1;
+  inset: 7px 0;
+  border-radius: inherit;
+  border: 1px solid var(--color-border);
+  background: var(--color-primary-bg);
+  content: '';
+  pointer-events: none;
+}
+
+.team-search-btn,
+.team-search-clear,
+.team-search-close,
+.team-search-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.team-search-btn,
+.team-search-clear {
+  border: 0;
+  border-radius: inherit;
 }
 
 .team-search-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  width: 40px;
-  height: 24px;
+  gap: 0.375rem;
+  min-width: 0;
+  padding-inline: 0.625rem;
+  font-weight: 650;
+  text-align: start;
+}
+
+.team-search-clear {
   justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: var(--color-text-muted, #9ca3af);
-  color: white;
-  cursor: pointer;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  appearance: none;
+  flex: 0 0 48px;
+  padding: 0;
+  color: var(--color-text-secondary);
 }
 
-.team-search-btn svg {
-  width: 12px;
-  height: 12px;
+.team-search-wrapper:has(> button:hover)::before,
+.team-search-item[aria-pressed='true'] {
+  background: var(--color-primary-bg-hover);
 }
 
-.team-search-btn:hover {
-  background: var(--color-text-muted, #6b7280);
+.team-search-item[aria-pressed='true'] {
+  font-weight: 700;
 }
 
-.team-search-btn:focus,
-.team-search-btn:focus-visible,
-.team-search-btn:active {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  background: var(--color-text-muted, #6b7280);
+.team-search-wrapper svg {
+  flex-shrink: 0;
 }
 
-.team-search-btn--active {
-  color: var(--color-search-highlight-text);
-  background: var(--color-search-highlight-bg);
-  box-shadow: inset 0 0 0 1px var(--color-search-highlight-border);
+.team-search-wrapper :is(button, input):focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }
 
-.team-search-popover {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0.5rem;
-  width: 260px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
-  z-index: 100;
-  padding: 0.5rem;
+.team-search-dialog {
+  position: fixed;
+  inset: auto;
+  top: calc(var(--search-viewport-top, 0px) + var(--search-viewport-height, 100dvh) / 2);
+  left: calc(var(--search-viewport-left, 0px) + var(--search-viewport-width, 100vw) / 2);
+  transform: translate(-50%, -50%);
+  width: min(34rem, calc(var(--search-viewport-width, 100vw) - 1rem));
+  max-width: none;
+  max-height: min(42rem, calc(var(--search-viewport-height, 100dvh) - 1rem));
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-modal-bg);
+  color: var(--color-text);
+  box-shadow: 0 8px 24px var(--color-dropdown-shadow);
+  text-align: start;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.team-search-dialog::backdrop {
+  background: var(--color-overlay-bg);
+}
+
+.team-search-dialog[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.team-search-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.team-search-header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.team-search-close {
+  justify-content: center;
+  width: 48px;
+  padding: 0;
+  border-color: var(--color-border);
+}
+
+.team-search-body {
+  padding: 0.75rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 0.75rem;
+}
+
+.team-search-field {
+  display: grid;
+  gap: 0.25rem;
 }
 
 .team-search-input {
   width: 100%;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 6px;
-  font-size: 1rem;
-  outline: none;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #1a1a1a);
-}
-
-.team-search-input:focus {
-  border-color: var(--color-primary);
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-text-secondary);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
 }
 
 .team-search-list {
+  display: grid;
+  gap: 0.25rem;
   list-style: none;
-  margin: 0.4rem 0 0;
+  margin: 0.75rem 0 0;
   padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
+}
+
+.team-search-list + .team-search-list {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
 }
 
 .team-search-item {
-  padding: 0.35rem 0.6rem;
-  font-size: 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.1s;
+  width: 100%;
+  text-align: start;
 }
 
-.team-search-item:hover {
-  background: var(--color-surface-hover, #f3f4f6);
+.team-search-logo {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
-.team-search-item--active {
-  color: var(--color-search-highlight-text);
-  background: var(--color-search-highlight-bg);
-  box-shadow: inset 3px 0 0 var(--color-search-highlight-border);
-}
-
-.team-search-clubs {
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.2rem;
-}
-
-.team-search-item--club {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 500;
-}
-
-.team-search-item--club svg {
-  flex-shrink: 0;
+.team-search-item[aria-pressed='false']:hover,
+.team-search-close:hover {
+  background: var(--color-surface-hover);
 }
 
 .team-search-empty {
-  padding: 0.5rem 0.6rem;
-  font-size: 1rem;
-  color: var(--color-text-muted, #9ca3af);
+  margin: 0.75rem 0 0;
 }
 </style>

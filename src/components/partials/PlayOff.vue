@@ -65,7 +65,7 @@
             @update="onPanelUpdate"
           >
             <template #actions>
-              <div class="playoff-panel-actions">
+              <div v-if="showCourtFinder || (!isPublicView && isOwnerOrAdmin)" class="playoff-panel-actions">
                 <button
                   v-if="!isPublicView && isOwnerOrAdmin"
                   type="button"
@@ -79,53 +79,13 @@
                   <Shuffle :size="15" />
                   <span>{{ $t('games.shuffleLanes') }}</span>
                 </button>
-                <div class="playoff-search-wrapper">
-                  <button
-                    class="playoff-search-btn"
-                    :class="{ 'playoff-search-btn--active': highlightedTeam }"
-                    :aria-pressed="!!highlightedTeam"
-                    @click="showSearch = !showSearch"
-                  >
-                    <Search :size="14" />
-                    <UserRound :size="14" />
-                  </button>
-                  <div v-if="showSearch" class="playoff-search-popover">
-                    <input
-                      ref="searchInput"
-                      v-model="searchQuery"
-                      class="playoff-search-input"
-                      :placeholder="$t('teams.searchTeam')"
-                      @keydown.escape="showSearch = false"
-                      @keydown.enter="applySearch"
-                    />
-                    <ul v-if="filteredClubs.length" class="playoff-search-list playoff-search-clubs">
-                      <li
-                        v-for="club in filteredClubs"
-                        :key="'club-' + club"
-                        class="playoff-search-item playoff-search-item--club"
-                        :class="{ 'playoff-search-item--active': highlightedTeam === club }"
-                        @click="selectTeam(club)"
-                      >
-                        <Building2 class="playoff-search-item__icon" :size="14" />
-                        {{ club }}
-                      </li>
-                    </ul>
-                    <ul class="playoff-search-list">
-                      <li
-                        v-for="team in filteredTeams"
-                        :key="team"
-                        class="playoff-search-item"
-                        :class="{ 'playoff-search-item--active': isTeamHighlighted(team) }"
-                        @click="selectTeam(team)"
-                      >
-                        {{ team }}
-                      </li>
-                      <li v-if="!filteredTeams.length && !filteredClubs.length" class="playoff-search-empty">
-                        {{ $t('teams.noResults') }}
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                <TeamSearch
+                  v-if="showCourtFinder"
+                  v-model="highlightedTeam"
+                  :teams="allParticipants"
+                  :tournament-teams="tournament.teams || []"
+                  :team-club-map="teamClubMap"
+                />
               </div>
             </template>
           </PlayoffMatchPanel>
@@ -147,11 +107,12 @@ import { mapState, mapActions } from 'pinia';
 import { useMainStore } from '@/stores/main';
 import { isScoreError, shuffleArray, updateScoreHistory } from '@/helpers';
 import { assignPlayoffLanes, getShuffledPlayoffLaneOffsets } from '@/services/results';
-import { Search, UserRound, Building2, Shuffle } from 'lucide-vue-next';
+import { Shuffle } from 'lucide-vue-next';
 import RoundTimerControls from '@/components/ui/RoundTimerControls.vue';
 import FinishedBanner from '@/components/partials/FinishedBanner.vue';
 import PlayoffHeader from '@/components/partials/PlayoffHeader.vue';
 import PlayoffMatchPanel from '@/components/partials/PlayoffMatchPanel.vue';
+import TeamSearch from '@/components/partials/TeamSearch.vue';
 
 const Bracket = defineAsyncComponent(() => import('./Bracket.vue'));
 const DoubleElimination = defineAsyncComponent(() => import('./DoubleElimination.vue'));
@@ -163,21 +124,17 @@ export default {
   components: {
     DoubleElimination,
     Bracket,
-    Search,
-    UserRound,
-    Building2,
     Shuffle,
     FinishedBanner,
     RoundTimerControls,
     PlayoffHeader,
     PlayoffMatchPanel,
+    TeamSearch,
   },
   data() {
     return {
       scoreError: false,
       showBracket: false,
-      showSearch: false,
-      searchQuery: '',
       highlightedTeam: null,
     };
   },
@@ -185,25 +142,9 @@ export default {
     clubRoundReady() {
       this.scoreError = false;
     },
-    showSearch(val) {
-      if (val) {
-        this.$nextTick(() => this.$refs.searchInput?.focus());
-        document.addEventListener('click', this._onClickOutside);
-      } else {
-        document.removeEventListener('click', this._onClickOutside);
-      }
+    showCourtFinder(visible) {
+      if (!visible) this.highlightedTeam = null;
     },
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this._onClickOutside);
-  },
-  created() {
-    this._onClickOutside = (e) => {
-      const wrapper = this.$el?.querySelector('.playoff-search-wrapper');
-      if (wrapper && !wrapper.contains(e.target)) {
-        this.showSearch = false;
-      }
-    };
   },
   mounted() {
     if (!this.isPublicView && !this.tournament.playOffBracket && this.tournament.playOff?.length) {
@@ -218,6 +159,9 @@ export default {
     playOffStageCurrent() {
       if (this.tournament.playOffStage != null) return this.tournament.playOffStage;
       return this.tournament.playOff?.[0]?.stage ?? null;
+    },
+    showCourtFinder() {
+      return this.playOffStageCurrent === 'cadrage' || this.playOffStageCurrent > 2;
     },
     playOffBracket() {
       return this.tournament.playOffBracket ? this.tournament.playOffBracket : null;
@@ -256,25 +200,6 @@ export default {
         });
       });
       return [...teams].sort();
-    },
-    allClubs() {
-      const clubs = new Set();
-      Object.values(this.teamClubMap).forEach((c) => {
-        if (c) clubs.add(c);
-      });
-      return [...clubs].sort();
-    },
-    filteredClubs() {
-      if (!this.searchQuery.trim()) return this.allClubs;
-      const q = this.searchQuery.toLowerCase();
-      return this.allClubs.filter((c) => c.toLowerCase().includes(q));
-    },
-    filteredTeams() {
-      if (!this.searchQuery.trim()) return this.allParticipants;
-      const q = this.searchQuery.toLowerCase();
-      return this.allParticipants.filter(
-        (t) => t.toLowerCase().includes(q) || (this.teamClubMap[t] && this.teamClubMap[t].toLowerCase().includes(q)),
-      );
     },
     showTimerSection() {
       if (!this.tournament.preferences?.timeLimitEnabled) return false;
@@ -358,32 +283,6 @@ export default {
   },
   methods: {
     shuffleArray,
-    selectTeam(team) {
-      this.highlightedTeam = this.highlightedTeam === team ? null : team;
-      this.showSearch = false;
-      this.searchQuery = '';
-    },
-    applySearch() {
-      if (this.searchQuery.trim()) {
-        this.highlightedTeam = this.searchQuery.trim();
-        this.showSearch = false;
-      }
-    },
-    teamMatchesQuery(team, q) {
-      if (!team) return false;
-      return (
-        team.toLowerCase().includes(q) || (this.teamClubMap[team] && this.teamClubMap[team].toLowerCase().includes(q))
-      );
-    },
-    isTeamHighlighted(team) {
-      if (!this.highlightedTeam) return false;
-      return this.teamMatchesQuery(team, this.highlightedTeam.toLowerCase());
-    },
-    isGameHighlighted(game) {
-      if (!this.highlightedTeam) return false;
-      const q = this.highlightedTeam.toLowerCase();
-      return this.teamMatchesQuery(game.team_1, q) || this.teamMatchesQuery(game.team_2, q);
-    },
     onThirdPlaceUpdate() {
       const game = this.playOffBracket.thirdPlace;
       if (game) {
@@ -648,18 +547,13 @@ export default {
 }
 
 .playoff-panel-actions {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 0.45rem;
-  z-index: 100;
-}
-
-.playoff-search-wrapper {
-  position: relative;
+  gap: 0.5rem;
+  max-width: 100%;
+  margin-inline-start: auto;
 }
 
 .playoff-shuffle-btn {
@@ -685,128 +579,6 @@ export default {
 .playoff-shuffle-btn:disabled {
   cursor: not-allowed;
   opacity: 0.45;
-}
-
-.playoff-search-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  width: 40px;
-  height: 24px;
-  justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: var(--color-text-muted, #9ca3af);
-  color: white;
-  cursor: pointer;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  appearance: none;
-}
-
-.playoff-search-btn svg {
-  flex: 0 0 14px;
-  width: 14px;
-  height: 14px;
-}
-
-.playoff-search-btn:hover {
-  background: var(--color-text-muted, #6b7280);
-}
-
-.playoff-search-btn:focus,
-.playoff-search-btn:focus-visible,
-.playoff-search-btn:active {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  background: var(--color-text-muted, #6b7280);
-}
-
-.playoff-search-btn--active {
-  color: var(--color-search-highlight-text);
-  background: var(--color-search-highlight-bg);
-  box-shadow: inset 0 0 0 1px var(--color-search-highlight-border);
-}
-
-.playoff-search-popover {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0.5rem;
-  width: 260px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
-  z-index: 100;
-  padding: 0.5rem;
-}
-
-.playoff-search-input {
-  width: 100%;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 6px;
-  font-size: 1rem;
-  outline: none;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #1a1a1a);
-}
-
-.playoff-search-input:focus {
-  border-color: var(--color-primary);
-}
-
-.playoff-search-list {
-  list-style: none;
-  margin: 0.4rem 0 0;
-  padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.playoff-search-item {
-  padding: 0.35rem 0.6rem;
-  font-size: 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.playoff-search-item:hover {
-  background: var(--color-surface-hover, #f3f4f6);
-}
-
-.playoff-search-item--active {
-  color: var(--color-search-highlight-text);
-  background: var(--color-search-highlight-bg);
-  box-shadow: inset 3px 0 0 var(--color-search-highlight-border);
-}
-
-.playoff-search-clubs {
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.2rem;
-}
-
-.playoff-search-item--club {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 500;
-}
-
-.playoff-search-item__icon {
-  flex: 0 0 14px;
-  width: 14px;
-  height: 14px;
-}
-
-.playoff-search-empty {
-  padding: 0.5rem 0.6rem;
-  font-size: 1rem;
-  color: var(--color-text-muted, #9ca3af);
 }
 
 @media screen and (max-width: 768px) {

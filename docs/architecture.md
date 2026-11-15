@@ -71,6 +71,12 @@ service/runtime boundary, not be duplicated in components.
    parent-to-field handoff rather than using Public's dynamic listener plan.
 7. Shared presentation selectors feed page components and UI primitives.
 
+Regular rounds and early single-elimination rounds share the **Find a court**
+dialog. The finder is hidden in semifinals and finals. Selecting a participant
+or club outlines matching games so spectators can read their court numbers.
+The finder shows the selection with a clear button. Public tournament links
+support pinch zoom.
+
 Authenticated public-field mutations flow in the opposite direction:
 components delegate to `tournament-sync.js` or an archive runtime, and the
 projection service builds one root multi-path update for canonical and public

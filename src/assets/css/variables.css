@@ -174,7 +174,8 @@
   --color-badge-bronze-bg: var(--bronze-1);
   --color-badge-bronze-border: var(--bronze-3);
   --color-search-highlight-bg: var(--gold-1);
-  --color-search-highlight-border: var(--gold-3);
+  --color-search-highlight-border: var(--amber-700);
+  --color-search-highlight-match-border: var(--color-primary);
   --color-search-highlight-text: var(--grey-1150);
 
   /* Bracket */
@@ -355,6 +356,7 @@
   --color-badge-bronze-border: #e0924a;
   --color-search-highlight-bg: var(--color-badge-gold-bg);
   --color-search-highlight-border: var(--color-badge-gold-border);
+  --color-search-highlight-match-border: var(--color-primary);
   --color-search-highlight-text: var(--grey-0);
 
   /* Bracket */

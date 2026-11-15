@@ -45,6 +45,28 @@ export const archiveBackupService = {
   },
 };
 
+// Older index entries predate the format field. Read only the first team's
+// players from both supported record shapes; never rewrite historical entries.
+export async function hydrateArchiveFormats(entries, readPlayers = (path) => get(ref(db, path))) {
+  await Promise.all(
+    Object.entries(entries).map(async ([id, entry]) => {
+      if (entry.system === 'tir' || entry.firstTeamPlayers != null || !entry.ownerUid) return;
+      try {
+        const base = `${entry.ownerUid}/tournaments/${id}`;
+        const [main, legacy] = await Promise.all([
+          readPlayers(`${base}/main/teams/0/players`),
+          readPlayers(`${base}/teams/0/players`),
+        ]);
+        const players = main.val() ?? legacy.val();
+        if (players) entry.firstTeamPlayers = Array.isArray(players) ? players.length : Object.keys(players).length;
+      } catch (error) {
+        console.warn('[Archive] Could not load tournament format:', error);
+      }
+    }),
+  );
+  return entries;
+}
+
 export function buildArchiveIndexEntry(tournament, { ownerUid }) {
   const main = getTournamentMain(tournament);
   const metadata = getTournamentMetadata(tournament);
@@ -56,6 +78,7 @@ export function buildArchiveIndexEntry(tournament, { ownerUid }) {
     nameLower: name.toLowerCase(),
     date,
     system: main?.system || null,
+    firstTeamPlayers: main?.teams?.[0]?.players?.length || 0,
     teamsCount: main?.teams?.length || main?.tirParticipants?.length || 0,
     roundsPlayed: main?.games?.length || 0,
     ownerUid,

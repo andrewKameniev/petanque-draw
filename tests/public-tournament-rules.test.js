@@ -182,6 +182,15 @@ describeWithDatabaseEmulator('public tournament projection rules', () => {
     await assertFails(writeProjection(databaseFor('scorer-1'), 'owner-1', 'collaborated', projection({ revision: 9 })));
   });
 
+  it('allows owners to remove their archive index entry, including when it is absent', async () => {
+    await seed('owner-1/tournaments/archived', { name: 'Cup' });
+    await seed('owner-1/tournaments/missing', { name: 'Private cup' });
+    await seed('archive/archived', { ownerUid: 'owner-1', portalId: '42', visibility: 'public' });
+    await assertFails(remove(ref(databaseFor('stranger-1'), 'archive/archived')));
+    await assertSucceeds(remove(ref(databaseFor('owner-1'), 'archive/archived')));
+    await assertSucceeds(remove(ref(databaseFor('owner-1'), 'archive/missing')));
+  });
+
   it('allows projection deletion by the owner and archive superadmin only', async () => {
     await seed('publicTournaments/owner-1/owned', projection());
     await seed('publicTournaments/owner-1/archived', projection());

@@ -358,9 +358,12 @@ export const useMainStore = defineStore('main', {
       return getArchiveCollaborationRuntime(this).fetchSavedTournaments();
     },
     async fetchArchiveIndex() {
-      const { archiveIndexService } = await import('@/services/archive-index');
+      const { archiveIndexService, hydrateArchiveFormats } = await import('@/services/archive-index');
+      const userUid = this.user?.uid;
       const snapshot = await archiveIndexService.getAll({ includeLegacy: this.isSuperAdmin });
-      this.archiveIndex = snapshot.exists() ? snapshot.val() : {};
+      const entries = await hydrateArchiveFormats(snapshot.exists() ? snapshot.val() : {});
+      if (this.user?.uid !== userUid) return entries;
+      this.archiveIndex = entries;
       return this.archiveIndex;
     },
     savePreferences() {

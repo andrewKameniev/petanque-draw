@@ -170,7 +170,7 @@ normal separately authorized deployment before remote enforcement changes.
 
 Archiving changes the user-map status while retaining the authoritative
 tournament record. Eligible finished portal tournaments may also receive a
-public `archive/` index entry and a write-once `backups/` payload. The old
+public `archive/` index entry and a write-once `backups/` payload. Restoring an owned tournament removes its public index entry; newly indexed entries include the first team’s player count for localized format display. For older index entries, the All archive list reads the first team’s players from the canonical record to determine the format without rewriting the index. The old
 `saved/` tree is a compatibility source, not the current archive destination.
 
 ## Manual legacy tournament conversion

@@ -305,6 +305,7 @@ describe('Main and Tournament B archive behavior', () => {
     expect(foreign.find('.archived-links__btn--secondary').exists()).toBe(false);
     expect(foreign.get('.archived-sidebar__item-tag').text()).toBe('common.formatDoublette');
     expect(foreign.find('.btn-make-active').exists()).toBe(false);
+    expect(foreign.get('.tournament-selector__name').text()).toBe(record.name);
     foreign.vm.onPortalIdInput({ target: { value: '99' } });
     await foreign.vm.savePortalId();
     expect(serviceMocks.updatePath).not.toHaveBeenCalled();
@@ -339,6 +340,33 @@ describe('Main and Tournament B archive behavior', () => {
     expect(superAdmin.find('.sidebar-action-row__db-id').exists()).toBe(true);
     expect(superAdmin.find('.btn-remove-archived').exists()).toBe(true);
     superAdmin.unmount();
+  });
+
+  it('uses the archive index name for a record with a blank title, then labels genuinely unnamed records', () => {
+    const record = { ...tournamentRecord(), name: ' ' };
+    const indexEntry = {
+      name: 'Name from archive index',
+      ownerUid: 'foreign-owner',
+      portalId: '42',
+      tournamentIsFinished: true,
+    };
+    const options = {
+      role: null,
+      savedTournaments: {},
+      showAllUsers: true,
+    };
+    const indexed = shallowMount(
+      archivedHarness(record, { ...options, archiveIndex: { [record.id]: indexEntry } }),
+      mountOptions({ PublicPageShell: false }),
+    );
+
+    expect(indexed.get('.tournament-selector__name').text()).toBe(indexEntry.name);
+    indexed.unmount();
+
+    const unnamed = shallowMount(archivedHarness(record), mountOptions({ PublicPageShell: false }));
+    expect(unnamed.get('.tournament-selector__name').text()).toBe('common.untitledTournament');
+    expect(unnamed.get('.archived-sidebar__item-name').text()).toBe('common.untitledTournament');
+    unnamed.unmount();
   });
 
   it('gates archived standard and TIR protocols for everyone except the superuser', async () => {

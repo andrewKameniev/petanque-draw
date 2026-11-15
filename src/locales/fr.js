@@ -522,6 +522,7 @@ export default {
     settings: 'Paramètres',
     saved: 'Tournois enregistrés',
     archivedTournaments: 'Tournois archivés',
+    untitledTournament: 'Tournoi sans nom',
     showAll: 'Tout afficher',
     mine: 'Les miens',
     all: 'Tous',

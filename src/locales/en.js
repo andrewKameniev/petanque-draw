@@ -525,6 +525,7 @@ export default {
     settings: 'Settings',
     saved: 'Saved tournaments',
     archivedTournaments: 'Archived tournaments',
+    untitledTournament: 'Untitled tournament',
     showAll: 'Show all',
     mine: 'Mine',
     all: 'All',

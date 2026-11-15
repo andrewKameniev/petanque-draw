@@ -527,6 +527,7 @@ export default {
     settings: 'Налаштування',
     saved: 'Збережені турніри',
     archivedTournaments: 'Архів турнірів',
+    untitledTournament: 'Турнір без назви',
     showAll: 'Показати всі',
     mine: 'Мої',
     all: 'Всі',

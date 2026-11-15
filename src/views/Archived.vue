@@ -61,7 +61,9 @@
                 :class="{ 'archived-sidebar__item--active': key === activeKey }"
                 @click="selectTournament(key)"
               >
-                <span class="archived-sidebar__item-name">{{ getRecordMetadata(item).name }}</span>
+                <span class="archived-sidebar__item-name">{{
+                  getArchiveName(key, item) || $t('common.untitledTournament')
+                }}</span>
                 <span class="archived-sidebar__item-meta">
                   <span v-if="getFormatTag(item)" class="archived-sidebar__item-tag">{{ getFormatTag(item) }}</span>
                   <span v-if="formatDate(getRecordMetadata(item).date)" class="archived-sidebar__item-date">{{
@@ -242,44 +244,46 @@
             </div>
           </div>
           <div
-            v-else-if="activeKey && savedTournaments[activeKey]"
+            v-else-if="activeKey && (tournament || savedTournaments[activeKey] || archiveIndex?.[activeKey])"
             class="tournament-selector"
             @click="selectorOpen = !selectorOpen"
             v-click-outside="closeSelector"
           >
-            <template v-if="editingName">
+            <div class="tournament-selector__heading">
               <input
+                v-if="editingName"
                 ref="nameInput"
                 class="tournament-selector__input"
-                :value="savedTournaments[activeKey].name"
+                :value="activeTournamentName"
                 @click.stop
                 @keyup.enter="saveName($event.target.value)"
                 @keyup.escape="editingName = false"
                 @blur="saveName($event.target.value)"
               />
-            </template>
-            <template v-else>
-              <span class="tournament-selector__name">{{ savedTournaments[activeKey].name }}</span>
-              <button
-                v-if="isSuperAdmin"
-                type="button"
-                class="tournament-selector__edit"
-                :aria-label="$t('common.edit')"
-                :title="$t('common.edit')"
-                @click.stop="startEditName"
+              <template v-else>
+                <h1 class="tournament-selector__name">{{ activeTournamentName || $t('common.untitledTournament') }}</h1>
+                <button
+                  v-if="canEditArchivedName"
+                  type="button"
+                  class="tournament-selector__edit"
+                  :aria-label="$t('common.edit')"
+                  :title="$t('common.edit')"
+                  @click.stop="startEditName"
+                >
+                  <Pencil :size="16" aria-hidden="true" />
+                </button>
+              </template>
+              <svg
+                class="tournament-selector__arrow tournament-selector__arrow--mobile"
+                :class="{ 'tournament-selector__arrow--open': selectorOpen }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                <Pencil :size="16" aria-hidden="true" />
-              </button>
-            </template>
-            <svg
-              class="tournament-selector__arrow tournament-selector__arrow--mobile"
-              :class="{ 'tournament-selector__arrow--open': selectorOpen }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
             <div class="tournament-selector__mobile-actions">
               <button v-if="isActiveOwner" class="button btn-make-active" @click.stop="makeActive">
                 <ArchiveRestore :size="16" />
@@ -299,7 +303,7 @@
                 :key="key"
                 @click.prevent.stop="selectTournament(key)"
               >
-                {{ item.name }}
+                {{ getArchiveName(key, item) || $t('common.untitledTournament') }}
                 <span v-if="getFormatTag(item)" class="tournament-selector__tag">{{ getFormatTag(item) }}</span>
               </a>
             </div>
@@ -675,6 +679,12 @@ export default {
     tournamentMetadata() {
       return getTournamentMetadata(this.tournament, { id: this.activeKey });
     },
+    activeTournamentName() {
+      return this.getArchiveName(this.activeKey, this.tournament);
+    },
+    canEditArchivedName() {
+      return this.isSuperAdmin && !!this.savedTournaments[this.activeKey];
+    },
     activeMapEntry() {
       return this.userTournamentMap?.[this.activeKey] || null;
     },
@@ -868,8 +878,17 @@ export default {
       'showMessage',
     ]),
     getRecordMetadata(record) {
-      if (record.nameLower !== undefined) return record;
+      if (record?.nameLower !== undefined) return record;
       return getTournamentMetadata(record);
+    },
+    getArchiveName(key, record) {
+      const names = [
+        this.getRecordMetadata(record).name,
+        getTournamentMetadata(this.savedTournaments[key]).name,
+        this.archiveIndex?.[key]?.name,
+        this.userTournamentMap?.[key]?.name,
+      ];
+      return names.find((name) => typeof name === 'string' && name.trim())?.trim() || '';
     },
     getFormatTag(item) {
       if (item.nameLower !== undefined) {
@@ -954,7 +973,7 @@ export default {
       this.selectorOpen = false;
     },
     startEditName() {
-      if (!this.isSuperAdmin) return;
+      if (!this.canEditArchivedName) return;
       this.selectorOpen = false;
       this.editingName = true;
       this.$nextTick(() => {
@@ -963,9 +982,8 @@ export default {
       });
     },
     saveName(value) {
-      if (!this.isSuperAdmin) return;
       const name = value.trim();
-      if (name && name !== this.savedTournaments[this.activeKey].name) {
+      if (this.editingName && this.canEditArchivedName && name && name !== this.activeTournamentName) {
         this.renameSavedTournament(this.activeKey, name, this.activeOwnerUid);
       }
       this.editingName = false;
@@ -1166,8 +1184,23 @@ export default {
   padding-top: 0.25rem;
 }
 
+.tournament-selector__heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.5rem;
+}
+
+.tournament-selector__name,
+.tournament-selector__input {
+  min-width: 0;
+  font-size: 1.75rem;
+}
+
 .tournament-selector__name {
-  font-size: 2rem;
+  margin: 0;
+  overflow-wrap: anywhere;
   font-weight: 800;
   color: var(--color-text);
   text-align: center;
@@ -1197,7 +1230,6 @@ export default {
 }
 
 .tournament-selector__input {
-  font-size: 2rem;
   font-weight: 800;
   color: var(--color-text);
   text-align: center;
@@ -1207,14 +1239,6 @@ export default {
   background: transparent;
   outline: none;
   width: 100%;
-  min-width: 200px;
-}
-
-@media screen and (max-width: 768px) {
-  .tournament-selector__input {
-    font-size: 1.2rem;
-    min-width: 0;
-  }
 }
 
 .tournament-selector__arrow {
@@ -1308,8 +1332,9 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-  .tournament-selector__name {
-    font-size: 1.4rem;
+  .tournament-selector__name,
+  .tournament-selector__input {
+    font-size: 1.25rem;
   }
 
   .tournament-selector__arrow {
@@ -2092,6 +2117,10 @@ export default {
     justify-content: flex-start;
     padding: 0.75rem 0;
     margin: 0;
+  }
+
+  .tournament-selector__name {
+    text-align: left;
   }
 
   .tournament-selector__mobile-actions {

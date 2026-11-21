@@ -35,3 +35,8 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Publish deployed app version to Firebase
+        run: npm run publish:app-version
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_DATABASE_URL: https://petanque-draw-default-rtdb.europe-west1.firebasedatabase.app

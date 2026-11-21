@@ -16,8 +16,10 @@ const CustomRoutes = () => import('@/views/CustomRoutes.vue');
 import i18n, { loadLocaleModule } from '@/i18n';
 import { useMainStore } from '@/stores/main';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/firebase';
+import { auth, database } from '@/firebase';
 import { encodeTournamentRef } from '@/services/tournament-ref';
+import { startAppVersionMonitor } from '@/services/app-version';
+import { version } from '../package.json';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -177,3 +179,16 @@ router.afterEach((to) => {
 });
 
 app.mount('#app');
+
+if (import.meta.env.PROD) {
+  startAppVersionMonitor({
+    database,
+    currentVersion: version,
+    alreadyRequestedVersion: new window.URL(window.location.href).searchParams.get('appVersion'),
+    reload(newVersion) {
+      const url = new window.URL(window.location.href);
+      url.searchParams.set('appVersion', newVersion);
+      window.location.replace(url.href);
+    },
+  });
+}

@@ -38,6 +38,7 @@ Search these owners before creating another implementation.
 | Archive, collaboration, and archive index behavior                                | `src/services/archive-collaboration.js`, `src/services/archive-index.js` |
 | Portal transport and player-field synchronization                                 | `src/services/portal.js`, `src/services/portal-sync.js`                  |
 | Reactive application façade and UI notifications                                  | `src/stores/main.js`                                                     |
+| Deployed app version subscription and refresh policy                              | `src/services/app-version.js`                                            |
 | Low-level Firebase CRUD adapters                                                  | `src/services/db.js`                                                     |
 
 The owner list is a router, not a complete inventory. Update it when responsibility moves.

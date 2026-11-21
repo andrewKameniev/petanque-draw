@@ -1,5 +1,11 @@
 {
   "rules": {
+    "appMeta": {
+      "version": {
+        ".read": true,
+        ".write": false
+      }
+    },
     "$uid": {
       ".read": "auth.uid === $uid",
 

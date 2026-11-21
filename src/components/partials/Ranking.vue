@@ -1202,10 +1202,12 @@ export default {
   color: var(--color-text);
   line-height: 1.5;
   margin-bottom: 1.25rem;
+  padding-right: 2.5rem;
 }
 
 .confirm-export__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: flex-end;
 }
